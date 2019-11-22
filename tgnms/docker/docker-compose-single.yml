@@ -325,10 +325,54 @@ services:
               "--web.console.libraries=/usr/share/prometheus/console_libraries",
               "--web.console.templates=/usr/share/prometheus/consoles",
               "--web.external-url=https://prometheus/prometheus/",
-              "--web.route-prefix=/"]
+              "--web.route-prefix=/",
+              "--web.enable-lifecycle"]
     depends_on:
       - ipv6
       - cadvisor
+
+  alertmanager:
+    image: prom/alertmanager
+    env_file:
+     - ./env/prometheus.env
+    restart: unless-stopped
+    ports:
+     - 9093
+    networks:
+     - terragraph_net
+    volumes:
+     - ./docker_volumes/prometheus/config:/etc/prometheus:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    command: ["--config.file=/etc/prometheus/alertmanager.yml"]
+    depends_on:
+     - ipv6
+     - prometheus
+
+  prometheus_config_manager:
+    image: secure.cxl-terragraph.com:443/prometheus_config_manager:latest
+    env_file:
+     - ./env/prometheus.env
+     - ./env/prom_config_manager.env
+    restart: unless-stopped
+    ports:
+     - 9100
+     - 9101
+    networks:
+     - terragraph_net
+    volumes:
+     - ./docker_volumes/prometheus/config:/etc/configs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    depends_on:
+     - ipv6
+     - prometheus
 
   grafana:
     image: secure.cxl-terragraph.com:443/tgnms-grafana:latest

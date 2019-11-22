@@ -104,6 +104,7 @@
         - terragraph/docker_volumes/nginx/services.d
         - terragraph/docker_volumes/prometheus
         - terragraph/docker_volumes/prometheus/config
+        - terragraph/docker_volumes/prometheus/config/alert_rules
         - terragraph/mysql_init_scripts
         - terragraph/scripts
 
@@ -150,6 +151,7 @@
         - nginx/services.d/grafana.conf
         - nginx/services.d/nms.conf
         - nginx/services.d/prometheus.conf
+        - prometheus/config/alertmanager.yml
         - prometheus/config/prometheus.yml
 
     - name: copy environment configs
