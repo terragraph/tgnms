@@ -122,6 +122,7 @@ bool PrometheusUtils::writeNodeStats(
   std::vector<Metric> metricList{};
   auto metricCacheInstance = MetricCache::getInstance();
   // loop over input metric list
+  int droppedMetrics = 0;
   for (const auto& stat : statQueue) {
     std::string macAddr = StatsUtils::toLowerCase(stat.entity);
     // lookup meta-data for node
@@ -129,6 +130,7 @@ bool PrometheusUtils::writeNodeStats(
     if (!nodeInfo) {
       VLOG(2) << "No meta-data for MAC: " << macAddr
               << ", dropping stats request";
+      droppedMetrics++;
       continue;
     }
     std::string keyName = StatsUtils::toLowerCase(stat.key);
@@ -179,6 +181,8 @@ bool PrometheusUtils::writeNodeStats(
     metricList.emplace_back(Metric(
         prometheusKeyName, stat.timestamp * 1000, labelTags, stat.value));
   }
+  VLOG(1) << "Dropped " << droppedMetrics << "/" << statQueue.size()
+          << " stats from missing meta-data.";
   return enqueueMetrics(intervalSec, metricList);
 }
 

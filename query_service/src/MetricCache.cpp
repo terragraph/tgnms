@@ -77,7 +77,6 @@ MetricCache::getNodeMetricCache(const std::string& macAddr) {
 
 void MetricCache::updateMetricNames(const thrift::Topology& request) {
   std::map<std::string /* node name */, thrift::Node> nodesByName;
-
   if (request.nodes.empty()) {
     LOG(ERROR) << "No nodes in topology, failing request";
     return;
@@ -92,6 +91,7 @@ void MetricCache::updateMetricNames(const thrift::Topology& request) {
     {
       auto nodeByMacLock = nodeByMac_.wlock();
       // record the topology name + node struct
+      VLOG(2) << "Adding node mac: " << macAddr;
       (*nodeByMacLock)[macAddr] = std::make_pair(request.name, node);
     }
     if (!node.wlan_mac_addrs.empty()) {
@@ -102,7 +102,7 @@ void MetricCache::updateMetricNames(const thrift::Topology& request) {
           std::string radioMacAddrLC = StatsUtils::toLowerCase(radioMacAddr);
           // record the topology name + node struct
           if (!(*nodeByMacLock).count(radioMacAddrLC)) {
-            VLOG(1) << "Adding radio mac: " << radioMacAddrLC << " for "
+            VLOG(2) << "Adding radio mac: " << radioMacAddrLC << " for "
                     << node.mac_addr;
             (*nodeByMacLock)[radioMacAddrLC] =
                 std::make_pair(request.name, node);

@@ -155,7 +155,10 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
         eventLinkUp.endTime = eventTransitionTime;
         VLOG(1) << "\t[d] Added new LINK_UP event from "
                 << eventLinkUp.startTime << " <-> " << eventTransitionTime;
-        ASSERT(eventLinkUp.startTime < eventLinkUp.endTime);
+        if (eventLinkUp.startTime >= eventLinkUp.endTime) {
+          LOG(ERROR) << "Invalid time condition, bailing";
+          continue;
+        }
         eventLinkUp.linkState = stats::LinkStateType::LINK_UP;
         eventList.emplace_back(eventLinkUp);
       } else if (

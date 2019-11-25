@@ -184,7 +184,12 @@ void KafkaStatsService::start(const std::string& topicName) {
                 << ", delay: "
                 << (StatsUtils::getDurationString(
                        lastRun / 1000 - statQueue.front().timestamp));
-      prometheusInstance->writeNodeStats(intervalSec_, statQueue);
+      bool wroteStats =
+          prometheusInstance->writeNodeStats(intervalSec_, statQueue);
+      if (!wroteStats) {
+        LOG(ERROR) << "Error writing stats to prometheus queue, dropped "
+                   << statQueue.size() << " stats.";
+      }
       statQueue.clear();
       lastRun = StatsUtils::getTimeInMs();
     }
