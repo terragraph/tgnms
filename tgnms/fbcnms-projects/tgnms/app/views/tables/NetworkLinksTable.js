@@ -22,7 +22,10 @@ import {
   NodeTypeValueMap as NodeType,
 } from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {
+  TIME_WINDOWS,
+  TopologyElementType,
+} from '../../constants/NetworkConstants.js';
 import {availabilityColor} from '../../helpers/NetworkHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
@@ -137,21 +140,24 @@ class NetworkLinksTable extends React.Component<Props, State> {
     },
     {
       key: 'alive_perc',
-      label: 'Uptime (24hr)',
+      label: 'Uptime',
+      appendAvailWindow: true,
       render: this.renderAlivePerc.bind(this),
       sort: true,
       width: 120,
     },
     {
       key: 'avail_perc',
-      label: 'Availability (24hr)',
+      label: 'Availability',
+      appendAvailWindow: true,
       render: this.renderAlivePerc.bind(this),
       sort: true,
       width: 120,
     },
     {
       key: 'availability_chart',
-      label: 'Uptime/Availability (24hr)',
+      label: 'Uptime/Availability',
+      appendAvailWindow: true,
       render: this.renderLinkAvailability.bind(this),
       sort: true,
       width: 810,
@@ -687,7 +693,21 @@ class NetworkLinksTable extends React.Component<Props, State> {
       columns = this.analyzerChartColumns;
       data = this.getTableRowsAnalyzer(context);
     } else if (linkTable === LinkTable.EVENTS_CHART) {
-      columns = this.eventChartColumns;
+      const availWindowTitle = TIME_WINDOWS.filter(
+        ({hours}) => hours === context.networkHealthTimeWindowHrs,
+      ).map(({title}) => title);
+      columns = this.eventChartColumns.map(column => {
+        if (
+          column.hasOwnProperty('appendAvailWindow') &&
+          column.appendAvailWindow
+        ) {
+          return {
+            ...column,
+            label: `${column.label} (${availWindowTitle[0]})`,
+          };
+        }
+        return column;
+      });
       data = this.getTableRows(context);
     } else if (linkTable === LinkTable.DEFAULT) {
       columns = this.defaultChartColumns;

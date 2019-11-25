@@ -39,3 +39,11 @@ export const MCS_DATARATE_TABLE = {
   '11': 3850 * MB_IN_BITS,
   '12': 4620 * MB_IN_BITS,
 };
+
+export const TIME_WINDOWS = [
+  {hours: 1, title: '1 hr'},
+  {hours: 6, title: '6 hrs'},
+  {hours: 24, title: '1 day'},
+  {hours: 24 * 2, title: '2 days'},
+  {hours: 24 * 7, title: '1 week'},
+];

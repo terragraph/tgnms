@@ -25,6 +25,7 @@ import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
 } from '../../../shared/types/Topology';
+import {TIME_WINDOWS} from '../../constants/NetworkConstants';
 import {
   avg,
   avgOverTime,
@@ -125,14 +126,6 @@ type State = {
   allAvailability: ?number,
   availabilityConfigOpen: ?boolean,
 };
-
-const TIME_WINDOWS = [
-  {hours: 1, title: '1 hr'},
-  {hours: 6, title: '6 hrs'},
-  {hours: 24, title: '1 day'},
-  {hours: 24 * 2, title: '2 days'},
-  {hours: 24 * 7, title: '1 week'},
-];
 
 // allow switching between stats backends
 const STATS_DS =
