@@ -11,6 +11,7 @@ import AddIcon from '@material-ui/icons/Add';
 import AddLinkPanel from '../../components/mappanels/AddLinkPanel';
 import AddNodePanel from '../../components/mappanels/AddNodePanel';
 import AddSitePanel from '../../components/mappanels/AddSitePanel';
+import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
 import Fab from '@material-ui/core/Fab';
@@ -24,7 +25,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
-import ShowRoutePanel from '../../components/mappanels/ShowRoutePanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
 import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
@@ -136,7 +136,7 @@ type State = {
   closingLinks: {},
   closingSites: {},
   closingSearchNearby: {},
-  closingShowRoute: {},
+  closingDefaultRoute: {},
 
   // State variable for resizable drawer
   width: number,
@@ -186,7 +186,7 @@ class NetworkDrawer extends React.Component<
       closingLinks: {},
       closingSites: {},
       closingSearchNearby: {},
-      closingShowRoute: {},
+      closingDefaultRoute: {},
 
       // State variable for resizable drawer
       width: NetworkDrawerConstants.DRAWER_MIN_WIDTH,
@@ -584,6 +584,7 @@ class NetworkDrawer extends React.Component<
             pinned={pinned}
             onPin={() => context.togglePin(type, name, !pinned)}
             onEdit={this.onEditSite}
+            onUpdateRoutes={routesProps.onUpdateRoutes}
           />
         </Slide>
       );
@@ -591,27 +592,33 @@ class NetworkDrawer extends React.Component<
     return null;
   }
 
-  renderShowRouteMenu(nodeName, slideProps) {
+  renderDefaultRouteHistoryPanel(nodeName, slideProps) {
     const {context, routesProps} = this.props;
     const {topology} = context.networkConfig;
-    const {networkName, nodeMap, siteMap} = context;
+    const {networkName, nodeMap, siteMap, siteToNodesMap} = context;
     const node = nodeMap[nodeName];
-
     return (
       <Slide
         {...slideProps}
-        key={nodeName}
-        in={!this.state.closingShowRoute.hasOwnProperty(nodeName)}>
-        <ShowRoutePanel
+        key={node.site_name}
+        in={!this.state.closingDefaultRoute.hasOwnProperty(node.site_name)}>
+        <DefaultRouteHistoryPanel
           networkName={networkName}
           topology={topology}
           node={node}
           nodeMap={nodeMap}
           site={siteMap[node.site_name]}
           onClose={() =>
-            this.onClosePanel(nodeName, 'show_route', 'closingShowRoute')
+            this.onClosePanel(
+              node.site_name,
+              'show_route',
+              'closingDefaultRoute',
+            )
           }
-          {...routesProps}
+          links={routesProps.links}
+          onUpdateRoutes={routesProps.onUpdateRoutes}
+          routes={routesProps.routes}
+          siteNodes={siteToNodesMap[node.site_name]}
         />
       </Slide>
     );
@@ -942,7 +949,10 @@ class NetworkDrawer extends React.Component<
           )}
 
           {routesProps.routes.node
-            ? this.renderShowRouteMenu(routesProps.routes.node, slideProps)
+            ? this.renderDefaultRouteHistoryPanel(
+                routesProps.routes.node,
+                slideProps,
+              )
             : null}
 
           {topologyElements.map(el =>

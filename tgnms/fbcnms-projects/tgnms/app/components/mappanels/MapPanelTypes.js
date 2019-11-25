@@ -25,7 +25,7 @@ export type Routes = {|
   onUpdateRoutes: ({
     node: ?string,
     links: {[string]: number},
-    nodes: Set<NodeType>,
+    nodes: Set<string>,
   }) => any,
   routes: {
     node: string,

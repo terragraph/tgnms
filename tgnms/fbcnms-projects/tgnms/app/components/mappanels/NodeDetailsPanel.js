@@ -47,6 +47,7 @@ import {
   isNodeAlive,
   renderAvailabilityWithColor,
 } from '../../helpers/NetworkHelpers';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {setUrlSearchParam} from '../../helpers/NetworkTestHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
@@ -211,7 +212,9 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     const {node, networkName} = this.props;
     const data = {nodes: [node.name], secondsToRestart: 2};
     apiServiceRequestWithConfirmation(networkName, 'restartMinion', data, {
-      desc: `Do you want to restart minion on node <strong>${node.name}</strong>?`,
+      desc:
+        `Do you want to restart minion on node <strong>` +
+        `${node.name}</strong>?`,
       descType: 'html',
     });
   };
@@ -256,9 +259,8 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     onClose();
   };
 
-  onShowRoutesToPop = () => {
+  onShowRoutes = () => {
     // Show Routes from this node
-    // $FlowFixMe figure out if we can change this to a node
     const {node, onUpdateRoutes} = this.props;
     onUpdateRoutes({
       node: node.name,
@@ -308,11 +310,6 @@ class NodeDetailsPanel extends React.Component<Props, State> {
               }),
           },
           {
-            label: 'Show Routes',
-            icon: getShowRoutesIcon(),
-            func: this.onShowRoutesToPop,
-          },
-          {
             label: 'Edit Node',
             icon: getEditIcon(),
             func: this.onEditNode,
@@ -324,6 +321,20 @@ class NodeDetailsPanel extends React.Component<Props, State> {
           },
         ],
       },
+      ...(isFeatureEnabled('DEFAULT_ROUTES_HISTORY_ENABLED')
+        ? [
+            {
+              heading: 'Troubleshooting',
+              actions: [
+                {
+                  label: 'Show Routes',
+                  icon: getShowRoutesIcon(),
+                  func: this.onShowRoutes,
+                },
+              ],
+            },
+          ]
+        : []),
       {
         heading: 'Tests',
         actions: [

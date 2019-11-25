@@ -25,9 +25,11 @@ import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {
   createActionsMenu,
   getEditIcon,
+  getShowRoutesIcon,
   getSiteIcon,
 } from '../../helpers/MapPanelHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
@@ -104,6 +106,11 @@ type Props = {
   onPin: () => any,
   pinned: boolean,
   site: SiteType,
+  onUpdateRoutes: ({
+    node: ?string,
+    links: {[string]: number},
+    nodes: Set<string>,
+  }) => any,
 };
 
 type State = {
@@ -255,6 +262,16 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     onClose();
   }
 
+  onShowRoutes = () => {
+    // Show Routes from first node in site set
+    const {siteNodes, onUpdateRoutes} = this.props;
+    onUpdateRoutes({
+      node: siteNodes.values().next().value,
+      links: {},
+      nodes: new Set(),
+    });
+  };
+
   renderActions() {
     // Render actions
     const actionItems = [
@@ -273,6 +290,20 @@ class SiteDetailsPanel extends React.Component<Props, State> {
           },
         ],
       },
+      ...(isFeatureEnabled('DEFAULT_ROUTES_HISTORY_ENABLED')
+        ? [
+            {
+              heading: 'Troubleshooting',
+              actions: [
+                {
+                  label: 'Show Routes',
+                  icon: getShowRoutesIcon(),
+                  func: this.onShowRoutes,
+                },
+              ],
+            },
+          ]
+        : []),
     ];
 
     return (
