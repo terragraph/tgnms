@@ -17,6 +17,7 @@ const {
   queryLatest,
   flattenPrometheusResponse,
   groupByLink,
+  groupByNode,
   mapMetricName,
 } = require('./prometheus');
 
@@ -145,6 +146,36 @@ router.get('/link_analyzer/:topologyName', (req, res, _next) => {
     )
     .then(flattenPrometheusResponse)
     .then(result => groupByLink(result, topologyName, true))
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.get('/node_health/:topologyName', (req, res, _next) => {
+  const topologyName = req.params.topologyName;
+  // this is set statically in NetworkNodesTable
+  // TODO - make this configurable
+  const timeWindow = '[24h]';
+
+  const prometheusQueryList = ['e2e_minion_uptime'].map(metricName => ({
+    metricName: `resets_${metricName}`,
+    prometheusQuery: `resets(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+  }));
+
+  Promise.all(
+    prometheusQueryList.map(({prometheusQuery}) => {
+      return queryLatest({
+        query: prometheusQuery,
+      });
+    }),
+  )
+    .then(response =>
+      mapMetricName(
+        response,
+        prometheusQueryList.map(({metricName}) => metricName),
+      ),
+    )
+    .then(flattenPrometheusResponse)
+    .then(result => groupByNode(result, topologyName))
     .then(result => res.json(result))
     .catch(createErrorHandler(res));
 });

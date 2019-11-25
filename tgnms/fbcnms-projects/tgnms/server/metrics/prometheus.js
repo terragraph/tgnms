@@ -104,7 +104,6 @@ export function groupByLink(
   groupByLinkDirection: boolean = true,
 ): {[string]: {[string]: {[string]: any}}} {
   const metrics = {};
-
   const networkState = getNetworkState(topologyName);
   if (!networkState?.topology?.links) {
     logger.info('No topology cache');
@@ -144,5 +143,47 @@ export function groupByLink(
     }
   });
 
+  return metrics;
+}
+
+export function groupByNode(
+  prometheusResponseList: Array<Object>,
+  topologyName: string,
+): {[string]: {[string]: {[string]: any}}} {
+  const metrics = {};
+
+  if (!prometheusResponseList) {
+    return metrics;
+  }
+
+  const networkState = getNetworkState(topologyName);
+  if (!networkState?.topology?.nodes) {
+    logger.info('No topology cache');
+    return metrics;
+  }
+
+  // Map Prometheus-acceptable name to real name
+  const nodeMap = {};
+  networkState.topology.nodes.forEach(node => {
+    nodeMap[node.name] = node.name;
+  });
+
+  prometheusResponseList.forEach(data => {
+    const {__name__, nodeName} = data.metric;
+
+    if (!nodeMap.hasOwnProperty(nodeName)) {
+      logger.debug(
+        'Unable to match Prometheus node name in topology: ',
+        nodeName,
+      );
+      return;
+    }
+
+    const realNodeName = nodeMap[nodeName];
+    if (!metrics.hasOwnProperty(realNodeName)) {
+      metrics[realNodeName] = {};
+    }
+    metrics[realNodeName][__name__] = data.value[1];
+  });
   return metrics;
 }

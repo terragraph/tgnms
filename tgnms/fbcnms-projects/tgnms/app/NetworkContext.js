@@ -29,6 +29,7 @@ export type NetworkContextType = {|
 
   networkLinkHealth: NetworkHealth,
   networkNodeHealth: NetworkHealth,
+  networkNodeHealthPrometheus: NetworkNodeStats,
   networkAnalyzerData: {},
   networkLinkMetrics: {},
 
@@ -153,6 +154,13 @@ export type NetworkHealth = {
   |},
 };
 
+export type NetworkNodeStats = {
+  [string /* node name */]: {
+    // TODO - value should be numeric but the prometheus response is a string
+    [string /* metric name */]: string /* value */,
+  },
+};
+
 export type HealthEvent = {|
   description: string,
   linkState: number,
@@ -203,6 +211,7 @@ const NetworkContext = React.createContext<NetworkContextType>({
   networkHealthTimeWindowHrs: 24,
   networkLinkHealth: {},
   networkNodeHealth: {},
+  networkNodeHealthPrometheus: {},
   networkAnalyzerData: {},
 
   // Refresh data

@@ -34,6 +34,7 @@ import type {
   LinkMeta,
   NetworkConfig as NetworkConfigType,
   NetworkHealth,
+  NetworkNodeStats,
   SiteMap,
 } from './NetworkContext';
 
@@ -75,6 +76,7 @@ type State = {
   linkMap: {[string]: LinkType & LinkMeta},
   networkConfig: NetworkConfigType,
   networkNodeHealth: NetworkHealth,
+  networkNodeHealthPrometheus: NetworkNodeStats,
   networkLinkHealth: NetworkHealth,
   networkAnalyzerData: Object,
   networkLinkIgnitionAttempts: Object,
@@ -108,6 +110,7 @@ class NetworkUI extends React.Component<Props, State> {
 
     // Network health stats
     networkNodeHealth: {},
+    networkNodeHealthPrometheus: {},
     networkLinkHealth: {},
     networkAnalyzerData: {},
     networkLinkIgnitionAttempts: {},
@@ -155,6 +158,7 @@ class NetworkUI extends React.Component<Props, State> {
         selectedElement: null,
         pinnedElements: [],
         networkNodeHealth: ({}: NetworkHealth),
+        networkNodeHealthPrometheus: ({}: NetworkNodeStats),
         networkLinkHealth: ({}: NetworkHealth),
         networkAnalyzerData: {},
         // fetched metrics to display
@@ -299,9 +303,17 @@ class NetworkUI extends React.Component<Props, State> {
       .then(response => {
         this.setState({networkLinkHealth: response.data || {}});
       });
-    axios.get(`/topology/node_health/${networkName}`).then(response => {
-      this.setState({networkNodeHealth: response.data || {}});
-    });
+
+    if (STATS_DS === 'prometheus') {
+      // prometheus data format differs, eventually we'll drop beringei
+      axios.get(`/metrics/node_health/${networkName}`).then(response => {
+        this.setState({networkNodeHealthPrometheus: response.data || {}});
+      });
+    } else {
+      axios.get(`/topology/node_health/${networkName}`).then(response => {
+        this.setState({networkNodeHealth: response.data || {}});
+      });
+    }
   };
 
   updateNetworkAnalyzer = networkName => {
@@ -434,6 +446,7 @@ class NetworkUI extends React.Component<Props, State> {
             networkHealthTimeWindowHrs: this.state.networkHealthTimeWindowHrs,
             networkLinkHealth: this.state.networkLinkHealth,
             networkNodeHealth: this.state.networkNodeHealth,
+            networkNodeHealthPrometheus: this.state.networkNodeHealthPrometheus,
             networkAnalyzerData: this.state.networkAnalyzerData,
             networkLinkMetrics: {
               ignitionAttempts: this.state.networkLinkIgnitionAttempts,

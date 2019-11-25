@@ -544,6 +544,7 @@ async function refreshNetworkHealth(topologyName) {
     await cacheNetworkHealthFromBeringei(topologyName);
   }
 }
+
 async function cacheNetworkHealthFromDb(topologyName, timeWindowHours) {
   networkLinkHealth[topologyName] = await fetchNetworkHealthFromDb(
     topologyName,

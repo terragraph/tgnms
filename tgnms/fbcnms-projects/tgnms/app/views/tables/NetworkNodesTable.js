@@ -11,11 +11,10 @@ import React from 'react';
 import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
 import {TopologyElementType} from '../../constants/NetworkConstants';
-import {availabilityColor, isNodeAlive} from '../../helpers/NetworkHelpers';
+import {isNodeAlive} from '../../helpers/NetworkHelpers';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 
-import type {NetworkConfig, NetworkContextType} from '../../NetworkContext';
-import type {NetworkHealth} from '../../NetworkContext';
+import type {NetworkContextType} from '../../NetworkContext';
 
 type NetworkNodeRowType = {
   name: string,
@@ -26,9 +25,7 @@ type NetworkNodeRowType = {
   pop_node: boolean,
   ipv6: ?string,
   version: ?string,
-  availability: number,
-  minion_restarts: number,
-  events: Array<any>,
+  minion_restarts: ?number,
   uboot_version: ?string,
   hw_board_id: ?string,
 };
@@ -42,8 +39,6 @@ type State = {
   selectedSite: ?string,
   sortBy: string,
   sortDirection: $Values<typeof SortDirection>,
-  nodeHealth: NetworkHealth,
-  showEventsChart: boolean,
 };
 
 // TODO add logic when selecting nodes
@@ -56,10 +51,6 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
     // Keep track of current sort state
     sortBy: 'site_name',
     sortDirection: SortDirection.ASC,
-
-    // TODO - this is wrong, should be prop
-    nodeHealth: {},
-    showEventsChart: false,
   };
 
   static getDerivedStateFromProps(nextProps: Props, _prevState: State) {
@@ -129,17 +120,11 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
       render: renderStatusColor,
     },
     {
-      label: 'Availability (24hr)',
-      key: 'availability',
-      width: 140,
-      sort: true,
-      render: this.renderNodeAvailability.bind(this),
-    },
-    {
       label: 'Minion Restarts (24hr)',
       key: 'minion_restarts',
       width: 140,
       sort: true,
+      render: this.renderNullable.bind(this),
     },
     {
       label: 'Image Version',
@@ -167,7 +152,8 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
     return index >= 0 ? v.substring(index) : v;
   }
 
-  getTableRows(networkConfig: NetworkConfig): Array<NetworkNodeRowType> {
+  getTableRows(context: NetworkContextType): Array<NetworkNodeRowType> {
+    const {networkConfig} = context;
     const {topology, status_dump} = networkConfig;
     const rows = [];
     topology.nodes.forEach(node => {
@@ -189,27 +175,33 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
         statusReport && statusReport.hardwareBoardId
           ? statusReport.hardwareBoardId
           : null;
-      let availability = 0;
-      let events = [];
 
-      // TODO - nodeHealth isn't populated so we never have data to display
+      // node health data
+      let minionRestarts = null;
       if (
-        this.state.nodeHealth &&
-        this.state.nodeHealth.hasOwnProperty('events') &&
-        this.state.nodeHealth.events.hasOwnProperty(node.name)
+        context.networkNodeHealthPrometheus &&
+        context.networkNodeHealthPrometheus.hasOwnProperty(node.name)
       ) {
-        availability = this.state.nodeHealth.events[node.name].linkAlive;
-        events = this.state.nodeHealth.events[node.name].events;
+        minionRestarts = Number.parseInt(
+          context.networkNodeHealthPrometheus[node.name][
+            'resets_e2e_minion_uptime'
+          ],
+        );
+      } else if (
+        context.networkNodeHealth &&
+        context.networkNodeHealth.hasOwnProperty('events') &&
+        context.networkNodeHealth.events.hasOwnProperty(node.name)
+      ) {
+        minionRestarts =
+          context.networkNodeHealth.events[node.name].events.length;
       }
       rows.push({
         alive: isNodeAlive(node.status),
-        availability,
-        events,
         hw_board_id: hwBoardId,
         ipv6,
         key: node.name,
         mac_addr: node.mac_addr,
-        minion_restarts: events.length,
+        minion_restarts: minionRestarts,
         name: node.name,
         node_type: node.node_type === NodeType.DN ? 'DN' : 'CN',
         pop_node: node.pop_node,
@@ -271,12 +263,6 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
     });
   };
 
-  renderNodeAvailability(cell: number, _row: NetworkNodeRowType) {
-    const cellColor = availabilityColor(cell);
-    const cellText = Math.round(cell * 100) / 100;
-    return <span style={{color: cellColor}}>{'' + cellText}</span>;
-  }
-
   renderNullable(cell: number, _row: NetworkNodeRowType) {
     if (cell === null) {
       return <span style={{fontStyle: 'italic'}}>Not Available</span>;
@@ -298,7 +284,7 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
               headerHeight={this.headerHeight}
               overscanRowCount={this.overscanRowCount}
               columns={this.headers}
-              data={this.getTableRows(context.networkConfig)}
+              data={this.getTableRows(context)}
               sortBy={sortBy}
               sortDirection={sortDirection}
               onRowSelect={row => this.tableOnRowSelect(row)}
