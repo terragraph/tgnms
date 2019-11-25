@@ -106,6 +106,9 @@ const ALERTMANAGER_CONFIG_PORT = requiredInt(
 const TG_ALARM_HOST = process.env.TG_ALARM_HOST || 'tg_alarms';
 const TG_ALARM_PORT = requiredInt(process.env.TG_ALARM_PORT, 40000);
 
+const DEFAULT_ROUTES_HISTORY_HOST =
+  process.env.DEFAULT_ROUTES_HISTORY_HOST || null;
+
 module.exports = {
   API_REQUEST_TIMEOUT,
   BERINGEI_QUERY_URL,
@@ -152,4 +155,5 @@ module.exports = {
   PROM_ALERTCONFIG_PORT,
   TG_ALARM_HOST,
   TG_ALARM_PORT,
+  DEFAULT_ROUTES_HISTORY_HOST,
 };

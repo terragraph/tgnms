@@ -108,6 +108,10 @@ app.use('/websockets', require('../server/websockets/routes'));
 app.use('/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
 app.use('/healthcheck', require('../server/healthcheck/routes'));
+app.use(
+  '/default_route_history',
+  require('../server/default_route_history/routes'),
+);
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();
@@ -166,6 +170,7 @@ app.get('*', (req, res) => {
     'SOFTWARE_PORTAL_URL',
     'ALARMS_ENABLED',
     'EVENTS_V1_ENABLED',
+    'DEFAULT_ROUTES_HISTORY_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {
