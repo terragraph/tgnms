@@ -14,7 +14,6 @@ import NetworkTables from '../tables/NetworkTables';
 import React from 'react';
 import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
 import RouteContext from '../../RouteContext';
-import RoutesLayer from './RoutesLayer';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
 import TableControl from './TableControl';
@@ -172,11 +171,6 @@ class NetworkMap extends React.Component {
         layerId: 'buildings_3d',
         name: '3D Buildings',
         render: this.render3dBuildings.bind(this),
-      },
-      {
-        layerId: 'routes',
-        name: 'Routes',
-        render: this.renderRoutes.bind(this),
       },
     ];
   }
@@ -471,10 +465,6 @@ class NetworkMap extends React.Component {
         offlineWhitelist={offline_whitelist}
       />
     );
-  }
-
-  renderRoutes(_context) {
-    return <RoutesLayer key="routes-layer" />;
   }
 
   renderMapLayers(context) {
