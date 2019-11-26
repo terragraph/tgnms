@@ -148,26 +148,7 @@ class NetworkUI extends React.Component<Props, State> {
       : null;
     if (networkName !== prevNetworkName) {
       // clear the network config when network name changes
-      this.setState({
-        networkConfig: ({}: NetworkConfigType),
-        isReloading: false,
-        nodeMap: {},
-        linkMap: {},
-        siteMap: {},
-        siteToNodesMap: {},
-        selectedElement: null,
-        pinnedElements: [],
-        networkNodeHealth: ({}: NetworkHealth),
-        networkNodeHealthPrometheus: ({}: NetworkNodeStats),
-        networkLinkHealth: ({}: NetworkHealth),
-        networkAnalyzerData: {},
-        // fetched metrics to display
-        networkLinkIgnitionAttempts: {},
-      });
-      // fetch new network
-      this.getCurrentNetworkStatus();
-      // reset topology fetch timer and re-schedule topology get
-      this.getCurrentNetworkStatusPeriodic();
+      this.clearNetworkConfig();
     }
     // check if availability time window changed
     if (
@@ -180,6 +161,29 @@ class NetworkUI extends React.Component<Props, State> {
         this.state.networkHealthTimeWindowHrs,
       );
     }
+  }
+
+  clearNetworkConfig() {
+    this.setState({
+      networkConfig: ({}: NetworkConfigType),
+      isReloading: false,
+      nodeMap: {},
+      linkMap: {},
+      siteMap: {},
+      siteToNodesMap: {},
+      selectedElement: null,
+      pinnedElements: [],
+      networkNodeHealth: ({}: NetworkHealth),
+      networkNodeHealthPrometheus: ({}: NetworkNodeStats),
+      networkLinkHealth: ({}: NetworkHealth),
+      networkAnalyzerData: {},
+      // fetched metrics to display
+      networkLinkIgnitionAttempts: {},
+    });
+    // fetch new network
+    this.getCurrentNetworkStatus();
+    // reset topology fetch timer and re-schedule topology get
+    this.getCurrentNetworkStatusPeriodic();
   }
 
   getCurrentNetworkStatusPeriodic = () => {

@@ -92,7 +92,7 @@ class AddSitePanel extends React.Component<Props, State> {
       Object.keys(this.props.initialParams).length > 0 &&
       !isEqual(this.props.initialParams, prevProps.initialParams)
     ) {
-      this.setState(this.props.initialParams);
+      this.updateInitialParams();
     }
 
     // Update form values if plannedSite moved on the map
@@ -104,11 +104,19 @@ class AddSitePanel extends React.Component<Props, State> {
       this.props.plannedSite.latitude !== prevProps.plannedSite.latitude ||
       this.props.plannedSite.longitude !== prevProps.plannedSite.longitude
     ) {
-      this.setState({
-        latitude: this.props.plannedSite.latitude,
-        longitude: this.props.plannedSite.longitude,
-      });
+      this.updateLatLong();
     }
+  }
+
+  updateInitialParams() {
+    this.setState(this.props.initialParams);
+  }
+
+  updateLatLong() {
+    this.setState({
+      latitude: this.props.plannedSite.latitude,
+      longitude: this.props.plannedSite.longitude,
+    });
   }
 
   onSubmit() {

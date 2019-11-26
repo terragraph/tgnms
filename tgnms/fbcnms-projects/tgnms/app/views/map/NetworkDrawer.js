@@ -203,7 +203,7 @@ class NetworkDrawer extends React.Component<
       this.props.context.selectedElement != prevProps.context.selectedElement
     ) {
       // If the selected element changed, unexpand all other panels
-      this.setState(this.getUnexpandPanelsState());
+      this.setUnexpandPanelsState();
     } else {
       // If there are no more selected/pinned elements and nothing is expanded,
       // expand the "Overview" panel
@@ -225,12 +225,16 @@ class NetworkDrawer extends React.Component<
           this.state.upgradeProgressPanelExpanded ||
           this.isSpeedTestMode();
         if (!isAnyPanelExpanded) {
-          this.setState({
-            overviewPanelExpanded: true,
-          });
+          this.handleoverViewPanelExpand();
         }
       }
     }
+  }
+
+  handleoverViewPanelExpand() {
+    this.setState({
+      overviewPanelExpanded: true,
+    });
   }
 
   handleHorizontalResize = width => {
@@ -383,6 +387,10 @@ class NetworkDrawer extends React.Component<
       accessPointsPanelExpanded: false,
       upgradeProgressPanelExpanded: false,
     };
+  }
+
+  setUnexpandPanelsState() {
+    this.setState(this.getUnexpandPanelsState());
   }
 
   renderTopologyBuilderMenu() {

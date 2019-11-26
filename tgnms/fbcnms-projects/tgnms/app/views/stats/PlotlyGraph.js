@@ -105,14 +105,7 @@ class PlotlyGraph extends React.Component<Props, State> {
     // check to see if props were updated
     const changed = !equals(this.props.options, nextProps.options);
     if (changed) {
-      this.cancelAsyncRequests();
-      this.setState({
-        data: null,
-        indicator: 'LOAD',
-        plotlyData: [],
-      });
-      this.timer = setInterval(() => this.refreshData(), 30000);
-      this.refreshData();
+      this.handleChangedOptions();
     }
 
     // check to see if state was updated
@@ -124,6 +117,17 @@ class PlotlyGraph extends React.Component<Props, State> {
       return true;
     }
     return false;
+  }
+
+  handleChangedOptions() {
+    this.cancelAsyncRequests();
+    this.setState({
+      data: null,
+      indicator: 'LOAD',
+      plotlyData: [],
+    });
+    this.timer = setInterval(() => this.refreshData(), 30000);
+    this.refreshData();
   }
 
   windowResizeListener() {

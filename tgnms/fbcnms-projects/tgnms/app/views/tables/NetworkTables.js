@@ -103,9 +103,9 @@ class NetworkTables extends React.Component<Props, State> {
         selectedElement.type === TopologyElementType.NODE ||
         selectedElement.type === TopologyElementType.SITE
       ) {
-        this.setState({selectedTable: TABLE_TYPE.nodes});
+        this.handleTableChange(null, TABLE_TYPE.nodes);
       } else if (selectedElement.type === TopologyElementType.LINK) {
-        this.setState({selectedTable: TABLE_TYPE.links});
+        this.handleTableChange(null, TABLE_TYPE.links);
       }
     }
   }

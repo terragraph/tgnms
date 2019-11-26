@@ -142,8 +142,12 @@ class AddNodePanel extends React.Component<Props, State> {
       Object.keys(this.props.initialParams).length > 0 &&
       !isEqual(this.props.initialParams, prevProps.initialParams)
     ) {
-      this.setState(this.props.initialParams);
+      this.updateInitialParams();
     }
+  }
+
+  updateInitialParams() {
+    this.setState(this.props.initialParams);
   }
 
   renderRadioMacs(input, state, setState) {

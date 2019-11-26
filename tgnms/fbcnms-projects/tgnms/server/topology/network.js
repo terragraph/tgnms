@@ -256,7 +256,11 @@ export function getLinkEvents(
         //     Sequelize.fn('UNIX_TIMESTAMP', Sequelize.col('startTs')),
         //     'startTime',
         //   ],
-        //   [Sequelize.fn('UNIX_TIMESTAMP', Sequelize.col('endTs')), 'endTime'],
+        //   [Sequelize.fn(
+        //     'UNIX_TIMESTAMP',
+        //     Sequelize.col('endTs')),
+        //     'endTime'
+        //   ],
         // ],
         where: {
           topologyName,

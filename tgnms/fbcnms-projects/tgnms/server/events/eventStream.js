@@ -44,7 +44,8 @@ function initConsumerGroup() {
     /**
      * commitOffsetsOnFirstJoin and autoCommit tells kafka that NMS should
      * NEVER commit any offsets because all messages should flow through in
-     * realtime. NMS only cares about events that are ocurring right now. It does
+     * realtime. NMS only cares about events that are ocurring now. It does
+
      * not care about receiving events that occurred while it was not listening.
      */
     commitOffsetsOnFirstJoin: false,
