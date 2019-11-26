@@ -176,6 +176,12 @@ bool PrometheusUtils::writeNodeStats(
                   ? "A"
                   : "Z"));
         }
+        // has short-name, add it after all tagging
+        metricList.emplace_back(Metric(
+            formatPrometheusKeyName(keyIt->second.shortName),
+            stat.timestamp * 1000,
+            labelTags,
+            stat.value));
       }
     }
     metricList.emplace_back(Metric(
