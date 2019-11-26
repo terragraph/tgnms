@@ -155,14 +155,11 @@ void KafkaStatsService::start(const std::string& topicName) {
           // name exists for this metric
           auto friendlyMetric = getFriendlyMetric(stat);
           if (friendlyMetric) {
-            VLOG(2) << "Adding friendly metric: " << friendlyMetric->key
-                    << ", key: " << stat.key
+            VLOG(2) << "Forwarding friendly metric name to link stats: "
+                    << friendlyMetric->key << ", key: " << stat.key
                     << ", ts: " << friendlyMetric->timestamp;
-            statQueue.push_back(*friendlyMetric);
             // produce message back to link stats topic
-            std::string friendlyMetricStr =
-                SimpleJSONSerializer::serialize<std::string>(*friendlyMetric);
-            linkStatsBuilder.payload(friendlyMetricStr);
+            linkStatsBuilder.payload(statMsg);
             linkStatsProducer.produce(linkStatsBuilder);
           }
         }

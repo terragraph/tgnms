@@ -80,6 +80,8 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
     double fwUptimeDelta = fwUptime - linkStats.at(prevTs).fwUptime;
     double linkAvailDelta = linkAvail - linkStats.at(prevTs).linkAvail;
     if (fwUptimeDelta < 0) {
+      VLOG(1) << "[" << i << "] FW Delta < 0: " << fwUptimeDelta
+              << ", assuming counter rolled.";
       // counter rolled, only possible to count from 0<->current value for
       // fw uptime
       fwUptimeDelta = fwUptime;
@@ -155,10 +157,7 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
         eventLinkUp.endTime = eventTransitionTime;
         VLOG(1) << "\t[d] Added new LINK_UP event from "
                 << eventLinkUp.startTime << " <-> " << eventTransitionTime;
-        if (eventLinkUp.startTime >= eventLinkUp.endTime) {
-          LOG(ERROR) << "Invalid time condition, bailing";
-          continue;
-        }
+        ASSERT(eventLinkUp.startTime < eventLinkUp.endTime);
         eventLinkUp.linkState = stats::LinkStateType::LINK_UP;
         eventList.emplace_back(eventLinkUp);
       } else if (

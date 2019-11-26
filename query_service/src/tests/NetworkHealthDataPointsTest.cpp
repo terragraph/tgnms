@@ -24,7 +24,8 @@ using facebook::stats::LinkDirection;
 using facebook::stats::LinkStateType;
 
 const double INTERVAL_SEC = 30;
-const double DPS_PER_SEC = 39;
+// must match NetworkHealthUtils FLAGS_fw_uptime_slope
+const double DPS_PER_SEC = 1000 / 25.6;
 const double SLOPE_PER_INTERVAL = INTERVAL_SEC * DPS_PER_SEC;
 
 class NetworkHealthDataPointsTest : public testing::Test {

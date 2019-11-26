@@ -103,10 +103,25 @@ void NetworkHealthService::consume(const std::string& topicName) {
         auto stat =
             SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
                 statMsg);
+        std::string macAddr = StatsUtils::toLowerCase(stat.entity);
         std::string keyName = StatsUtils::toLowerCase(stat.key);
+        // lookup meta-data for node
+        auto nodeKeyInfo =
+            metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
         // skip non-health metrics
-        if (!healthKeys_.count(keyName)) {
-          VLOG(4) << "Dropping non-health key: " << keyName;
+        if (!nodeKeyInfo || nodeKeyInfo->shortName.empty() ||
+            !healthKeys_.count(nodeKeyInfo->shortName)) {
+          VLOG(3) << "Dropping non-health key: " << keyName;
+          continue;
+        }
+        if (nodeKeyInfo->topologyName.empty()) {
+          VLOG(3) << "No topology name defined for: " << macAddr
+                  << ", key: " << keyName;
+          continue;
+        }
+        if (nodeKeyInfo->linkName.empty()) {
+          VLOG(3) << "No link name defined for: " << macAddr
+                  << ", key: " << keyName;
           continue;
         }
         if (assignedPartitionList.hasValue()) {
@@ -118,19 +133,6 @@ void NetworkHealthService::consume(const std::string& topicName) {
         } else {
           VLOG(2) << "Topic: " << topicName << ", msg: " << statMsg;
         }
-
-        std::string macAddr = StatsUtils::toLowerCase(stat.entity);
-        // lookup meta-data for node
-        auto nodeKeyInfo =
-            metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
-        if (!nodeKeyInfo) {
-          VLOG(1) << "No cache for: " << macAddr << "/" << keyName;
-          continue;
-        }
-        if (nodeKeyInfo->topologyName.empty()) {
-          VLOG(1) << "No topology name set for: " << macAddr;
-          continue;
-        }
         // record sample for batch processing
         LinkStatsByDirection* linkStatsByDirection =
             &linkHealthStats_[nodeKeyInfo->topologyName][nodeKeyInfo->linkName];
@@ -140,9 +142,9 @@ void NetworkHealthService::consume(const std::string& topicName) {
         } else {
           linkStats = &linkStatsByDirection->linkZ;
         }
-        if (keyName == "fw_uptime") {
+        if (nodeKeyInfo->shortName == "fw_uptime") {
           (*linkStats)[stat.timestamp].fwUptime = stat.value;
-        } else if (keyName == "link_avail") {
+        } else if (nodeKeyInfo->shortName == "link_avail") {
           (*linkStats)[stat.timestamp].linkAvail = stat.value;
         }
       }
