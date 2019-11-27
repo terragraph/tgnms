@@ -4,7 +4,7 @@
  * @format
  */
 
-const {BERINGEI_QUERY_URL} = require('../config');
+const {QUERY_SERVICE_URL} = require('../config');
 const _ = require('lodash');
 import {
   GraphAggregationValueMap as GraphAggregation,
@@ -29,7 +29,7 @@ function refreshAnalyzerData(topologyName) {
     topologyName,
   };
   const startTime = new Date();
-  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
+  const chartUrl = QUERY_SERVICE_URL + '/stats_query';
   request.post(
     {
       body: JSON.stringify(linkQuery),
@@ -37,7 +37,7 @@ function refreshAnalyzerData(topologyName) {
     },
     (err, httpResponse, _body) => {
       if (err) {
-        logger.error('Error fetching from beringei: %s', err);
+        logger.error('Error fetching from query service: %s', err);
         return;
       }
       const totalTime = new Date() - startTime;

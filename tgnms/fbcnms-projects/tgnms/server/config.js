@@ -45,7 +45,7 @@ const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
 const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET;
 const CLIENT_ROOT_URL = process.env.CLIENT_ROOT_URL;
 
-const BERINGEI_QUERY_URL = process.env.BQS || 'http://localhost:8086';
+const QUERY_SERVICE_URL = process.env.BQS || 'http://localhost:8086';
 const PROMETHEUS_URL = process.env.PROMETHEUS || 'http://prometheus:9090';
 // default data source interval to use
 const DS_INTERVAL_SEC = 30;
@@ -111,7 +111,7 @@ const DEFAULT_ROUTES_HISTORY_HOST =
 
 module.exports = {
   API_REQUEST_TIMEOUT,
-  BERINGEI_QUERY_URL,
+  QUERY_SERVICE_URL,
   PROMETHEUS_URL,
   DS_INTERVAL_SEC,
   STATS_BACKEND,

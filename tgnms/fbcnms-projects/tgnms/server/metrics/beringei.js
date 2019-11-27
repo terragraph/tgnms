@@ -8,7 +8,7 @@ import {
   StatsOutputFormatValueMap as StatsOutputFormat,
 } from '../../shared/types/Stats';
 
-const {BERINGEI_QUERY_URL} = require('../config');
+const {QUERY_SERVICE_URL} = require('../config');
 const {getAnalyzerData} = require('../topology/analyzer_data');
 const express = require('express');
 const request = require('request');
@@ -28,7 +28,7 @@ router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
     outputFormat: StatsOutputFormat.RAW_LINK,
     topologyName,
   };
-  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
+  const chartUrl = QUERY_SERVICE_URL + '/stats_query';
   request.post(
     {
       body: JSON.stringify(linkQuery),
@@ -36,7 +36,7 @@ router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
     },
     (err, httpResponse, _body) => {
       if (err) {
-        logger.error('Error fetching from beringei: %s', err);
+        logger.error('Error fetching from query service: %s', err);
         res
           .status(500)
           .send('Error fetching data')
@@ -51,7 +51,7 @@ router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
 // newer charting, for multi-linechart/row
 router.get('/multi_chart', (req, res, _next) => {
   // proxy query
-  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
+  const chartUrl = QUERY_SERVICE_URL + '/stats_query';
   // re-construct the query since all params are strings
   const query = {
     ...req.query,
@@ -85,7 +85,7 @@ router.get('/multi_chart', (req, res, _next) => {
 });
 
 router.post('/stats_ta', (req, res, _next) => {
-  const taUrl = BERINGEI_QUERY_URL + '/stats_typeahead';
+  const taUrl = QUERY_SERVICE_URL + '/stats_typeahead';
   request.post(
     {
       body: JSON.stringify(req.body),
@@ -93,7 +93,7 @@ router.post('/stats_ta', (req, res, _next) => {
     },
     (err, httpResponse, body) => {
       if (err) {
-        logger.error('Error fetching from beringei: %s', err);
+        logger.error('Error fetching from query service: %s', err);
         res.status(500).end();
         return;
       }

@@ -17,7 +17,7 @@ export default function StatusText(props: Props) {
   const {status} = props;
   const trueText = props.trueText ? props.trueText : 'Online';
   const falseText = props.falseText ? props.falseText : 'Offline';
-  if (status === null) {
+  if (status === null || status === undefined) {
     return <span style={{color: 'gray'}}>Unknown</span>;
   }
   return (

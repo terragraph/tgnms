@@ -5,7 +5,7 @@
  */
 
 const {
-  BERINGEI_QUERY_URL,
+  QUERY_SERVICE_URL,
   LINK_HEALTH_TIME_WINDOW_HOURS,
   LOGIN_ENABLED,
   STATS_BACKEND,
@@ -41,6 +41,9 @@ let networkInstanceConfig = {};
 //let fbinternal = false;
 // hold all state
 const networkState = {};
+// backend service status - just query service for now
+const serviceState = {};
+
 // This array and the two functions below keep tracks of topology
 // stream event connections from browsers
 let topologyEventRequesters = [];
@@ -499,6 +502,7 @@ function getNetworkState(networkName) {
     return {
       ...networkState[networkName],
       ...networkInstanceConfig[networkName],
+      ...serviceState,
     };
   }
   return null;
@@ -509,7 +513,7 @@ function refreshWirelessControllerCache(topologyName) {
     'Request to update wireless controller cache for %s',
     topologyName,
   );
-  const wacUrl = BERINGEI_QUERY_URL + '/wireless_controller_stats';
+  const wacUrl = QUERY_SERVICE_URL + '/wireless_controller_stats';
   const req = {topologyName};
   request.post(
     {
@@ -634,6 +638,25 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
   });
 }
 
+function refreshQueryServiceStatus() {
+  // call the test handler to verify service is alive
+  const testHandlerUrl = QUERY_SERVICE_URL + '/';
+  request.post(
+    {
+      body: JSON.stringify({}),
+      url: testHandlerUrl,
+    },
+    (err, httpResponse, _body) => {
+      if (err || httpResponse.statusCode !== 200) {
+        logger.error('Error fetching from query service: %s', err);
+        serviceState.query_service_online = false;
+        return;
+      }
+      serviceState.query_service_online = true;
+    },
+  );
+}
+
 function cacheNetworkHealthFromBeringei(topologyName) {
   if (!networkInstanceConfig.hasOwnProperty(topologyName)) {
     logger.error('network_health: Unknown topology %s', topologyName);
@@ -650,7 +673,7 @@ function cacheNetworkHealthFromBeringei(topologyName) {
     outputFormat: StatsOutputFormat.EVENT_LINK,
     topologyName,
   };
-  const chartUrl = BERINGEI_QUERY_URL + '/stats_query';
+  const chartUrl = QUERY_SERVICE_URL + '/stats_query';
   request.post(
     {
       body: JSON.stringify(linkQuery),
@@ -658,14 +681,9 @@ function cacheNetworkHealthFromBeringei(topologyName) {
     },
     (err, httpResponse, _body) => {
       if (err) {
-        logger.error('Error fetching from beringei: %s', err);
-        networkState[topologyName].query_service_online = false;
-        networkInstanceConfig[topologyName].query_service_online = false;
+        logger.error('Error fetching from query service: %s', err);
         return;
       }
-      // set BQS online
-      networkState[topologyName].query_service_online = true;
-      networkInstanceConfig[topologyName].query_service_online = true;
       const totalTime = new Date() - startTime;
       logger.debug(
         'Fetched link health for %s in %s ms',
@@ -699,12 +717,10 @@ function cacheNetworkHealthFromBeringei(topologyName) {
     },
     (err, httpResponse, _body) => {
       if (err) {
-        logger.error('Error fetching from beringei: %s', err);
-        networkState[topologyName].query_service_online = false;
+        logger.error('Error fetching from query service: %s', err);
         return;
       }
       // set BQS online
-      networkState[topologyName].query_service_online = true;
       const totalTime = new Date() - startTime;
       logger.debug(
         'Fetched node health for %s in %s ms',
@@ -920,4 +936,5 @@ module.exports = {
   reloadInstanceConfig,
   removeRequester,
   runNowAndWatchForTopologyUpdate,
+  refreshQueryServiceStatus,
 };

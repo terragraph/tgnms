@@ -4,7 +4,7 @@
  * @format
  */
 
-const {BERINGEI_QUERY_URL} = require('../config');
+const {QUERY_SERVICE_URL} = require('../config');
 import websocketService from '../websockets/service';
 import {subscribe} from './eventStream';
 import type {KafkaMessage} from './KafkaTypes';
@@ -14,7 +14,7 @@ const request = require('request');
 const router = express.Router();
 
 router.post('/query', (req, res) => {
-  const eventUrl = BERINGEI_QUERY_URL + '/events_query';
+  const eventUrl = QUERY_SERVICE_URL + '/events_query';
 
   request.post(
     {
@@ -25,7 +25,7 @@ router.post('/query', (req, res) => {
       if (err) {
         res
           .status(500)
-          .send('Error fetching from beringei: ' + err)
+          .send('Error fetching from query service: ' + err)
           .end();
         return;
       }

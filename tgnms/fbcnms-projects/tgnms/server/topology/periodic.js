@@ -10,6 +10,7 @@ const {
   refreshNetworkHealth,
   refreshWirelessControllerCache,
   refreshTopologies,
+  refreshQueryServiceStatus,
   runNowAndWatchForTopologyUpdate,
   scheduleScansUpdate,
   //watchForTopologyUpdate,
@@ -75,6 +76,8 @@ function refreshHealthData() {
     refreshNetworkHealth(configName);
     refreshAnalyzerData(configName);
   });
+  // determine query service status
+  refreshQueryServiceStatus();
 }
 
 function refreshWirelessControllerData() {
