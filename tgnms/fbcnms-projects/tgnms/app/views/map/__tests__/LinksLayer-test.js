@@ -13,6 +13,11 @@ import {Feature, Layer} from 'react-mapbox-gl';
 import {TestApp, mockTopology} from '../../../tests/testHelpers';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
 import {cleanup, render} from '@testing-library/react';
+import {
+  getFeatureBySiteName,
+  getLayerById,
+  getPropValue,
+} from '../../../tests/mapHelpers';
 
 import type {Overlay} from '../overlays';
 import type {Props} from '../LinksLayer';
@@ -79,8 +84,8 @@ describe('basic line rendering', () => {
     if (!layer) {
       throw new Error('null layer');
     }
-    const site1LineSegment = getLineBySiteName(layer, 'site1');
-    const site2LineSegment = getLineBySiteName(layer, 'site2');
+    const site1LineSegment = getFeatureBySiteName(layer, 'site1');
+    const site2LineSegment = getFeatureBySiteName(layer, 'site2');
     expect(site1LineSegment).not.toBeNull();
     expect(site2LineSegment).not.toBeNull();
     if (!(site1LineSegment && site2LineSegment)) {
@@ -126,8 +131,8 @@ describe('basic line rendering', () => {
     if (!layer) {
       throw new Error('null layer');
     }
-    const site1LineSegment = getLineBySiteName(layer, 'site1');
-    const site2LineSegment = getLineBySiteName(layer, 'site2');
+    const site1LineSegment = getFeatureBySiteName(layer, 'site1');
+    const site2LineSegment = getFeatureBySiteName(layer, 'site2');
     expect(site1LineSegment).not.toBeNull();
     expect(site2LineSegment).not.toBeNull();
     if (!(site1LineSegment && site2LineSegment)) {
@@ -168,31 +173,4 @@ function basicTopology() {
       z_node_name: 'node2',
     });
   return topology;
-}
-
-function getLayerById(container: HTMLElement, id: string): ?HTMLElement {
-  return container.querySelector(`[data-mapbox-type="layer"][data-id="${id}"]`);
-}
-
-function _getLineByLinkName(
-  layer: HTMLElement,
-  linkName: string,
-): NodeList<HTMLElement> {
-  return layer.querySelectorAll(
-    `[data-mapbox-type="feature"][data-test-link-name="${linkName}"]`,
-  );
-}
-
-function getLineBySiteName(layer: HTMLElement, siteName: string): ?HTMLElement {
-  return layer.querySelector(
-    `[data-mapbox-type="feature"][data-test-site-name="${siteName}"]`,
-  );
-}
-
-function getPropValue(node: HTMLElement, propName: string) {
-  const attr = node.getAttribute(`data-${propName.toLowerCase()}`);
-  if (!attr) {
-    return null;
-  }
-  return JSON.parse(attr);
 }

@@ -59,15 +59,15 @@ const INNER_CIRCLE_RADIUS = 5;
 
 // === Inner circle paint (for special site types) ===
 // TODO - Make a legend for this
-const POP_SITE_COLOR = 'blue';
-const CN_SITE_COLOR = 'pink';
+export const POP_SITE_COLOR = 'blue';
+export const CN_SITE_COLOR = 'pink';
 
 // === Selected site paint ===
 const SELECTED_CIRCLE_STROKE_COLOR = '#0077ff';
 const SELECTED_CIRCLE_STROKE_WIDTH = 5;
 
 // === Planned site paint ===
-const PLANNED_SITE_COLOR = '#fff';
+export const PLANNED_SITE_COLOR = '#fff';
 const PLANNED_SITE_STROKE_COLOR = '#000';
 
 // === "Search Nearby" site paint ===
@@ -75,7 +75,7 @@ const SEARCH_NEARBY_SITE_COLOR = '#eee';
 const SEARCH_NEARBY_STROKE_COLOR = '#aec6cf';
 const SEARCH_NEARBY_STROKE_WIDTH = 5;
 
-type Props = {
+export type Props = {
   classes: {[string]: string},
   onSiteMouseEnter?: string => any,
   onSiteMouseLeave?: string => any,
@@ -243,6 +243,7 @@ class SitesLayer extends React.Component<Props> {
           onMouseEnter: onSiteMouseEnter,
           onMouseLeave: onSiteMouseLeave,
           onClick: this.handleSiteClick(site),
+          'test-site-name': site.name,
         };
         features.push(
           <Feature
@@ -256,6 +257,7 @@ class SitesLayer extends React.Component<Props> {
                 ? SELECTED_CIRCLE_STROKE_WIDTH
                 : 0,
             }}
+            test-site-layer="circle"
           />,
         );
 
@@ -281,6 +283,7 @@ class SitesLayer extends React.Component<Props> {
                 circleRadius: INNER_CIRCLE_RADIUS,
                 strokeWidth: 0,
               }}
+              test-site-layer="inner-circle"
             />,
           );
         } else if (hasCn) {
@@ -293,6 +296,7 @@ class SitesLayer extends React.Component<Props> {
                 circleRadius: INNER_CIRCLE_RADIUS,
                 strokeWidth: 0,
               }}
+              test-site-layer="inner-circle"
             />,
           );
         }
@@ -314,6 +318,7 @@ class SitesLayer extends React.Component<Props> {
           }}
           draggable
           onDragEnd={onPlannedSiteMoved}
+          test-planned-site-name={plannedSite.name}
         />,
       );
     }
