@@ -41,7 +41,7 @@ export type ChangeOverlayRange = {
   (id: string, newRange: Array<number>): void,
 };
 
-const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
+export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   //{name: 'Performance Health', id: 'perf_health'},
   //{name: 'Availability', id: 'availability'},
   //{name: 'Uptime', id: 'uptime'},
@@ -195,7 +195,7 @@ export class LinkMetricsOverlayStrategy implements OverlayStrategy {
   };
 }
 
-const TEST_EXECUTION_OVERLAYS: {[string]: Overlay} = {
+export const TEST_EXECUTION_OVERLAYS: {[string]: Overlay} = {
   health: {
     name: 'Health',
     type: 'metric',

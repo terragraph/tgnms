@@ -72,7 +72,7 @@ import type {
 
 const styles = _theme => ({});
 
-type Props = {
+export type Props = {
   overlay: Overlay,
   ignitionState: IgnitionState,
   routes: {
@@ -489,6 +489,7 @@ class LinksLayer extends React.Component<Props> {
         onMouseEnter: onLinkMouseEnter,
         onMouseLeave: onLinkMouseLeave,
         onClick: this.handleLinkClick(link),
+        'test-link-name': link.name,
       };
       if (
         overlay.type === 'golay' ||
@@ -510,6 +511,7 @@ class LinksLayer extends React.Component<Props> {
         features.push(
           <Feature
             {...featureParams}
+            key={`link-layer-${link.name}`}
             coordinates={[
               [siteA.location.longitude, siteA.location.latitude],
               [siteZ.location.longitude, siteZ.location.latitude],
@@ -534,6 +536,7 @@ class LinksLayer extends React.Component<Props> {
           features.push(
             <Feature
               {...featureParams}
+              key={`link-layer-${link.name}-1`}
               coordinates={[
                 [siteA.location.longitude, siteA.location.latitude],
                 midpoint,
@@ -542,11 +545,13 @@ class LinksLayer extends React.Component<Props> {
                 linkColor: linkColor[0],
                 text: metricText[0],
               }}
+              test-site-name={siteA.name}
             />,
           );
           features.push(
             <Feature
               {...featureParams}
+              key={`link-layer-${link.name}-2`}
               coordinates={[
                 midpoint,
                 [siteZ.location.longitude, siteZ.location.latitude],
@@ -555,6 +560,7 @@ class LinksLayer extends React.Component<Props> {
                 linkColor: linkColor[1],
                 text: metricText[1],
               }}
+              test-site-name={siteZ.name}
             />,
           );
         } else {
@@ -562,6 +568,7 @@ class LinksLayer extends React.Component<Props> {
           features.push(
             <Feature
               {...featureParams}
+              key={`link-layer-${link.name}`}
               coordinates={[
                 [siteA.location.longitude, siteA.location.latitude],
                 [siteZ.location.longitude, siteZ.location.latitude],
