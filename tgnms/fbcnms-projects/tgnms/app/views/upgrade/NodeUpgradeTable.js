@@ -221,7 +221,9 @@ class NodeUpgradeTable extends React.Component<Props, State> {
                 </Typography>
               </div>
               <div className={classes.spacer} />
-              <div className={classes.flexContainer}>
+              <div
+                data-testid="actionButtonContainer"
+                className={classes.flexContainer}>
                 <ModalFullUpgrade
                   controllerVersion={getVersion(this.props.controllerVersion)}
                   excluded={this.getExcludedNodes()}
@@ -253,6 +255,7 @@ class NodeUpgradeTable extends React.Component<Props, State> {
               <TableRow>
                 <TableCell className={classes.header} padding="checkbox">
                   <Checkbox
+                    data-testid="selectAllBox"
                     checked={numSelected !== 0 && numSelected === nodeCount}
                     color="primary"
                     indeterminate={numSelected > 0 && numSelected < nodeCount}
