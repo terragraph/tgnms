@@ -123,7 +123,7 @@ type Props = {
   selectedHardwareType: ?string,
   onSelectHardwareType: string => void,
   topologyNodeList: ?Array<Object>,
-  useMetadataBase: boolean,
+  useMetadataBase: ?boolean,
   onSetConfigBase: boolean => void,
   onConfigRefresh: (string, boolean) => void,
   onUpdateSnackbar: (string, string) => void,

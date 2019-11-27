@@ -72,7 +72,7 @@ class InsetPaper extends React.Component<Props> {
       classNameProp,
     );
 
-    return <Component className={className} {...other} />;
+    return <Component {...other} className={className} />;
   }
 }
 

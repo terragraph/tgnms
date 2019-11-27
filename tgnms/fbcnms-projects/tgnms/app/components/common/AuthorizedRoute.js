@@ -13,12 +13,12 @@ import {Route} from 'react-router-dom';
 import {isAuthorized} from '../../helpers/UserHelpers';
 import type {Permission} from '../../../shared/auth/Permissions';
 
-export type Props = {
+export type Props = {|
   permissions: Permission | Array<Permission>,
   // use this to unit test whether a redirect occurs
   __testRedirect?: any,
   ...React.ElementConfig<typeof Route>,
-};
+|};
 
 export default function AuthorizedRoute(props: Props) {
   const {
@@ -43,19 +43,28 @@ export default function AuthorizedRoute(props: Props) {
       ? () => <AuthRedirect permissions={permissions} />
       : __testRedirect;
 
-  const renderProps = {};
   // Keep the same api as Route but wrap with authorization
+  let componentProp = undefined;
   if (typeof component !== 'undefined') {
-    renderProps.component = authorized ? component : redirect;
+    componentProp = authorized ? component : redirect;
   }
+  let renderProp = undefined;
   if (typeof render !== 'undefined') {
-    renderProps.render = authorized ? render : redirect;
+    renderProp = authorized ? render : redirect;
   }
+  let childrenProp = undefined;
   if (typeof children !== 'undefined') {
-    renderProps.children = authorized ? children : redirect;
+    childrenProp = authorized ? children : redirect;
   }
 
-  return <Route {...routeProps} {...renderProps} />;
+  return (
+    <Route
+      {...routeProps}
+      component={componentProp}
+      render={renderProp}
+      children={childrenProp}
+    />
+  );
 }
 
 function AuthRedirect({permissions}) {

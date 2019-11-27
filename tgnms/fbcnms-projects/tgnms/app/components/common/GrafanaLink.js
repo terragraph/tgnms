@@ -80,7 +80,11 @@ export default function GrafanaLink({
   return <Component {...props} href={href} children={children} />;
 }
 
-function DefaultLink(props: $Shape<HTMLAnchorElement>) {
+function DefaultLink(
+  props: $Rest<HTMLAnchorElement, {|children: HTMLCollection<HTMLElement>|}> & {
+    children: React.Node,
+  },
+) {
   return <a {...props} target="_blank" rel="noopener noreferrer" />;
 }
 

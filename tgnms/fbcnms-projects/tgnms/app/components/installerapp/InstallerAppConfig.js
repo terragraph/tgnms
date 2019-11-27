@@ -18,7 +18,7 @@ export default function InstallerAppConfig(props: Props) {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} {...props} />
+      <Button {...props} onClick={() => setIsOpen(true)} />
       <MaterialModal
         open={isOpen}
         onClose={() => setIsOpen(false)}
