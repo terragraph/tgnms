@@ -14,7 +14,8 @@
     "thrift-to-flow": "thrift2flow --path $(pwd)/shared/types/ thrift/*.thrift && mv thrift/*.js shared/types/",
     "test": "(cd ../../ && yarn run test)",
     "test:app": "(cd ../../ && yarn run test app)",
-    "test:server": "(cd ../../ && yarn run test server)"
+    "test:server": "(cd ../../ && yarn run test server)",
+    "test:coverage": "(cd ../../ && yarn run test --all --coverage --collectCoverageFrom='[\"**/fbcnms-projects/tgnms/**/*.js\", \"!**/__tests__/**\", \"!**/__mocks__/**\", \"!**/thrift/gen-nodejs/**\", \"!**/fbcnms-projects/tgnms/shared/types/**/*\", \"!**/fbcnms-projects/tgnms/server/seeders/*\", \"!**/fbcnms-projects/tgnms/server/migrations/*\"]' --coverageReporters=text)"
   },
   "dependencies": {
     "@date-io/moment": "^1.3.11",
