@@ -211,7 +211,7 @@ class NodeUpgradeTable extends React.Component<Props, State> {
     const nodeCount = filteredData.length;
 
     return (
-      <Paper className={classes.root} elevation={2}>
+      <Paper className={classes.root} elevation={2} data-testid="nodeUpgrade">
         <Toolbar>
           {numSelected > 0 ? (
             <>
@@ -222,8 +222,8 @@ class NodeUpgradeTable extends React.Component<Props, State> {
               </div>
               <div className={classes.spacer} />
               <div
-                data-testid="actionButtonContainer"
-                className={classes.flexContainer}>
+                className={classes.flexContainer}
+                data-testid="actionButtonContainer">
                 <ModalFullUpgrade
                   controllerVersion={getVersion(this.props.controllerVersion)}
                   excluded={this.getExcludedNodes()}
@@ -255,11 +255,11 @@ class NodeUpgradeTable extends React.Component<Props, State> {
               <TableRow>
                 <TableCell className={classes.header} padding="checkbox">
                   <Checkbox
-                    data-testid="selectAllBox"
                     checked={numSelected !== 0 && numSelected === nodeCount}
                     color="primary"
                     indeterminate={numSelected > 0 && numSelected < nodeCount}
                     onChange={this.handleSelectAllClick}
+                    data-testid="selectAllBox"
                   />
                 </TableCell>
                 {columns.map(col => {

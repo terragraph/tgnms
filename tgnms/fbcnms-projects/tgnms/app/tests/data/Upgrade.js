@@ -9,6 +9,9 @@ import type {
   StructuredNodeType,
 } from '../../views/upgrade/NetworkUpgrade';
 
+import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
+import type {UpgradeGroupReqType} from '../../../shared/types/Controller';
+
 export function mockUpgradeArrayData(): Array<StructuredNodeType> {
   return [
     {
@@ -91,4 +94,52 @@ export function mockBatchData(
     nextVersion: null,
   };
   return Object.assign(defaultBatch, overrides || {});
+}
+
+export function mockUpgradeImageArrayData(): Array<$Shape<SoftwareImageType>> {
+  return [mockUpgradeImageData()];
+}
+
+export function mockUpgradeImageData(): SoftwareImageType {
+  return {
+    versionNumber: '1',
+    fileName: 'testFile',
+    uploadedDate: new Date('11/11 /11'),
+    name: 'testImage',
+    magnetUri: 'testimageURI',
+    md5: 'testMd5',
+    hardwareBoardIds: ['boardIdTest'],
+  };
+}
+export function mockUpgradeReqData(): UpgradeGroupReqType {
+  return {
+    ugType: 'NODES',
+    nodes: [],
+    excludeNodes: [],
+    urReq: {
+      urType: 'PREPARE_UPGRADE',
+      upgradeReqId: 'test',
+      md5: 'test',
+      imageUrl: 'test',
+    },
+    timeout: 0,
+    skipFailure: false,
+    version: 'test',
+    skipLinks: [],
+    limit: 0,
+    retryLimit: 0,
+  };
+}
+
+export function mockStructuredNodeData(): StructuredNodeType {
+  return {
+    name: 'testName',
+    alive: false,
+    siteName: 'testSite',
+    popNode: false,
+    upgradeStatus: 'testStatus',
+    upgradeStatusReason: 'testReason',
+    version: 'testVersion',
+    nextVersion: 'testVersionNext',
+  };
 }

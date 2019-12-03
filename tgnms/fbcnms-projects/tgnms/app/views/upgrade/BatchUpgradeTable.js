@@ -91,7 +91,7 @@ class BatchUpgradeTable extends React.Component<Props, State> {
     const {classes, data} = this.props;
 
     return (
-      <Paper className={classes.root} elevation={2}>
+      <Paper className={classes.root} elevation={2} data-testid="batchUpgrade">
         <Toolbar>
           <div className={classes.title}>
             <Typography variant="h6">

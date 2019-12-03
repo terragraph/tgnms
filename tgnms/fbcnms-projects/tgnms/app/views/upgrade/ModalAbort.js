@@ -188,6 +188,7 @@ class ModalAbort extends React.Component<Props, State> {
                       color="primary"
                       indeterminate={numSelected > 0 && numSelected < reqCount}
                       onChange={this.handleSelectAllClick}
+                      data-testid="selectAllBox"
                     />
                   </TableCell>
                   {columns.map(col => {

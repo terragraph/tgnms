@@ -37,7 +37,7 @@ class UpgradeOperationsToolbar extends React.Component<Props> {
       : pendingRequests;
 
     return (
-      <div className={classes.root}>
+      <div className={classes.root} data-testid="upgradeToolbar">
         <Toolbar disableGutters>
           <ModalUpgradeImages networkName={networkName} />
           <ModalAbort networkName={networkName} upgradeRequests={allRequests} />
