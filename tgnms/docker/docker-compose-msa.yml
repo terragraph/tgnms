@@ -1,21 +1,6 @@
 version: '3.6'
 
 services:
-  mongodb:
-    image: mongo
-    restart: unless-stopped
-    networks:
-      - terragraph_net
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./docker_volumes/logs:/logs
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "10"
-
   topology_service:
     image: secure.cxl-terragraph.com:443/topology_service:latest
     restart: always
