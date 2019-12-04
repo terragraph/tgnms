@@ -9,6 +9,7 @@ const {
   LINK_HEALTH_TIME_WINDOW_HOURS,
   LOGIN_ENABLED,
   STATS_BACKEND,
+  STATS_ALLOWED_DELAY_SEC,
 } = require('../config');
 const EventSource = require('eventsource');
 import apiServiceClient from '../apiservice/apiServiceClient';
@@ -436,10 +437,16 @@ function updateInitialCoordinates(networkName) {
   // add map bounds (format: [[west, south], [east, north]])
   let bounds;
   if (sites.length > 0) {
-    bounds = [[minLng, minLat], [maxLng, maxLat]];
+    bounds = [
+      [minLng, minLat],
+      [maxLng, maxLat],
+    ];
   } else {
     // if a topology has no sites defined, default to MPK campus
-    bounds = [[-122.149742, 37.4835208], [-122.145169, 37.4866381]];
+    bounds = [
+      [-122.149742, 37.4835208],
+      [-122.145169, 37.4866381],
+    ];
   }
   networkState[networkName].bounds = bounds;
 }
@@ -560,8 +567,7 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
   const eventsByLink = {};
   // TODO - account for missing gaps at the end
   const windowSeconds = timeWindowHours * 60 * 60;
-  // don't show the last 60s
-  const curTs = new Date().getTime() / 1000 - 60;
+  const curTs = new Date().getTime() / 1000;
   const minStartTs = curTs - 60 * 60 * timeWindowHours;
   return await getLinkEvents(topologyName, timeWindowHours).then(resp => {
     resp.forEach(linkEvent => {
@@ -604,10 +610,21 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
         endTime,
       });
     });
-
     // calculate availability
     Object.keys(eventsByLink).forEach(linkName => {
       const linkEvents = eventsByLink[linkName];
+      const lastEvent = linkEvents.events.slice(-1)[0];
+      // assume online between the last LINK_UP endTime and current time if
+      // within the defined window
+      let assumedOnlineSeconds = 0;
+      if (
+        lastEvent.linkState === LinkStateType['LINK_UP'] &&
+        lastEvent.endTime >= curTs - STATS_ALLOWED_DELAY_SEC
+      ) {
+        // last end time is within the allowed range
+        const lastEndTime = lastEvent.endTime;
+        assumedOnlineSeconds = curTs - lastEndTime;
+      }
       const availSeconds = linkEvents.events.reduce(
         (accumulator, {startTime, endTime}) =>
           accumulator + (endTime - startTime),
@@ -620,12 +637,18 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
             accumulator + (endTime - startTime),
           0,
         );
+      // calculate the availability window by removing the window of time at
+      // the end (from data-point lag) we assume to be available
       const alivePerc =
-        Number.parseInt((availSeconds / windowSeconds) * 10000.0) / 100.0;
+        Number.parseInt(
+          (availSeconds / (windowSeconds - assumedOnlineSeconds)) * 10000.0,
+        ) / 100.0;
       // remove LINK_UP_DATADOWN seconds from available %
       const availPerc =
         Number.parseInt(
-          ((availSeconds - dataDownSeconds) / windowSeconds) * 10000.0,
+          ((availSeconds - dataDownSeconds) /
+            (windowSeconds - assumedOnlineSeconds)) *
+            10000.0,
         ) / 100.0;
       linkEvents.linkAlive = alivePerc;
       linkEvents.linkAvailForData = availPerc;

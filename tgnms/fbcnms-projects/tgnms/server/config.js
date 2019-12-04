@@ -109,6 +109,13 @@ const TG_ALARM_PORT = requiredInt(process.env.TG_ALARM_PORT, 40000);
 const DEFAULT_ROUTES_HISTORY_HOST =
   process.env.DEFAULT_ROUTES_HISTORY_HOST || null;
 
+// allowed delay (in seconds) when generating link health windowing
+// from stats data
+const STATS_ALLOWED_DELAY_SEC = requiredInt(
+  process.env.STATS_ALLOWED_DELAY_SEC,
+  60 * 2,
+);
+
 module.exports = {
   API_REQUEST_TIMEOUT,
   QUERY_SERVICE_URL,
@@ -156,4 +163,5 @@ module.exports = {
   TG_ALARM_HOST,
   TG_ALARM_PORT,
   DEFAULT_ROUTES_HISTORY_HOST,
+  STATS_ALLOWED_DELAY_SEC,
 };
