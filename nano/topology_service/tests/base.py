@@ -4,6 +4,8 @@
 import logging
 import unittest
 
+from tests.sanitize_topology_test import SanitizeTopologyTests
+
 
 if __name__ == "__main__":
     # Suppress logging statements during tests

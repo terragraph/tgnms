@@ -2,24 +2,25 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import datetime
 import json
 import logging
 import sys
+from datetime import datetime
 from typing import Dict
 
 from tglib.clients.api_service_client import APIServiceClient
-from tglib.clients.mongodb_client import MongoDBClient
 from tglib.exceptions import ClientRuntimeError
 from tglib.tglib import Client, init
 
+from .mysql_helpers import fetch_topologies, insert_topology
 from .routes import routes
+from .util import sanitize_topology
 
 
 async def async_main(config: Dict) -> None:
     """
     Use `getTopology` API request to fetch the latest topology in
-    every `fetch_interval` seconds and stores results in MongoDB.
+    every `fetch_interval` seconds and stores results in the database.
     Topology stored in `topology_service` database.
     """
     logging.info("#### Starting topology fetch service ####")
@@ -28,33 +29,50 @@ async def async_main(config: Dict) -> None:
     fetch_interval: int = config["fetch_interval_s"]
 
     while True:
+        tasks = []
+
         # Get latest topology for all networks from API service
         logging.info("Requesting topologies for all networks from API service.")
         all_topologies: Dict = await APIServiceClient(timeout=1).request_all(
             endpoint="getTopology", return_exceptions=True
         )
+        now = datetime.now()
 
-        now = str(datetime.datetime.now())
         for topology_name, topology in all_topologies.items():
-            if not isinstance(topology, ClientRuntimeError):
-                # Access the db
-                db = MongoDBClient().db
-                collection = db[topology_name]
-
-                # Add timestamp field to topology
-                topology["timestamp"] = now
-
-                # Store fetched topology in MongoDB
-                result = await collection.insert_one(topology)
-                logging.info(
-                    f"Topology of {topology_name} is stored in {topology_name}"
-                    f"collection, insert_id = {repr(result.inserted_id)}"
-                )
-            else:
+            if isinstance(topology, ClientRuntimeError):
                 logging.error(f"Error in fetching topology for {topology_name}.")
+            else:
+                # analyze fetched topologies and store results in the database
+                tasks.append(asyncio.create_task(_main_impl(topology, now)))
 
         # Sleep until next invocation time
         await asyncio.sleep(fetch_interval)
+
+        # await tasks to finish. If timeout, cancel tasks and pass
+        try:
+            await asyncio.wait_for(asyncio.gather(*tasks), timeout=1.0)
+        except asyncio.TimeoutError:
+            logging.error("Some tasks were unable to complete.")
+            pass
+
+
+async def _main_impl(topology: Dict, now: datetime) -> None:
+    """
+    1.  Analyze fetched topology to determine if the topology has changed compared
+        to the most recent entry in the database.
+    2.  Write the results to the database.
+    """
+    # sanitize the fetched topology
+    sanitize_topology(topology)
+
+    # fetch the most recent entry in the database
+    previous_entry = await fetch_topologies(topology["name"])
+
+    # compare the topologies
+    if previous_entry and previous_entry[0]["topology"] == topology:
+        logging.info(f"Topology for {topology['name']} has not changed.")
+    else:
+        await insert_topology(topology, now)
 
 
 def main() -> None:
@@ -67,6 +85,6 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {Client.API_SERVICE_CLIENT, Client.MONGODB_CLIENT},
+        {Client.API_SERVICE_CLIENT, Client.MYSQL_CLIENT},
         routes,
     )

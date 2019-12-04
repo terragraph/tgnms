@@ -2,8 +2,8 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 from aiohttp import web
-from pymongo import DESCENDING
-from tglib.clients.mongodb_client import MongoDBClient
+
+from .mysql_helpers import fetch_topologies
 
 
 routes = web.RouteTableDef()
@@ -13,7 +13,7 @@ routes = web.RouteTableDef()
 async def get_topology_history(request: web.Request) -> web.Response:
     """
     ---
-    description: Fetch a list of last "count" number of topologies from MongoDB.
+    description: Fetch a list of last "count" number of topologies from database.
     tags:
     - History
     produces:
@@ -37,7 +37,7 @@ async def get_topology_history(request: web.Request) -> web.Response:
         - count
     responses:
       "200":
-        description: Successful operation. Returns list of last 'count' number of topologies from MongoDB.
+        description: Successful operation. Returns list of last 'count' number of topologies from database.
       "400":
         description: Invalid or missing parameters.
     """
@@ -48,23 +48,12 @@ async def get_topology_history(request: web.Request) -> web.Response:
     if count is None:
         raise web.HTTPBadRequest(text="Missing required 'count' param")
     if not isinstance(count, int) or count < 1:
-        raise web.HTTPBadRequest(
-            text="Invalid value for 'count': Must be integer greater than 1"
-        )
+        raise web.HTTPBadRequest(text="Invalid value for 'count': Must be integer >= 1")
 
     # Get the network name
     topology_name = body.get("topology_name")
     if topology_name is None:
         raise web.HTTPBadRequest(text="Missing required 'topology_name' param")
 
-    # Access the db
-    db = MongoDBClient().db
-    collection = db[topology_name]
-
-    result = []
-    # Query the last 'count' number of topologies from newest to oldest
-    async for topo in collection.find().sort("_id", DESCENDING).limit(count):
-        del topo["_id"]
-        result.append(topo)
-
-    return web.json_response(result)
+    previous_entries = await fetch_topologies(topology_name, count)
+    return web.json_response([row["topology"] for row in previous_entries])
