@@ -1,7 +1,9 @@
 {
   "overrides": {
-    "mongodb": {
-      "db": "topology_service"
+    "mysql": {
+      "db": "topology_service",
+      "user": "topology_user",
+      "password": "td7s25hjzmf"
     }
   },
   "fetch_interval_s": 600

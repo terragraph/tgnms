@@ -19,20 +19,21 @@ services:
   topology_service:
     image: secure.cxl-terragraph.com:443/topology_service:latest
     restart: always
+    env_file:
+      - ./env/topology_service.env
     volumes:
       - ./docker_volumes/logs:/nano/topology_service/logs
       - ./docker_volumes/topology_service/service_config.json:/usr/local/nano/topology_service/service_config.json
       - ./docker_volumes/tglib/config.json:/usr/local/nano/topology_service/config.json
+      - ./mysql_init_scripts/topology_service.sql:/usr/local/nano/topology_service/topology_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "topology_service"]
+    command: ["/bin/sh", "-c", "mysql -h$${MYSQL_HOST} -u$${MYSQL_USER} -p$${MYSQL_PASS} < topology_service.sql && topology_service"]
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
         max-file: "10"
-    depends_on:
-      - mongodb
 
   default_routes_service:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
