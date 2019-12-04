@@ -14,7 +14,6 @@ from aiohttp import web
 from tglib.clients.api_service_client import APIServiceClient
 from tglib.clients.kafka_consumer import KafkaConsumer
 from tglib.clients.kafka_producer import KafkaProducer
-from tglib.clients.mongodb_client import MongoDBClient
 from tglib.clients.mysql_client import MySQLClient
 from tglib.clients.prometheus_client import PrometheusClient
 from tglib.exceptions import ConfigError, DuplicateRouteError, TGLibError
@@ -28,9 +27,8 @@ class Client(enum.Enum):
     API_SERVICE_CLIENT = 0
     KAFKA_CONSUMER = 1
     KAFKA_PRODUCER = 2
-    MONGODB_CLIENT = 3
-    MYSQL_CLIENT = 4
-    PROMETHEUS_CLIENT = 5
+    MYSQL_CLIENT = 3
+    PROMETHEUS_CLIENT = 4
 
 
 def init(
@@ -88,8 +86,6 @@ def init(
         app["clients"].append(KafkaConsumer)
     if Client.KAFKA_PRODUCER in clients:
         app["clients"].append(KafkaProducer)
-    if Client.MONGODB_CLIENT in clients:
-        app["clients"].append(MongoDBClient)
     if Client.MYSQL_CLIENT in clients:
         app["clients"].append(MySQLClient)
     if Client.PROMETHEUS_CLIENT in clients:

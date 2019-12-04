@@ -81,10 +81,7 @@ setup(
         "aiomysql>=0.0.20,<1.0",
         "asynctest>=0.13.0,<1.0",
         "kafka-python==1.4.6",
-        "motor>=2.0,<3.0",
-        "pymongo>=3.9.0,<4",
         "pymysql==0.9.2",
-        "sqlalchemy>=1.3.5,<2.0",
         # Pin thrift to version pulled in Dockerfile
         "thrift==0.11.0",
     ],
