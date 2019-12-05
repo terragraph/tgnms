@@ -3,15 +3,13 @@ FROM secure.cxl-terragraph.com:443/tglib:latest
 
 ARG WORKDIR=/usr/local/nano/default_routes_service/
 
-RUN apt-get update
-RUN apt-get -y upgrade
-
 # Install MySQL
-RUN apt-get install -y default-mysql-client
-
-WORKDIR $WORKDIR
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get install -y default-mysql-client
 
 # Copy default routes service source files into docker container
+WORKDIR $WORKDIR
 COPY ./nano/default_routes_service .
 COPY ./.flake8 .
 
