@@ -83,8 +83,6 @@ setup(
         "kafka-python==1.4.6",
         "pymysql==0.9.2",
         "sqlalchemy>=1.3.5,<2.0",
-        # Pin thrift to version pulled in Dockerfile
-        "thrift==0.11.0",
     ],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     cmdclass={"build_thrift": BuildThriftCommand},
