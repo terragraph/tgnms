@@ -11,6 +11,7 @@ const {
 } = require('../../topology/model');
 
 import {NetworkDto} from '../../../shared/dto/api/v1';
+import type {VersionDto} from '../../../shared/dto/api/v1';
 
 const express = require('express');
 
@@ -32,6 +33,16 @@ router.get('/networks/:name', (req, res) => {
   }
 
   return res.json(new NetworkDto(config));
+});
+
+router.get('/version', (req, res) => {
+  const versionResp: VersionDto = {
+    version: process.env.npm_package_version || '',
+    commit_hash: process.env.COMMIT_HASH || '',
+    commit_date: process.env.COMMIT_DATE || '',
+    node_env: process.env.NODE_ENV || '',
+  };
+  return res.json(versionResp);
 });
 
 module.exports = router;

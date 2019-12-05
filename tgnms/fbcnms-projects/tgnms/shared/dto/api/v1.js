@@ -30,3 +30,10 @@ export class NetworkDto {
     this.site_overrides = init.site_overrides;
   }
 }
+
+export type VersionDto = {
+  node_env: string,
+  commit_date: string,
+  commit_hash: string,
+  version: string,
+};
