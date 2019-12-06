@@ -72,7 +72,7 @@ ptr_params = {
         "tglib/utils/ip.py": 100,
         "TOTAL": 43,
     },
-    "run_flake8": False,  # TODO: Fix all flake8 errors - T53451611
+    "run_flake8": True,
     "run_black": True,
     "run_mypy": True,
 }

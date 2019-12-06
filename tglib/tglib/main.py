@@ -64,21 +64,7 @@ def init(
     app["shutdown_event"] = asyncio.Event()
 
     # Initialize routes for the HTTP server
-    app.add_routes(routes)
-    if extra_routes is not None:
-        routes_set = set()
-        for route in routes:
-            if isinstance(route, web.RouteDef):
-                route = cast(web.RouteDef, route)
-                routes_set.add((route.method, route.path))
-
-        for route in extra_routes:
-            if isinstance(route, web.RouteDef):
-                route = cast(web.RouteDef, route)
-                if (route.method, route.path) in routes_set:
-                    raise DuplicateRouteError(route.method, route.path)
-
-        app.add_routes(extra_routes)
+    add_all_routes(app, routes, extra_routes)
 
     # Initialize the clients
     app["clients"] = []
@@ -104,6 +90,29 @@ def init(
         pass
 
     web.run_app(app)
+
+
+def add_all_routes(
+    app: web.Application,
+    routes: web.RouteTableDef,
+    extra_routes: Optional[web.RouteTableDef],
+) -> None:
+    """Add the tglib base routes and service provided routes to the app."""
+    app.add_routes(routes)
+    if extra_routes is not None:
+        routes_set = set()
+        for route in routes:
+            if isinstance(route, web.RouteDef):
+                route = cast(web.RouteDef, route)
+                routes_set.add((route.method, route.path))
+
+        for route in extra_routes:
+            if isinstance(route, web.RouteDef):
+                route = cast(web.RouteDef, route)
+                if (route.method, route.path) in routes_set:
+                    raise DuplicateRouteError(route.method, route.path)
+
+        app.add_routes(extra_routes)
 
 
 async def start_background_tasks(app: web.Application) -> None:
@@ -156,7 +165,7 @@ async def main_wrapper(app: web.Application) -> None:
     """Run the supplied 'main' and set the shutdown event if it fails."""
     try:
         await app["main"]()
-    except:
+    except:  # noqa: E722
         app["shutdown_event"].set()
         raise
 

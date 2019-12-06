@@ -185,7 +185,6 @@ class PrometheusClientTests(asynctest.TestCase):
 
     def test_redundant_write_metrics(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
-        metrics = {}
 
         id = create_query(metric_name="foo")
         PrometheusClient.write_metrics(
