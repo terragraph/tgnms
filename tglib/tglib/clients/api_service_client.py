@@ -7,14 +7,14 @@ from typing import Dict, List, Optional, cast
 
 import aiohttp
 
-from tglib.clients.base_client import BaseClient, HealthCheckResult
-from tglib.exceptions import (
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,
     ConfigError,
 )
-from tglib.utils.ip import format_address
+from ..utils.ip import format_address
+from .base_client import BaseClient, HealthCheckResult
 
 
 class APIServiceClient(BaseClient):

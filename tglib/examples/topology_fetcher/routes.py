@@ -10,10 +10,10 @@ import datetime
 import re
 
 from aiohttp import web
-from sqlalchemy.sql import select
-from tglib.clients.mysql_client import MySQLClient
+from sqlalchemy import select
+from tglib.clients import MySQLClient
 
-from models import Topology
+from .models import Topology
 
 
 routes = web.RouteTableDef()

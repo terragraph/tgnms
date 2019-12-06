@@ -22,7 +22,7 @@ import sys
 import time
 from typing import Dict
 
-from tglib.tglib import Client, init
+from tglib import ClientType, init
 
 import jobs
 
@@ -105,4 +105,4 @@ if __name__ == "__main__":
         logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
-    init(lambda: main(config), {Client.PROMETHEUS_CLIENT})
+    init(lambda: main(config), {ClientType.PROMETHEUS_CLIENT})

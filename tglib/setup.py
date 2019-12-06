@@ -4,11 +4,19 @@
 import distutils.cmd
 import distutils.log
 import os
+import pathlib
+import re
 import subprocess
 
 from setuptools import find_packages, setup
 
-from tglib import __version__
+
+HERE = pathlib.Path(__file__).parent
+txt = (HERE / "tglib" / "__init__.py").read_text("utf-8")
+try:
+    version = re.findall(r'^__version__ = "([^\']+)"\r?$', txt, re.M)[0]
+except IndexError:
+    raise RuntimeError("Unable to determine version.")
 
 
 class BuildThriftCommand(distutils.cmd.Command):
@@ -55,14 +63,14 @@ class BuildThriftCommand(distutils.cmd.Command):
 
 
 ptr_params = {
-    "entry_point_module": "tglib/tglib",
+    "entry_point_module": "tglib/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 300,
     "required_coverage": {
         "tglib/clients/prometheus_client.py": 86,
         "tglib/utils/dict.py": 100,
         "tglib/utils/ip.py": 100,
-        "TOTAL": 36,
+        "TOTAL": 35,
     },
     "run_flake8": False,  # TODO: Fix all flake8 errors - T53451611
     "run_black": True,
@@ -72,7 +80,7 @@ ptr_params = {
 
 setup(
     name="tglib",
-    version=__version__,
+    version=version,
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=[

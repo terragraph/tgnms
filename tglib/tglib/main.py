@@ -11,17 +11,19 @@ from typing import Callable, Optional, Set, cast
 
 from aiohttp import web
 
-from tglib.clients.api_service_client import APIServiceClient
-from tglib.clients.kafka_consumer import KafkaConsumer
-from tglib.clients.kafka_producer import KafkaProducer
-from tglib.clients.mysql_client import MySQLClient
-from tglib.clients.prometheus_client import PrometheusClient
-from tglib.exceptions import ConfigError, DuplicateRouteError, TGLibError
-from tglib.routes import routes
-from tglib.utils.dict import deep_update
+from .clients import (
+    APIServiceClient,
+    KafkaConsumer,
+    KafkaProducer,
+    MySQLClient,
+    PrometheusClient,
+)
+from .exceptions import ConfigError, DuplicateRouteError, TGLibError
+from .routes import routes
+from .utils.dict import deep_update
 
 
-class Client(enum.Enum):
+class ClientType(enum.Enum):
     """Enumerate client options."""
 
     API_SERVICE_CLIENT = 0
@@ -33,7 +35,7 @@ class Client(enum.Enum):
 
 def init(
     main: Callable,
-    clients: Set[Client],
+    clients: Set[ClientType],
     extra_routes: Optional[web.RouteTableDef] = None,
 ) -> None:
     """Start the webserver and queue startup/shutdown jobs."""
@@ -80,15 +82,15 @@ def init(
 
     # Initialize the clients
     app["clients"] = []
-    if Client.API_SERVICE_CLIENT in clients:
+    if ClientType.API_SERVICE_CLIENT in clients:
         app["clients"].append(APIServiceClient)
-    if Client.KAFKA_CONSUMER in clients:
+    if ClientType.KAFKA_CONSUMER in clients:
         app["clients"].append(KafkaConsumer)
-    if Client.KAFKA_PRODUCER in clients:
+    if ClientType.KAFKA_PRODUCER in clients:
         app["clients"].append(KafkaProducer)
-    if Client.MYSQL_CLIENT in clients:
+    if ClientType.MYSQL_CLIENT in clients:
         app["clients"].append(MySQLClient)
-    if Client.PROMETHEUS_CLIENT in clients:
+    if ClientType.PROMETHEUS_CLIENT in clients:
         app["clients"].append(PrometheusClient)
 
     app.on_startup.append(start_background_tasks)

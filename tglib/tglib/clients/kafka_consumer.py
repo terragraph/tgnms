@@ -7,13 +7,13 @@ from typing import Dict, Optional
 from aiokafka import AIOKafkaConsumer
 from kafka.errors import KafkaError
 
-from tglib.clients.base_client import BaseClient, HealthCheckResult
-from tglib.exceptions import (
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,
     ConfigError,
 )
+from .base_client import BaseClient, HealthCheckResult
 
 
 class KafkaConsumer(BaseClient):

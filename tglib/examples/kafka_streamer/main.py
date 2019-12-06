@@ -17,8 +17,8 @@ import logging
 import sys
 from typing import Dict
 
-from tglib.clients.kafka_consumer import KafkaConsumer
-from tglib.tglib import Client, init
+from tglib.clients import KafkaConsumer
+from tglib import ClientType, init
 
 
 async def main(config: Dict) -> None:
@@ -43,4 +43,4 @@ if __name__ == "__main__":
         logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
-    init(lambda: main(config), {Client.KAFKA_CONSUMER})
+    init(lambda: main(config), {ClientType.KAFKA_CONSUMER})

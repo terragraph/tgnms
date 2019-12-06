@@ -6,13 +6,13 @@ from typing import Dict, Optional
 import pymysql
 from aiomysql.sa import Engine, create_engine
 
-from tglib.clients.base_client import BaseClient, HealthCheckResult
-from tglib.exceptions import (
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,
     ConfigError,
 )
+from .base_client import BaseClient, HealthCheckResult
 
 
 class MySQLClient(BaseClient):

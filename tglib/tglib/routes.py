@@ -7,9 +7,10 @@ import logging
 
 from aiohttp import web
 from tglib import __version__
-from tglib.clients.prometheus_client import PrometheusClient
-from tglib.exceptions import ClientStoppedError
-from tglib.utils.dict import deep_update
+
+from .clients.prometheus_client import PrometheusClient
+from .exceptions import ClientStoppedError
+from .utils.dict import deep_update
 
 
 routes = web.RouteTableDef()

@@ -9,16 +9,16 @@ from typing import Dict, Optional
 
 from aiokafka import AIOKafkaProducer
 from kafka.errors import KafkaError
-
 from terragraph_thrift.Event.ttypes import Event, EventCategory, EventId, EventLevel
-from tglib.clients.base_client import BaseClient, HealthCheckResult
-from tglib.exceptions import (
+
+from ..exceptions import (
     ClientRestartError,
     ClientRuntimeError,
     ClientStoppedError,
     ConfigError,
 )
-from tglib.utils.serialization import thrift2json
+from ..utils.serialization import thrift2json
+from .base_client import BaseClient, HealthCheckResult
 
 
 class KafkaProducer(BaseClient):

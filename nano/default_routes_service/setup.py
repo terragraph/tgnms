@@ -15,7 +15,7 @@ ptr_params = {
         "tests/pop_utilization.py": 100,
         "tests/routes_history.py": 100,
         "tests/routes_utilization.py": 100,
-        "TOTAL": 35,
+        "TOTAL": 34,
     },
     "run_flake8": True,
     "run_black": True,
