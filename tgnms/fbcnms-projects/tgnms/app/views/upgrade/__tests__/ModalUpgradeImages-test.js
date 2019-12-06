@@ -128,6 +128,29 @@ test('clicking delete image button sends a delete request', async () => {
   );
 });
 
+test('if software portal is enabled, images from software portal are shown', async () => {
+  initWindowConfig({
+    env: {SOFTWARE_PORTAL_URL: 'https://sw.terragraph.link'},
+  });
+  const fetchUpgradeImagesMock = jest
+    .spyOn(require('../../../helpers/UpgradeHelpers'), 'fetchUpgradeImages')
+    .mockResolvedValueOnce([]);
+  const fetchSwPortalMock = jest
+    .spyOn(
+      require('../../../helpers/UpgradeHelpers'),
+      'fetchSoftwarePortalImages',
+    )
+    .mockResolvedValueOnce([]);
+  const {getByText} = await renderAndOpenModal(
+    <TestApp>
+      <ModalUpgradeImages networkName="test" />
+    </TestApp>,
+  );
+  expect(getByText('Software Portal Images')).toBeInTheDocument();
+  expect(fetchSwPortalMock).toHaveBeenCalled();
+  expect(fetchUpgradeImagesMock).toHaveBeenCalled();
+});
+
 async function renderAndOpenModal(component: React.Node) {
   /**
    * baseElement specifies which element to bind the queries to. Since we're

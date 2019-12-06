@@ -39,18 +39,13 @@ export default function ModelImageRow(props: Props) {
   const [isMenuOpen, setMenuOpen] = React.useState(false);
   const iconButtonRef = React.useRef(null);
 
-  const versionNumber =
-    image.versionNumber != null
-      ? image.versionNumber
-      : getVersionNumber(getVersion(image.name));
+  const versionNumber = formatVersionNumber(image);
 
   return (
     <React.Fragment key={image.name}>
       <ListItem>
         <ListItemAvatar>
-          <Avatar className={classes.avatar}>
-            {versionNumber.replace('M', '')}
-          </Avatar>
+          <Avatar className={classes.avatar}>{versionNumber}</Avatar>
         </ListItemAvatar>
         <ListItemText
           primary={image.name}
@@ -96,4 +91,22 @@ export default function ModelImageRow(props: Props) {
       </Menu>
     </React.Fragment>
   );
+}
+
+function formatVersionNumber(image: SoftwareImageType) {
+  let versionNumber =
+    image.versionNumber != null
+      ? image.versionNumber
+      : getVersionNumber(getVersion(image.name));
+  // remove M prefix
+  versionNumber = versionNumber.replace('M', '');
+
+  // remove textual suffix but keep numeric suffix
+  if (versionNumber.indexOf('.') !== -1) {
+    const [number, suffix] = versionNumber.split('.');
+    if (isNaN(parseInt(suffix))) {
+      return number;
+    }
+  }
+  return versionNumber;
 }

@@ -68,7 +68,9 @@ const styles = theme => ({
   button: {
     margin: theme.spacing(),
   },
-  centerText: {
+  noCustomImagesText: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
     textAlign: 'center',
   },
   deleteIcon: {
@@ -307,7 +309,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
               variant="outlined"
               size="small">
               <AddIcon className={classes.leftIcon} />
-              <Typography variant="subtitle1">Upload Binary</Typography>
+              <Typography variant="subtitle1">Upload Custom Binary</Typography>
               <input
                 className={classes.fileInput}
                 accept=".bin"
@@ -346,75 +348,78 @@ class ModalUpgradeImages extends React.Component<Props, State> {
           data-testid="upgrade-modal"
           modalTitle={this.renderUploadProgressBar()}
           modalContent={
-            upgradeImages.length === 0 ? (
-              <Typography className={classes.centerText} variant="subtitle1">
-                Click on the "Upload Binary" button to get started!
-              </Typography>
-            ) : (
-              <>
-                <Typography variant="subtitle1">Uploaded Images</Typography>
-                <ModalImageList
-                  upgradeImages={upgradeImages}
-                  menuItems={[
-                    <MenuItem
-                      key="copymagneturi"
-                      onClick={(image: UpgradeImageType) => {
-                        this.handleCopyMagnetURI(image.magnetUri);
-                      }}>
-                      <ListItemIcon classes={{root: classes.listItemIcon}}>
-                        <LinkIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Copy Magnet URI" />
-                    </MenuItem>,
-                    <MenuItem
-                      key="deleteimage"
-                      onClick={(image: UpgradeImageType) => {
-                        this.handleDeleteImage(image);
-                      }}>
-                      <ListItemIcon classes={{root: classes.listItemIcon}}>
-                        <DeleteForeverIcon className={classes.deleteIcon} />
-                      </ListItemIcon>
-                      <ListItemText primary="Delete Image" />
-                    </MenuItem>,
-                  ]}
-                />
-                {isFeatureEnabled('SOFTWARE_PORTAL_ENABLED') ? (
-                  <>
-                    <Divider />
-                    <Typography
-                      className={classes.softwareImageHeader}
-                      variant="subtitle1">
-                      Software Portal Images
-                    </Typography>
-                    <ModalImageList
-                      upgradeImages={softwarePortalImages}
-                      menuItems={[
-                        <MenuItem
-                          key="handleupload"
-                          onClick={this.handleSoftwarePortalUpload}>
-                          <ListItemIcon classes={{root: classes.listItemIcon}}>
-                            <LinkIcon />
-                          </ListItemIcon>
-                          <ListItemText primary="Upload to Controller" />
-                        </MenuItem>,
-                      ]}
+            <>
+              {isFeatureEnabled('SOFTWARE_PORTAL_ENABLED') ? (
+                <>
+                  <Divider />
+                  <Typography
+                    className={classes.softwareImageHeader}
+                    variant="subtitle1">
+                    Software Portal Images
+                  </Typography>
+                  <ModalImageList
+                    upgradeImages={softwarePortalImages}
+                    menuItems={[
+                      <MenuItem
+                        key="handleupload"
+                        onClick={this.handleSoftwarePortalUpload}>
+                        <ListItemIcon classes={{root: classes.listItemIcon}}>
+                          <LinkIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Upload to Controller" />
+                      </MenuItem>,
+                    ]}
+                  />
+                  {this.state.softwarePortalUpload && (
+                    <SoftwarePortalUploadWatcher
+                      uploadRequest={this.state.softwarePortalUpload}
+                      onUploadProgress={this.handleSoftwarePortalUploadProgress}
+                      onUploadFinished={this.handleSoftwarePortalUploadFinished}
+                      onUploadError={this.handleSoftwarePortalUploadError}
                     />
-                    {this.state.softwarePortalUpload && (
-                      <SoftwarePortalUploadWatcher
-                        uploadRequest={this.state.softwarePortalUpload}
-                        onUploadProgress={
-                          this.handleSoftwarePortalUploadProgress
-                        }
-                        onUploadFinished={
-                          this.handleSoftwarePortalUploadFinished
-                        }
-                        onUploadError={this.handleSoftwarePortalUploadError}
-                      />
-                    )}
-                  </>
-                ) : null}
+                  )}
+                </>
+              ) : null}
+
+              <>
+                <Typography variant="subtitle1">
+                  Custom Uploaded Images
+                </Typography>
+                {upgradeImages.length === 0 ? (
+                  <Typography
+                    className={classes.noCustomImagesText}
+                    variant="body2">
+                    No custom images uploaded
+                  </Typography>
+                ) : (
+                  <ModalImageList
+                    upgradeImages={upgradeImages}
+                    menuItems={[
+                      <MenuItem
+                        key="copymagneturi"
+                        onClick={(image: UpgradeImageType) => {
+                          this.handleCopyMagnetURI(image.magnetUri);
+                        }}>
+                        <ListItemIcon classes={{root: classes.listItemIcon}}>
+                          <LinkIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Copy Magnet URI" />
+                      </MenuItem>,
+                      <MenuItem
+                        key="deleteimage"
+                        onClick={(image: UpgradeImageType) => {
+                          this.handleDeleteImage(image);
+                        }}>
+                        <ListItemIcon classes={{root: classes.listItemIcon}}>
+                          <DeleteForeverIcon className={classes.deleteIcon} />
+                        </ListItemIcon>
+                        <ListItemText primary="Delete Image" />
+                      </MenuItem>,
+                    ]}
+                  />
+                )}
               </>
-            )
+            </>
           }
           modalActions={
             <Button
