@@ -128,9 +128,12 @@ router.post('/tg_rule_add', (req, res) =>
   createRequest({
     uri: formatTgAlarmServiceUrl(`/add_rule`),
     method: req.method,
-    qs: req.query,
+    json: req.body,
   })
-    .then(response => res.status(response.statusCode).send(response.body))
+    .then(response => {
+      debugger;
+      return res.status(response.statusCode).send(response.body);
+    })
     .catch(createErrorHandler(res)),
 );
 

@@ -7,16 +7,17 @@
 
 import * as React from 'react';
 import Alarms from '@fbcnms/alarms/components/Alarms';
-import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../NetworkContext';
-import NetworkListContext from '../../NetworkListContext';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
-import {AlarmServiceAPIUrls, TgApiUtil} from './TgAlarmApi.js';
-import {EventIdValueMap} from '../../../shared/types/Event';
+import EventRuleEditor from './eventalarms/EventRuleEditor';
+import {Severity as EventSeverity} from './eventalarms/EventAlarmsTypes';
+import {SEVERITY as GenericSeverity} from '@fbcnms/alarms/components/Severity';
 import {SnackbarProvider} from 'notistack';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
-import {withStyles} from '@material-ui/core/styles';
+import {TgApiUtil, TgEventAlarmsApiUtil} from './TgAlarmApi.js';
+import {makeStyles} from '@material-ui/styles';
+import type {EventRule} from './eventalarms/EventAlarmsTypes';
+import type {
+  GenericRule,
+  RuleInterface,
+} from '@fbcnms/alarms/components/RuleInterface';
 
 const styles = () => ({
   root: {
@@ -27,161 +28,77 @@ const styles = () => ({
   },
 });
 
-// Options for adding TG alarm service rules
-const getTgAlarmServiceRuleOptions = (networkName, networkNameList) => ({
-  events: {
-    initialConfig: {
-      name: '',
-      description: '',
-      eventId: 0,
-      options: {
-        raiseOnLevel: ['WARNING', 'ERROR', 'FATAL'],
-        clearOnLevel: ['INFO'],
-        eventFilter: [{topologyName: networkName}],
-      },
-      extraLabels: {team: 'operations'},
-    },
-    submitConfig: (match, alertConfig) => ({
-      method: 'post',
-      url: AlarmServiceAPIUrls.addAlarmRule(),
-      data: alertConfig,
-    }),
-    transformPath: {
-      eventId: ['eventId'],
-      // TODO - figure out how to actually handle arrays here...
-      topologyFilter: ['options', 'eventFilter', '0', 'topologyName'],
-      entityFilter: ['options', 'eventFilter', '0', 'entity'],
-      aggregation: ['options', 'aggregation'],
-      name: ['name'],
-      description: ['description'],
-      severity: ['severity'],
-      raiseDelay: ['options', 'raiseDelay'],
-      team: ['extraLabels', 'team'],
-    },
-    transformValue: {
-      aggregation: val => (val <= 0 ? null : val),
-      raiseDelay: val => (val <= 0 ? null : val),
-      severity: val => {
-        const v = val.toUpperCase();
-        return v === 'WARNING' ? 'MINOR' : v === 'NOTICE' ? 'INFO' : v;
-      },
-      topologyFilter: val => (val === '' ? null : val),
-      entityFilter: val => (val === '' ? null : val),
-    },
-    renderConfigOptions: (updateAlertConfig, getValue) => (
-      <>
-        <Typography variant="subtitle1">Pick the triggering event</Typography>
-        <TextField
-          style={{marginBottom: 20}}
-          select
-          value={getValue('eventId')}
-          onChange={event => updateAlertConfig('eventId', event.target.value)}>
-          {objectEntriesTypesafe<string, number>(EventIdValueMap)
-            .sort()
-            .map(([eventId, val]) => (
-              <MenuItem key={val} value={val}>
-                {eventId}
-              </MenuItem>
-            ))}
-        </TextField>
-        <Typography variant="subtitle1">Filter by network</Typography>
-        <TextField
-          style={{marginBottom: 20}}
-          select
-          value={getValue('topologyFilter')}
-          onChange={event =>
-            updateAlertConfig('topologyFilter', event.target.value)
-          }>
-          {['', ...networkNameList].map(name => (
-            <MenuItem key={name} value={name}>
-              {name || <em>{'<any>'}</em>}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Typography variant="subtitle1">Filter by entity</Typography>
-        <TextField
-          style={{marginBottom: 20}}
-          placeholder="Ex: 00:11:22:33:44:ff"
-          value={getValue('entityFilter')}
-          onChange={event =>
-            updateAlertConfig('entityFilter', event.target.value)
-          }
-        />
-        <Typography variant="subtitle1">
-          Minimum firing entities (optional)
-        </Typography>
-        <TextField
-          type="number"
-          value={getValue('aggregation')}
-          onChange={event =>
-            updateAlertConfig('aggregation', event.target.value)
-          }
-        />
-      </>
-    ),
-  },
-});
-
 type Props = {
-  classes: {[string]: string},
   networkName: string,
 };
 
-class NmsAlarms extends React.Component<Props> {
-  // Return axios config to delete a TG alarm service rule
-  deleteAlarmServiceRule = (match, rule) => {
-    return {
-      method: 'post',
-      url: AlarmServiceAPIUrls.delAlarmRule(rule.rawData.name),
-    };
-  };
+const useStyles = makeStyles(styles);
 
-  // Pull in extra alarm rules from TG alarm service
-  fetchAdditionalAlertRules = _lastRefreshTime => {
-    return [];
-  };
+export default function NmsAlarms(_props: Props) {
+  const classes = useStyles();
 
-  render() {
-    return (
-      <NetworkListContext.Consumer>
-        {listContext => (
-          <NetworkContext.Consumer>
-            {networkContext => this.renderContext(listContext, networkContext)}
-          </NetworkContext.Consumer>
-        )}
-      </NetworkListContext.Consumer>
-    );
-  }
-
-  renderContext = (listContext, _networkContext): React.Node => {
-    const {classes, networkName} = this.props;
-    return (
-      <div className={classes.root}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={10000}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}>
-          <Alarms
-            apiUtil={TgApiUtil}
-            onFetchAdditionalAlertRules={this.fetchAdditionalAlertRules}
-            onDeleteAdditionalAlertRule={this.deleteAlarmServiceRule}
-            additionalAlertRuleOptions={getTgAlarmServiceRuleOptions(
-              networkName,
-              Object.keys(listContext.networkList),
-            )}
-            makeTabLink={({match, keyName}) =>
-              `/alarms/${match.params.networkName || ''}/${keyName}`
-            }
-            experimentalTabsEnabled={true}
-            thresholdEditorEnabled={false}
-          />
-        </SnackbarProvider>
-      </div>
-    );
-  };
+  const ruleMap = React.useMemo<{[string]: RuleInterface<EventRule>}>(
+    () => ({
+      events: {
+        friendlyName: 'Event',
+        RuleEditor: EventRuleEditor,
+        deleteRule: TgEventAlarmsApiUtil.deleteAlertRule,
+        getRules: () =>
+          TgEventAlarmsApiUtil.getRules().then(rules =>
+            rules.map<GenericRule<EventRule>>(rule => ({
+              severity: mapEventSeverityToGenericSeverity(rule.severity),
+              name: rule.name,
+              description: rule.description,
+              period: `${rule.options.raiseDelay}s`,
+              expression: ``,
+              ruleType: 'events',
+              rawRule: rule,
+            })),
+          ),
+      },
+    }),
+    [],
+  );
+  return (
+    <div className={classes.root}>
+      <SnackbarProvider
+        maxSnack={3}
+        autoHideDuration={10000}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}>
+        <Alarms
+          apiUtil={TgApiUtil}
+          ruleMap={ruleMap}
+          makeTabLink={({match, keyName}) =>
+            `/alarms/${match.params.networkName || ''}/${keyName}`
+          }
+          experimentalTabsEnabled={true}
+          thresholdEditorEnabled={false}
+        />
+      </SnackbarProvider>
+    </div>
+  );
 }
 
-export default withStyles(styles)(NmsAlarms);
+/**
+ * Event rules use different severity names so we must map to the
+ * standard severity names
+ */
+function mapEventSeverityToGenericSeverity(
+  severity: $Keys<typeof EventSeverity>,
+): $Keys<typeof GenericSeverity> {
+  const mapping = {
+    [EventSeverity.OFF]: GenericSeverity.NOTICE.name,
+    [EventSeverity.INFO]: GenericSeverity.WARNING.name,
+    [EventSeverity.MINOR]: GenericSeverity.MINOR.name,
+    [EventSeverity.MAJOR]: GenericSeverity.MAJOR.name,
+    [EventSeverity.CRITICAL]: GenericSeverity.CRITICAL.name,
+  };
+  const mapped = mapping[severity];
+  if (typeof mapped !== 'string') {
+    return GenericSeverity.WARNING.name;
+  }
+  return mapped;
+}

@@ -9,6 +9,7 @@ import axios from 'axios';
 import {useEffect, useState} from 'react';
 import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
 import type {AxiosXHRConfig} from 'axios';
+import type {EventRule} from './eventalarms/EventAlarmsTypes';
 
 export const AM_BASE_URL = '/alarms';
 export const TgApiUtil: ApiUtil = {
@@ -73,6 +74,27 @@ export const TgApiUtil: ApiUtil = {
   },
 };
 
+export const TgEventAlarmsApiUtil = {
+  getRules: () =>
+    makeRequest<void, Array<EventRule>>({
+      url: `${AM_BASE_URL}/tg_rules`,
+      method: 'GET',
+      timeout: 3000,
+    }),
+  createAlertRule: (rule: EventRule) =>
+    makeRequest<EventRule, void>({
+      url: `${AM_BASE_URL}/tg_rule_add`,
+      method: 'POST',
+      data: rule,
+    }),
+  deleteAlertRule: ({ruleName}: {ruleName: string}) => {
+    return makeRequest<string, void>({
+      url: `${AM_BASE_URL}/tg_rule_del?name=${encodeURIComponent(ruleName)}`,
+      method: 'POST',
+    });
+  },
+};
+
 function useApi<TParams: {...}, TResponse>(
   func: TParams => Promise<TResponse>,
   params: TParams,
@@ -118,11 +140,3 @@ async function makeRequest<TParams, TResponse>(
   const response = await axios(axiosConfig);
   return response.data;
 }
-
-// TG Alarm Service
-export const AlarmServiceAPIUrls = {
-  getAlarmRules: () => `${AM_BASE_URL}/tg_rules`,
-  addAlarmRule: () => `${AM_BASE_URL}/tg_rule_add`,
-  delAlarmRule: (alarmName: string) =>
-    `${AM_BASE_URL}/tg_rule_del?name=${encodeURIComponent(alarmName)}`,
-};

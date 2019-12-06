@@ -39,6 +39,13 @@ export function createPrometheusRequest<T>(options: {[string]: any}) {
         if (err) {
           return reject(err);
         }
+        if (response.statusCode >= 300) {
+          return reject(
+            new Error(
+              `upstream prometheus returned HTTP ${response.statusCode}`,
+            ),
+          );
+        }
         let parsed = {};
         try {
           parsed = JSON.parse(response.body);
