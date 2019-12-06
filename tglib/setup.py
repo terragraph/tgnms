@@ -70,7 +70,7 @@ ptr_params = {
         "tglib/clients/prometheus_client.py": 86,
         "tglib/utils/dict.py": 100,
         "tglib/utils/ip.py": 100,
-        "TOTAL": 35,
+        "TOTAL": 43,
     },
     "run_flake8": False,  # TODO: Fix all flake8 errors - T53451611
     "run_black": True,

@@ -10,11 +10,10 @@ RUN apt-get update && \
 
 # Copy default routes service source files into docker container
 WORKDIR $WORKDIR
-COPY ./nano/default_routes_service .
-COPY ./.flake8 .
+COPY nano/default_routes_service/ .flake8 ./
 
 # Install default_routes_service
-RUN pip install -e .[ci]
+RUN pip install .[ci]
 
 # Run unit tests
 RUN python setup.py test
