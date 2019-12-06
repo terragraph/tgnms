@@ -6,7 +6,6 @@ import json
 import logging
 
 from aiohttp import web
-from tglib import __version__
 
 from .clients.prometheus_client import PrometheusClient
 from .exceptions import ClientStoppedError
@@ -60,22 +59,6 @@ async def handle_health_check(request: web.Request) -> web.Response:
         raise web.HTTPServiceUnavailable(text=msg)
 
     return web.Response(text="All clients are healthy")
-
-
-@routes.get("/version")
-async def handle_get_version(request: web.Request) -> web.Response:
-    """
-    ---
-    description: Get the tglib version.
-    tags:
-    - Health
-    produces:
-    - text/plain
-    responses:
-      "200":
-        description: Return tglib version.
-    """
-    return web.Response(text=__version__)
 
 
 @routes.get(r"/metrics/{interval:\d+}s")
