@@ -1,0 +1,6 @@
+{
+  "fetch_interval_s": 86400,
+  "config_change_interval_s" : 60,
+  "link_flap_backoff": "1100",
+  "link_impairment_detection": 0
+}
