@@ -20,9 +20,8 @@ RUN buildDeps=" \
           "; \
           apt update && apt install -y $buildDeps && \
           # Install python3.7
-          apt-get install -y python3.7 python3-pip python3.7-dev && \
-          cd /usr/local/bin && \
-          ln -s /usr/bin/python3.7 python && \
+          apt install -y python3.7 python3-pip && \
+          ln -s /usr/bin/python3.7 /usr/local/bin/python && \
           python -m pip install --upgrade pip setuptools && \
           # Install fmt
           cd /opt && \
