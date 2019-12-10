@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 from aiohttp import web
 from aiomysql.sa.result import RowProxy
 from sqlalchemy.sql import func, select
-from tglib.clients.mysql_client import MySQLClient
+from tglib.clients import MySQLClient
 
 from .models import DefaultRouteHistory
 

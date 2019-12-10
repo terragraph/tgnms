@@ -7,7 +7,7 @@ from typing import List, Set, Tuple
 
 from aiomysql.sa import SAConnection
 from sqlalchemy.sql import desc, exists, insert, join, select, update
-from tglib.clients.mysql_client import MySQLClient
+from tglib.clients import MySQLClient
 
 from .models import DefaultRouteCurrent, DefaultRouteHistory
 

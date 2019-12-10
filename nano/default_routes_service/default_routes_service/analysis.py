@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from typing import List, Set, Tuple
 
-from tglib.clients.mysql_client import MySQLClient
+from tglib.clients import MySQLClient
 
 from .mysql_helpers import (
     fetch_prev_routes,

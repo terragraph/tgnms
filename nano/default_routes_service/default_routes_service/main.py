@@ -9,9 +9,9 @@ from datetime import datetime
 from typing import Dict, List
 
 from terragraph_thrift.Topology.ttypes import LinkType
-from tglib.clients.api_service_client import APIServiceClient
+from tglib import ClientType, init
+from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
-from tglib.tglib import Client, init
 
 from .analysis import analyze_node
 from .routes import routes
@@ -143,6 +143,6 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {Client.API_SERVICE_CLIENT, Client.MYSQL_CLIENT},
+        {ClientType.API_SERVICE_CLIENT, ClientType.MYSQL_CLIENT},
         routes,
     )
