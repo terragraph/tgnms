@@ -8,9 +8,9 @@ import sys
 from datetime import datetime
 from typing import Dict
 
-from tglib.clients.api_service_client import APIServiceClient
+from tglib import ClientType, init
+from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
-from tglib.tglib import Client, init
 
 from .mysql_helpers import fetch_topologies, insert_topology
 from .routes import routes
@@ -85,6 +85,6 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {Client.API_SERVICE_CLIENT, Client.MYSQL_CLIENT},
+        {ClientType.API_SERVICE_CLIENT, ClientType.MYSQL_CLIENT},
         routes,
     )

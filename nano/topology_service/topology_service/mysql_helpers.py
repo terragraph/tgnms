@@ -7,7 +7,7 @@ from typing import Dict, List
 
 from aiomysql.sa.result import RowProxy
 from sqlalchemy import insert, select
-from tglib.clients.mysql_client import MySQLClient
+from tglib.clients import MySQLClient
 
 from .models import Topology
 
