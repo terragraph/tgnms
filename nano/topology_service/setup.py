@@ -18,7 +18,7 @@ setup(
     name="topology_service",
     version="2019.12.03",
     packages=["topology_service"],
-    install_requires=["aiohttp", "pymongo"],
+    install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["topology_service = topology_service.main:main"]},
