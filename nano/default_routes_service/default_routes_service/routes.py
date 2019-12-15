@@ -111,6 +111,7 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
             DefaultRouteHistory.node_name,
             DefaultRouteHistory.routes,
             DefaultRouteHistory.last_updated,
+            DefaultRouteHistory.hop_count,
         ]
     ).where(
         (DefaultRouteHistory.topology_name == topology_name)
@@ -152,8 +153,8 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
         ]
     output = {
         "A": {
-            "datetime_0": [["X", "Y", "Z"]],
-            "datetime_3": [["A", "B", "C"]],
+            "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
+            "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
         },
     }
     """
@@ -162,9 +163,17 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
 
     for row in raw_routes_data:
         if row["node_name"] in routes_history:
-            routes_history[row["node_name"]][str(row["last_updated"])] = row["routes"]
+            routes_history[row["node_name"]][str(row["last_updated"])] = {
+                "routes": row["routes"],
+                "hop_count": row["hop_count"],
+            }
         else:
-            routes_history[row["node_name"]] = {str(row["last_updated"]): row["routes"]}
+            routes_history[row["node_name"]] = {
+                str(row["last_updated"]): {
+                    "routes": row["routes"],
+                    "hop_count": row["hop_count"],
+                }
+            }
 
     return routes_history
 

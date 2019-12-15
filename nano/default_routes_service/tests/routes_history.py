@@ -8,8 +8,15 @@ from default_routes_service.routes import _get_default_routes_history_impl
 
 class TestRoutesHistory(unittest.TestCase):
     def test_one_node_no_routes(self) -> None:
-        input = [{"node_name": "A", "routes": [], "last_updated": "datetime_0"}]
-        expected_output = {"A": {"datetime_0": []}}
+        input = [
+            {
+                "node_name": "A",
+                "routes": [],
+                "last_updated": "datetime_0",
+                "hop_count": 0,
+            }
+        ]
+        expected_output = {"A": {"datetime_0": {"routes": [], "hop_count": 0}}}
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
 
@@ -19,9 +26,12 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             }
         ]
-        expected_output = {"A": {"datetime_0": [["X", "Y", "Z"]]}}
+        expected_output = {
+            "A": {"datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2}}
+        }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
 
@@ -31,15 +41,20 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
         ]
         expected_output = {
-            "A": {"datetime_0": [["X", "Y", "Z"]], "datetime_3": [["A", "B", "C"]]}
+            "A": {
+                "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+            }
         }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
@@ -50,23 +65,26 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_6",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"]],
-                "datetime_3": [["A", "B", "C"]],
-                "datetime_6": [["X", "Y", "Z"]],
+                "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+                "datetime_6": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
             }
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -78,9 +96,17 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "U", "Z"], ["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             }
         ]
-        expected_output = {"A": {"datetime_0": [["X", "U", "Z"], ["X", "Y", "Z"]]}}
+        expected_output = {
+            "A": {
+                "datetime_0": {
+                    "routes": [["X", "U", "Z"], ["X", "Y", "Z"]],
+                    "hop_count": 2,
+                }
+            }
+        }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
 
@@ -90,17 +116,25 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"], ["A", "G", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "Y", "Z"]],
-                "datetime_3": [["A", "B", "C"], ["A", "G", "C"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "Y", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {
+                    "routes": [["A", "B", "C"], ["A", "G", "C"]],
+                    "hop_count": 2,
+                },
             }
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -112,23 +146,35 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"], ["A", "G", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
                 "last_updated": "datetime_6",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "T", "Z"]],
-                "datetime_3": [["A", "B", "C"], ["A", "G", "C"]],
-                "datetime_6": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {
+                    "routes": [["A", "B", "C"], ["A", "G", "C"]],
+                    "hop_count": 2,
+                },
+                "datetime_6": {
+                    "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                    "hop_count": 2,
+                },
             }
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -140,23 +186,32 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
                 "last_updated": "datetime_8",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "E", "Z"]],
-                "datetime_3": [["A", "B", "C"]],
-                "datetime_8": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+                "datetime_8": {
+                    "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                    "hop_count": 2,
+                },
             }
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -164,10 +219,23 @@ class TestRoutesHistory(unittest.TestCase):
 
     def test_multi_node_no_routes(self) -> None:
         input = [
-            {"node_name": "A", "routes": [], "last_updated": "datetime_0"},
-            {"node_name": "B", "routes": [], "last_updated": "datetime_0"},
+            {
+                "node_name": "A",
+                "routes": [],
+                "last_updated": "datetime_0",
+                "hop_count": 0,
+            },
+            {
+                "node_name": "B",
+                "routes": [],
+                "last_updated": "datetime_0",
+                "hop_count": 0,
+            },
         ]
-        expected_output = {"A": {"datetime_0": []}, "B": {"datetime_0": []}}
+        expected_output = {
+            "A": {"datetime_0": {"routes": [], "hop_count": 0}},
+            "B": {"datetime_0": {"routes": [], "hop_count": 0}},
+        }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
 
@@ -177,16 +245,18 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["D", "G", "Y"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
         ]
         expected_output = {
-            "A": {"datetime_0": [["X", "Y", "Z"]]},
-            "B": {"datetime_0": [["D", "G", "Y"]]},
+            "A": {"datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2}},
+            "B": {"datetime_0": {"routes": [["D", "G", "Y"]], "hop_count": 2}},
         }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
@@ -197,26 +267,36 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["E", "R", "T"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["U", "I", "O"]],
                 "last_updated": "datetime_7",
+                "hop_count": 2,
             },
         ]
         expected_output = {
-            "A": {"datetime_0": [["X", "Y", "Z"]], "datetime_3": [["A", "B", "C"]]},
-            "B": {"datetime_0": [["E", "R", "T"]], "datetime_7": [["U", "I", "O"]]},
+            "A": {
+                "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+            },
+            "B": {
+                "datetime_0": {"routes": [["E", "R", "T"]], "hop_count": 2},
+                "datetime_7": {"routes": [["U", "I", "O"]], "hop_count": 2},
+            },
         }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
@@ -227,43 +307,49 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_6",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_6",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"]],
-                "datetime_3": [["A", "B", "C"]],
-                "datetime_6": [["X", "Y", "Z"]],
+                "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+                "datetime_6": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
             },
             "B": {
-                "datetime_0": [["X", "Y", "Z"]],
-                "datetime_3": [["A", "B", "C"]],
-                "datetime_6": [["X", "Y", "Z"]],
+                "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+                "datetime_6": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
             },
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -275,16 +361,28 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "U", "Z"], ["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["B", "G", "D"], ["B", "J", "D"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
         ]
         expected_output = {
-            "A": {"datetime_0": [["X", "U", "Z"], ["X", "Y", "Z"]]},
-            "B": {"datetime_0": [["B", "G", "D"], ["B", "J", "D"]]},
+            "A": {
+                "datetime_0": {
+                    "routes": [["X", "U", "Z"], ["X", "Y", "Z"]],
+                    "hop_count": 2,
+                }
+            },
+            "B": {
+                "datetime_0": {
+                    "routes": [["B", "G", "D"], ["B", "J", "D"]],
+                    "hop_count": 2,
+                }
+            },
         }
         actual_output = _get_default_routes_history_impl(input)
         self.assertDictEqual(actual_output, expected_output)
@@ -295,31 +393,47 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"], ["A", "G", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"], ["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["A", "B", "C"], ["A", "G", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "Y", "Z"]],
-                "datetime_3": [["A", "B", "C"], ["A", "G", "C"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "Y", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {
+                    "routes": [["A", "B", "C"], ["A", "G", "C"]],
+                    "hop_count": 2,
+                },
             },
             "B": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "Y", "Z"]],
-                "datetime_3": [["A", "B", "C"], ["A", "G", "C"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "Y", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {
+                    "routes": [["A", "B", "C"], ["A", "G", "C"]],
+                    "hop_count": 2,
+                },
             },
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -331,43 +445,67 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"], ["A", "G", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
                 "last_updated": "datetime_6",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["A", "B", "C"], ["A", "G", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
                 "last_updated": "datetime_6",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "T", "Z"]],
-                "datetime_3": [["A", "B", "C"], ["A", "G", "C"]],
-                "datetime_6": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {
+                    "routes": [["A", "B", "C"], ["A", "G", "C"]],
+                    "hop_count": 2,
+                },
+                "datetime_6": {
+                    "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                    "hop_count": 2,
+                },
             },
             "B": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "T", "Z"]],
-                "datetime_3": [["A", "B", "C"], ["A", "G", "C"]],
-                "datetime_6": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {
+                    "routes": [["A", "B", "C"], ["A", "G", "C"]],
+                    "hop_count": 2,
+                },
+                "datetime_6": {
+                    "routes": [["X", "Y", "Z"], ["X", "T", "Z"]],
+                    "hop_count": 2,
+                },
             },
         }
         actual_output = _get_default_routes_history_impl(input)
@@ -379,43 +517,61 @@ class TestRoutesHistory(unittest.TestCase):
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
                 "last_updated": "datetime_8",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2,
             },
             {
                 "node_name": "B",
                 "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
                 "last_updated": "datetime_8",
+                "hop_count": 2,
             },
         ]
         expected_output = {
             "A": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "E", "Z"]],
-                "datetime_3": [["A", "B", "C"]],
-                "datetime_8": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+                "datetime_8": {
+                    "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                    "hop_count": 2,
+                },
             },
             "B": {
-                "datetime_0": [["X", "Y", "Z"], ["X", "E", "Z"]],
-                "datetime_3": [["A", "B", "C"]],
-                "datetime_8": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                "datetime_0": {
+                    "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                    "hop_count": 2,
+                },
+                "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
+                "datetime_8": {
+                    "routes": [["X", "Y", "Z"], ["X", "E", "Z"]],
+                    "hop_count": 2,
+                },
             },
         }
         actual_output = _get_default_routes_history_impl(input)
