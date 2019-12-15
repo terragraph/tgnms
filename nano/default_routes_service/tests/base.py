@@ -5,7 +5,6 @@ import logging
 import unittest
 
 from tests.ecmp_toggle import EcmpToggle
-from tests.pop_utilization import PopUtilization
 from tests.routes_history import TestRoutesHistory
 from tests.routes_utilization import RoutesUtilization
 
