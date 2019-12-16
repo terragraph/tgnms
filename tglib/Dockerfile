@@ -41,7 +41,7 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     make install && \
     # Install fizz
     cd /opt && \
-    git clone https://github.com/facebookincubator/fizz && \
+    git clone https://github.com/facebookincubator/fizz.git && \
     cd fizz && \
     mkdir _build && \
     cd _build && \
