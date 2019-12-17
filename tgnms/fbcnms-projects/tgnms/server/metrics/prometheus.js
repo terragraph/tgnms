@@ -105,6 +105,36 @@ export function flattenPrometheusResponse(
   }
 }
 
+export function processData(
+  prometheusResponse: Object,
+  topologyName: string,
+): Object {
+  const prometheusResponseList = prometheusResponse.data.result;
+  const networkState = getNetworkState(topologyName);
+  const linkMap = {};
+  networkState.topology.links.forEach(link => {
+    linkMap[formatPrometheusLabel(link.name)] = link.name;
+  });
+  const nodeMap = {};
+  networkState.topology.nodes.forEach(node => {
+    nodeMap[formatPrometheusLabel(node.name)] = node.name;
+  });
+  // If the prometheus query has valid data, return an Object
+  // with the name as the key, and fix linkName and nodeName
+  // to be in readable form. Otherwise return empty Object
+  return prometheusResponseList[0]?.metric?.__name__
+    ? {
+        [prometheusResponseList[0].metric.__name__]: prometheusResponseList.map(
+          data => {
+            data.metric.linkName = linkMap[data.metric.linkName];
+            data.metric.nodeName = nodeMap[data.metric.nodeName];
+            return data;
+          },
+        ),
+      }
+    : {};
+}
+
 export function groupByLink(
   prometheusResponseList: Array<Object>,
   topologyName: string,

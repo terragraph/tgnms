@@ -19,6 +19,7 @@ const {
   groupByLink,
   groupByNode,
   mapMetricName,
+  processData,
 } = require('./prometheus');
 
 const router = express.Router();
@@ -27,6 +28,30 @@ const router = express.Router();
 router.get('/query/raw', (req, res) => {
   query(req.query)
     .then(response => res.status(200).send(response))
+    .catch(createErrorHandler(res));
+});
+
+/** Query an array of metric based stats given a "start" and "end" timestamp */
+router.get('/query/dataArray', (req, res) => {
+  const {queries, start, end, step, topologyName} = req.query;
+  Promise.all(
+    queries.map(queryString => {
+      const data = {
+        query: queryString,
+        start: start,
+        end: end,
+        step: step,
+      };
+      return query(data);
+    }),
+  )
+    .then(responses => {
+      res.status(200).send(
+        responses.reduce((final, response) => {
+          return {...final, ...processData(response, topologyName)};
+        }, {}),
+      );
+    })
     .catch(createErrorHandler(res));
 });
 

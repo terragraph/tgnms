@@ -57,7 +57,7 @@ export const query = (
   query: string,
   start: number,
   end: number,
-  step: string,
+  step: number,
 ): Promise<any> => {
   return axios.get('/metrics/query/raw', {
     params: {
@@ -69,9 +69,28 @@ export const query = (
   });
 };
 
+// queries multiple metrics from prometheus at the same time
+export const queryDataArray = (
+  queries: Array<string>,
+  start: number,
+  end: number,
+  step: number,
+  networkName: string,
+): Promise<any> => {
+  return axios.get('/metrics/query/dataArray', {
+    params: {
+      queries: queries,
+      start: start,
+      end: end,
+      step: step,
+      topologyName: networkName,
+    },
+  });
+};
+
 export const querySince = (
   query: string,
-  step: string,
+  step: number,
   value: number,
   units: string,
 ): Promise<any> => {
