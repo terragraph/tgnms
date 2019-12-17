@@ -120,6 +120,11 @@ void AggregatorService::fetchAndLogTopologyMetrics(
             "{}=\"{}\"",
             PrometheusConsts::LABEL_NODE_IS_POP,
             node.pop_node ? "true" : "false"),
+        folly::sformat(
+            "{}=\"{}\"",
+            PrometheusConsts::LABEL_NODE_IS_CN,
+            node.node_type == thrift::NodeType::CN ? "true" : "false"),
+        )
     };
     // ensure mac_addr is set
     if (!node.mac_addr.empty()) {
