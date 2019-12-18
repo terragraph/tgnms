@@ -78,8 +78,9 @@ void AggregatorService::doPeriodicWork() {
     fetchAndLogTopologyMetrics(aggValues, topology);
     fetchAndLogWirelessControllerMetrics(aggValues, *(topologyConfig.second));
     // write metrics to prometheus (per network)
-    auto prometheusInstance = PrometheusUtils::getInstance();
-    prometheusInstance->enqueueMetrics(30 /* interval in s */, aggValues);
+    if (!PrometheusUtils::enqueueMetrics("aggregator_service", aggValues)) {
+      LOG(ERROR) << "Unable to write metrics to Prometheus queue.";
+    }
   }
 }
 

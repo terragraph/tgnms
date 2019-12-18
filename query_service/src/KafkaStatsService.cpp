@@ -26,14 +26,23 @@ DEFINE_string(
     kafka_group_id,
     "qs_node_stats_reader",
     "Kafka consumer group id");
+DEFINE_string(
+    kafka_link_stats_topic,
+    "link_stats",
+    "Link statistics topic to produce to");
 DEFINE_int32(
     prometheus_batch_interval_ms,
     1000,
     "Prometheus data-point batching interval");
 DEFINE_string(
-    kafka_link_stats_topic,
-    "link_stats",
-    "Link statistics topic to produce to");
+    prometheus_job_name_node_stats,
+    "node_stats_kafka",
+    "Prometheus job name for submitting metrics");
+DEFINE_int32(
+    prometheus_cache_push_wait_interval_sec,
+    5,
+    "Wait time between prometheus cache push attempts after a failure");
+
 
 using apache::thrift::SimpleJSONSerializer;
 using std::chrono::duration_cast;
@@ -115,17 +124,10 @@ void KafkaStatsService::start(const std::string& topicName) {
   // Now read lines and write them into kafka
   bool isRunning = true;
   std::chrono::milliseconds timeoutMs(1000);
-  auto prometheusInstance = PrometheusUtils::getInstance();
   // queue stats for Prometheus lookup
   std::vector<terragraph::thrift::AggrStat> statQueue;
   time_t lastRun = StatsUtils::getTimeInMs();
   while (isRunning) {
-    if (prometheusInstance->isQueueFull(intervalSec_)) {
-      // wait 1 second before retrying if the prometheus queue is full
-      LOG(INFO) << "[" << consumerId_ << "] Prometheus queue full, waiting..";
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      continue;
-    }
     // poll for new messages
     try {
       cppkafka::Message msg = kafkaConsumer.poll(timeoutMs /* 1 second */);
@@ -181,11 +183,20 @@ void KafkaStatsService::start(const std::string& topicName) {
                 << ", delay: "
                 << (StatsUtils::getDurationString(
                        lastRun / 1000 - statQueue.front().timestamp));
-      bool wroteStats =
-          prometheusInstance->writeNodeStats(intervalSec_, statQueue);
-      if (!wroteStats) {
-        LOG(ERROR) << "Error writing stats to prometheus queue, dropped "
-                   << statQueue.size() << " stats.";
+      // ensure stats are written to queue before reading more from kafka
+      bool wroteStats = false;
+      int writeAttempts = 0;
+      while (!wroteStats) {
+        writeAttempts++;
+        wroteStats = PrometheusUtils::writeNodeStats(
+            FLAGS_prometheus_job_name_node_stats, intervalSec_, statQueue);
+        if (!wroteStats) {
+          LOG(ERROR) << "Error writing stats to prometheus queue (attempt "
+                     << writeAttempts
+                     << "), waiting for successful push between continuing.";
+          std::this_thread::sleep_for(std::chrono::seconds(
+              FLAGS_prometheus_cache_push_wait_interval_sec));
+        }
       }
       statQueue.clear();
       lastRun = StatsUtils::getTimeInMs();

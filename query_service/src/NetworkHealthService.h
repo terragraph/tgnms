@@ -11,7 +11,6 @@
 
 #include "MySqlClient.h"
 #include "NetworkHealthUtils.h"
-#include "PrometheusUtils.h"
 
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBaseManager.h>

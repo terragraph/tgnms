@@ -24,16 +24,12 @@
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include <proxygen/httpserver/HTTPServer.h>
-#include <proxygen/httpserver/RequestHandlerFactory.h>
 
 #include "../query_service/src/ApiServiceClient.h"
 #include "../query_service/src/MySqlClient.h"
 #include "../query_service/src/PrometheusUtils.h"
 #include "../query_service/src/StatsUtils.h"
 #include "../query_service/src/consts/PrometheusConsts.h"
-#include "../query_service/src/handlers/NotFoundHandler.h"
-#include "../query_service/src/handlers/PrometheusMetricsHandler.h"
 #include "UdpPinger.h"
 #include "if/gen-cpp2/Controller_types.h"
 #include "if/gen-cpp2/Topology_types.h"
@@ -55,33 +51,7 @@ DEFINE_int32(pinger_rate_pps, 5, "Rate at which hosts are probed in pings per se
 DEFINE_int32(socket_buffer_size, 425984, "Socket buffer size to send/recv");
 DEFINE_string(src_ip, "", "The IP source address to use in probe");
 DEFINE_string(src_if, "", "The interface to use if src_ip is not defined");
-DEFINE_string(http_ip, "::", "IP/Hostname to bind HTTP server to");
-DEFINE_int32(http_port, 3047, "Port to listen on with HTTP protocol");
-DEFINE_int32(num_http_threads, 1, "Number of HTTP server threads to listen on");
-
-class RequestHandlerFactory : public proxygen::RequestHandlerFactory {
- public:
-  RequestHandlerFactory() {}
-
-  void onServerStart(folly::EventBase* evb) noexcept {}
-
-  void onServerStop() noexcept {}
-
-  proxygen::RequestHandler* onRequest(
-      proxygen::RequestHandler* /* unused */,
-      proxygen::HTTPMessage* httpMessage) noexcept {
-    auto path = httpMessage->getPath();
-    LOG(INFO) << "Received a request for " << path;
-
-    if (path == "/metrics/30s") {
-      return new PrometheusMetricsHandler(30);
-    } else if (path == "/metrics/1s") {
-      return new PrometheusMetricsHandler(1);
-    } else {
-      return new NotFoundHandler();
-    }
-  }
-};
+DEFINE_string(prometheus_job_name, "ping_service", "Prometheus job name for submitting metrics");
 
 struct AggrUdpPingStat {
   thrift::Target target;
@@ -282,15 +252,9 @@ void writeResults(const UdpTestResults& results) {
     }
   }
 
-  auto prometheusInstance = PrometheusUtils::getInstance();
-  const int reportIntervalSec = 1;
-  // ensure metric queue isn't full before writing to it
-  if (prometheusInstance->isQueueFull(reportIntervalSec)) {
-    LOG(ERROR) << "Prometheus queue full, dropping metrics.";
-    return;
+  if (!PrometheusUtils::enqueueMetrics(FLAGS_prometheus_job_name, metrics)) {
+    LOG(ERROR) << "Unable to write metrics to Prometheus queue.";
   }
-  PrometheusUtils::getInstance()->enqueueMetrics(
-      30 /* interval in s */, metrics);
 }
 
 void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
@@ -372,39 +336,14 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
            Metric("pinger_rtt_max", now, labels, aggrUdpPingStat.rttCurrMax)});
     }
   }
-  auto prometheusInstance = PrometheusUtils::getInstance();
-  if (prometheusInstance->isQueueFull(dataInterval)) {
-    LOG(ERROR) << "Prometheus queue full, dropping metrics.";
-    return;
+
+  if (!PrometheusUtils::enqueueMetrics(FLAGS_prometheus_job_name, metrics)) {
+    LOG(ERROR) << "Unable to write metrics to Prometheus queue.";
   }
-  prometheusInstance->enqueueMetrics(dataInterval, metrics);
 }
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
-
-  LOG(INFO) << "Attemping to bind HTTP server to port " << FLAGS_http_port;
-
-  std::vector<proxygen::HTTPServer::IPConfig> httpIps = {
-      {folly::SocketAddress(FLAGS_http_ip, FLAGS_http_port, true),
-       proxygen::HTTPServer::Protocol::HTTP},
-  };
-
-  proxygen::HTTPServerOptions options;
-  options.threads = static_cast<size_t>(FLAGS_num_http_threads);
-  options.idleTimeout = std::chrono::milliseconds(60000);
-  options.shutdownOn = {SIGINT, SIGTERM};
-  options.enableContentCompression = false;
-  options.handlerFactories = proxygen::RequestHandlerChain()
-                                 .addThen<RequestHandlerFactory>()
-                                 .build();
-
-  LOG(INFO) << "Starting UDP ping client HTTP server on port "
-            << FLAGS_http_port;
-
-  auto server = std::make_shared<proxygen::HTTPServer>(std::move(options));
-  server->bind(httpIps);
-  std::thread httpThread([server]() { server->start(); });
 
   // Build a config object for the UdpPinger
   thrift::Config config;

@@ -59,8 +59,6 @@ set(QUERY_HANDLER_SRCS
     handlers/LogsWriteHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
-    handlers/PrometheusMetricsHandler.cpp
-    handlers/PrometheusMetricsHandler.h
     handlers/TestConnectionHandler.cpp
     handlers/TestConnectionHandler.h
     handlers/WirelessControllerStatsHandler.cpp

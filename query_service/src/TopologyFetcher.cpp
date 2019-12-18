@@ -32,14 +32,16 @@ namespace facebook {
 namespace gorilla {
 
 TopologyFetcher::TopologyFetcher() {
-  // refresh topology periodically
+  // initial timer for periodic refresh
+  timer_ = folly::AsyncTimeout::make(
+      eb_, [&]() noexcept { refreshTopologyCache(); });
+  // wait for initial topology cache
+  refreshTopologyCache();
+  // run forever
   ebThread_ = std::thread([this]() {
     folly::setThreadName("Topology Fetcher");
     this->eb_.loopForever();
   });
-  timer_ = folly::AsyncTimeout::make(
-      eb_, [&]() noexcept { refreshTopologyCache(); });
-  eb_.runInEventBaseThread([&]() { refreshTopologyCache(); });
 }
 
 TopologyFetcher::~TopologyFetcher() {

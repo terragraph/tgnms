@@ -84,9 +84,8 @@ void NetworkHealthService::consume(const std::string& topicName) {
   // Now read lines and write them into kafka
   bool isRunning = true;
   std::chrono::milliseconds timeoutMs(1000);
-  auto prometheusInstance = PrometheusUtils::getInstance();
   auto metricCacheInstance = MetricCache::getInstance();
-  // queue stats for Prometheus lookup
+  // queue stats for meta-data lookup
   time_t lastRun = StatsUtils::getTimeInMs();
   while (isRunning) {
     // poll for new messages

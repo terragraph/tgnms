@@ -28,7 +28,6 @@ target_link_libraries(
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${LIBGLOG_LIBRARIES}
-    ${PROXYGEN_LIBRARIES}
     ${RDKAFKA_LIBRARIES}
     ${CPPKAFKA_LIBRARIES}
     Threads::Threads

@@ -11,7 +11,6 @@
 
 #include "handlers/LogsWriteHandler.h"
 #include "handlers/NotFoundHandler.h"
-#include "handlers/PrometheusMetricsHandler.h"
 #include "handlers/TestConnectionHandler.h"
 #include "handlers/WirelessControllerStatsHandler.h"
 
@@ -41,10 +40,6 @@ proxygen::RequestHandler* QueryServiceFactory::onRequest(
     return new LogsWriteHandler();
   } else if (path == "/wireless_controller_stats") {
     return new WirelessControllerStatsHandler();
-  } else if (path == "/metrics/30s") {
-    return new PrometheusMetricsHandler(30);
-  } else if (path == "/metrics/1s") {
-    return new PrometheusMetricsHandler(1);
   }
 
   // return not found for all other uris
