@@ -171,6 +171,7 @@ app.get('*', (req, res) => {
     'ALARMS_ENABLED',
     'EVENTS_V1_ENABLED',
     'DEFAULT_ROUTES_HISTORY_ENABLED',
+    'MAP_HISTORY_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

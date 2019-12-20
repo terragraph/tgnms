@@ -97,6 +97,7 @@ export type Props = {
     node: ?Node,
     nodes: Set<string>,
   },
+  historicalSiteColorMap: ?{[string]: string},
 };
 
 class SitesLayer extends React.Component<Props> {
@@ -170,7 +171,19 @@ class SitesLayer extends React.Component<Props> {
   }
 
   getSiteColor(site) {
-    const {overlay, nodeMap, siteToNodesMap, routes, topology} = this.props;
+    const {
+      overlay,
+      nodeMap,
+      siteToNodesMap,
+      routes,
+      topology,
+      historicalSiteColorMap,
+    } = this.props;
+
+    if (historicalSiteColorMap) {
+      return historicalSiteColorMap[site.name];
+    }
+
     const siteNodes =
       siteToNodesMap && nodeMap
         ? Array.from(siteToNodesMap[site.name]).map(

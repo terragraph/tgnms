@@ -10,6 +10,7 @@ import {HEALTH_DEFS} from '../../constants/HealthConstants';
 import {MCS_DATARATE_TABLE} from '../../constants/NetworkConstants';
 import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
 import {formatNumber} from '../../helpers/StringHelpers';
+import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
 const MEGABITS = Math.pow(1000, 2);
 export type OverlayQuery = {
@@ -26,6 +27,7 @@ export type Overlay = {|
   colorRange?: Array<string>,
   units?: string,
   bounds?: Array<number>,
+  overlayLegendType?: string,
   aggregate?: any => number,
   formatText?: (link: any, value: any) => string,
 |};
@@ -34,11 +36,27 @@ export interface OverlayStrategy {
   getOverlays: () => Array<Overlay>;
   changeOverlayRange: (id: string, newRange: Array<number>) => void;
   getOverlay: (id: string) => Overlay;
-  getData: (query: OverlayQuery) => Promise<any>;
+  getData?: (query: OverlayQuery) => Promise<any>;
 }
 
 export type ChangeOverlayRange = {
   (id: string, newRange: Array<number>): void,
+};
+
+export const HISTORICAL_LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
+  link_online: {
+    name: 'Online',
+    type: 'metric',
+    id: 'link_online',
+    overlayLegendType: 'ignition_status',
+    range: [1, 0.5, 0.5, 0],
+    bounds: [0, 1],
+  },
+  node_online: {
+    name: 'node_online',
+    type: 'metric',
+    id: 'node_online',
+  },
 };
 
 export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
@@ -50,17 +68,6 @@ export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
     type: 'ignition_status',
     id: 'ignition_status',
   },
-  ...(window.CONFIG?.env?.STATS_BACKEND === 'prometheus'
-    ? {}
-    : {
-        link_health: {
-          name: 'Health',
-          type: 'metric',
-          id: 'link_health',
-          range: [0, 1, 2, 3, 4],
-          bounds: [0, 4],
-        },
-      }),
   golay_tx: {name: 'Golay (TX)', type: 'golay', id: 'golay_tx'},
   golay_rx: {name: 'Golay (RX)', type: 'golay', id: 'golay_rx'},
   control_superframe: {
@@ -151,11 +158,44 @@ export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   },
 };
 
+// Historical metrics of the network
+export class HistoricalLinkMetricsOverlayStrategy implements OverlayStrategy {
+  /** internal data structures*/
+  overlayList = [
+    ...objectValuesTypesafe<Overlay>(HISTORICAL_LINK_METRIC_OVERLAYS),
+    ...objectValuesTypesafe<Overlay>(LINK_METRIC_OVERLAYS).filter(
+      overlay => overlay.type === 'metric',
+    ),
+  ];
+
+  overlayMap: {[string]: Overlay} = this.overlayList.reduce(
+    (final, overlay) => {
+      final[overlay.id] = overlay;
+      return final;
+    },
+    {},
+  );
+
+  /** public api */
+  getOverlays = () => this.overlayList;
+
+  changeOverlayRange = (
+    id: $Keys<typeof LINK_METRIC_OVERLAYS>,
+    newRange: Array<number>,
+  ) => {
+    if (this.overlayMap[id]) {
+      this.overlayMap[id]['range'] = newRange;
+    }
+  };
+
+  getOverlay = (id: $Keys<typeof LINK_METRIC_OVERLAYS>) => this.overlayMap[id];
+}
+
 // Realtime metrics of the running network
 export class LinkMetricsOverlayStrategy implements OverlayStrategy {
   /** internal data structures*/
   overlayMap: {[string]: Overlay} = LINK_METRIC_OVERLAYS;
-  overlayList = ((Object.values(LINK_METRIC_OVERLAYS): any): Array<Overlay>);
+  overlayList = objectValuesTypesafe<Overlay>(LINK_METRIC_OVERLAYS);
 
   /** public api */
   getOverlays = () => this.overlayList;

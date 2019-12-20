@@ -205,13 +205,14 @@ class LinksLayer extends React.Component<Props> {
   getMetricText(link, metricValues: Array<number>): Array<string | number> {
     const {overlay} = this.props;
     return metricValues.map(value => {
-      if (typeof this.props.overlay.formatText === 'function') {
-        return this.props.overlay.formatText(link, value);
+      if (typeof overlay.formatText === 'function') {
+        return overlay.formatText(link, value);
       }
       if (
         value === null ||
         typeof value === 'undefined' ||
-        overlay.id === 'link_health'
+        overlay.id === 'link_health' ||
+        overlay.id === 'link_online'
       ) {
         return '';
       }

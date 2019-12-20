@@ -46,6 +46,7 @@ const commonProps: Props = {
     node: null,
     nodes: new Set(),
   },
+  historicalSiteColorMap: {},
   classes: {},
 };
 

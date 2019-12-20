@@ -144,6 +144,9 @@ class NetworkMap extends React.Component {
 
       // Sites that should not be rendered on the map (e.g. while editing)
       hiddenSites: new Set(),
+
+      historicalOverlay: null,
+      historicalSiteMap: null,
     };
 
     // link metric overlay timer to refresh backend stats
@@ -367,7 +370,7 @@ class NetworkMap extends React.Component {
   }
 
   renderSites(context) {
-    const {plannedSite, nearbyNodes, routes} = this.state;
+    const {plannedSite, nearbyNodes, routes, historicalSiteMap} = this.state;
     const {
       selectedElement,
       nodeMap,
@@ -420,6 +423,7 @@ class NetworkMap extends React.Component {
         hiddenSites={this.state.hiddenSites}
         routes={routes}
         offlineWhitelist={offline_whitelist}
+        historicalSiteColorMap={historicalSiteMap}
       />
     );
   }
@@ -476,6 +480,15 @@ class NetworkMap extends React.Component {
     });
     return mapLayers;
   }
+
+  onHistoricalMapUpdate = overlayInfo => {
+    const {linkOverlayData, overlay, siteOverlayData} = overlayInfo;
+    this.setState({
+      linkOverlayMetrics: linkOverlayData,
+      historicalOverlay: overlay,
+      historicalSiteMap: siteOverlayData,
+    });
+  };
 
   render() {
     return (
@@ -575,6 +588,13 @@ class NetworkMap extends React.Component {
                     this.setState({routes});
                   },
                 }}
+                mapHistoryProps={{
+                  overlayConfig: this.getOverlaysConfig().find(
+                    overLayConfig => overLayConfig.layerId === 'link_lines',
+                  ),
+                  onUpdateMap: this.onHistoricalMapUpdate,
+                  siteToNodesMap: context.siteToNodesMap,
+                }}
                 networkTestId={getTestOverlayId(this.props.location)}
                 speedTestId={getSpeedTestId(this.props.location)}
                 onNetworkTestPanelClosed={this.exitTestOverlayMode}
@@ -648,9 +668,13 @@ class NetworkMap extends React.Component {
   };
 
   getCurrentLinkOverlay = () => {
+    const {selectedOverlays, historicalOverlay} = this.state;
     const overlay = this.getOverlayStrategy().getOverlay(
-      this.state.selectedOverlays.link_lines,
+      selectedOverlays.link_lines,
     );
+    if (historicalOverlay) {
+      return historicalOverlay;
+    }
     if (!overlay) {
       return {};
     }

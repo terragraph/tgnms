@@ -5,37 +5,31 @@
  * @flow
  */
 
-import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
-import MapLayersPanelConfigButton from './MapLayersPanelConfigButton';
+import MapHistoryOverlay from './MapHistoryOverlay';
+import MapOverlayLegend from './MapOverlayLegend';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
-import {convertType} from '../../helpers/ObjectHelpers';
-import {has} from 'lodash';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {Props as MapHistoryProps} from './MapHistoryOverlay';
 import type {
   MapLayerConfig,
   OverlayConfig,
 } from '../../views/map/NetworkMapTypes';
-import type {Overlay} from '../../views/map/overlays';
 
 const styles = theme => ({
   formContainer: {
     flexDirection: 'column',
-  },
-  chip: {
-    height: 20,
-  },
-  chipLabel: {
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
   },
   select: {
     marginBottom: theme.spacing(1),
@@ -47,6 +41,46 @@ const styles = theme => ({
   formGroup: {
     marginBottom: theme.spacing(2),
   },
+  root: {
+    display: 'flex',
+    height: '100%',
+    flexGrow: 1,
+    flexFlow: 'column',
+    overflow: 'hidden',
+  },
+  tabsRoot: {
+    borderBottom: '1px solid #e8e8e8',
+    flex: '0 1 auto',
+    marginBottom: theme.spacing(),
+    paddingTop: theme.spacing(),
+    paddingLeft: theme.spacing(),
+  },
+  tabsIndicator: {
+    backgroundColor: '#1890ff',
+  },
+  tabRoot: {
+    width: '50%',
+    textTransform: 'initial',
+    minWidth: 72,
+    fontWeight: theme.typography.fontWeightRegular,
+    fontSize: 16,
+    '&:hover': {
+      color: '#40a9ff',
+      opacity: 1,
+    },
+    '&$tabSelected': {
+      color: '#1890ff',
+      fontWeight: theme.typography.fontWeightMedium,
+    },
+    '&:focus': {
+      color: '#40a9ff',
+    },
+  },
+});
+
+const OVERLAY_TYPE = Object.freeze({
+  current: 'current',
+  history: 'history',
 });
 
 export type Props = {
@@ -68,18 +102,24 @@ export type Props = {
   // TODO extract to customexpansionpanel
   expanded: boolean,
   onPanelChange: () => any,
+  mapHistoryProps: MapHistoryProps,
+  networkName: string,
 };
 
 type SelectedOverlays = {[string]: string};
 type SelectedLayers = {[string]: boolean};
 
-type State = {};
+type State = {
+  selectedTable: string,
+};
 
 class MapLayersPanel extends React.Component<
   Props & {classes: {[string]: string}},
   State,
 > {
-  state = {};
+  state = {
+    selectedTable: OVERLAY_TYPE.current,
+  };
 
   handleOverlaySelectionChange = layerId => event => {
     const {selectedOverlays, onOverlaySelectChange} = this.props;
@@ -121,48 +161,55 @@ class MapLayersPanel extends React.Component<
     );
   }
 
-  renderLegend(legendConfig, overlay, changeOverlayRange) {
-    const {classes} = this.props;
-    const {range, units = ''} = overlay;
-    return (
-      <div>
-        {Object.keys(legendConfig).map((element, idx) => {
-          const elementColor = legendConfig[element].color;
-          let labelName = element.replace('_', ' ');
+  handleTableChange = (_event, value) => {
+    this.setState({selectedTable: value});
+    this.props.mapHistoryProps.onUpdateMap({
+      linkOverlayData: null,
+      overlay: null,
+      siteOverlayData: null,
+    });
+  };
 
-          // Add range label
-          if (
-            range &&
-            range.length === METRIC_COLOR_RANGE.length &&
-            idx < range.length
-          ) {
-            if (range[METRIC_COLOR_RANGE.length - 1] > range[0]) {
-              labelName += ` (<= ${range[idx]}${units})`;
-            } else {
-              labelName += ` (>= ${range[idx]}${units})`;
-            }
-          }
-
-          return (
-            <Chip
-              key={element}
-              label={labelName}
-              className={classes.chip}
-              classes={{label: classes.chipLabel}}
-              style={{
-                color: elementColor,
-              }}
-              variant="outlined"
-            />
-          );
-        })}
-        {range && range.length === METRIC_COLOR_RANGE.length && (
-          <MapLayersPanelConfigButton
-            changeOverlayRange={changeOverlayRange}
-            legendConfig={legendConfig}
-            overlay={convertType<{range: Array<number>, ...Overlay}>(overlay)}
+  renderOverlays() {
+    const {classes, mapHistoryProps, networkName} = this.props;
+    const {selectedTable} = this.state;
+    return isFeatureEnabled('MAP_HISTORY_ENABLED') ? (
+      <div className={classes.formContainer}>
+        <Tabs
+          value={selectedTable}
+          onChange={this.handleTableChange}
+          classes={{
+            root: classes.tabsRoot,
+            indicator: classes.tabsIndicator,
+          }}>
+          <Tab
+            classes={{root: classes.tabRoot, selected: classes.tabSelected}}
+            disableRipple
+            label="Current"
+            value={OVERLAY_TYPE.current}
           />
-        )}
+          <Tab
+            classes={{root: classes.tabRoot, selected: classes.tabSelected}}
+            disableRipple
+            label="History"
+            value={OVERLAY_TYPE.history}
+          />
+        </Tabs>
+        <div className={classes.sectionPadding} />
+
+        {selectedTable === OVERLAY_TYPE.history ? (
+          <MapHistoryOverlay {...mapHistoryProps} networkName={networkName} />
+        ) : selectedTable === OVERLAY_TYPE.current ? (
+          <div>
+            {this.renderOverlaysForm()}
+            {this.renderMapStylesForm()}
+          </div>
+        ) : null}
+      </div>
+    ) : (
+      <div>
+        {this.renderOverlaysForm()}
+        {this.renderMapStylesForm()}
       </div>
     );
   }
@@ -178,7 +225,6 @@ class MapLayersPanel extends React.Component<
     return overlaysConfig.map(layerOverlays => {
       const layerId = layerOverlays.layerId;
       const overlays = layerOverlays.overlays;
-      const changeOverlayRange = layerOverlays.changeOverlayRange;
       const legendName = layersConfig.find(layer => layer.layerId === layerId)
         ?.name;
 
@@ -210,13 +256,7 @@ class MapLayersPanel extends React.Component<
               );
             })}
           </Select>
-          {overlay &&
-            has(layerOverlays, ['legend', overlay.type]) &&
-            this.renderLegend(
-              layerOverlays.legend[overlay.type],
-              overlay,
-              changeOverlayRange,
-            )}
+          <MapOverlayLegend overlay={overlay} layerOverlays={layerOverlays} />
         </FormGroup>
       );
     });
@@ -251,8 +291,7 @@ class MapLayersPanel extends React.Component<
     return (
       <div className={classes.formContainer}>
         {this.renderLayersForm()}
-        {this.renderOverlaysForm()}
-        {this.renderMapStylesForm()}
+        {this.renderOverlays()}
       </div>
     );
   }

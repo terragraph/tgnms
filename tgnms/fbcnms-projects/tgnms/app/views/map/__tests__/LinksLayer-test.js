@@ -61,6 +61,7 @@ const commonProps: Props = {
   onLinkMouseEnter: jest.fn(),
   onLinkMouseLeave: jest.fn(),
   offlineWhitelist: {nodes: new Map(), links: new Map()},
+  metricTextEnabled: false,
 };
 test('renders with default props', () => {
   render(

@@ -39,6 +39,7 @@ import {
   getNodeIcon,
 } from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
 import type {
   EditNodeParams,
   NearbyNodes,
@@ -47,9 +48,9 @@ import type {
 } from '../../components/mappanels/MapPanelTypes';
 import type {Element, NetworkContextType} from '../../NetworkContext';
 import type {LocationType} from '../../../shared/types/Topology';
+import type {Props as MapHistoryProps} from '../../components/mappanels/MapHistoryOverlay';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
 import type {Theme, WithStyles} from '@material-ui/core';
-
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
   DRAWER_MAX_WIDTH: 800,
@@ -98,6 +99,7 @@ type Props = {
     onUpdateNearbyNodes: NearbyNodes => {},
   |},
   mapLayersProps: MapLayersProps,
+  mapHistoryProps: MapHistoryProps,
 };
 
 const FormType = {
@@ -695,6 +697,7 @@ class NetworkDrawer extends React.Component<
       plannedSiteProps,
       searchNearbyProps,
       routesProps,
+      mapHistoryProps,
     } = this.props;
     const {
       networkName,
@@ -834,6 +837,8 @@ class NetworkDrawer extends React.Component<
 
           <MapLayersPanel
             {...mapLayersProps}
+            mapHistoryProps={mapHistoryProps}
+            networkName={networkName}
             expanded={mapLayersPanelExpanded}
             onPanelChange={() =>
               this.setState({mapLayersPanelExpanded: !mapLayersPanelExpanded})

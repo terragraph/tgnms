@@ -17,6 +17,32 @@ type QueryLabels = {
 };
 
 /**
+ * all of these prometheuis queries return an object with metric and value keys
+ */
+
+export type PrometheusDataType = {
+  metric: PrometheusMetric,
+  values: PrometheusValue,
+};
+
+export type PrometheusValue = Array<[number, string]>;
+
+export type PrometheusMetric = {
+  cn?: string,
+  instance?: string,
+  intervalSec?: string,
+  job?: string,
+  linkDirection?: string,
+  linkName?: string,
+  nodeName?: string,
+  nodeMac?: string,
+  network?: string,
+  pop?: string,
+  siteName?: string,
+  __name__: string,
+};
+
+/**
  * Construct a Prometheus query from the metricName and labels
  */
 export const createQuery = (
