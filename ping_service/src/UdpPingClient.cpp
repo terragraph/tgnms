@@ -36,7 +36,9 @@
 #include "if/gen-cpp2/beringei_query_types.h"
 
 using namespace facebook::gorilla;
+using facebook::terragraph::thrift::NodeType;
 using facebook::terragraph::thrift::StatusDump;
+using facebook::terragraph::thrift::Topology;
 
 DEFINE_int32(topology_refresh_interval_s, 60, "Topology refresh interval");
 DEFINE_int32(ping_interval_s, 10, "Interval at which ping sweeps are started");
@@ -108,11 +110,10 @@ std::vector<UdpTestPlan> getTestPlans() {
   mySqlClient->refreshTopologies();
 
   for (const auto& topologyConfig : mySqlClient->getTopologyConfigs()) {
-    auto statusDump = ApiServiceClient::fetchApiService<StatusDump>(
+    auto statusDump = ApiServiceClient::makeRequest<StatusDump>(
         topologyConfig.second->primary_controller.ip,
         topologyConfig.second->primary_controller.api_port,
-        "api/getCtrlStatusDump",
-        "{}");
+        "api/getCtrlStatusDump");
 
     if (!statusDump) {
       VLOG(2) << "Failed to fetch status dump for "
@@ -120,12 +121,10 @@ std::vector<UdpTestPlan> getTestPlans() {
       continue;
     }
 
-    auto topology = ApiServiceClient::fetchApiService<
-        facebook::terragraph::thrift::Topology>(
+    auto topology = ApiServiceClient::makeRequest<Topology>(
         topologyConfig.second->primary_controller.ip,
         topologyConfig.second->primary_controller.api_port,
-        "api/getTopology",
-        "{}");
+        "api/getTopology");
 
     if (!topology) {
       VLOG(2) << "Failed to fetch topology for " << topologyConfig.second->name;
@@ -146,8 +145,7 @@ std::vector<UdpTestPlan> getTestPlans() {
             testPlan.target.name = node.name;
             testPlan.target.site = node.site_name;
             testPlan.target.network = topology->name;
-            testPlan.target.is_cn =
-                node.node_type == facebook::terragraph::thrift::NodeType::CN;
+            testPlan.target.is_cn = node.node_type == NodeType::CN;
             testPlan.target.is_pop = node.pop_node;
             testPlan.numPackets = FLAGS_num_packets;
             testPlans.push_back(std::move(testPlan));
@@ -172,27 +170,31 @@ std::vector<std::string> getMetricLabels(
   std::vector<std::string> labels = {
       PrometheusUtils::formatNetworkLabel(target.network),
       folly::sformat(
-          "{}=\"{}\"", PrometheusConsts::LABEL_DATA_INTERVAL, dataInterval)};
+          PrometheusConsts::METRIC_FORMAT,
+          PrometheusConsts::LABEL_DATA_INTERVAL,
+          dataInterval)};
 
   if (!target.name.empty()) {
     labels.insert(
         labels.end(),
         {folly::sformat(
-             "{}=\"{}\"", PrometheusConsts::LABEL_NODE_MAC, target.mac),
+             PrometheusConsts::METRIC_FORMAT,
+             PrometheusConsts::LABEL_NODE_MAC,
+             target.mac),
          folly::sformat(
-             "{}=\"{}\"",
+             PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_NODE_NAME,
              PrometheusUtils::formatPrometheusKeyName(target.name)),
          folly::sformat(
-             "{}=\"{}\"",
+             PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_NODE_IS_POP,
-             target.is_pop ? "true" : "false"),
+             target.is_pop),
          folly::sformat(
-             "{}=\"{}\"",
+             PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_NODE_IS_CN,
-             target.is_cn ? "true" : "false"),
+             target.is_cn),
          folly::sformat(
-             "{}=\"{}\"",
+             PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_SITE_NAME,
              PrometheusUtils::formatPrometheusKeyName(target.site))});
   }
@@ -345,17 +347,6 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
 
-  // Build a config object for the UdpPinger
-  thrift::Config config;
-  config.target_port = FLAGS_target_port;
-  config.num_sender_threads = FLAGS_num_sender_threads;
-  config.num_receiver_threads = FLAGS_num_receiver_threads;
-  config.pinger_cooldown_time = FLAGS_cooldown_time_s;
-  config.pinger_rate = FLAGS_pinger_rate_pps;
-  config.socket_buffer_size = FLAGS_socket_buffer_size;
-  config.src_port_count = FLAGS_port_count;
-  config.base_src_port = FLAGS_base_port;
-
   // If not provided, find the source address from an interface
   folly::IPAddress srcIp;
   try {
@@ -370,6 +361,17 @@ int main(int argc, char* argv[]) {
   }
 
   VLOG(2) << "Using source addr: " << srcIp;
+
+  // Build a config object for the UdpPinger
+  thrift::Config config;
+  config.target_port = FLAGS_target_port;
+  config.num_sender_threads = FLAGS_num_sender_threads;
+  config.num_receiver_threads = FLAGS_num_receiver_threads;
+  config.pinger_cooldown_time = FLAGS_cooldown_time_s;
+  config.pinger_rate = FLAGS_pinger_rate_pps;
+  config.socket_buffer_size = FLAGS_socket_buffer_size;
+  config.src_port_count = FLAGS_port_count;
+  config.base_src_port = FLAGS_base_port;
 
   UdpPinger pinger(config, srcIp);
   folly::Synchronized<std::vector<UdpTestPlan>> testPlans;

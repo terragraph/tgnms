@@ -9,11 +9,6 @@
 
 #include "ScanRespService.h"
 
-#include "ApiServiceClient.h"
-#include "MySqlClient.h"
-#include "TopologyStore.h"
-
-#include <curl/curl.h>
 #include <folly/String.h>
 #include <folly/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
@@ -21,6 +16,10 @@
 #include <snappy.h>
 #include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+
+#include "ApiServiceClient.h"
+#include "MySqlClient.h"
+#include "TopologyStore.h"
 
 // times are in seconds
 // Short poll period is only used when all requested results are returned
@@ -98,13 +97,14 @@ void ScanRespService::timerCb() {
   int scanPollPeriod = FLAGS_scan_poll_period_long;
   auto topologyInstance = TopologyStore::getInstance();
   auto topologyList = topologyInstance->getTopologyList();
+
   for (const auto& topologyConfig : topologyList) {
     VLOG(2) << "Topology: " << topologyConfig.first;
     auto topology = topologyConfig.second->topology;
     if (!topology.name.empty() && !topology.nodes.empty() &&
         !topology.links.empty()) {
       const auto idRange = getScanRespIdRange(topology.name);
-      auto scanStatus = ApiServiceClient::fetchApiService<ScanStatus>(
+      auto scanStatus = ApiServiceClient::makeRequest<ScanStatus>(
           topologyConfig.second->primary_controller.ip,
           topologyConfig.second->primary_controller.api_port,
           "api/getScanStatus",
@@ -139,6 +139,7 @@ void ScanRespService::timerCb() {
       }
     }
   }
+
   timer_->scheduleTimeout(scanPollPeriod * 1000);
 }
 

@@ -28,6 +28,8 @@ class PrometheusConsts {
   const static std::string LABEL_LINK_DIRECTION;
   // data interval
   const static std::string LABEL_DATA_INTERVAL;
+  // metric format
+  const static std::string METRIC_FORMAT;
 
 };
 

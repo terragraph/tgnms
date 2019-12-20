@@ -14,7 +14,6 @@
 #include "MySqlClient.h"
 #include "TopologyStore.h"
 
-#include <curl/curl.h>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <folly/ThreadName.h>
@@ -57,12 +56,12 @@ void TopologyFetcher::refreshTopologyCache() {
   mySqlClient->refreshAll();
   auto topologyInstance = TopologyStore::getInstance();
   // fetch cached topologies
+
   for (auto topologyConfig : mySqlClient->getTopologyConfigs()) {
-    auto topology = ApiServiceClient::fetchApiService<thrift::Topology>(
-          topologyConfig.second->primary_controller.ip,
-          topologyConfig.second->primary_controller.api_port,
-          "api/getTopology",
-          "{}" /* post data */);
+    auto topology = ApiServiceClient::makeRequest<thrift::Topology>(
+        topologyConfig.second->primary_controller.ip,
+        topologyConfig.second->primary_controller.api_port,
+        "api/getTopology");
     if (!topology) {
       LOG(INFO) << "Failed to fetch topology for "
                 << topologyConfig.second->name;

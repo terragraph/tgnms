@@ -24,6 +24,8 @@ const std::string PrometheusConsts::LABEL_LINK_NAME{"linkName"};
 const std::string PrometheusConsts::LABEL_LINK_DIRECTION{"linkDirection"};
 // data interval
 const std::string PrometheusConsts::LABEL_DATA_INTERVAL{"intervalSec"};
+// metric format
+const std::string PrometheusConsts::METRIC_FORMAT{"{}=\"{}\""};
 
 } // namespace gorilla
 } // namespace facebook

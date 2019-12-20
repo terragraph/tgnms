@@ -10,82 +10,97 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+#include <utility>
 
-#include <curl/curl.h>
+#include <folly/Format.h>
+#include <folly/IPAddress.h>
 #include <folly/Optional.h>
+#include <folly/Synchronized.h>
+#include <folly/dynamic.h>
 #include <gflags/gflags.h>
+#include <glog/logging.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "CurlUtil.h"
+#include "StatsUtils.h"
 
 DECLARE_int32(api_service_request_timeout_s);
+DECLARE_bool(keycloak_enabled);
 
 namespace facebook {
 namespace gorilla {
 
 class ApiServiceClient {
  public:
-  ApiServiceClient();
-
   template <class T>
-  static folly::Optional<T> fetchApiService(
+  static folly::Optional<T> makeRequest(
       const std::string& host,
       int port,
       const std::string& endpoint,
-      const std::string& postData) {
-    // Get a curl handle
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-      LOG(ERROR) << "Failed to initialize CURL object";
-      return folly::none;
+      const std::string& postData = "{}") {
+    std::unordered_map<std::string, std::string> headersMap;
+
+    if (FLAGS_keycloak_enabled) {
+      auto lockedJwt = jwt_.wlock();
+      time_t currTime = StatsUtils::getTimeInSeconds();
+
+      if (lockedJwt->empty() ||
+          currTime > refreshTime_ + lockedJwt->at("expires_in").getInt()) {
+        VLOG(5) << "Current JWT is expired, refreshing...";
+        auto freshJwt = refreshToken();
+        if (!freshJwt) {
+          LOG(ERROR) << "Failed to fetch a new JWT from Keycloak";
+          return folly::none;
+        }
+        std::swap(*lockedJwt, *freshJwt);
+        refreshTime_ = currTime;
+      }
+
+      std::string jwt = lockedJwt->at("access_token").getString();
+      headersMap["Authorization"] = folly::sformat("Bearer {}", jwt);
     }
 
-    std::string addr = formatAddress(host, port, endpoint);
-    VLOG(3) << "POST request to " << addr << " with data " << postData;
-
-    // Set the URL and other curl options
-    curl_easy_setopt(curl, CURLOPT_URL, addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);  // Only for https
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);  // Only for https
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)postData.length());
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)FLAGS_api_service_request_timeout_s);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteStringCb);
-
-    std::string s;
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
-
-    // Perform the request and check for errors, res will get the return code
-    CURLcode res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-
-    if (res != CURLE_OK) {
-      LOG(ERROR) << "CURL request failed for " << addr << ": "
-                 << curl_easy_strerror(res);
-      return folly::none;
+    std::string addr;
+    try {
+      auto ip = folly::IPAddress(host);
+      if (ip.isV6()) {
+        addr = folly::sformat("http://[{}]:{}/{}", host, port, endpoint);
+      } else {
+        addr = folly::sformat("http://{}:{}/{}", host, port, endpoint);
+      }
+    } catch (const folly::IPAddressFormatException&) {
+      addr = folly::sformat("http://{}:{}/{}", host, port, endpoint);
     }
 
-    if (s.empty()) {
-      LOG(ERROR) << "Empty response from " << addr;
+    VLOG(3) << "POST request to " << addr << " with data: " << postData;
+    auto resp = CurlUtil::makeHttpRequest(
+        FLAGS_api_service_request_timeout_s, addr, postData, headersMap);
+    if (!resp || resp->code != 200) {
       return folly::none;
     }
 
     try {
-      return apache::thrift::SimpleJSONSerializer::deserialize<T>(s);
+      return apache::thrift::SimpleJSONSerializer::deserialize<T>(resp->body);
     } catch (const apache::thrift::protocol::TProtocolException& ex) {
-      LOG(ERROR) << "Unable to decode JSON: " << s;
+      LOG(ERROR) << "Unable to decode JSON body: " << resp->body;
       return folly::none;
     } catch (const std::exception& ex) {
-      LOG(ERROR) << "Unknown failure fetching topology: " << ex.what()
-                 << ", JSON: " << s;
+      LOG(ERROR) << "Unknown failure: " << ex.what()
+                 << ", JSON body: " << resp->body;
       return folly::none;
     }
   }
 
  private:
-  static std::string
-  formatAddress(const std::string& host, int port, const std::string& endpoint);
+  // Last time the keycloak token was refreshed
+  static time_t refreshTime_;
+
+  // Lock for controlling who can manipulate the JWT
+  static folly::Synchronized<folly::dynamic> jwt_;
+
+  // Fetch a new token from Keycloak
+  static folly::Optional<folly::dynamic> refreshToken();
 };
 
 } // namespace gorilla

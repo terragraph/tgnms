@@ -11,44 +11,36 @@
 
 #include <stdlib.h>
 
-#include <cstring>
 #include <string>
+#include <unordered_map>
 
-#include <curl/curl.h>
-
-extern "C" {
-struct HTTPDataStruct {
-  char* data;
-  size_t size;
-};
-
-static size_t
-curlWriteCb(void* content, size_t size, size_t nmemb, void* userp) {
-  size_t realSize = size * nmemb;
-  struct HTTPDataStruct* httpData = (struct HTTPDataStruct*)userp;
-  httpData->data =
-      (char*)realloc(httpData->data, httpData->size + realSize + 1);
-  if (httpData->data == nullptr) {
-    printf("Unable to allocate memory (realloc failed)\n");
-    return 0;
-  }
-  memcpy(&(httpData->data[httpData->size]), content, realSize);
-  httpData->size += realSize;
-  httpData->data[httpData->size] = 0;
-  return realSize;
-}
-}
+#include <folly/Optional.h>
 
 namespace facebook {
 namespace gorilla {
 
-struct CurlResponse {
-  long responseCode;
-  std::string header;
-  std::string body;
-};
+class CurlUtil {
+ public:
+  struct Response {
+    long code;
+    std::string header;
+    std::string body;
+  };
 
-size_t curlWriteStringCb(void* ptr, size_t size, size_t nmemb, std::string* s);
+  // Send a curl request to the given addr with the provided parameters
+  static folly::Optional<struct Response> makeHttpRequest(
+      int timeoutSeconds,
+      const std::string& addr,
+      const std::string& postData = "",
+      const std::unordered_map<std::string, std::string>& headersMap =
+          std::unordered_map<std::string, std::string>(),
+      const std::string& cookie = "");
+
+ private:
+  // Callback function to write the curl output to a std::string
+  static size_t
+  writeStringCb(void* ptr, size_t size, size_t nmemb, std::string* s);
+};
 
 } // namespace gorilla
 } // namespace facebook

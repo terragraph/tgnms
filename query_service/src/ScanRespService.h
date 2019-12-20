@@ -9,10 +9,12 @@
 
 #pragma once
 
-#include "ApiServiceClient.h"
+#include <unordered_map>
 
 #include <folly/Synchronized.h>
+#include <folly/dynamic.h>
 #include <folly/io/async/EventBaseManager.h>
+
 #include "if/gen-cpp2/Controller_types_custom_protocol.h"
 #include "if/gen-cpp2/scans_types_custom_protocol.h"
 

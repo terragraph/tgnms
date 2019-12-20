@@ -9,6 +9,10 @@
 
 #include "StatsUtils.h"
 
+#include <chrono>
+
+#include <folly/Format.h>
+
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;

@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include "CurlUtil.h"
-
 #include "if/gen-cpp2/Aggregator_types_custom_protocol.h"
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 
@@ -52,11 +50,6 @@ class PrometheusUtils {
 
   // format key/label names by removing characters disallowed by prometheus
   static std::string formatPrometheusKeyName(const std::string& keyName);
-
-  // query prometheus API
-  static struct CurlResponse prometheusQuery(
-      const std::string& uri,
-      const std::vector<std::pair<std::string, std::string>>& postData);
 };
 
 } // namespace gorilla

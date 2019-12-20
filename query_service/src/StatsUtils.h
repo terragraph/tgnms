@@ -9,10 +9,8 @@
 
 #pragma once
 
-#include <chrono>
+#include <ctime>
 #include <string>
-
-#include <folly/Format.h>
 
 namespace facebook {
 namespace gorilla {

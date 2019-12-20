@@ -7,10 +7,10 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "CurlUtil.h"
-
+#include <folly/Optional.h>
 #include <folly/dynamic.h>
 
+#include "CurlUtil.h"
 #include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 #pragma once
@@ -26,13 +26,11 @@ class WirelessController {
   static folly::dynamic ruckusControllerStats(
       const query::WirelessController& controller);
 
-  static struct CurlResponse ruckusControllerRequest(
-      const query::WirelessController& controller,
+  static folly::Optional<struct CurlUtil::Response> ruckusControllerRequest(
+      const std::string& ctrlUrl,
       const std::string& uri,
       const std::string& sessionCookie,
       const std::string& postData);
-
- private:
 };
 } // namespace gorilla
 } // namespace facebook
