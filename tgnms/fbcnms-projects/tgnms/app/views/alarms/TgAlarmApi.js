@@ -54,23 +54,28 @@ export const TgApiUtil: ApiUtil = {
     }),
 
   // receivers
-  createReceiver: _req => {
-    console.warn('not implemented');
-    return Promise.resolve();
-  },
-  editReceiver: _req => {
-    console.warn('not implemented');
-    return Promise.resolve();
-  },
+  createReceiver: ({receiver}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/receivers`,
+      method: 'POST',
+      data: receiver,
+    }),
+  editReceiver: ({receiver}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/receivers/${receiver.name}`,
+      method: 'PUT',
+      data: receiver,
+    }),
   getReceivers: _req =>
     makeRequest({
       url: `${AM_BASE_URL}/receivers`,
       method: 'GET',
     }),
-  deleteReceiver: _req => {
-    console.warn('not implemented');
-    return Promise.resolve();
-  },
+  deleteReceiver: ({receiverName}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/receivers/${receiverName}`,
+      method: 'DELETE',
+    }),
 
   // routes
   getRouteTree: _req =>

@@ -47,11 +47,11 @@ export function safePathJoin(parent, unsafePath) {
  * Creates a request (default GET) with the options provided and logs it
  */
 export function createRequest(options) {
-  const requestOptions = typeof options === 'string' ? {url: options} : options;
+  const requestOptions = typeof options === 'string' ? {uri: options} : options;
   logger.info(
     `Network request: ${
       requestOptions.method ? requestOptions.method : 'GET'
-    } ${requestOptions.url}`,
+    } ${requestOptions.uri}`,
   );
   return new Promise((resolve, reject) => {
     try {

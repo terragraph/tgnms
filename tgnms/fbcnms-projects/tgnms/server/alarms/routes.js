@@ -101,6 +101,35 @@ router.get('/receivers', (req, res) =>
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res)),
 );
+router.post('/receivers', (req, res) =>
+  createRequest({
+    uri: formatAlertManagerConfigUrl(`/0/receiver`),
+    method: req.method,
+    json: req.body,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res)),
+);
+
+router.put('/receivers/:name', (req, res) =>
+  createRequest({
+    uri: formatAlertManagerConfigUrl(`/0/receiver/${req.params.name}`),
+    method: req.method,
+    json: req.body,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res)),
+);
+
+router.delete('/receivers/:name', (req, res) =>
+  createRequest({
+    uri: formatAlertManagerConfigUrl(`/0/receiver`),
+    method: req.method,
+    qs: {receiver: req.params.name},
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res)),
+);
 
 router.get('/routes', (req, res) =>
   createRequest({
@@ -131,7 +160,6 @@ router.post('/tg_rule_add', (req, res) =>
     json: req.body,
   })
     .then(response => {
-      debugger;
       return res.status(response.statusCode).send(response.body);
     })
     .catch(createErrorHandler(res)),
