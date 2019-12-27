@@ -23,6 +23,6 @@ async def add_x(start_time: int, metric_name: str, x: int) -> None:
         labels = result["metric"]
         value = result["value"][1]
         id = create_query(metric_name=f"{metric_name}_plus_{x}", labels=labels)
-        metrics[id] = PrometheusMetric(time=start_time, value=value + x)
+        metrics[id] = PrometheusMetric(value=value + x, time=start_time)
 
     client.write_metrics(interval_sec=30, metrics=metrics)

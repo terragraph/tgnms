@@ -160,7 +160,7 @@ class PrometheusClientTests(asynctest.TestCase):
 
         for i in range(10):
             id = create_query(metric_name="foo", labels={"number": i})
-            metrics[id] = PrometheusMetric(time=0, value=i)
+            metrics[id] = PrometheusMetric(value=i, time=1)
             self.assertTrue(PrometheusClient.write_metrics(interval, metrics))
 
     def test_write_metrics_invalid_interval(self) -> None:
@@ -174,7 +174,7 @@ class PrometheusClientTests(asynctest.TestCase):
 
         for i in range(10):
             id = create_query(metric_name="foo", labels={"number": i})
-            metrics[id] = PrometheusMetric(time=0, value=i)
+            metrics[id] = PrometheusMetric(value=i, time=1)
             self.assertTrue(PrometheusClient.write_metrics(interval, metrics))
 
         datapoints = PrometheusClient.poll_metrics(interval)
@@ -183,20 +183,32 @@ class PrometheusClientTests(asynctest.TestCase):
         # This call returns an empty list because no metrics were written in between
         self.assertEqual(len(PrometheusClient.poll_metrics(interval)), 0)
 
+    def test_write_metrics_no_timestamp(self) -> None:
+        interval = self.config["prometheus"]["intervals"][0]
+
+        id = create_query(metric_name="foo")
+        PrometheusClient.write_metrics(interval, {id: PrometheusMetric(value=100)})
+
+        datapoints = PrometheusClient.poll_metrics(interval)
+        self.assertEqual(len(datapoints), 1)
+
+        # Prometheus ignores leading and trailing whitespace
+        self.assertEqual(datapoints[0], 'foo{intervalSec="30"} 100 ')
+
     def test_redundant_write_metrics(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
 
         id = create_query(metric_name="foo")
         PrometheusClient.write_metrics(
-            interval, {id: PrometheusMetric(time=0, value=0)}
+            interval, {id: PrometheusMetric(value=0, time=1)}
         )
         PrometheusClient.write_metrics(
-            interval, {id: PrometheusMetric(time=0, value=100)}
+            interval, {id: PrometheusMetric(value=100, time=1)}
         )
 
         datapoints = PrometheusClient.poll_metrics(interval)
         self.assertEqual(len(datapoints), 1)
-        self.assertEqual(datapoints[0], 'foo{intervalSec="30"} 100 0')
+        self.assertEqual(datapoints[0], 'foo{intervalSec="30"} 100 1')
 
     def test_poll_metrics_empty_queue(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]

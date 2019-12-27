@@ -20,10 +20,13 @@ from .base_client import BaseClient, HealthCheckResult
 
 @dataclasses.dataclass
 class PrometheusMetric:
-    """Representation of a single Prometheus metric."""
+    """Representation of a single Prometheus metric.
 
-    time: Union[int, float]
+    If provided, 'time' should be in milliseconds since epoch.
+    If not, Prometheus will use the scrape timestamp as metric timestamp."""
+
     value: Union[int, float]
+    time: Optional[int] = None
 
 
 def normalize(string: str) -> str:
@@ -191,7 +194,7 @@ class PrometheusClient(BaseClient):
         metrics = cls._metrics_map[interval_sec]
 
         for query, metric in metrics.items():
-            datapoints.append(f"{query} {metric.value} {metric.time}")
+            datapoints.append(f"{query} {metric.value} {metric.time or ''}")
 
         metrics.clear()
         return datapoints
