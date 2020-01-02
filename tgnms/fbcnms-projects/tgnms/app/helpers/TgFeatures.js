@@ -6,6 +6,7 @@
  */
 
 import {CtrlVerType, ctrlVerBefore} from './VersionHelper';
+import {formatNumber} from './StringHelpers';
 
 /**
  * Get polarities associated with a node.
@@ -162,4 +163,19 @@ export function supportsTopologyDiscovery(ctrlVersion: string) {
  */
 export function supportsUserSpecifiedPolairtyAndGolay(ctrlVersion: string) {
   return ctrlVerBefore(ctrlVersion, CtrlVerType.M37);
+}
+
+export function beamIndexToAngle(beamIdx: number): number {
+  // This is only valid for Rev5
+  // Index range is 0-63
+  // 0 is the center (0°)
+  // 1-31 = right (43.6 max)
+  // 32-63 = left (-45 max)
+  return (beamIdx >= 32 ? -(beamIdx - 31) : beamIdx) * 1.4 /* to degrees */;
+}
+
+export function beamAngleToOrientation(angle: number) {
+  return angle === 0
+    ? 0
+    : `${angle > 0 ? 'L' : 'R'} ${formatNumber(Math.abs(angle), 0)}`;
 }

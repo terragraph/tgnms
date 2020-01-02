@@ -23,12 +23,13 @@ import {DebounceInput} from 'react-debounce-input';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {NetworkContextType} from '../../NetworkContext';
+import type {Node} from 'react';
 
 type ColumnType = {
   filter?: boolean,
   isKey?: boolean,
   key: string,
-  label: string,
+  label: Node,
   sortFunc?: (Object, Object, $Values<typeof SortDirection>, string) => number,
   render?: (
     val: any,

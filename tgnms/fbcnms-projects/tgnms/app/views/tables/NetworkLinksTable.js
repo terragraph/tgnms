@@ -27,6 +27,10 @@ import {
   TopologyElementType,
 } from '../../constants/NetworkConstants.js';
 import {availabilityColor} from '../../helpers/NetworkHelpers';
+import {
+  beamAngleToOrientation,
+  beamIndexToAngle,
+} from '../../helpers/TgFeatures';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
 import {renderDashboardLinks, renderGrafanaLink} from './FbInternal';
@@ -34,6 +38,7 @@ import {renderStatusColor} from '../../helpers/TableHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {LinkType} from '../../../shared/types/Topology';
 import type {NetworkContextType} from '../../NetworkContext';
+import type {Node} from 'react';
 
 // Invalid analyzer value, ignore any fields that have this value.
 const INVALID_VALUE = 255;
@@ -55,7 +60,7 @@ const styles = theme => {
 };
 
 const LinkTable = {
-  DEFAULT: 'DEFAULT',
+  MINIMAL: 'MINIMAL',
   EVENTS_CHART: 'EVENTS_CHART',
   ANALYZER: 'ANALYZER',
 };
@@ -207,67 +212,84 @@ class NetworkLinksTable extends React.Component<Props, State> {
       label: 'Alive',
       render: renderStatusColor,
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
       key: 'mcs',
       label: 'Avg MCS',
       render: cell => this.renderFloatPoint('mcs', cell),
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
       key: 'snr',
       label: 'Avg SNR',
       render: cell => this.renderFloatPoint('snr', cell),
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
       key: 'per',
       label: 'Avg PER',
       render: cell => this.renderFloatPoint('per', cell),
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
       key: 'tput',
       label: 'Avg tput(PPS)',
       render: cell => this.renderFloatPoint('tput', cell),
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
       key: 'txpower',
       label: 'Avg txPower',
       render: cell => this.renderFloatPoint('txpower', cell),
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
       key: 'fw_restarts',
       label: '#Restarts',
       render: cell => this.renderFloatPoint('fw_restarts', cell),
       sort: true,
-      width: 100,
+      width: 60,
     },
     {
-      label: 'Uptime',
-      key: 'uptime',
-      render: cell => this.renderFloatPoint('uptime', cell),
+      key: 'tx_beam_angle',
+      label: <span>TX Beam &deg;</span>,
+      render: cell => this.renderFloatPoint('tx_beam_angle', cell),
       sort: true,
-      width: 100,
+      sortFunc: this.beamAngleSortFunc.bind(this),
+      width: 60,
+    },
+    {
+      key: 'rx_beam_angle',
+      label: <span>RX Beam &deg;</span>,
+      render: cell => this.renderFloatPoint('rx_beam_angle', cell),
+      sort: true,
+      sortFunc: this.beamAngleSortFunc.bind(this),
+      width: 60,
+    },
+    {
+      key: 'alive_perc',
+      label: 'Uptime',
+      appendAvailWindow: true,
+      render: this.renderAlivePerc.bind(this),
+      sort: true,
+      width: 80,
     },
     {
       key: 'distance',
       label: 'Distance (m)',
       render: this.renderDistance.bind(this),
       sort: true,
-      width: 120,
+      width: 60,
     },
   ];
 
-  defaultChartColumns = [
+  minimalChartColumns = [
     {
       filter: true,
       isKey: true,
@@ -289,7 +311,8 @@ class NetworkLinksTable extends React.Component<Props, State> {
     },
     {
       key: 'alive_perc',
-      label: 'Uptime (24hr)',
+      label: 'Uptime',
+      appendAvailWindow: true,
       render: this.renderAlivePerc.bind(this),
       sort: true,
       width: 140,
@@ -362,6 +385,22 @@ class NetworkLinksTable extends React.Component<Props, State> {
       }
     }
     return this.linkSortFuncHelper(a, b, order);
+  }
+
+  beamAngleSortFunc(a, b, order) {
+    // use -1 as beam angle when sorting if unset
+    const aAbs = Math.abs(
+      typeof a.tx_beam_angle !== 'number' || isNaN(a.tx_beam_angle)
+        ? -1
+        : a.tx_beam_angle,
+    );
+    const bAbs = Math.abs(
+      typeof b.tx_beam_angle !== 'number' || isNaN(b.tx_beam_angle)
+        ? -1
+        : b.tx_beam_angle,
+    );
+    const sortVal = aAbs === bAbs ? 0 : aAbs > bAbs ? 1 : -1;
+    return order === 'ASC' ? sortVal : -sortVal;
   }
 
   formatAnalyzerValue(obj, propertyName) {
@@ -451,6 +490,16 @@ class NetworkLinksTable extends React.Component<Props, State> {
     a_node_name: string,
     z_node_name: string,
     alive: boolean,
+    alive_perc: number,
+    fw_restarts: number,
+    mcs: Node,
+    snr: Node,
+    per: Node,
+    tput: Node,
+    txpower: Node,
+    tx_beam_angle: Node,
+    rx_beam_angle: Node,
+    distance: number,
   }> {
     const rows = [];
 
@@ -459,7 +508,8 @@ class NetworkLinksTable extends React.Component<Props, State> {
     }
     Object.keys(context.linkMap).forEach(linkName => {
       const link = context.linkMap[linkName];
-      let alivePerc = null;
+      // link availability
+      let alivePerc = NaN;
       if (
         context.networkLinkHealth &&
         context.networkLinkHealth.hasOwnProperty('events') &&
@@ -468,7 +518,6 @@ class NetworkLinksTable extends React.Component<Props, State> {
         const linkHealth = context.networkLinkHealth.events[link.name];
         alivePerc = linkHealth.linkAlive;
       }
-
       if (!context.networkAnalyzerData) {
         return;
       }
@@ -513,7 +562,6 @@ class NetworkLinksTable extends React.Component<Props, State> {
           typeof analyzerLinkA.flaps !== 'number'
             ? Number.parseInt(analyzerLinkA.flaps)
             : analyzerLinkA.flaps,
-        uptime: analyzerLinkA.uptime,
         mcs: this.formatAnalyzerValue(analyzerLinkA, 'avg_mcs'),
         // snr is the receive signal strength which needs to come from the
         // other side of the link
@@ -521,6 +569,12 @@ class NetworkLinksTable extends React.Component<Props, State> {
         per: this.formatAnalyzerValue(analyzerLinkA, 'avg_per'),
         tput: this.formatAnalyzerValue(analyzerLinkA, 'avg_tput'),
         txpower: this.formatAnalyzerValue(analyzerLinkA, 'avg_tx_power'),
+        tx_beam_angle: beamIndexToAngle(
+          formatNumber(analyzerLinkA.tx_beam_idx),
+        ),
+        rx_beam_angle: beamIndexToAngle(
+          formatNumber(analyzerLinkA.rx_beam_idx),
+        ),
         distance: link._meta_.distance,
       });
       // this is the Z->A link
@@ -531,7 +585,6 @@ class NetworkLinksTable extends React.Component<Props, State> {
         alive: link.is_alive,
         alive_perc: alivePerc,
         fw_restarts: analyzerLinkA.flaps,
-        uptime: analyzerLinkA.uptime,
         mcs: this.formatAnalyzerValue(analyzerLinkZ, 'avg_mcs'),
         // snr is the receive signal strength which needs to come from the
         // other side of the link
@@ -539,6 +592,12 @@ class NetworkLinksTable extends React.Component<Props, State> {
         per: this.formatAnalyzerValue(analyzerLinkZ, 'avg_per'),
         tput: this.formatAnalyzerValue(analyzerLinkZ, 'avg_tput'),
         txpower: this.formatAnalyzerValue(analyzerLinkZ, 'avg_tx_power'),
+        tx_beam_angle: beamIndexToAngle(
+          formatNumber(analyzerLinkZ.tx_beam_idx),
+        ),
+        rx_beam_angle: beamIndexToAngle(
+          formatNumber(analyzerLinkZ.rx_beam_idx),
+        ),
         distance: link._meta_.distance,
       });
     });
@@ -613,7 +672,8 @@ class NetworkLinksTable extends React.Component<Props, State> {
           break;
         case 'txpower':
           cellText = formatNumber(cell, 1);
-          cellColor = this.variableColorUp(cell, 0, 0);
+          // TODO - combine link metrics overlay thresholds
+          cellColor = this.variableColorDown(cell, 9, 19);
           break;
         case 'tput':
           cellText = formatNumber(cell, 0);
@@ -624,13 +684,15 @@ class NetworkLinksTable extends React.Component<Props, State> {
           // if value<thresh1 green, elseif <thresh2 orange, else red
           cellColor = this.variableColorDown(cell, 0.5, 1);
           break;
-        case 'uptime':
-          cellText = formatNumber(cell, 2) + '%';
-          cellColor = availabilityColor(cell);
-          break;
         case 'fw_restarts':
           cellText = formatNumber(cell, 0);
           cellColor = this.variableColorDown(cell, 0, 1);
+          break;
+        case 'tx_beam_angle':
+        case 'rx_beam_angle':
+          cellText = beamAngleToOrientation(cell);
+          // beam angles 0-35=green, 36-40=yellow, 41+=red
+          cellColor = this.variableColorDown(Math.abs(cell), 35, 40);
           break;
       }
     }
@@ -684,36 +746,40 @@ class NetworkLinksTable extends React.Component<Props, State> {
     });
   }
 
+  insertTimeWindowText(columns, context) {
+    // add time window text to tables
+    const availWindowTitle = TIME_WINDOWS.filter(
+      ({hours}) => hours === context.networkHealthTimeWindowHrs,
+    ).map(({title}) => title);
+    return columns.map(column => {
+      if (
+        column.hasOwnProperty('appendAvailWindow') &&
+        column.appendAvailWindow
+      ) {
+        return {
+          ...column,
+          label: `${column.label} (${availWindowTitle[0]})`,
+        };
+      }
+      return column;
+    });
+  }
+
   renderLinksTable(context) {
     const {linkTable, sortBy, sortDirection, selectedLink} = this.state;
 
-    let columns = this.defaultChartColumns;
+    let columns;
     let data;
     if (linkTable === LinkTable.ANALYZER) {
-      columns = this.analyzerChartColumns;
+      columns = this.insertTimeWindowText(this.analyzerChartColumns, context);
       data = this.getTableRowsAnalyzer(context);
     } else if (linkTable === LinkTable.EVENTS_CHART) {
-      const availWindowTitle = TIME_WINDOWS.filter(
-        ({hours}) => hours === context.networkHealthTimeWindowHrs,
-      ).map(({title}) => title);
-      columns = this.eventChartColumns.map(column => {
-        if (
-          column.hasOwnProperty('appendAvailWindow') &&
-          column.appendAvailWindow
-        ) {
-          return {
-            ...column,
-            label: `${column.label} (${availWindowTitle[0]})`,
-          };
-        }
-        return column;
-      });
+      columns = this.insertTimeWindowText(this.eventChartColumns, context);
       data = this.getTableRows(context);
-    } else if (linkTable === LinkTable.DEFAULT) {
-      columns = this.defaultChartColumns;
+    } else {
+      columns = this.insertTimeWindowText(this.minimalChartColumns, context);
       data = this.getTableRows(context);
     }
-
     return (
       <CustomTable
         rowHeight={this.rowHeight}
@@ -787,9 +853,9 @@ class NetworkLinksTable extends React.Component<Props, State> {
               onChange={event => this.setState({linkTable: event.target.value})}
               row>
               <FormControlLabel
-                value={LinkTable.DEFAULT}
+                value={LinkTable.MINIMAL}
                 control={<Radio color="primary" />}
-                label="Default"
+                label="Minimal"
               />
               <FormControlLabel
                 value={LinkTable.EVENTS_CHART}

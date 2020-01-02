@@ -154,8 +154,15 @@ router.get('/link_analyzer/:topologyName', (req, res, _next) => {
     metricName: 'avg_tput',
     prometheusQuery: `avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery})`,
   });
+  prometheusQueryList.push({
+    metricName: 'tx_beam_idx',
+    prometheusQuery: `tx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+  });
+  prometheusQueryList.push({
+    metricName: 'rx_beam_idx',
+    prometheusQuery: `rx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+  });
   // TODO - add availability once published as a stat
-
   Promise.all(
     prometheusQueryList.map(({prometheusQuery}) => {
       return queryLatest({

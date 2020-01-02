@@ -76,6 +76,7 @@ export function renderDashboardLinks(
   const buttons = [
     <GrafanaLink
       dashboard={GrafanaDashboardUUID.link}
+      key={`grafana-link-${row.a_node_name}-${row.z_node_name}`}
       data-testid="grafana-link"
       vars={{
         'var-network': context.networkName,
@@ -86,7 +87,6 @@ export function renderDashboardLinks(
       <Button
         className={classes.button}
         color="primary"
-        key={'grafana-link-' + row.name}
         size="small"
         title="View in Grafana"
         variant="outlined">
@@ -102,7 +102,7 @@ export function renderDashboardLinks(
         className={classes.button}
         color="primary"
         href={odsLink}
-        key={'ods-link-' + row.name}
+        key={`ods-link-${row.a_node_name}-${row.z_node_name}`}
         size="small"
         target="_new"
         variant="outlined">
@@ -142,7 +142,6 @@ export function renderGrafanaLink(
         <Button
           className={classes.button}
           color="primary"
-          key={'grafana-link-' + row.name}
           size="small"
           title="View in Grafana"
           variant="outlined">
