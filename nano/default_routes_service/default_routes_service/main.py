@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 import sys
+import time
 from datetime import datetime
 from typing import Dict, List
 
@@ -29,10 +30,14 @@ async def async_main(config: Dict) -> None:
 
     logging.debug(f"Service config: {config}")
     fetch_interval: int = config["fetch_interval_s"]
+    # restrict service frequency to reduce load on E2E server
+    if fetch_interval < 60:
+        raise ValueError("'fetch_interval' cannot be less than 60 seconds.")
 
     while True:
         tasks = []
 
+        start_time = time.time()
         # get latest topology for all networks from API service
         logging.info("Requesting topologies for all networks from API service.")
         all_topologies: Dict = await APIServiceClient(timeout=1).request_all(
@@ -47,7 +52,7 @@ async def async_main(config: Dict) -> None:
                 tasks.append(asyncio.create_task(_main_impl(topology_name, topology)))
 
         # sleep until next invocation time
-        await asyncio.sleep(fetch_interval)
+        await asyncio.sleep(start_time + fetch_interval - time.time())
 
         # await tasks to finish. If timeout, cancel tasks and pass
         try:
