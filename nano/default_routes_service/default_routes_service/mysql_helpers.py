@@ -3,10 +3,10 @@
 
 import logging
 from datetime import datetime
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 from aiomysql.sa import SAConnection
-from sqlalchemy.sql import desc, exists, insert, join, select, update
+from sqlalchemy import desc, exists, func, insert, join, select, update
 from tglib.clients import MySQLClient
 
 from .models import DefaultRouteCurrent, DefaultRouteHistory
@@ -38,6 +38,32 @@ async def fetch_prev_routes(network_name: str, node_name: str) -> List:
         results = await cursor.fetchone()
 
     prev_routes: List = results["routes"] if results else []
+    return prev_routes
+
+
+async def fetch_preceding_routes(
+    id: int, network_name: str, node_name: str
+) -> Optional[List]:
+    """
+    Fetch latest entry just before entry at the given id
+    """
+    query = select([DefaultRouteHistory.routes.label("routes")]).where(
+        DefaultRouteHistory.id
+        == (
+            select([func.max(DefaultRouteHistory.id)]).where(
+                (DefaultRouteHistory.id < id)
+                & (DefaultRouteHistory.topology_name == network_name)
+                & (DefaultRouteHistory.node_name == node_name)
+            )
+        )
+    )
+    logging.debug(f"Query to fetch previous routes entry from db: {str(query)}")
+
+    client = MySQLClient()
+    async with client.lease() as conn:
+        cursor = await conn.execute(query)
+        results = await cursor.fetchone()
+    prev_routes: Optional[List] = results["routes"] if results else None
     return prev_routes
 
 

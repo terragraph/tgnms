@@ -8,7 +8,7 @@ ptr_params = {
     "entry_point_module": "default_routes_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {"default_routes_service/routes.py": 43, "TOTAL": 28},
+    "required_coverage": {"default_routes_service/routes.py": 33, "TOTAL": 26},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,

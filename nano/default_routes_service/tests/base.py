@@ -6,7 +6,9 @@ import unittest
 
 from tests.ecmp_toggle import EcmpToggle
 from tests.routes_history import TestRoutesHistory
-from tests.routes_utilization import RoutesUtilization
+
+
+# from tests.routes_utilization import RoutesUtilization
 
 
 if __name__ == "__main__":
