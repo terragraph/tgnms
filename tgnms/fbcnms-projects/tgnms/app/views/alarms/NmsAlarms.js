@@ -17,7 +17,7 @@ import type {EventRule} from './eventalarms/EventAlarmsTypes';
 import type {
   GenericRule,
   RuleInterface,
-} from '@fbcnms/alarms/components/RuleInterface';
+} from '@fbcnms/alarms/components/rules/RuleInterface';
 
 const styles = () => ({
   root: {

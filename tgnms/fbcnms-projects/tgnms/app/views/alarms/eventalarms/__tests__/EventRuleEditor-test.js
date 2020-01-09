@@ -19,7 +19,7 @@ import {createMemoryHistory} from 'history';
 import {mockApiUtil} from '@fbcnms/alarms/test/testHelpers';
 
 import type {EventRule} from '../EventAlarmsTypes';
-import type {GenericRule} from '@fbcnms/alarms/components/RuleInterface';
+import type {GenericRule} from '@fbcnms/alarms/components/rules/RuleInterface';
 
 jest.mock('@material-ui/core/TextField', () => {
   const Input = require('@material-ui/core/Input').default;

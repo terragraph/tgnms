@@ -32,7 +32,7 @@ import type {EventRule} from './EventAlarmsTypes';
 import type {
   GenericRule,
   RuleEditorProps,
-} from '@fbcnms/alarms/components/RuleInterface';
+} from '@fbcnms/alarms/components/rules/RuleInterface';
 
 const useStyles = makeStyles(theme => ({
   instructions: {
