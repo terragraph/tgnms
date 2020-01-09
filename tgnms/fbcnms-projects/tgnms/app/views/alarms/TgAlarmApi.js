@@ -83,10 +83,12 @@ export const TgApiUtil: ApiUtil = {
       url: `${AM_BASE_URL}/routes`,
       method: 'GET',
     }),
-  editRouteTree: _req => {
-    console.warn('not implemented');
-    return Promise.resolve();
-  },
+  editRouteTree: req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/routes`,
+      method: 'POST',
+      data: req.route,
+    }),
 
   // metric series
   getMetricSeries: _req => {

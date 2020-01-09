@@ -7,13 +7,13 @@
 
 import * as React from 'react';
 
-import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
+import RuleEditorBase from '@fbcnms/alarms/components/rules/RuleEditorBase';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -35,9 +35,6 @@ import type {
 } from '@fbcnms/alarms/components/RuleInterface';
 
 const useStyles = makeStyles(theme => ({
-  button: {
-    marginRight: theme.spacing(1),
-  },
   instructions: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
@@ -65,12 +62,13 @@ type CustomReactEvent<TVal> = {
 };
 
 export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
-  const {isNew, onRuleUpdated, onExit, rule} = props;
+  const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [formState, setFormState] = React.useState<EventRule>(
     fromGenericRule(rule),
   );
+
   /**
    * Passes the event value to an updater function which returns an update
    * object to be merged into the form. After the internal form state is
@@ -96,9 +94,28 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
     [formState, onRuleUpdated, rule],
   );
 
+  /**
+   * Handles when the RuleEditorBase form changes, map this from
+   * RuleEditorForm -> EventRule
+   */
+  const handleEditorBaseChange = React.useCallback(
+    editorBaseState => {
+      setFormState({
+        ...formState,
+        ...{
+          name: editorBaseState.name,
+          description: editorBaseState.description,
+        },
+      });
+    },
+    [formState, setFormState],
+  );
+
   const saveAlert = React.useCallback(async () => {
     try {
-      await TgEventAlarmsApiUtil.createAlertRule(formState);
+      if (isNew) {
+        await TgEventAlarmsApiUtil.createAlertRule(formState);
+      }
       enqueueSnackbar(`Successfully saved alert rule`, {
         variant: 'success',
       });
@@ -108,16 +125,18 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
         variant: 'error',
       });
     }
-  }, [formState, enqueueSnackbar, onExit]);
+  }, [isNew, enqueueSnackbar, onExit, formState]);
 
   return (
-    <form
-      onSubmit={e => {
-        e.preventDefault();
-        saveAlert();
-      }}>
-      <Grid container spacing={3}>
-        <Grid container item direction="column" spacing={2} wrap="nowrap">
+    <RuleEditorBase
+      apiUtil={apiUtil}
+      isNew={isNew}
+      onExit={onExit}
+      onSave={saveAlert}
+      rule={rule}
+      onChange={handleEditorBaseChange}>
+      <>
+        <Grid container item xs={12} direction={'column'} spacing={3}>
           {!isNew && (
             <Paper className={classes.warningAlert} elevation={0}>
               <Typography variant="body1">
@@ -126,29 +145,8 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               </Typography>
             </Paper>
           )}
-          <Grid item xs={12} sm={3}>
-            <TextField
-              disabled={!isNew}
-              required
-              label="Rule Name"
-              placeholder="Status: Link offline"
-              fullWidth
-              value={formState.name}
-              onChange={handleInputChange(val => ({name: val}))}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              disabled={!isNew}
-              required
-              label="Description"
-              placeholder="The wireless link is down"
-              fullWidth
-              value={formState.description}
-              onChange={handleInputChange(val => ({description: val}))}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
+
+          <Grid item>
             <EventIdSelect
               disabled={!isNew}
               required
@@ -159,7 +157,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               onChange={handleInputChange(val => ({eventId: parseInt(val)}))}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item>
             <SeveritySelect
               disabled={!isNew}
               required
@@ -170,7 +168,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               onChange={handleInputChange(val => ({severity: val}))}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item>
             <EventLevelSelect
               disabled={!isNew}
               required
@@ -183,7 +181,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               }))}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item>
             <EventLevelSelect
               disabled={!isNew}
               required
@@ -196,7 +194,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               }))}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item>
             <TextField
               disabled={!isNew}
               required
@@ -210,7 +208,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               }))}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item>
             <TextField
               disabled={!isNew}
               required
@@ -224,7 +222,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
               }))}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
+          <Grid item>
             <TextField
               disabled={!isNew}
               required
@@ -239,24 +237,8 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
             />
           </Grid>
         </Grid>
-        <Grid container item>
-          <Button
-            variant="outlined"
-            onClick={() => onExit()}
-            className={classes.button}>
-            Close
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            className={classes.button}
-            disabled={!isNew}>
-            {isNew ? 'Add' : 'Edit'}
-          </Button>
-        </Grid>
-      </Grid>
-    </form>
+      </>
+    </RuleEditorBase>
   );
 }
 

@@ -11,10 +11,13 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import EventRuleEditor from '../EventRuleEditor';
 import {EventIdValueMap} from '../../../../../shared/types/Event';
+import {Router} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {TestApp} from '../../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {createMemoryHistory} from 'history';
 import {mockApiUtil} from '@fbcnms/alarms/test/testHelpers';
+
 import type {EventRule} from '../EventAlarmsTypes';
 import type {GenericRule} from '@fbcnms/alarms/components/RuleInterface';
 
@@ -33,6 +36,7 @@ const commonProps = {
   onRuleUpdated: jest.fn(),
   onExit: jest.fn(),
   isNew: true,
+  onRuleSaved: jest.fn(),
 };
 
 afterEach(() => {
@@ -40,23 +44,31 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
+function Wrapper({children}) {
+  return (
+    <TestApp>
+      <Router history={createMemoryHistory()}>{children}</Router>
+    </TestApp>
+  );
+}
+
 test('renders with default props', () => {
   render(
-    <TestApp>
+    <Wrapper>
       <SnackbarProvider>
         <EventRuleEditor {...commonProps} rule={null} />
       </SnackbarProvider>
-    </TestApp>,
+    </Wrapper>,
   );
 });
 
 test('calls onRuleUpdated with latest form state', async () => {
   const {getByLabelText, getByTestId} = render(
-    <TestApp>
+    <Wrapper>
       <SnackbarProvider>
         <EventRuleEditor {...commonProps} isNew={true} rule={mockRule()} />
       </SnackbarProvider>
-    </TestApp>,
+    </Wrapper>,
   );
   const setText = makeTextFieldSetter(getByLabelText);
   const setSelect = makeSelectFieldSetter(getByTestId);
@@ -85,21 +97,21 @@ test('calls onRuleUpdated with latest form state', async () => {
 
 test('rendering with isNew shows ADD or EDIT button', () => {
   const {getByText, rerender} = render(
-    <TestApp>
+    <Wrapper>
       <SnackbarProvider>
         <EventRuleEditor {...commonProps} isNew={true} rule={null} />
       </SnackbarProvider>
-    </TestApp>,
+    </Wrapper>,
   );
   expect(getByText(/add/i)).toBeInTheDocument();
   rerender(
-    <TestApp>
+    <Wrapper>
       <SnackbarProvider>
         <EventRuleEditor {...commonProps} isNew={false} rule={null} />
       </SnackbarProvider>
-    </TestApp>,
+    </Wrapper>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
+  expect(getByText(/save/i)).toBeInTheDocument();
 });
 
 function mockRule(): GenericRule<EventRule> {

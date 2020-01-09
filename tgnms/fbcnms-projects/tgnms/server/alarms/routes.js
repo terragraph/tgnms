@@ -137,9 +137,21 @@ router.get('/routes', (req, res) =>
     method: req.method,
     qs: req.query,
   })
-    .then(response =>
-      res.status(response.statusCode).send(JSON.parse(response.body)?.routes),
-    )
+    .then(response => {
+      return res.status(response.statusCode).send(response.body);
+    })
+    .catch(createErrorHandler(res)),
+);
+
+router.post('/routes', (req, res) =>
+  createRequest({
+    uri: formatAlertManagerConfigUrl(`/0/receiver/route`),
+    method: req.method,
+    json: req.body,
+  })
+    .then(response => {
+      return res.status(response.statusCode).send(response.body);
+    })
     .catch(createErrorHandler(res)),
 );
 
