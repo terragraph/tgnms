@@ -1,6 +1,6 @@
-SELECT 'Running topology service mysql init script.' AS '';
+SELECT 'Running the topology service MySQL init script.' AS '';
 
-/* create topology_service database */
+/* Create 'topology_service' db */
 CREATE DATABASE IF NOT EXISTS `topology_service`;
 USE topology_service;
 
@@ -11,7 +11,7 @@ BEGIN
   DECLARE usr VARCHAR(100)  DEFAULT "";
   SET usr = (SELECT CURRENT_USER);
   IF usr LIKE 'root%'  then
-    /* grant access to topology_user user*/
+    /* Grant db access to 'topology_user' */
     SELECT 'Creating topology_user user account.' AS '';
     CREATE USER IF NOT EXISTS 'topology_user'@'%' IDENTIFIED BY 'td7s25hjzmf';
     GRANT ALL PRIVILEGES ON topology_service.* TO 'topology_user'@'%';
@@ -20,15 +20,17 @@ BEGIN
 END; $$
 DELIMITER ;
 
-/* create new users only if current user is root */
+/* Create 'topology_user' if the current user is root */
 call Create_Topology();
 
-/* create topology table */
-CREATE TABLE IF NOT EXISTS `topology`
+/* Create 'topology_history' table */
+CREATE TABLE IF NOT EXISTS `topology_history`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `topology` json,
-  `datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `network_name` varchar(255) NOT NULL,
+  `topology` json NOT NULL,
+  `last_updated` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `network_name` (`network_name`),
+  KEY `last_updated` (`last_updated`)
 );

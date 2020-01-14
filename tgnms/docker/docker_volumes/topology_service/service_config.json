@@ -6,5 +6,16 @@
       "password": "td7s25hjzmf"
     }
   },
-  "fetch_interval_s": 600
+  "num_consumers": 10,
+  "pipelines": {
+    "10_min_pipeline": {
+      "period": 600,
+      "jobs": [
+        {
+          "name": "save_latest_topologies",
+          "enabled": true
+        }
+      ]
+    }
+  }
 }
