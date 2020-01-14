@@ -3,7 +3,7 @@
 
 import unittest
 
-from topology_service.util import sanitize_topology
+from topology_service.utils import sanitize_topology
 
 
 class SanitizeTopologyTests(unittest.TestCase):
@@ -78,6 +78,7 @@ class SanitizeTopologyTests(unittest.TestCase):
                 },
             ],
         }
+
         expected_output = {
             "name": "Topo A",
             "links": [
@@ -137,5 +138,6 @@ class SanitizeTopologyTests(unittest.TestCase):
                 },
             ],
         }
+
         sanitize_topology(input)
         self.assertDictEqual(expected_output, input)

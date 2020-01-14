@@ -1,7 +1,9 @@
 # Topology Service
-The topology fetch service captures the history of a Terragraph network's
-topology by periodically querying the API Service's `getTopology` endpoint and
+The topology service records the history of Terragraph network topologies
+by periodically querying the API Service's `getTopology` endpoint and
 saving the results in MySQL.
 
-The default fetch interval is 600 seconds (10 minutes), however the value is
-configurable via the `/config/update` endpoint provided by `tglib`.
+The topology service uses the producer/consumer model to schedule jobs.
+Pipelines and jobs can be added/modified by modifing the
+`service_config.json` file directly or by invoking the `/config/update`
+HTTP endpoint provided by `tglib`.

@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved
 
-import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, Integer, String
+from sqlalchemy import JSON, Column, DateTime, Integer, String, func
 from sqlalchemy.ext.declarative import declarative_base
 
 
-Base = declarative_base()  # type: Any
+Base: Any = declarative_base()
 
 
-class Topology(Base):
-    __tablename__ = "topology"
+class TopologyHistory(Base):
+    __tablename__ = "topology_history"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255))
-    topology = Column(JSON)
-    datetime = Column(DateTime, default=datetime.datetime.now())
+    network_name = Column(String(255), nullable=False)
+    topology = Column(JSON, nullable=False)
+    last_updated = Column(DateTime, server_default=func.now())

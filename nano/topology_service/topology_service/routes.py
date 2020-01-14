@@ -1,59 +1,83 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from aiohttp import web
+import datetime
+import json
+import re
+from functools import partial
 
-from .mysql_helpers import fetch_topologies
+from aiohttp import web
+from sqlalchemy import select
+from tglib.clients import MySQLClient
+
+from .models import TopologyHistory
 
 
 routes = web.RouteTableDef()
 
 
-@routes.post("/topology_history")
-async def get_topology_history(request: web.Request) -> web.Response:
+@routes.get(r"/topology/{network_name:.+}")
+async def handle_get_topology(request: web.Request) -> web.Response:
     """
     ---
-    description: Fetch a list of last "count" number of topologies from database.
+    description: Fetch all of a network's topologies between a given datetime range.
     tags:
-    - History
+    - Topology History
     produces:
     - application/json
     parameters:
-    - in: body
-      name: body
-      description: Body of fetch topology history api endpoint.
+    - in: path
+      name: network_name
+      description: The name of the network to query
       required: true
       schema:
-        type: object
-        properties:
-          topology_name:
-            type: string
-            description: Name of the network.
-          count:
-            type: integer
-            description: Number of topology entries to fetch.
-        required:
-        - topology_name
-        - count
+        type: string
+    - in: query
+      name: start_time
+      description: The start datetime of the query in ISO 8601 format
+      required: true
+      schema:
+        type: string
+    - in: query
+      name: end_time
+      description: The end datetime of the query in ISO 8601 format. Defaults to current datetime.
+      schema:
+        type: string
     responses:
       "200":
-        description: Successful operation. Returns list of last 'count' number of topologies from database.
+        description: Return a list of topologies belonging to the given network in the given datetime range.
       "400":
         description: Invalid or missing parameters.
     """
-    body = await request.json()
+    network_name = request.match_info["network_name"]
+    start_time = request.rel_url.query.get("start_time")
+    end_time = request.rel_url.query.get("end_time")
 
-    # Get the number of topology entries to be fetched
-    count = body.get("count")
-    if count is None:
-        raise web.HTTPBadRequest(text="Missing required 'count' param")
-    if not isinstance(count, int) or count < 1:
-        raise web.HTTPBadRequest(text="Invalid value for 'count': Must be integer >= 1")
+    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
 
-    # Get the network name
-    topology_name = body.get("topology_name")
-    if topology_name is None:
-        raise web.HTTPBadRequest(text="Missing required 'topology_name' param")
+    # Parse start_time, raise '400' if not provided/valid
+    if start_time and re.fullmatch(datetime_re, start_time):
+        start_time_obj = datetime.datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        raise web.HTTPBadRequest(text="'start_time' is missing/not valid ISO 8601")
 
-    previous_entries = await fetch_topologies(topology_name, count)
-    return web.json_response([row["topology"] for row in previous_entries])
+    # Parse end_time, use current datetime if not provided, raise '400' if invalid
+    if not end_time:
+        end_time_obj = datetime.datetime.now()
+    elif re.fullmatch(datetime_re, end_time):
+        end_time_obj = datetime.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        raise web.HTTPBadRequest(text="'end_time' is not valid ISO 8601")
+
+    query = select([TopologyHistory.topology, TopologyHistory.last_updated]).where(
+        (TopologyHistory.network_name == network_name)
+        & (TopologyHistory.last_updated >= start_time_obj)
+        & (TopologyHistory.last_updated <= end_time_obj)
+    )
+
+    async with MySQLClient().lease() as sa_conn:
+        cursor = await sa_conn.execute(query)
+        results = await cursor.fetchall()
+        return web.json_response(
+            [dict(row) for row in results], dumps=partial(json.dumps, default=str)
+        )

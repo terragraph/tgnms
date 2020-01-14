@@ -4,7 +4,7 @@
 import logging
 import unittest
 
-from tests.sanitize_topology_test import SanitizeTopologyTests
+from tests.sanitize_topology_tests import SanitizeTopologyTests
 
 
 if __name__ == "__main__":

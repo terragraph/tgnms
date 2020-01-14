@@ -12,21 +12,17 @@ def sanitize_topology(topology: Dict) -> None:
     """
     logging.debug(f"{topology['name']} topology before clean up: {topology}")
 
-    # remove the config param from topology
+    # Remove the extra params from the topology
     del topology["config"]
-    # remove status param for all nodes
     for node in topology["nodes"]:
         del node["status"]
-    # remove status params for all links
     for link in topology["links"]:
         del link["is_alive"]
         del link["linkup_attempts"]
 
-    # sort nodes by name
+    # Sort nodes, links, and sites by name
     topology["nodes"] = sorted(topology["nodes"], key=lambda node: (node["name"]))
-    # sort links by name
     topology["links"] = sorted(topology["links"], key=lambda link: (link["name"]))
-    # sort sites by name
     topology["sites"] = sorted(topology["sites"], key=lambda site: (site["name"]))
 
     logging.debug(f"{topology['name']} topology after clean up: {topology}")
