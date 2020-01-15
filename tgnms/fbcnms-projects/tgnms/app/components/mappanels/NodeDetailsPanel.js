@@ -651,7 +651,8 @@ class NodeDetailsPanel extends React.Component<Props, State> {
                         statusReport &&
                         statusReport.radioStatus &&
                         statusReport.radioStatus[mac]
-                          ? statusReport.radioStatus[mac].initialized
+                          ? statusReport.radioStatus[mac].initialized &&
+                            isNodeAlive(node.status)
                           : null
                       }
                     />

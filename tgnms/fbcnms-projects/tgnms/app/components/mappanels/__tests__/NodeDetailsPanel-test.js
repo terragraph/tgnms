@@ -8,6 +8,7 @@
 import 'jest-dom/extend-expect';
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
+import {NodeStatusTypeValueMap} from '../../../../shared/types/Topology';
 import {
   TestApp,
   initWindowConfig,
@@ -256,6 +257,7 @@ describe('Radio MACs', () => {
 
     const node = mockNode({
       name: 'node1',
+      status: NodeStatusTypeValueMap.ONLINE,
       site_name: 'site1',
       wlan_mac_addrs: [
         'radioMacTestOnline',
