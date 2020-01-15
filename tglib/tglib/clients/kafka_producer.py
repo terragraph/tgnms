@@ -18,7 +18,7 @@ from ..exceptions import (
     ConfigError,
 )
 from ..utils.serialization import thrift2json
-from .base_client import BaseClient, HealthCheckResult
+from .base_client import BaseClient
 
 
 class KafkaProducer(BaseClient):
@@ -53,22 +53,6 @@ class KafkaProducer(BaseClient):
             raise ClientStoppedError()
 
         await cls._producer.stop()
-
-    @classmethod
-    async def health_check(cls) -> HealthCheckResult:
-        if cls._producer is None:
-            raise ClientStoppedError()
-
-        try:
-            # This is a hack -- need a better way to assess connection health
-            await cls._producer.partitions_for("stats")
-            return HealthCheckResult(client=cls.__name__, healthy=True)
-        except KafkaError:
-            return HealthCheckResult(
-                client=cls.__name__,
-                healthy=False,
-                msg="Could not fetch 'stats' partitions",
-            )
 
     async def log_event(
         self,

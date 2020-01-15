@@ -31,36 +31,6 @@ async def handle_get_status(request: web.Request) -> web.Response:
     return web.Response(text="Alive")
 
 
-@routes.get("/health")
-async def handle_health_check(request: web.Request) -> web.Response:
-    """
-    ---
-    description: Check if any core application dependencies are unhealthy.
-    tags:
-    - Health
-    produces:
-    - text/plain
-    responses:
-      "200":
-        description: Successful operation. All clients are healthy.
-      "503":
-        description: One or more clients are unhealthy. Return health and reason.
-    """
-    tasks = [client.health_check() for client in request.app["clients"]]
-    health_check_results = await asyncio.gather(*tasks)
-    failed = [
-        f"{result.client}: {result.msg}"
-        for result in health_check_results
-        if not result.healthy
-    ]
-
-    if failed:
-        msg = "\n".join(failed)
-        raise web.HTTPServiceUnavailable(text=msg)
-
-    return web.Response(text="All clients are healthy")
-
-
 @routes.get(r"/metrics/{interval:\d+}s")
 async def handle_get_metrics(request: web.Request) -> web.Response:
     """

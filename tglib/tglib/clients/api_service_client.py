@@ -14,7 +14,7 @@ from ..exceptions import (
     ConfigError,
 )
 from ..utils.ip import format_address
-from .base_client import BaseClient, HealthCheckResult
+from .base_client import BaseClient
 
 
 class APIServiceClient(BaseClient):
@@ -64,34 +64,6 @@ class APIServiceClient(BaseClient):
 
         await cls._session.close()
         cls._session = None
-
-    @classmethod
-    async def health_check(cls) -> HealthCheckResult:
-        # Use 'getTopology' endpoint to test if API service is alive
-        async def get_topology(addr: str) -> bool:
-            if cls._session is None:
-                raise ClientStoppedError()
-
-            url = f"http://{addr}/api/getTopology"
-            try:
-                async with cls._session.post(url, timeout=1) as resp:
-                    if resp.status == 200:
-                        return True
-
-                    return False
-            except (aiohttp.ClientError, asyncio.TimeoutError):
-                return False
-
-        if cls._networks is None:
-            raise ClientStoppedError()
-
-        tasks = [get_topology(addr) for addr in cls._networks.values()]
-        if any(await asyncio.gather(*tasks)):
-            return HealthCheckResult(client=cls.__name__, healthy=True)
-        else:
-            return HealthCheckResult(
-                client=cls.__name__, healthy=False, msg="All clients are unavailable"
-            )
 
     @property
     def names(self) -> List[str]:

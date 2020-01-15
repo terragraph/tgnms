@@ -44,7 +44,7 @@ scheme.
 
 ### Clients
 All client classes must inherit from `BaseClient`, an abstract base class, and
-override the `start`, `stop`, and `health_check` asynchronous functions.
+override the `start` and `stop` asynchronous functions.
 
 #### Start
 Defines how the client creates the underlying resources in order to process
@@ -52,12 +52,6 @@ any IO.
 
 #### Stop
 Defines how to cleanly destroy any resources created in the `start` function.
-
-#### Health Check
-Defines how to assess the client's ability to perform its core functionality.
-For example, `PrometheusClient` tries to fetch the Prometheus configuration
-from `prometheus`. If the operation is successful, then the client is deemed to
-be healthy, otherwise it is in an unhealthy state.
 
 ### Thrift
 Raw thrift files are copied into the `./if` directory and compiled into Python

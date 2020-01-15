@@ -15,7 +15,7 @@ from ..exceptions import (
     ConfigError,
 )
 from ..utils.ip import format_address
-from .base_client import BaseClient, HealthCheckResult
+from .base_client import BaseClient
 
 
 @dataclasses.dataclass
@@ -27,31 +27,6 @@ class PrometheusMetric:
 
     value: Union[int, float]
     time: Optional[int] = None
-
-
-def normalize(string: str) -> str:
-    """Remove invalid characters in order to be Prometheus compliant."""
-    return (
-        string.replace(".", "_")
-        .replace("-", "_")
-        .replace("/", "_")
-        .replace("[", "_")
-        .replace("]", "_")
-    )
-
-
-def create_query(metric_name: str, labels: Dict[str, Any] = {}) -> str:
-    """Form a Prometheus query from the metric_name and labels."""
-    label_list = [] if "intervalSec" in labels else ['intervalSec="30"']
-
-    for name, val in sorted(labels.items()):
-        if isinstance(val, Pattern):
-            label_list.append(f'{name}=~"{val.pattern}"')
-        else:
-            label_list.append(f'{name}="{val}"')
-
-    label_query = ",".join(label_list)
-    return normalize(f"{metric_name}{{{label_query}}}")
 
 
 class PrometheusClient(BaseClient):
@@ -89,26 +64,30 @@ class PrometheusClient(BaseClient):
         await cls._session.close()
         cls._session = None
 
-    @classmethod
-    async def health_check(cls) -> HealthCheckResult:
-        if cls._session is None:
-            raise ClientStoppedError()
+    @staticmethod
+    def normalize(string: str) -> str:
+        """Remove invalid characters in order to be Prometheus compliant."""
+        return (
+            string.replace(".", "_")
+            .replace("-", "_")
+            .replace("/", "_")
+            .replace("[", "_")
+            .replace("]", "_")
+        )
 
-        url = f"http://{cls._addr}/api/v1/status/config"
-        try:
-            async with cls._session.get(url, timeout=1) as resp:
-                if resp.status == 200:
-                    return HealthCheckResult(client=cls.__name__, healthy=True)
+    @staticmethod
+    def create_query(metric_name: str, labels: Dict[str, Any] = {}) -> str:
+        """Form a Prometheus query from the metric_name and labels."""
+        label_list = [] if "intervalSec" in labels else ['intervalSec="30"']
 
-                return HealthCheckResult(
-                    client=cls.__name__,
-                    healthy=False,
-                    msg=f"{resp.reason} ({resp.status})",
-                )
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            return HealthCheckResult(
-                client=cls.__name__, healthy=False, msg=f"{str(e)}"
-            )
+        for name, val in sorted(labels.items()):
+            if isinstance(val, Pattern):
+                label_list.append(f'{name}=~"{val.pattern}"')
+            else:
+                label_list.append(f'{name}="{val}"')
+
+        label_query = ",".join(label_list)
+        return PrometheusClient.normalize(f"{metric_name}{{{label_query}}}")
 
     async def query_range(self, query: str, start: int, end: int, step: str) -> Dict:
         """Return the data for the given query and range."""

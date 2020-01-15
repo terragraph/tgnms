@@ -12,7 +12,7 @@ from ..exceptions import (
     ClientStoppedError,
     ConfigError,
 )
-from .base_client import BaseClient, HealthCheckResult
+from .base_client import BaseClient
 
 
 class MySQLClient(BaseClient):
@@ -46,18 +46,6 @@ class MySQLClient(BaseClient):
         cls._engine.close()
         await cls._engine.wait_closed()
         cls._engine = None
-
-    @classmethod
-    async def health_check(cls) -> HealthCheckResult:
-        if cls._engine is None:
-            raise ClientStoppedError()
-
-        if cls._engine.freesize > 0:
-            return HealthCheckResult(client=cls.__name__, healthy=True)
-        else:
-            return HealthCheckResult(
-                client=cls.__name__, healthy=False, msg="No connections available"
-            )
 
     def lease(self):
         """Get a connection from the connection pool.

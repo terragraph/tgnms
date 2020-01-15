@@ -5,13 +5,7 @@ import asyncio
 import re
 
 import asynctest
-
-from tglib.clients.prometheus_client import (
-    PrometheusClient,
-    PrometheusMetric,
-    create_query,
-    normalize,
-)
+from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric
 from tglib.exceptions import ClientRestartError
 
 
@@ -37,38 +31,6 @@ class PrometheusClientTests(asynctest.TestCase):
         with self.assertRaises(ClientRestartError):
             await PrometheusClient.start(self.config)
 
-    async def test_client_healthy(self) -> None:
-        self.mock_session.get.return_value.__aenter__.return_value.json = (
-            asynctest.CoroutineMock()
-        )
-        self.mock_session.get.return_value.__aenter__.return_value.status = 200
-
-        PrometheusClient._session = self.mock_session
-        result = await PrometheusClient.health_check()
-
-        host = self.config["prometheus"]["host"]
-        port = self.config["prometheus"]["port"]
-        self.mock_session.get.assert_called_with(
-            f"http://{host}:{port}/api/v1/status/config", **{"timeout": 1}
-        )
-        self.assertTrue(result.healthy)
-
-    async def test_client_unhealthy(self) -> None:
-        self.mock_session.get.return_value.__aenter__.return_value.json = (
-            asynctest.CoroutineMock()
-        )
-        self.mock_session.get.return_value.__aenter__.return_value.status = 400
-
-        PrometheusClient._session = self.mock_session
-        result = await PrometheusClient.health_check()
-
-        host = self.config["prometheus"]["host"]
-        port = self.config["prometheus"]["port"]
-        self.mock_session.get.assert_called_with(
-            f"http://{host}:{port}/api/v1/status/config", **{"timeout": 1}
-        )
-        self.assertFalse(result.healthy)
-
     def test_normalize(self) -> None:
         strings = {
             "foo.bar": "foo_bar",
@@ -81,16 +43,16 @@ class PrometheusClientTests(asynctest.TestCase):
         }
 
         for before, after in strings.items():
-            self.assertEqual(normalize(before), after)
+            self.assertEqual(PrometheusClient.normalize(before), after)
 
     def test_create_query_no_interval_sec(self) -> None:
         labels = {"foo": "bar"}
-        query = create_query("metric", labels)
+        query = PrometheusClient.create_query("metric", labels)
         self.assertIn('intervalSec="30"', query)
 
     def test_create_regex_query(self) -> None:
         regex = re.compile("bar|baz")
-        query = create_query("metric", {"foo": regex})
+        query = PrometheusClient.create_query("metric", {"foo": regex})
         self.assertIn('foo=~"bar|baz"', query)
 
     async def test_query_range(self) -> None:
@@ -159,7 +121,7 @@ class PrometheusClientTests(asynctest.TestCase):
         metrics = {}
 
         for i in range(10):
-            id = create_query(metric_name="foo", labels={"number": i})
+            id = PrometheusClient.create_query(metric_name="foo", labels={"number": i})
             metrics[id] = PrometheusMetric(value=i, time=1)
             self.assertTrue(PrometheusClient.write_metrics(interval, metrics))
 
@@ -173,7 +135,7 @@ class PrometheusClientTests(asynctest.TestCase):
         metrics = {}
 
         for i in range(10):
-            id = create_query(metric_name="foo", labels={"number": i})
+            id = PrometheusClient.create_query(metric_name="foo", labels={"number": i})
             metrics[id] = PrometheusMetric(value=i, time=1)
             self.assertTrue(PrometheusClient.write_metrics(interval, metrics))
 
@@ -186,7 +148,7 @@ class PrometheusClientTests(asynctest.TestCase):
     def test_write_metrics_no_timestamp(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
 
-        id = create_query(metric_name="foo")
+        id = PrometheusClient.create_query(metric_name="foo")
         PrometheusClient.write_metrics(interval, {id: PrometheusMetric(value=100)})
 
         datapoints = PrometheusClient.poll_metrics(interval)
@@ -198,7 +160,7 @@ class PrometheusClientTests(asynctest.TestCase):
     def test_redundant_write_metrics(self) -> None:
         interval = self.config["prometheus"]["intervals"][0]
 
-        id = create_query(metric_name="foo")
+        id = PrometheusClient.create_query(metric_name="foo")
         PrometheusClient.write_metrics(
             interval, {id: PrometheusMetric(value=0, time=1)}
         )

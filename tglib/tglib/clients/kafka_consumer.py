@@ -13,7 +13,7 @@ from ..exceptions import (
     ClientStoppedError,
     ConfigError,
 )
-from .base_client import BaseClient, HealthCheckResult
+from .base_client import BaseClient
 
 
 class KafkaConsumer(BaseClient):
@@ -48,19 +48,6 @@ class KafkaConsumer(BaseClient):
             raise ClientStoppedError()
 
         await cls._consumer.stop()
-
-    @classmethod
-    async def health_check(cls) -> HealthCheckResult:
-        if cls._consumer is None:
-            raise ClientStoppedError()
-
-        try:
-            await cls._consumer.topics()
-            return HealthCheckResult(client=cls.__name__, healthy=True)
-        except KafkaError:
-            return HealthCheckResult(
-                client=cls.__name__, healthy=False, msg="Could not fetch topics list"
-            )
 
     @property
     def consumer(self) -> AIOKafkaConsumer:
