@@ -3,7 +3,8 @@
     "nms": {
       "host": "nms",
       "port": 80
-    }
+    },
+    "keycloak_enabled": false
   },
   "kafka": {
     "bootstrap_servers": ["kafka:9092"]
