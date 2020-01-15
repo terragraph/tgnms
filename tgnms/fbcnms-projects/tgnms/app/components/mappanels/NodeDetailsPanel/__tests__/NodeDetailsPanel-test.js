@@ -8,19 +8,20 @@
 import 'jest-dom/extend-expect';
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
-import {NodeStatusTypeValueMap} from '../../../../shared/types/Topology';
+import {NodeStatusTypeValueMap} from '../../../../../shared/types/Topology';
 import {
   TestApp,
   initWindowConfig,
   mockNetworkConfig,
   mockNode,
+  mockNodeDetails,
   mockTopology,
   renderWithRouter,
-} from '../../../tests/testHelpers';
+} from '../../../../tests/testHelpers';
 /*
  * Use queries directly for querying children of nodes other than document.body
  */
-import {LinkTypeValueMap} from '../../../../shared/types/Topology';
+import {LinkTypeValueMap} from '../../../../../shared/types/Topology';
 import {cleanup, fireEvent, queries} from '@testing-library/react';
 
 afterEach(cleanup);
@@ -31,20 +32,14 @@ beforeEach(() => {
 
 const testNodeName = 'NODEA';
 const commonProps = {
-  node: mockNode({name: testNodeName}),
-  networkNodeHealth: {startTime: 0, endTime: 0, events: {}},
-  networkConfig: mockNetworkConfig(),
-  topology: mockTopology(),
-
-  ctrlVersion: '',
+  nodeDetailsProps: mockNodeDetails(),
   networkName: '',
   nearbyNodes: {},
   nodes: new Set(),
   links: {},
   expanded: true,
   onPin: () => {},
-  onSelectLink: () => {},
-  onSelectSite: () => {},
+  node: mockNode({name: testNodeName}),
   onPanelChange: () => {},
   onEdit: () => {},
   onClose: () => {},
@@ -83,7 +78,11 @@ describe('Ethernet Links', () => {
       });
     const {queryByText} = renderWithRouter(
       <TestApp>
-        <NodeDetailsPanel {...commonProps} node={node} topology={topology} />
+        <NodeDetailsPanel
+          {...commonProps}
+          node={node}
+          nodeDetailsProps={mockNodeDetails({topology: topology})}
+        />
       </TestApp>,
     );
     expect(queryByText('Ethernet Links')).not.toBeInTheDocument();
@@ -93,7 +92,11 @@ describe('Ethernet Links', () => {
     const {node, topology} = ethernetTopology();
     const {getByText} = renderWithRouter(
       <TestApp>
-        <NodeDetailsPanel {...commonProps} node={node} topology={topology} />
+        <NodeDetailsPanel
+          {...commonProps}
+          node={node}
+          nodeDetailsProps={mockNodeDetails({topology: topology})}
+        />
       </TestApp>,
     );
     expect(getByText('Ethernet Links')).toBeInTheDocument();
@@ -103,7 +106,11 @@ describe('Ethernet Links', () => {
     const {node, topology} = ethernetTopology();
     const {getByText, queryByTestId} = renderWithRouter(
       <TestApp>
-        <NodeDetailsPanel {...commonProps} node={node} topology={topology} />
+        <NodeDetailsPanel
+          {...commonProps}
+          node={node}
+          nodeDetailsProps={mockNodeDetails({topology: topology})}
+        />
       </TestApp>,
     );
     expect(getByText('node2')).toBeInTheDocument();
@@ -126,7 +133,11 @@ describe('Ethernet Links', () => {
       });
     const {getByTestId} = renderWithRouter(
       <TestApp>
-        <NodeDetailsPanel {...commonProps} node={node} topology={topology} />
+        <NodeDetailsPanel
+          {...commonProps}
+          node={node}
+          nodeDetailsProps={mockNodeDetails({topology: topology})}
+        />
       </TestApp>,
     );
     const node2group = getByTestId('node2');
@@ -188,8 +199,10 @@ describe('Radio MACs', () => {
       <TestApp>
         <NodeDetailsPanel
           {...commonProps}
-          ctrlVersion="0"
-          networkConfig={networkConfig}
+          nodeDetailsProps={mockNodeDetails({
+            ctrlVersion: '0',
+            networkConfig: networkConfig,
+          })}
           node={node}
         />
       </TestApp>,
@@ -206,13 +219,15 @@ describe('Radio MACs', () => {
       <TestApp>
         <NodeDetailsPanel
           {...commonProps}
-          ctrlVersion="Facebook Terragraph Release RELEASE_M43_PRE-77-g4044506c6-ljoswiak (ljoswiak@devvm1074 Tue Sep  3 22:01:21 UTC 201"
-          networkConfig={networkConfig}
+          nodeDetailsProps={mockNodeDetails({
+            ctrlVersion:
+              'Facebook Terragraph Release RELEASE_M43_PRE-77-g4044506c6-ljoswiak (ljoswiak@devvm1074 Tue Sep  3 22:01:21 UTC 201',
+            networkConfig: networkConfig,
+          })}
           node={node}
         />
       </TestApp>,
     );
-
     const onlineGroup = getByTestId('radioMacTestOnline');
     const offlineGroup = getByTestId('radioMacTestOffline');
     const unknownGroup = getByTestId('radioMacTestUnknown');

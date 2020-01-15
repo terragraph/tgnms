@@ -16,7 +16,8 @@ import type {
   SiteType,
   TopologyType,
 } from '../../../shared/types/Topology';
-import type {NetworkConfig} from '../../NetworkContext';
+import type {NetworkConfig, NetworkHealth} from '../../NetworkContext';
+import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
 
 /**
  * Creates a fake network config which passes flow validation
@@ -228,6 +229,12 @@ export function mockLink(overrides?: $Shape<LinkType>): LinkType {
   };
 }
 
+/**
+ * Creates a fake node which passes flow validation
+ * @param {object} overrides overrides default properties of the mock node
+ * @example
+ * mockNode({name:'terra322.f7.tg.a404-if', site_name:'11L922'})
+ */
 export function mockNode(overrides?: $Shape<NodeType>): NodeType {
   return {
     name: '',
@@ -240,6 +247,47 @@ export function mockNode(overrides?: $Shape<NodeType>): NodeType {
     ant_azimuth: 0,
     ant_elevation: 0,
     wlan_mac_addrs: [],
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a fake series of node details which passes flow validation
+ * @param {object} overrides overrides default properties of mock node details
+ * @example
+ * mockNodeDetails(
+ *   node: mockNode({name:'terra322.f7.tg.a404-if'}),
+ *   ctrlVersion:'M45-0-gb016fc33f',
+ * )
+ */
+export function mockNodeDetails(
+  overrides?: $Shape<NodeDetailsProps>,
+): NodeDetailsProps {
+  return {
+    node: mockNode({name: 'NODEA'}),
+    networkNodeHealth: {startTime: 0, endTime: 0, events: {}},
+    networkConfig: mockNetworkConfig(),
+    topology: mockTopology(),
+    ctrlVersion: '',
+    onSelectLink: () => {},
+    onSelectSite: () => {},
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a fake network health which passes flow validation
+ * @param {object} overrides overrides default properties of mock network health
+ * @example
+ * mockNetworkHealth({startTime:1547502301, endTime:1579038301})
+ */
+export function mockNetworkHealth(
+  overrides?: $Shape<NetworkHealth>,
+): NetworkHealth {
+  return {
+    startTime: 0,
+    endTime: 0,
+    events: {},
     ...overrides,
   };
 }

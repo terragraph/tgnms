@@ -73,6 +73,19 @@ export function createActionsMenu(options, state, setState) {
   );
 }
 
+export function getNodeLinks(
+  node: NodeType,
+  links: Array<LinkType>,
+  linkType: $Values<typeof LinkTypeValueMap>,
+) {
+  // Find all wireless links associated with this node
+  return links.filter(
+    link =>
+      link.link_type === linkType &&
+      (link.a_node_name === node.name || link.z_node_name === node.name),
+  );
+}
+
 /** Make a topology builder request (with confirmation and response alerts). */
 export function sendTopologyBuilderRequest(
   networkName,

@@ -1,0 +1,165 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow
+ */
+
+import NodeBgpStatus from './NodeBgpStatus';
+import NodeEthernetLinks from './NodeEthernetLinks';
+import NodeLinksAndSite from './NodeLinksAndSite';
+import NodePolarity from './NodePolarity';
+import NodeRadioMacs from './NodeRadioMacs';
+import NodeSoftwareVersion from './NodeSoftwareVersion';
+import React from 'react';
+import StatusText from '../../common/StatusText';
+import Typography from '@material-ui/core/Typography';
+import moment from 'moment';
+import {NodeTypeValueMap} from '../../../../shared/types/Topology';
+import {formatNumber} from '../../../helpers/StringHelpers';
+import {
+  hasNodeEverGoneOnline,
+  isNodeAlive,
+  renderAvailabilityWithColor,
+} from '../../../helpers/NetworkHelpers';
+import {makeStyles} from '@material-ui/styles';
+
+import type {NetworkConfig, NetworkHealth} from '../../../NetworkContext';
+import type {NodeType, TopologyType} from '../../../../shared/types/Topology';
+import type {StatusReportType} from '../../../../shared/types/Controller';
+
+const useStyles = makeStyles(() => ({
+  spaceBetween: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+}));
+
+export type Props = {
+  ctrlVersion: string,
+  node: NodeType,
+  statusReport?: ?StatusReportType,
+  networkNodeHealth: NetworkHealth,
+  networkConfig: NetworkConfig,
+  onSelectLink: string => any,
+  onSelectSite: string => any,
+  topology: TopologyType,
+};
+
+function getAvailability(node: NodeType, networkNodeHealth: NetworkHealth) {
+  const nodeHealth = networkNodeHealth.events || {};
+  let alivePerc = 0;
+  if (nodeHealth.hasOwnProperty(node.name)) {
+    alivePerc = nodeHealth[node.name].linkAlive;
+  }
+  return alivePerc;
+}
+
+export default function NodeDetails(props: Props) {
+  const classes = useStyles();
+  const {
+    ctrlVersion,
+    node,
+    statusReport,
+    networkNodeHealth,
+    networkConfig,
+    topology,
+    onSelectSite,
+    onSelectLink,
+  } = props;
+  const availability = getAvailability(node, networkNodeHealth);
+
+  // Combine some node properties in one string
+  let nodeType =
+    Object.keys(NodeTypeValueMap).find(
+      key => NodeTypeValueMap[key] === node.node_type,
+    ) || 'unknown';
+  const nodeProperties = [];
+  if (node.node_type === NodeTypeValueMap.DN) {
+    nodeProperties.push(node.is_primary ? 'primary' : 'secondary');
+  }
+  if (node.pop_node) {
+    nodeProperties.push('PoP');
+  }
+  if (nodeProperties.length > 0) {
+    nodeType += ' (' + nodeProperties.join(', ') + ')';
+  }
+
+  return (
+    <>
+      <div className={classes.spaceBetween}>
+        <Typography variant="subtitle2">Status</Typography>
+        <Typography variant="body2">
+          <StatusText
+            status={isNodeAlive(node.status)}
+            falseText={
+              hasNodeEverGoneOnline(node, networkConfig.offline_whitelist)
+                ? undefined
+                : 'Offline (never seen)'
+            }
+          />
+        </Typography>
+      </div>
+      <div className={classes.spaceBetween}>
+        <Typography variant="subtitle2">Node MAC</Typography>
+        <Typography variant="body2">{node.mac_addr || 'none'}</Typography>
+      </div>
+      <NodeRadioMacs
+        ctrlVersion={ctrlVersion}
+        node={node}
+        networkConfig={networkConfig}
+      />
+      <div className={classes.spaceBetween}>
+        <Typography variant="subtitle2">IPv6</Typography>
+        <Typography variant="body2">
+          {statusReport ? statusReport.ipv6Address : 'none'}
+        </Typography>
+      </div>
+      <div className={classes.spaceBetween}>
+        <Typography variant="subtitle2">Node Type</Typography>
+        <Typography variant="body2">{nodeType}</Typography>
+      </div>
+      {node.ant_azimuth > 0.0 ? (
+        <div className={classes.spaceBetween}>
+          <Typography variant="subtitle2">Azimuth</Typography>
+          <Typography variant="body2">
+            {formatNumber(node.ant_azimuth)}&deg;
+          </Typography>
+        </div>
+      ) : null}
+      <div className={classes.spaceBetween}>
+        <Typography variant="subtitle2">Last Reported</Typography>
+        <Typography variant="body2">
+          {statusReport
+            ? moment(new Date(statusReport.timeStamp * 1000)).fromNow()
+            : 'n/a'}
+        </Typography>
+      </div>
+      <div className={classes.spaceBetween}>
+        <Typography variant="subtitle2">Availability</Typography>
+        <Typography variant="body2">
+          {renderAvailabilityWithColor(formatNumber(availability))}
+        </Typography>
+      </div>
+      <NodePolarity
+        ctrlVersion={ctrlVersion}
+        node={node}
+        networkConfig={networkConfig}
+      />
+      <NodeEthernetLinks node={node} topology={topology} />
+      {statusReport && statusReport.version ? (
+        <NodeSoftwareVersion version={statusReport.version} />
+      ) : null}
+      {statusReport && statusReport.bgpStatus ? (
+        <NodeBgpStatus bgpStatus={statusReport.bgpStatus} />
+      ) : null}
+      <NodeLinksAndSite
+        node={node}
+        topology={topology}
+        onSelectLink={onSelectLink}
+        onSelectSite={onSelectSite}
+      />
+    </>
+  );
+}

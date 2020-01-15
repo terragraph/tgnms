@@ -22,7 +22,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel';
+import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
@@ -500,20 +500,21 @@ class NetworkDrawer extends React.Component<
             expanded={expanded}
             onPanelChange={() => context.toggleExpanded(type, name, !expanded)}
             networkName={networkName}
-            ctrlVersion={controller_version}
-            networkConfig={networkConfig}
-            topology={topology}
-            statusReport={
-              node ? status_dump.statusReports[node.mac_addr] : null
-            }
-            networkNodeHealth={networkNodeHealth}
+            nodeDetailsProps={{
+              ctrlVersion: controller_version,
+              node: node,
+              statusReport: node
+                ? status_dump.statusReports[node.mac_addr]
+                : null,
+              networkNodeHealth: networkNodeHealth,
+              networkConfig: networkConfig,
+              onSelectLink: linkName =>
+                context.setSelected(TopologyElementType.LINK, linkName),
+              onSelectSite: siteName =>
+                context.setSelected(TopologyElementType.SITE, siteName),
+              topology: topology,
+            }}
             onClose={() => this.onClosePanel(name, type, 'closingNodes')}
-            onSelectLink={linkName =>
-              context.setSelected(TopologyElementType.LINK, linkName)
-            }
-            onSelectSite={siteName =>
-              context.setSelected(TopologyElementType.SITE, siteName)
-            }
             pinned={pinned}
             onPin={() => context.togglePin(type, name, !pinned)}
             onEdit={params =>
