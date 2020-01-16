@@ -1,6 +1,10 @@
 # Pull base image
 FROM alpine:edge
 
+ARG FB_VERSION=v2020.01.13.00
+ARG FMT_VERSION=6.1.2
+ARG ZSTD_VERSION=v1.4.4
+
 # Add testing repo for double-conversion-dev and glog-dev packages
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     echo "@py http://dl-cdn.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories
@@ -23,49 +27,44 @@ RUN apk update && apk add --no-cache --virtual build-deps \
                       zlib-dev && \
     # Install fmt
     cd /opt && \
-    git clone https://github.com/fmtlib/fmt.git && \
+    git clone -b $FMT_VERSION https://github.com/fmtlib/fmt.git && \
     cd fmt && \
     mkdir _build && \
     cd _build && \
     cmake .. -DFMT_DOC=OFF -DFMT_TEST=OFF && \
-    make -j $(nproc) && \
-    make install && \
+    make -j $(nproc) install && \
     # Install folly
     cd /opt && \
-    git clone https://github.com/facebook/folly.git && \
+    git clone -b $FB_VERSION https://github.com/facebook/folly.git && \
     cd folly && \
     mkdir _build && \
     cd _build && \
     cmake .. && \
-    make -j $(nproc) && \
-    make install && \
+    make -j $(nproc) install && \
     # Install fizz
     cd /opt && \
-    git clone https://github.com/facebookincubator/fizz.git && \
+    git clone -b $FB_VERSION https://github.com/facebookincubator/fizz.git && \
     cd fizz && \
     mkdir _build && \
     cd _build && \
     cmake ../fizz -DBUILD_TESTS=OFF && \
-    make -j $(nproc) && \
-    make install && \
+    make -j $(nproc) install && \
     # Install wangle
     cd /opt && \
-    git clone https://github.com/facebook/wangle.git && \
+    git clone -b $FB_VERSION https://github.com/facebook/wangle.git && \
     cd wangle/wangle && \
     mkdir _build && \
     cd _build && \
     cmake .. -DBUILD_TESTS=OFF && \
-    make -j $(nproc) && \
-    make install && \
+    make -j $(nproc) install && \
     # Install zstd
     cd /opt && \
-    git clone https://github.com/facebook/zstd.git && \
+    git clone -b $ZSTD_VERSION https://github.com/facebook/zstd.git && \
     cd zstd/build/cmake && \
     mkdir _build && \
     cd _build && \
     cmake .. && \
-    make -j $(nproc) && \
-    make install && \
+    make -j $(nproc) install && \
     # Install rsocket and yarpl
     cd /opt && \
     git clone https://github.com/rsocket/rsocket-cpp.git && \
@@ -73,16 +72,14 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     mkdir _build && \
     cd _build && \
     cmake .. -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF && \
-    make -j $(nproc) && \
-    make install && \
-    make install yarpl && \
+    make -j $(nproc) install && \
+    make -j $(nproc) install yarpl && \
     # Install fbthrift
     cd /opt && \
-    git clone https://github.com/facebook/fbthrift && \
+    git clone -b $FB_VERSION https://github.com/facebook/fbthrift && \
     cd fbthrift/build && \
     cmake .. && \
-    make -j $(nproc) && \
-    make install && \
+    make -j $(nproc) install && \
     ln -s thrift1 /usr/local/bin/thrift && \
     # Remove dependencies and strip all symbols from external libraries
     strip -s /usr/local/lib/*.a && \
