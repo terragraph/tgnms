@@ -5,13 +5,13 @@
  * @flow
  */
 
+import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import EditRadioMacs from './EditRadioMacs';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import swal from 'sweetalert2';
 import {
@@ -55,9 +55,9 @@ export type ApiRequestAttemptsType = {
   data: Object,
 };
 
-type InputType = {
+type InputType = {|
   _editable?: boolean,
-  func: (InputType, State, Object) => any,
+  func: (InputType, State, Object) => React.Node,
   helperText?: string,
   label: string,
   menuItems?: Array<Object>,
@@ -65,7 +65,9 @@ type InputType = {
   networkConfig?: ?NetworkConfig,
   networkName?: ?string,
   value: string,
-};
+  selectOptions?: Array<{label: string}>,
+  step?: number,
+|};
 
 const styles = theme => ({
   button: {
@@ -92,8 +94,8 @@ type Props = {
   initialParams: Object,
   networkConfig: NetworkConfig,
   networkName: string,
-  onPanelChange: () => any,
-  onClose: () => any,
+  onPanelChange: () => void,
+  onClose: () => void,
   topology: TopologyType,
 };
 
@@ -355,17 +357,19 @@ class AddNodePanel extends React.Component<Props, State> {
         required: false,
         _editable: true,
       },
-      useNodeWlanMacs(ctrlVersion)
-        ? {
-            func: this.renderRadioMacs,
-            label: 'Radio MAC Address',
-            value: 'wlan_mac_addrs',
-            required: false,
-            networkConfig: networkConfig,
-            networkName: networkName,
-            _editable: true,
-          }
-        : {},
+      ...(useNodeWlanMacs(ctrlVersion)
+        ? [
+            {
+              func: this.renderRadioMacs,
+              label: 'Radio MAC Address',
+              value: 'wlan_mac_addrs',
+              required: false,
+              networkConfig: networkConfig,
+              networkName: networkName,
+              _editable: true,
+            },
+          ]
+        : []),
       {
         func: createReactSelectInput,
         label: 'Site',
