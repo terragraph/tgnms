@@ -27,6 +27,7 @@ import {TgEventAlarmsApiUtil} from '../TgAlarmApi';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useForm} from '@fbcnms/alarms/components/hooks';
 
 import type {EventRule} from './EventAlarmsTypes';
 import type {
@@ -52,48 +53,27 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-/**
- * Since material-ui's select component can return a string, or an array of
- * strings, typing of SyntheticInputEvent will not work.
- */
-type CustomReactEvent<TVal> = {
-  +target: {
-    value: TVal,
-  },
-};
-
 export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
   const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [formState, setFormState] = React.useState<EventRule>(
-    fromGenericRule(rule),
-  );
 
-  /**
-   * Passes the event value to an updater function which returns an update
-   * object to be merged into the form. After the internal form state is
-   * updated, the parent component is notified of the updated AlertConfig
-   */
-  const handleInputChange = React.useCallback(
-    <TVal>(formUpdate: (val: TVal) => $Shape<EventRule>) => (
-      event: CustomReactEvent<any>,
-    ) => {
-      const value = event.target.value;
-      const updatedForm = {
-        ...formState,
-        ...formUpdate(value),
-      };
-      setFormState(updatedForm);
+  const handleFormUpdated = React.useCallback(
+    (state: EventRule) => {
       onRuleUpdated({
         ...rule,
         ...({
-          rawRule: updatedForm,
+          rawRule: state,
         }: $Shape<GenericRule<EventRule>>),
       });
     },
-    [formState, onRuleUpdated, rule],
+    [rule, onRuleUpdated],
   );
+
+  const {formState, updateFormState, handleInputChange} = useForm({
+    initialState: fromGenericRule(rule),
+    onFormUpdated: handleFormUpdated,
+  });
 
   /**
    * Handles when the RuleEditorBase form changes, map this from
@@ -101,16 +81,13 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
    */
   const handleEditorBaseChange = React.useCallback(
     editorBaseState => {
-      setFormState({
-        ...formState,
-        ...{
-          name: editorBaseState.name,
-          description: editorBaseState.description,
-          extraLabels: editorBaseState.labels,
-        },
+      updateFormState({
+        name: editorBaseState.name,
+        description: editorBaseState.description,
+        extraLabels: editorBaseState.labels,
       });
     },
-    [formState, setFormState],
+    [updateFormState],
   );
 
   const saveAlert = React.useCallback(async () => {
