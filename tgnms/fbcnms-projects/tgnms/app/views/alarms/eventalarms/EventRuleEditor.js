@@ -33,6 +33,7 @@ import type {
   GenericRule,
   RuleEditorProps,
 } from '@fbcnms/alarms/components/rules/RuleInterface';
+import type {RuleEditorBaseFields} from '@fbcnms/alarms/components/rules/RuleEditorBase';
 
 const useStyles = makeStyles(theme => ({
   instructions: {
@@ -105,6 +106,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
         ...{
           name: editorBaseState.name,
           description: editorBaseState.description,
+          extraLabels: editorBaseState.labels,
         },
       });
     },
@@ -133,7 +135,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
       isNew={isNew}
       onExit={onExit}
       onSave={saveAlert}
-      rule={rule}
+      initialState={toBaseFields(rule)}
       onChange={handleEditorBaseChange}>
       <>
         <Grid container item xs={12} direction={'column'} spacing={3}>
@@ -358,5 +360,16 @@ function fromGenericRule(genericRule?: ?GenericRule<EventRule>): EventRule {
     },
     extraLabels: {},
     extraAnnotations: {},
+  };
+}
+
+/**
+ * Map from rule-specific type to the generic RuleEditorBaseFields
+ */
+function toBaseFields(rule: ?GenericRule<EventRule>): RuleEditorBaseFields {
+  return {
+    name: rule?.name || '',
+    description: rule?.description || '',
+    labels: rule?.rawRule?.extraLabels || {},
   };
 }

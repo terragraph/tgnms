@@ -103,7 +103,7 @@ test('rendering with isNew shows ADD or EDIT button', () => {
       </SnackbarProvider>
     </Wrapper>,
   );
-  expect(getByText(/add/i)).toBeInTheDocument();
+  expect(getByText(/add$/i)).toBeInTheDocument();
   rerender(
     <Wrapper>
       <SnackbarProvider>
