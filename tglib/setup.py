@@ -70,7 +70,7 @@ ptr_params = {
         "tglib/clients/prometheus_client.py": 87,
         "tglib/utils/dict.py": 100,
         "tglib/utils/ip.py": 100,
-        "TOTAL": 44,
+        "TOTAL": 43,
     },
     "run_flake8": True,
     "run_black": True,

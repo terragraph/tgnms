@@ -3,6 +3,8 @@
 
 import asyncio
 import logging
+import os
+import time
 from typing import Dict, List, Optional, cast
 
 import aiohttp
@@ -20,9 +22,25 @@ from .base_client import BaseClient
 class APIServiceClient(BaseClient):
     _networks: Optional[Dict[str, str]] = None
     _session: Optional[aiohttp.ClientSession] = None
+    # Needed for Keycloak
+    _lock: asyncio.Lock = asyncio.Lock()
+    _jwt: Dict = {}
+    _refresh_time: Optional[float] = None
+    _keycloak_enabled: bool = False
+    _keycloak_host: str = os.getenv("KEYCLOAK_HOST") or "http://keycloak_keycloak:8080"
+    _keycloak_realm: str = os.getenv("KEYCLOAK_REALM") or "tgnms"
+    _keycloak_client_id: Optional[str] = os.getenv("KEYCLOAK_CLIENT_ID")
+    _keycloak_client_secret: Optional[str] = os.getenv("KEYCLOAK_CLIENT_SECRET")
 
     def __init__(self, timeout: int) -> None:
         self.timeout = timeout
+
+    @property
+    def network_names(self) -> List[str]:
+        if self._networks is None:
+            raise ClientStoppedError()
+
+        return list(self._networks.keys())
 
     @classmethod
     async def start(cls, config: Dict) -> None:
@@ -30,7 +48,7 @@ class APIServiceClient(BaseClient):
             raise ClientRestartError()
 
         api_params = config.get("apiservice")
-        required_params = ["nms"]
+        required_params = ["keycloak_enabled", "nms"]
 
         if api_params is None:
             raise ConfigError("Missing required 'apiservice' key")
@@ -39,14 +57,22 @@ class APIServiceClient(BaseClient):
         if not all(param in api_params for param in required_params):
             raise ConfigError(f"Missing one or more required params: {required_params}")
 
-        addr = format_address(**api_params["nms"])
-        url = f"http://{addr}/api/v1/networks"
+        cls._keycloak_enabled = api_params["keycloak_enabled"]
         cls._session = aiohttp.ClientSession()
 
+        headers: Optional[Dict] = None
+        if cls._keycloak_enabled and await cls.refresh_token():
+            headers = {"Authorization": f"Bearer {cls._jwt['access_token']}"}
+
         try:
-            async with cls._session.get(url, timeout=1) as resp:
+            url = f"http://{format_address(**api_params['nms'])}/api/v1/networks"
+            logging.debug(f"Requesting network information from {url}")
+
+            async with cls._session.get(url, timeout=1, headers=headers) as resp:
                 if resp.status != 200:
-                    raise ClientRuntimeError(msg=f"{resp.reason} ({resp.status})")
+                    raise ClientRuntimeError(
+                        msg=f"NMS request to {url} failed: {resp.reason} ({resp.status})"
+                    )
 
                 cls._networks = {
                     network["name"]: format_address(
@@ -55,7 +81,7 @@ class APIServiceClient(BaseClient):
                     for network in await resp.json()
                 }
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(msg=f"{url} is unavailable") from e
+            raise ClientRuntimeError(msg=f"NMS request to {url} failed") from e
 
     @classmethod
     async def stop(cls) -> None:
@@ -65,37 +91,78 @@ class APIServiceClient(BaseClient):
         await cls._session.close()
         cls._session = None
 
-    @property
-    def names(self) -> List[str]:
-        if self._networks is None:
+    @classmethod
+    async def refresh_token(cls) -> bool:
+        """Update the JWT value from Keycloak."""
+        if cls._session is None:
             raise ClientStoppedError()
 
-        return list(self._networks.keys())
-
-    async def request(self, name: str, endpoint: str, params: Dict = {}) -> Dict:
-        """Make a request to a specific addr, endpoint, and params."""
-        if self._networks is None or self._session is None:
-            raise ClientStoppedError()
-
-        addr = self._networks.get(name)
-        if addr is None:
-            raise ClientRuntimeError(msg=f"{name} does not exist")
-
-        url = f"http://{addr}/api/{endpoint}"
-        logging.debug(f"Requesting from {url} with params {params}")
+        if not (cls._keycloak_client_id and cls._keycloak_client_secret):
+            logging.error("Keycloak client ID and/or client secret are missing")
+            return False
 
         try:
+            url = f"{cls._keycloak_host}/auth/realms/{cls._keycloak_realm}/protocol/openid-connect/token"
+            logging.debug(f"Requesting new JWT from {url}")
+
+            async with cls._session.post(
+                url,
+                timeout=1,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_id": cls._keycloak_client_id,
+                    "client_secret": cls._keycloak_client_secret,
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            ) as resp:
+                if resp.status != 200:
+                    raise ClientRuntimeError(
+                        f"Failed to refresh JWT: {resp.reason} ({resp.status})"
+                    )
+
+                cls._refresh_time = time.time()
+                cls._jwt = cast(Dict, await resp.json())
+                return True
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            raise ClientRuntimeError(msg="Failed to refresh JWT") from e
+
+    async def request(
+        self, network_name: str, endpoint: str, params: Dict = {}
+    ) -> Dict:
+        """Make a request to a specific network + endpoint with params.
+
+        The default post param '{}' is used if not provided explicitly."""
+        if not (self._networks and self._session):
+            raise ClientStoppedError()
+
+        addr = self._networks.get(network_name)
+        if addr is None:
+            raise ClientRuntimeError(msg=f"{network_name} does not exist")
+
+        headers: Optional[Dict] = None
+        if self._keycloak_enabled:
+            async with self._lock:
+                if (
+                    time.time() > (self._refresh_time + self._jwt["expires_in"])
+                    and await self.refresh_token()
+                ):
+                    headers = {"Authorization": f"Bearer {self._jwt['access_token']}"}
+
+        try:
+            url = f"http://{addr}/api/{endpoint}"
+            logging.debug(f"Requesting from {url} with params {params}")
+
             async with self._session.post(
-                url, json=params, timeout=self.timeout
+                url, json=params, timeout=self.timeout, headers=headers
             ) as resp:
                 if resp.status == 200:
                     return cast(Dict, await resp.json())
 
                 raise ClientRuntimeError(
-                    msg=f"API Service request failed {resp.reason} ({resp.status})"
+                    msg=f"API Service request to {addr} failed: {resp.reason} ({resp.status})"
                 )
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(msg=f"API Service at {addr} is unavailable") from e
+            raise ClientRuntimeError(msg=f"API Service request to {addr} failed") from e
 
     async def request_all(
         self,
@@ -114,11 +181,13 @@ class APIServiceClient(BaseClient):
             raise ClientStoppedError()
 
         tasks = []
-        for name in self._networks.keys():
-            if name in params_map:
-                tasks.append(self.request(name, endpoint, params_map[name]))
+        for network_name in self._networks.keys():
+            if network_name in params_map:
+                tasks.append(
+                    self.request(network_name, endpoint, params_map[network_name])
+                )
             else:
-                tasks.append(self.request(name, endpoint))
+                tasks.append(self.request(network_name, endpoint))
 
         return dict(
             zip(
@@ -144,11 +213,11 @@ class APIServiceClient(BaseClient):
             raise ClientStoppedError()
 
         tasks = []
-        for name, params in params_map.items():
-            if name not in self._networks:
+        for network_name, params in params_map.items():
+            if network_name not in self._networks:
                 continue
 
-            tasks.append(self.request(name, endpoint, params))
+            tasks.append(self.request(network_name, endpoint, params))
 
         return dict(
             zip(
