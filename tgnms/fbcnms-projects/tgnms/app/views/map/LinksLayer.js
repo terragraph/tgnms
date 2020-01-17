@@ -277,6 +277,8 @@ class LinksLayer extends React.Component<Props> {
 
             // Is this CN or any link to this CN selected?
             isSelected: selectedNodeName === cnNode.name,
+
+            is_backup_cn_link: false,
           };
         }
         const info = cnLinkInfo[cnNode.name];
