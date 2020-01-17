@@ -6,5 +6,20 @@
       "password": "bj5q4aslzm"
     }
   },
-  "fetch_interval_s": 60
+  "num_consumers": 10,
+  "pipelines": {
+    "analysis_pipeline": {
+      "period": 60,
+      "jobs": [
+        {
+          "name": "analyze_routes",
+          "enabled": true
+        },
+        {
+          "name": "compute_link_cn_routes",
+          "enabled": true
+        }
+      ]
+    }
+  }
 }

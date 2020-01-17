@@ -48,3 +48,11 @@ scrape_configs:
     scrape_timeout: 1s
     static_configs:
             - targets: ['udp_ping_client:3047']
+
+  - job_name: 'default_routes_service'
+    metrics_path: /metrics/30s
+    scrape_interval: 60s
+    scrape_timeout: 1s
+    honor_timestamps: false
+    static_configs:
+            - targets: ['default_routes_service:8080']

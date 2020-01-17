@@ -26,19 +26,22 @@ call Create_Default_Route();
 /* create history table */
 CREATE TABLE IF NOT EXISTS `default_route_history`
 (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `topology_name` varchar(100) NOT NULL,
+  `id` int(11) AUTO_INCREMENT,
+  `network_name` varchar(100) NOT NULL,
   `node_name` varchar(255) NOT NULL,
   `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `routes` json, `is_ecmp` bool NOT NULL,
+  `routes` json NOT NULL,
   `hop_count` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `network_name` (`network_name`),
+  KEY `node_name` (`node_name`),
+  KEY `last_updated` (`last_updated`)
 );
 
 /* create current table */
 CREATE TABLE IF NOT EXISTS `default_route_current` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `topology_name` varchar(100) NOT NULL,
+  `id` int(11) AUTO_INCREMENT,
+  `network_name` varchar(100) NOT NULL,
   `node_name` varchar(255) NOT NULL,
   `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `current_route_id` int(11) NOT NULL,
@@ -47,4 +50,18 @@ CREATE TABLE IF NOT EXISTS `default_route_current` (
   CONSTRAINT `default_route_current_ibfk_1`
   FOREIGN KEY (`current_route_id`)
   REFERENCES `default_route_history` (`id`)
+);
+
+/* create link CN routes table */
+CREATE TABLE IF NOT EXISTS `link_cn_routes`
+(
+  `id` int(11) AUTO_INCREMENT,
+  `network_name` varchar(100) NOT NULL,
+  `link_name` varchar(255) NOT NULL,
+  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `cn_routes` json NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `network_name` (`network_name`),
+  KEY `link_name` (`link_name`),
+  KEY `last_updated` (`last_updated`)
 );
