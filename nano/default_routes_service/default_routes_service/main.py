@@ -6,148 +6,107 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
+from dataclasses import dataclass
 from typing import Dict, List
 
-from terragraph_thrift.Topology.ttypes import LinkType
 from tglib import ClientType, init
-from tglib.clients import APIServiceClient
-from tglib.exceptions import ClientRuntimeError
 
-from .analysis import analyze_node
+from . import jobs
 from .routes import routes
+from .utils import DRS, get_default_routes_service_objs
+
+
+@dataclass
+class Job:
+    """Struct for representing pipeline job configurations."""
+
+    name: str
+    start_time: int
+    params: Dict
+
+
+async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
+    """Add default routes service jobs to the shared queue."""
+    # restrict pipeline frequency to reduce load on E2E server
+    if pipeline["period"] < 60:
+        raise ValueError("Pipeline's 'period' cannot be less than 60 seconds.")
+
+    while True:
+        start_time = time.time()
+
+        # get all topologies and default routes for all nodes
+        drs_objs: List[DRS] = await get_default_routes_service_objs()
+
+        tasks = [
+            queue.put(
+                Job(
+                    name=job["name"],
+                    start_time=int(start_time),
+                    params={**job.get("params", {}), "drs_objs": drs_objs},
+                )
+            )
+            for job in pipeline.get("jobs", [])
+            if job.get("enabled", False)
+        ]
+
+        # add jobs to the queue
+        await asyncio.gather(*tasks)
+
+        # sleep until next invocation time
+        sleep_time = start_time + pipeline["period"] - time.time()
+        logging.info(
+            f"Done enqueuing jobs in the '{name}' pipeline. "
+            f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time}s"
+        )
+        await asyncio.sleep(sleep_time)
+
+
+async def consume(queue: asyncio.Queue) -> None:
+    """Consume and run a job from the shared queue."""
+    while True:
+        # wait for a job from producers
+        job: Job = await queue.get()
+        logging.info(f"Starting the {job.name} job.")
+
+        # execute the job
+        function = getattr(jobs, job.name)
+        await function(job.start_time, **job.params)
+        logging.info(f"Finished running the {job.name} job.")
 
 
 async def async_main(config: Dict) -> None:
-    """
-    Use `getDefaultRoutes` API request to fetch default routes across all
-    networks every fetch_interval seconds and store the results in the database.
-
-    Default routes are stored in `default_route_service` database,
-    `default_route_history` and `default_route_current` tables.
-    """
+    """Start producer and consumer coroutines."""
     logging.info("#### Starting default routes service ####")
-
     logging.debug(f"Service config: {config}")
-    fetch_interval: int = config["fetch_interval_s"]
-    # restrict service frequency to reduce load on E2E server
-    if fetch_interval < 60:
-        raise ValueError("'fetch_interval' cannot be less than 60 seconds.")
 
-    while True:
-        tasks = []
+    queue: asyncio.Queue = asyncio.Queue()
 
-        start_time = time.time()
-        # get latest topology for all networks from API service
-        logging.info("Requesting topologies for all networks from API service.")
-        all_topologies: Dict = await APIServiceClient(timeout=1).request_all(
-            endpoint="getTopology", return_exceptions=True
-        )
+    # create producer coroutines
+    producers = [
+        produce(queue, name, pipeline) for name, pipeline in config["pipelines"].items()
+    ]
 
-        for topology_name, topology in all_topologies.items():
-            if isinstance(topology, ClientRuntimeError):
-                logging.error(f"Error in fetching topology for {topology_name}.")
-            else:
-                # get default routes, analyze them and store results in the database
-                tasks.append(asyncio.create_task(_main_impl(topology_name, topology)))
+    # create consumer coroutines
+    consumers = [consume(queue) for _ in range(config["num_consumers"])]
 
-        # sleep until next invocation time
-        await asyncio.sleep(start_time + fetch_interval - time.time())
-
-        # await tasks to finish. If timeout, cancel tasks and pass
-        try:
-            await asyncio.wait_for(asyncio.gather(*tasks), timeout=1.0)
-        except asyncio.TimeoutError:
-            logging.error("Some tasks were unable to complete.")
-            pass
-
-
-async def _main_impl(network_name: str, topology: Dict) -> None:
-    """
-    1.  Fetch the default routes for each node in 'network_name' using the
-        'getDefatulRoutes' API service endpoint.
-    2.  Analyze the routes to determine if the route has changed compared to
-        the most recent entry in the database.
-    3.  Write the results to the database.
-    """
-    # get default routes for all nodes of the network
-    logging.info(
-        f"Requesting default routes for all nodes of {network_name} from API service."
-    )
-    all_nodes_default_routes: Dict = {}
-    nodes: List = []
-    batch_size: int = 10
-
-    client = APIServiceClient(timeout=5)
-    for i, node in enumerate(topology["nodes"], 1):
-        if i % batch_size == 0:
-            # fetch default routes for batch_size number of nodes
-            all_nodes_default_routes.update(
-                (
-                    await client.request(
-                        name=network_name,
-                        endpoint="getDefaultRoutes",
-                        params={"nodes": nodes},
-                    )
-                ).get("defaultRoutes", {})
-            )
-            # reset the list of nodes
-            nodes.clear()
-        else:
-            nodes.append(node["name"])
-
-    # run again for the remainder of nodes
-    if nodes:
-        all_nodes_default_routes.update(
-            (
-                await client.request(
-                    name=network_name,
-                    endpoint="getDefaultRoutes",
-                    params={"nodes": nodes},
-                )
-            ).get("defaultRoutes", {})
-        )
-
-    # if default routes for the network does not exist, return
-    if not all_nodes_default_routes:
-        logging.error(f"Unable to fetch the default routes for {network_name}.")
-        return
-
-    now = datetime.now()
-    # create a set of all wireless links in the topology
-    wireless_link_set = {
-        (link["a_node_name"], link["z_node_name"])
-        for link in topology["links"]
-        if link["link_type"] == LinkType.WIRELESS
-    }
-    logging.debug(f"wireless_link_set = {wireless_link_set}")
-
-    coroutines = []
-    for node_name, default_routes in all_nodes_default_routes.items():
-        logging.debug(
-            f"node: {node_name}; topology name: {network_name}, "
-            f"routes: {default_routes}"
-        )
-
-        coroutines.append(
-            analyze_node(
-                network_name, node_name, now, default_routes, wireless_link_set
-            )
-        )
-
-    await asyncio.gather(*coroutines)
+    # start the producer and consumer coroutines
+    await asyncio.gather(*producers, *consumers)
 
 
 def main() -> None:
     try:
         with open("./service_config.json") as file:
             config = json.load(file)
-    except OSError as err:
-        logging.exception(f"Failed to parse service configuration file: {err}")
+    except (json.JSONDecodeError, OSError):
+        logging.exception(f"Failed to parse service configuration file.")
         sys.exit(1)
 
     init(
         lambda: async_main(config),
-        {ClientType.API_SERVICE_CLIENT, ClientType.MYSQL_CLIENT},
+        {
+            ClientType.API_SERVICE_CLIENT,
+            ClientType.MYSQL_CLIENT,
+            ClientType.PROMETHEUS_CLIENT,
+        },
         routes,
     )

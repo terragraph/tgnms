@@ -4,10 +4,10 @@
 import logging
 import unittest
 
-from tests.ecmp_toggle import EcmpToggle
 from tests.routes_history import TestRoutesHistory
 
 
+# TODO: spurav - T60676136
 # from tests.routes_utilization import RoutesUtilization
 
 

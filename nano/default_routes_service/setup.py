@@ -8,7 +8,7 @@ ptr_params = {
     "entry_point_module": "default_routes_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {"default_routes_service/routes.py": 33, "TOTAL": 26},
+    "required_coverage": {"default_routes_service/routes.py": 28, "TOTAL": 19},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,
@@ -16,7 +16,7 @@ ptr_params = {
 
 setup(
     name="default_routes_service",
-    version="2019.12.15",
+    version="2020.01.17",
     packages=["default_routes_service"],
     install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},

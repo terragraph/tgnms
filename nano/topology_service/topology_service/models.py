@@ -16,4 +16,4 @@ class TopologyHistory(Base):
     id = Column(Integer, primary_key=True)
     network_name = Column(String(255), nullable=False)
     topology = Column(JSON, nullable=False)
-    last_updated = Column(DateTime, server_default=func.now())
+    last_updated = Column(DateTime, server_default=func.now(), nullable=False)

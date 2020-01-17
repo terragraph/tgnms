@@ -1,36 +1,27 @@
-# Default Route Service
+# Default Routes Service
 
-The default route service captures the history of default route changes for all
-nodes in the Terragraph network. The service periodically invokes the E2E
-controller's `getDefaultRoutes` API endpoint to fetch the latest default routes.
-It then stores the results in MySQL. The default fetch interval is **60**
-seconds, however this value can be modified using either the `/config/update` or
-`config/set` API endpoints in `tglib`.
+The default routes service uses the producer/consumer model to schedule jobs.
+Pipelines and jobs can be added/altered by modifying the
+`service_config.json` file directly or by invoking the `/config/update`
+HTTP endpoint provided by `tglib`.
 
-The routes are stored in the `default_route_history` and `default_route_current`
-tables (schemas below).
+# Analysis Pipeline
+This pipeline periodically invokes E2E controller's `getDefaultRoutes`
+API endpoint to fetch the latest default routes for all networks
+and then schedules the following jobs.
 
-### Default Route History
-The `default_route_history` table stores the history of routes for each node.
+## Analyze Routes
+This job performs the following analysis for all nodes in each network:
+1. Check if the node's default routes have changed compared to the most
+recent entry in the database and update the database if the routes have
+changed or if the node is new.
+2. Identify if the default routes are equal-cost multi-path and compute
+the number of wireless hops for each route. Both of these stats,
+`node_routes_ecmp` and `node_hop_count` are logged to the time series
+database.
 
-| Column          | Description                                           |
-|-----------------|-------------------------------------------------------|
-| `id`            | Entry ID                                              |
-| `topology_name` | The topology the node belongs to                      |
-| `node_name`     | The node the default routes belong to                 |
-| `last_updated`  | Timestamp of the last time default routes were polled |
-| `routes`        | The default routes in the form of a JSON array        |
-| `is_ecmp`       | Whether any routes are Equal Cost Multiple Path       |
-| `hop_count`     | Number of wireless hops involved in the default route |
-
-
-### Default Route Current
-The `default_route_current` table stores stores the current state for each node.
-
-| Column             | Description                                            |
-|--------------------|--------------------------------------------------------|
-| `id`               | Entry ID                                               |
-| `topology_name`    | The topology the node belongs to                       |
-| `node_name`        | The node the default routes belong to                  |
-| `last_updated`     | Timestamp of the last time default routes were polled  |
-| `current_route_id` | ID of corresponding entry in the history table         |
+## Compute Link CN Routes
+This job computes the number of commonly traversed wireless links belonging
+to each of a client nodes' default routes in a particular network.
+These values are then logged to the the time series database as
+`link_cn_routes_count` and the routes themselves are stored in MySQL.

@@ -24,7 +24,7 @@ async def handle_get_topologies_after(request: web.Request) -> web.Response:
     name = request.rel_url.query["name"]
     datetime_str = request.rel_url.query["datetime"]
 
-    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z})?")
+    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
     if not re.match(datetime_re, datetime_str):
         raise web.HTTPBadRequest(f"'datetime' param is not valid ISO 8601")
 

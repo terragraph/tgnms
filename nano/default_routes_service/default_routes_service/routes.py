@@ -1,35 +1,39 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import json
 import logging
 import re
-from collections import defaultdict
 from datetime import datetime
+from functools import partial
 from typing import Dict, List, Tuple
 
 from aiohttp import web
+from aiomysql.sa import SAConnection
 from aiomysql.sa.result import RowProxy
-from sqlalchemy import func, select
+from sqlalchemy import select
 from tglib.clients import MySQLClient
 
-from .models import DefaultRouteHistory
+from .models import DefaultRouteHistory, LinkCnRoutes
 from .mysql_helpers import fetch_preceding_routes
 
 
 routes = web.RouteTableDef()
 
 
-def parse_input_params(request: web.Request) -> Tuple[str, str, datetime, datetime]:
-    topology_name = request.rel_url.query.get("topology_name")
-    node_name = request.rel_url.query.get("node_name")
+def parse_input_params(
+    request: web.Request, name: str = "node_name"
+) -> Tuple[str, str, datetime, datetime]:
+    network_name = request.rel_url.query.get("network_name")
+    name = request.rel_url.query.get("name")
     start_time = request.rel_url.query.get("start_time")
     end_time = request.rel_url.query.get("end_time")
 
-    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z})?")
+    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
 
     # get the network name
-    if topology_name is None:
-        raise web.HTTPBadRequest(text="Missing required 'topology_name' param")
+    if network_name is None:
+        raise web.HTTPBadRequest(text="Missing required 'network_name' param")
 
     # get and validate start time
     if start_time is None:
@@ -60,7 +64,7 @@ def parse_input_params(request: web.Request) -> Tuple[str, str, datetime, dateti
             text="'start_time' has to be less than 'end_time' param"
         )
 
-    return topology_name, node_name, start_time_obj, end_time_obj
+    return network_name, name, start_time_obj, end_time_obj
 
 
 @routes.get("/routes/history")
@@ -69,12 +73,12 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     ---
     description: Analyze default routes history for any node/all nodes of the network
     tags:
-      - Routes
+      - Default Routes Service
     produces:
       - application/json
     parameters:
       - in: query
-        name: topology_name
+        name: network_name
         description: Name of the network.
         required: true
         schema:
@@ -104,7 +108,7 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         description: Invalid or missing parameters.
     """
     # parse and validate input params
-    topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
+    network_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
 
     # get entries for all nodes between start and end time
     query = select(
@@ -116,7 +120,7 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
             DefaultRouteHistory.hop_count,
         ]
     ).where(
-        (DefaultRouteHistory.topology_name == topology_name)
+        (DefaultRouteHistory.network_name == network_name)
         & (DefaultRouteHistory.last_updated >= start_time_obj)
         & (DefaultRouteHistory.last_updated <= end_time_obj)
     )
@@ -129,19 +133,16 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         f"Query to fetch node_name, routes and last_updated from db: {str(query)}"
     )
 
-    client = MySQLClient()
-    async with client.lease() as conn:
+    async with MySQLClient().lease() as conn:
         cursor = await conn.execute(query)
         results = await cursor.fetchall()
 
-    return web.json_response(
-        {
-            "history": _get_default_routes_history_impl(results),
-            "util": await _compute_routes_utilization_impl(
-                results, start_time_obj, end_time_obj, topology_name
-            ),
-        }
-    )
+        history = _get_default_routes_history_impl(results)
+        util = await _compute_routes_utilization_impl(
+            conn, results, start_time_obj, end_time_obj, network_name
+        )
+
+    return web.json_response({"history": history, "util": util})
 
 
 def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
@@ -188,10 +189,11 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
 
 
 async def _compute_routes_utilization_impl(
+    conn: SAConnection,
     raw_routes_data: List[RowProxy],
     start_time: datetime,
     end_time: datetime,
-    topology_name: str,
+    network_name: str,
 ) -> Dict:
     """
     Iterate over the list of RowProxy objects to calculate the percentage of
@@ -232,7 +234,7 @@ async def _compute_routes_utilization_impl(
         # get the routes between start_time and the first routes change
         if prev_info[node_name]["prev_route"] is None:
             prev_info[node_name]["prev_route"] = await fetch_preceding_routes(
-                id, topology_name, node_name
+                conn, id, network_name, node_name
             )
 
         # record the routes percentage for the previous routes
@@ -258,25 +260,25 @@ async def _compute_routes_utilization_impl(
     return routes_utilization
 
 
-@routes.get("/routes/ecmp_toggles")
-async def handle_count_ecmp_toggles(request: web.Request) -> web.Response:
+@routes.get("/routes/cn_routes")
+async def handle_get_cn_routes(request: web.Request) -> web.Response:
     """
     ---
-    description: Calculate the number of times there was a switch between ECMP and non-ECMP routes in the specified time window.
+    description: Fetch CN default routes history for links.
     tags:
-      - Routes
+      - Default Routes Service
     produces:
       - application/json
     parameters:
       - in: query
-        name: topology_name
+        name: network_name
         description: Name of the network.
         required: true
         schema:
           type: string
       - in: query
-        name: node_name
-        description: Name of the node. Will fetch info for all nodes if not specified.
+        name: link_name
+        description: Name of the link. Will fetch info for all links if not specified.
         required: false
         schema:
           type: string
@@ -294,148 +296,42 @@ async def handle_count_ecmp_toggles(request: web.Request) -> web.Response:
           type: string
     responses:
       "200":
-        description: Successful operation. Returns total number of ecmp toggles.
+        description: Successful operation. Returns CN default routes history for the link.
       "400":
         description: Invalid or missing parameters.
     """
-    # parse and validate input params
-    topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
 
-    # get entries for all nodes between start and end time
-    query = select([DefaultRouteHistory.node_name, DefaultRouteHistory.is_ecmp]).where(
-        (DefaultRouteHistory.topology_name == topology_name)
-        & (DefaultRouteHistory.last_updated >= start_time_obj)
-        & (DefaultRouteHistory.last_updated <= end_time_obj)
+    # parse and validate input params
+    network_name, link_name, start_time_obj, end_time_obj = parse_input_params(
+        request, "link_name"
     )
 
-    # if node name is provided, fetch info for that specific node
-    if node_name is not None:
-        query = query.where(DefaultRouteHistory.node_name == node_name)
-
-    logging.debug(f"Query to fetch node_name and is_ecmp from db: {str(query)}")
-
-    client = MySQLClient()
-    async with client.lease() as conn:
-        cursor = await conn.execute(query)
-        results = await cursor.fetchall()
-
-    # analyze and return ecmp toggle count
-    return web.json_response(_count_ecmp_toggles_impl(results))
-
-
-def _count_ecmp_toggles_impl(raw_routes_data: List[RowProxy]) -> Dict:
-    """
-    Iterate over the list of RowProxy objects to calculate the number of times
-    there was a switch between ECMP and non-ECMP routes for each node.
-
-    input = [
-            {
-                "node_name": "A",
-                "is_ecmp": True,
-            },
-            {
-                "node_name": "A",
-                "is_ecmp": False,
-            },
-        ]
-    output = {
-        "A": 1
-    }
-    """
-    # dictionary to track ecmp toggle count info of each node
-    ecmp_toggles: Dict[str, Dict] = {}
-
-    for row in raw_routes_data:
-        node_name = row["node_name"]
-        current_is_ecmp = row["is_ecmp"]
-
-        # initialize the node in ecmp_toggles, if not already present
-        if node_name not in ecmp_toggles:
-            ecmp_toggles[node_name] = {"value": current_is_ecmp, "count": 0}
-
-        # increment toggle count if `is_ecmp` value changes
-        if current_is_ecmp != ecmp_toggles[node_name]["value"]:
-            ecmp_toggles[node_name]["count"] += 1
-            ecmp_toggles[node_name]["value"] = current_is_ecmp
-
-    # drop the current value info from ecmp_toggles
-    ecmp_toggles = {
-        node_name: data["count"] for node_name, data in ecmp_toggles.items()
-    }
-
-    return ecmp_toggles
-
-
-@routes.get("/routes/hop_count")
-async def handle_default_routes_hop_count(request: web.Request) -> web.Response:
-    """
-    ---
-    description: Calculate maximum and muminum number of hops from node to POP in the time window.
-    tags:
-      - Routes
-    produces:
-      - application/json
-    parameters:
-      - in: query
-        name: topology_name
-        description: Name of the network.
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: node_name
-        description: Name of the node. Will fetch info for all nodes if not specified.
-        required: false
-        schema:
-          type: string
-      - in: query
-        name: start_time
-        description: Start time of time window, in ISO 8601 format.
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: end_time
-        description: End time of time window, in ISO 8601 format.
-        required: true
-        schema:
-          type: string
-    responses:
-      "200":
-        description: Successful operation. Returns maximum and muminum number of hops.
-      "400":
-        description: Invalid or missing parameters.
-    """
-    # parse and validate input params
-    topology_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
-
-    # get entries for all nodes between start and end time
+    # get entries for all links between start and end time
     query = select(
         [
-            DefaultRouteHistory.node_name,
-            func.max(DefaultRouteHistory.hop_count).label("max"),
-            func.min(DefaultRouteHistory.hop_count).label("min"),
+            LinkCnRoutes.network_name,
+            LinkCnRoutes.link_name,
+            LinkCnRoutes.last_updated,
+            LinkCnRoutes.cn_routes,
         ]
     ).where(
-        (DefaultRouteHistory.topology_name == topology_name)
-        & (DefaultRouteHistory.last_updated >= start_time_obj)
-        & (DefaultRouteHistory.last_updated <= end_time_obj)
+        (LinkCnRoutes.network_name == network_name)
+        & (LinkCnRoutes.last_updated >= start_time_obj)
+        & (LinkCnRoutes.last_updated <= end_time_obj)
     )
 
-    # fetch info for a specific node, if provided
-    if node_name is None:
-        query = query.group_by(DefaultRouteHistory.node_name)
-    else:
-        query = query.where(DefaultRouteHistory.node_name == node_name)
+    # if link name is provided, fetch info for that specific link
+    if link_name is not None:
+        query = query.where(LinkCnRoutes.link_name == link_name)
 
-    logging.debug(f"Query to fetch node_name and hop_count from db: {str(query)}")
+    logging.debug(
+        f"Query to fetch link_name, cn_routes and last_updated from db: {str(query)}"
+    )
 
-    client = MySQLClient()
-    async with client.lease() as conn:
+    async with MySQLClient().lease() as conn:
         cursor = await conn.execute(query)
         results = await cursor.fetchall()
 
-    # format and return hop count info
     return web.json_response(
-        {row["node_name"]: {"max": row["max"], "min": row["min"]} for row in results}
+        [dict(row) for row in results], dumps=partial(json.dumps, default=str)
     )

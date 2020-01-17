@@ -16,7 +16,7 @@ ptr_params = {
 
 setup(
     name="topology_service",
-    version="2019.01.13",
+    version="2020.01.17",
     packages=["topology_service"],
     install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
