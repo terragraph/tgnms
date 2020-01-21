@@ -11,7 +11,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NetworkListContext from '../../NetworkListContext';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import isIp from 'is-ip';
 import {WAC_TYPES} from '../../constants/NetworkConstants';
 import {
   createNumericInput,
@@ -192,11 +191,8 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
     if (!this.validatePort(primaryE2ePort)) {
       errors.primaryE2ePort = 'Please enter a valid port number.';
     }
-    if (!isIp(primaryApiIp)) {
-      errors.primaryApiIp = 'Please enter a valid IP address.';
-    }
-    if (!isIp(primaryE2eIp)) {
-      errors.primaryE2eIp = 'Please enter a valid IP address.';
+    if (primaryApiIp.trim() === '') {
+      errors.primaryApiIp = 'Please enter a hostname.';
     }
     if (backupApiIp !== '') {
       if (!this.validatePort(backupApiPort)) {
@@ -205,11 +201,8 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       if (!this.validatePort(backupE2ePort)) {
         errors.backupE2ePort = 'Please enter a valid port number.';
       }
-      if (!isIp(backupApiIp)) {
-        errors.backupApiIp = 'Please enter a valid IP address.';
-      }
-      if (!isIp(backupE2eIp)) {
-        errors.backupE2eIp = 'Please enter a valid IP address.';
+      if (backupApiIp.trim() === '') {
+        errors.backupApiIp = 'Please enter a hostname.';
       }
     }
     if (wacType !== WAC_TYPES.none) {
@@ -300,7 +293,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       {_heading: 'Primary Controller', func: () => null},
       {
         func: createTextInput,
-        label: 'Primary API IPv6',
+        label: 'Primary API Hostname',
         value: 'primaryApiIp',
         required: true,
       },
@@ -313,7 +306,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       },
       {
         func: createTextInput,
-        label: 'Primary E2E IPv6',
+        label: 'Primary E2E Hostname',
         value: 'primaryE2eIp',
         required: true,
       },
@@ -327,7 +320,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       {_heading: 'Backup Controller', func: () => null},
       {
         func: createTextInput,
-        label: 'Backup API IPv6',
+        label: 'Backup API Hostname',
         value: 'backupApiIp',
       },
       {
@@ -338,7 +331,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       },
       {
         func: createTextInput,
-        label: 'Backup E2E IPv6',
+        label: 'Backup E2E Hostname',
         value: 'backupE2eIp',
       },
       {

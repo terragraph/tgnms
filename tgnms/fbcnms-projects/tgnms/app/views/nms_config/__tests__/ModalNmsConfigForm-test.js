@@ -72,7 +72,7 @@ test('cancel click', async () => {
   expect(defaultProps.onClose).toHaveBeenCalled();
 });
 
-test('save click errors show', async () => {
+test('save click with incorrect fields errors show', async () => {
   const {getByText, getAllByText} = renderWithRouter(
     <TestApp>
       <ModalNmsConfigForm {...defaultProps} />
@@ -80,10 +80,10 @@ test('save click errors show', async () => {
   );
   expect(getByText('Create Network')).toBeInTheDocument();
   expect(getByText('Save')).toBeInTheDocument();
+  const primaryApiIp = document.getElementById('primaryApiIp');
+  fireEvent.change(primaryApiIp, {target: {value: ' '}});
   fireEvent.click(getByText('Save'));
-  expect(
-    getAllByText('Please enter a valid IP address.')[0],
-  ).toBeInTheDocument();
+  expect(getAllByText('Please enter a hostname.')[0]).toBeInTheDocument();
 });
 
 test('save click with correct fields works', async () => {
