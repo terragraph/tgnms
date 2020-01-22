@@ -157,6 +157,14 @@ export function supportsTopologyDiscovery(ctrlVersion: string) {
 }
 
 /**
+ * Check if the Firmware Version Stat API request is supported.
+ * This was added in RELEASE_M46.
+ */
+export function supportsFirmwareApiRequest(ctrlVersion: string) {
+  return !ctrlVerBefore(ctrlVersion, CtrlVerType.M46);
+}
+
+/**
  * Check if the node structure supports user-specified Polarity
  * and Golay_idx. No longer supporting these fields starting
  * RELEASE_M37.

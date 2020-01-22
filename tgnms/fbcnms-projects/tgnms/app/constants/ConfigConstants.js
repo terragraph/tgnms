@@ -58,6 +58,9 @@ export const CONFIG_FIELD_DELIMITER = '.';
 /** Default node software version. */
 export const DEFAULT_BASE_KEY = 'default';
 
+/** Default node firmware version. */
+export const DEFAULT_FIRMWARE_BASE_KEY = 'none';
+
 /** Default node hardware type. */
 export const DEFAULT_HARDWARE_BASE_KEY = 'MVL_ARMADA39X_P';
 

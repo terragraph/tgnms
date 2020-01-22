@@ -33,6 +33,9 @@ const defaultProps = {
   onSetConfigBase: jest.fn(() => {}),
   onConfigRefresh: jest.fn(() => {}),
   onUpdateSnackbar: jest.fn(() => {}),
+  selectedFirmwareVersion: '',
+  onSelectFirmwareVersion: jest.fn(() => {}),
+  firmwareBaseConfigs: {},
 };
 
 test('renders network sidebar without crashing', () => {
@@ -164,4 +167,42 @@ test('change E2E base fields', () => {
   expect(getByText('Show all')).toBeInTheDocument();
   fireEvent.click(getByText('Show all'));
   expect(defaultProps.onSetConfigBase).toHaveBeenCalled();
+});
+
+test('renders network firmware', () => {
+  const {getByText} = renderWithRouter(
+    <TestApp>
+      <ConfigSidebar
+        {...defaultProps}
+        firmwareBaseConfigs={{none: {}, test: {}}}
+        selectedFirmwareVersion="none"
+        editMode="NETWORK"
+      />
+    </TestApp>,
+  );
+  expect(getByText('Configuration Options')).toBeInTheDocument();
+  expect(getByText('Change Firmware Version')).toBeInTheDocument();
+  expect(getByText('none')).toBeInTheDocument();
+  fireEvent.click(getByText('none'));
+  expect(getByText('test')).toBeInTheDocument();
+});
+
+test('renders node config change', async () => {
+  const {getByText} = renderWithRouter(
+    <TestApp>
+      <ConfigSidebar
+        {...defaultProps}
+        firmwareBaseConfigs={{none: {}, test: {}}}
+        selectedFirmwareVersion="none"
+        editMode="NETWORK"
+      />
+    </TestApp>,
+  );
+  expect(getByText('Configuration Options')).toBeInTheDocument();
+  expect(getByText('none')).toBeInTheDocument();
+  fireEvent.click(getByText('none'));
+  expect(getByText('test')).toBeInTheDocument();
+  fireEvent.click(getByText('test'));
+  expect(getByText('test')).toBeInTheDocument();
+  expect(defaultProps.onSelectFirmwareVersion).toHaveBeenCalled();
 });

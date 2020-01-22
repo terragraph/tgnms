@@ -10,6 +10,7 @@ import React from 'react';
 import {
   ConfigLayer,
   DEFAULT_BASE_KEY,
+  DEFAULT_FIRMWARE_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
   NetworkConfigMode,
   SELECTED_NODE_QUERY_PARAM,
@@ -21,6 +22,7 @@ import {
   getBaseConfig,
   getConfigBundleStatus,
   getConfigMetadata,
+  getFirmwareBaseConfig,
   getHardwareBaseConfig,
   getNetworkOverridesConfig,
   getNodeOverridesConfig,
@@ -28,6 +30,7 @@ import {
   setNodeOverridesConfig,
 } from '../../apiutils/ConfigAPIUtil';
 import {
+  getFirmwareVersions,
   getNodeVersions,
   getTopologyNodeList,
 } from '../../helpers/ConfigHelpers';
@@ -51,12 +54,14 @@ type State = {
   autoOverridesConfig: ?{[string]: $Shape<NodeConfigType>},
   baseConfigs: ?{[string]: $Shape<NodeConfigType>},
   configMetadata: ?{[string]: $Shape<NodeConfigType>},
+  firmwareBaseConfigs: ?{[string]: $Shape<NodeConfigType>},
   hardwareBaseConfigs: ?{[string]: {[string]: $Shape<NodeConfigType>}},
   networkOverridesConfig: ?$Shape<NodeConfigType>,
   nodeOverridesConfig: ?{[string]: $Shape<NodeConfigType>},
   selectedNodeInfo: ?NodeConfigStatusType,
   selectedImage: string,
   selectedHardwareType: string,
+  selectedFirmwareVersion: string,
 };
 
 class NetworkConfig extends React.Component<Props, State> {
@@ -70,6 +75,8 @@ class NetworkConfig extends React.Component<Props, State> {
       baseConfigs: null,
       // Map of hardware model to base config
       hardwareBaseConfigs: null,
+      // Map of firmware to base config
+      firmwareBaseConfigs: null,
 
       // === Override layers ===
       // Automatic node overrides layer (read-only for NMS)
@@ -89,6 +96,9 @@ class NetworkConfig extends React.Component<Props, State> {
       // Currently selected image version / hardware type
       selectedImage: DEFAULT_BASE_KEY,
       selectedHardwareType: DEFAULT_HARDWARE_BASE_KEY,
+      selectedFirmwareVersion:
+        this.getCurrentFirmwareVersion(networkConfig) ||
+        DEFAULT_FIRMWARE_BASE_KEY,
     };
   }
 
@@ -140,6 +150,13 @@ class NetworkConfig extends React.Component<Props, State> {
     }
   };
 
+  getCurrentFirmwareVersion(networkConfig) {
+    const firmWareVersion = getFirmwareVersions(networkConfig)[0];
+    return (
+      firmWareVersion?.substring(0, firmWareVersion.lastIndexOf('.')) || null
+    );
+  }
+
   getNodeFromQueryString(networkConfig) {
     const values = new URL(window.location).searchParams;
     const name = values.get(SELECTED_NODE_QUERY_PARAM);
@@ -156,8 +173,10 @@ class NetworkConfig extends React.Component<Props, State> {
     const {
       baseConfigs,
       hardwareBaseConfigs,
+      firmwareBaseConfigs,
       nodeOverridesConfig,
       selectedImage,
+      selectedFirmwareVersion,
       selectedHardwareType,
       selectedNodeInfo,
     } = this.state;
@@ -167,7 +186,9 @@ class NetworkConfig extends React.Component<Props, State> {
       selectedNodeInfo,
       baseConfigs,
       hardwareBaseConfigs,
+      firmwareBaseConfigs,
       selectedImage,
+      selectedFirmwareVersion,
       selectedHardwareType,
       topologyNodeList: getTopologyNodeList(networkConfig, nodeOverridesConfig),
     };
@@ -181,12 +202,24 @@ class NetworkConfig extends React.Component<Props, State> {
     const imageVersions = [DEFAULT_BASE_KEY, ...getNodeVersions(networkConfig)];
     const data = {swVersions: [DEFAULT_BASE_KEY, ...imageVersions]};
 
+    //firmware
+    const firmwareData = {
+      apiData: {fwVersions: []},
+      ctrlVersion: networkConfig.controller_version,
+      defaultCfg: {none: {}},
+    };
+
     return [
       // Get base configs and metadata
       ...(isInitial
         ? [
             {func: getConfigMetadata, key: 'configMetadata'},
             {func: getBaseConfig, key: 'baseConfigs', data},
+            {
+              func: getFirmwareBaseConfig,
+              key: 'firmwareBaseConfigs',
+              data: firmwareData,
+            },
             {func: getHardwareBaseConfig, key: 'hardwareBaseConfigs', data},
           ]
         : []),
@@ -203,18 +236,22 @@ class NetworkConfig extends React.Component<Props, State> {
     const {
       baseConfigs,
       hardwareBaseConfigs,
+      firmwareBaseConfigs,
       selectedNodeInfo,
       selectedImage,
+      selectedFirmwareVersion,
       selectedHardwareType,
     } = this.state;
 
     // Merge software version base with hardware-specific base
-    let imageVersion, hardwareType;
+    let imageVersion, firmwareVersion, hardwareType;
     if (editMode === NetworkConfigMode.NETWORK) {
       imageVersion = selectedImage;
+      firmwareVersion = selectedFirmwareVersion;
       hardwareType = selectedHardwareType;
     } else if (editMode === NetworkConfigMode.NODE && selectedNodeInfo) {
       imageVersion = selectedNodeInfo.version || DEFAULT_BASE_KEY;
+      firmwareVersion = selectedFirmwareVersion || DEFAULT_FIRMWARE_BASE_KEY;
       hardwareType =
         selectedNodeInfo.hardwareBoardId || DEFAULT_HARDWARE_BASE_KEY;
     } else {
@@ -222,12 +259,16 @@ class NetworkConfig extends React.Component<Props, State> {
       return null;
     }
     const baseConfig = baseConfigs ? baseConfigs[imageVersion] : {};
+    const firmwareOverrides =
+      firmwareBaseConfigs && firmwareBaseConfigs[firmwareVersion]
+        ? firmwareBaseConfigs[firmwareVersion]
+        : {};
     const hardwareOverrides = get(
       hardwareBaseConfigs,
       [hardwareType, imageVersion],
       {},
     );
-    return merge(cloneDeep(baseConfig), hardwareOverrides);
+    return merge(cloneDeep(baseConfig), firmwareOverrides, hardwareOverrides);
   };
 
   getConfigLayers = editMode => {
@@ -362,6 +403,14 @@ class NetworkConfig extends React.Component<Props, State> {
     this.setState({selectedHardwareType: hardwareType}, callback);
   };
 
+  handleSelectFirmwareVersion = (firmWareVersion, callback) => {
+    // Select a firmware version in the sidebar
+    if (this.state.selectedFirmwareVersion === firmWareVersion) {
+      return; // already selected
+    }
+    this.setState({selectedFirmwareVersion: firmWareVersion}, callback);
+  };
+
   render() {
     const {networkConfig, networkName} = this.props;
     const {selectedNodeInfo} = this.state;
@@ -384,6 +433,7 @@ class NetworkConfig extends React.Component<Props, State> {
         onEditModeChanged={this.handleEditModeChange}
         onSelectNode={this.handleSelectNode}
         onSelectImage={this.handleSelectImage}
+        onSelectFirmwareVersion={this.handleSelectFirmwareVersion}
         onSelectHardwareType={this.handleSelectHardwareType}
       />
     );

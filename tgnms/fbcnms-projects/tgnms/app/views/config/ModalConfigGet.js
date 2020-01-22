@@ -15,11 +15,13 @@ import Typography from '@material-ui/core/Typography';
 import copy from 'copy-to-clipboard';
 import {
   DEFAULT_BASE_KEY,
+  DEFAULT_FIRMWARE_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
 } from '../../constants/ConfigConstants';
 import {createSelectInput} from '../../helpers/FormHelpers';
 import {
   getBaseConfig,
+  getFirmwareBaseConfig,
   getFullNodeConfig,
   getHardwareBaseConfig,
   sendConfigBundleToNode,
@@ -88,9 +90,12 @@ type State = {
   nodeConfig: ?string,
   selectedImage: string,
   selectedHardwareType: string,
+  selectedFirmwareVersion: string,
   defaultImage: string,
   defaultHardwareType: string,
+  defaultFirmwareVersion: string,
   baseConfigs: ?Array<string>,
+  firmwareBaseConfigs: ?Array<string>,
   hardwareBaseConfigs: ?Array<string>,
   error: ?string,
   pendingNodeupdateReq: boolean,
@@ -103,11 +108,14 @@ class ModalConfigGet extends React.Component<Props, State> {
     ...initStatePartial,
     selectedImage: '',
     selectedHardwareType: '',
-    defaultImage: '',
-    defaultHardwareType: '',
+    selectedFirmwareVersion: '',
+    defaultImage: DEFAULT_BASE_KEY,
+    defaultFirmwareVersion: DEFAULT_FIRMWARE_BASE_KEY,
+    defaultHardwareType: DEFAULT_HARDWARE_BASE_KEY,
 
     // Base configs - only load these once (not every onEnter)
     baseConfigs: null,
+    firmwareBaseConfigs: null,
     hardwareBaseConfigs: null,
     error: null,
     pendingNodeupdateReq: false,
@@ -116,15 +124,21 @@ class ModalConfigGet extends React.Component<Props, State> {
 
   isBaseConfigLoaded = () => {
     // Returns whether all base configs have been loaded
-    const {baseConfigs, hardwareBaseConfigs} = this.state;
-    return baseConfigs && hardwareBaseConfigs;
+    const {baseConfigs, hardwareBaseConfigs, firmwareBaseConfigs} = this.state;
+    return baseConfigs && hardwareBaseConfigs && firmwareBaseConfigs;
   };
 
   fetchAllBaseConfigs = () => {
     // Fetch all base configs from the controller
-    const {networkName} = this.props;
+    const {networkName, networkConfig} = this.props;
 
-    const data = {hwBoardIds: [], swVersions: []};
+    const data = {hwBoardIds: [], swVersions: [], fwVersions: []};
+    const firmwareData = {
+      apiData: {fwVersions: []},
+      ctrlVersion: networkConfig.controller_version,
+      defaultCfg: {none: {}},
+    };
+
     const onError = error => this.setState({error});
     getBaseConfig(
       networkName,
@@ -146,16 +160,32 @@ class ModalConfigGet extends React.Component<Props, State> {
         }),
       onError,
     );
+    getFirmwareBaseConfig(
+      networkName,
+      firmwareData,
+      firmwareBaseConfigs =>
+        this.setState({
+          firmwareBaseConfigs: firmwareBaseConfigs
+            ? Object.keys(firmwareBaseConfigs)
+            : null,
+        }),
+      onError,
+    );
   };
 
   fetchFullNodeConfig = () => {
     // Retrieve the full config for the current node
     const {networkName, nodeInfo} = this.props;
-    const {selectedImage, selectedHardwareType} = this.state;
+    const {
+      selectedImage,
+      selectedHardwareType,
+      selectedFirmwareVersion,
+    } = this.state;
 
     const data = {
       node: nodeInfo.name,
       swVersion: selectedImage,
+      fwVersion: selectedFirmwareVersion,
       hwBoardId: selectedHardwareType,
     };
     const onError = error => this.setState({error});
@@ -193,14 +223,18 @@ class ModalConfigGet extends React.Component<Props, State> {
     // Set default state
     const defaultImage =
       nodeInfo.version || networkConfig.controller_version || DEFAULT_BASE_KEY;
+    const defaultFirmwareVersion =
+      nodeInfo.firmwareVersion || DEFAULT_FIRMWARE_BASE_KEY;
     const defaultHardwareType =
       nodeInfo.hardwareBoardId || DEFAULT_HARDWARE_BASE_KEY;
     this.setState(
       {
         ...initStatePartial,
         defaultImage,
+        defaultFirmwareVersion,
         defaultHardwareType,
         selectedImage: defaultImage,
+        selectedFirmwareVersion: defaultFirmwareVersion,
         selectedHardwareType: defaultHardwareType,
       },
       () => {
@@ -228,22 +262,41 @@ class ModalConfigGet extends React.Component<Props, State> {
     const {
       baseConfigs,
       hardwareBaseConfigs,
+      firmwareBaseConfigs,
       defaultImage,
+      defaultFirmwareVersion,
       defaultHardwareType,
     } = this.state;
 
     const baseConfigOptions = baseConfigs
       ? Array.from(new Set([...baseConfigs, defaultImage]))
       : [defaultImage];
+
+    const firmwareBaseConfigOptions = firmwareBaseConfigs
+      ? Array.from(new Set([...firmwareBaseConfigs, defaultFirmwareVersion]))
+      : [defaultFirmwareVersion];
+
     const hardwareBaseConfigOptions = hardwareBaseConfigs
       ? Array.from(new Set([...hardwareBaseConfigs, defaultHardwareType]))
       : [defaultHardwareType];
+
     const inputs = [
       {
         func: createSelectInput,
         label: 'Base Version',
         value: 'selectedImage',
         menuItems: baseConfigOptions.map(ver => (
+          <MenuItem key={ver} value={ver}>
+            {ver}
+          </MenuItem>
+        )),
+        onChange: this.fetchFullNodeConfig,
+      },
+      {
+        func: createSelectInput,
+        label: 'Firmware Version',
+        value: 'selectedFirmwareVersion',
+        menuItems: firmwareBaseConfigOptions.map(ver => (
           <MenuItem key={ver} value={ver}>
             {ver}
           </MenuItem>

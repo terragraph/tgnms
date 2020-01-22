@@ -34,6 +34,7 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import type {NetworkConfig} from '../../NetworkContext';
 import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
+import type {NodeConfigType} from '../../../shared/types/NodeConfig';
 
 const styles = theme => ({
   header: {
@@ -113,13 +114,16 @@ type Props = {
   onChangeEditorType: boolean => any,
   selectedNodeInfo: ?Object,
   onSelectNode: NodeConfigStatusType => any,
-  baseConfigs: ?Object,
+  baseConfigs: ?{[string]: $Shape<NodeConfigType>},
   selectedImage: ?string,
   onSelectImage: string => void,
-  hardwareBaseConfigs: ?Object,
+  hardwareBaseConfigs: ?{[string]: {[string]: $Shape<NodeConfigType>}},
+  firmwareBaseConfigs: ?{[string]: $Shape<NodeConfigType>},
   selectedHardwareType: ?string,
+  selectedFirmwareVersion: ?string,
   onSelectHardwareType: string => void,
-  topologyNodeList: ?Array<Object>,
+  onSelectFirmwareVersion: string => void,
+  topologyNodeList: ?Array<NodeConfigStatusType>,
   useMetadataBase: ?boolean,
   onSetConfigBase: boolean => void,
   onConfigRefresh: (string, boolean) => void,
@@ -130,6 +134,7 @@ type State = {
   useRawJsonEditor: boolean,
   selectedImage: string,
   selectedHardwareType: string,
+  selectedFirmwareVersion: string,
   nodeFilter: string,
   useMetadataBase: boolean,
   searchFilter: string,
@@ -141,6 +146,7 @@ class ConfigSidebar extends React.Component<Props, State> {
   state = {
     useRawJsonEditor: false,
     selectedImage: '',
+    selectedFirmwareVersion: '',
     selectedHardwareType: '',
     nodeFilter: nodeFilterOptions[0].label,
     useMetadataBase: false,
@@ -155,6 +161,7 @@ class ConfigSidebar extends React.Component<Props, State> {
       useRawJsonEditor: nextProps.useRawJsonEditor,
       selectedImage: nextProps.selectedImage,
       selectedHardwareType: nextProps.selectedHardwareType,
+      selectedFirmwareVersion: nextProps.selectedFirmwareVersion,
       useMetadataBase: nextProps.useMetadataBase,
     };
   }
@@ -167,6 +174,8 @@ class ConfigSidebar extends React.Component<Props, State> {
       this.props.useRawJsonEditor !== nextProps.useRawJsonEditor ||
       this.props.selectedImage !== nextProps.selectedImage ||
       this.props.selectedHardwareType !== nextProps.selectedHardwareType ||
+      this.props.selectedFirmwareVersion !==
+        nextProps.selectedFirmwareVersion ||
       !isEqual(this.props.selectedNodeInfo, nextProps.selectedNodeInfo) ||
       !isEqual(this.props.topologyNodeList, nextProps.topologyNodeList)
     );
@@ -420,9 +429,11 @@ class ConfigSidebar extends React.Component<Props, State> {
       useRawJsonEditor,
       baseConfigs,
       hardwareBaseConfigs,
+      firmwareBaseConfigs,
       networkName,
       onSelectImage,
       onSelectHardwareType,
+      onSelectFirmwareVersion,
       topologyNodeList,
     } = this.props;
 
@@ -440,6 +451,17 @@ class ConfigSidebar extends React.Component<Props, State> {
               </MenuItem>
             )),
             onChange: onSelectImage,
+          },
+          {
+            func: createSelectInput,
+            label: 'Change Firmware Version',
+            value: 'selectedFirmwareVersion',
+            menuItems: Object.keys(firmwareBaseConfigs || {}).map(ver => (
+              <MenuItem key={ver} value={ver}>
+                {ver}
+              </MenuItem>
+            )),
+            onChange: onSelectFirmwareVersion,
           },
           {
             func: createSelectInput,

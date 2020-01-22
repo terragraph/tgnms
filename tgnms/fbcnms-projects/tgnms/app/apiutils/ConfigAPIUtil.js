@@ -9,6 +9,7 @@ import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
 import {cleanupObject, sortConfig} from '../helpers/ConfigHelpers';
 import {isPlainObject} from 'lodash';
 import {nodeupdateServerRequest} from './NodeupdateAPIUtil';
+import {supportsFirmwareApiRequest} from '../helpers/TgFeatures';
 
 import type {AggregatorConfigType} from '../../shared/types/Aggregator';
 import type {ControllerConfigType} from '../../shared/types/Controller';
@@ -17,13 +18,16 @@ import type {NodeConfigType} from '../../shared/types/NodeConfig';
 import type {NodeConfigStatusType} from '../helpers/ConfigHelpers';
 
 // Generic success handler
-const onSuccess = (response, key, onResolve, processResults) => {
+const onSuccess = (response, key, onResolve, processResults, defaultCfg) => {
   let cfg = JSON.parse(response.data[key]);
   if (!isPlainObject(cfg)) {
     cfg = {};
   }
   if (processResults) {
     cfg = processResults(cfg);
+  }
+  if (defaultCfg) {
+    cfg = {...defaultCfg, ...cfg};
   }
   onResolve && onResolve(cfg);
 };
@@ -73,6 +77,35 @@ export const getHardwareBaseConfig = (
   apiServiceRequest(networkName, 'getHardwareBaseConfig', data)
     .then(response => onSuccess(response, 'config', onResolve, sortConfig))
     .catch(err => onReject && onReject(getErrorTextFromE2EAck(err)));
+};
+
+// Get firmware base config
+export const getFirmwareBaseConfig = (
+  networkName: string,
+  data: {
+    apiData: {fwVersions: Array<string>},
+    ctrlVersion: string,
+    defaultCfg: {},
+  },
+  onResolve: (?{[string]: $Shape<NodeConfigType>}) => any,
+  _onReject: string => any,
+) => {
+  if (supportsFirmwareApiRequest(data.ctrlVersion)) {
+    apiServiceRequest(networkName, 'getFirmwareBaseConfig', data.apiData)
+      .then(response => {
+        onSuccess(response, 'config', onResolve, sortConfig, data.defaultCfg);
+      })
+      .catch(err => {
+        //if a network doesn't have firmware layer, we still need config to load
+        onResolve && onResolve(data.defaultCfg);
+        console.error(
+          'Failed to get Firmware Base Config',
+          getErrorTextFromE2EAck(err),
+        );
+      });
+  } else {
+    onResolve && onResolve(data.defaultCfg);
+  }
 };
 
 // Get auto node overrides

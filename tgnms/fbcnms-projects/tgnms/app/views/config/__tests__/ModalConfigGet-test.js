@@ -23,6 +23,7 @@ const defaultProps = {
     macAddr: 'test',
     isAlive: false,
     version: null,
+    firmwareVersion: null,
     hardwareBoardId: null,
     hasOverride: false,
     isCn: false,

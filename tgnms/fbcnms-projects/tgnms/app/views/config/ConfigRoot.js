@@ -105,8 +105,10 @@ type Props = {
     editMode: string,
     selectedNodeInfo?: ?NodeConfigStatusType,
     baseConfigs?: ?{[string]: $Shape<NodeConfigType>},
+    firmwareBaseConfigs?: ?{[string]: $Shape<NodeConfigType>},
     hardwareBaseConfigs?: ?{[string]: {[string]: $Shape<NodeConfigType>}},
     selectedImage?: ?string,
+    selectedFirmwareVersion?: ?string,
     selectedHardwareType?: ?string,
     topologyNodeList?: ?Array<NodeConfigStatusType>,
     useMetadataBase?: boolean,
@@ -122,6 +124,7 @@ type Props = {
   onEditModeChanged: ?(string) => any,
   onSelectNode?: (?NodeConfigStatusType, () => any) => any,
   onSelectImage?: ?(string, () => any) => any,
+  onSelectFirmwareVersion?: ?(string, () => any) => any,
   onSelectHardwareType?: ?(string, () => any) => any,
   onSetConfigBase?: ?(boolean, () => any) => any,
 };
@@ -440,6 +443,14 @@ class ConfigRoot extends React.Component<Props, State> {
       onSelectHardwareType(hardwareType, this.updateConfigData);
   };
 
+  handleSelectFirmwareVersion = firmwareVersion => {
+    // Select a firmware version in the sidebar
+    const {onSelectFirmwareVersion} = this.props;
+
+    onSelectFirmwareVersion &&
+      onSelectFirmwareVersion(firmwareVersion, this.updateConfigData);
+  };
+
   handleSetConfigBase = useMetadataBase => {
     // Toggle the E2E config metadata base values in the sidebar
     const {onSetConfigBase} = this.props;
@@ -484,6 +495,7 @@ class ConfigRoot extends React.Component<Props, State> {
             onSelectNode={this.handleSelectNode}
             onSelectImage={this.handleSelectImage}
             onSelectHardwareType={this.handleSelectHardwareType}
+            onSelectFirmwareVersion={this.handleSelectFirmwareVersion}
             onSetConfigBase={this.handleSetConfigBase}
             onConfigRefresh={this.getConfigsForNetwork}
             onUpdateSnackbar={this.updateSnackbar}

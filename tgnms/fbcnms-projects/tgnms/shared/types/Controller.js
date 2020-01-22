@@ -637,7 +637,8 @@ export type StatusReportType = {|
   nodeIsPrimary?: boolean,
   bgpStatus: BgpStatusMap,
   hardwareBoardId?: ?string,
-  radioStatus?: ?{[string]: RadioStatus}
+  radioStatus?: ?{[string]: RadioStatus},
+  firmwareVersion?: ?string,
 |};
 
 export type BgpStatusMap = {|

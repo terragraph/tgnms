@@ -30,6 +30,7 @@ export type NodeConfigStatusType = {
   macAddr: string,
   isAlive: boolean,
   version: ?string,
+  firmwareVersion: ?string,
   hardwareBoardId: ?string,
   hasOverride: boolean,
   isCn: boolean,
@@ -148,6 +149,7 @@ export const getTopologyNodeList = (
       macAddr: node.mac_addr,
       isAlive: isNodeAlive(node.status),
       version: (statusReport && statusReport.version) || null,
+      firmwareVersion: (statusReport && statusReport.firmwareVersion) || null,
       hardwareBoardId: (statusReport && statusReport.hardwareBoardId) || null,
       hasOverride:
         nodeOverridesConfig !== undefined &&
@@ -473,4 +475,21 @@ export const constructConfigFromMetadata = (
     keys.pop();
   });
   return obj;
+};
+
+/**
+ * Return's a list of all firmware versions for the given networkConfig
+ */
+export const getFirmwareVersions = (networkConfig: NetworkConfig) => {
+  const {topology, status_dump} = networkConfig;
+  if (!topology || !topology.nodes) {
+    return [];
+  }
+
+  const firmwareVersions = topology.nodes
+    .filter(node => status_dump.statusReports.hasOwnProperty(node.mac_addr))
+    .map(
+      node => status_dump.statusReports[node.mac_addr].firmwareVersion || '',
+    );
+  return Array.from<string>(new Set(firmwareVersions));
 };
