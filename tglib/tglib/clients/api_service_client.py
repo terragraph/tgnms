@@ -5,7 +5,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import Dict, List, Optional, cast
+from typing import Dict, Iterable, Optional, cast
 
 import aiohttp
 
@@ -36,11 +36,11 @@ class APIServiceClient(BaseClient):
         self.timeout = timeout
 
     @property
-    def network_names(self) -> List[str]:
+    def network_names(self) -> Iterable[str]:
         if self._networks is None:
             raise ClientStoppedError()
 
-        return list(self._networks.keys())
+        return self._networks.keys()
 
     @classmethod
     async def start(cls, config: Dict) -> None:
