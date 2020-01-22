@@ -8,7 +8,7 @@ ptr_params = {
     "entry_point_module": "topology_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {"topology_service/utils.py": 100, "TOTAL": 11},
+    "required_coverage": {"topology_service/utils.py": 100, "TOTAL": 10},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,
@@ -16,9 +16,9 @@ ptr_params = {
 
 setup(
     name="topology_service",
-    version="2020.01.17",
+    version="2020.01.22",
     packages=["topology_service"],
-    install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
+    install_requires=["aiohttp", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["topology_service = topology_service.main:main"]},

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import datetime
 import json
-import re
+from datetime import datetime
 from functools import partial
 
 from aiohttp import web
@@ -33,14 +32,14 @@ async def handle_get_topology(request: web.Request) -> web.Response:
       schema:
         type: string
     - in: query
-      name: start_time
-      description: The start datetime of the query in ISO 8601 format
+      name: start_dt
+      description: The start UTC datetime of the query in ISO 8601 format
       required: true
       schema:
         type: string
     - in: query
-      name: end_time
-      description: The end datetime of the query in ISO 8601 format. Defaults to current datetime.
+      name: end_dt
+      description: The end UTC datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
       schema:
         type: string
     responses:
@@ -50,34 +49,36 @@ async def handle_get_topology(request: web.Request) -> web.Response:
         description: Invalid or missing parameters.
     """
     network_name = request.match_info["network_name"]
-    start_time = request.rel_url.query.get("start_time")
-    end_time = request.rel_url.query.get("end_time")
+    start_dt = request.rel_url.query.get("start_dt")
+    end_dt = request.rel_url.query.get("end_dt")
 
-    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
+    # Parse start_dt, raise '400' if missing/invalid
+    if start_dt is None:
+        raise web.HTTPBadRequest(text="'start_dt' is missing from query string")
 
-    # Parse start_time, raise '400' if not provided/valid
-    if start_time and re.fullmatch(datetime_re, start_time):
-        start_time_obj = datetime.datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        start_dt_obj = datetime.fromisoformat(start_dt)
+    except ValueError:
+        raise web.HTTPBadRequest(text=f"'start_dt' is invalid ISO 8601: '{start_dt}'")
+
+    # Parse end_dt, use current datetime if not provided. Raise '400' if invalid
+    if end_dt is None:
+        end_dt_obj = datetime.utcnow()
     else:
-        raise web.HTTPBadRequest(text="'start_time' is missing/not valid ISO 8601")
-
-    # Parse end_time, use current datetime if not provided, raise '400' if invalid
-    if not end_time:
-        end_time_obj = datetime.datetime.now()
-    elif re.fullmatch(datetime_re, end_time):
-        end_time_obj = datetime.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
-    else:
-        raise web.HTTPBadRequest(text="'end_time' is not valid ISO 8601")
+        try:
+            end_dt_obj = datetime.fromisoformat(end_dt)
+        except ValueError:
+            raise web.HTTPBadRequest(text=f"'end_dt' is invalid ISO 8601: '{end_dt}'")
 
     query = select([TopologyHistory.topology, TopologyHistory.last_updated]).where(
         (TopologyHistory.network_name == network_name)
-        & (TopologyHistory.last_updated >= start_time_obj)
-        & (TopologyHistory.last_updated <= end_time_obj)
+        & (TopologyHistory.last_updated >= start_dt_obj)
+        & (TopologyHistory.last_updated <= end_dt_obj)
     )
 
     async with MySQLClient().lease() as sa_conn:
         cursor = await sa_conn.execute(query)
-        results = await cursor.fetchall()
         return web.json_response(
-            [dict(row) for row in results], dumps=partial(json.dumps, default=str)
+            [dict(row) for row in await cursor.fetchall()],
+            dumps=partial(json.dumps, default=str),
         )
