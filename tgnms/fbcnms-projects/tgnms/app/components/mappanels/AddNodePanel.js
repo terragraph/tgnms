@@ -9,6 +9,7 @@ import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import EditIcon from '@material-ui/icons/Edit';
 import EditRadioMacs from './EditRadioMacs';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -30,11 +31,8 @@ import {
   formParseFloat,
   formParseInt,
 } from '../../helpers/FormHelpers';
-import {
-  getEditIcon,
-  sendTopologyBuilderRequest,
-} from '../../helpers/MapPanelHelpers';
 import {isEqual} from 'lodash';
+import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {
   supportsUserSpecifiedPolairtyAndGolay,
   useNodeWlanMacs,
@@ -501,9 +499,9 @@ class AddNodePanel extends React.Component<Props, State> {
     // Change form based on form type
     const title = formType === FormType.EDIT ? initialParams.name : 'Add Node';
     const titleIcon =
-      formType === FormType.EDIT
-        ? getEditIcon({classes: {root: classes.iconCentered}})
-        : null;
+      formType === FormType.EDIT ? (
+        <EditIcon classes={{root: classes.iconCentered}} />
+      ) : null;
 
     return (
       <CustomExpansionPanel

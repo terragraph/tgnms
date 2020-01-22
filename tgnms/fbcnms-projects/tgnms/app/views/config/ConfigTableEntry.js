@@ -16,6 +16,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import React from 'react';
 import RedoIcon from '@material-ui/icons/Redo';
+import RouterIcon from '@material-ui/icons/Router';
 import SaveIcon from '@material-ui/icons/Save';
 import ScatterPlotIcon from '@material-ui/icons/ScatterPlot';
 import TableCell from '@material-ui/core/TableCell';
@@ -29,7 +30,6 @@ import {
   CONFIG_FIELD_DELIMITER,
   ConfigLayer,
 } from '../../constants/ConfigConstants';
-import {getNodeIcon} from '../../helpers/MapPanelHelpers';
 import {isEqual, truncate} from 'lodash';
 import {shallowEqual, validateField} from '../../helpers/ConfigHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
@@ -324,7 +324,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
         ) : id === ConfigLayer.NETWORK ? (
           <ScatterPlotIcon {...iconProps} />
         ) : id === ConfigLayer.NODE ? (
-          getNodeIcon(iconProps)
+          <RouterIcon {...iconProps} />
         ) : id === ConfigLayer.DRAFT ? (
           <EditIcon {...iconProps} />
         ) : null;

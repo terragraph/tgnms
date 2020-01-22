@@ -6,15 +6,18 @@
  */
 
 import Button from '@material-ui/core/Button';
+import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import FriendlyText from '../common/FriendlyText';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
 import MaterialModal from '../common/MaterialModal';
 import NetworkContext from '../../NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import PropTypes from 'prop-types';
 import React from 'react';
+import RouterIcon from '@material-ui/icons/Router';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StatusText from '../common/StatusText';
 import Text from '@fbcnms/i18n/Text';
@@ -37,11 +40,6 @@ import {
   formatNumberFixed,
   toTitleCase,
 } from '../../helpers/StringHelpers';
-import {
-  getLinkIcon,
-  getNodeIcon,
-  getSiteIcon,
-} from '../../helpers/MapPanelHelpers';
 import {has, invert} from 'lodash';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
@@ -579,7 +577,7 @@ class OverviewPanel extends React.Component<Props, State> {
         </Text>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">
-            {getNodeIcon({classes: {root: classes.iconCentered}})}
+            {<RouterIcon classes={{root: classes.iconCentered}} />}
             {this.props.t('sectors_online', 'Sectors Online')}
           </Typography>
           <Typography className={classes.vCenter}>
@@ -589,7 +587,7 @@ class OverviewPanel extends React.Component<Props, State> {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">
-            {getLinkIcon({classes: {root: classes.iconCentered}})}
+            {<CompareArrowsIcon classes={{root: classes.iconCentered}} />}
             {this.props.t('rf_links_online', 'RF Links Online')}
           </Typography>
           <Typography className={classes.vCenter}>
@@ -598,7 +596,7 @@ class OverviewPanel extends React.Component<Props, State> {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">
-            {getSiteIcon({classes: {root: classes.iconCentered}})}
+            {<LocationOnIcon classes={{root: classes.iconCentered}} />}
             {this.props.t('total_sites', 'Total Sites')}
           </Typography>
           <Typography className={classes.vCenter}>

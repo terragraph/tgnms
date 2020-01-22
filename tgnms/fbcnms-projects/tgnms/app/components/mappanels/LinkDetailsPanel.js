@@ -6,7 +6,9 @@
  */
 
 import * as React from 'react';
+import ActionsMenu from './ActionsMenu';
 import BuildIcon from '@material-ui/icons/Build';
+import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
@@ -17,6 +19,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
+import RouterIcon from '@material-ui/icons/Router';
 import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import StatusText from '../common/StatusText';
@@ -28,11 +31,6 @@ import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Co
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
-import {
-  createActionsMenu,
-  getLinkIcon,
-  getNodeIcon,
-} from '../../helpers/MapPanelHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
 import {
@@ -253,7 +251,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     return (
       <>
         <Divider />
-        {createActionsMenu({actionItems}, this.state, this.setState.bind(this))}
+        <ActionsMenu options={{actionItems}} />
       </>
     );
   }
@@ -279,7 +277,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
               key={node}
               onClick={() => this.props.onSelectNode(node)}>
               <ListItemIcon classes={{root: classes.listItemIcon}}>
-                {getNodeIcon()}
+                {<RouterIcon />}
               </ListItemIcon>
               <ListItemText
                 primary={node}
@@ -432,7 +430,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     return (
       <CustomExpansionPanel
         title={link.name}
-        titleIcon={getLinkIcon({classes: {root: classes.iconCentered}})}
+        titleIcon={<CompareArrowsIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}
         expanded={expanded}
         onChange={onPanelChange}

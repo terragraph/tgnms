@@ -10,15 +10,11 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MapboxGeocoder from './MapboxGeocoder';
 import React from 'react';
+import TgMapboxGeocoderIcon from './TgMapboxGeocoderIcon';
 import mapboxgl from 'mapbox-gl';
 import {LinkTypeValueMap} from '../../../shared/types/Topology';
 import {TopologyElementType} from '../../constants/NetworkConstants';
 import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {
-  getLinkIcon,
-  getNodeIcon,
-  getSiteIcon,
-} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {Feature} from '../../../../inventory/app/components/map/geocoder/MapGeocoder';
@@ -228,12 +224,6 @@ class TgMapboxGeocoder extends React.Component<Props> {
         {result.label.substr(result.matchIdx + result.matchLen)}
       </span>
     );
-    const icon =
-      result.type === TopologyElementType.NODE
-        ? getNodeIcon()
-        : result.type === TopologyElementType.LINK
-        ? getLinkIcon()
-        : getSiteIcon();
 
     return (
       <ListItem
@@ -253,7 +243,7 @@ class TgMapboxGeocoder extends React.Component<Props> {
           handleClearInput();
         }}>
         <ListItemIcon classes={{root: classes.listItemIcon}}>
-          {icon}
+          <TgMapboxGeocoderIcon resultType={result.type} />
         </ListItemIcon>
         <ListItemText primary={primaryText} />
       </ListItem>

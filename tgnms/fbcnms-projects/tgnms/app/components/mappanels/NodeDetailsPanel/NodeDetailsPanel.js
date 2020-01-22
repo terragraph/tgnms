@@ -5,6 +5,7 @@
  * @flow
  */
 
+import ActionsMenu from '../ActionsMenu';
 import CustomExpansionPanel from '../../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
@@ -19,7 +20,6 @@ import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../../apiutils/ServiceAPIUtil';
-import {createActionsMenu, getNodeIcon} from '../../../helpers/MapPanelHelpers';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
 import {setUrlSearchParam} from '../../../helpers/NetworkTestHelpers';
 import {supportsTopologyScan} from '../../../helpers/TgFeatures';
@@ -238,16 +238,12 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     return (
       <CustomExpansionPanel
         title={node.name}
-        titleIcon={getNodeIcon({classes: {root: classes.iconCentered}})}
+        titleIcon={<RouterIcon classes={{root: classes.iconCentered}} />}
         details={
           <div style={{width: '100%'}}>
             <NodeDetails {...nodeDetailsProps} node={node} />
             <Divider />
-            {createActionsMenu(
-              {actionItems},
-              this.state,
-              this.setState.bind(this),
-            )}
+            <ActionsMenu options={{actionItems}} />
           </div>
         }
         expanded={expanded}

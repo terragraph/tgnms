@@ -14,13 +14,14 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import {KeyboardDatePicker} from '@material-ui/pickers';
 import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
 import {getDefaultRouteHistory} from '../../apiutils/DefaultRouteHistoryAPIUtil';
-import {getShowRoutesIcon} from '../../helpers/MapPanelHelpers';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
 import type {NodeMap, Site} from '../../NetworkContext';
 import type {NodeType, TopologyType} from '../../../shared/types/Topology';
 
@@ -437,7 +438,7 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     return (
       <CustomExpansionPanel
         title="Default Routes"
-        titleIcon={getShowRoutesIcon({classes: {root: classes.iconCentered}})}
+        titleIcon={<TimelineIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}
         expanded={expanded}
         onChange={() => this.setState({expanded: !expanded})}

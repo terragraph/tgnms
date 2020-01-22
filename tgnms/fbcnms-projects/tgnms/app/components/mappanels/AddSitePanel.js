@@ -7,6 +7,7 @@
 
 import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
@@ -15,12 +16,11 @@ import {
   createTextInput,
   formParseFloat,
 } from '../../helpers/FormHelpers';
+import {isEqual} from 'lodash';
 import {
-  getEditIcon,
   sendTopologyBuilderRequest,
   sendTopologyEditRequest,
 } from '../../helpers/MapPanelHelpers';
-import {isEqual} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 import type {LocationType} from '../../../shared/types/Topology';
 import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
@@ -254,9 +254,9 @@ class AddSitePanel extends React.Component<Props, State> {
     const title =
       formType === FormType.EDIT ? initialParams.name : 'Add Planned Site';
     const titleIcon =
-      formType === FormType.EDIT
-        ? getEditIcon({classes: {root: classes.iconCentered}})
-        : null;
+      formType === FormType.EDIT ? (
+        <EditIcon classes={{root: classes.iconCentered}} />
+      ) : null;
 
     return (
       <CustomExpansionPanel

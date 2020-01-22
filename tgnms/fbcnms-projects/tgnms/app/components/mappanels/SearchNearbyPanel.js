@@ -5,8 +5,10 @@
  * @flow
  */
 
+import AddLocationIcon from '@material-ui/icons/AddLocation';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Collapse from '@material-ui/core/Collapse';
+import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
@@ -20,7 +22,9 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import NearMeIcon from '@material-ui/icons/NearMe';
 import React from 'react';
+import RouterIcon from '@material-ui/icons/Router';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
@@ -35,12 +39,6 @@ import {
   renderSnrWithIcon,
 } from '../../helpers/NetworkHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
-import {
-  getAddSiteIcon,
-  getLinkIcon,
-  getNodeIcon,
-  getSearchNearbyIcon,
-} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
@@ -270,14 +268,14 @@ class SearchNearbyPanel extends React.Component<Props, State> {
         // Show node name if it is in the topology
         options.push({
           label: rxNode.name,
-          icon: getNodeIcon(),
+          icon: <RouterIcon />,
           func: () => {},
           disabled: true,
         });
       } else {
         options.push({
           label: 'Add Node',
-          icon: getNodeIcon(),
+          icon: <RouterIcon />,
           func: () => onAddNode({mac_addr: actionsData.macAddr}),
           disabled: false,
         });
@@ -287,7 +285,7 @@ class SearchNearbyPanel extends React.Component<Props, State> {
           // Show link name if it is in the topology
           options.push({
             label: link.name,
-            icon: getLinkIcon(),
+            icon: <CompareArrowsIcon />,
             func: () => {},
             disabled: true,
           });
@@ -295,7 +293,7 @@ class SearchNearbyPanel extends React.Component<Props, State> {
           // Render 'Add Link' button if node is present, but link is not
           options.push({
             label: 'Add Link',
-            icon: getLinkIcon(),
+            icon: <CompareArrowsIcon />,
             func: () =>
               onAddLink({
                 linkNode1: node.name,
@@ -310,7 +308,7 @@ class SearchNearbyPanel extends React.Component<Props, State> {
         if (actionsData.location) {
           options.push({
             label: 'Add Site',
-            icon: getAddSiteIcon(),
+            icon: <AddLocationIcon />,
             func: () => onAddSite(actionsData.location || {}),
             disabled: false,
           });
@@ -559,7 +557,7 @@ class SearchNearbyPanel extends React.Component<Props, State> {
     return (
       <CustomExpansionPanel
         title={node.name}
-        titleIcon={getSearchNearbyIcon({classes: {root: classes.iconCentered}})}
+        titleIcon={<NearMeIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}
         expanded={expanded}
         onChange={() => this.setState({expanded: !expanded})}

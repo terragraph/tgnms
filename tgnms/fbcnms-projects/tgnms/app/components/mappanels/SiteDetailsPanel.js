@@ -5,29 +5,27 @@
  * @flow
  */
 
+import ActionsMenu from './ActionsMenu';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
+import EditIcon from '@material-ui/icons/Edit';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
 import React from 'react';
 import SiteDetailsNodeIcon from '../mappanels/SiteDetailsNodeIcon';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import geolib from 'geolib';
 import moment from 'moment';
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
-import {
-  createActionsMenu,
-  getEditIcon,
-  getShowRoutesIcon,
-  getSiteIcon,
-} from '../../helpers/MapPanelHelpers';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
@@ -280,7 +278,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
         actions: [
           {
             label: 'Edit Site',
-            icon: getEditIcon(),
+            icon: <EditIcon />,
             func: () => this.onEditSite(),
           },
           {
@@ -297,7 +295,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
               actions: [
                 {
                   label: 'Show Routes',
-                  icon: getShowRoutesIcon(),
+                  icon: <TimelineIcon />,
                   func: this.onShowRoutes,
                 },
               ],
@@ -309,7 +307,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     return (
       <>
         <Divider />
-        {createActionsMenu({actionItems}, this.state, this.setState.bind(this))}
+        <ActionsMenu options={{actionItems}} />
       </>
     );
   }
@@ -557,7 +555,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     return (
       <CustomExpansionPanel
         title={site.name}
-        titleIcon={getSiteIcon({classes: {root: classes.iconCentered}})}
+        titleIcon={<LocationOnIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}
         expanded={expanded}
         onChange={onPanelChange}

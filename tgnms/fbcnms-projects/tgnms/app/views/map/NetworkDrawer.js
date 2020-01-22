@@ -9,8 +9,10 @@ import * as React from 'react';
 import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
 import AddIcon from '@material-ui/icons/Add';
 import AddLinkPanel from '../../components/mappanels/AddLinkPanel';
+import AddLocationIcon from '@material-ui/icons/AddLocation';
 import AddNodePanel from '../../components/mappanels/AddNodePanel';
 import AddSitePanel from '../../components/mappanels/AddSitePanel';
+import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
@@ -24,6 +26,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
+import RouterIcon from '@material-ui/icons/Router';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
@@ -33,11 +36,6 @@ import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPane
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
-import {
-  getAddSiteIcon,
-  getLinkIcon,
-  getNodeIcon,
-} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
@@ -427,7 +425,7 @@ class NetworkDrawer extends React.Component<
               });
               this.onCloseAddButtonMenu();
             }}>
-            <ListItemIcon>{getNodeIcon()}</ListItemIcon>
+            <ListItemIcon>{<RouterIcon />}</ListItemIcon>
             <ListItemText primary="Add Node" />
           </MenuItem>
           <MenuItem
@@ -439,7 +437,7 @@ class NetworkDrawer extends React.Component<
               });
               this.onCloseAddButtonMenu();
             }}>
-            <ListItemIcon>{getLinkIcon()}</ListItemIcon>
+            <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
             <ListItemText primary="Add Link" />
           </MenuItem>
           <MenuItem
@@ -454,7 +452,7 @@ class NetworkDrawer extends React.Component<
               });
               this.onCloseAddButtonMenu();
             }}>
-            <ListItemIcon>{getAddSiteIcon()}</ListItemIcon>
+            <ListItemIcon>{<AddLocationIcon />}</ListItemIcon>
             <ListItemText primary="Add Planned Site" />
           </MenuItem>
         </Menu>

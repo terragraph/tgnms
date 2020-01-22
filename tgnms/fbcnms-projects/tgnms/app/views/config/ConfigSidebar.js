@@ -5,6 +5,7 @@
  * @flow
  */
 
+import ActionsMenu from '../../components/mappanels/ActionsMenu';
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
@@ -26,7 +27,6 @@ import Typography from '@material-ui/core/Typography';
 import {CtrlVerType, ctrlVerBefore} from '../../helpers/VersionHelper';
 import {NetworkConfigMode} from '../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
-import {createActionsMenu} from '../../helpers/MapPanelHelpers';
 import {createSelectInput} from '../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
 import {shallowEqual} from '../../helpers/ConfigHelpers';
@@ -67,9 +67,6 @@ const styles = theme => ({
     fontSize: 14,
     verticalAlign: 'text-top',
     paddingLeft: theme.spacing(),
-  },
-  actionsButton: {
-    textAlign: 'center',
   },
   nodeConfigSearch: {
     border: '1px solid lightGray',
@@ -376,7 +373,7 @@ class ConfigSidebar extends React.Component<Props, State> {
   };
 
   renderNetworkActions = () => {
-    const {classes, networkConfig} = this.props;
+    const {networkConfig} = this.props;
     const ctrlVersion = networkConfig.controller_version;
 
     const actions = [];
@@ -411,13 +408,9 @@ class ConfigSidebar extends React.Component<Props, State> {
       });
     }
     const actionItems = [{heading: 'Actions', actions}];
-    return actionItems.length
-      ? createActionsMenu(
-          {actionItems, buttonClassName: classes.actionsButton},
-          this.state,
-          this.setState.bind(this),
-        )
-      : null;
+    return actionItems.length ? (
+      <ActionsMenu options={{actionItems, buttonClassName: 'actionsButton'}} />
+    ) : null;
   };
 
   renderNetworkSidebar = () => {
