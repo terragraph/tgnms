@@ -89,7 +89,7 @@ test('selecting a new metric causes map update', async () => {
   );
   expect(getByText('Link Lines Overlay')).toBeInTheDocument();
   expect(getByText('Online')).toBeInTheDocument();
-  fireEvent.click(getByText('Online'));
+  fireEvent.mouseDown(getByText('Online'));
   fireEvent.click(getByText('SNR'));
   expect(defaultProps.onUpdateMap).toHaveBeenCalled();
 });

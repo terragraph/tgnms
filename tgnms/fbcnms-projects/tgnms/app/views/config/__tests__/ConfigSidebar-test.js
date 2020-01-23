@@ -80,7 +80,7 @@ test('change editor calls onChangeEditorType', () => {
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('Table')).toBeInTheDocument();
-  fireEvent.click(getByText('Table'));
+  fireEvent.mouseDown(getByText('Table'));
   fireEvent.click(getByText('JSON'));
   expect(defaultProps.onChangeEditorType).toHaveBeenCalled();
 });
@@ -117,7 +117,7 @@ test('renders network baseConfigs', () => {
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('test')).toBeInTheDocument();
-  fireEvent.click(getByText('test'));
+  fireEvent.mouseDown(getByText('test'));
   expect(getByText('default')).toBeInTheDocument();
 });
 
@@ -133,7 +133,7 @@ test('renders node config change', async () => {
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('test')).toBeInTheDocument();
-  fireEvent.click(getByText('test'));
+  fireEvent.mouseDown(getByText('test'));
   expect(getByText('default')).toBeInTheDocument();
   fireEvent.click(getByText('default'));
   expect(getByText('default')).toBeInTheDocument();
@@ -148,7 +148,7 @@ test('renders node filter change', async () => {
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('All nodes')).toBeInTheDocument();
-  fireEvent.click(getByText('All nodes'));
+  fireEvent.mouseDown(getByText('All nodes'));
   expect(getByText('CNs only')).toBeInTheDocument();
   expect(getByText('Nodes with overrides')).toBeInTheDocument();
   fireEvent.click(getByText('CNs only'));
@@ -163,7 +163,7 @@ test('change E2E base fields', () => {
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('Hidden')).toBeInTheDocument();
-  fireEvent.click(getByText('Hidden'));
+  fireEvent.mouseDown(getByText('Hidden'));
   expect(getByText('Show all')).toBeInTheDocument();
   fireEvent.click(getByText('Show all'));
   expect(defaultProps.onSetConfigBase).toHaveBeenCalled();
@@ -183,7 +183,7 @@ test('renders network firmware', () => {
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('Change Firmware Version')).toBeInTheDocument();
   expect(getByText('none')).toBeInTheDocument();
-  fireEvent.click(getByText('none'));
+  fireEvent.mouseDown(getByText('none'));
   expect(getByText('test')).toBeInTheDocument();
 });
 
@@ -200,7 +200,7 @@ test('renders node config change', async () => {
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
   expect(getByText('none')).toBeInTheDocument();
-  fireEvent.click(getByText('none'));
+  fireEvent.mouseDown(getByText('none'));
   expect(getByText('test')).toBeInTheDocument();
   fireEvent.click(getByText('test'));
   expect(getByText('test')).toBeInTheDocument();

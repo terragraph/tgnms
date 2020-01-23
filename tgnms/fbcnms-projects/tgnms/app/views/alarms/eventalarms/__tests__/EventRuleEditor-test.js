@@ -169,7 +169,7 @@ function makeSelectFieldSetter(getterFn) {
     value: string | number | Array<string | number>,
   ) => {
     act(() => {
-      fireEvent.click(getterFn(query));
+      fireEvent.mouseDown(getterFn(query));
     });
     const menu = getterFn(menuQuery);
     const vals =
