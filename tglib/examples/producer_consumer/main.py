@@ -24,7 +24,7 @@ from typing import Dict
 
 from tglib import ClientType, init
 
-import jobs
+from . import jobs
 
 
 @dataclasses.dataclass
@@ -61,7 +61,7 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
 
         logging.info(
             f"Done enqueuing jobs in the '{name}' pipeline. "
-            f"Added {len(tasks)} jobs to the queue. Sleeping for {sleep_time}s"
+            f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time}s"
         )
 
         await asyncio.sleep(sleep_time)
@@ -72,37 +72,37 @@ async def consume(queue: asyncio.Queue) -> None:
     while True:
         # Wait for a job from the producers
         job = await queue.get()
-        logging.info(f"Starting the {job.name} job")
+        logging.info(f"Starting the '{job.name}' job")
 
         # Execute the job
         function = getattr(jobs, job.name)
         await function(job.start_time, **job.params)
-        logging.info(f"Finished running the {job.name} job")
+        logging.info(f"Finished running the '{job.name}' job")
 
 
-async def main(config: Dict) -> None:
+async def async_main(config: Dict) -> None:
     """Start the producer and consumer coroutines."""
-    q = asyncio.Queue()
+    q: asyncio.Queue = asyncio.Queue()
 
     # Create producer coroutines
     producers = [
         produce(q, name, pipeline) for name, pipeline in config["pipelines"].items()
     ]
 
-    # Create 10 consumer coroutines
-    consumers = [consume(q) for n in range(config["num_consumers"])]
+    # Create the consumer coroutines
+    consumers = [consume(q) for _ in range(config["num_consumers"])]
 
     # Start the producer and consumer coroutines
     await asyncio.gather(*producers, *consumers)
 
 
-if __name__ == "__main__":
+def main() -> None:
     """Pass in the 'main' function and a set of clients into 'init'."""
     try:
         with open("./service_config.json") as f:
             config = json.load(f)
-    except OSError:
+    except (json.JSONDecodeError, OSError):
         logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
-    init(lambda: main(config), {ClientType.PROMETHEUS_CLIENT})
+    init(lambda: async_main(config), {ClientType.PROMETHEUS_CLIENT})

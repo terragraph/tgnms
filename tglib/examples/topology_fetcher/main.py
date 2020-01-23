@@ -22,7 +22,7 @@ from .models import Topology
 from .routes import routes
 
 
-async def main(config: Dict) -> None:
+async def async_main(config: Dict) -> None:
     """Make a periodic 'getTopology' API request and store the results in MySQL."""
     topology_fetch_interval_s = config["topology_fetch_interval_s"]
 
@@ -46,17 +46,17 @@ async def main(config: Dict) -> None:
         await asyncio.sleep(topology_fetch_interval_s)
 
 
-if __name__ == "__main__":
+def main() -> None:
     """Pass in the 'main' function, a set of clients, and 'routes' into 'init'."""
     try:
         with open("./service_config.json") as f:
             config = json.load(f)
-    except OSError:
+    except (json.JSONDecodeError, OSError):
         logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
     init(
-        lambda: main(config),
+        lambda: async_main(config),
         {ClientType.API_SERVICE_CLIENT, ClientType.MYSQL_CLIENT},
         routes,
     )

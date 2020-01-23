@@ -49,7 +49,7 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
         type: integer
     responses:
       "200":
-        description: Return list of Prometheus metrics for the specified interval.
+        description: Successful operation.
       "404":
         description: No metrics queue available for the specified interval.
       "500":
@@ -73,14 +73,14 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
 async def handle_get_config(request: web.Request) -> web.Response:
     """
     ---
-    description: Return the current configuration settings.
+    description: Return the current service configuration settings.
     tags:
     - Configuration
     produces:
     - application/json
     responses:
       "200":
-        description: Return current service configuration settings.
+        description: Successful operation.
       "500":
         description: Failed to load or parse the configuration file.
     """
@@ -119,7 +119,7 @@ async def handle_set_config(request: web.Request) -> web.Response:
         - config
     responses:
       "200":
-        description: Successful operation. Overwrote service configuration.
+        description: Successful operation.
       "400":
         description: Missing or invalid 'config' parameter.
       "500":
@@ -149,7 +149,7 @@ async def handle_set_config(request: web.Request) -> web.Response:
 async def handle_update_config(request: web.Request) -> web.Response:
     """
     ---
-    description: Update the current configuration settings.
+    description: Partially update the current configuration settings.
     tags:
     - Configuration
     produces:
@@ -168,7 +168,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
         - config
     responses:
       "200":
-        description: Successful operation. Updated specified service configuration values.
+        description: Successful operation.
       "400":
         description: Missing or invalid 'config' parameter.
       "500":
@@ -204,7 +204,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(text="Failed to update configuration")
 
 
-@routes.post("/log/level")
+@routes.put(r"/log/{level:[A-Z]+}")
 async def handle_set_log_level(request: web.Request) -> web.Response:
     """
     ---
@@ -214,31 +214,23 @@ async def handle_set_log_level(request: web.Request) -> web.Response:
     produces:
     - text/plain
     parameters:
-    - in: body
-      name: body
-      description: New log level.
+    - in: path
+      name: level
+      description: The new log level.
       required: true
-      schema:
-        type: object
-        properties:
-          level:
-            type: string
-            enum: ["DEBUG", "INFO", "WARNING", "ERROR", "FATAL"]
-        required:
-        - level
+      type: string
+      enum: [DEBUG, INFO, WARNING, ERROR, FATAL]
     responses:
       "200":
-        description: Successful operation. Updated logging level.
+        description: Successful operation.
       "404":
         description: Invalid log level.
     """
-    body = await request.json()
-
-    if "level" not in body:
-        raise web.HTTPBadRequest(text="Missing required 'level' param")
-
-    level = body["level"]
+    level = request.match_info["level"]
     prev_level = logging.getLevelName(logging.root.level)
+
+    if level == prev_level:
+        return web.Response(text=f"Log level is already {prev_level}")
 
     try:
         logging.root.setLevel(level)

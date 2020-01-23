@@ -19,6 +19,13 @@ from .base_client import BaseClient
 class KafkaConsumer(BaseClient):
     _consumer: Optional[AIOKafkaConsumer] = None
 
+    @property
+    def consumer(self) -> AIOKafkaConsumer:
+        if self._consumer is None:
+            raise ClientStoppedError()
+
+        return self._consumer
+
     @classmethod
     async def start(cls, config: Dict) -> None:
         if cls._consumer is not None:
@@ -48,10 +55,3 @@ class KafkaConsumer(BaseClient):
             raise ClientStoppedError()
 
         await cls._consumer.stop()
-
-    @property
-    def consumer(self) -> AIOKafkaConsumer:
-        if self._consumer is None:
-            raise ClientStoppedError()
-
-        return self._consumer

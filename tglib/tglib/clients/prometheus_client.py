@@ -4,7 +4,7 @@
 import asyncio
 import dataclasses
 import logging
-from typing import Any, Dict, List, Optional, Pattern, Union, cast
+from typing import Any, Dict, Iterable, Optional, Pattern, Union, cast
 
 import aiohttp
 
@@ -22,8 +22,9 @@ from .base_client import BaseClient
 class PrometheusMetric:
     """Representation of a single Prometheus metric.
 
-    If provided, 'time' should be in milliseconds since epoch.
-    If not, Prometheus will use the scrape timestamp as metric timestamp."""
+    If provided, 'time' should be in milliseconds since epoch. To use the
+    scrape timestamp, set 'honor_timestamps' to 'false' in the Prometheus
+    config and omit the 'time' field."""
 
     value: Union[int, float]
     time: Optional[int] = None
@@ -89,6 +90,41 @@ class PrometheusClient(BaseClient):
         label_query = ",".join(label_list)
         return PrometheusClient.normalize(f"{metric_name}{{{label_query}}}")
 
+    @classmethod
+    def write_metrics(
+        cls, interval_sec: int, metrics: Dict[str, PrometheusMetric]
+    ) -> bool:
+        """Add new/update metrics to the given 'interval_sec' metric map."""
+        if cls._metrics_map is None:
+            raise ClientStoppedError()
+
+        if interval_sec not in cls._metrics_map:
+            logging.error(f"No metrics map available for {interval_sec}s")
+            return False
+
+        curr_metrics = cls._metrics_map[interval_sec]
+        cls._metrics_map[interval_sec] = {**curr_metrics, **metrics}
+        return True
+
+    @classmethod
+    def poll_metrics(cls, interval_sec: int) -> Optional[Iterable[str]]:
+        """Scrape the metrics for the given 'interval_sec'."""
+        if cls._metrics_map is None:
+            raise ClientStoppedError()
+
+        if interval_sec not in cls._metrics_map:
+            logging.error(f"No metrics map available for {interval_sec}s")
+            return None
+
+        datapoints = []
+        metrics = cls._metrics_map[interval_sec]
+
+        for query, metric in metrics.items():
+            datapoints.append(f"{query} {metric.value} {metric.time or ''}")
+
+        metrics.clear()
+        return datapoints
+
     async def query_range(self, query: str, start: int, end: int, step: str) -> Dict:
         """Return the data for the given query and range."""
         if self._addr is None or self._session is None:
@@ -118,7 +154,7 @@ class PrometheusClient(BaseClient):
             raise ClientStoppedError()
 
         url = f"http://{self._addr}/api/v1/query"
-        params = {"query": query}  # type: Dict[str, Any]
+        params: Dict[str, Any] = {"query": query}
         if time is not None:
             params["time"] = time
 
@@ -142,38 +178,3 @@ class PrometheusClient(BaseClient):
            The current Prometheus server time is used as default if no
            evaluation timestamp is provided."""
         return await self.query_latest(f"timestamp({query})", time)
-
-    @classmethod
-    def write_metrics(
-        cls, interval_sec: int, metrics: Dict[str, PrometheusMetric]
-    ) -> bool:
-        """Add new/update metrics to the given 'interval_sec' metric map."""
-        if cls._metrics_map is None:
-            raise ClientStoppedError()
-
-        if interval_sec not in cls._metrics_map:
-            logging.error(f"No metrics map available for {interval_sec}s")
-            return False
-
-        curr_metrics = cls._metrics_map[interval_sec]
-        cls._metrics_map[interval_sec] = {**curr_metrics, **metrics}
-        return True
-
-    @classmethod
-    def poll_metrics(cls, interval_sec: int) -> Optional[List[str]]:
-        """Remove and return metrics for the given interval_sec."""
-        if cls._metrics_map is None:
-            raise ClientStoppedError()
-
-        if interval_sec not in cls._metrics_map:
-            logging.error(f"No metrics map available for {interval_sec}s")
-            return None
-
-        datapoints = []
-        metrics = cls._metrics_map[interval_sec]
-
-        for query, metric in metrics.items():
-            datapoints.append(f"{query} {metric.value} {metric.time or ''}")
-
-        metrics.clear()
-        return datapoints

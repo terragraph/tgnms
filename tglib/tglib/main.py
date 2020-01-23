@@ -26,11 +26,11 @@ from .utils.dict import deep_update
 class ClientType(enum.Enum):
     """Enumerate client options."""
 
-    API_SERVICE_CLIENT = 0
-    KAFKA_CONSUMER = 1
-    KAFKA_PRODUCER = 2
-    MYSQL_CLIENT = 3
-    PROMETHEUS_CLIENT = 4
+    API_SERVICE_CLIENT = 1
+    KAFKA_CONSUMER = 2
+    KAFKA_PRODUCER = 3
+    MYSQL_CLIENT = 4
+    PROMETHEUS_CLIENT = 5
 
 
 def init(
