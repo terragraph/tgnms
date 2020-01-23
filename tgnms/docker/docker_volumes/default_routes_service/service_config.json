@@ -1,8 +1,8 @@
 {
   "overrides": {
     "mysql": {
-      "db": "default_route_service",
-      "user": "default_route_user",
+      "db": "default_routes_service",
+      "user": "default_routes_user",
       "password": "bj5q4aslzm"
     }
   },
