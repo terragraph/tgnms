@@ -7,20 +7,18 @@
  * @flow
  * @format
  */
-
-import type {
-  OpenIdConnectError,
-  OpenidVerifyCallback,
-  PasswordGrantStrategyOptions,
-  TokenSet,
-} from './oidcTypes';
-
 import {
   ERROR_MESSAGES,
   getOidcErrorMessage,
   isSocketTimeoutError,
 } from './errors';
 import {Strategy} from 'passport-strategy';
+import type {HandleOidcResponse, TokenSet} from 'openid-client';
+import type {
+  OpenIdConnectError,
+  PasswordGrantStrategyOptions,
+} from './oidcTypes';
+import type {User} from '../../shared/auth/User';
 
 const logger = require('../log')(module);
 
@@ -31,7 +29,7 @@ const logger = require('../log')(module);
 export default class PasswordGrantStrategy extends Strategy {
   constructor(
     options: PasswordGrantStrategyOptions,
-    verify: OpenidVerifyCallback,
+    verify: HandleOidcResponse<User>,
   ) {
     super();
     if (

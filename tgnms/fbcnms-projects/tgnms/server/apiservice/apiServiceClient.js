@@ -13,7 +13,7 @@ const logger = require('../log')(module);
 import axios from 'axios';
 import {PROXY_ENABLED} from '../config';
 import {awaitClient} from '../user/oidc';
-import type {TokenSet} from '../user/oidcTypes';
+import type {TokenSet} from 'openid-client';
 const isIp = require('is-ip');
 
 export type BackgroundRequest = {|

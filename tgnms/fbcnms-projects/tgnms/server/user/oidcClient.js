@@ -8,9 +8,8 @@
  * @format
  */
 
-import type {OpenidClient} from './oidcTypes';
-
 import {Issuer as OpenidIssuer} from 'openid-client';
+import type {Client as OpenidClient} from 'openid-client';
 
 const logger = require('../log')(module);
 
@@ -25,17 +24,16 @@ export default function getOidcClient(
 ): Promise<OpenidClient> {
   const {issuerUrl, clientId, clientSecret} = params;
 
-  const tryDiscovery = () => {
+  const tryDiscovery = async () => {
     logger.info('openid discovery: starting');
     logger.debug(`openid discovery: connecting to issuer: ${issuerUrl}`);
-    return OpenidIssuer.discover(issuerUrl).then((issuer: OpenidIssuer) => {
-      const openidClient = new issuer.Client({
-        client_id: clientId,
-        client_secret: clientSecret,
-      });
-      logger.info('openid discovery: success');
-      return openidClient;
+    const issuer = await OpenidIssuer.discover(issuerUrl);
+    const openidClient: OpenidClient = new issuer.Client({
+      client_id: clientId,
+      client_secret: clientSecret,
     });
+    logger.info('openid discovery: success');
+    return openidClient;
   };
 
   /**

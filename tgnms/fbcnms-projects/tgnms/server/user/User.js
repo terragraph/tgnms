@@ -6,7 +6,7 @@
  */
 
 import {TokenSet} from 'openid-client';
-import type {OpenidUserInfoClaims} from './oidcTypes';
+import type {OpenidUserInfoClaims} from 'openid-client';
 import type {User as UserDto} from '../../shared/auth/User';
 
 /**
@@ -17,9 +17,9 @@ const USER_TOKEN_SET = Symbol('USER_TOKEN_SET');
 /**
  * Add custom claims here and map them onto the user below
  */
-type ApplicationUserClaims = {|
+export type ApplicationUserClaims = OpenidUserInfoClaims & {|
   roles: Array<string>,
-|} & OpenidUserInfoClaims;
+|};
 
 export default class User implements UserDto {
   constructor(init: UserDto) {
@@ -34,6 +34,8 @@ export default class User implements UserDto {
     if (!(tokenSet instanceof TokenSet)) {
       tokenSet = new TokenSet(tokenSet);
     }
+
+    // $FlowFixMe - TokenSet needs to be generic to fix this
     const claims: ApplicationUserClaims = tokenSet.claims;
     const user = new User({
       id: claims.sub,

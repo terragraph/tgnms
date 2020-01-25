@@ -5,65 +5,63 @@
  * @flow
  */
 
-import {isAuthorized} from '../../shared/auth/Permissions';
-import type {Permission} from '../../shared/auth/Permissions';
-
-import User from '../user/User';
-import ensureAccessToken from '../user/ensureAccessToken';
 import openRoutes from '../openRoutes';
 import {CLIENT_ROOT_URL, LOGIN_ENABLED} from '../config';
 import {URL} from 'url';
-import {awaitClient} from '../user/oidc';
+import {authenticateRequest} from '../user/authenticateRequest';
+import {isAuthorized} from '../../shared/auth/Permissions';
 import {isExpectedError} from '../user/errors';
 
-const ensureTokenParams = {
-  resolveClient: awaitClient,
-  resolveUserFromTokenSet: async (_req, tokenSet) =>
-    User.fromTokenSet(tokenSet),
-};
+import type {ExpressResponse, NextFunction} from 'express';
+import type {Permission} from '../../shared/auth/Permissions';
+import type {Request} from '../types/express';
+import type {User as UserType} from '../../shared/auth/User';
 
 const logger = require('../log')(module);
 
 export default function(permissions: void | Permission | Array<Permission>) {
-  return function access(req: any, res: any, next: any) {
+  return async function access(
+    req: Request,
+    res: ExpressResponse,
+    next: NextFunction,
+  ) {
     if (!LOGIN_ENABLED || isOpenRoute(req)) {
       return next();
     }
 
-    return ensureAccessToken(req, ensureTokenParams)
-      .then(() => {
-        const isAuthenticated = req.isAuthenticated();
-        if (isAuthenticated) {
-          // the user only needs to be logged in to access this route
-          if (typeof permissions === 'undefined') {
-            return next();
-          }
-          // the user needs specific roles to access this route
-          if (isAuthorized(req.user, permissions)) {
-            return next();
-          }
+    try {
+      let user: ?UserType = null;
+      user = await authenticateRequest(req);
+
+      if (user) {
+        // the user only needs to be logged in to access this route
+        if (typeof permissions === 'undefined') {
+          return next();
         }
-
-        logger.info('user not authorized. redirecting');
-        return authRedirect(req, res, '/user/login');
-      })
-      .catch(error => {
-        // expected errors - show a message to the user
-        if (!error || isExpectedError(error)) {
-          logger.info('invalid access token. redirecting');
-          return authRedirect(
-            req,
-            res,
-            '/user/login',
-            error ? error.message : 'Auth error',
-          );
+        // the user needs specific roles to access this route
+        if (isAuthorized(user, permissions)) {
+          return next();
         }
+      }
+      logger.info('user not authorized. redirecting');
+      return authRedirect(req, res, '/user/login');
+    } catch (error) {
+      // expected errors - show a message to the user
+      if (!error || isExpectedError(error)) {
+        logger.info('invalid access token. redirecting');
+        return authRedirect(
+          req,
+          res,
+          '/user/login',
+          error ? error.message : 'Auth error',
+        );
+      }
 
-        // system errors
-        logger.error(error);
+      // system errors
+      logger.error(error);
 
-        next(error);
-      });
+      next(error);
+    }
   };
 }
 
@@ -88,8 +86,8 @@ function authRedirect(
     redirectPath,
   );
 
+  const baseUrl = CLIENT_ROOT_URL || '';
   try {
-    const baseUrl = CLIENT_ROOT_URL || '';
     /*
      * This will throw if CLIENT_ROOT_URL is bad, but after the catch
      * the redirect will still behave as expected.
@@ -106,7 +104,7 @@ function authRedirect(
   } catch (err) {
     logger.error(
       'Could not construct redirect url, falling back [%s] [%s]',
-      req.hostname,
+      baseUrl,
       redirectPath,
     );
   }

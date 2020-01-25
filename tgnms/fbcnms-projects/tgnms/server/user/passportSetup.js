@@ -11,7 +11,7 @@ import ApplicationUser from './User';
 import PasswordGrantStrategy from './PasswordGrantStrategy';
 import StubStrategy from './StubStrategy';
 import {CLIENT_ROOT_URL, LOGIN_ENABLED, SSO_ENABLED} from '../config';
-import {Strategy as OpenidStrategy} from 'openid-client';
+import {Strategy} from 'openid-client';
 import {initOidcClient} from './oidc';
 
 passport.serializeUser((user: ApplicationUser, done) => {
@@ -58,7 +58,7 @@ if (LOGIN_ENABLED) {
         redirectUri.pathname = '/user/login/openid/callback';
         passport.use(
           'openid_authcodeflow',
-          new OpenidStrategy(
+          new Strategy(
             {
               client,
               passReqToCallback: true,

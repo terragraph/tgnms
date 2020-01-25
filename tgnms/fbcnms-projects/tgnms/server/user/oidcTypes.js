@@ -8,17 +8,10 @@
  * @format
  */
 
-export type PasswordGrantStrategyOptions = {
-  client: OpenidClient,
-};
+import type {Client} from 'openid-client';
 
-export type OpenidVerifyCallback = {
-  (
-    req: any,
-    tokenset: any,
-    userinfo: OpenidUserInfoClaims,
-    done: (error: Error | void, user: any) => any,
-  ): any,
+export type PasswordGrantStrategyOptions = {
+  client: $Shape<Client>,
 };
 
 export type OpenIdConnectError = {
@@ -30,71 +23,28 @@ export type OpenIdConnectError = {
   name: 'OpenIdConnectError',
 };
 
-export type OpenidClient = {
-  grant: (options: GrantRequestOptions) => Promise<TokenSet>,
-  decryptIdToken: (tokenSet: TokenSet) => Promise<TokenSet>,
-  validateIdToken: (
-    tokenSet: TokenSet,
-    nonce: ?string,
-    returnedBy: string,
-    maxAge: ?string,
-    state: ?string,
-  ) => Promise<TokenSet>,
-  refresh: (refreshToken: string) => Promise<TokenSet>,
-};
-
-/**
- * These are the openid connect userinfo claims which are part of the official
- * standard. These should be mapped to an application user object. Any custom
- * claims can be specified there.
- */
-export type OpenidUserInfoClaims = {
-  name: string,
-  preferred_username: string,
-  given_name: string,
-  family_name: string,
-  email: string,
+// the parsed and validated access token
+export type AccessToken = {
   jti: string,
-  exp: string,
-  nbf: string,
-  iat: string,
+  exp: number,
+  nbf: number,
+  iat: number,
   iss: string,
   aud: string,
   sub: string,
   typ: string,
   azp: string,
-  auth_time: string,
+  auth_time: number,
   session_state: string,
   acr: string,
-  email_verified: string,
-};
-
-export type TokenSet = {
-  /**
-   * This is the user's api key - it should be sent to
-   * the auth server whenever a protected resource is requested
-   */
-  access_token: string,
-  expires_at: number,
-  refresh_expires_in: number,
-  //access token is short lived, we get a new one using the refresh token
-  refresh_token: string,
+  realm_access: {
+    roles: Array<string>,
+  },
   scope: string,
-  /**
-   * oidc jwt containing information about the user
-   * not to be trusted until we validate the signature
-   **/
-  id_token: string,
-  // the TokenSet class decodes and caches these from the id_token
-  claims: OpenidUserInfoClaims,
-  session_state: string,
-  token_type: string,
-  expired: () => boolean,
-};
-
-type GrantRequestOptions = {
-  grant_type: string,
-  username?: string,
-  password?: string,
-  scope?: string,
+  email_verified: false,
+  clientId: string,
+  clientHost: string,
+  preferred_username: string,
+  clientAddress: string,
+  email: string,
 };

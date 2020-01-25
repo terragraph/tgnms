@@ -12,3 +12,13 @@ export function mockConsole() {
   global.console = mock;
   return mock;
 }
+
+export function mockUser(merge = {}): User {
+  return {
+    id: 'testid',
+    name: 'tg',
+    email: 'tg@example.com',
+    roles: [],
+    ...merge,
+  };
+}

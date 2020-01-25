@@ -5,21 +5,36 @@
  * @flow
  */
 
+import PasswordGrantStrategy from '../PasswordGrantStrategy';
+import User from '../User';
 import type {
-  OpenidClient,
+  Client as OpenidClient,
+  Issuer as OpenidIssuer,
   TokenSet as OpenidTokenSet,
   OpenidUserInfoClaims,
-} from '../oidcTypes';
+} from 'openid-client';
+
 const Client = jest.genMockFromModule('openid-client/lib/client');
-const TokenSet = jest.genMockFromModule('openid-client/lib/token_set');
-import PasswordGrantStrategy from '../PasswordGrantStrategy';
+const oidcClient = require('openid-client');
+
+// mock the constructor of TokenSet
+jest.spyOn(oidcClient, 'TokenSet').mockImplementation(() => ({
+  claims: {},
+}));
 
 type AddJestTypes = <K, V>(K, V) => V & JestMockFn<*, *>;
-let client: $ObjMapi<OpenidClient, AddJestTypes>;
+type OpenIdObjectProps = {issuer: OpenidIssuer};
+/**
+ * maps over every key on OpenidClient and decorates them with JestMockFn.
+ * Objects attached to the class must be excluded since they cannot be decorated
+ * with JestMockFn.
+ */
+let client: $ObjMapi<$Diff<OpenidClient, OpenIdObjectProps>, AddJestTypes> &
+  OpenIdObjectProps;
 let tokenSet: OpenidTokenSet;
 beforeEach(() => {
   client = new Client();
-  tokenSet = new TokenSet();
+  tokenSet = new oidcClient.TokenSet();
 });
 
 test('throws an error if missing params', () => {
@@ -69,7 +84,7 @@ test('invokes verify callback if successful', () => {
 
   const verifyMock = jest.fn((req, token, claims, done) => {
     expect(claims.name).toBe('bob');
-    done(undefined, claims);
+    done(undefined, User.fromTokenSet(tokenSet));
   });
 
   const strategy = new PasswordGrantStrategy(

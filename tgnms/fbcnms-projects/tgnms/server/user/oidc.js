@@ -9,7 +9,6 @@ const {URL} = require('url');
 const httpClient = require('./oidcHttpAgent');
 import {Issuer as OpenidIssuer} from 'openid-client';
 import {trimEnd} from 'lodash';
-import type {OpenidClient} from './oidcTypes';
 const {
   KEYCLOAK_HTTP_PROXY,
   KEYCLOAK_HOST,
@@ -18,8 +17,10 @@ const {
   KEYCLOAK_CLIENT_SECRET,
 } = require('../config');
 import getOidcClient from './oidcClient';
+import type {Client as OpenidClient} from 'openid-client';
 
 let _DEPRECATED_oidcclient: OpenidClient;
+
 const clientAwaiter = makeClientAwaiter();
 export function initOidcClient(): Promise<OpenidClient> {
   /**

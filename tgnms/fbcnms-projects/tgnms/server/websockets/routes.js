@@ -5,9 +5,10 @@
  * @flow
  */
 
+import websocketService from './service';
+
 const express = require('express');
 const router = express.Router();
-import websocketService from './service';
 
 // $FlowFixMe
 router.ws('/', ws => {

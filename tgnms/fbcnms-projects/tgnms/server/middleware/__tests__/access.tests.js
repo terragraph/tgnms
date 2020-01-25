@@ -11,126 +11,148 @@
 import access from '../access';
 import openRoutes from '../../openRoutes';
 import {Permissions} from '../../../shared/auth/Permissions';
-jest.mock('../../user/ensureAccessToken');
+import {mockAwaitClient, mockVerify} from '../../tests/authHelpers';
+import {
+  mockRequest,
+  mockResponse,
+  mockResponseFn,
+  mockSessionUser,
+} from '../../tests/expressHelpers';
+import {mockUser} from '../../../shared/tests/testHelpers';
+
+import type {AccessToken} from '../../user/oidcTypes';
+import type {JWSResult} from 'node-jose';
+import type {User} from '../../../shared/auth/User';
+
+jest.mock('node-jose');
 jest.mock('../../config', () => ({
   LOGIN_ENABLED: true,
+  LOG_LEVEL: 'error',
   CLIENT_ROOT_URL: 'https://example.tgnms.com',
+  KEYCLOAK_HOST: 'http://keycloak:keycloak:8080',
+  KEYCLOAK_REALM: 'tgnms',
 }));
-const ensureAccessTokenMock: any = require('../../user/ensureAccessToken')
-  .default;
+
+const tokenSetMock = {
+  expired: jest.fn(() => false),
+};
+
+jest.mock('openid-client');
+jest.spyOn(require('openid-client'), 'TokenSet').mockImplementation(function() {
+  return tokenSetMock;
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+});
 
 test('redirects if access token check fails', done => {
-  ensureAccessTokenMock.mockImplementationOnce(() => Promise.reject());
-  const mockRequest = {
-    originalUrl: '/',
-  };
-  const mockResponse = {
-    redirect: jest.fn(redirectUrl => {
-      expect(mockResponse.redirect).toHaveBeenCalledWith(redirectUrl);
+  mockAwaitClient();
+  const request = mockRequest({});
+  const response = mockResponse({
+    redirect: mockResponseFn(redirectUrl => {
+      expect(response.redirect).toHaveBeenCalledWith(redirectUrl);
       done();
     }),
-  };
-  access()(mockRequest, mockResponse, () => {
-    throw new Error('Next should not be called here');
+  });
+  access()(request, response, () => {
+    done.fail(new Error('Next should not be called here'));
   });
 });
 
 test('returns 401 error and json if request was specified as ajax', done => {
-  ensureAccessTokenMock.mockImplementationOnce(() => Promise.reject());
-  const mockRequest = {
-    originalUrl: '/',
+  mockAwaitClient();
+
+  const request = mockRequest({
     xhr: true,
-  };
-  const mockResponse = {
-    status: jest.fn(() => mockResponse),
-    send: jest.fn(response => {
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(response.error).toBeTruthy();
+  });
+  const response = mockResponse({
+    status: jest.fn(_status => response),
+    send: mockResponseFn(res => {
+      expect(response.status).toHaveBeenCalledWith(401);
+      expect(res.error).toBeTruthy();
       done();
     }),
-  };
-  access()(mockRequest, mockResponse, () => {
-    throw new Error('Next should not be called here');
+    redirect: mockResponseFn(() => {
+      done.fail(new Error('should not redirect'));
+    }),
+  });
+  access()(request, response, () => {
+    done.fail(new Error('Next should not be called here'));
   });
 });
 
 test('If a permission is specified, redirects for authenticated user without the corresponding role', done => {
-  ensureAccessTokenMock.mockImplementationOnce(() => Promise.resolve());
-  const mockRequest = {
-    originalUrl: '/',
-    user: {
-      roles: [],
-    },
+  mockAwaitClient();
+  const request = mockRequest({
     isAuthenticated: jest.fn(() => true),
-  };
+  });
 
-  const mockResponse = {
-    redirect: jest.fn(redirectUrl => {
-      expect(mockRequest.isAuthenticated).toHaveBeenCalled();
-      expect(mockResponse.redirect).toHaveBeenCalledWith(redirectUrl);
+  const response = mockResponse({
+    redirect: mockResponseFn(redirectUrl => {
+      expect(response.redirect).toHaveBeenCalledWith(redirectUrl);
       done();
     }),
-  };
+  });
 
-  access('TOPOLOGY_READ')(mockRequest, mockResponse, () => {
-    throw new Error('Next should not be called here');
+  access('TOPOLOGY_READ')(request, response, () => {
+    done.fail(new Error('Next should not be called here'));
   });
 });
 
 test('if a permission is specified, allows user with corresponding role', done => {
-  ensureAccessTokenMock.mockImplementationOnce(() => Promise.resolve());
-  const mockRequest = {
+  mockAwaitClient();
+  const request = mockRequest({
     originalUrl: '/',
-    user: {
-      roles: [Permissions.TOPOLOGY_READ],
-    },
-    isAuthenticated: jest.fn(() => true),
-  };
-  const mockResponse = {
-    redirect: jest.fn(() => {
-      throw new Error('we should not redirect');
+    ...mockSessionUser(
+      mockUser({
+        roles: [Permissions.TOPOLOGY_READ],
+      }),
+    ),
+  });
+  const response = mockResponse({
+    redirect: mockResponseFn(() => {
+      done.fail(new Error('should not redirect'));
     }),
-  };
+  });
 
-  access('TOPOLOGY_READ')(mockRequest, mockResponse, error => {
+  access('TOPOLOGY_READ')(request, response, error => {
     expect(error).toBeFalsy();
-    expect(mockResponse.redirect).not.toHaveBeenCalled();
+    expect(response.redirect).not.toHaveBeenCalled();
     done();
   });
 });
 
 test('if no roles / permissions are specified, allows any authenticated user', done => {
-  ensureAccessTokenMock.mockImplementationOnce(() => Promise.resolve());
-  const mockRequest = {
-    originalUrl: '/',
-    isAuthenticated: jest.fn(() => true),
-  };
+  mockAwaitClient();
+  const request = mockRequest(mockSessionUser(mockUser()));
 
-  const mockResponse = {
-    redirect: jest.fn(() => {
-      throw new Error();
+  const response = mockResponse({
+    redirect: mockResponseFn(() => {
+      done.fail(new Error('should not redirect'));
     }),
-  };
+  });
 
-  access()(mockRequest, mockResponse, error => {
+  access()(request, response, error => {
     expect(error).toBeFalsy();
-    expect(mockResponse.redirect).not.toHaveBeenCalled();
+    expect(response.redirect).not.toHaveBeenCalled();
     done();
   });
 });
 
 test('allows open routes for unauthenticated users', () => {
-  ensureAccessTokenMock.mockImplementationOnce(() => {
-    throw new Error('Should not be called for open routes');
-  });
   //test every open route
   return Promise.all(
     openRoutes.map(
       openRoute =>
         new Promise(res => {
           access()(
-            {originalUrl: openRoute, user: null, isAuthenticated: () => false},
-            {},
+            mockRequest({
+              originalUrl: openRoute,
+              user: null,
+              isAuthenticated: () => false,
+            }),
+            mockResponse(),
             res,
           );
         }),
@@ -139,20 +161,142 @@ test('allows open routes for unauthenticated users', () => {
 });
 
 test('allows open routes for authenticated users', () => {
-  ensureAccessTokenMock.mockImplementationOnce(() => {
-    throw new Error('Should not be called for open routes');
-  });
   //test every open route
   return Promise.all(
     openRoutes.map(
       openRoute =>
         new Promise(res => {
           access()(
-            {originalUrl: openRoute, user: {}, isAuthenticated: () => true},
-            {},
+            mockRequest({
+              originalUrl: openRoute,
+              user: mockUser(),
+              isAuthenticated: () => true,
+            }),
+            mockResponse(),
             res,
           );
         }),
     ),
   );
 });
+
+describe('Bearer token', () => {
+  test('If a permission is specified, redirects for valid token without the corresponding role', done => {
+    mockAwaitClient();
+    mockVerify().mockImplementation(() =>
+      Promise.resolve(mockVerifyResult(mockUser())),
+    );
+    const request = mockRequest({
+      headers: {
+        Authorization: 'Bearer test',
+      },
+    });
+
+    const response = mockResponse({
+      redirect: mockResponseFn(redirectUrl => {
+        // isAuthenticated should only be called for session based auth
+        expect(request.isAuthenticated).not.toHaveBeenCalled();
+        expect(response.redirect).toHaveBeenCalledWith(redirectUrl);
+        done();
+      }),
+    });
+
+    access('TOPOLOGY_READ')(request, response, error => {
+      expect(error).toBeFalsy();
+      expect(response.redirect).toHaveBeenCalled();
+      done();
+    });
+  });
+
+  test('if no roles / permissions are specified, allows any valid token', done => {
+    mockVerify().mockImplementation(() =>
+      Promise.resolve(mockVerifyResult(mockUser())),
+    );
+    mockAwaitClient();
+    const request = mockRequest({
+      headers: {
+        Authorization: 'Bearer test',
+      },
+    });
+    const response = mockResponse({
+      redirect: jest.fn(() => {
+        throw done.fail(new Error('User should not be redirected'));
+      }),
+    });
+
+    access()(request, response, error => {
+      expect(error).toBeFalsy();
+      expect(response.redirect).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  test('If a permission is specified, allows token with corresponding role', done => {
+    mockAwaitClient();
+    mockVerify().mockImplementation(() =>
+      Promise.resolve(
+        mockVerifyResult(
+          mockUser({
+            roles: [Permissions.TOPOLOGY_READ],
+          }),
+        ),
+      ),
+    );
+    const request = mockRequest({
+      headers: {
+        Authorization: 'Bearer test',
+      },
+    });
+
+    const response = mockResponse({
+      redirect: mockResponseFn(_redirectUrl => {
+        done.fail(new Error('should not redirect'));
+      }),
+    });
+
+    access('TOPOLOGY_READ')(request, response, error => {
+      expect(error).toBeFalsy();
+      expect(response.redirect).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  test('Authorization header without bearer prefix fails', done => {
+    mockAwaitClient();
+    mockVerify();
+    const request = mockRequest({
+      originalUrl: '/',
+      headers: {
+        Authorization: 'should fail',
+      },
+    });
+    const response = mockResponse({
+      redirect: jest.fn(),
+    });
+
+    access()(request, response, error => {
+      expect(error).toBeInstanceOf(Error);
+      done();
+    });
+  });
+});
+
+// result of decoding/verifying the JWT
+function mockVerifyResult(user: User): JWSResult {
+  // map from user to access token because that's what it's deserialized as
+  const payload: $Shape<AccessToken> = {
+    sub: user.id,
+    preferred_username: user.name,
+    email: user.email,
+    realm_access: {
+      roles: user.roles ?? [],
+    },
+  };
+  const encoded = Buffer.from(JSON.stringify(payload), 'UTF8');
+  return {
+    header: {},
+    payload: encoded,
+    signature: Buffer.from(''),
+    key: '',
+  };
+}
