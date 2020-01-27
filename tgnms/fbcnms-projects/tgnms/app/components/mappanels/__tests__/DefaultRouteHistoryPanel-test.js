@@ -11,6 +11,7 @@ import React from 'react';
 import {
   MuiPickersWrapper,
   mockNode,
+  mockRoutes,
   mockTopology,
   renderAsync,
 } from '../../../tests/testHelpers';
@@ -49,11 +50,11 @@ const defaultProps = {
     location: {latitude: 0, longitude: 0, altitude: 0, accuracy: 0},
   },
   onClose: jest.fn(() => {}),
-  links: {test: 0},
-  onUpdateRoutes: jest.fn(() => {}),
-  routes: {
+  routes: mockRoutes({
     node: 'test_node_name',
-  },
+    links: {test: 0},
+    onUpdateRoutes: jest.fn(() => {}),
+  }),
   siteNodes: new Set(['test_node_name']),
 };
 
@@ -110,7 +111,7 @@ test('clicking a route calls the map function properly', async () => {
   );
   fireEvent.click(getByText('Route 3'));
   expect(getByText('Route 3')).toBeInTheDocument();
-  expect(defaultProps.onUpdateRoutes).toHaveBeenCalledWith(
+  expect(defaultProps.routes.onUpdateRoutes).toHaveBeenCalledWith(
     expectedOnUpdateRouteCall(),
   );
 });

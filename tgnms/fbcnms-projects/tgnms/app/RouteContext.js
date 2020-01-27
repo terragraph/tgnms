@@ -22,7 +22,6 @@ type RouteContextType = {
    */
   selectedNode: ?string,
   setNodeRoutes: (nodeName: ?string, routes?: Array<Route>) => any,
-  setSelectedNode: (nodeName: ?string) => any,
 };
 
 // maps from node to its routes
@@ -37,7 +36,6 @@ export type Route = {
 const RouteContext = React.createContext<RouteContextType>({
   routeData: {},
   setNodeRoutes: () => {},
-  setSelectedNode: () => {},
   selectedNode: null,
 });
 

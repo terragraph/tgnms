@@ -11,32 +11,32 @@ import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
   PolarityTypeValueMap as PolarityType,
-} from '../../../shared/types/Topology';
-import {SiteOverlayColors} from '../../constants/LayerConstants';
-import {getNodePolarities} from '../../helpers/TgFeatures';
+} from '../../../../shared/types/Topology';
+import {SiteOverlayColors} from '../../../constants/LayerConstants';
+import {getNodePolarities} from '../../../helpers/TgFeatures';
 import {
   hasNodeEverGoneOnline,
   mapboxShouldAcceptClick,
-} from '../../helpers/NetworkHelpers';
-import {isNodeAlive, renderSnrWithIcon} from '../../helpers/NetworkHelpers';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+} from '../../../helpers/NetworkHelpers';
+import {isNodeAlive, renderSnrWithIcon} from '../../../helpers/NetworkHelpers';
+import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
   NearbyNodes,
   TopologyScanInfo,
-} from '../../components/mappanels/MapPanelTypes';
-import type {
-  NodeType as Node,
-  TopologyType,
-} from '../../../shared/types/Topology';
+} from '../../../components/mappanels/MapPanelTypes';
 import type {
   NodeMap,
   OfflineWhiteListType,
   SiteToNodesMap,
   TopologyConfig,
-} from '../../NetworkContext';
-import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
+} from '../../../NetworkContext';
+import type {
+  PlannedSite,
+  Routes,
+} from '../../../components/mappanels/MapPanelTypes';
+import type {TopologyType} from '../../../../shared/types/Topology';
 
 const styles = {
   iconBottom: {
@@ -77,8 +77,8 @@ const SEARCH_NEARBY_STROKE_WIDTH = 5;
 
 export type Props = {
   classes: {[string]: string},
-  onSiteMouseEnter?: string => any,
-  onSiteMouseLeave?: string => any,
+  onSiteMouseEnter?: Object => any,
+  onSiteMouseLeave?: Object => any,
   topology: TopologyType,
   topologyConfig: TopologyConfig,
   ctrlVersion: string,
@@ -87,16 +87,12 @@ export type Props = {
   offlineWhitelist: OfflineWhiteListType,
   nodeMap?: NodeMap,
   siteToNodesMap?: SiteToNodesMap,
-  plannedSite?: PlannedSite,
+  plannedSite?: ?PlannedSite,
   onPlannedSiteMoved?: Object => any,
   overlay: string,
   nearbyNodes: NearbyNodes,
   hiddenSites: Set<string>,
-  routes: {
-    links: {},
-    node: ?Node,
-    nodes: Set<string>,
-  },
+  routes: Routes,
   historicalSiteColorMap: ?{[string]: string},
 };
 

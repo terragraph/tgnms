@@ -33,10 +33,11 @@ import Slide from '@material-ui/core/Slide';
 import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
 import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
+import mapboxgl from 'mapbox-gl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
-import {withStyles} from '@material-ui/core/styles';
+import {withStyles, withTheme} from '@material-ui/core/styles';
 
 import type {
   EditNodeParams,
@@ -46,7 +47,6 @@ import type {
 } from '../../components/mappanels/MapPanelTypes';
 import type {Element, NetworkContextType} from '../../NetworkContext';
 import type {LocationType} from '../../../shared/types/Topology';
-import type {Props as MapHistoryProps} from '../../components/mappanels/MapHistoryOverlay';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
 import type {Theme, WithStyles} from '@material-ui/core';
 export const NetworkDrawerConstants = {
@@ -82,22 +82,21 @@ type Props = {
   context: NetworkContextType,
   speedTestId: ?string,
   networkTestId: ?string,
-  onNetworkTestPanelClosed: () => {},
+  onNetworkTestPanelClosed: () => any,
   bottomOffset: number,
-  mapRef: any, // This is not a React.Ref!
+  mapRef: ?mapboxgl.Map,
   plannedSiteProps: {
-    plannedSite: PlannedSite,
-    onUpdatePlannedSite: (site: ?$Shape<PlannedSite>) => {},
-    hideSite: string => {},
-    unhideSite: string => {},
+    plannedSite: ?$Shape<PlannedSite>,
+    onUpdatePlannedSite: (site: ?$Shape<PlannedSite>) => any,
+    hideSite: string => any,
+    unhideSite: string => any,
   },
   routesProps: Routes,
   searchNearbyProps: {|
     nearbyNodes: NearbyNodes,
-    onUpdateNearbyNodes: NearbyNodes => {},
+    onUpdateNearbyNodes: NearbyNodes => any,
   |},
   mapLayersProps: MapLayersProps,
-  mapHistoryProps: MapHistoryProps,
 };
 
 const FormType = {
@@ -624,9 +623,7 @@ class NetworkDrawer extends React.Component<
               'closingDefaultRoute',
             )
           }
-          links={routesProps.links}
-          onUpdateRoutes={routesProps.onUpdateRoutes}
-          routes={routesProps.routes}
+          routes={routesProps}
           siteNodes={siteToNodesMap[node.site_name]}
         />
       </Slide>
@@ -696,7 +693,6 @@ class NetworkDrawer extends React.Component<
       plannedSiteProps,
       searchNearbyProps,
       routesProps,
-      mapHistoryProps,
     } = this.props;
     const {
       networkName,
@@ -836,7 +832,6 @@ class NetworkDrawer extends React.Component<
 
           <MapLayersPanel
             {...mapLayersProps}
-            mapHistoryProps={mapHistoryProps}
             networkName={networkName}
             expanded={mapLayersPanelExpanded}
             onPanelChange={() =>
@@ -960,11 +955,8 @@ class NetworkDrawer extends React.Component<
             this.renderSearchNearby(txNode, slideProps),
           )}
 
-          {routesProps.routes.node
-            ? this.renderDefaultRouteHistoryPanel(
-                routesProps.routes.node,
-                slideProps,
-              )
+          {routesProps.node
+            ? this.renderDefaultRouteHistoryPanel(routesProps.node, slideProps)
             : null}
 
           {topologyElements.map(el =>
@@ -978,4 +970,4 @@ class NetworkDrawer extends React.Component<
   }
 }
 
-export default withStyles(styles, {withTheme: true})(NetworkDrawer);
+export default withTheme(withStyles(styles, {withTheme: true})(NetworkDrawer));

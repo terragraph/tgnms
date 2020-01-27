@@ -7,40 +7,33 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import LinkOverlayContext from '../../../LinkOverlayContext';
+import LinkOverlayContext from '../../../../LinkOverlayContext';
 import LinksLayer from '../LinksLayer';
+import {
+  COLOR_RED,
+  COLOR_YELLOW,
+  TestApp,
+  mockOverlay,
+  mockRoutes,
+  mockTopology,
+} from '../../../../tests/testHelpers';
 import {Feature, Layer} from 'react-mapbox-gl';
-import {TestApp, mockTopology} from '../../../tests/testHelpers';
-import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
 import {cleanup, render} from '@testing-library/react';
 import {
   getFeatureBySiteName,
   getLayerById,
   getPropValue,
-} from '../../../tests/mapHelpers';
+} from '../../../../tests/mapHelpers';
 
-import type {Overlay} from '../overlays';
 import type {Props} from '../LinksLayer';
 afterEach(cleanup);
-
-// colors get converted into rgb codes by d3
-const COLOR_BLUE = 'rgb(0, 0, 255)';
-const COLOR_YELLOW = 'rgb(255, 255, 0)';
-const COLOR_RED = 'rgb(255, 0, 0)';
-
-const mockOverlay: Overlay = {
-  name: 'mock overlay',
-  id: 'mock',
-  type: 'metric',
-  range: [0, 1, 2],
-  colorRange: [COLOR_BLUE, COLOR_YELLOW, COLOR_RED],
-};
 
 const defaultTopology = basicTopology();
 const commonProps: Props = {
   topology: defaultTopology,
-  overlay: mockOverlay,
-  selectedLinks: [],
+  overlay: mockOverlay(),
+  selectedLinks: {},
   selectedNodeName: '',
   nearbyNodes: {},
   ignitionState: {
@@ -53,7 +46,7 @@ const commonProps: Props = {
     },
     lastIgCandidates: [],
   },
-  routes: {links: {}, nodes: new Set(), node: null},
+  routes: mockRoutes(),
   topologyConfig: {},
   ctrlVersion: 'RELEASE_M45_PRE',
   ...buildTopologyMaps(defaultTopology),

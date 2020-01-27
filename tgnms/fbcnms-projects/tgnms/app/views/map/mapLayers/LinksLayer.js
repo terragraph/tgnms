@@ -6,23 +6,22 @@
  */
 
 import type {
-  Element,
   IgnitionState,
   OfflineWhiteListType,
   SiteMap,
   TopologyConfig,
-} from '../../NetworkContext';
+} from '../../../NetworkContext';
 import type {
   LinkType as Link,
   NodeType as Node,
   TopologyType,
-} from '../../../shared/types/Topology';
-import type {Overlay} from './overlays';
+} from '../../../../shared/types/Topology';
+import type {Overlay} from '../overlays';
 
-import LinkOverlayContext from '../../LinkOverlayContext';
+import LinkOverlayContext from '../../../LinkOverlayContext';
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
-import {HEALTH_CODES} from '../../constants/HealthConstants';
+import {HEALTH_CODES} from '../../../constants/HealthConstants';
 import {
   INDEX_COLORS,
   LINE_BACKUP_CN_PAINT,
@@ -38,61 +37,58 @@ import {
   SEARCH_NEARBY_FILL_PAINT,
   SEARCH_NEARBY_LINE_PAINT,
   SUPERFRAME_COLORS,
-} from '../../constants/LayerConstants';
+} from '../../../constants/LayerConstants';
 import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
-} from '../../../shared/types/Topology';
+} from '../../../../shared/types/Topology';
 import {
   SCAN_MAX_COVERAGE_ANGLE,
   SCAN_MAX_RX_DISTANCE,
   SNR_THRESHOLD_MCS9,
-} from '../../constants/NetworkConstants';
+} from '../../../constants/NetworkConstants';
 import {get} from 'lodash';
 import {
   getLinkChannel,
   getLinkControlSuperframe,
   getLinkGolay,
-} from '../../helpers/TgFeatures';
+} from '../../../helpers/TgFeatures';
 import {
   hasLinkEverGoneOnline,
   mapboxShouldAcceptClick,
-} from '../../helpers/NetworkHelpers';
+} from '../../../helpers/NetworkHelpers';
 import {interpolateHcl} from 'd3-interpolate';
 import {
   objectEntriesTypesafe,
   objectValuesTypesafe,
-} from '../../helpers/ObjectHelpers';
+} from '../../../helpers/ObjectHelpers';
 import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
 import type {
   NearbyNodes,
+  Routes,
   TopologyScanInfo,
-} from '../../components/mappanels/MapPanelTypes';
+} from '../../../components/mappanels/MapPanelTypes';
 
 const styles = _theme => ({});
 
 export type Props = {
   overlay: Overlay,
   ignitionState: IgnitionState,
-  routes: {
-    links: {},
-    node: ?Node,
-    nodes: Set<string>,
-  },
+  routes: Routes,
   siteMap: SiteMap,
   topology: TopologyType,
   topologyConfig: TopologyConfig,
-  selectedLinks: Array<Element>,
+  selectedLinks: {},
   selectedNodeName: string,
   nearbyNodes: NearbyNodes,
   ctrlVersion: string,
   nodeMap: {
     [string]: Node,
   },
-  onSelectLinkChange: string => any,
-  onLinkMouseEnter: string => any,
-  onLinkMouseLeave: string => any,
+  onSelectLinkChange: string => void,
+  onLinkMouseEnter: Object => void,
+  onLinkMouseLeave: Object => void,
   offlineWhitelist: OfflineWhiteListType,
 };
 

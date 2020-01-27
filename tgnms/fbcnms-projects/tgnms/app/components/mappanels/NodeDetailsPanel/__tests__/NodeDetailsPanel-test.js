@@ -46,7 +46,6 @@ const commonProps = {
   onUpdateNearbyNodes: () => {},
   onUpdateRoutes: _ => {},
   pinned: true,
-  routes: {node: ''},
 };
 
 test('renders', () => {

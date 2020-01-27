@@ -41,7 +41,7 @@ const styles = theme => ({
 
 type Props = {
   classes: {[string]: string},
-  layerOverlays: OverlayConfig<any>,
+  layerOverlays: ?OverlayConfig<any>,
   overlay: ?Overlay,
 };
 class MapOverlayLegend extends React.Component<Props> {

@@ -31,7 +31,7 @@ const commonProps = {
    * NetworkMap only uses bounds on the networkConfig passed as props.
    * All other uses of NetworkConfig consumed through context.
    */
-  networkConfig: {bounds: {}},
+  networkConfig: mockNetworkConfig(),
   networkName: 'test',
 };
 

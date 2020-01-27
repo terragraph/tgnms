@@ -2,22 +2,22 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
-import BuildingsLayer from './BuildingsLayer';
 import Dragger from '../../components/common/Dragger';
 import LinkOverlayContext from '../../LinkOverlayContext';
-import LinksLayer from './LinksLayer';
+import MapLayers from './mapLayers/MapLayers';
 import NetworkContext from '../../NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
 import React from 'react';
 import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
 import RouteContext from '../../RouteContext';
-import SitePopupsLayer from './SitePopupsLayer';
-import SitesLayer from './SitesLayer';
 import TableControl from './TableControl';
 import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
+import mapboxgl from 'mapbox-gl';
+import {History} from 'history';
 import {
   LinkMetricsOverlayStrategy,
   TestExecutionOverlayStrategy,
@@ -27,14 +27,22 @@ import {
   SiteOverlayColors,
 } from '../../constants/LayerConstants';
 import {Route, withRouter} from 'react-router-dom';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {
   getSpeedTestId,
   getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {Coordinate, NetworkConfig} from '../../NetworkContext';
+import type {MapLayerConfig} from './NetworkMapTypes';
+import type {
+  NearbyNodes,
+  PlannedSite,
+  Routes,
+} from '../../components/mappanels/MapPanelTypes';
 import type {Route as NodeRoute} from '../../RouteContext';
-import type {OverlayStrategy} from './overlays';
+import type {Overlay, OverlayStrategy} from './overlays';
+import type {SelectedLayersType} from './NetworkMapTypes';
 
 const styles = theme => ({
   appBarSpacer: theme.mixins.toolbar,
@@ -87,9 +95,62 @@ const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;
 // Table size limits (in pixels)
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
-class NetworkMap extends React.Component {
-  overlayStrategy: OverlayStrategy;
-  _layersConfig: Array<MapLayerConfig>;
+type Props = {
+  classes: {[string]: string},
+  location: Location,
+  networkConfig: NetworkConfig,
+  networkName: string,
+  match: Object,
+  history: History,
+};
+
+type State = {
+  mapRef: ?mapboxgl.Map, // reference to Map class
+  mapBounds?: [Coordinate, Coordinate],
+  selectedLayers: SelectedLayersType,
+  selectedOverlays: {
+    link_lines: string,
+    site_icons: string,
+  },
+  showTable: boolean,
+  tableHeight: number,
+
+  // loading indicator bool per layer id, ex: {'link_lines': true}
+  overlayLoading: {[string]: boolean},
+
+  // link overlay stats received per-link
+  linkOverlayMetrics: ?{[string]: {}},
+
+  // Selected map style (from MapBoxStyles)
+  selectedMapStyle: string,
+
+  // Planned site location ({latitude, longitude} or null)
+  plannedSite: ?PlannedSite,
+
+  // Nearby nodes ({nodeName: TopologyScanInfo[]})
+  nearbyNodes: NearbyNodes,
+
+  // routes properties
+  routes: $Shape<Routes>,
+
+  routesOverlay: {
+    selectedNode: ?string,
+    routeData: Object,
+  },
+
+  // Sites that should not be rendered on the map (e.g. while editing)
+  hiddenSites: Set<string>,
+
+  historicalOverlay: ?Overlay,
+  historicalSiteMap: ?{[string]: string},
+};
+
+class NetworkMap extends React.Component<Props, State> {
+  overlayStrategy: OverlayStrategy<*>;
+  layersConfig: Array<MapLayerConfig>;
+  _mapBoxStyles;
+  _refreshLinkMetricOverlayTimer;
+
   constructor(props) {
     super(props);
     // construct styles list
@@ -98,13 +159,12 @@ class NetworkMap extends React.Component {
     this.state = {
       // Map config
       mapRef: null, // reference to Map class
-      mapBounds: this.props.networkConfig.bounds,
+      mapBounds: props.networkConfig.bounds,
       selectedLayers: {
         site_icons: true,
         link_lines: true,
         site_name_popups: false,
         buildings_3d: false,
-        routes: false,
       },
       selectedOverlays: overlayStrategy.getDefaultOverlays(),
 
@@ -152,30 +212,6 @@ class NetworkMap extends React.Component {
     // link metric overlay timer to refresh backend stats
     // initialized to null for clearInterval() sanity
     this._refreshLinkMetricOverlayTimer = null;
-
-    // map layers config
-    this._layersConfig = [
-      {
-        layerId: 'link_lines',
-        name: 'Link Lines',
-        render: this.renderLinks.bind(this),
-      },
-      {
-        layerId: 'site_icons',
-        name: 'Site Icons',
-        render: this.renderSites.bind(this),
-      },
-      {
-        layerId: 'site_name_popups',
-        name: 'Site Name Popups',
-        render: this.renderSitePopups.bind(this),
-      },
-      {
-        layerId: 'buildings_3d',
-        name: '3D Buildings',
-        render: this.render3dBuildings.bind(this),
-      },
-    ];
   }
 
   componentDidMount() {
@@ -184,13 +220,32 @@ class NetworkMap extends React.Component {
      * In normal mode, the default overlay is health which is already present
      * and does not need to be fetched.
      */
-    if (getTestOverlayId(this.props.location)) {
+    const {location} = this.props;
+    if (getTestOverlayId(location)) {
       this.fetchOverlayData();
     }
   }
 
   componentWillUnmount() {
     clearInterval(this._refreshLinkMetricOverlayTimer);
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    const currentStrategy = this.overlayStrategy;
+    const newStrategy = this.updateOverlayStrategy({
+      previousTestId: getTestOverlayId(prevProps.location),
+    });
+
+    // if the strategy has changed, load the new data
+    if (newStrategy !== currentStrategy) {
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState(
+        {selectedOverlays: newStrategy.getDefaultOverlays()},
+        () => {
+          this.fetchOverlayData();
+        },
+      );
+    }
   }
 
   mapBoxStylesList() {
@@ -230,20 +285,18 @@ class NetworkMap extends React.Component {
     });
   };
 
-  onFeatureMouseEnter = mapEvent => {
-    // Change cursor when hovering over sites/links
-    mapEvent.map.getCanvas().style.cursor = 'pointer';
-  };
-
-  onFeatureMouseLeave = mapEvent => {
-    // Reset cursor when leaving sites/links
-    mapEvent.map.getCanvas().style.cursor = '';
-  };
-
   onPlannedSiteMoved = mapEvent => {
     // Update planned site location (based on map event)
     const {lat, lng} = mapEvent.lngLat;
-    this.setState({plannedSite: {latitude: lat, longitude: lng}});
+    this.setState(prevState => ({
+      plannedSite: {
+        latitude: lat,
+        longitude: lng,
+        name: prevState.plannedSite?.name || '',
+        altitude: prevState.plannedSite?.altitude || -1,
+        accuracy: prevState.plannedSite?.accuracy || -1,
+      },
+    }));
   };
 
   onGeocoderEvent = feature => {
@@ -274,7 +327,7 @@ class NetworkMap extends React.Component {
   };
 
   getOverlaysConfig = () => {
-    const overlayStrategy = this.getOverlayStrategy();
+    const overlayStrategy = this.overlayStrategy;
     return [
       {
         layerId: 'link_lines',
@@ -294,10 +347,12 @@ class NetworkMap extends React.Component {
   };
 
   fetchOverlayData = () => {
-    return this.getOverlayStrategy()
+    const {networkName} = this.props;
+    const {selectedOverlays} = this.state;
+    return this.overlayStrategy
       .getData({
-        networkName: this.props.networkName,
-        overlayId: this.state.selectedOverlays.link_lines,
+        networkName: networkName,
+        overlayId: selectedOverlays.link_lines,
       })
       .then(overlayData => {
         const {overlayLoading} = this.state;
@@ -312,7 +367,7 @@ class NetworkMap extends React.Component {
 
   selectOverlays = selectedOverlays => {
     // update the selected overlay and fetch data if a link metric is selected
-    const linkOverlay = this.getOverlayStrategy().getOverlay(
+    const linkOverlay = this.overlayStrategy.getOverlay(
       selectedOverlays.link_lines,
     );
     // load data if selected overlay is a metric
@@ -337,149 +392,29 @@ class NetworkMap extends React.Component {
     }
   };
 
-  setNodeRoutes = (nodeName: string, routes: Array<NodeRoute>) => {
-    if (nodeName === null) {
+  setNodeRoutes = (nodeName: ?string, routes?: Array<NodeRoute>) => {
+    const {selectedLayers, routesOverlay} = this.state;
+    if (!nodeName) {
       return this.setState({
         selectedLayers: {
-          ...this.state.selectedLayers,
+          ...selectedLayers,
           routes: false,
         },
       });
     }
     this.setState({
       selectedLayers: {
-        ...this.state.selectedLayers,
+        ...selectedLayers,
         routes: true,
       },
       routesOverlay: {
         selectedNode: nodeName,
-        routeData: Object.assign({}, this.state.routesOverlay.routeData, {
+        routeData: Object.assign({}, routesOverlay.routeData, {
           [nodeName]: routes,
         }),
       },
     });
   };
-
-  render3dBuildings(_context) {
-    return <BuildingsLayer key="3d-buildings-layer" />;
-  }
-
-  renderSitePopups(context) {
-    const {topology} = context.networkConfig;
-    return <SitePopupsLayer key="popups-layer" topology={topology} />;
-  }
-
-  renderSites(context) {
-    const {plannedSite, nearbyNodes, routes, historicalSiteMap} = this.state;
-    const {
-      selectedElement,
-      nodeMap,
-      linkMap,
-      siteMap,
-      siteToNodesMap,
-    } = context;
-    const {
-      controller_version,
-      topology,
-      topologyConfig,
-      offline_whitelist,
-    } = context.networkConfig;
-    const selectedSites = {};
-    if (selectedElement) {
-      if (selectedElement.type === TopologyElementType.SITE) {
-        selectedSites[selectedElement.name] = siteMap[selectedElement.name];
-      } else if (selectedElement.type === TopologyElementType.NODE) {
-        // Pick the node's site
-        const siteName = nodeMap[selectedElement.name].site_name;
-        selectedSites[siteName] = siteMap[siteName];
-      } else if (selectedElement.type === TopologyElementType.LINK) {
-        // Pick the link's two sites
-        const {a_node_name, z_node_name} = linkMap[selectedElement.name];
-        const aSiteName = nodeMap[a_node_name].site_name;
-        const zSiteName = nodeMap[z_node_name].site_name;
-        selectedSites[aSiteName] = siteMap[aSiteName];
-        selectedSites[zSiteName] = siteMap[zSiteName];
-      }
-    }
-
-    return (
-      <SitesLayer
-        key="sites-layer"
-        onSiteMouseEnter={this.onFeatureMouseEnter}
-        onSiteMouseLeave={this.onFeatureMouseLeave}
-        topology={topology}
-        topologyConfig={topologyConfig}
-        ctrlVersion={controller_version}
-        selectedSites={selectedSites}
-        onSelectSiteChange={siteName =>
-          context.setSelected(TopologyElementType.SITE, siteName)
-        }
-        nodeMap={nodeMap}
-        siteToNodesMap={siteToNodesMap}
-        plannedSite={plannedSite}
-        onPlannedSiteMoved={this.onPlannedSiteMoved}
-        overlay={this.state.selectedOverlays['site_icons']}
-        nearbyNodes={nearbyNodes}
-        hiddenSites={this.state.hiddenSites}
-        routes={routes}
-        offlineWhitelist={offline_whitelist}
-        historicalSiteColorMap={historicalSiteMap}
-      />
-    );
-  }
-
-  renderLinks(context) {
-    const {nearbyNodes, routes} = this.state;
-    const {linkMap, selectedElement} = context;
-    const {
-      controller_version,
-      ignition_state,
-      topology,
-      topologyConfig,
-      offline_whitelist,
-    } = context.networkConfig;
-    const selectedLinks =
-      selectedElement && selectedElement.type === TopologyElementType.LINK
-        ? {[selectedElement.name]: linkMap[selectedElement.name]}
-        : {};
-    const selectedNodeName =
-      selectedElement && selectedElement.type === TopologyElementType.NODE
-        ? selectedElement.name
-        : null;
-
-    return (
-      <LinksLayer
-        key="links-layer"
-        onLinkMouseEnter={this.onFeatureMouseEnter}
-        onLinkMouseLeave={this.onFeatureMouseLeave}
-        topology={topology}
-        topologyConfig={topologyConfig}
-        ctrlVersion={controller_version}
-        selectedLinks={selectedLinks}
-        onSelectLinkChange={linkName =>
-          context.setSelected(TopologyElementType.LINK, linkName)
-        }
-        selectedNodeName={selectedNodeName}
-        nodeMap={context.nodeMap}
-        siteMap={context.siteMap}
-        overlay={this.getCurrentLinkOverlay()}
-        ignitionState={ignition_state}
-        nearbyNodes={nearbyNodes}
-        routes={routes}
-        offlineWhitelist={offline_whitelist}
-      />
-    );
-  }
-
-  renderMapLayers(context) {
-    const mapLayers = [];
-    this._layersConfig.forEach(({layerId, render}) => {
-      if (this.state.selectedLayers[layerId]) {
-        mapLayers.push(render(context));
-      }
-    });
-    return mapLayers;
-  }
 
   onHistoricalMapUpdate = overlayInfo => {
     const {linkOverlayData, overlay, siteOverlayData} = overlayInfo;
@@ -491,13 +426,7 @@ class NetworkMap extends React.Component {
   };
 
   render() {
-    return (
-      <NetworkContext.Consumer>{this.renderContext}</NetworkContext.Consumer>
-    );
-  }
-
-  renderContext = (context): ?React.Element => {
-    const {classes} = this.props;
+    const {classes, match, history, location} = this.props;
     const {
       linkOverlayMetrics,
       mapRef,
@@ -505,144 +434,163 @@ class NetworkMap extends React.Component {
       selectedMapStyle,
       showTable,
       tableHeight,
+      routesOverlay,
+      plannedSite,
+      selectedLayers,
+      nearbyNodes,
+      routes,
+      historicalSiteMap,
+      hiddenSites,
+      selectedOverlays,
+      historicalOverlay,
+      overlayLoading,
     } = this.state;
 
     return (
-      <LinkOverlayContext.Provider
-        value={{
-          metricData: linkOverlayMetrics,
-        }}>
-        <RouteContext.Provider
-          value={{
-            ...this.state.routesOverlay,
-            setNodeRoutes: this.setNodeRoutes,
-          }}>
-          <div className={classes.container}>
-            <div className={classes.topContainer}>
-              <MapBoxGL
-                fitBounds={mapBounds}
-                fitBoundsOptions={FIT_BOUND_OPTIONS}
-                style={selectedMapStyle}
-                onStyleLoad={map => this.setState({mapRef: map})}
-                containerStyle={{width: '100%', height: 'inherit'}}>
-                <TgMapboxGeocoder
-                  accessToken={MAPBOX_ACCESS_TOKEN}
-                  mapRef={mapRef}
-                  onSelectFeature={this.onGeocoderEvent}
-                  onSelectTopologyElement={context.setSelected}
-                  nodeMap={context.nodeMap}
-                  linkMap={context.linkMap}
-                  siteMap={context.siteMap}
-                  statusReports={
-                    context.networkConfig?.status_dump?.statusReports
-                  }
-                />
-                <ZoomControl />
-                <RotationControl style={{top: 80}} />
-                <Route
-                  path={`${this.props.match.url}/:tableName?`}
-                  render={routerProps => (
-                    <TableControl
-                      style={{left: 10, bottom: 10}}
-                      baseUrl={this.props.match.url}
-                      onToggleTable={this.onToggleTable}
-                      {...routerProps}
+      <NetworkContext.Consumer>
+        {context => (
+          <LinkOverlayContext.Provider
+            value={{
+              metricData: linkOverlayMetrics,
+            }}>
+            <RouteContext.Provider
+              value={{
+                ...routesOverlay,
+                setNodeRoutes: this.setNodeRoutes,
+              }}>
+              <div className={classes.container}>
+                <div className={classes.topContainer}>
+                  <MapBoxGL
+                    fitBounds={mapBounds}
+                    fitBoundsOptions={FIT_BOUND_OPTIONS}
+                    style={selectedMapStyle}
+                    onStyleLoad={map => this.setState({mapRef: map})}
+                    containerStyle={{width: '100%', height: 'inherit'}}>
+                    <TgMapboxGeocoder
+                      accessToken={MAPBOX_ACCESS_TOKEN}
+                      mapRef={mapRef}
+                      onSelectFeature={this.onGeocoderEvent}
+                      onSelectTopologyElement={context.setSelected}
+                      nodeMap={context.nodeMap}
+                      linkMap={context.linkMap}
+                      siteMap={context.siteMap}
+                      statusReports={
+                        context.networkConfig?.status_dump?.statusReports
+                      }
                     />
-                  )}
-                />
-                {this.renderMapLayers(context)}
-              </MapBoxGL>
-              <NetworkDrawer
-                bottomOffset={showTable ? tableHeight : 0}
-                context={context}
-                mapRef={mapRef}
-                mapLayersProps={{
-                  layersConfig: this._layersConfig,
-                  overlaysConfig: this.getOverlaysConfig(),
-                  mapStylesConfig: this._mapBoxStyles,
-                  selectedLayers: this.state.selectedLayers,
-                  selectedOverlays: this.state.selectedOverlays,
-                  selectedMapStyle: this.state.selectedMapStyle,
-                  onLayerSelectChange: selectedLayers =>
-                    this.setState({selectedLayers}),
-                  onOverlaySelectChange: this.selectOverlays,
-                  onMapStyleSelectChange: selectedMapStyle =>
-                    this.setState({selectedMapStyle}),
-                  overlayLoading: this.state.overlayLoading,
-                }}
-                plannedSiteProps={{
-                  plannedSite: this.state.plannedSite,
-                  onUpdatePlannedSite: plannedSite =>
-                    this.setState({plannedSite}),
-                  hideSite: this.hideSite,
-                  unhideSite: this.unhideSite,
-                }}
-                searchNearbyProps={{
-                  nearbyNodes: this.state.nearbyNodes,
-                  onUpdateNearbyNodes: nearbyNodes =>
-                    this.setState({nearbyNodes}),
-                }}
-                routesProps={{
-                  routes: this.state.routes,
-                  onUpdateRoutes: routes => {
-                    this.setState({routes});
-                  },
-                }}
-                mapHistoryProps={{
-                  overlayConfig: this.getOverlaysConfig().find(
-                    overLayConfig => overLayConfig.layerId === 'link_lines',
-                  ),
-                  onUpdateMap: this.onHistoricalMapUpdate,
-                  siteToNodesMap: context.siteToNodesMap,
-                }}
-                networkTestId={getTestOverlayId(this.props.location)}
-                speedTestId={getSpeedTestId(this.props.location)}
-                onNetworkTestPanelClosed={this.exitTestOverlayMode}
-              />
-              )}
-            </div>
-            {showTable && (
-              <div style={{height: tableHeight}}>
-                <div className={classes.draggerContainer}>
-                  <Dragger
-                    direction="vertical"
-                    minSize={TABLE_LIMITS.minHeight}
-                    maxSize={TABLE_LIMITS.maxHeight}
-                    onResize={this.handleTableResize}
+                    <ZoomControl />
+                    <RotationControl style={{top: 80}} />
+                    <Route
+                      path={`${match.url}/:tableName?`}
+                      render={routerProps => (
+                        <TableControl
+                          style={{left: 10, bottom: 10}}
+                          baseUrl={match.url}
+                          onToggleTable={this.onToggleTable}
+                          {...routerProps}
+                        />
+                      )}
+                    />
+                    <MapLayers
+                      context={context}
+                      selectedLayers={selectedLayers}
+                      plannedSite={plannedSite}
+                      onPlannedSiteMoved={this.onPlannedSiteMoved}
+                      nearbyNodes={nearbyNodes}
+                      routes={routes}
+                      historicalSiteMap={historicalSiteMap}
+                      hiddenSites={hiddenSites}
+                      selectedOverlays={selectedOverlays}
+                      historicalOverlay={historicalOverlay}
+                      overlay={this.overlayStrategy.getOverlay(
+                        selectedOverlays.link_lines,
+                      )}
+                    />
+                  </MapBoxGL>
+                  <NetworkDrawer
+                    bottomOffset={showTable ? tableHeight : 0}
+                    context={context}
+                    mapRef={mapRef}
+                    mapLayersProps={{
+                      overlaysConfig: this.getOverlaysConfig(),
+                      mapStylesConfig: this._mapBoxStyles,
+                      selectedLayers: selectedLayers,
+                      selectedOverlays: selectedOverlays,
+                      selectedMapStyle: selectedMapStyle,
+                      onLayerSelectChange: selectedLayers =>
+                        this.setState({selectedLayers}),
+                      onOverlaySelectChange: this.selectOverlays,
+                      onMapStyleSelectChange: selectedMapStyle =>
+                        this.setState({selectedMapStyle}),
+                      overlayLoading: overlayLoading,
+                      expanded: false,
+                      onPanelChange: () => {},
+                      mapHistoryProps: {
+                        overlayConfig: this.getOverlaysConfig().find(
+                          overLayConfig =>
+                            overLayConfig.layerId === 'link_lines',
+                        ),
+                        onUpdateMap: this.onHistoricalMapUpdate,
+                        siteToNodesMap: context.siteToNodesMap,
+
+                        //dont want these
+                        onPanelChange: () => {},
+                        expanded: false,
+                        networkName: '',
+                        classes: {},
+                      },
+                      networkName: '',
+                    }}
+                    plannedSiteProps={{
+                      plannedSite: plannedSite,
+                      onUpdatePlannedSite: plannedSite =>
+                        this.setState({plannedSite}),
+                      hideSite: this.hideSite,
+                      unhideSite: this.unhideSite,
+                    }}
+                    searchNearbyProps={{
+                      nearbyNodes: nearbyNodes,
+                      onUpdateNearbyNodes: nearbyNodes =>
+                        this.setState({nearbyNodes}),
+                    }}
+                    routesProps={{
+                      ...routes,
+                      onUpdateRoutes: routes => {
+                        this.setState({routes});
+                      },
+                    }}
+                    networkTestId={getTestOverlayId(location)}
+                    speedTestId={getSpeedTestId(location)}
+                    onNetworkTestPanelClosed={this.exitTestOverlayMode}
                   />
+                  )}
                 </div>
-                <NetworkTables
-                  selectedElement={context.selectedElement}
-                  // fixes this component's usage of withRouter
-                  match={this.props.match}
-                  location={this.props.location}
-                  history={this.props.history}
-                  isEmbedded={true}
-                />
+                {showTable && (
+                  <div style={{height: tableHeight}}>
+                    <div className={classes.draggerContainer}>
+                      <Dragger
+                        direction="vertical"
+                        minSize={TABLE_LIMITS.minHeight}
+                        maxSize={TABLE_LIMITS.maxHeight}
+                        onResize={this.handleTableResize}
+                      />
+                    </div>
+                    <NetworkTables
+                      selectedElement={context.selectedElement}
+                      // fixes this component's usage of withRouter
+                      match={match}
+                      location={location}
+                      history={history}
+                      isEmbedded={true}
+                    />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </RouteContext.Provider>
-      </LinkOverlayContext.Provider>
+            </RouteContext.Provider>
+          </LinkOverlayContext.Provider>
+        )}
+      </NetworkContext.Consumer>
     );
-  };
-
-  componentDidUpdate(prevProps: Props) {
-    const currentStrategy = this.overlayStrategy;
-    const newStrategy = this.updateOverlayStrategy({
-      previousTestId: getTestOverlayId(prevProps.location),
-    });
-
-    // if the strategy has changed, load the new data
-    if (newStrategy !== currentStrategy) {
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState(
-        {selectedOverlays: newStrategy.getDefaultOverlays()},
-        () => {
-          this.fetchOverlayData();
-        },
-      );
-    }
   }
 
   /**
@@ -650,8 +598,11 @@ class NetworkMap extends React.Component {
    * All strategy changes should create a new instance instead of modifying the
    * exising instance
    */
-  updateOverlayStrategy = ({previousTestId}: {previousTestId: string} = {}) => {
-    const testId = getTestOverlayId(this.props.location);
+  updateOverlayStrategy = ({
+    previousTestId,
+  }: {previousTestId: ?string} = {}) => {
+    const {location} = this.props;
+    const testId = getTestOverlayId(location);
 
     if (testId && testId !== previousTestId) {
       this.overlayStrategy = new TestExecutionOverlayStrategy({
@@ -667,29 +618,12 @@ class NetworkMap extends React.Component {
     return this.overlayStrategy;
   };
 
-  getCurrentLinkOverlay = () => {
-    const {selectedOverlays, historicalOverlay} = this.state;
-    const overlay = this.getOverlayStrategy().getOverlay(
-      selectedOverlays.link_lines,
-    );
-    if (historicalOverlay) {
-      return historicalOverlay;
-    }
-    if (!overlay) {
-      return {};
-    }
-    return overlay;
-  };
-
-  getOverlayStrategy = (): OverlayStrategy => this.overlayStrategy;
-
   exitTestOverlayMode = () => {
+    const {history} = this.props;
     const urlWithoutOverlay = new URL(window.location);
     urlWithoutOverlay.searchParams.delete('test');
-    this.props.history.replace(
-      `${urlWithoutOverlay.pathname}${urlWithoutOverlay.search}`,
-    );
+    history.replace(`${urlWithoutOverlay.pathname}${urlWithoutOverlay.search}`);
   };
 }
 
-export default withStyles(styles)(withRouter(NetworkMap));
+export default withStyles(styles, {withTheme: true})(withRouter(NetworkMap));

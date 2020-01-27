@@ -12,15 +12,15 @@ import SitesLayer, {
   PLANNED_SITE_COLOR,
   POP_SITE_COLOR,
 } from '../SitesLayer';
-import {NodeTypeValueMap as NodeType} from '../../../../shared/types/Topology';
-import {TestApp, mockTopology} from '../../../tests/testHelpers';
-import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {NodeTypeValueMap as NodeType} from '../../../../../shared/types/Topology';
+import {TestApp, mockRoutes, mockTopology} from '../../../../tests/testHelpers';
+import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
 import {cleanup, render} from '@testing-library/react';
 import {
   getFeatureByAttributes,
   getLayerById,
   getPropValue,
-} from '../../../tests/mapHelpers';
+} from '../../../../tests/mapHelpers';
 
 import type {Props} from '../SitesLayer';
 
@@ -41,11 +41,7 @@ const commonProps: Props = {
   onSiteMouseLeave: jest.fn(),
   hiddenSites: new Set(),
   offlineWhitelist: {nodes: new Map(), links: new Map()},
-  routes: {
-    links: {},
-    node: null,
-    nodes: new Set(),
-  },
+  routes: mockRoutes(),
   historicalSiteColorMap: {},
   classes: {},
 };

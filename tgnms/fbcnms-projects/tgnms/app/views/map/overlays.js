@@ -12,6 +12,8 @@ import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
+import type {PrometheusDataType} from '../../apiutils/PrometheusAPIUtil';
+
 const MEGABITS = Math.pow(1000, 2);
 export type OverlayQuery = {
   networkName: string,
@@ -32,16 +34,37 @@ export type Overlay = {|
   formatText?: (link: any, value: any) => string,
 |};
 
-export interface OverlayStrategy {
+export interface OverlayStrategy<T> {
   getOverlays: () => Array<Overlay>;
   changeOverlayRange: (id: string, newRange: Array<number>) => void;
   getOverlay: (id: string) => Overlay;
-  getData?: (query: OverlayQuery) => Promise<any>;
+  getData: (query: OverlayQuery) => Promise<T>;
+  getDefaultOverlays: () => any;
 }
 
 export type ChangeOverlayRange = {
   (id: string, newRange: Array<number>): void,
 };
+
+// map overlay layers
+export const overlayLayers = [
+  {
+    layerId: 'link_lines',
+    name: 'Link Lines',
+  },
+  {
+    layerId: 'site_icons',
+    name: 'Site Icons',
+  },
+  {
+    layerId: 'site_name_popups',
+    name: 'Site Name Popups',
+  },
+  {
+    layerId: 'buildings_3d',
+    name: '3D Buildings',
+  },
+];
 
 export const HISTORICAL_LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   link_online: {
@@ -159,7 +182,8 @@ export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
 };
 
 // Historical metrics of the network
-export class HistoricalLinkMetricsOverlayStrategy implements OverlayStrategy {
+export class HistoricalLinkMetricsOverlayStrategy
+  implements OverlayStrategy<{[string]: Array<PrometheusDataType>}> {
   /** internal data structures*/
   overlayList = [
     ...objectValuesTypesafe<Overlay>(HISTORICAL_LINK_METRIC_OVERLAYS),
@@ -187,12 +211,15 @@ export class HistoricalLinkMetricsOverlayStrategy implements OverlayStrategy {
       this.overlayMap[id]['range'] = newRange;
     }
   };
+  getDefaultOverlays = () => {};
+  getData = () => Promise.resolve({});
 
   getOverlay = (id: $Keys<typeof LINK_METRIC_OVERLAYS>) => this.overlayMap[id];
 }
 
 // Realtime metrics of the running network
-export class LinkMetricsOverlayStrategy implements OverlayStrategy {
+export class LinkMetricsOverlayStrategy
+  implements OverlayStrategy<{[string]: {}}> {
   /** internal data structures*/
   overlayMap: {[string]: Overlay} = LINK_METRIC_OVERLAYS;
   overlayList = objectValuesTypesafe<Overlay>(LINK_METRIC_OVERLAYS);
@@ -220,7 +247,7 @@ export class LinkMetricsOverlayStrategy implements OverlayStrategy {
     // link config for the metric (type, id, range, etc)
     const overlayDef = this.getOverlay(query.overlayId);
     if (!overlayDef) {
-      return Promise.resolve([]);
+      return Promise.resolve({});
     }
     const metricNames = Array.isArray(overlayDef.metrics)
       ? overlayDef.metrics.join(',')
@@ -278,7 +305,8 @@ export const TEST_EXECUTION_OVERLAYS: {[string]: Overlay} = {
 };
 
 // Results of a network test
-export class TestExecutionOverlayStrategy implements OverlayStrategy {
+export class TestExecutionOverlayStrategy
+  implements OverlayStrategy<{[string]: {}}> {
   constructor({testId}: {testId: string}) {
     this.testId = testId;
   }
@@ -311,7 +339,7 @@ export class TestExecutionOverlayStrategy implements OverlayStrategy {
   getData = (query: OverlayQuery) => {
     const overlayDef = this.getOverlay(query.overlayId);
     if (!overlayDef) {
-      return Promise.resolve([]);
+      return Promise.resolve({});
     }
     const metrics = Array.isArray(overlayDef.metrics)
       ? overlayDef.metrics

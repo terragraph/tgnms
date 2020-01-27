@@ -19,17 +19,14 @@ export type TopologyScanInfo = {
 };
 
 export type Routes = {|
-  node: ?NodeType,
+  node: ?string,
   links: {[string]: number},
-  nodes: Set<NodeType>,
+  nodes: Set<string>,
   onUpdateRoutes: ({
     node: ?string,
     links: {[string]: number},
     nodes: Set<string>,
   }) => any,
-  routes: {
-    node: string,
-  },
 |};
 
 /*

@@ -24,6 +24,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import type {NodeMap, Site} from '../../NetworkContext';
 import type {NodeType, TopologyType} from '../../../shared/types/Topology';
+import type {Routes} from './MapPanelTypes';
 
 type DefaultRouteType = {
   route: Array<Array<string>>,
@@ -78,15 +79,7 @@ type Props = {
   nodeMap: NodeMap,
   site: Site,
   onClose: () => any,
-  links: {[string]: number},
-  onUpdateRoutes: ({
-    node: ?string,
-    links: {[string]: number},
-    nodes: Set<string>,
-  }) => any,
-  routes: {
-    node: string,
-  },
+  routes: Routes,
   siteNodes: Set<string>,
 };
 
@@ -136,6 +129,9 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
 
   getInitialSetup() {
     const {routes} = this.props;
+    if (!routes.node) {
+      return;
+    }
     this.setState({selectedNode: routes.node}, () => {
       this.processRoutes();
     });
@@ -275,7 +271,7 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
   }
 
   mapDefaultRoutes(mapRoutes) {
-    const {onUpdateRoutes} = this.props;
+    const {routes} = this.props;
     const {selectedNode} = this.state;
 
     const weights = {};
@@ -314,7 +310,7 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     }
 
     // update weights (will be used in links rendering)
-    onUpdateRoutes({
+    routes.onUpdateRoutes({
       node: selectedNode,
       links: normalized_weights,
       nodes,

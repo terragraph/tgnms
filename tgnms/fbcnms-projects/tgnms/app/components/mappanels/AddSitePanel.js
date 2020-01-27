@@ -57,7 +57,7 @@ type Props = {
   formType: $Values<typeof FormType>,
   initialParams: $Shape<LocationType & {name: string}>,
   networkName: string,
-  plannedSite: PlannedSite,
+  plannedSite: ?PlannedSite,
   onUpdatePlannedSite: ($Shape<PlannedSite>) => any,
 };
 
@@ -113,10 +113,13 @@ class AddSitePanel extends React.Component<Props, State> {
   }
 
   updateLatLong() {
-    this.setState({
-      latitude: this.props.plannedSite.latitude,
-      longitude: this.props.plannedSite.longitude,
-    });
+    const {plannedSite} = this.props;
+    if (plannedSite) {
+      this.setState({
+        latitude: plannedSite.latitude,
+        longitude: plannedSite.longitude,
+      });
+    }
   }
 
   onSubmit() {
@@ -151,10 +154,12 @@ class AddSitePanel extends React.Component<Props, State> {
     // Update the planned site position on the map based on a form change
     const {latitude, longitude} = position;
     const {plannedSite, onUpdatePlannedSite} = this.props;
-    onUpdatePlannedSite({
-      latitude: latitude || plannedSite.latitude,
-      longitude: longitude || plannedSite.longitude,
-    });
+    if (plannedSite) {
+      onUpdatePlannedSite({
+        latitude: latitude || plannedSite.latitude,
+        longitude: longitude || plannedSite.longitude,
+      });
+    }
   }
 
   renderForm() {

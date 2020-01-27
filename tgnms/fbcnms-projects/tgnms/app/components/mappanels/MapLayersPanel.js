@@ -19,13 +19,11 @@ import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {overlayLayers} from '../../views/map/overlays';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {Props as MapHistoryProps} from './MapHistoryOverlay';
-import type {
-  MapLayerConfig,
-  OverlayConfig,
-} from '../../views/map/NetworkMapTypes';
+import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
 
 const styles = theme => ({
   formContainer: {
@@ -85,15 +83,14 @@ const OVERLAY_TYPE = Object.freeze({
 
 export type Props = {
   selectedLayers: SelectedLayers,
-  onLayerSelectChange: SelectedLayers => {},
-  layersConfig: Array<MapLayerConfig>,
+  onLayerSelectChange: SelectedLayers => any,
   // overlays
   overlaysConfig: Array<OverlayConfig<any>>,
   overlayLoading: {
     [string]: boolean,
   },
   selectedOverlays: SelectedOverlays,
-  onOverlaySelectChange: SelectedOverlays => {},
+  onOverlaySelectChange: SelectedOverlays => any,
   // map styles
   selectedMapStyle: string,
   mapStylesConfig: Array<{endpoint: string, name: string}>,
@@ -106,7 +103,7 @@ export type Props = {
   networkName: string,
 };
 
-type SelectedOverlays = {[string]: string};
+export type SelectedOverlays = {[string]: string};
 type SelectedLayers = {[string]: boolean};
 
 type State = {
@@ -139,11 +136,11 @@ class MapLayersPanel extends React.Component<
   };
 
   renderLayersForm() {
-    const {classes, layersConfig, selectedLayers} = this.props;
+    const {classes, selectedLayers} = this.props;
     return (
       <FormGroup key="layers" row={false} className={classes.formGroup}>
         <FormLabel component="legend">Layers</FormLabel>
-        {layersConfig.map(({layerId, name}) => (
+        {overlayLayers.map(({layerId, name}) => (
           <FormControlLabel
             key={layerId}
             control={
@@ -197,7 +194,7 @@ class MapLayersPanel extends React.Component<
         </Tabs>
         <div className={classes.sectionPadding} />
 
-        {selectedTable === OVERLAY_TYPE.history ? (
+        {selectedTable === OVERLAY_TYPE.history && mapHistoryProps ? (
           <MapHistoryOverlay {...mapHistoryProps} networkName={networkName} />
         ) : selectedTable === OVERLAY_TYPE.current ? (
           <div>
@@ -219,13 +216,12 @@ class MapLayersPanel extends React.Component<
       classes,
       overlaysConfig,
       selectedOverlays,
-      layersConfig,
       overlayLoading,
     } = this.props;
     return overlaysConfig.map(layerOverlays => {
       const layerId = layerOverlays.layerId;
       const overlays = layerOverlays.overlays;
-      const legendName = layersConfig.find(layer => layer.layerId === layerId)
+      const legendName = overlayLayers.find(layer => layer.layerId === layerId)
         ?.name;
 
       // map overlay id -> type to render legend keys

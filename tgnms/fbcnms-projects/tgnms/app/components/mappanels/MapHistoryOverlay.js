@@ -20,7 +20,7 @@ import {SiteOverlayColors} from '../../constants/LayerConstants';
 import {createQuery, queryDataArray} from '../../apiutils/PrometheusAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {Overlay, OverlayStrategy} from '../../views/map/overlays';
+import type {Overlay} from '../../views/map/overlays';
 import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
 import type {PrometheusDataType} from '../../apiutils/PrometheusAPIUtil';
 import type {SiteToNodesMap} from '../../NetworkContext';
@@ -67,7 +67,7 @@ const styles = theme => ({
 
 export type Props = {
   classes: {[string]: string},
-  overlayConfig: OverlayConfig<any>,
+  overlayConfig: ?OverlayConfig<any>,
   networkName: string,
   onUpdateMap: ({
     linkOverlayData: ?{[string]: {}},
@@ -92,7 +92,7 @@ type State = {
 };
 
 class MapHistoryOverlay extends React.Component<Props, State> {
-  overlayStrategy: OverlayStrategy = new HistoricalLinkMetricsOverlayStrategy();
+  overlayStrategy = new HistoricalLinkMetricsOverlayStrategy();
   constructor(props) {
     super(props);
     const overlays = this.overlayStrategy.getOverlays();

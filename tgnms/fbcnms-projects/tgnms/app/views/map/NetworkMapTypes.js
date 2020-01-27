@@ -17,6 +17,13 @@ export type MapLayerConfig = {
 export type OverlayConfig<TLegend> = {
   layerId: string,
   overlays: Array<Overlay>,
-  changeOverlayRange: ChangeOverlayRange,
+  changeOverlayRange?: ChangeOverlayRange,
   legend: TLegend,
+};
+
+export type SelectedLayersType = {
+  site_icons: boolean,
+  link_lines: boolean,
+  site_name_popups: boolean,
+  buildings_3d: boolean,
 };

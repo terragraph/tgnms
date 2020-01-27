@@ -53,12 +53,7 @@ type Props = {
   onPanelChange: () => any,
   onPin: () => any,
   ...ContextRouter,
-  /*
-   * There are major issues with usages of the Routes type. For now, we must
-   * override the type of node by removing the nullable node property and
-   * specifying a non-nullable one below.
-   */
-  ...$Diff<Routes, {node: ?NodeType}>,
+  ...Routes,
   node: NodeType,
 } & WithStyles<typeof styles> &
   ForwardRef;

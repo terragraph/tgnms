@@ -5,6 +5,7 @@
  * @flow
  */
 
+import 'jest-dom/extend-expect';
 import {
   LinkTypeValueMap,
   NodeStatusTypeValueMap,
@@ -16,8 +17,11 @@ import type {
   SiteType,
   TopologyType,
 } from '../../../shared/types/Topology';
+
 import type {NetworkConfig, NetworkHealth} from '../../NetworkContext';
 import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
+import type {Overlay} from '../../views/map/overlays';
+import type {Routes} from '../../components/mappanels/MapPanelTypes';
 
 /**
  * Creates a fake network config which passes flow validation
@@ -288,6 +292,45 @@ export function mockNetworkHealth(
     startTime: 0,
     endTime: 0,
     events: {},
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a fake routes that passes flow validation
+ * @param {object} overrides overrides default properties of mock routes
+ * @example
+ * mockRoutes({node: 'testNode'})
+ */
+export function mockRoutes(overrides?: $Shape<Routes>): Routes {
+  return {
+    node: null,
+    links: {},
+    nodes: new Set(),
+    onUpdateRoutes: () => {},
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a fake Overlay that passes flow validation
+ * @param {object} overrides overrides default properties of mock Overlay
+ * @example
+ * mockOverlay({name: 'testOverlay'})
+ */
+
+// colors get converted into rgb codes by d3
+export const COLOR_BLUE = 'rgb(0, 0, 255)';
+export const COLOR_YELLOW = 'rgb(255, 255, 0)';
+export const COLOR_RED = 'rgb(255, 0, 0)';
+
+export function mockOverlay(overrides?: $Shape<Overlay>): Overlay {
+  return {
+    name: 'mock overlay',
+    id: 'mock',
+    type: 'metric',
+    range: [0, 1, 2],
+    colorRange: [COLOR_BLUE, COLOR_YELLOW, COLOR_RED],
     ...overrides,
   };
 }

@@ -9,7 +9,7 @@ import React from 'react';
 import {Popup} from 'react-mapbox-gl';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {TopologyType} from '../../../shared/types/Topology';
+import type {TopologyType} from '../../../../shared/types/Topology';
 
 const styles = {};
 

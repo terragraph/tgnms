@@ -111,7 +111,7 @@ export type WirelessControllerStats = {
   lastSeenTime: number,
 };
 
-type Coordinate = [number, number];
+export type Coordinate = [number, number];
 
 export type IgnitionState = {|
   igCandidates: Array<IgnitionCandidate>,
