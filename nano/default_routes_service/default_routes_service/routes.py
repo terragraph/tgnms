@@ -3,68 +3,53 @@
 
 import json
 import logging
-import re
+from collections import defaultdict
 from datetime import datetime
 from functools import partial
 from typing import Dict, List, Tuple
 
 from aiohttp import web
-from aiomysql.sa import SAConnection
 from aiomysql.sa.result import RowProxy
-from sqlalchemy import select
+from sqlalchemy import outerjoin, select
+from sqlalchemy.orm import aliased
 from tglib.clients import MySQLClient
 
 from .models import DefaultRouteHistory, LinkCnRoutes
-from .mysql_helpers import fetch_preceding_routes
 
 
 routes = web.RouteTableDef()
 
 
-def parse_input_params(
-    request: web.Request, name: str = "node_name"
-) -> Tuple[str, str, datetime, datetime]:
+def parse_input_params(request: web.Request) -> Tuple[str, datetime, datetime]:
     network_name = request.rel_url.query.get("network_name")
-    name = request.rel_url.query.get("name")
-    start_time = request.rel_url.query.get("start_time")
-    end_time = request.rel_url.query.get("end_time")
-
-    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
+    start_dt = request.rel_url.query.get("start_dt")
+    end_dt = request.rel_url.query.get("end_dt")
 
     # get the network name
     if network_name is None:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
 
-    # get and validate start time
-    if start_time is None:
-        raise web.HTTPBadRequest(text="Missing required 'start_time' param")
-    # drop ms if needed
-    start_time = start_time.split(".")[0] + "Z" if "." in start_time else start_time
-    if not re.match(datetime_re, start_time):
-        raise web.HTTPBadRequest(text="'start_time' param is not valid ISO 8601")
+    # Parse start_dt, raise '400' if missing/invalid
+    if start_dt is None:
+        raise web.HTTPBadRequest(text="Missing required 'start_dt' param")
     try:
-        start_time_obj = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
-    except ValueError as err:
-        raise web.HTTPBadRequest(text=str(err))
+        start_dt_obj = datetime.fromisoformat(start_dt)
+    except ValueError:
+        raise web.HTTPBadRequest(text=f"'start_dt' is invalid ISO 8601: '{start_dt}'")
 
-    # get and validate end time
-    if end_time is None:
-        raise web.HTTPBadRequest(text="Missing required 'end_time' param")
-    # drop ms if needed
-    end_time = end_time.split(".")[0] + "Z" if "." in end_time else end_time
-    if not re.match(datetime_re, end_time):
-        raise web.HTTPBadRequest(text="'end_time' param is not valid ISO 8601")
-    try:
-        end_time_obj = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%SZ")
-    except ValueError as err:
-        raise web.HTTPBadRequest(text=str(err))
+    # Parse end_dt, use current datetime if not provided. Raise '400' if invalid
+    if end_dt is None:
+        end_dt_obj = datetime.utcnow()
+    else:
+        try:
+            end_dt_obj = datetime.fromisoformat(end_dt)
+        except ValueError:
+            raise web.HTTPBadRequest(text="'end_dt' param is not valid ISO 8601")
 
-    if start_time_obj >= end_time_obj:
-        raise web.HTTPBadRequest(
-            text="'start_time' has to be less than 'end_time' param"
-        )
+    if start_dt_obj >= end_dt_obj:
+        raise web.HTTPBadRequest(text="'start_dt' has to be less than 'end_dt' param")
 
-    return network_name, name, start_time_obj, end_time_obj
+    return network_name, start_dt_obj, end_dt_obj
 
 
 @routes.get("/routes/history")
@@ -90,14 +75,14 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         schema:
           type: string
       - in: query
-        name: start_time
-        description: Start time of time window, in ISO 8601 format.
+        name: start_dt
+        description: The start UTC datetime of time window, in ISO 8601 format.
         required: true
         schema:
           type: string
       - in: query
-        name: end_time
-        description: End time of time window, in ISO 8601 format.
+        name: end_dt
+        description: The end UTC datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
         required: true
         schema:
           type: string
@@ -108,21 +93,35 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         description: Invalid or missing parameters.
     """
     # parse and validate input params
-    network_name, node_name, start_time_obj, end_time_obj = parse_input_params(request)
+    network_name, start_dt_obj, end_dt_obj = parse_input_params(request)
+
+    # get node name from request query
+    node_name = request.rel_url.query.get("node_name")
 
     # get entries for all nodes between start and end time
-    query = select(
-        [
-            DefaultRouteHistory.id,
-            DefaultRouteHistory.node_name,
-            DefaultRouteHistory.routes,
-            DefaultRouteHistory.last_updated,
-            DefaultRouteHistory.hop_count,
-        ]
-    ).where(
-        (DefaultRouteHistory.network_name == network_name)
-        & (DefaultRouteHistory.last_updated >= start_time_obj)
-        & (DefaultRouteHistory.last_updated <= end_time_obj)
+    previous_entry = aliased(DefaultRouteHistory)
+    query = (
+        select(
+            [
+                DefaultRouteHistory.node_name,
+                DefaultRouteHistory.routes,
+                DefaultRouteHistory.last_updated,
+                DefaultRouteHistory.hop_count,
+                previous_entry.routes.label("prev_routes"),
+            ]
+        )
+        .select_from(
+            outerjoin(
+                DefaultRouteHistory,
+                previous_entry,
+                DefaultRouteHistory.prev_routes_id == previous_entry.id,
+            )
+        )
+        .where(
+            (DefaultRouteHistory.network_name == network_name)
+            & (DefaultRouteHistory.last_updated >= start_dt_obj)
+            & (DefaultRouteHistory.last_updated <= end_dt_obj)
+        )
     )
 
     # if node name is provided, fetch info for that specific node
@@ -137,15 +136,15 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         cursor = await conn.execute(query)
         results = await cursor.fetchall()
 
-        history = _get_default_routes_history_impl(results)
-        util = await _compute_routes_utilization_impl(
-            conn, results, start_time_obj, end_time_obj, network_name
-        )
+    return web.json_response(
+        {
+            "history": get_default_routes_history(results),
+            "util": compute_routes_utilization(results, start_dt_obj, end_dt_obj),
+        }
+    )
 
-    return web.json_response({"history": history, "util": util})
 
-
-def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
+def get_default_routes_history(raw_routes_data: List[RowProxy]) -> Dict:
     """
     Iterate over the list of RowProxy objects to track changes in routes.
 
@@ -154,11 +153,13 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
                 "last_updated": "datetime_0",
+                "hop_count": 2
             },
             {
                 "node_name": "A",
                 "routes": [["A", "B", "C"]],
                 "last_updated": "datetime_3",
+                "hop_count": 2
             },
         ]
     output = {
@@ -188,21 +189,17 @@ def _get_default_routes_history_impl(raw_routes_data: List[RowProxy]) -> Dict:
     return routes_history
 
 
-async def _compute_routes_utilization_impl(
-    conn: SAConnection,
-    raw_routes_data: List[RowProxy],
-    start_time: datetime,
-    end_time: datetime,
-    network_name: str,
+def compute_routes_utilization(
+    raw_routes_data: List[RowProxy], start_dt: datetime, end_dt: datetime
 ) -> Dict:
     """
     Iterate over the list of RowProxy objects to calculate the percentage of
     time each route takes for each node.
     input = [
             {
-                "id": 10,
                 "node_name": "A",
                 "routes": [["X", "Y", "Z"]],
+                "prev_routes": [["A", "B", "C"]],
                 "last_updated": "datetime"
             },
         ]
@@ -213,49 +210,47 @@ async def _compute_routes_utilization_impl(
         },
     }
     """
-    # dictionary to track routes utilization of each node
+    # dictionary to track time for routes of each node
     routes_utilization: Dict[str, Dict] = {}
     # dictionary to track previous routes and last_updated info for each node
     prev_info: Dict = {}
     # total datetime difference requested
-    time_window = end_time - start_time
+    total_time_window: float = (end_dt - start_dt).total_seconds()
 
+    # row data is in ascending order of time
     for row in raw_routes_data:
-        id = row["id"]
         node_name = row["node_name"]
         curr_routes = row["routes"]
+        prev_routes = row["prev_routes"]
         curr_datetime = row["last_updated"]
 
         # initialize the node
-        if node_name not in prev_info:
-            prev_info[node_name] = {"prev_route": None, "prev_datetime": start_time}
-            routes_utilization[node_name] = {}
+        if node_name not in routes_utilization:
+            prev_info[node_name] = {"routes": prev_routes, "datetime": start_dt}
+            routes_utilization[node_name] = defaultdict(float)
 
-        # get the routes between start_time and the first routes change
-        if prev_info[node_name]["prev_route"] is None:
-            prev_info[node_name]["prev_route"] = await fetch_preceding_routes(
-                conn, id, network_name, node_name
-            )
+        # record time taken by the previous routes
+        routes_utilization[node_name][str(prev_info[node_name]["routes"])] += (
+            curr_datetime - prev_info[node_name]["datetime"]
+        ).total_seconds()
 
-        # record the routes percentage for the previous routes
-        routes_utilization[node_name][str(prev_info[node_name]["prev_route"])] = round(
-            (
-                (curr_datetime - prev_info[node_name]["prev_datetime"])
-                / time_window
-                * 100
-            ),
-            3,
-        )
         # set the current routes as previous routes for next iteration
-        prev_info[node_name]["prev_route"] = curr_routes
+        prev_info[node_name]["routes"] = curr_routes
         # set the current datetime as previous datetime for next iteration
-        prev_info[node_name]["prev_datetime"] = curr_datetime
+        prev_info[node_name]["datetime"] = curr_datetime
 
-    # record the routes percentage for the remaining routes
+    # record the time taken by the last route until end_dt
     for node_name, info in prev_info.items():
-        routes_utilization[node_name][str(info["prev_route"])] = round(
-            ((end_time - info["prev_datetime"]) / time_window * 100), 3
-        )
+        routes_utilization[node_name][str(info["routes"])] += (
+            end_dt - info["datetime"]
+        ).total_seconds()
+
+    # calculate routes utilization for all routes
+    for node_name, routes_info in routes_utilization.items():
+        for routes, time in routes_info.items():
+            routes_utilization[node_name][routes] = round(
+                (time / total_time_window * 100), 3
+            )
 
     return routes_utilization
 
@@ -283,14 +278,14 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
         schema:
           type: string
       - in: query
-        name: start_time
-        description: Start time of time window, in ISO 8601 format.
+        name: start_dt
+        description: The start UTC datetime of time window, in ISO 8601 format.
         required: true
         schema:
           type: string
       - in: query
-        name: end_time
-        description: End time of time window, in ISO 8601 format.
+        name: end_dt
+        description: The end UTC datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
         required: true
         schema:
           type: string
@@ -302,9 +297,10 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
     """
 
     # parse and validate input params
-    network_name, link_name, start_time_obj, end_time_obj = parse_input_params(
-        request, "link_name"
-    )
+    network_name, start_dt_obj, end_dt_obj = parse_input_params(request)
+
+    # get link name from request query
+    link_name = request.rel_url.query.get("link_name")
 
     # get entries for all links between start and end time
     query = select(
@@ -316,8 +312,8 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
         ]
     ).where(
         (LinkCnRoutes.network_name == network_name)
-        & (LinkCnRoutes.last_updated >= start_time_obj)
-        & (LinkCnRoutes.last_updated <= end_time_obj)
+        & (LinkCnRoutes.last_updated >= start_dt_obj)
+        & (LinkCnRoutes.last_updated <= end_dt_obj)
     )
 
     # if link name is provided, fetch info for that specific link

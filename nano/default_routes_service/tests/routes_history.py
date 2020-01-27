@@ -3,7 +3,7 @@
 
 import unittest
 
-from default_routes_service.routes import _get_default_routes_history_impl
+from default_routes_service.routes import get_default_routes_history
 
 
 class TestRoutesHistory(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestRoutesHistory(unittest.TestCase):
             }
         ]
         expected_output = {"A": {"datetime_0": {"routes": [], "hop_count": 0}}}
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_node_one_route_no_change(self) -> None:
@@ -32,7 +32,7 @@ class TestRoutesHistory(unittest.TestCase):
         expected_output = {
             "A": {"datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2}}
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_node_two_routes_one_change(self) -> None:
@@ -56,7 +56,7 @@ class TestRoutesHistory(unittest.TestCase):
                 "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
             }
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_node_two_routes_two_changes(self) -> None:
@@ -87,7 +87,7 @@ class TestRoutesHistory(unittest.TestCase):
                 "datetime_6": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
             }
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_node_one_ecmp_route_no_change(self) -> None:
@@ -107,7 +107,7 @@ class TestRoutesHistory(unittest.TestCase):
                 }
             }
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_node_two_ecmp_routes_one_change(self) -> None:
@@ -137,7 +137,7 @@ class TestRoutesHistory(unittest.TestCase):
                 },
             }
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_node_two_ecmp_routes_two_changes(self) -> None:
@@ -177,7 +177,7 @@ class TestRoutesHistory(unittest.TestCase):
                 },
             }
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_one_ecmp_one_normal_route_two_changes(self) -> None:
@@ -214,7 +214,7 @@ class TestRoutesHistory(unittest.TestCase):
                 },
             }
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_no_routes(self) -> None:
@@ -236,7 +236,7 @@ class TestRoutesHistory(unittest.TestCase):
             "A": {"datetime_0": {"routes": [], "hop_count": 0}},
             "B": {"datetime_0": {"routes": [], "hop_count": 0}},
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_one_route_no_change(self) -> None:
@@ -258,7 +258,7 @@ class TestRoutesHistory(unittest.TestCase):
             "A": {"datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2}},
             "B": {"datetime_0": {"routes": [["D", "G", "Y"]], "hop_count": 2}},
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_two_routes_one_change(self) -> None:
@@ -298,7 +298,7 @@ class TestRoutesHistory(unittest.TestCase):
                 "datetime_7": {"routes": [["U", "I", "O"]], "hop_count": 2},
             },
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_two_routes_two_changes(self) -> None:
@@ -352,7 +352,7 @@ class TestRoutesHistory(unittest.TestCase):
                 "datetime_6": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
             },
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_one_ecmp_route_no_change(self) -> None:
@@ -384,7 +384,7 @@ class TestRoutesHistory(unittest.TestCase):
                 }
             },
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_two_ecmp_routes_one_change(self) -> None:
@@ -436,7 +436,7 @@ class TestRoutesHistory(unittest.TestCase):
                 },
             },
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_node_two_ecmp_routes_two_changes(self) -> None:
@@ -508,7 +508,7 @@ class TestRoutesHistory(unittest.TestCase):
                 },
             },
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)
 
     def test_multi_ecmp_one_normal_route_two_changes(self) -> None:
@@ -574,5 +574,5 @@ class TestRoutesHistory(unittest.TestCase):
                 },
             },
         }
-        actual_output = _get_default_routes_history_impl(input)
+        actual_output = get_default_routes_history(input)
         self.assertDictEqual(actual_output, expected_output)

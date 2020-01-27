@@ -16,7 +16,7 @@ ptr_params = {
 
 setup(
     name="default_routes_service",
-    version="2020.01.17",
+    version="2020.01.25",
     packages=["default_routes_service"],
     install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
