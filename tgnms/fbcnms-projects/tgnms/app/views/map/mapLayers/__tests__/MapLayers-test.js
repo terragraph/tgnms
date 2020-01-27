@@ -43,6 +43,7 @@ const commonProps: Props = {
   selectedOverlays: {},
   historicalOverlay: null,
   overlay: mockOverlay(),
+  linkMetricData: null,
 };
 
 test('renders with no layers selected', () => {

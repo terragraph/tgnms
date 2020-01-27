@@ -7,7 +7,6 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import LinkOverlayContext from '../../../../LinkOverlayContext';
 import LinksLayer from '../LinksLayer';
 import {
   COLOR_RED,
@@ -29,6 +28,16 @@ import {
 import type {Props} from '../LinksLayer';
 afterEach(cleanup);
 
+const mockMetrics = {
+  'link-node1-node2': {
+    A: {
+      mock: 1,
+    },
+    Z: {
+      mock: 2,
+    },
+  },
+};
 const defaultTopology = basicTopology();
 const commonProps: Props = {
   topology: defaultTopology,
@@ -55,7 +64,9 @@ const commonProps: Props = {
   onLinkMouseLeave: jest.fn(),
   offlineWhitelist: {nodes: new Map(), links: new Map()},
   metricTextEnabled: false,
+  metricData: mockMetrics,
 };
+
 test('renders with default props', () => {
   render(
     <Wrapper>
@@ -100,24 +111,9 @@ describe('basic line rendering', () => {
 
   test('renders line features with correct colors', () => {
     // link-name -> A,Z -> overlay id
-    const mockMetrics = {
-      'link-node1-node2': {
-        A: {
-          mock: 1,
-        },
-        Z: {
-          mock: 2,
-        },
-      },
-    };
     const {container} = render(
       <Wrapper>
-        <LinkOverlayContext.Provider
-          value={{
-            metricData: mockMetrics,
-          }}>
-          <LinksLayer {...commonProps} />
-        </LinkOverlayContext.Provider>
+        <LinksLayer {...commonProps} />
       </Wrapper>,
     );
     const layer = getLayerById(container, 'link-normal');

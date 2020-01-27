@@ -6,7 +6,6 @@
  */
 
 import Dragger from '../../components/common/Dragger';
-import LinkOverlayContext from '../../LinkOverlayContext';
 import MapLayers from './mapLayers/MapLayers';
 import NetworkContext from '../../NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
@@ -449,145 +448,141 @@ class NetworkMap extends React.Component<Props, State> {
     return (
       <NetworkContext.Consumer>
         {context => (
-          <LinkOverlayContext.Provider
+          <RouteContext.Provider
             value={{
-              metricData: linkOverlayMetrics,
+              ...routesOverlay,
+              setNodeRoutes: this.setNodeRoutes,
             }}>
-            <RouteContext.Provider
-              value={{
-                ...routesOverlay,
-                setNodeRoutes: this.setNodeRoutes,
-              }}>
-              <div className={classes.container}>
-                <div className={classes.topContainer}>
-                  <MapBoxGL
-                    fitBounds={mapBounds}
-                    fitBoundsOptions={FIT_BOUND_OPTIONS}
-                    style={selectedMapStyle}
-                    onStyleLoad={map => this.setState({mapRef: map})}
-                    containerStyle={{width: '100%', height: 'inherit'}}>
-                    <TgMapboxGeocoder
-                      accessToken={MAPBOX_ACCESS_TOKEN}
-                      mapRef={mapRef}
-                      onSelectFeature={this.onGeocoderEvent}
-                      onSelectTopologyElement={context.setSelected}
-                      nodeMap={context.nodeMap}
-                      linkMap={context.linkMap}
-                      siteMap={context.siteMap}
-                      statusReports={
-                        context.networkConfig?.status_dump?.statusReports
-                      }
-                    />
-                    <ZoomControl />
-                    <RotationControl style={{top: 80}} />
-                    <Route
-                      path={`${match.url}/:tableName?`}
-                      render={routerProps => (
-                        <TableControl
-                          style={{left: 10, bottom: 10}}
-                          baseUrl={match.url}
-                          onToggleTable={this.onToggleTable}
-                          {...routerProps}
-                        />
-                      )}
-                    />
-                    <MapLayers
-                      context={context}
-                      selectedLayers={selectedLayers}
-                      plannedSite={plannedSite}
-                      onPlannedSiteMoved={this.onPlannedSiteMoved}
-                      nearbyNodes={nearbyNodes}
-                      routes={routes}
-                      historicalSiteMap={historicalSiteMap}
-                      hiddenSites={hiddenSites}
-                      selectedOverlays={selectedOverlays}
-                      historicalOverlay={historicalOverlay}
-                      overlay={this.overlayStrategy.getOverlay(
-                        selectedOverlays.link_lines,
-                      )}
-                    />
-                  </MapBoxGL>
-                  <NetworkDrawer
-                    bottomOffset={showTable ? tableHeight : 0}
-                    context={context}
+            <div className={classes.container}>
+              <div className={classes.topContainer}>
+                <MapBoxGL
+                  fitBounds={mapBounds}
+                  fitBoundsOptions={FIT_BOUND_OPTIONS}
+                  style={selectedMapStyle}
+                  onStyleLoad={map => this.setState({mapRef: map})}
+                  containerStyle={{width: '100%', height: 'inherit'}}>
+                  <TgMapboxGeocoder
+                    accessToken={MAPBOX_ACCESS_TOKEN}
                     mapRef={mapRef}
-                    mapLayersProps={{
-                      overlaysConfig: this.getOverlaysConfig(),
-                      mapStylesConfig: this._mapBoxStyles,
-                      selectedLayers: selectedLayers,
-                      selectedOverlays: selectedOverlays,
-                      selectedMapStyle: selectedMapStyle,
-                      onLayerSelectChange: selectedLayers =>
-                        this.setState({selectedLayers}),
-                      onOverlaySelectChange: this.selectOverlays,
-                      onMapStyleSelectChange: selectedMapStyle =>
-                        this.setState({selectedMapStyle}),
-                      overlayLoading: overlayLoading,
-                      expanded: false,
-                      onPanelChange: () => {},
-                      mapHistoryProps: {
-                        overlayConfig: this.getOverlaysConfig().find(
-                          overLayConfig =>
-                            overLayConfig.layerId === 'link_lines',
-                        ),
-                        onUpdateMap: this.onHistoricalMapUpdate,
-                        siteToNodesMap: context.siteToNodesMap,
-
-                        //dont want these
-                        onPanelChange: () => {},
-                        expanded: false,
-                        networkName: '',
-                        classes: {},
-                      },
-                      networkName: '',
-                    }}
-                    plannedSiteProps={{
-                      plannedSite: plannedSite,
-                      onUpdatePlannedSite: plannedSite =>
-                        this.setState({plannedSite}),
-                      hideSite: this.hideSite,
-                      unhideSite: this.unhideSite,
-                    }}
-                    searchNearbyProps={{
-                      nearbyNodes: nearbyNodes,
-                      onUpdateNearbyNodes: nearbyNodes =>
-                        this.setState({nearbyNodes}),
-                    }}
-                    routesProps={{
-                      ...routes,
-                      onUpdateRoutes: routes => {
-                        this.setState({routes});
-                      },
-                    }}
-                    networkTestId={getTestOverlayId(location)}
-                    speedTestId={getSpeedTestId(location)}
-                    onNetworkTestPanelClosed={this.exitTestOverlayMode}
+                    onSelectFeature={this.onGeocoderEvent}
+                    onSelectTopologyElement={context.setSelected}
+                    nodeMap={context.nodeMap}
+                    linkMap={context.linkMap}
+                    siteMap={context.siteMap}
+                    statusReports={
+                      context.networkConfig?.status_dump?.statusReports
+                    }
                   />
-                  )}
-                </div>
-                {showTable && (
-                  <div style={{height: tableHeight}}>
-                    <div className={classes.draggerContainer}>
-                      <Dragger
-                        direction="vertical"
-                        minSize={TABLE_LIMITS.minHeight}
-                        maxSize={TABLE_LIMITS.maxHeight}
-                        onResize={this.handleTableResize}
+                  <ZoomControl />
+                  <RotationControl style={{top: 80}} />
+                  <Route
+                    path={`${match.url}/:tableName?`}
+                    render={routerProps => (
+                      <TableControl
+                        style={{left: 10, bottom: 10}}
+                        baseUrl={match.url}
+                        onToggleTable={this.onToggleTable}
+                        {...routerProps}
                       />
-                    </div>
-                    <NetworkTables
-                      selectedElement={context.selectedElement}
-                      // fixes this component's usage of withRouter
-                      match={match}
-                      location={location}
-                      history={history}
-                      isEmbedded={true}
-                    />
-                  </div>
+                    )}
+                  />
+                  <MapLayers
+                    context={context}
+                    layersConfig={this.layersConfig}
+                    selectedLayers={selectedLayers}
+                    plannedSite={plannedSite}
+                    onPlannedSiteMoved={this.onPlannedSiteMoved}
+                    nearbyNodes={nearbyNodes}
+                    routes={routes}
+                    historicalSiteMap={historicalSiteMap}
+                    hiddenSites={hiddenSites}
+                    selectedOverlays={selectedOverlays}
+                    historicalOverlay={historicalOverlay}
+                    overlay={this.overlayStrategy.getOverlay(
+                      selectedOverlays.link_lines,
+                    )}
+                    linkMetricData={linkOverlayMetrics}
+                  />
+                </MapBoxGL>
+                <NetworkDrawer
+                  bottomOffset={showTable ? tableHeight : 0}
+                  context={context}
+                  mapRef={mapRef}
+                  mapLayersProps={{
+                    overlaysConfig: this.getOverlaysConfig(),
+                    mapStylesConfig: this._mapBoxStyles,
+                    selectedLayers: selectedLayers,
+                    selectedOverlays: selectedOverlays,
+                    selectedMapStyle: selectedMapStyle,
+                    onLayerSelectChange: selectedLayers =>
+                      this.setState({selectedLayers}),
+                    onOverlaySelectChange: this.selectOverlays,
+                    onMapStyleSelectChange: selectedMapStyle =>
+                      this.setState({selectedMapStyle}),
+                    overlayLoading: overlayLoading,
+                    expanded: false,
+                    onPanelChange: () => {},
+                    mapHistoryProps: {
+                      overlayConfig: this.getOverlaysConfig().find(
+                        overLayConfig => overLayConfig.layerId === 'link_lines',
+                      ),
+                      onUpdateMap: this.onHistoricalMapUpdate,
+                      siteToNodesMap: context.siteToNodesMap,
+
+                      //dont want these
+                      onPanelChange: () => {},
+                      expanded: false,
+                      networkName: '',
+                      classes: {},
+                    },
+                    networkName: '',
+                  }}
+                  plannedSiteProps={{
+                    plannedSite: plannedSite,
+                    onUpdatePlannedSite: plannedSite =>
+                      this.setState({plannedSite}),
+                    hideSite: this.hideSite,
+                    unhideSite: this.unhideSite,
+                  }}
+                  searchNearbyProps={{
+                    nearbyNodes: nearbyNodes,
+                    onUpdateNearbyNodes: nearbyNodes =>
+                      this.setState({nearbyNodes}),
+                  }}
+                  routesProps={{
+                    ...routes,
+                    onUpdateRoutes: routes => {
+                      this.setState({routes});
+                    },
+                  }}
+                  networkTestId={getTestOverlayId(location)}
+                  speedTestId={getSpeedTestId(location)}
+                  onNetworkTestPanelClosed={this.exitTestOverlayMode}
+                />
                 )}
               </div>
-            </RouteContext.Provider>
-          </LinkOverlayContext.Provider>
+              {showTable && (
+                <div style={{height: tableHeight}}>
+                  <div className={classes.draggerContainer}>
+                    <Dragger
+                      direction="vertical"
+                      minSize={TABLE_LIMITS.minHeight}
+                      maxSize={TABLE_LIMITS.maxHeight}
+                      onResize={this.handleTableResize}
+                    />
+                  </div>
+                  <NetworkTables
+                    selectedElement={context.selectedElement}
+                    // fixes this component's usage of withRouter
+                    match={match}
+                    location={location}
+                    history={history}
+                    isEmbedded={true}
+                  />
+                </div>
+              )}
+            </div>
+          </RouteContext.Provider>
         )}
       </NetworkContext.Consumer>
     );

@@ -18,7 +18,6 @@ import type {
 } from '../../../../shared/types/Topology';
 import type {Overlay} from '../overlays';
 
-import LinkOverlayContext from '../../../LinkOverlayContext';
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {HEALTH_CODES} from '../../../constants/HealthConstants';
@@ -90,6 +89,7 @@ export type Props = {
   onLinkMouseEnter: Object => void,
   onLinkMouseLeave: Object => void,
   offlineWhitelist: OfflineWhiteListType,
+  metricData: ?{[string]: {}},
 };
 
 type CnLinkInfoMap = {
@@ -423,14 +423,6 @@ class LinksLayer extends React.Component<Props> {
   };
 
   render() {
-    return (
-      <LinkOverlayContext.Consumer>
-        {this.renderOverlayContext}
-      </LinkOverlayContext.Consumer>
-    );
-  }
-
-  renderOverlayContext = overlayContext => {
     const {
       topology,
       nodeMap,
@@ -440,8 +432,8 @@ class LinksLayer extends React.Component<Props> {
       onLinkMouseLeave,
       nearbyNodes,
       overlay,
+      metricData,
     } = this.props;
-    const {metricData} = overlayContext;
     const linkToRenderType = this.mapLinksToRenderType();
 
     // Draw links in topology
@@ -696,7 +688,7 @@ class LinksLayer extends React.Component<Props> {
         ) : null}
       </>
     );
-  };
+  }
 }
 
 export default withStyles(styles)(LinksLayer);

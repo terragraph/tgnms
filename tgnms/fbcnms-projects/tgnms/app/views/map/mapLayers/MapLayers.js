@@ -34,6 +34,7 @@ export type Props = {
   selectedOverlays: SelectedOverlays,
   historicalOverlay: ?Overlay,
   overlay: Overlay,
+  linkMetricData: ?{[string]: {}},
 };
 
 const onFeatureMouseEnter = mapEvent => {
@@ -104,6 +105,7 @@ export default function MapLayers(props: Props) {
     selectedOverlays,
     historicalOverlay,
     overlay,
+    linkMetricData,
   } = props;
 
   const {
@@ -166,6 +168,7 @@ export default function MapLayers(props: Props) {
           nearbyNodes={nearbyNodes}
           routes={routes}
           offlineWhitelist={offline_whitelist}
+          metricData={linkMetricData}
         />
       ) : null}
       {site_icons ? (
