@@ -24,10 +24,10 @@ services:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
     restart: always
     env_file:
-      - ./env/default_route.env
+      - ./env/default_routes_service.env
     volumes:
       - ./docker_volumes/logs:/nano/default_routes_service/logs
-      - ./docker_volumes/default_routes/service_config.json:/usr/local/nano/default_routes_service/service_config.json
+      - ./docker_volumes/default_routes_service/service_config.json:/usr/local/nano/default_routes_service/service_config.json
       - ./docker_volumes/tglib/config.json:/usr/local/nano/default_routes_service/config.json
       - ./mysql_init_scripts/default_routes_service.sql:/usr/local/nano/default_routes_service/default_routes_service.sql
     networks:

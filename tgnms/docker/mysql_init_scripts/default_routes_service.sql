@@ -32,24 +32,16 @@ CREATE TABLE IF NOT EXISTS `default_route_history`
   `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `routes` json NOT NULL,
   `hop_count` int(11) NOT NULL,
+  `prev_routes_id` int(11),
   PRIMARY KEY (`id`),
   KEY `network_name` (`network_name`),
   KEY `node_name` (`node_name`),
-  KEY `last_updated` (`last_updated`)
-);
-
-/* create current table */
-CREATE TABLE IF NOT EXISTS `default_route_current` (
-  `id` int(11) AUTO_INCREMENT,
-  `network_name` varchar(100) NOT NULL,
-  `node_name` varchar(255) NOT NULL,
-  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `current_route_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `default_route_current_ibfk_1` (`current_route_id`),
-  CONSTRAINT `default_route_current_ibfk_1`
-  FOREIGN KEY (`current_route_id`)
+  KEY `last_updated` (`last_updated`),
+  KEY `prev_routes_id` (`prev_routes_id`),
+  CONSTRAINT `prev_routes_id`
+  FOREIGN KEY (`prev_routes_id`)
   REFERENCES `default_route_history` (`id`)
+  ON DELETE SET NULL
 );
 
 /* create link CN routes table */
