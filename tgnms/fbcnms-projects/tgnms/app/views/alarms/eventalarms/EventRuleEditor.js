@@ -26,6 +26,7 @@ import {Severity} from './EventAlarmsTypes';
 import {TgEventAlarmsApiUtil} from '../TgAlarmApi';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
+import {useAlarmContext} from '@fbcnms/alarms/components/AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useForm} from '@fbcnms/alarms/components/hooks';
 
@@ -54,7 +55,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
-  const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
+  const {isNew, onRuleUpdated, onExit, rule} = props;
+  const {apiUtil} = useAlarmContext();
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
 
