@@ -13,8 +13,11 @@ import {convertType} from '../../helpers/ObjectHelpers';
 import {has} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {ChangeOverlayRange, Overlay} from '../../views/map/overlays';
-import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
+import type {
+  ChangeOverlayRange,
+  Overlay,
+  OverlayConfig,
+} from '../../views/map/NetworkMapTypes';
 
 const styles = theme => ({
   formContainer: {
@@ -41,7 +44,7 @@ const styles = theme => ({
 
 type Props = {
   classes: {[string]: string},
-  layerOverlays: ?OverlayConfig<any>,
+  layerOverlays: ?OverlayConfig,
   overlay: ?Overlay,
 };
 class MapOverlayLegend extends React.Component<Props> {

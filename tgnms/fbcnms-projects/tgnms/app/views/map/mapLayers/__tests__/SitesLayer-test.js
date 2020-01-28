@@ -42,7 +42,7 @@ const commonProps: Props = {
   hiddenSites: new Set(),
   offlineWhitelist: {nodes: new Map(), links: new Map()},
   routes: mockRoutes(),
-  historicalSiteColorMap: {},
+  siteMapOverrides: {},
   classes: {},
 };
 

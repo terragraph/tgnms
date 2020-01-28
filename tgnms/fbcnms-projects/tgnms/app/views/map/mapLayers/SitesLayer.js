@@ -93,7 +93,7 @@ export type Props = {
   nearbyNodes: NearbyNodes,
   hiddenSites: Set<string>,
   routes: Routes,
-  historicalSiteColorMap: ?{[string]: string},
+  siteMapOverrides: ?{[string]: string},
 };
 
 class SitesLayer extends React.Component<Props> {
@@ -173,11 +173,11 @@ class SitesLayer extends React.Component<Props> {
       siteToNodesMap,
       routes,
       topology,
-      historicalSiteColorMap,
+      siteMapOverrides,
     } = this.props;
 
-    if (historicalSiteColorMap) {
-      return historicalSiteColorMap[site.name];
+    if (siteMapOverrides) {
+      return siteMapOverrides[site.name];
     }
 
     const siteNodes =

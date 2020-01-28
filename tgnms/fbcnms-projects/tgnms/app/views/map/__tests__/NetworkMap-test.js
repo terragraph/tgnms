@@ -33,6 +33,7 @@ const commonProps = {
    */
   networkConfig: mockNetworkConfig(),
   networkName: 'test',
+  siteToNodesMap: {},
 };
 
 test('renders without crashing with minimal props ', () => {

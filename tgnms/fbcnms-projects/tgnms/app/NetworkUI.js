@@ -482,6 +482,7 @@ class NetworkUI extends React.Component<Props, State> {
                 <NetworkMap
                   networkName={networkName}
                   networkConfig={this.state.networkConfig}
+                  siteToNodesMap={this.state.siteToNodesMap}
                 />
               )}
             />

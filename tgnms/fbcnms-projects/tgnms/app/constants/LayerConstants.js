@@ -14,6 +14,11 @@ import orange from '@material-ui/core/colors/orange';
 import purple from '@material-ui/core/colors/purple';
 import red from '@material-ui/core/colors/red';
 import {HEALTH_CODES, HEALTH_DEFS} from './HealthConstants';
+import {MCS_DATARATE_TABLE} from './NetworkConstants';
+import {formatNumber} from '../helpers/StringHelpers';
+const MEGABITS = Math.pow(1000, 2);
+
+import type {Overlay} from '../views/map/NetworkMapTypes';
 
 export const LinkOverlayColors = {
   ignition_status: {
@@ -185,4 +190,194 @@ export const SEARCH_NEARBY_LINE_PAINT = {
 export const SEARCH_NEARBY_FILL_PAINT = {
   'fill-color': '#aec6cf',
   'fill-opacity': 0.3,
+};
+
+export const MINUTES_IN_DAY = 1440;
+export const STEP_SIZE = 60;
+export const INTERVAL_SEC = 30;
+export const MILLISECONDS_TO_MINUTES = 60000;
+
+// map overlay layers
+export const overlayLayers = [
+  {
+    layerId: 'link_lines',
+    name: 'Link Lines',
+  },
+  {
+    layerId: 'site_icons',
+    name: 'Site Icons',
+  },
+  {
+    layerId: 'site_name_popups',
+    name: 'Site Name Popups',
+  },
+  {
+    layerId: 'buildings_3d',
+    name: '3D Buildings',
+  },
+];
+
+export const SITE_METRIC_OVERLAYS: {[string]: Overlay} = {
+  health: {name: 'Health', type: 'health', id: 'health'},
+  polarity: {name: 'Polarity', type: 'polarity', id: 'polarity'},
+};
+
+export const HISTORICAL_SITE_METRIC_OVERLAYS: {[string]: Overlay} = {
+  node_online: {
+    name: 'Node Online',
+    type: 'metric',
+    id: 'node_online',
+  },
+};
+
+export const HISTORICAL_LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
+  link_online: {
+    name: 'Online',
+    type: 'metric',
+    id: 'link_online',
+    overlayLegendType: 'ignition_status',
+    range: [1, 0.5, 0.5, 0],
+    bounds: [0, 1],
+  },
+};
+
+export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
+  //{name: 'Performance Health', id: 'perf_health'},
+  //{name: 'Availability', id: 'availability'},
+  //{name: 'Uptime', id: 'uptime'},
+  ignition_status: {
+    name: 'Ignition Status',
+    type: 'ignition_status',
+    id: 'ignition_status',
+  },
+  golay_tx: {name: 'Golay (TX)', type: 'golay', id: 'golay_tx'},
+  golay_rx: {name: 'Golay (RX)', type: 'golay', id: 'golay_rx'},
+  control_superframe: {
+    name: 'Control Superframe',
+    type: 'superframe',
+    id: 'control_superframe',
+  },
+  snr: {
+    name: 'SNR',
+    type: 'metric',
+    id: 'snr',
+    range: [24, 18, 12, 0],
+    units: 'dB',
+    bounds: [0, 50],
+  },
+  mcs: {
+    name: 'MCS',
+    type: 'metric',
+    id: 'mcs',
+    range: [12, 9, 7, 0],
+    bounds: [0, 12],
+  },
+  rssi: {
+    name: 'RSSI',
+    type: 'metric',
+    id: 'rssi',
+    range: [-15, -30, -40, -100],
+    units: 'dBm',
+    bounds: [0, -100],
+  },
+  tx_power: {
+    name: 'Tx Power',
+    type: 'metric',
+    id: 'tx_power',
+    range: [1, 5, 10, 100],
+    bounds: [0, 100],
+  },
+  link_utilization_mbps: {
+    name: 'Link Utilization (mbps)',
+    type: 'metric',
+    id: 'link_utilization_mbps',
+    metrics: ['tx_bytes', 'rx_bytes'],
+    // thresholds aren't scientific
+    range: [0.1, 250, 500, 2000],
+    bounds: [0, 2000],
+    units: 'mbps',
+    aggregate: (metricData: any) => {
+      if (metricData === null) {
+        return -1;
+      }
+      const {rx_bytes, tx_bytes} = metricData;
+      const totalTrafficBps =
+        ((Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8) /
+        1000.0;
+      return totalTrafficBps / 1000.0 / 1000.0;
+    },
+    formatText: (_link, value: number) => {
+      return value >= 0 ? `${formatNumber(value, 1)} mbps` : '';
+    },
+  },
+  link_utilization_mcs: {
+    name: 'Link Utilization (MCS rate)',
+    type: 'metric',
+    id: 'link_utilization_mcs',
+    metrics: ['tx_bytes', 'rx_bytes', 'mcs'],
+    range: [0.1, 1, 10, 100],
+    bounds: [0, 100],
+    units: '%',
+    aggregate: (metricData: any) => {
+      if (metricData === null) {
+        return -1;
+      }
+      const {rx_bytes, tx_bytes, mcs} = metricData;
+      const mcsCapacityBits = MCS_DATARATE_TABLE[mcs];
+      const totalTrafficBps =
+        ((Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8) /
+        1000.0;
+      return (totalTrafficBps / mcsCapacityBits) * 100.0;
+    },
+    formatText: (_link, value: number) => {
+      return value >= 0 ? `${formatNumber(value, 1)}%` : '';
+    },
+  },
+  channel: {
+    name: 'Channel',
+    type: 'channel',
+    id: 'channel',
+  },
+};
+
+export const TEST_EXECUTION_LINK_OVERLAYS: {[string]: Overlay} = {
+  health: {
+    name: 'Health',
+    type: 'metric',
+    id: 'health',
+    range: [0, 1, 2, 3, 4],
+    bounds: [0, 4],
+    colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
+    formatText: (_link, health: number) => {
+      const healthDef = HEALTH_DEFS[health];
+      if (!healthDef) {
+        return 'unknown';
+      }
+      return healthDef.name;
+    },
+  },
+  mcs_avg: {
+    name: 'MCS',
+    type: 'metric',
+    id: 'mcs_avg',
+    range: [12, 9, 7, 0],
+    bounds: [0, 12],
+  },
+  iperf_throughput_mean: {
+    name: 'Iperf Throughput',
+    type: 'metric',
+    id: 'iperf_throughput_mean',
+    //TODO: make these dynamic based on test execution id
+    range: [200, 150, 80, 40],
+    bounds: [0, 200],
+    aggregate: (metricData: any) => {
+      if (!metricData) {
+        return 0;
+      }
+      return (metricData.iperf_throughput_mean || 0) / MEGABITS;
+    },
+    formatText: (_link, value: number) => {
+      return formatNumber(value, 1);
+    },
+  },
 };

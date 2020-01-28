@@ -19,7 +19,10 @@ import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
 import 'rc-slider/assets/index.css';
 import Slider from 'rc-slider';
 
-import type {ChangeOverlayRange, Overlay} from '../../views/map/overlays';
+import type {
+  ChangeOverlayRange,
+  Overlay,
+} from '../../views/map/NetworkMapTypes';
 
 const Range = Slider.createSliderWithTooltip(Slider.Range);
 

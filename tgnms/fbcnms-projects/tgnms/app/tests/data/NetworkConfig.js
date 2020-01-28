@@ -20,7 +20,7 @@ import type {
 
 import type {NetworkConfig, NetworkHealth} from '../../NetworkContext';
 import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
-import type {Overlay} from '../../views/map/overlays';
+import type {Overlay} from '../../views/map/NetworkMapTypes';
 import type {Routes} from '../../components/mappanels/MapPanelTypes';
 
 /**

@@ -5,19 +5,6 @@
  * @flow
  */
 
-import type {
-  IgnitionState,
-  OfflineWhiteListType,
-  SiteMap,
-  TopologyConfig,
-} from '../../../NetworkContext';
-import type {
-  LinkType as Link,
-  NodeType as Node,
-  TopologyType,
-} from '../../../../shared/types/Topology';
-import type {Overlay} from '../overlays';
-
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {HEALTH_CODES} from '../../../constants/HealthConstants';
@@ -63,11 +50,24 @@ import {
 } from '../../../helpers/ObjectHelpers';
 import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {
+  IgnitionState,
+  OfflineWhiteListType,
+  SiteMap,
+  TopologyConfig,
+} from '../../../NetworkContext';
+import type {
+  LinkType as Link,
+  NodeType as Node,
+  TopologyType,
+} from '../../../../shared/types/Topology';
 import type {
   NearbyNodes,
   Routes,
   TopologyScanInfo,
 } from '../../../components/mappanels/MapPanelTypes';
+import type {Overlay} from '../NetworkMapTypes';
 
 const styles = _theme => ({});
 

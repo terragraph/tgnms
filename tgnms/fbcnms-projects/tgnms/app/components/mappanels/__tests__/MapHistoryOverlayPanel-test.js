@@ -6,41 +6,34 @@
  */
 
 import 'jest-dom/extend-expect';
-import MapHistoryOverlay from '../MapHistoryOverlay';
+import MapHistoryOverlayPanel from '../MapHistoryOverlayPanel';
 import React from 'react';
-import {HistoricalLinkMetricsOverlayStrategy} from '../../../views/map/overlays';
+import {HistoricalMetricsOverlayStrategy} from '../../../views/map/overlays';
 import {MuiPickersWrapper, renderAsync} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
-
-import * as prometheusAPIUtil from '../../../apiutils/PrometheusAPIUtil';
-
-const queryDataArrayMock = jest
-  .spyOn(prometheusAPIUtil, 'queryDataArray')
-  .mockImplementation(() => Promise.resolve({data: {}}));
 
 afterEach(() => {
   jest.clearAllMocks();
   cleanup();
 });
 
+const overlay = new HistoricalMetricsOverlayStrategy();
+
 const defaultProps = {
-  overlayConfig: {
-    layerId: 'test_layer',
-    overlays: new HistoricalLinkMetricsOverlayStrategy().getOverlays(),
-    changeOverlayRange: jest.fn(),
-    legend: {},
-  },
-  networkName: 'testNetwork',
-  onUpdateMap: jest.fn(),
-  expanded: false,
-  onPanelChange: jest.fn(),
-  siteToNodesMap: {},
+  overlaysConfig: overlay.getOverlaysConfig(),
+  selectedOverlays: overlay.getDefaultOverlays(),
+  onHistoricalTimeChange: jest.fn(),
+  onHistoricalDateChange: jest.fn(),
+  onOverlaySelectChange: jest.fn(),
+  overlayLoading: false,
+  date: new Date(),
+  selectedTime: new Date(),
 };
 
 test('renders loading without crashing', () => {
   const {getByTestId} = render(
     <MuiPickersWrapper>
-      <MapHistoryOverlay {...defaultProps} />
+      <MapHistoryOverlayPanel {...defaultProps} overlayLoading={true} />
     </MuiPickersWrapper>,
   );
   expect(getByTestId('loadingCircle')).toBeInTheDocument();
@@ -49,7 +42,7 @@ test('renders loading without crashing', () => {
 test('renders after loading without crashing', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
-      <MapHistoryOverlay {...defaultProps} />
+      <MapHistoryOverlayPanel {...defaultProps} />
     </MuiPickersWrapper>,
   );
   expect(getByText('Current Value:')).toBeInTheDocument();
@@ -60,49 +53,36 @@ test('renders after loading without crashing', async () => {
 test('date change triggers new api call', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
-      <MapHistoryOverlay {...defaultProps} />
+      <MapHistoryOverlayPanel {...defaultProps} />
     </MuiPickersWrapper>,
   );
   expect(getByText('Online')).toBeInTheDocument();
   const datePicker = document.getElementById('date');
   fireEvent.change(datePicker, {target: {value: '10/10/2010'}});
-  expect(queryDataArrayMock).toHaveBeenCalledTimes(2);
+  expect(defaultProps.onHistoricalDateChange).toHaveBeenCalledTimes(1);
 });
 
 test('invalid date change does not trigger new api call', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
-      <MapHistoryOverlay {...defaultProps} />
+      <MapHistoryOverlayPanel {...defaultProps} />
     </MuiPickersWrapper>,
   );
   expect(getByText('Online')).toBeInTheDocument();
   const datePicker = document.getElementById('date');
   fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
-  expect(queryDataArrayMock).toHaveBeenCalledTimes(1);
+  expect(defaultProps.onHistoricalDateChange).not.toHaveBeenCalled();
 });
 
 test('selecting a new metric causes map update', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
-      <MapHistoryOverlay {...defaultProps} />
+      <MapHistoryOverlayPanel {...defaultProps} />
     </MuiPickersWrapper>,
   );
   expect(getByText('Link Lines Overlay')).toBeInTheDocument();
   expect(getByText('Online')).toBeInTheDocument();
   fireEvent.mouseDown(getByText('Online'));
   fireEvent.click(getByText('SNR'));
-  expect(defaultProps.onUpdateMap).toHaveBeenCalled();
-});
-
-test('api request fails and error message shows', async () => {
-  queryDataArrayMock.mockImplementation(() =>
-    Promise.reject({message: 'error'}),
-  );
-  const {getByTestId} = await renderAsync(
-    <MuiPickersWrapper>
-      <MapHistoryOverlay {...defaultProps} />
-    </MuiPickersWrapper>,
-  );
-  expect(queryDataArrayMock).toHaveBeenCalled();
-  expect(getByTestId('errorMessage')).toBeInTheDocument();
+  expect(defaultProps.onOverlaySelectChange).toHaveBeenCalled();
 });

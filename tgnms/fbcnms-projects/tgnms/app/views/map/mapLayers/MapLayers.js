@@ -14,13 +14,15 @@ import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 
 import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
 import type {NetworkContextType} from '../../../NetworkContext';
-import type {Overlay} from '../overlays';
+import type {
+  Overlay,
+  SelectedLayersType,
+  SelectedOverlays,
+} from '../NetworkMapTypes';
 import type {
   PlannedSite,
   Routes,
 } from '../../../components/mappanels/MapPanelTypes';
-import type {SelectedLayersType} from '../NetworkMapTypes';
-import type {SelectedOverlays} from '../../../components/mappanels/MapLayersPanel';
 
 export type Props = {
   context: NetworkContextType,
@@ -28,11 +30,10 @@ export type Props = {
   plannedSite: ?PlannedSite,
   nearbyNodes: NearbyNodes,
   routes: Routes,
-  historicalSiteMap: ?{[string]: string},
+  siteMapOverrides: ?{[string]: string},
   onPlannedSiteMoved: Object => any,
   hiddenSites: Set<string>,
   selectedOverlays: SelectedOverlays,
-  historicalOverlay: ?Overlay,
   overlay: Overlay,
   linkMetricData: ?{[string]: {}},
 };
@@ -46,18 +47,6 @@ const onFeatureMouseLeave = mapEvent => {
   // Reset cursor when leaving sites/links
   mapEvent.map.getCanvas().style.cursor = '';
 };
-
-function getCurrentLinkOverlay(options): $Shape<Overlay> {
-  const {historicalOverlay, overlay} = options;
-
-  if (historicalOverlay) {
-    return historicalOverlay;
-  }
-  if (!overlay) {
-    return {};
-  }
-  return overlay;
-}
 
 function getSelectedLinks(selectedElement, linkMap) {
   return selectedElement && selectedElement.type === TopologyElementType.LINK
@@ -99,11 +88,10 @@ export default function MapLayers(props: Props) {
     plannedSite,
     nearbyNodes,
     routes,
-    historicalSiteMap,
+    siteMapOverrides,
     onPlannedSiteMoved,
     hiddenSites,
     selectedOverlays,
-    historicalOverlay,
     overlay,
     linkMetricData,
   } = props;
@@ -122,6 +110,7 @@ export default function MapLayers(props: Props) {
     linkMap,
     siteMap,
     siteToNodesMap,
+    setSelected,
   } = context;
 
   const {
@@ -154,16 +143,12 @@ export default function MapLayers(props: Props) {
           ctrlVersion={controller_version}
           selectedLinks={selectedLinks}
           onSelectLinkChange={linkName =>
-            context.setSelected(TopologyElementType.LINK, linkName)
+            setSelected(TopologyElementType.LINK, linkName)
           }
           selectedNodeName={selectedNodeName}
-          nodeMap={context.nodeMap}
-          siteMap={context.siteMap}
-          overlay={getCurrentLinkOverlay({
-            selectedOverlays,
-            historicalOverlay,
-            overlay,
-          })}
+          nodeMap={nodeMap}
+          siteMap={siteMap}
+          overlay={overlay}
           ignitionState={ignition_state}
           nearbyNodes={nearbyNodes}
           routes={routes}
@@ -181,7 +166,7 @@ export default function MapLayers(props: Props) {
           ctrlVersion={controller_version}
           selectedSites={selectedSites}
           onSelectSiteChange={siteName =>
-            context.setSelected(TopologyElementType.SITE, siteName)
+            setSelected(TopologyElementType.SITE, siteName)
           }
           nodeMap={nodeMap}
           siteToNodesMap={siteToNodesMap}
@@ -192,14 +177,11 @@ export default function MapLayers(props: Props) {
           hiddenSites={hiddenSites}
           routes={routes}
           offlineWhitelist={offline_whitelist}
-          historicalSiteColorMap={historicalSiteMap}
+          siteMapOverrides={siteMapOverrides}
         />
       ) : null}
       {site_name_popups ? (
-        <SitePopupsLayer
-          key="popups-layer"
-          topology={context.networkConfig.topology}
-        />
+        <SitePopupsLayer key="popups-layer" topology={networkConfig.topology} />
       ) : null}
     </>
   );
