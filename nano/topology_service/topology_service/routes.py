@@ -4,6 +4,7 @@
 import json
 from datetime import datetime
 from functools import partial
+from typing import Any
 
 from aiohttp import web
 from sqlalchemy import select
@@ -13,6 +14,13 @@ from .models import TopologyHistory
 
 
 routes = web.RouteTableDef()
+
+
+def custom_serializer(obj: Any) -> str:
+    if isinstance(obj, datetime):
+        return datetime.isoformat(obj)
+    else:
+        return str(obj)
 
 
 @routes.get(r"/topology/{network_name:.+}")
@@ -80,5 +88,5 @@ async def handle_get_topology(request: web.Request) -> web.Response:
         cursor = await sa_conn.execute(query)
         return web.json_response(
             [dict(row) for row in await cursor.fetchall()],
-            dumps=partial(json.dumps, default=str),
+            dumps=partial(json.dumps, default=custom_serializer),
         )

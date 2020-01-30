@@ -6,7 +6,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from aiohttp import web
 from aiomysql.sa.result import RowProxy
@@ -18,6 +18,13 @@ from .models import DefaultRouteHistory, LinkCnRoutes
 
 
 routes = web.RouteTableDef()
+
+
+def custom_serializer(obj: Any) -> str:
+    if isinstance(obj, datetime):
+        return datetime.isoformat(obj)
+    else:
+        return str(obj)
 
 
 def parse_input_params(request: web.Request) -> Tuple[str, datetime, datetime]:
@@ -326,8 +333,7 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
 
     async with MySQLClient().lease() as conn:
         cursor = await conn.execute(query)
-        results = await cursor.fetchall()
-
-    return web.json_response(
-        [dict(row) for row in results], dumps=partial(json.dumps, default=str)
-    )
+        return web.json_response(
+            [dict(row) for row in await cursor.fetchall()],
+            dumps=partial(json.dumps, default=custom_serializer),
+        )
