@@ -3,12 +3,11 @@
 
 """
 This example shows how to supply additional routes to the 'init' function. The
-'main' function makes a 'getTopology' request for each controller every hour and
-saves the results to a MySQL table called 'Topology'.
+'async_main' function makes a 'getTopology' request for each controller every
+hour and saves the results to a MySQL table called 'Topology'.
 """
 
 import asyncio
-import datetime
 import json
 import logging
 import sys
@@ -30,11 +29,10 @@ async def async_main(config: Dict) -> None:
     mysql_client = MySQLClient()
 
     while True:
-        now = datetime.datetime.now()
         results = await api_client.request_all("getTopology")
         values = [
-            {"name": name, "topo": topo, "datetime": now}
-            for name, topo in results.items()
+            {"network_name": network_name, "topo": topology}
+            for network_name, topology in results.items()
         ]
 
         query = insert(Topology).values(values)
@@ -47,7 +45,7 @@ async def async_main(config: Dict) -> None:
 
 
 def main() -> None:
-    """Pass in the 'main' function, a set of clients, and 'routes' into 'init'."""
+    """Pass in the 'async_main' function, a set of clients, and 'routes' into 'init'."""
     try:
         with open("./service_config.json") as f:
             config = json.load(f)

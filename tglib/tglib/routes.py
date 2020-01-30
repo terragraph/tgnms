@@ -39,7 +39,7 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
     tags:
     - Prometheus
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: path
       name: interval
@@ -65,8 +65,7 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
     if metrics is None:
         raise web.HTTPNotFound(text=f"No metrics queue available for {interval}s")
 
-    metrics_str = "\n".join(metrics)
-    return web.Response(text=metrics_str)
+    return web.json_response(metrics)
 
 
 @routes.get("/config")
@@ -96,7 +95,7 @@ async def handle_get_config(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(text="Failed to load existing configuration")
 
 
-@routes.post("/config/set")
+@routes.put("/config")
 async def handle_set_config(request: web.Request) -> web.Response:
     """
     ---
@@ -107,7 +106,7 @@ async def handle_set_config(request: web.Request) -> web.Response:
     - text/plain
     parameters:
     - in: body
-      name: body
+      name: config
       description: New service configuration object
       required: true
       schema:
@@ -145,7 +144,7 @@ async def handle_set_config(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(text="Failed to overwrite config")
 
 
-@routes.post("/config/update")
+@routes.patch("/config")
 async def handle_update_config(request: web.Request) -> web.Response:
     """
     ---
@@ -156,7 +155,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
     - text/plain
     parameters:
     - in: body
-      name: body
+      name: config
       description: Partial service configuration object with updated values.
       required: true
       schema:
@@ -188,7 +187,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
             config = json.load(f)
             deep_update(config, updates)
 
-            # Write new config at the beginning of the file; truncate what's left
+            # Write new config at the beginning of the file and truncate what's left
             f.seek(0)
             json.dump(config, f)
             f.truncate()

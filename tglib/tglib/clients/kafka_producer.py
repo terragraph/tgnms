@@ -82,12 +82,8 @@ class KafkaProducer(BaseClient):
             return False
 
         logging.info(
-            "Event {}:{} {} => {}".format(
-                EventCategory._VALUES_TO_NAMES[category],
-                EventId._VALUES_TO_NAMES[event_id],
-                EventLevel._VALUES_TO_NAMES[level],
-                reason,
-            )
+            f"Event {EventCategory._VALUES_TO_NAMES[category]}:{EventId._VALUES_TO_NAMES[event_id]} "
+            f"{EventLevel._VALUES_TO_NAMES[level]} => {reason}"
         )
 
         event = Event()

@@ -6,8 +6,10 @@ A new route is added to list of base routes to return JSON topologies belonging
 to a given controller name and newer than a given datetime.
 """
 
-import datetime
-import re
+import json
+from datetime import datetime
+from functools import partial
+from typing import Any
 
 from aiohttp import web
 from sqlalchemy import select
@@ -19,23 +21,50 @@ from .models import Topology
 routes = web.RouteTableDef()
 
 
-@routes.get("/topologies/after")
-async def handle_get_topologies_after(request: web.Request) -> web.Response:
-    name = request.rel_url.query["name"]
-    datetime_str = request.rel_url.query["datetime"]
+def custom_serializer(obj: Any) -> str:
+    if isinstance(obj, datetime):
+        return datetime.isoformat(obj)
+    else:
+        return str(obj)
 
-    datetime_re = re.compile("\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
-    if not re.match(datetime_re, datetime_str):
-        raise web.HTTPBadRequest(f"'datetime' param is not valid ISO 8601")
 
-    datetime_obj = datetime.datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
-    query = select([Topology.topo]).where(
-        (Topology.name == name) & (Topology.datetime > datetime_obj)
-    )
+@routes.get("/topology")
+async def handle_get_topology(request: web.Request) -> web.Response:
+    """
+    ---
+    description: Return topologies for all networks since a given datetime.
+    tags:
+    - Topology
+    produces:
+    - application/json
+    parameters:
+    - in: query
+      name: start_dt
+      description: The start UTC datetime of the query in ISO 8601 format
+      required: true
+      schema:
+        type: string
+    responses:
+      "200":
+        description: Successful operation.
+      "400":
+        description: Invalid or missing parameters.
+    """
+    start_dt = request.rel_url.query.get("start_dt")
 
-    client = MySQLClient()
-    async with client.lease() as conn:
+    # Parse start_dt, raise '400' if missing/invalid
+    if start_dt is None:
+        raise web.HTTPBadRequest(text="'start_dt' is missing from query string")
+
+    try:
+        start_dt_obj = datetime.fromisoformat(start_dt)
+    except ValueError:
+        raise web.HTTPBadRequest(text=f"'start_dt' is invalid ISO 8601: '{start_dt}'")
+
+    query = select([Topology.topo]).where(Topology.last_updated > start_dt_obj)
+    async with MySQLClient().lease() as conn:
         cursor = await conn.execute(query)
-        results = await cursor.fetchall()
-
-    return web.json_response(results)
+        return web.json_response(
+            [dict(row) for row in await cursor.fetchall()],
+            dumps=partial(json.dumps, default=custom_serializer),
+        )

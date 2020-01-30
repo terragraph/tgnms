@@ -3,8 +3,8 @@
 
 """
 This example shows how to design a simple producer-consumer scheduler around
-the tglib framework. The 'main' function creates a shared asyncio queue and
-passes it to the 'produce' and 'consume' coroutines.
+the tglib framework. The 'async_main' function creates a shared asyncio queue
+and passes it to the 'produce' and 'consume' coroutines.
 
 The 'produce' coroutine reads the pipeline configuration and adds jobs with the
 associated configuration to the shared queue. A 'Job' here is a function whose
@@ -97,7 +97,7 @@ async def async_main(config: Dict) -> None:
 
 
 def main() -> None:
-    """Pass in the 'main' function and a set of clients into 'init'."""
+    """Pass in the 'async_main' function and a set of clients into 'init'."""
     try:
         with open("./service_config.json") as f:
             config = json.load(f)
