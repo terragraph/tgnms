@@ -39,7 +39,7 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
     tags:
     - Prometheus
     produces:
-    - application/json
+    - text/plain
     parameters:
     - in: path
       name: interval
@@ -65,7 +65,9 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
     if metrics is None:
         raise web.HTTPNotFound(text=f"No metrics queue available for {interval}s")
 
-    return web.json_response(metrics)
+    # Return a string because Prometheus only accepts a text-based exposition format
+    metrics_str = "\n".join(metrics)
+    return web.Response(text=metrics_str)
 
 
 @routes.get("/config")
