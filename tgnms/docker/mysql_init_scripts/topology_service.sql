@@ -22,15 +22,3 @@ DELIMITER ;
 
 /* Create 'topology_user' if the current user is root */
 call Create_Topology();
-
-/* Create 'topology_history' table */
-CREATE TABLE IF NOT EXISTS `topology_history`
-(
-  `id` int(11) AUTO_INCREMENT,
-  `network_name` varchar(255) NOT NULL,
-  `topology` json NOT NULL,
-  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `network_name` (`network_name`),
-  KEY `last_updated` (`last_updated`)
-);

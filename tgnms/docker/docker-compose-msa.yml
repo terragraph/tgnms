@@ -13,7 +13,7 @@ services:
       - ./mysql_init_scripts/topology_service.sql:/usr/local/nano/topology_service/topology_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "mysql -h$${MYSQL_HOST} -u$${MYSQL_USER} -p$${MYSQL_PASS} < topology_service.sql && topology_service"]
+    command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]
     logging:
       driver: "json-file"
       options:
