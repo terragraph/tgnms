@@ -4,7 +4,6 @@
 import logging
 import unittest
 
-from tests.routes_history import TestRoutesHistory
 from tests.routes_utilization import RoutesUtilization
 
 

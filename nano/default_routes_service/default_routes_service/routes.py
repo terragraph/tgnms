@@ -143,57 +143,24 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         cursor = await conn.execute(query)
         results = await cursor.fetchall()
 
-    return web.json_response(
-        {
-            "history": get_default_routes_history(results),
-            "util": compute_routes_utilization(results, start_dt_obj, end_dt_obj),
-        }
-    )
-
-
-def get_default_routes_history(raw_routes_data: List[RowProxy]) -> Dict:
-    """
-    Iterate over the list of RowProxy objects to track changes in routes.
-
-    input = [
+    # iterate over the list of RowProxy objects to track changes in routes.
+    routes_history: defaultdict = defaultdict(list)
+    for row in results:
+        routes_history[row["node_name"]].append(
             {
-                "node_name": "A",
-                "routes": [["X", "Y", "Z"]],
-                "last_updated": "datetime_0",
-                "hop_count": 2
-            },
-            {
-                "node_name": "A",
-                "routes": [["A", "B", "C"]],
-                "last_updated": "datetime_3",
-                "hop_count": 2
-            },
-        ]
-    output = {
-        "A": {
-            "datetime_0": {"routes": [["X", "Y", "Z"]], "hop_count": 2},
-            "datetime_3": {"routes": [["A", "B", "C"]], "hop_count": 2},
-        },
-    }
-    """
-    # dictionary to track routes history
-    routes_history: Dict[str, Dict] = {}
-
-    for row in raw_routes_data:
-        if row["node_name"] in routes_history:
-            routes_history[row["node_name"]][str(row["last_updated"])] = {
+                "last_updated": row["last_updated"],
                 "routes": row["routes"],
                 "hop_count": row["hop_count"],
             }
-        else:
-            routes_history[row["node_name"]] = {
-                str(row["last_updated"]): {
-                    "routes": row["routes"],
-                    "hop_count": row["hop_count"],
-                }
-            }
+        )
 
-    return routes_history
+    return web.json_response(
+        {
+            "history": routes_history,
+            "util": compute_routes_utilization(results, start_dt_obj, end_dt_obj),
+        },
+        dumps=partial(json.dumps, default=custom_serializer),
+    )
 
 
 def compute_routes_utilization(
