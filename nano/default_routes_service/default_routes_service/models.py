@@ -10,8 +10,8 @@ from sqlalchemy.ext.declarative import declarative_base
 Base: Any = declarative_base()
 
 
-class DefaultRouteHistory(Base):
-    __tablename__ = "default_route_history"
+class DefaultRoutesHistory(Base):
+    __tablename__ = "default_routes_history"
 
     id = Column(Integer, primary_key=True)
     network_name = Column(String(100), index=True, nullable=False)
@@ -23,7 +23,7 @@ class DefaultRouteHistory(Base):
     hop_count = Column(Integer, nullable=False)
     prev_routes_id = Column(
         Integer,
-        ForeignKey("default_route_history.id", ondelete="SET NULL"),
+        ForeignKey("default_routes_history.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )

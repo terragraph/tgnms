@@ -14,7 +14,7 @@ from sqlalchemy import outerjoin, select
 from sqlalchemy.orm import aliased
 from tglib.clients import MySQLClient
 
-from .models import DefaultRouteHistory, LinkCnRoutes
+from .models import DefaultRoutesHistory, LinkCnRoutes
 
 
 routes = web.RouteTableDef()
@@ -106,34 +106,34 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     node_name = request.rel_url.query.get("node_name")
 
     # get entries for all nodes between start and end time
-    previous_entry = aliased(DefaultRouteHistory)
+    previous_entry = aliased(DefaultRoutesHistory)
     query = (
         select(
             [
-                DefaultRouteHistory.node_name,
-                DefaultRouteHistory.routes,
-                DefaultRouteHistory.last_updated,
-                DefaultRouteHistory.hop_count,
+                DefaultRoutesHistory.node_name,
+                DefaultRoutesHistory.routes,
+                DefaultRoutesHistory.last_updated,
+                DefaultRoutesHistory.hop_count,
                 previous_entry.routes.label("prev_routes"),
             ]
         )
         .select_from(
             outerjoin(
-                DefaultRouteHistory,
+                DefaultRoutesHistory,
                 previous_entry,
-                DefaultRouteHistory.prev_routes_id == previous_entry.id,
+                DefaultRoutesHistory.prev_routes_id == previous_entry.id,
             )
         )
         .where(
-            (DefaultRouteHistory.network_name == network_name)
-            & (DefaultRouteHistory.last_updated >= start_dt_obj)
-            & (DefaultRouteHistory.last_updated <= end_dt_obj)
+            (DefaultRoutesHistory.network_name == network_name)
+            & (DefaultRoutesHistory.last_updated >= start_dt_obj)
+            & (DefaultRoutesHistory.last_updated <= end_dt_obj)
         )
     )
 
     # if node name is provided, fetch info for that specific node
     if node_name is not None:
-        query = query.where(DefaultRouteHistory.node_name == node_name)
+        query = query.where(DefaultRoutesHistory.node_name == node_name)
 
     logging.debug(
         f"Query to fetch node_name, routes and last_updated from db: {str(query)}"

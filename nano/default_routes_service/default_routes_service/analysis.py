@@ -8,7 +8,7 @@ from typing import List
 from sqlalchemy import desc, insert, select
 from tglib.clients import MySQLClient
 
-from .models import DefaultRouteHistory, LinkCnRoutes
+from .models import DefaultRoutesHistory, LinkCnRoutes
 
 
 async def analyze_node(
@@ -26,12 +26,12 @@ async def analyze_node(
     async with MySQLClient().lease() as conn:
         # fetch the last stored route entry for the given node from the database.
         query = (
-            select([DefaultRouteHistory.id, DefaultRouteHistory.routes])
+            select([DefaultRoutesHistory.id, DefaultRoutesHistory.routes])
             .where(
-                (DefaultRouteHistory.node_name == node_name)
-                & (DefaultRouteHistory.network_name == network_name)
+                (DefaultRoutesHistory.node_name == node_name)
+                & (DefaultRoutesHistory.network_name == network_name)
             )
-            .order_by(desc(DefaultRouteHistory.id))
+            .order_by(desc(DefaultRoutesHistory.id))
             .limit(1)
         )
         logging.debug(f"Query for routes of {node_name} in database: {str(query)}")
@@ -49,7 +49,7 @@ async def analyze_node(
             )
 
             # insert node data into history table
-            query = insert(DefaultRouteHistory).values(
+            query = insert(DefaultRoutesHistory).values(
                 network_name=network_name,
                 node_name=node_name,
                 last_updated=now,

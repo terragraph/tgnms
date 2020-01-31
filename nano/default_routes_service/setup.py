@@ -18,7 +18,7 @@ setup(
     name="default_routes_service",
     version="2020.01.25",
     packages=["default_routes_service"],
-    install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
+    install_requires=["aiohttp", "aiomysql", "alembic>=1.3.3,<2.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={
