@@ -32,7 +32,7 @@ services:
       - ./mysql_init_scripts/default_routes_service.sql:/usr/local/nano/default_routes_service/default_routes_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "mysql -h$${MYSQL_HOST} -u$${MYSQL_USER} -p$${MYSQL_PASS} < default_routes_service.sql && default_routes_service"]
+    command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
     logging:
       driver: "json-file"
       options:
