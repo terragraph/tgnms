@@ -37,6 +37,7 @@ class APIServiceClient(BaseClient):
 
     @property
     def network_names(self) -> Iterable[str]:
+        """Return a container of valid network names."""
         if self._networks is None:
             raise ClientStoppedError()
 
@@ -97,8 +98,8 @@ class APIServiceClient(BaseClient):
         if cls._session is None:
             raise ClientStoppedError()
 
-        if not (cls._keycloak_client_id and cls._keycloak_client_secret):
-            logging.error("Keycloak client ID and/or client secret are missing")
+        if cls._keycloak_client_id is None or cls._keycloak_client_secret is None:
+            logging.error("Keycloak client ID and/or secret are missing from env")
             return False
 
         try:
@@ -131,8 +132,9 @@ class APIServiceClient(BaseClient):
     ) -> Dict:
         """Make a request to a specific network + endpoint with params.
 
-        The default post param '{}' is used if not provided explicitly."""
-        if not (self._networks and self._session):
+        The default post param '{}' is used if not provided explicitly.
+        """
+        if self._networks is None or self._session is None:
             raise ClientStoppedError()
 
         addr = self._networks.get(network_name)
@@ -159,10 +161,10 @@ class APIServiceClient(BaseClient):
                     return cast(Dict, await resp.json())
 
                 raise ClientRuntimeError(
-                    msg=f"API Service request to {addr} failed: {resp.reason} ({resp.status})"
+                    msg=f"API Service request to {url} failed: {resp.reason} ({resp.status})"
                 )
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(msg=f"API Service request to {addr} failed") from e
+            raise ClientRuntimeError(msg=f"API Service request to {url} failed") from e
 
     async def request_all(
         self,
@@ -176,18 +178,18 @@ class APIServiceClient(BaseClient):
         param '{}' is used for networks not present in params_map.
 
         return_exceptions is a boolean flag for returning exceptions as objects
-        instead of raising the first one. It is disabled by default."""
+        instead of raising the first one. It is disabled by default.
+        """
         if self._networks is None:
             raise ClientStoppedError()
 
         tasks = []
         for network_name in self._networks.keys():
-            if network_name in params_map:
-                tasks.append(
-                    self.request(network_name, endpoint, params_map[network_name])
-                )
-            else:
+            params = params_map.get(network_name)
+            if params is None:
                 tasks.append(self.request(network_name, endpoint))
+            else:
+                tasks.append(self.request(network_name, endpoint, params))
 
         return dict(
             zip(
@@ -202,13 +204,14 @@ class APIServiceClient(BaseClient):
         params_map: Dict[str, Dict],
         return_exceptions: bool = False,
     ) -> Dict[str, Dict]:
-        """Make a request to the given endpoint for several networks.
+        """Make a request to the given endpoint for the networks in params_map.
 
         params_map is a dictionary of network names to params. No request is
         sent for networks not present in params_map.
 
         return_exceptions is a boolean flag for returning exceptions as objects
-        instead of raising the first one. It is disabled by default."""
+        instead of raising the first one. It is disabled by default.
+        """
         if self._networks is None:
             raise ClientStoppedError()
 

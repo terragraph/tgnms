@@ -50,7 +50,8 @@ class MySQLClient(BaseClient):
     def lease(self):
         """Get a connection from the connection pool.
 
-        Use with async context manager to return an aiomysql.sa.SAConnection."""
+        Use with async context manager to return an aiomysql.sa.SAConnection.
+        """
         if self._engine is None:
             raise ClientStoppedError()
 

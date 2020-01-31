@@ -21,6 +21,7 @@ class KafkaConsumer(BaseClient):
 
     @property
     def consumer(self) -> AIOKafkaConsumer:
+        """Return the underlying AIOKafkaConsumer instance."""
         if self._consumer is None:
             raise ClientStoppedError()
 

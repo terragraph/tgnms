@@ -143,13 +143,14 @@ class PrometheusClient(BaseClient):
             ) as resp:
                 return cast(Dict, await resp.json())
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError() from e
+            raise ClientRuntimeError(msg=f"Query range request to {url} failed") from e
 
     async def query_latest(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest datum for the given query.
 
-           The current Prometheus server time is used as default if no
-           evaluation timestamp is provided."""
+        The current Prometheus server time is used as default if no
+        evaluation timestamp is provided.
+        """
         if self._addr is None or self._session is None:
             raise ClientStoppedError()
 
@@ -166,7 +167,7 @@ class PrometheusClient(BaseClient):
             ) as resp:
                 return cast(Dict, await resp.json())
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError() from e
+            raise ClientRuntimeError(msg=f"Query request to {url} failed") from e
 
     async def query_range_ts(self, query: str, start: int, end: int, step: str) -> Dict:
         """Return timestamp emissions corresponding to the query and range."""
@@ -175,6 +176,7 @@ class PrometheusClient(BaseClient):
     async def query_latest_ts(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest timestamp emission for the given query.
 
-           The current Prometheus server time is used as default if no
-           evaluation timestamp is provided."""
+        The current Prometheus server time is used as default if no
+        evaluation timestamp is provided.
+        """
         return await self.query_latest(f"timestamp({query})", time)
