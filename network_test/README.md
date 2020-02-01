@@ -1,0 +1,27 @@
+# Network Test
+`network_test` is an engine for scheduling and running instantaneous traffic
+tests on a Terragraph network.
+
+## Supported Tests
+Three types of tests are currently supported. As the tests are being conducted,
+key firmware link stats are collected from Prometheus and saved in the database
+alongside the raw `iperf` blobs.
+
+### Multihop Test
+Start bidirectional `iperf` sessions from one node per site to one of its
+default PoP nodes. One PoP is randomly selected if a particular node has ECMP
+routes for egressing the network. Each node-PoP pair is tested sequentially
+meaning the total test duration is bounded by the number of sites in the
+network.
+
+Multihop testing can be done using TCP or UDP. If TCP is chosen and an omit period is not provided, a period of two seconds is used to ignore TCP slowstart. In addition, a default session duration of one minute is used if one is not provided.
+
+### Parallel Link Test
+Start bidirectional UDP `iperf` sessions on all wireless links in a given
+network simultaneously. A session duration of five minutes is used if one is
+not provided.
+
+### Sequential Link Test
+Start bidirectional UDP `iperf` sessions on each wireless link. Wait for the
+previous link to finish before testing the next link. A session duration of one
+minute is used if one is not provided.
