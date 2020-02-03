@@ -79,23 +79,6 @@ class Scheduler:
 
     @classmethod
     async def restart(cls) -> None:
-        # Start all of the schedules in the DB
-        for result in await cls.list_schedules():
-            schedule = Schedule(result.enabled, result.cron_expr)
-
-            test: BaseTest
-            if result.test_type == NetworkTestType.MULTIHOP_TEST:
-                test = MultihopTest(result.network_name, result.iperf_options)
-            elif result.test_type == NetworkTestType.PARALLEL_LINK_TEST:
-                test = ParallelTest(result.network_name, result.iperf_options)
-            elif result.test_type == NetworkTestType.SEQUENTIAL_LINK_TEST:
-                test = SequentialTest(result.network_name, result.iperf_options)
-
-            cls._schedules[result.id] = schedule
-            schedule.task = asyncio.create_task(
-                schedule.start(test, result.test_type, result.params_id)
-            )
-
         # Stop all stale running tests
         try:
             client = APIServiceClient(timeout=1)
@@ -112,7 +95,7 @@ class Scheduler:
 
                 await asyncio.gather(*tasks)
         except ClientRuntimeError as e:
-            logging.error(f"Failed to stop one or more iperf sessions: {str(e)}")
+            logging.error(f"Failed to stop one or more iperf session(s): {str(e)}")
 
         # Mark all stale running tests as ABORTED in the DB
         async with MySQLClient().lease() as sa_conn:
@@ -124,6 +107,23 @@ class Scheduler:
 
             await sa_conn.execute(query)
             await sa_conn.connection.commit()
+
+        # Start all of the schedules in the DB
+        for result in await cls.list_schedules():
+            schedule = Schedule(result.enabled, result.cron_expr)
+
+            test: BaseTest
+            if result.test_type == NetworkTestType.MULTIHOP_TEST:
+                test = MultihopTest(result.network_name, result.iperf_options)
+            elif result.test_type == NetworkTestType.PARALLEL_LINK_TEST:
+                test = ParallelTest(result.network_name, result.iperf_options)
+            elif result.test_type == NetworkTestType.SEQUENTIAL_LINK_TEST:
+                test = SequentialTest(result.network_name, result.iperf_options)
+
+            cls._schedules[result.id] = schedule
+            schedule.task = asyncio.create_task(
+                schedule.start(test, result.test_type, result.params_id)
+            )
 
     @classmethod
     async def add_schedule(

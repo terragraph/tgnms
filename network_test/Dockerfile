@@ -7,9 +7,8 @@ ARG WORKDIR=/usr/local/network_test
 WORKDIR $WORKDIR
 COPY network_test/ .flake8 ./
 
-# Install network_test and run tests
-RUN pip install .[ci] && \
-    ptr --system-site-packages
+# Install network_test
+RUN pip install .[ci]
 
 # Define default command
 CMD ["network_test"]
