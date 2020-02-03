@@ -21,7 +21,6 @@ export const FeatureFlags: {[string]: () => boolean} = {
   SOFTWARE_PORTAL_ENABLED: () =>
     window.CONFIG.env.hasOwnProperty('SOFTWARE_PORTAL_URL'),
   ALARMS_ENABLED: () => window.CONFIG.env.ALARMS_ENABLED,
-  EVENTS_V1_ENABLED: () => window.CONFIG.env.EVENTS_V1_ENABLED === 'true',
   DEFAULT_ROUTES_HISTORY_ENABLED: () =>
     window.CONFIG.env.DEFAULT_ROUTES_HISTORY_ENABLED,
   MAP_HISTORY_ENABLED: () => window.CONFIG.env.MAP_HISTORY_ENABLED,

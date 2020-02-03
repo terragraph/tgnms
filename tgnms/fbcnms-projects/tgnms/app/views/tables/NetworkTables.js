@@ -6,7 +6,6 @@
  */
 
 import NetworkContext from '../../NetworkContext.js';
-import NetworkEventsTable from './NetworkEventsTable';
 import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
 import NetworkTestTable from './NetworkTestTable';
@@ -61,7 +60,6 @@ const styles = theme => ({
 const TABLE_TYPE = Object.freeze({
   nodes: 'nodes',
   links: 'links',
-  events: 'events',
   tests: 'tests',
 });
 
@@ -126,8 +124,6 @@ class NetworkTables extends React.Component<Props, State> {
             return <NetworkNodesTable context={context} />;
           } else if (selectedTable === TABLE_TYPE.links) {
             return <NetworkLinksTable context={context} />;
-          } else if (selectedTable === TABLE_TYPE.events) {
-            return <NetworkEventsTable context={context} />;
           } else if (selectedTable === TABLE_TYPE.tests) {
             return <NetworkTestTable {...routeProps} />;
           } else {
@@ -166,16 +162,6 @@ class NetworkTables extends React.Component<Props, State> {
             to={`${match.url}/${TABLE_TYPE.links}${location.search}`}
             value={TABLE_TYPE.links}
           />
-          {isFeatureEnabled('EVENTS_V1_ENABLED') && (
-            <Tab
-              classes={{root: classes.tabRoot, selected: classes.tabSelected}}
-              disableRipple
-              label="Events"
-              component={Link}
-              to={`${match.url}/${TABLE_TYPE.events}${location.search}`}
-              value={TABLE_TYPE.events}
-            />
-          )}
           {isFeatureEnabled('NETWORK_TEST_ENABLED') && (
             <Tab
               classes={{root: classes.tabRoot, selected: classes.tabSelected}}
@@ -189,7 +175,7 @@ class NetworkTables extends React.Component<Props, State> {
         </Tabs>
         <Switch>
           <Route
-            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.events}|${TABLE_TYPE.tests})`}
+            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests})`}
             component={this.renderNetworkTable}
           />
           <Redirect exact from={`${match.path}/:table`} to="/404" />
