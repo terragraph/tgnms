@@ -16,9 +16,9 @@ ptr_params = {
 
 setup(
     name="topology_service",
-    version="2020.01.28",
+    version="2020.02.03",
     packages=["topology_service"],
-    install_requires=["aiohttp", "sqlalchemy", "alembic>=1.3.3,<2.0"],
+    install_requires=["aiohttp", "alembic>=1.3.3,<2.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["topology_service = topology_service.main:main"]},

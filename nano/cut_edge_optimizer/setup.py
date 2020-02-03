@@ -20,9 +20,10 @@ ptr_params = {
 
 setup(
     name="cut_edge_optimizer",
-    version="2020.28.01",
+    version="2020.02.03",
     packages=["cut_edge_optimizer"],
     install_requires=["aiohttp", "networkx"],
+    extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={
         "console_scripts": ["cut_edge_optimizer = cut_edge_optimizer.main:main"]
