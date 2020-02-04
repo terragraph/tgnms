@@ -5,7 +5,7 @@ ARG WORKDIR=/usr/local/nano/topology_service/
 
 # Copy topology_service source files into docker container
 WORKDIR $WORKDIR
-COPY nano/topology_service/ .flake8 ./
+COPY nano/topology_service/ .flake8 .ptrconfig ./
 
 # Install topology_service
 RUN pip install .[ci]

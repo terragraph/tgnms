@@ -5,7 +5,7 @@ ARG WORKDIR=/usr/local/nano/default_routes_service/
 
 # Copy default_routes_service source files into docker container
 WORKDIR $WORKDIR
-COPY nano/default_routes_service/ .flake8 ./
+COPY nano/default_routes_service/ .flake8 .ptrconfig ./
 
 # Install default_routes_service
 RUN pip install .[ci]

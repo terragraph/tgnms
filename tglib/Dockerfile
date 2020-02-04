@@ -94,7 +94,7 @@ RUN apk update && apk add --no-cache --virtual build-deps \
 
 # Copy tglib source and raw thrift files
 WORKDIR /usr/local/tglib
-COPY tglib/ .
+COPY tglib/ .ptrconfig .
 COPY if/ ./if
 
 # Install dependencies, compile raw thrift files, build tglib, run ptr, and remove dependencies

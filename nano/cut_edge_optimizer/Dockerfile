@@ -5,7 +5,7 @@ ARG WORKDIR=/usr/local/nano/cut_edge_optimizer
 
 # Copy cut_edge_optimizer source files into docker container
 WORKDIR $WORKDIR
-COPY nano/cut_edge_optimizer/ .flake8 ./
+COPY nano/cut_edge_optimizer/ .flake8 .ptrconfig ./
 
 # Install cut_edge_optimizer
 RUN pip install .[ci]
