@@ -88,23 +88,16 @@ const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 const KAFKA_HOSTS = process.env.KAFKA_HOSTS;
 
 // AlertManager and associated services to manager alert-related configs
-const ALERTMANAGER_HOST = process.env.ALERTMANAGER_HOST || 'alertmanager';
-const ALERTMANAGER_PORT = requiredInt(process.env.ALERTMANAGER_PORT, 9093);
+const ALERTMANAGER_URL =
+  process.env.ALERTMANAGER_URL || 'http://alertmanager:9093';
 // Prometheus config writing utils are within the same docker container
-const PROMETHEUS_CONFIG_HOST =
-  process.env.PROMETHEUS_CONFIG_HOST || 'prometheus_config_manager';
-const PROM_ALERTCONFIG_PORT = requiredInt(
-  process.env.PROM_ALERTCONFIG_PORT,
-  9100,
-);
-const ALERTMANAGER_CONFIG_PORT = requiredInt(
-  process.env.ALERTMANAGER_CONFIG_PORT,
-  9101,
-);
+const PROMETHEUS_CONFIG_URL =
+  process.env.PROMETHEUS_CONFIG_URL || 'http://prometheus_configurer:9100';
+const ALERTMANAGER_CONFIG_URL =
+  process.env.ALERTMANAGER_CONFIG_URL || 'http://alertmanager_configurer:9101';
 
 // TG-specific service for generating alerts from events
-const TG_ALARM_HOST = process.env.TG_ALARM_HOST || 'tg_alarms';
-const TG_ALARM_PORT = requiredInt(process.env.TG_ALARM_PORT, 40000);
+const TG_ALARM_URL = process.env.TG_ALARM_URL || 'http://alarms:40000';
 
 const DEFAULT_ROUTES_HISTORY_HOST =
   process.env.DEFAULT_ROUTES_HISTORY_HOST || null;
@@ -155,13 +148,11 @@ module.exports = {
   KAFKA_HOSTS,
   SESSION_MAX_AGE_MS,
   // alertmanager
-  ALERTMANAGER_CONFIG_PORT,
-  ALERTMANAGER_HOST,
-  ALERTMANAGER_PORT,
-  PROMETHEUS_CONFIG_HOST,
-  PROM_ALERTCONFIG_PORT,
-  TG_ALARM_HOST,
-  TG_ALARM_PORT,
+  ALERTMANAGER_URL,
+  PROMETHEUS_CONFIG_URL,
+  ALERTMANAGER_CONFIG_URL,
+  TG_ALARM_URL,
+
   DEFAULT_ROUTES_HISTORY_HOST,
   STATS_ALLOWED_DELAY_SEC,
 };

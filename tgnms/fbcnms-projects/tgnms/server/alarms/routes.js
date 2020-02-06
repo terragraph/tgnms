@@ -5,20 +5,15 @@
  * @format
  */
 import {
-  ALERTMANAGER_CONFIG_PORT,
-  ALERTMANAGER_HOST,
-  ALERTMANAGER_PORT,
-  PROMETHEUS_CONFIG_HOST,
-  PROM_ALERTCONFIG_PORT,
-  TG_ALARM_HOST,
-  TG_ALARM_PORT,
+  ALERTMANAGER_CONFIG_URL,
+  ALERTMANAGER_URL,
+  PROMETHEUS_CONFIG_URL,
+  TG_ALARM_URL,
 } from '../config';
 
 import {createErrorHandler, createRequest} from '../helpers/apiHelpers';
 const express = require('express');
-const isIp = require('is-ip');
 const {queryLatest} = require('../metrics/prometheus');
-const _ = require('lodash');
 
 const router = express.Router();
 
@@ -46,7 +41,7 @@ router.get('/silences', (req, res) =>
 
 router.post('/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusAlertConfigUrl(`/0/alert`),
+    uri: formatPrometheusConfigUrl(`/0/alert`),
     method: req.method,
     json: req.body,
   };
@@ -61,7 +56,7 @@ router.put('/alert_config/:alertName', (req, res) => {
     return res.status(400).json({error: 'invalid alertName'});
   }
   const params = {
-    uri: formatPrometheusAlertConfigUrl(`/0/alert/${alertName}`),
+    uri: formatPrometheusConfigUrl(`/0/alert/${alertName}`),
     method: req.method,
     json: req.body,
   };
@@ -72,7 +67,7 @@ router.put('/alert_config/:alertName', (req, res) => {
 
 router.delete('/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusAlertConfigUrl(`/0/alert`),
+    uri: formatPrometheusConfigUrl(`/0/alert`),
     method: req.method,
     qs: req.query,
   };
@@ -83,7 +78,7 @@ router.delete('/alert_config', (req, res) => {
 
 router.get('/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusAlertConfigUrl(`/0/alert`),
+    uri: formatPrometheusConfigUrl(`/0/alert`),
     method: req.method,
     qs: req.query,
   };
@@ -195,31 +190,19 @@ router.get('/matching_alerts/:alertExpr', (req, res) => {
 });
 
 function formatAlertManagerConfigUrl(uri) {
-  const urlBase = formatUrl(PROMETHEUS_CONFIG_HOST, ALERTMANAGER_CONFIG_PORT);
-  return `${urlBase}${uri}`;
+  return `${ALERTMANAGER_CONFIG_URL}${uri}`;
 }
 
-function formatPrometheusAlertConfigUrl(uri) {
-  const urlBase = formatUrl(PROMETHEUS_CONFIG_HOST, PROM_ALERTCONFIG_PORT);
-  return `${urlBase}${uri}`;
+function formatPrometheusConfigUrl(uri) {
+  return `${PROMETHEUS_CONFIG_URL}${uri}`;
 }
 
 function formatAlertManagerUrl(uri) {
-  const urlBase = formatUrl(ALERTMANAGER_HOST, ALERTMANAGER_PORT);
-  return `${urlBase}${uri}`;
+  return `${ALERTMANAGER_URL}${uri}`;
 }
 
 function formatTgAlarmServiceUrl(uri) {
-  const urlBase = formatUrl(TG_ALARM_HOST, TG_ALARM_PORT);
-  return `${urlBase}${uri}`;
-}
-
-function formatUrl(host: string, port: ?number) {
-  const url = isIp.v6(host) ? `http://[${host}]` : `http://${host}`;
-  if (typeof port === 'number') {
-    return url + `:${port}`;
-  }
-  return url;
+  return `${TG_ALARM_URL}${uri}`;
 }
 
 module.exports = router;
