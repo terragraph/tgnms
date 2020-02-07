@@ -3,7 +3,7 @@
  *
  * @jest-environment jsdom
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import React from 'react';

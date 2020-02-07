@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  *
  * Controller downloads custom TG images from NMS. Since all static files are
  * protected by keycloak authentication, controller can't download custom

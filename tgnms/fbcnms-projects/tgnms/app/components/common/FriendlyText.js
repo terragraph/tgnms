@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  * Converts from text separated by a separator to friendly text:
  * WIRED_LINK_STATUS -> Wired Link Status
  * wired-link-status -> Wired Link Status

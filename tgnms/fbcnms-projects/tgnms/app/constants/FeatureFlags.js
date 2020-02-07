@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  *
  * Should only be used to flag features on/off. Don't use this file for
  * providing configuration values to the frontend.

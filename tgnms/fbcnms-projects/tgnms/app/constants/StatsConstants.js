@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import {GraphAggregationValueMap as GraphAggregation} from '../../shared/types/Stats';
