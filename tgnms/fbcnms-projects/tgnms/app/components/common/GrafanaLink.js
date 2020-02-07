@@ -1,9 +1,16 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
- * @format
- * @flow
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
+ * @flow
+ * @format
+ */
+
+import * as React from 'react';
+
+/**
  * Creates a link to a grafana dashboard with templated variables filled in.
  * Example:
  * <GrafanaLink dashboard="dash_uuid" vars={{'var-network': 'Tower C'}}>
@@ -13,8 +20,6 @@
  * will produce:
  * <a href="http://GRAFANA_URL/d/dash_uuid?var-network=Tower C">...
  */
-
-import * as React from 'react';
 
 /*
  * The UUID of the dashboard you're trying to link to. For example:
@@ -31,7 +36,7 @@ export const GrafanaDashboardUUID = {
 export type Props = {
   dashboard: $Values<typeof GrafanaDashboardUUID>,
   component?: string | React.ComponentType<any>,
-  children: any,
+  children: React.Node,
   /*
    * vars used to query grafana and do not need special formatting
    */
