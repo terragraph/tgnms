@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import MapHistoryOverlayPanel from '../MapHistoryOverlayPanel';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {HistoricalMetricsOverlayStrategy} from '../../../views/map/overlays';
 import {MuiPickersWrapper, renderAsync} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
@@ -57,7 +58,7 @@ test('date change triggers new api call', async () => {
     </MuiPickersWrapper>,
   );
   expect(getByText('Online')).toBeInTheDocument();
-  const datePicker = document.getElementById('date');
+  const datePicker = nullthrows(document.getElementById('date'));
   fireEvent.change(datePicker, {target: {value: '10/10/2010'}});
   expect(defaultProps.onHistoricalDateChange).toHaveBeenCalledTimes(1);
 });
@@ -69,7 +70,7 @@ test('invalid date change does not trigger new api call', async () => {
     </MuiPickersWrapper>,
   );
   expect(getByText('Online')).toBeInTheDocument();
-  const datePicker = document.getElementById('date');
+  const datePicker = nullthrows(document.getElementById('date'));
   fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
   expect(defaultProps.onHistoricalDateChange).not.toHaveBeenCalled();
 });

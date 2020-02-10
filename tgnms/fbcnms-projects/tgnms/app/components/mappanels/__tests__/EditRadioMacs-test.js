@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import EditRadioMacs from '../EditRadioMacs';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {
   cleanup,
   fireEvent,
@@ -55,7 +56,7 @@ test('delete node', async () => {
   );
   expect(queryByTestId('38:3a:21:b0:00:01')).toBeInTheDocument();
   expect(queryByTestId('38:3a:21:b0:00:01Delete')).toBeInTheDocument();
-  fireEvent.click(queryByTestId('38:3a:21:b0:00:01Delete'));
+  fireEvent.click(nullthrows(queryByTestId('38:3a:21:b0:00:01Delete')));
   expect(queryByTestId('38:3a:21:b0:00:01')).not.toBeInTheDocument();
 });
 
@@ -66,7 +67,7 @@ test('change node', async () => {
       radioMacs="38:3a:21:b0:00:01,38:3a:21:b0:00:01"
     />,
   );
-  const input = document.getElementById('38:3a:21:b0:00:01');
+  const input = nullthrows(document.getElementById('38:3a:21:b0:00:01'));
   expect(queryByTestId('38:3a:21:b0:00:01')).toBeInTheDocument();
   // $FlowFixMe - flow can't detect input value
   expect(input.value).toBe('38:3a:21:b0:00:01');
@@ -89,6 +90,6 @@ test('onRadioMacChange test', async () => {
   expect(onRadioMacChange).not.toBeCalled();
   expect(queryByTestId('38:3a:21:b0:00:01')).toBeInTheDocument();
   expect(queryByTestId('38:3a:21:b0:00:01Delete')).toBeInTheDocument();
-  fireEvent.click(queryByTestId('38:3a:21:b0:00:01Delete'));
+  fireEvent.click(nullthrows(queryByTestId('38:3a:21:b0:00:01Delete')));
   expect(onRadioMacChange).toBeCalled();
 });

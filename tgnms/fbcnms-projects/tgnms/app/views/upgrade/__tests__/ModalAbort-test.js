@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
@@ -10,6 +10,7 @@ import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
 import ModalAbort from '../ModalAbort';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
+import {assertType} from '@fbcnms/util/assert';
 import {
   cleanup,
   fireEvent,
@@ -105,7 +106,12 @@ test('abort success', async () => {
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
   await waitForElement(() => getByText('Abort Upgrade Requests'));
-  fireEvent.click(getByTestId('selectAllBox').childNodes[0].childNodes[0]);
+  fireEvent.click(
+    assertType(
+      getByTestId('selectAllBox').childNodes[0].childNodes[0],
+      HTMLElement,
+    ),
+  );
   fireEvent.click(getByText('Abort'));
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
@@ -127,7 +133,12 @@ test('abort fail', async () => {
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
   await waitForElement(() => getByText('Abort Upgrade Requests'));
-  fireEvent.click(getByTestId('selectAllBox').childNodes[0].childNodes[0]);
+  fireEvent.click(
+    assertType(
+      getByTestId('selectAllBox').childNodes[0].childNodes[0],
+      HTMLElement,
+    ),
+  );
   fireEvent.click(getByText('Abort'));
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   await waitForElement(() => getByText('Abort Upgrade Failed'));

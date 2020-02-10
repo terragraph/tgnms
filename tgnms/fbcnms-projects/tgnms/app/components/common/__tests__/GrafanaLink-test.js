@@ -2,18 +2,24 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import GrafanaLink from '../GrafanaLink';
 import React from 'react';
+import {assertType} from '@fbcnms/util/assert';
 import {cleanup, render} from '@testing-library/react';
 
 import {initWindowConfig} from '../../../tests/testHelpers';
 import {mockConsole} from '../../../../shared/tests/testHelpers';
 
 const GRAFANA_URL = 'http://grafana:9009/grafana';
+
+function getElementURL(element: HTMLElement): URL {
+  const link = assertType(element, HTMLAnchorElement);
+  return new URL(link.href);
+}
 
 beforeEach(() => {
   initWindowConfig({
@@ -46,7 +52,7 @@ test('invalid url does not crash', () => {
 
 test('gets baseurl from config', () => {
   const {getByText} = render(<GrafanaLink dashboard="">link</GrafanaLink>);
-  const link = getByText('link');
+  const link = assertType(getByText('link'), HTMLAnchorElement);
   expect(link).toBeInTheDocument();
   const url = new URL(link.href);
   expect(url.href).toBe(GRAFANA_URL);
@@ -64,7 +70,7 @@ test('accepts a custom component', () => {
 
 test('dashboard prop sets the uuid url parameter', () => {
   const {getByText} = render(<GrafanaLink dashboard="test">link</GrafanaLink>);
-  const url = new URL(getByText('link').href);
+  const url = getElementURL(getByText('link'));
   expect(url.pathname).toBe('/grafana/d/test');
 });
 
@@ -80,7 +86,7 @@ test('vars parameter adds vars as querystring params', () => {
     </GrafanaLink>,
   );
 
-  const url = new URL(getByText('link').href);
+  const url = getElementURL(getByText('link'));
   expect(url.searchParams.get('var-nodeA')).toBe('38:3a:21:b0:01:ec');
   expect(url.searchParams.get('var-nodeZ')).toBe('38:3a:21:b0:08:b3');
 });
@@ -97,7 +103,7 @@ test('illegal characters in prometheus values are replaced with underscores', ()
     </GrafanaLink>,
   );
 
-  const url = new URL(getByText('link').href);
+  const url = getElementURL(getByText('link'));
   expect(url.searchParams.get('var-link_name')).toBe('link_a_b_c');
   expect(url.searchParams.get('var-link_name_2')).toBe('_link__a__b_c');
 });

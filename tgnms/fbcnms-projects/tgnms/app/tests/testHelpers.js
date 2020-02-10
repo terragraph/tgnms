@@ -4,6 +4,7 @@
  * @format
  * @flow
  */
+
 import * as React from 'react';
 import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
@@ -16,6 +17,8 @@ import {createMemoryHistory} from 'history';
 import {initReactI18next} from 'react-i18next';
 import {mockNetworkContext} from './data/NetworkContext';
 import type {NetworkContextType} from '../NetworkContext';
+import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
+import type {RouterHistory} from 'react-router-dom';
 import type {User} from '../../shared/auth/User';
 
 // exports things like mockNetworkConfig and mockTopology
@@ -31,7 +34,11 @@ export function renderWithRouter(
     route = '/',
     history = createMemoryHistory({initialEntries: [route]}),
     ...renderArgs //arguments specific to @testing-library/react.render
-  }: {route?: string, history?: any} = {},
+  }: {|
+    route?: string,
+    history?: RouterHistory,
+    ...RenderOptionsWithoutCustomQueries,
+  |} = {},
 ) {
   return {
     ...render(<Router history={history}>{ui}</Router>, renderArgs),

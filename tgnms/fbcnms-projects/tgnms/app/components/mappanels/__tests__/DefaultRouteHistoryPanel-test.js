@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import DefaultRouteHistoryPanel from '../DefaultRouteHistoryPanel';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {
   MuiPickersWrapper,
   mockNode,
@@ -123,7 +124,7 @@ test('date change triggers new api call', async () => {
     </MuiPickersWrapper>,
   );
   expect(getByText('Route 2')).toBeInTheDocument();
-  const datePicker = document.getElementById('date');
+  const datePicker = nullthrows(document.getElementById('date'));
   fireEvent.change(datePicker, {target: {value: '10/10/2010'}});
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(2);
 });
@@ -135,7 +136,7 @@ test('invalid date change does not trigger new api call', async () => {
     </MuiPickersWrapper>,
   );
   expect(getByText('Route 2')).toBeInTheDocument();
-  const datePicker = document.getElementById('date');
+  const datePicker = nullthrows(document.getElementById('date'));
   fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
 });

@@ -2,11 +2,12 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 import 'jest-dom/extend-expect';
 import NetworkStatsPrometheus from '../NetworkStatsPrometheus';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {act, cleanup, fireEvent} from '@testing-library/react';
 import {mockNetworkConfig, renderWithRouter} from '../../../tests/testHelpers';
 
@@ -40,7 +41,9 @@ describe('prometheus stats rendering', () => {
     const {getByText, queryByText} = renderWithRouter(
       <NetworkStatsPrometheus networkConfig={mockNetworkConfig()} />,
     );
-    const keyDropDown = document.getElementById('key-name-drop-down');
+    const keyDropDown = nullthrows(
+      document.getElementById('key-name-drop-down'),
+    );
     // mock working prometheus data
     jest
       .spyOn(axios, 'get')

@@ -1,6 +1,7 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
+ * @flow
  * @format
  */
 
@@ -42,6 +43,12 @@ const styles = theme => ({
 type Props = {
   classes: Object,
   networkConfig: Object,
+};
+
+type State = {
+  dsIntervalSec: number,
+  keysSelected: Array<{value: string}>,
+  minAgo: number,
 };
 
 class NetworkStatsPrometheus extends React.Component<Props, State> {
@@ -173,6 +180,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
 
   dataValidator(response: string): boolean {
     if (
+      // $FlowFixMe: response is not a string
       !response.data ||
       !response.data.result ||
       response.data.result.length === 0
@@ -214,6 +222,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
                 value={this.state[key]}
                 onChange={evt =>
                   this.setState({
+                    // $FlowFixMe: type me
                     [key]: evt.target.value,
                   })
                 }

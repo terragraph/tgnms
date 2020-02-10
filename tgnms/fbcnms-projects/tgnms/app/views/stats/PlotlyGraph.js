@@ -36,8 +36,8 @@ const styles = {
 };
 
 type Props = {
-  dataFormatter: func,
-  dataValidator: func,
+  dataFormatter: () => void,
+  dataValidator: () => boolean,
   startTsMs: number,
   endTsMs: number,
   containerId: string,

@@ -1,3 +1,10 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow strict-local
+ */
+
 /*
  * Mocks out console commands to keep test output clean
  * and to allow us to assert if they were called.
@@ -8,12 +15,23 @@
  * see their output, use jest.spyOn.
  */
 export function mockConsole() {
-  const mock = {warn: jest.fn(), error: jest.fn(), log: jest.fn()};
+  const mock = {
+    warn: jest.fn<$ReadOnlyArray<*>, void>(),
+    error: jest.fn<$ReadOnlyArray<*>, void>(),
+    log: jest.fn<$ReadOnlyArray<*>, void>(),
+  };
   global.console = mock;
   return mock;
 }
 
-export function mockUser(merge = {}): User {
+type User = {|
+  id: string,
+  name: string,
+  email: string,
+  roles: Array<string>,
+|};
+
+export function mockUser(merge?: $Shape<User>): User {
   return {
     id: 'testid',
     name: 'tg',

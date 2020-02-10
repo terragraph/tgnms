@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import ModalNmsConfigForm from '../ModalNmsConfigForm';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {
   TestApp,
   mockNetworkConfig,
@@ -80,7 +81,7 @@ test('save click with incorrect fields errors show', async () => {
   );
   expect(getByText('Create Network')).toBeInTheDocument();
   expect(getByText('Save')).toBeInTheDocument();
-  const primaryApiIp = document.getElementById('primaryApiIp');
+  const primaryApiIp = nullthrows(document.getElementById('primaryApiIp'));
   fireEvent.change(primaryApiIp, {target: {value: ' '}});
   fireEvent.click(getByText('Save'));
   expect(getAllByText('Please enter a hostname.')[0]).toBeInTheDocument();
@@ -93,13 +94,13 @@ test('save click with correct fields works', async () => {
     </TestApp>,
   );
   expect(getByText('Create Network')).toBeInTheDocument();
-  const network = document.getElementById('network');
+  const network = nullthrows(document.getElementById('network'));
   fireEvent.change(network, {target: {value: 's'}});
-  const primaryApiIp = document.getElementById('primaryApiIp');
+  const primaryApiIp = nullthrows(document.getElementById('primaryApiIp'));
   fireEvent.change(primaryApiIp, {
     target: {value: '2620:10d:c089:e009:1a66:daff:fee8:000'},
   });
-  const primaryE2eIp = document.getElementById('primaryE2eIp');
+  const primaryE2eIp = nullthrows(document.getElementById('primaryE2eIp'));
   fireEvent.change(primaryE2eIp, {
     target: {value: '2620:10d:c089:e009:1a66:daff:fee8:000'},
   });

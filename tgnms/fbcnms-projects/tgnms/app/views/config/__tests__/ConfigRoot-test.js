@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
@@ -10,6 +10,7 @@ import ConfigRoot from '../ConfigRoot';
 import React from 'react';
 import {ConfigLayer, E2EConfigMode} from '../../../constants/ConfigConstants';
 import {TestApp} from '../../../tests/testHelpers';
+import {assertType} from '@fbcnms/util/assert';
 import {cleanup, fireEvent, waitForElement} from '@testing-library/react';
 import {getControllerConfig} from '../../../apiutils/ConfigAPIUtil';
 import {mockNetworkConfig, renderWithRouter} from '../../../tests/testHelpers';
@@ -80,8 +81,14 @@ test('change table without crashing', async () => {
   );
   await waitForElement(() => getByText('Cancel'));
   expect(queryByTestId('loading-box')).not.toBeInTheDocument();
-  expect(queryByTestId('config-root-tabs').value === 'CONTROLLER');
+  const rootTabs = assertType(
+    queryByTestId('config-root-tabs'),
+    HTMLDivElement,
+  );
+  // $FlowFixMe: value is used on the div
+  expect(rootTabs.value === 'CONTROLLER');
   fireEvent.click(getByText('AGGREGATOR'));
   expect(getByText('Field')).toBeInTheDocument();
-  expect(queryByTestId('config-root-tabs').value === 'AGGREGATOR');
+  // $FlowFixMe: value is used on the div
+  expect(rootTabs.value === 'AGGREGATOR');
 });

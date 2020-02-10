@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import ModalFullUpgrade from '../ModalFullUpgrade';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '../../../tests/testHelpers';
 import {
   act,
@@ -103,7 +104,9 @@ test('submit success', async () => {
   expect(getByText('Full Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Full Upgrade'));
   await waitForElement(() => getByText('Nodes for upgrade:'));
-  const selectedImageInput = document.getElementById('imageSelector');
+  const selectedImageInput = nullthrows(
+    document.getElementById('imageSelector'),
+  );
   fireEvent.click(selectedImageInput);
   fireEvent.keyDown(selectedImageInput, {key: 'ArrowDown', code: 40});
   fireEvent.keyDown(selectedImageInput, {key: 'Enter', code: 13});
@@ -146,7 +149,9 @@ test('submit fail', async () => {
   expect(getByText('Full Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Full Upgrade'));
   await waitForElement(() => getByText('Nodes for upgrade:'));
-  const selectedImageInput = document.getElementById('imageSelector');
+  const selectedImageInput = nullthrows(
+    document.getElementById('imageSelector'),
+  );
   fireEvent.click(selectedImageInput);
   fireEvent.keyDown(selectedImageInput, {key: 'ArrowDown', code: 40});
   fireEvent.keyDown(selectedImageInput, {key: 'Enter', code: 13});

@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
@@ -22,6 +22,7 @@ import {
  * Use queries directly for querying children of nodes other than document.body
  */
 import {LinkTypeValueMap} from '../../../../../shared/types/Topology';
+// $FlowFixMe: queries doesn't exist in types
 import {cleanup, fireEvent, queries} from '@testing-library/react';
 
 afterEach(cleanup);

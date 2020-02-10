@@ -12,7 +12,7 @@ import NetworkUI from './NetworkUI';
 import NmsConfig from './views/nms_config/NmsConfig';
 import React from 'react';
 import axios from 'axios';
-import {History} from 'history';
+
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {withRouter} from 'react-router-dom';
@@ -21,6 +21,7 @@ import {withTranslation} from 'react-i18next';
 
 import type {NetworkConfig} from './NetworkContext';
 import type {NetworkList} from './NetworkListContext';
+import type {RouterHistory} from 'react-router-dom';
 
 export type NetworkListType = NetworkConfig & {name: string};
 
@@ -67,7 +68,7 @@ const REFRESH_INTERVAL = window.CONFIG.refresh_interval
 
 type Props = {
   classes: {[string]: string},
-  history: History,
+  history: RouterHistory,
   location: Object,
 };
 

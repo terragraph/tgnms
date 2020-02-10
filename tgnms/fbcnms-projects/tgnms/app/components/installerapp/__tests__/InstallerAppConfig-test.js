@@ -4,11 +4,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
+
 import 'jest-dom/extend-expect';
 import InstallerAppConfig from '../InstallerAppConfig';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render, wait} from '@testing-library/react';
 
@@ -50,7 +52,7 @@ test('clicking the backdrop closes the modal', async () => {
   expect(getByText(/mobile app setup/i)).toBeInTheDocument();
   act(() => {
     const backdrop = document.querySelector('[class="MuiBackdrop-root"]');
-    fireEvent.click(backdrop);
+    fireEvent.click(nullthrows(backdrop));
   });
   await wait(() => {
     expect(queryByText(/mobile app setup/i)).not.toBeInTheDocument();

@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 import 'jest-dom/extend-expect';
 import AuthorizedRoute from '../AuthorizedRoute';

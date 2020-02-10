@@ -4,12 +4,13 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import EventRuleEditor from '../EventRuleEditor';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {EventIdValueMap} from '../../../../../shared/types/Event';
 import {Router} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
@@ -47,6 +48,7 @@ afterEach(() => {
 function Wrapper({children}) {
   return (
     <TestApp>
+      {/* $FlowFixMe: MemoryHistory and react-router are incompatible */}
       <Router history={createMemoryHistory()}>{children}</Router>
     </TestApp>
   );
@@ -176,7 +178,7 @@ function makeSelectFieldSetter(getterFn) {
       typeof value === 'string' || typeof value === 'number' ? [value] : value;
     for (const val of vals) {
       act(() => {
-        fireEvent.click(menu.querySelector(`[data-text="${val}"]`));
+        fireEvent.click(nullthrows(menu.querySelector(`[data-text="${val}"]`)));
       });
     }
   };

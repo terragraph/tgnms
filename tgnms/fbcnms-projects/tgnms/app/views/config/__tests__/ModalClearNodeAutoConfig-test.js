@@ -8,6 +8,7 @@
 import 'jest-dom/extend-expect';
 import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {
   cleanup,
@@ -46,7 +47,7 @@ test('closes', () => {
 test('submit calls success modal on successful api call', async () => {
   apiServiceRequestMock.mockImplementationOnce(() => Promise.resolve());
   const {getByText} = render(<ModalClearNodeAutoConfig {...defaultProps} />);
-  const inputPath = document.getElementById('nodePath');
+  const inputPath = nullthrows(document.getElementById('nodePath'));
   fireEvent.change(inputPath, {target: {value: '*'}});
   fireEvent.click(getByText('Submit'));
   await waitForElement(() => getByText('Auto Configs Cleared'));
@@ -56,7 +57,7 @@ test('submit calls success modal on successful api call', async () => {
 test('submit calls fail modal on failed api call', async () => {
   apiServiceRequestMock.mockImplementationOnce(() => Promise.reject());
   const {getByText} = render(<ModalClearNodeAutoConfig {...defaultProps} />);
-  const inputPath = document.getElementById('nodePath');
+  const inputPath = nullthrows(document.getElementById('nodePath'));
   fireEvent.change(inputPath, {target: {value: '*'}});
   fireEvent.click(getByText('Submit'));
   await waitForElement(() => getByText('Clear Config Failed'));

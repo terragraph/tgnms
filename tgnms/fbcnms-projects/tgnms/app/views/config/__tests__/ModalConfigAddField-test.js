@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import 'jest-dom/extend-expect';
 import ModalConfigAddField from '../ModalConfigAddField';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
@@ -79,7 +80,7 @@ test('Add Field button click success', () => {
     </TestApp>,
   );
   expect(getByText('Add New Field')).toBeInTheDocument();
-  const fieldName = document.getElementById('fieldName');
+  const fieldName = nullthrows(document.getElementById('fieldName'));
   fireEvent.change(fieldName, {target: {value: 'test'}});
   fireEvent.click(getByText('Add Field'));
   expect(defaultProps.onSubmit).toHaveBeenCalled();

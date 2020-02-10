@@ -21,7 +21,6 @@ import {
   MetricsOverlayStrategy,
   TestExecutionOverlayStrategy,
 } from './overlays';
-import {History} from 'history';
 import {MILLISECONDS_TO_MINUTES} from '../../constants/LayerConstants';
 import {Route, withRouter} from 'react-router-dom';
 import {
@@ -29,6 +28,7 @@ import {
   getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
+import type {RouterHistory} from 'react-router-dom';
 
 import type {Coordinate, NetworkConfig} from '../../NetworkContext';
 import type {
@@ -102,7 +102,7 @@ type Props = {
   networkName: string,
   siteToNodesMap: {[string]: Set<string>},
   match: Object,
-  history: History,
+  history: RouterHistory,
 };
 
 type State = {

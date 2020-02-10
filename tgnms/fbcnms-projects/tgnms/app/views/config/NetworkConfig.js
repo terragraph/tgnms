@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import ConfigRoot from './ConfigRoot';
@@ -15,7 +15,6 @@ import {
   NetworkConfigMode,
   SELECTED_NODE_QUERY_PARAM,
 } from '../../constants/ConfigConstants';
-import {History} from 'history';
 import {cloneDeep, get, merge} from 'lodash';
 import {
   getAutoOverridesConfig,
@@ -40,12 +39,13 @@ import {withStyles} from '@material-ui/core/styles';
 import type {NetworkConfig as NetworkConfigType} from '../../NetworkContext';
 import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 import type {NodeConfigType} from '../../../shared/types/NodeConfig';
+import type {RouterHistory} from 'react-router-dom';
 
 const styles = {};
 
 type Props = {
   classes: {[string]: string},
-  history: History,
+  history: RouterHistory,
   networkName: string,
   networkConfig: NetworkConfigType,
 };
@@ -160,7 +160,7 @@ class NetworkConfig extends React.Component<Props, State> {
   getNodeFromQueryString(networkConfig) {
     const values = new URL(window.location).searchParams;
     const name = values.get(SELECTED_NODE_QUERY_PARAM);
-    if (!name) {
+    if (name == null) {
       return null;
     }
     const nodes = getTopologyNodeList(networkConfig, null);
@@ -250,10 +250,10 @@ class NetworkConfig extends React.Component<Props, State> {
       firmwareVersion = selectedFirmwareVersion;
       hardwareType = selectedHardwareType;
     } else if (editMode === NetworkConfigMode.NODE && selectedNodeInfo) {
-      imageVersion = selectedNodeInfo.version || DEFAULT_BASE_KEY;
+      imageVersion = selectedNodeInfo?.version || DEFAULT_BASE_KEY;
       firmwareVersion = selectedFirmwareVersion || DEFAULT_FIRMWARE_BASE_KEY;
       hardwareType =
-        selectedNodeInfo.hardwareBoardId || DEFAULT_HARDWARE_BASE_KEY;
+        selectedNodeInfo?.hardwareBoardId || DEFAULT_HARDWARE_BASE_KEY;
     } else {
       // No node possible to select
       return null;
