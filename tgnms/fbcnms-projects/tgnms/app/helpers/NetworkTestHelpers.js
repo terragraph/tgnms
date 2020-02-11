@@ -6,7 +6,8 @@
  */
 
 import {generatePath} from 'react-router';
-import type {Location, RouterHistory} from 'react-router-dom';
+import {getUrlSearchParam} from './NetworkUrlHelpers';
+import type {Location} from 'react-router-dom';
 
 /**
  * Gets the currently selected test execution from the query string.
@@ -54,38 +55,4 @@ export function makeTestResultLink(params: {
     '/network_test/:networkName/:executionId/details/:linkName',
     params,
   );
-}
-
-export function getUrlSearchParam(
-  key: string,
-  {pathname, search}: Location,
-): ?string {
-  // Parse the current url with respect to the react-router location.
-  const parsed = new URL(`${pathname}${search}`, window.location.origin);
-  if (!parsed.searchParams.has(key)) {
-    return null;
-  }
-  const param = parsed.searchParams.get(key);
-  return param;
-}
-
-export function setUrlSearchParam(
-  history: RouterHistory,
-  key: string,
-  value: string,
-) {
-  const url = new URL(window.location.href);
-  url.searchParams.delete(key);
-  url.searchParams.set(key, value);
-  history.replace({
-    search: url.searchParams.toString(),
-  });
-}
-
-export function deleteUrlSearchParam(history: RouterHistory, key: string) {
-  const url = new URL(window.location.href);
-  url.searchParams.delete(key);
-  history.replace({
-    search: url.searchParams.toString(),
-  });
 }

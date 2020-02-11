@@ -17,7 +17,7 @@ import type {Element} from '../../../contexts/NetworkContext';
 import {
   deleteUrlSearchParam,
   setUrlSearchParam,
-} from '../../../helpers/NetworkTestHelpers';
+} from '../../../helpers/NetworkUrlHelpers';
 
 type Props = {
   selectedElement: Element,

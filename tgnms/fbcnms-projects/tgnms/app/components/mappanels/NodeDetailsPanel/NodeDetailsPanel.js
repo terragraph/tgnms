@@ -21,7 +21,7 @@ import TimerIcon from '@material-ui/icons/Timer';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../../apiutils/ServiceAPIUtil';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
-import {setUrlSearchParam} from '../../../helpers/NetworkTestHelpers';
+import {setUrlSearchParam} from '../../../helpers/NetworkUrlHelpers';
 import {supportsTopologyScan} from '../../../helpers/TgFeatures';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
