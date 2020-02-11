@@ -7,7 +7,6 @@
  * WIRED_LINK_STATUS -> Wired Link Status
  * wired-link-status -> Wired Link Status
  */
-// flowlint inexact-spread:off
 
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
