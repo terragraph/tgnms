@@ -6,7 +6,7 @@
  */
 
 import BatchUpgradeTable from './BatchUpgradeTable';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import NodeUpgradeTable from './NodeUpgradeTable';
 import React from 'react';
 import UpgradeOperationsToolbar from './UpgradeOperationsToolbar';

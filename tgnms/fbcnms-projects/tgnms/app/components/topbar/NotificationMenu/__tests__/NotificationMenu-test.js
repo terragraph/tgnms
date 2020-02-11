@@ -9,12 +9,12 @@ import 'jest-dom/extend-expect';
 import MockWebSocket from '../../../../tests/mocks/MockWebSocket';
 import NetworkListContext, {
   defaultValue as defaultContextValue,
-} from '../../../../NetworkListContext';
+} from '../../../../contexts/NetworkListContext';
 import NotificationMenu from '../NotificationMenu';
 import React from 'react';
 import {TestApp} from '../../../../tests/testHelpers';
 import {WebSocketMessage} from '../../../../../shared/dto/WebSockets';
-import {WebSocketProvider} from '../../../../WebSocketContext';
+import {WebSocketProvider} from '../../../../contexts/WebSocketContext';
 import {
   act,
   cleanup,

@@ -29,7 +29,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
-import NetworkListContext from '../../NetworkListContext';
+import NetworkListContext from '../../contexts/NetworkListContext';
 import NotificationMenu from './NotificationMenu/NotificationMenu';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';

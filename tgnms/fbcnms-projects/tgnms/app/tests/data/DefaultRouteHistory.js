@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 
-import type {NodeMap} from '../../NetworkContext';
+import type {NodeMap} from '../../contexts/NetworkContext';
 
 export function testDefaultRouteHistory(): {[string]: Array<Array<string>>} {
   return {

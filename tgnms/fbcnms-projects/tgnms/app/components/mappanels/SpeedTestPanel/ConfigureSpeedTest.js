@@ -17,8 +17,8 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingBox from '../../common/LoadingBox';
 import MaterialReactSelect from '../../common/MaterialReactSelect';
-import NetworkContext from '../../../NetworkContext';
-import RouteContext from '../../../RouteContext';
+import NetworkContext from '../../../contexts/NetworkContext';
+import RouteContext from '../../../contexts/RouteContext';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import swal from 'sweetalert2';
@@ -26,7 +26,7 @@ import {TopologyElementType} from '../../../constants/NetworkConstants';
 import {getTopologyNodeList} from '../../../helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkRoutes} from '../../../hooks/MapHooks';
-import type {Element} from '../../../NetworkContext';
+import type {Element} from '../../../contexts/NetworkContext';
 
 const useSpeedTestStyles = makeStyles(theme => ({
   actions: {

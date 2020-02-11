@@ -24,7 +24,7 @@ import type {
   NodeMap,
   Site,
   SiteMap,
-} from '../../NetworkContext';
+} from '../../contexts/NetworkContext';
 import type {LinkType, NodeType} from '../../../shared/types/Topology';
 import type {StatusReportType} from '../../../shared/types/Controller';
 

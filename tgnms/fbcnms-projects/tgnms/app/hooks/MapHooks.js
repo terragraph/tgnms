@@ -5,8 +5,8 @@
  * @flow strict-local
  */
 import * as React from 'react';
-import NetworkContext from '../NetworkContext';
-import RouteContext from '../RouteContext';
+import NetworkContext from '../contexts/NetworkContext';
+import RouteContext from '../contexts/RouteContext';
 import axios from 'axios';
 import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
 

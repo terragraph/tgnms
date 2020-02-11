@@ -12,7 +12,7 @@ import {
   TestApp,
   mockNetworkConfig,
   renderWithRouter,
-} from '../tests/testHelpers';
+} from '../../tests/testHelpers';
 import {cleanup} from '@testing-library/react';
 
 afterEach(cleanup);

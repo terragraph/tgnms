@@ -7,11 +7,11 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import MockWebSocket from '../tests/mocks/MockWebSocket';
+import MockWebSocket from '../../tests/mocks/MockWebSocket';
 import {
   WEBSOCKET_READYSTATE,
   WebSocketMessage,
-} from '../../shared/dto/WebSockets';
+} from '../../../shared/dto/WebSockets';
 import {
   WebSocketContext,
   WebSocketProvider,

@@ -6,13 +6,13 @@
  */
 
 import Grid from '@material-ui/core/Grid';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import React, {useContext} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import StarIcon from '@material-ui/icons/Star';
 import yellow from '@material-ui/core/colors/yellow';
 import {makeStyles} from '@material-ui/styles';
-import type {NetworkContextType} from '../../NetworkContext';
+import type {NetworkContextType} from '../../contexts/NetworkContext';
 import type {NodeType} from '../../../shared/types/Topology';
 
 const styles = {

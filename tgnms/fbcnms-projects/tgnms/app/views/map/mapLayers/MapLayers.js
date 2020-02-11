@@ -13,7 +13,7 @@ import SitesLayer from './SitesLayer';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 
 import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
-import type {NetworkContextType} from '../../../NetworkContext';
+import type {NetworkContextType} from '../../../contexts/NetworkContext';
 import type {
   Overlay,
   SelectedLayersType,

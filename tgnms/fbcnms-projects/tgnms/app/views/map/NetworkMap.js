@@ -7,12 +7,12 @@
 
 import Dragger from '../../components/common/Dragger';
 import MapLayers from './mapLayers/MapLayers';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
 import React from 'react';
 import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
-import RouteContext from '../../RouteContext';
+import RouteContext from '../../contexts/RouteContext';
 import TableControl from './TableControl';
 import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
 import mapboxgl from 'mapbox-gl';
@@ -30,7 +30,7 @@ import {
 import {withStyles} from '@material-ui/core/styles';
 import type {RouterHistory} from 'react-router-dom';
 
-import type {Coordinate, NetworkConfig} from '../../NetworkContext';
+import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
 import type {
   MapLayerConfig,
   SelectedLayersType,
@@ -41,7 +41,7 @@ import type {
   PlannedSite,
   Routes,
 } from '../../components/mappanels/MapPanelTypes';
-import type {Route as NodeRoute} from '../../RouteContext';
+import type {Route as NodeRoute} from '../../contexts/RouteContext';
 import type {OverlayStrategy} from './overlays';
 
 const styles = theme => ({

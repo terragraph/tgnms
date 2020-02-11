@@ -8,7 +8,7 @@
 import * as React from 'react';
 import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
-import NetworkContext from '../NetworkContext';
+import NetworkContext from '../contexts/NetworkContext';
 import i18next from 'i18next';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
@@ -16,7 +16,7 @@ import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {initReactI18next} from 'react-i18next';
 import {mockNetworkContext} from './data/NetworkContext';
-import type {NetworkContextType} from '../NetworkContext';
+import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
 import type {User} from '../../shared/auth/User';

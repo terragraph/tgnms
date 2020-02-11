@@ -36,7 +36,7 @@ import {
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkConfig as NetworkConfigType} from '../../NetworkContext';
+import type {NetworkConfig as NetworkConfigType} from '../../contexts/NetworkContext';
 import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 import type {NodeConfigType} from '../../../shared/types/NodeConfig';
 import type {RouterHistory} from 'react-router-dom';

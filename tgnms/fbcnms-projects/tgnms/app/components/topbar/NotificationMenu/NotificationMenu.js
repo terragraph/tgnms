@@ -25,7 +25,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkListContext from '../../../NetworkListContext';
+import NetworkListContext from '../../../contexts/NetworkListContext';
 import NotificationDialog from './NotificationDialog';
 import Text from '@fbcnms/i18n/Text';
 import WarningIcon from '@material-ui/icons/Warning';
@@ -36,7 +36,7 @@ import yellow from '@material-ui/core/colors/yellow';
 import {EventLevelValueMap} from '../../../../shared/types/Event';
 import {makeStyles} from '@material-ui/styles';
 import {useTranslation} from 'react-i18next';
-import {useWebSocketGroup} from '../../../WebSocketContext';
+import {useWebSocketGroup} from '../../../contexts/WebSocketContext';
 import type {EventType} from '../../../../shared/types/Event';
 
 import {NOTIFICATION_SOURCE} from './constants';

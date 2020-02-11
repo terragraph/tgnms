@@ -35,7 +35,7 @@ import {
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkHealth} from '../../NetworkContext';
+import type {NetworkHealth} from '../../contexts/NetworkContext';
 import type {
   NodeType as Node,
   SiteType,

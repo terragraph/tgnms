@@ -31,7 +31,7 @@ import type {
   OfflineWhiteListType,
   SiteToNodesMap,
   TopologyConfig,
-} from '../../../NetworkContext';
+} from '../../../contexts/NetworkContext';
 import type {
   PlannedSite,
   Routes,

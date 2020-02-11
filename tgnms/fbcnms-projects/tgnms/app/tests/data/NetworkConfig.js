@@ -18,7 +18,7 @@ import type {
   TopologyType,
 } from '../../../shared/types/Topology';
 
-import type {NetworkConfig, NetworkHealth} from '../../NetworkContext';
+import type {NetworkConfig, NetworkHealth} from '../../contexts/NetworkContext';
 import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
 import type {Overlay} from '../../views/map/NetworkMapTypes';
 import type {Routes} from '../../components/mappanels/MapPanelTypes';

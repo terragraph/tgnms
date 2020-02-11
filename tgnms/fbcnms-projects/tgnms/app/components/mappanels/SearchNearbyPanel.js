@@ -47,7 +47,7 @@ import type {
 } from '../../components/mappanels/MapPanelTypes';
 import type {LocationType} from '../../../shared/types/Topology';
 import type {NodeType, TopologyType} from '../../../shared/types/Topology';
-import type {Site} from '../../NetworkContext';
+import type {Site} from '../../contexts/NetworkContext';
 
 const styles = theme => ({
   iconCentered: {

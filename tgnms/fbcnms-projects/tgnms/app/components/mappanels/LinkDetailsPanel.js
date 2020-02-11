@@ -52,7 +52,7 @@ import type {
   LinkMeta,
   NetworkConfig,
   NetworkHealth,
-} from '../../NetworkContext';
+} from '../../contexts/NetworkContext';
 import type {RouterHistory} from 'react-router-dom';
 
 const styles = theme => ({

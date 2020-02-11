@@ -6,7 +6,7 @@
  */
 
 import CustomTable from '../../components/common/CustomTable';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import React from 'react';
 import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
@@ -14,7 +14,7 @@ import {TopologyElementType} from '../../constants/NetworkConstants';
 import {isNodeAlive} from '../../helpers/NetworkHelpers';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 
-import type {NetworkContextType} from '../../NetworkContext';
+import type {NetworkContextType} from '../../contexts/NetworkContext';
 
 type NetworkNodeRowType = {
   name: string,

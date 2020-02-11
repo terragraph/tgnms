@@ -5,12 +5,12 @@
  * @flow
  */
 
-import type {NetworkListContextType} from '../../../NetworkListContext';
+import type {NetworkListContextType} from '../../../contexts/NetworkListContext';
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MaterialTopBar from '../MaterialTopBar';
-import NetworkListContext from '../../../NetworkListContext';
+import NetworkListContext from '../../../contexts/NetworkListContext';
 import {
   TestApp,
   initWindowConfig,

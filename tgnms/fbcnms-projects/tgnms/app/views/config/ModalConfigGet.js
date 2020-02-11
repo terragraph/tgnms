@@ -29,7 +29,7 @@ import {
 import {stringifyConfig} from '../../helpers/ConfigHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkConfig} from '../../NetworkContext';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
 import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 
 const styles = theme => ({

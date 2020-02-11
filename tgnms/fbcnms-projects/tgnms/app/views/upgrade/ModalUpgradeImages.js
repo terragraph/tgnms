@@ -46,7 +46,7 @@ import {
   fetchUpgradeImages,
 } from '../../helpers/UpgradeHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
-import {useWebSocketGroup} from '../../WebSocketContext';
+import {useWebSocketGroup} from '../../contexts/WebSocketContext';
 import {withStyles} from '@material-ui/core/styles';
 import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
 import type {

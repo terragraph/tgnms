@@ -7,7 +7,7 @@
 
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
-import NetworkListContext from './NetworkListContext';
+import NetworkListContext from './contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
 import NmsConfig from './views/nms_config/NmsConfig';
 import React from 'react';
@@ -19,8 +19,8 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import {withTranslation} from 'react-i18next';
 
-import type {NetworkConfig} from './NetworkContext';
-import type {NetworkList} from './NetworkListContext';
+import type {NetworkConfig} from './contexts/NetworkContext';
+import type {NetworkList} from './contexts/NetworkListContext';
 import type {RouterHistory} from 'react-router-dom';
 
 export type NetworkListType = NetworkConfig & {name: string};

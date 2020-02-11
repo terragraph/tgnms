@@ -34,7 +34,7 @@ import {isPunctuation} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkConfig} from '../../NetworkContext';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
 import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 import type {NodeConfigType} from '../../../shared/types/NodeConfig';
 

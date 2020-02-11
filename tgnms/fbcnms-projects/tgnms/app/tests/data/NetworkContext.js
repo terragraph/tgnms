@@ -6,7 +6,7 @@
  */
 
 import {mockNetworkConfig} from './NetworkConfig';
-import type {NetworkContextType} from '../../NetworkContext';
+import type {NetworkContextType} from '../../contexts/NetworkContext';
 
 /**
  * Creates a fake network context which passes flow validation

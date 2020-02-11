@@ -41,7 +41,7 @@ import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {EditNodeParams} from './MapPanelTypes';
-import type {NetworkConfig} from '../../NetworkContext';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
 import type {
   PolarityTypeType,
   TopologyType,

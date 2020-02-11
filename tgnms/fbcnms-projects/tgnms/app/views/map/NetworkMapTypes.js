@@ -5,7 +5,7 @@
  * @flow
  */
 import * as React from 'react';
-import type {NetworkContextType} from '../../NetworkContext';
+import type {NetworkContextType} from '../../contexts/NetworkContext';
 
 export type MapLayerConfig = {
   layerId: string,

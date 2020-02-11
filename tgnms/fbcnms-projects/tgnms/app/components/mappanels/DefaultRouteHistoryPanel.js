@@ -22,7 +22,7 @@ import {getDefaultRouteHistory} from '../../apiutils/DefaultRouteHistoryAPIUtil'
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NodeMap, Site} from '../../NetworkContext';
+import type {NodeMap, Site} from '../../contexts/NetworkContext';
 import type {NodeType, TopologyType} from '../../../shared/types/Topology';
 import type {Routes} from './MapPanelTypes';
 

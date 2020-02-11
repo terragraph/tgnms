@@ -17,7 +17,7 @@ import React, {Suspense} from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {WebSocketProvider} from './WebSocketContext';
+import {WebSocketProvider} from './contexts/WebSocketContext';
 import {hot} from 'react-hot-loader';
 
 /* eslint-disable-next-line no-undef */

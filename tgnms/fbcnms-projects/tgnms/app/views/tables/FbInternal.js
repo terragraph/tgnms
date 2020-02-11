@@ -12,7 +12,7 @@ import GrafanaLink, {
 } from '../../components/common/GrafanaLink';
 import React from 'react';
 import type {LinkType} from '../../../shared/types/Topology';
-import type {NetworkContextType} from '../../NetworkContext';
+import type {NetworkContextType} from '../../contexts/NetworkContext';
 
 // create a link to an ODS Chart
 function renderODSLink(a_node_name, z_node_name, context) {

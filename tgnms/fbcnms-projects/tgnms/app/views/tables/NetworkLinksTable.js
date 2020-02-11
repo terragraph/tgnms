@@ -12,7 +12,7 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
@@ -37,7 +37,7 @@ import {renderDashboardLinks, renderGrafanaLink} from './FbInternal';
 import {renderStatusColor} from '../../helpers/TableHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {LinkType} from '../../../shared/types/Topology';
-import type {NetworkContextType} from '../../NetworkContext';
+import type {NetworkContextType} from '../../contexts/NetworkContext';
 import type {Node} from 'react';
 
 // Invalid analyzer value, ignore any fields that have this value.

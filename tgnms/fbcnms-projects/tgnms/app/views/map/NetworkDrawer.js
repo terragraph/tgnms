@@ -45,7 +45,7 @@ import type {
   PlannedSite,
   Routes,
 } from '../../components/mappanels/MapPanelTypes';
-import type {Element, NetworkContextType} from '../../NetworkContext';
+import type {Element, NetworkContextType} from '../../contexts/NetworkContext';
 import type {LocationType} from '../../../shared/types/Topology';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
 import type {Theme, WithStyles} from '@material-ui/core';

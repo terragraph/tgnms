@@ -24,7 +24,10 @@ import {
 } from '../../../helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
 
-import type {NetworkConfig, NetworkHealth} from '../../../NetworkContext';
+import type {
+  NetworkConfig,
+  NetworkHealth,
+} from '../../../contexts/NetworkContext';
 import type {NodeType, TopologyType} from '../../../../shared/types/Topology';
 import type {StatusReportType} from '../../../../shared/types/Controller';
 

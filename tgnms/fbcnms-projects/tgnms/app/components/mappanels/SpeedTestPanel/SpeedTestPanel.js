@@ -7,12 +7,12 @@
 import * as React from 'react';
 import ConfigureSpeedTest from './ConfigureSpeedTest';
 import CustomExpansionPanel, * as Expansion from '../../common/CustomExpansionPanel';
-import RouteContext from '../../../RouteContext';
+import RouteContext from '../../../contexts/RouteContext';
 import SpeedTestResult from './SpeedTestResult';
 import SpeedTestStatus from './SpeedTestStatus';
 import {withRouter} from 'react-router-dom';
 import type {ContextRouter} from 'react-router-dom';
-import type {Element} from '../../../NetworkContext';
+import type {Element} from '../../../contexts/NetworkContext';
 
 import {
   deleteUrlSearchParam,

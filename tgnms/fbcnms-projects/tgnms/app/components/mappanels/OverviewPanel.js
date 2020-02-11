@@ -13,7 +13,7 @@ import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import MaterialModal from '../common/MaterialModal';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -54,7 +54,7 @@ import type {
   NetworkConfig,
   NetworkHealth,
   WirelessControllerStats,
-} from '../../NetworkContext';
+} from '../../contexts/NetworkContext';
 
 const styles = theme => ({
   button: {

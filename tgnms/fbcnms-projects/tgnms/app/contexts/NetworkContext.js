@@ -6,18 +6,18 @@
  */
 
 import React from 'react';
-import {BinaryStarFsmStateValueMap} from '../shared/types/Controller';
-import {TopologyElementType, WAC_TYPES} from './constants/NetworkConstants';
+import {BinaryStarFsmStateValueMap} from '../../shared/types/Controller';
+import {TopologyElementType, WAC_TYPES} from '../constants/NetworkConstants';
 import type {
   LinkType,
   LocationType,
   NodeType,
   TopologyType,
-} from '../shared/types/Topology';
+} from '../../shared/types/Topology';
 import type {
   StatusDumpType,
   UpgradeStateDumpType,
-} from '../shared/types/Controller';
+} from '../../shared/types/Controller';
 
 export type NetworkContextType = {|
   networkName: string,

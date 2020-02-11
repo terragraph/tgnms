@@ -10,8 +10,8 @@ import E2EConfig from './views/config/E2EConfig';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
 import NetworkConfig from './views/config/NetworkConfig';
-import NetworkContext from './NetworkContext';
-import NetworkListContext from './NetworkListContext';
+import NetworkContext from './contexts/NetworkContext';
+import NetworkListContext from './contexts/NetworkListContext';
 import NetworkMap from './views/map/NetworkMap';
 import NetworkStatsBeringei from './views/stats/NetworkStatsBeringei';
 import NetworkStatsPrometheus from './views/stats/NetworkStatsPrometheus';
@@ -36,7 +36,7 @@ import type {
   NetworkHealth,
   NetworkNodeStats,
   SiteMap,
-} from './NetworkContext';
+} from './contexts/NetworkContext';
 
 import type {LinkType, NodeType as Node} from '../shared/types/Topology';
 

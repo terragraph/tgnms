@@ -20,7 +20,7 @@ import {
 
 import type {AggregatorConfigType} from '../../../shared/types/Aggregator';
 import type {ControllerConfigType} from '../../../shared/types/Controller';
-import type {NetworkConfig} from '../../NetworkContext';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
 
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';

@@ -9,7 +9,7 @@ import * as React from 'react';
 import CustomSnackbar from '../../components/common/CustomSnackbar';
 import InfoIcon from '@material-ui/icons/Info';
 import LoadingBox from '../../components/common/LoadingBox';
-import NetworkContext from '../../NetworkContext';
+import NetworkContext from '../../contexts/NetworkContext';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import axios from 'axios';

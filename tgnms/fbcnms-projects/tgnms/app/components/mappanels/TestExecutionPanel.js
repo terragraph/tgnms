@@ -17,7 +17,7 @@ import {TEST_TYPE} from '../../../shared/dto/TestExecution';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {makeStyles} from '@material-ui/styles';
 import {useLoadTestExecution} from '../../views/network_test/hooks';
-import type {Element} from '../../NetworkContext';
+import type {Element} from '../../contexts/NetworkContext';
 import type {LinkTestResult as LinkTestResultType} from '../../views/network_test/LinkTestResultDetails';
 import type {TestExecution} from '../../../shared/dto/TestExecution';
 

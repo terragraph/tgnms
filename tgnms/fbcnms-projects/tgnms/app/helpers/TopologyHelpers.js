@@ -9,7 +9,7 @@ import type {
   NodeMap,
   SiteMap,
   SiteToNodesMap,
-} from '../NetworkContext';
+} from '../contexts/NetworkContext';
 import type {TopologyType} from '../../shared/types/Topology';
 
 export type TopologyMaps = {|

@@ -10,8 +10,8 @@ import {
   WEBSOCKET_READYSTATE,
   WEB_SOCKET_COMMAND_TYPE,
   WebSocketMessage,
-} from '../shared/dto/WebSockets';
-import type {WebSocketCommand} from '../shared/dto/WebSockets';
+} from '../../shared/dto/WebSockets';
+import type {WebSocketCommand} from '../../shared/dto/WebSockets';
 
 export type WebSocketContextType = {|
   getRawSocket: () => ?WebSocket,

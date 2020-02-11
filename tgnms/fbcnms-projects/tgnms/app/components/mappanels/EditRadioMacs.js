@@ -17,7 +17,7 @@ import TextField from '@material-ui/core/TextField';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {ApiRequestAttemptsType} from './AddNodePanel';
-import type {NetworkConfig} from '../../NetworkContext';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
 import type {Theme, WithStyles} from '@material-ui/core';
 
 type RadioMacChangesType = {

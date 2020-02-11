@@ -8,7 +8,7 @@ import * as StringHelpers from '../../../helpers/StringHelpers';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../common/LoadingBox';
-import NetworkContext from '../../../NetworkContext';
+import NetworkContext from '../../../contexts/NetworkContext';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {Link} from 'react-router-dom';

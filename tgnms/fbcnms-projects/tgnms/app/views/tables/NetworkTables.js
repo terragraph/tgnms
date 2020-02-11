@@ -5,7 +5,7 @@
  * @flow
  */
 
-import NetworkContext from '../../NetworkContext.js';
+import NetworkContext from '../../contexts/NetworkContext.js';
 import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
 import NetworkTestTable from './NetworkTestTable';

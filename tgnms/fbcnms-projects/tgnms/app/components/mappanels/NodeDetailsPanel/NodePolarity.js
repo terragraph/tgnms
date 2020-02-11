@@ -12,7 +12,7 @@ import {SiteOverlayColors} from '../../../constants/LayerConstants';
 import {getNodePolarities} from '../../../helpers/TgFeatures';
 import {makeStyles} from '@material-ui/styles';
 
-import type {NetworkConfig} from '../../../NetworkContext';
+import type {NetworkConfig} from '../../../contexts/NetworkContext';
 import type {NodeType} from '../../../../shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
