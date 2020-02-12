@@ -43,8 +43,9 @@ export default function getOidcClient(
     const attempt = () => {
       tryDiscovery()
         .then(client => resolve(client))
-        .catch(_error => {
+        .catch(error => {
           logger.info('openid discovery: failed. retrying in 5s.');
+          logger.error(error);
           setTimeout(attempt, 5000);
         });
     };
