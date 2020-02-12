@@ -10,10 +10,12 @@ import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from './contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
 import NmsConfig from './views/nms_config/NmsConfig';
+import NmsOptionsContext from './contexts/NmsOptionsContext';
 import React from 'react';
 import axios from 'axios';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {defaultNetworkMapOptions} from './contexts/NmsOptionsContext';
 import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -21,6 +23,7 @@ import {withTranslation} from 'react-i18next';
 
 import type {NetworkConfig} from './contexts/NetworkContext';
 import type {NetworkList} from './contexts/NetworkListContext';
+import type {NetworkMapOptions} from './views/map/NetworkMapTypes';
 import type {RouterHistory} from 'react-router-dom';
 
 export type NetworkListType = NetworkConfig & {name: string};
@@ -72,13 +75,14 @@ type Props = {
   location: Object,
 };
 
-type State = {networkList: ?NetworkList};
+type State = {networkList: ?NetworkList, networkMapOptions: NetworkMapOptions};
 
 class NetworkListBase extends React.Component<Props, State> {
   _refreshNetworkListInterval;
 
   state = {
     networkList: null,
+    networkMapOptions: defaultNetworkMapOptions(),
   };
 
   componentDidMount() {
@@ -141,8 +145,13 @@ class NetworkListBase extends React.Component<Props, State> {
     return splitPath.join('/');
   };
 
+  updateNetworkMapOptions = networkMapOptions => {
+    this.setState({networkMapOptions});
+  };
+
   render() {
     const {classes} = this.props;
+    const {networkMapOptions} = this.state;
     return (
       <NetworkListContext.Provider
         value={{
@@ -153,25 +162,35 @@ class NetworkListBase extends React.Component<Props, State> {
           getNetworkName: this.getNetworkName,
           changeNetworkName: this.changeNetworkName,
         }}>
-        <div className={classes.root}>
-          <MaterialTopBar />
-          <main className={classes.main}>
-            <div className={classes.appBarSpacer} />
-            <Switch>
-              <AuthorizedRoute
-                path={CONFIG_URL}
-                component={NmsConfig}
-                permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
-              />
-              <Route path="/:viewName/:networkName" component={NetworkUI} />
-              <Redirect
-                to={
-                  defaultNetworkName ? `/map/${defaultNetworkName}` : CONFIG_URL
-                }
-              />
-            </Switch>
-          </main>
-        </div>
+        <NmsOptionsContext.Provider
+          value={{
+            networkMapOptions: networkMapOptions,
+            networkTablesOptions: {},
+            updateNetworkMapOptions: this.updateNetworkMapOptions,
+            updateNetworkTableOptions: () => {},
+          }}>
+          <div className={classes.root}>
+            <MaterialTopBar />
+            <main className={classes.main}>
+              <div className={classes.appBarSpacer} />
+              <Switch>
+                <AuthorizedRoute
+                  path={CONFIG_URL}
+                  component={NmsConfig}
+                  permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
+                />
+                <Route path="/:viewName/:networkName" component={NetworkUI} />
+                <Redirect
+                  to={
+                    defaultNetworkName
+                      ? `/map/${defaultNetworkName}`
+                      : CONFIG_URL
+                  }
+                />
+              </Switch>
+            </main>
+          </div>
+        </NmsOptionsContext.Provider>
       </NetworkListContext.Provider>
     );
   }

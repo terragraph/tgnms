@@ -6,6 +6,7 @@
  */
 import * as React from 'react';
 import type {NetworkContextType} from '../../contexts/NetworkContext';
+import type {OverlayStrategy} from './overlays';
 
 export type MapLayerConfig = {
   layerId: string,
@@ -53,4 +54,19 @@ export type SelectedLayersType = {
 
 export type ChangeOverlayRange = {
   (id: string, newRange: Array<number>): void,
+};
+
+export type NetworkMapOptions = {
+  overlayStrategy: OverlayStrategy,
+  selectedLayers: SelectedLayersType,
+  selectedOverlays: SelectedOverlays,
+  historicalDate: Date,
+  selectedTime: Date,
+  linkOverlayMetrics: ?{[string]: {}},
+};
+
+export type UrlInputType = {
+  isHistoricalOverlay: boolean,
+  historicalDate: Date,
+  testId?: string,
 };

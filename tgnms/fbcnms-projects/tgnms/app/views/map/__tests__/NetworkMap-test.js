@@ -18,6 +18,8 @@ import {
   renderWithRouter,
 } from '../../../tests/testHelpers';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {defaultNetworkMapOptions} from '../../../contexts/NmsOptionsContext';
+
 beforeEach(() => {
   initWindowConfig();
 });
@@ -34,6 +36,8 @@ const commonProps = {
   networkConfig: mockNetworkConfig(),
   networkName: 'test',
   siteToNodesMap: {},
+  networkMapOptions: defaultNetworkMapOptions(),
+  updateNetworkMapOptions: jest.fn(() => {}),
 };
 
 test('renders without crashing with minimal props ', () => {

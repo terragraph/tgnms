@@ -24,6 +24,11 @@ import {
 import {MILLISECONDS_TO_MINUTES} from '../../constants/LayerConstants';
 import {Route, withRouter} from 'react-router-dom';
 import {
+  deleteUrlSearchParam,
+  setUrlSearchParam,
+} from '../../helpers/NetworkUrlHelpers';
+import {getHistoricalDate} from '../../helpers/NetworkHelpers';
+import {
   getSpeedTestId,
   getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
@@ -33,8 +38,10 @@ import type {RouterHistory} from 'react-router-dom';
 import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
 import type {
   MapLayerConfig,
+  NetworkMapOptions,
   SelectedLayersType,
   SelectedOverlays,
+  UrlInputType,
 } from './NetworkMapTypes';
 import type {
   NearbyNodes,
@@ -103,6 +110,8 @@ type Props = {
   siteToNodesMap: {[string]: Set<string>},
   match: Object,
   history: RouterHistory,
+  networkMapOptions: NetworkMapOptions,
+  updateNetworkMapOptions: NetworkMapOptions => void,
 };
 
 type State = {
@@ -140,7 +149,7 @@ type State = {
   hiddenSites: Set<string>,
 
   //Historical metrics to render historical data on map
-  isHistoricaloverlay: boolean,
+  isHistoricalOverlay: boolean,
   //The day selected to view historical data
   historicalDate: Date,
   //The exact time selectd to view historical stats
@@ -157,19 +166,18 @@ class NetworkMap extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     // construct styles list
+    const {networkMapOptions} = props;
     this._mapBoxStyles = this.mapBoxStylesList();
-    this.overlayStrategy = new MetricsOverlayStrategy();
+    this.overlayStrategy = networkMapOptions.overlayStrategy;
+    const isHistoricalOverlay =
+      this.overlayStrategy.constructor === HistoricalMetricsOverlayStrategy;
+
     this.state = {
       // Map config
       mapRef: null, // reference to Map class
       mapBounds: props.networkConfig.bounds,
-      selectedLayers: {
-        site_icons: true,
-        link_lines: true,
-        site_name_popups: false,
-        buildings_3d: false,
-      },
-      selectedOverlays: this.overlayStrategy.getDefaultOverlays(),
+      selectedLayers: networkMapOptions.selectedLayers,
+      selectedOverlays: networkMapOptions.selectedOverlays,
 
       // Map tables
       showTable: false,
@@ -178,7 +186,7 @@ class NetworkMap extends React.Component<Props, State> {
       overlayLoading: false,
 
       // link overlay stats received per-link
-      linkOverlayMetrics: {},
+      linkOverlayMetrics: networkMapOptions.linkOverlayMetrics,
 
       // Selected map style (from MapBoxStyles)
       selectedMapStyle: this._mapBoxStyles[0].endpoint,
@@ -207,13 +215,19 @@ class NetworkMap extends React.Component<Props, State> {
       // Sites that should not be rendered on the map (e.g. while editing)
       hiddenSites: new Set(),
 
-      isHistoricaloverlay: false,
-      historicalDate: new Date(
-        new Date().toISOString().split('T')[0] + 'T08:00:00Z',
-      ),
-      selectedTime: new Date(),
+      isHistoricalOverlay: isHistoricalOverlay,
+      historicalDate: networkMapOptions.historicalDate,
+      selectedTime: networkMapOptions.selectedTime,
       siteMapOverrides: null,
     };
+
+    // when switching to other tabs of the NMS, the URL gets overwritten.
+    // If the map is in test or history mode, the URL should reflect that.
+    this.updateUrl({
+      isHistoricalOverlay,
+      historicalDate: networkMapOptions.historicalDate,
+      testId: networkMapOptions.overlayStrategy.testId,
+    });
 
     // link metric overlay timer to refresh backend stats
     // initialized to null for clearInterval() sanity
@@ -222,12 +236,12 @@ class NetworkMap extends React.Component<Props, State> {
 
   componentDidMount() {
     /**
-     * In test mode, all overlays are metrics, so we must fetch their data.
+     * In test or historical mode, overlays are metrics, so data must be fetched
      * In normal mode, the default overlay is health which is already present
      * and does not need to be fetched.
      */
     const {location} = this.props;
-    if (getTestOverlayId(location)) {
+    if (getTestOverlayId(location) || getHistoricalDate(location)) {
       this.fetchOverlayData();
     }
   }
@@ -324,6 +338,8 @@ class NetworkMap extends React.Component<Props, State> {
     const {networkName, siteToNodesMap} = this.props;
     const {selectedOverlays, historicalDate, selectedTime} = this.state;
 
+    this.setState({overlayLoading: true});
+
     this.overlayStrategy
       .getData({
         networkName: networkName,
@@ -333,11 +349,16 @@ class NetworkMap extends React.Component<Props, State> {
         siteToNodesMap,
       })
       .then(overlayData => {
-        this.setState({
-          linkOverlayMetrics: overlayData.linkOverlayData,
-          overlayLoading: false,
-          siteMapOverrides: overlayData.siteMapOverrides,
-        });
+        this.setState(
+          {
+            linkOverlayMetrics: overlayData.linkOverlayData,
+            overlayLoading: false,
+            siteMapOverrides: overlayData.siteMapOverrides,
+          },
+          () => {
+            this.updateSelectedMapOptions();
+          },
+        );
       });
   };
 
@@ -354,7 +375,6 @@ class NetworkMap extends React.Component<Props, State> {
         {
           linkOverlayMetrics: {},
           selectedOverlays,
-          overlayLoading: true,
         },
         () => {
           this.fetchOverlayData();
@@ -374,6 +394,7 @@ class NetworkMap extends React.Component<Props, State> {
         selectedOverlays,
       });
     }
+    this.updateSelectedMapOptions();
   };
 
   setNodeRoutes = (nodeName: ?string, routes?: Array<NodeRoute>) => {
@@ -398,6 +419,7 @@ class NetworkMap extends React.Component<Props, State> {
         }),
       },
     });
+    this.updateSelectedMapOptions();
   };
 
   onHistoricalTimeChange = selectedTime => {
@@ -407,6 +429,7 @@ class NetworkMap extends React.Component<Props, State> {
     );
     this.setState({selectedTime: newDate}, () => {
       this.fetchOverlayData();
+      this.updateSelectedMapOptions();
     });
   };
 
@@ -415,25 +438,39 @@ class NetworkMap extends React.Component<Props, State> {
       {
         historicalDate: date,
         selectedTime: date,
-        overlayLoading: true,
       },
       () => {
         this.fetchOverlayData();
+        this.updateSelectedMapOptions();
       },
     );
   };
 
-  setIsHistoricaloverlay = isHistoricaloverlay => {
-    this.setState(
-      {
-        isHistoricaloverlay,
-        overlayLoading: true,
-        siteMapOverrides: null,
-      },
-      () => {
-        this.updateOverlayStrategy();
-      },
-    );
+  updateUrl(input: UrlInputType) {
+    const {history} = this.props;
+    const {isHistoricalOverlay, historicalDate, testId} = input;
+    if (testId) {
+      setUrlSearchParam(history, 'test', testId);
+    } else if (isHistoricalOverlay) {
+      setUrlSearchParam(history, 'date', historicalDate.toISOString());
+    } else {
+      deleteUrlSearchParam(history, 'date');
+    }
+  }
+
+  setIsHistoricalOverlay = isHistoricalOverlay => {
+    const {historicalDate} = this.state;
+    this.updateUrl({isHistoricalOverlay, historicalDate});
+    this.setState({isHistoricalOverlay, siteMapOverrides: null}, () => {
+      this.fetchOverlayData();
+      this.updateOverlayStrategy();
+    });
+  };
+
+  layerSelectChange = selectedLayers => {
+    this.setState({selectedLayers}, () => {
+      this.updateSelectedMapOptions();
+    });
   };
 
   render() {
@@ -454,9 +491,9 @@ class NetworkMap extends React.Component<Props, State> {
       hiddenSites,
       selectedOverlays,
       overlayLoading,
-      isHistoricaloverlay,
       historicalDate,
       selectedTime,
+      isHistoricalOverlay,
     } = this.state;
 
     const overlaysConfig = this.overlayStrategy.getOverlaysConfig();
@@ -504,7 +541,6 @@ class NetworkMap extends React.Component<Props, State> {
                   />
                   <MapLayers
                     context={context}
-                    layersConfig={this.layersConfig}
                     selectedLayers={selectedLayers}
                     plannedSite={plannedSite}
                     onPlannedSiteMoved={this.onPlannedSiteMoved}
@@ -529,8 +565,7 @@ class NetworkMap extends React.Component<Props, State> {
                     selectedLayers,
                     selectedOverlays,
                     selectedMapStyle,
-                    onLayerSelectChange: selectedLayers =>
-                      this.setState({selectedLayers}),
+                    onLayerSelectChange: this.layerSelectChange,
                     onOverlaySelectChange: this.selectOverlays,
                     onMapStyleSelectChange: selectedMapStyle =>
                       this.setState({selectedMapStyle}),
@@ -538,8 +573,8 @@ class NetworkMap extends React.Component<Props, State> {
                     expanded: false,
                     onPanelChange: () => {},
                     onHistoricalTimeChange: this.onHistoricalTimeChange,
-                    isHistoricaloverlay,
-                    setIsHistoricaloverlay: this.setIsHistoricaloverlay,
+                    isHistoricalOverlay: isHistoricalOverlay,
+                    setIsHistoricalOverlay: this.setIsHistoricalOverlay,
                     onHistoricalDateChange: this.onHistoricalDateChange,
                     historicalDate,
                     selectedTime,
@@ -604,17 +639,17 @@ class NetworkMap extends React.Component<Props, State> {
     previousTestId,
   }: {previousTestId: ?string} = {}) => {
     const {location} = this.props;
-    const {isHistoricaloverlay} = this.state;
+    const {isHistoricalOverlay} = this.state;
     const testId = getTestOverlayId(location);
     let newOverlayStrategy = null;
     if (testId && testId !== previousTestId) {
       newOverlayStrategy = new TestExecutionOverlayStrategy({
         testId,
       });
-    } else if (!testId && !isHistoricaloverlay) {
-      newOverlayStrategy = new MetricsOverlayStrategy();
-    } else if (!testId && isHistoricaloverlay) {
+    } else if (isHistoricalOverlay) {
       newOverlayStrategy = new HistoricalMetricsOverlayStrategy();
+    } else if (!testId) {
+      newOverlayStrategy = new MetricsOverlayStrategy();
     }
 
     // if the strategy has changed, load the new data
@@ -628,11 +663,10 @@ class NetworkMap extends React.Component<Props, State> {
         {selectedOverlays: newOverlayStrategy.getDefaultOverlays()},
         () => {
           this.fetchOverlayData();
+          this.updateSelectedMapOptions();
         },
       );
     }
-
-    return this.overlayStrategy;
   };
 
   exitTestOverlayMode = () => {
@@ -641,6 +675,26 @@ class NetworkMap extends React.Component<Props, State> {
     urlWithoutOverlay.searchParams.delete('test');
     history.replace(`${urlWithoutOverlay.pathname}${urlWithoutOverlay.search}`);
   };
+
+  updateSelectedMapOptions() {
+    const {updateNetworkMapOptions} = this.props;
+    const {
+      selectedLayers,
+      selectedOverlays,
+      historicalDate,
+      selectedTime,
+      linkOverlayMetrics,
+    } = this.state;
+
+    updateNetworkMapOptions({
+      overlayStrategy: this.overlayStrategy,
+      selectedLayers,
+      selectedOverlays,
+      historicalDate,
+      selectedTime,
+      linkOverlayMetrics,
+    });
+  }
 }
 
 export default withStyles(styles, {withTheme: true})(withRouter(NetworkMap));

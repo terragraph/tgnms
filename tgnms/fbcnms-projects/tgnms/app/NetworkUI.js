@@ -19,6 +19,7 @@ import NetworkTables from './views/tables/NetworkTables';
 import NetworkTest from './views/network_test/NetworkTest';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NmsAlarms from './views/alarms/NmsAlarms';
+import NmsOptionsContext from './contexts/NmsOptionsContext';
 import NodeLogs from './views/logs/NodeLogs';
 import React from 'react';
 import axios from 'axios';
@@ -476,16 +477,24 @@ class NetworkUI extends React.Component<Props, State> {
           }}>
           {this.renderReloadingOverlay()}
           <Switch>
-            <Route
-              path={`/map/:networkName`}
-              render={() => (
-                <NetworkMap
-                  networkName={networkName}
-                  networkConfig={this.state.networkConfig}
-                  siteToNodesMap={this.state.siteToNodesMap}
+            <NmsOptionsContext.Consumer>
+              {nmsOptionsContext => (
+                <Route
+                  path={`/map/:networkName`}
+                  render={() => (
+                    <NetworkMap
+                      networkName={networkName}
+                      networkConfig={this.state.networkConfig}
+                      siteToNodesMap={this.state.siteToNodesMap}
+                      networkMapOptions={nmsOptionsContext.networkMapOptions}
+                      updateNetworkMapOptions={
+                        nmsOptionsContext.updateNetworkMapOptions
+                      }
+                    />
+                  )}
                 />
               )}
-            />
+            </NmsOptionsContext.Consumer>
             <Route
               path={`/stats/:networkName`}
               render={() =>

@@ -95,8 +95,8 @@ export type Props = {
   onMapStyleSelectChange: string => any,
   onHistoricalTimeChange: number => void,
   onHistoricalDateChange: Date => void,
-  setIsHistoricaloverlay: boolean => void,
-  isHistoricaloverlay: boolean,
+  setIsHistoricalOverlay: boolean => void,
+  isHistoricalOverlay: boolean,
   historicalDate: Date,
   selectedTime: Date,
   // TODO extract to customexpansionpanel
@@ -148,13 +148,13 @@ class MapLayersPanel extends React.Component<
   }
 
   handleTableChange = (_event, value) => {
-    this.props.setIsHistoricaloverlay(value);
+    this.props.setIsHistoricalOverlay(value);
   };
 
   renderOverlays() {
     const {
       classes,
-      isHistoricaloverlay,
+      isHistoricalOverlay,
       overlaysConfig,
       selectedOverlays,
       onHistoricalTimeChange,
@@ -167,7 +167,7 @@ class MapLayersPanel extends React.Component<
     return isFeatureEnabled('MAP_HISTORY_ENABLED') ? (
       <div className={classes.formContainer}>
         <Tabs
-          value={isHistoricaloverlay}
+          value={isHistoricalOverlay}
           onChange={this.handleTableChange}
           classes={{
             root: classes.tabsRoot,
@@ -188,7 +188,7 @@ class MapLayersPanel extends React.Component<
         </Tabs>
         <div className={classes.sectionPadding} />
 
-        {isHistoricaloverlay ? (
+        {isHistoricalOverlay ? (
           <MapHistoryOverlayPanel
             overlaysConfig={overlaysConfig}
             selectedOverlays={selectedOverlays}

@@ -13,6 +13,7 @@ import {
   SNR_THRESHOLD_MCS2,
   SNR_THRESHOLD_MCS9,
 } from '../constants/NetworkConstants';
+import {getUrlSearchParam} from './NetworkUrlHelpers';
 import {isEqual} from 'lodash';
 
 /** Returns whether a node is alive based on its status. */
@@ -131,4 +132,12 @@ export function hasLinkEverGoneOnline(link, offline_whitelist): boolean {
     return true;
   }
   return offline_whitelist.links[link.name];
+}
+
+/**
+ * When there is a date in the location object, that means the map is
+ * in historical mode. This checks for that mode
+ **/
+export function getHistoricalDate(location: Location): ?string {
+  return getUrlSearchParam('date', location);
 }

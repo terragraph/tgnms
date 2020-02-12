@@ -9,6 +9,7 @@ import * as React from 'react';
 import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
 import NetworkContext from '../contexts/NetworkContext';
+import NmsOptionsContext from '../contexts/NmsOptionsContext';
 import i18next from 'i18next';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
@@ -16,13 +17,16 @@ import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {initReactI18next} from 'react-i18next';
 import {mockNetworkContext} from './data/NetworkContext';
+import {mockNmsOptionsContext} from './data/NmsOptionsContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
+import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
 import type {User} from '../../shared/auth/User';
 
 // exports things like mockNetworkConfig and mockTopology
 export * from './data/NetworkConfig';
+export * from './data/NmsOptionsContext';
 
 /**
  * wraps a component with a router instance, pass {route:'/myroute'} to set the
@@ -84,6 +88,20 @@ export function NetworkContextWrapper({
     <NetworkContext.Provider value={mockNetworkContext(contextValue)}>
       {children}
     </NetworkContext.Provider>
+  );
+}
+
+export function NmsOptionsContextWrapper({
+  children,
+  contextValue,
+}: {
+  children: React.Node,
+  contextValue?: $Shape<NmsOptionsContextType>,
+}) {
+  return (
+    <NmsOptionsContext.Provider value={mockNmsOptionsContext(contextValue)}>
+      {children}
+    </NmsOptionsContext.Provider>
   );
 }
 
