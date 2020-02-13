@@ -80,7 +80,7 @@ function LinkTestResultDetails({
           </Typography>
         </Grid>
       </Grid>
-      <Grid container item xs={12} className={classes.detailsContainer}>
+      <Grid container item xs={12}>
         {resultA && (
           <Grid container item direction="column" justify="flex-start" xs={6}>
             <TestResultDetails result={resultA} />

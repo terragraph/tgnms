@@ -567,11 +567,11 @@ function TestStatusCell(props: TestExecution) {
   );
 }
 
-const useTestTypeStyles = makeStyles({
+const useTestTypeStyles = makeStyles(() => ({
   cell: {
     textTransform: 'capitalize',
   },
-});
+}));
 
 function TestTypeCell({test_code}) {
   const classes = useTestTypeStyles();

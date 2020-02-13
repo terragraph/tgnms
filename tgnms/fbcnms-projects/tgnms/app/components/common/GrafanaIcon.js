@@ -24,7 +24,7 @@ const styles = {
   },
 };
 
-const useStyles = makeStyles(styles);
+const useStyles = makeStyles(() => styles);
 
 export default function GrafanaIcon({gray}: Props) {
   const classes = useStyles();

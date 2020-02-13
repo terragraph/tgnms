@@ -14,11 +14,11 @@ import {makeStyles} from '@material-ui/styles';
 
 import type {AlertViewerProps} from '@fbcnms/alarms/components/rules/RuleInterface';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   jsonText: {
     wordBreak: 'break-word',
   },
-});
+}));
 
 export default function EventAlertViewer({alert}: AlertViewerProps) {
   const classes = useStyles();

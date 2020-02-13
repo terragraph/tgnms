@@ -10,11 +10,11 @@ import * as React from 'react';
 import {TEST_TYPE} from '../../../shared/dto/TestExecution';
 import {makeStyles} from '@material-ui/styles';
 
-const useTestTypeStyles = makeStyles({
+const useTestTypeStyles = makeStyles(() => ({
   cell: {
     textTransform: 'capitalize',
   },
-});
+}));
 
 export default function TestTypeCell({test_code}: {test_code: string}) {
   const classes = useTestTypeStyles();

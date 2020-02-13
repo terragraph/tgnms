@@ -27,7 +27,7 @@ const styles = {
   },
 };
 
-const useStyles = makeStyles(styles);
+const useStyles = makeStyles(() => styles);
 
 export const StatusIndicatorColor = {
   GREEN: '#2ecc71',

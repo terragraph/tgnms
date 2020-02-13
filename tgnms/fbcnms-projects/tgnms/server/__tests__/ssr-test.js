@@ -24,11 +24,11 @@ test('renders styles as a css string', () => {
   expect(styleSheets).toEqual(expect.stringContaining('<<testcolor>>'));
 });
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   test: {
     backgroundColor: '<<testcolor>>',
   },
-});
+}));
 
 function TestComponent() {
   const {test} = useStyles();

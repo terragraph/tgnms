@@ -24,7 +24,7 @@ const styles = {
   },
 };
 
-const useStyles = makeStyles(styles);
+const useStyles = makeStyles(() => styles);
 
 type Props = {
   fullScreen?: boolean,
