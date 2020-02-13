@@ -10,7 +10,7 @@ import Alarms from '@fbcnms/alarms/components/Alarms';
 import EventAlertViewer from './eventalarms/EventAlertViewer';
 import EventRuleEditor from './eventalarms/EventRuleEditor';
 import {Severity as EventSeverity} from './eventalarms/EventAlarmsTypes';
-import {SEVERITY as GenericSeverity} from '@fbcnms/alarms/components/Severity';
+import {SEVERITY as GenericSeverity} from '@fbcnms/alarms/components/severity/Severity';
 import {PROMETHEUS_RULE_TYPE} from '@fbcnms/alarms/components/rules/PrometheusEditor/getRuleInterface';
 import {SnackbarProvider} from 'notistack';
 import {TgApiUtil, TgEventAlarmsApiUtil} from './TgAlarmApi.js';
