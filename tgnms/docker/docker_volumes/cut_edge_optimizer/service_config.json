@@ -1,6 +1,19 @@
 {
-  "fetch_interval_s": 86400,
-  "config_change_interval_s" : 60,
-  "link_flap_backoff": "1100",
-  "link_impairment_detection": 0
+  "num_consumers": 5,
+  "pipelines": {
+    "cut_edge_optimization": {
+      "period": 86400,
+      "jobs": [
+      {
+        "name": "cut_edge_finder",
+        "enabled": true,
+        "params": {
+                "config_change_interval_s" : 10,
+                "link_flap_backoff_ms": "1050",
+                "link_impairment_detection": true
+          }
+        }
+      ]
+    }
+  }
 }
