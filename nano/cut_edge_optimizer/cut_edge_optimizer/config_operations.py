@@ -39,23 +39,23 @@ def is_link_impairment_detection_configured(
 
 
 def is_link_flap_backoff_configured(
-    node_name: str, node_overrides: Dict[str, Dict], link_flap_backoff: str
+    node_name: str, node_overrides: Dict[str, Dict], link_flap_backoff_ms: str
 ) -> bool:
     logging.debug(
         f"Checking existing configuration of link_flap_backoff on node: {node_name}"
     )
     if (
         node_overrides.get("envParams", {}).get("OPENR_LINK_FLAP_MAX_BACKOFF_MS")
-        == link_flap_backoff
+        == link_flap_backoff_ms
     ):
         logging.debug(
             "link_flap_backoff is already configured to appropriate value of "
-            f"{link_flap_backoff}"
+            f"{link_flap_backoff_ms}"
         )
         return True
     logging.debug(
         "link_flap_backoff needs to be configured to appropriate value of "
-        f"{link_flap_backoff}"
+        f"{link_flap_backoff_ms}"
     )
     return False
 
@@ -63,7 +63,7 @@ def is_link_flap_backoff_configured(
 def prepare_node_config(
     node_name: str,
     link_impairment_detection: bool,
-    link_flap_backoff: str,
+    link_flap_backoff_ms: str,
     node_overrides: Dict[str, Dict],
 ) -> Dict[str, Dict]:
     # check if the configs for the node are already correct
@@ -79,17 +79,17 @@ def prepare_node_config(
         }
         overrides_needed[node_name].update(link_impairment_detection_json)
     if not is_link_flap_backoff_configured(
-        node_name, node_overrides, link_flap_backoff
+        node_name, node_overrides, link_flap_backoff_ms
     ):
         link_flap_backoff_json = {
-            "envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff}
+            "envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff_ms}
         }
         overrides_needed[node_name].update(link_flap_backoff_json)
     return overrides_needed
 
 
 def prepare_all_configs(
-    reponse: Dict[str, str], link_impairment_detection: bool, link_flap_backoff: str
+    reponse: Dict[str, str], link_impairment_detection: bool, link_flap_backoff_ms: str
 ) -> List[Dict]:
     overrides_needed_all: List[Dict] = []
     if reponse["overrides"]:
@@ -99,7 +99,10 @@ def prepare_all_configs(
             if node_overrides == "":
                 node_overrides = {}
             overrides_needed = prepare_node_config(
-                node_name, link_impairment_detection, link_flap_backoff, node_overrides
+                node_name,
+                link_impairment_detection,
+                link_flap_backoff_ms,
+                node_overrides,
             )
             if overrides_needed[node_name]:
                 logging.debug(
@@ -110,7 +113,12 @@ def prepare_all_configs(
 
 
 async def get_all_cut_edge_configs(
-    network_name: str, topology: Dict, service_config: Dict
+    network_name: str,
+    topology: Dict,
+    link_flap_backoff_ms: str,
+    link_impairment_detection: bool,
+    config_change_interval_s: int,
+    dry_run: bool = False,
 ) -> List[Dict]:
     logging.info(f"Running cut edge config optimization for {network_name}.")
     configs_all: List[Dict] = []
@@ -130,8 +138,6 @@ async def get_all_cut_edge_configs(
     logging.info(
         f"{network_name} has {len(cn_cut_edges)} edges that cut off one or more CNs"
     )
-    link_flap_backoff: str = service_config["link_flap_backoff"]
-    link_impairment_detection: bool = service_config["link_impairment_detection"]
     # to avoid repeating for the common node in P2MP
     node_set = {node_name for edge in cn_cut_edges.keys() for node_name in edge}
 
@@ -148,12 +154,16 @@ async def get_all_cut_edge_configs(
 
     # prepare config overrides for all nodes that need config changes
     configs_all = prepare_all_configs(
-        response, link_impairment_detection, link_flap_backoff
+        response, link_impairment_detection, link_flap_backoff_ms
     )
     if configs_all:
         logging.info(
             f"{network_name} requires cut edge config changes to {len(configs_all)} nodes"
         )
+        if not dry_run:
+            await modify_all_cut_edge_configs(
+                network_name, configs_all, config_change_interval_s
+            )
     else:
         logging.info(f"{network_name} does not require any cut edge config changes")
 

@@ -2,87 +2,95 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import datetime
+import dataclasses
 import json
 import logging
 import sys
+import time
 from typing import Dict, List, Set
 
 from tglib import ClientType, init
-from tglib.clients import APIServiceClient
-from tglib.exceptions import ClientRuntimeError
 
-from .config_operations import (
-    get_all_cut_edge_configs,
-    is_link_flap_backoff_configured,
-    is_link_impairment_detection_configured,
-    modify_all_cut_edge_configs,
-    prepare_all_configs,
-)
+from . import jobs
 from .routes import routes
 
 
-async def async_main(config: Dict) -> None:
-    """
-    Use `getTopology` API request to fetch the latest topology
-    Find all the edges that cut off one or more CNs and change link flap backoff and
-    link impairment detection configs on them
-    """
-    logging.info("#### Starting CN cut-edge optimization service ####")
+@dataclasses.dataclass
+class Job:
+    """Struct for representing pipeline job configurations."""
 
-    logging.debug(f"Service config: {config}")
+    name: str
+    start_time: int
+    params: Dict
 
+
+async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
+    """Add jobs from the pipeline configuration to the shared queue."""
     while True:
-        tasks = []
-        # Get latest topology for all networks from API service
-        logging.info("Requesting topologies for all networks from API service.")
-        all_topologies: Dict = await APIServiceClient(timeout=1).request_all(
-            endpoint="getTopology", return_exceptions=True
-        )
+        start_time = time.time()
 
-        for network_name, topology in all_topologies.items():
-            if isinstance(topology, ClientRuntimeError):
-                logging.error(f"Error in fetching topology for {network_name}.")
-            else:
-                tasks.append(
-                    asyncio.create_task(_main_impl(network_name, topology, config))
+        tasks = [
+            queue.put(
+                Job(
+                    name=job["name"],
+                    start_time=int(start_time),
+                    params=job.get("params", {}),
                 )
+            )
+            for job in pipeline.get("jobs", [])
+            if job.get("enabled", False)
+        ]
 
-        # sleep until next invocation time
-        await asyncio.sleep(config["fetch_interval_s"])
+        # Add the jobs to the queue
+        await asyncio.gather(*tasks)
 
-        # await tasks to finish. If timeout, cancel tasks and pass
-        try:
-            await asyncio.wait_for(asyncio.gather(*tasks), timeout=1.0)
-        except asyncio.TimeoutError:
-            logging.error("Some tasks were unable to complete.")
-            pass
+        # Sleep until next invocation period
+        sleep_time = start_time + pipeline["period"] - time.time()
 
-
-async def _main_impl(network_name: str, topology: Dict, service_config: Dict) -> None:
-    """
-    1.  Create graph from topology
-    2.  Find all edges that cut off one or more CNs
-    3.  Find if those edges need config changes
-    4.  Make config changes on those edges
-    """
-
-    # find all config changes that are required
-    configs_all = await get_all_cut_edge_configs(network_name, topology, service_config)
-    if configs_all:
-        config_change_interval: int = service_config["config_change_interval_s"]
-        # apply all required config changes
-        await modify_all_cut_edge_configs(
-            network_name, configs_all, config_change_interval
+        logging.info(
+            f"Done enqueuing jobs in the '{name}' pipeline. "
+            f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time}s"
         )
+
+        await asyncio.sleep(sleep_time)
+
+
+async def consume(queue: asyncio.Queue) -> None:
+    """Consume and run a job from the shared queue."""
+    while True:
+        # Wait for a job from the producers
+        job = await queue.get()
+        logging.info(f"Starting the '{job.name}' job")
+
+        # Execute the job
+        function = getattr(jobs, job.name)
+        await function(job.start_time, **job.params)
+        logging.info(f"Finished running the '{job.name}' job")
+
+
+async def async_main(config: Dict) -> None:
+    logging.info("#### Starting the 'Cut Edge Optimizer' ####")
+    logging.debug(f"Found service config: {config}")
+
+    q: asyncio.Queue = asyncio.Queue()
+
+    # Create producer coroutines
+    producers = [
+        produce(q, name, pipeline) for name, pipeline in config["pipelines"].items()
+    ]
+
+    # Create consumer coroutines
+    consumers = [consume(q) for _ in range(config["num_consumers"])]
+
+    # Start the producer and consumer coroutines
+    await asyncio.gather(*producers, *consumers)
 
 
 def main() -> None:
     try:
         with open("./service_config.json") as file:
             config = json.load(file)
-    except OSError as err:
-        logging.exception(f"Failed to parse service configuration file: {err}")
-        sys.exit(1)
+    except (json.JSONDecodeError, OSError):
+        logging.exception("Failed to parse service configuration file")
 
     init(lambda: async_main(config), {ClientType.API_SERVICE_CLIENT}, routes)

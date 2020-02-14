@@ -16,8 +16,10 @@ class ConfigOperationsTests(unittest.TestCase):
     def test_is_link_flap_backoff_configured_empty(self) -> None:
         node_name = "test_node"
         config = {}
-        link_flap_backoff = "1000"
-        output = is_link_flap_backoff_configured(node_name, config, link_flap_backoff)
+        link_flap_backoff_ms = "1000"
+        output = is_link_flap_backoff_configured(
+            node_name, config, link_flap_backoff_ms
+        )
         self.assertFalse(output)
 
     def test_is_link_impairment_detection_configured_empty(self) -> None:
@@ -32,8 +34,10 @@ class ConfigOperationsTests(unittest.TestCase):
     def test_is_link_flap_backoff_configured_different(self) -> None:
         node_name = "test_node"
         config = {"linkParamsOverride": {"fwParams": {"tpcEnable": 0}}}
-        link_flap_backoff = "1000"
-        output = is_link_flap_backoff_configured(node_name, config, link_flap_backoff)
+        link_flap_backoff_ms = "1000"
+        output = is_link_flap_backoff_configured(
+            node_name, config, link_flap_backoff_ms
+        )
         self.assertFalse(output)
 
     def test_is_link_impairment_detection_configured_different(self) -> None:
@@ -47,9 +51,11 @@ class ConfigOperationsTests(unittest.TestCase):
 
     def test_is_link_flap_backoff_configured_true(self) -> None:
         node_name = "test_node"
-        link_flap_backoff = "1000"
-        config = {"envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff}}
-        output = is_link_flap_backoff_configured(node_name, config, link_flap_backoff)
+        link_flap_backoff_ms = "1000"
+        config = {"envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff_ms}}
+        output = is_link_flap_backoff_configured(
+            node_name, config, link_flap_backoff_ms
+        )
         self.assertTrue(output)
 
     def test_is_link_impairment_detection_configured_true(self) -> None:
@@ -67,7 +73,7 @@ class ConfigOperationsTests(unittest.TestCase):
 
     def test_prepare_node_config(self) -> None:
         node_name = "test_node"
-        link_flap_backoff = "1000"
+        link_flap_backoff_ms = "1000"
         link_impairment_detection = 0
         config = {
             "radioParamsBase": {
@@ -76,31 +82,31 @@ class ConfigOperationsTests(unittest.TestCase):
         }
         expected_output = {
             node_name: {
-                "envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff}
+                "envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff_ms}
             }
         }
         actual_output = prepare_node_config(
-            node_name, link_impairment_detection, link_flap_backoff, config
+            node_name, link_impairment_detection, link_flap_backoff_ms, config
         )
         self.assertDictEqual(expected_output, actual_output)
 
     def test_prepare_all_configs(self) -> None:
         node1_name = "test_node1"
         node2_name = "test_node2"
-        link_flap_backoff = "1000"
+        link_flap_backoff_ms = "1000"
         link_impairment_detection = 0
         config = {"overrides": json.dumps({node1_name: "", node2_name: ""})}
         out_config = {
             "radioParamsBase": {
                 "fwParams": {"linkImpairmentDetectionEnable": link_impairment_detection}
             },
-            "envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff},
+            "envParams": {"OPENR_LINK_FLAP_MAX_BACKOFF_MS": link_flap_backoff_ms},
         }
         expected_output = [
             {"overrides": json.dumps({node1_name: out_config})},
             {"overrides": json.dumps({node2_name: out_config})},
         ]
         actual_output = prepare_all_configs(
-            config, link_impairment_detection, link_flap_backoff
+            config, link_impairment_detection, link_flap_backoff_ms
         )
         self.assertListEqual(actual_output, expected_output)
