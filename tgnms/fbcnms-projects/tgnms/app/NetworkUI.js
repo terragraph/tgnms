@@ -477,11 +477,11 @@ class NetworkUI extends React.Component<Props, State> {
           }}>
           {this.renderReloadingOverlay()}
           <Switch>
-            <NmsOptionsContext.Consumer>
-              {nmsOptionsContext => (
-                <Route
-                  path={`/map/:networkName`}
-                  render={() => (
+            <Route
+              path={`/map/:networkName`}
+              render={() => (
+                <NmsOptionsContext.Consumer>
+                  {nmsOptionsContext => (
                     <NetworkMap
                       networkName={networkName}
                       networkConfig={this.state.networkConfig}
@@ -492,9 +492,10 @@ class NetworkUI extends React.Component<Props, State> {
                       }
                     />
                   )}
-                />
+                </NmsOptionsContext.Consumer>
               )}
-            </NmsOptionsContext.Consumer>
+            />
+            )}
             <Route
               path={`/stats/:networkName`}
               render={() =>
