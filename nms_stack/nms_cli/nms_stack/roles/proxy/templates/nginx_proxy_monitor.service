@@ -9,8 +9,8 @@ ExecStart=/usr/local/bin/docker-compose up
 ExecStop=/usr/local/bin/docker-compose down
 TimeoutStartSec=0
 Restart=on-failure
-StartLimitIntervalSec=60
-StartLimitBurst=3
+RestartSec=60 # restart every 60 seconds while failing
+StartLimitBurst=0 # allow an infinite number of restarts while failing
 
 [Install]
 WantedBy=multi-user.target
