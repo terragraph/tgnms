@@ -1,0 +1,10 @@
+---
+- name: Ansible version check
+  assert:
+    that: "ansible_version.full is version('2.5', '>=')"
+    msg: "{{ ansible_version.full }} - You must have ansible version 2.5 or later"
+
+- name: Check hardware - Installed RAM
+  assert:
+    that: "ansible_memtotal_mb > 2048"
+    msg: "Total RAM: {{ ansible_memtotal_mb / 1024 }}GB. You must have more then 2GB of RAM"

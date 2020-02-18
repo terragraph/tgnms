@@ -1,0 +1,111 @@
+---
+- name: create keycloak paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ keycloak_path }}/env"
+    - "{{ keycloak_path }}/docker_volumes"
+    - "{{ keycloak_path }}/docker_volumes/keycloak"
+    - "{{ keycloak_path }}/docker_volumes/keycloak/scripts"
+    - "{{ keycloak_path }}/docker_volumes/keycloak/realms"
+
+- name: copy keycloak configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ keycloak_path }}" }
+    - { src: "tgnms-realm.json", dest: "{{ keycloak_path }}/docker_volumes/keycloak/realms" }
+
+- name: copy keycloak scripts
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0755"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "scripts/configure-keycloak.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/copy-public-key.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/generate-keycloak-client.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/create-default-realm-user.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/create-keycloak-database.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/keycloak.sql", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+
+- name: copy keycloak env files
+  template:
+    src: "keycloak.env"
+    dest: "{{ keycloak_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+
+- name: create keycloak database and user
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ db_gfs_path }}/env/mysql.env
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    -e MYSQL_ROOT_USER=root
+    -e MYSQL_ROOT_PASSWORD=12345
+    mysql:5 /scripts/create-keycloak-database.sh
+
+- name: run compose
+  shell: "docker stack deploy -c {{ keycloak_path }}/docker-compose.yml --with-registry-auth keycloak"
+
+- name: wait for keycloak to come up
+  command: docker run --network=terragraph_net alpine nc -zv keycloak_keycloak 8080
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc > 1
+  until: result.rc == 0
+
+- name: configure nms and apiservice to use keycloak
+  command: >
+      docker run --rm
+      --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+      --mount type=bind,source={{ nms_path }}/env/nms_auth.env,target=/nms_auth.env
+      --mount type=bind,source={{ e2e_path }}/keycloak,target=/apiservice
+      --entrypoint=""
+      --network=terragraph_net
+      --env-file={{ keycloak_path }}/env/keycloak.env
+      -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
+      -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
+      -u root
+      jboss/keycloak:7.0.0
+      /scripts/configure-keycloak.sh
+
+- name: update nms env vars
+  shell: >
+      . "{{ nms_path }}/env/nms_auth.env" &&
+      docker service update
+      --env-add LOGIN_ENABLED="true"
+      --env-add KEYCLOAK_HOST="${KEYCLOAK_HOST}"
+      --env-add KEYCLOAK_CLIENT_ID="${KEYCLOAK_CLIENT_ID}"
+      --env-add KEYCLOAK_REALM="${KEYCLOAK_REALM}"
+      --env-add KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET}"
+      --env-add CLIENT_ROOT_URL="https://{{ ext_nms_hostname }}"
+      --force nms_nms
+
+- name: restart all apiservices
+  command: docker service update --force e2e-{{item.name | trim | replace(' ', '_') | lower }}_api_service
+  loop: "{{ controllers_list }}"
+
+- name: clean compose
+  file:
+    path: "{{ keycloak_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode

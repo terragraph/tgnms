@@ -1,0 +1,75 @@
+version: '3.7'
+services:
+  fluentd:
+    image: secure.cxl-terragraph.com:443/fluentd:latest
+    volumes:
+      - "{{ fluentd_path }}/etc:/fluentd/etc"
+      - "{{ audit_logs_gfs_path }}:/audit"
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    hostname: "{{ '{{ .Node.Hostname }}' }}"
+    environment:
+      - node.name={{ '{{ .Node.Hostname }}' }}
+      - discovery.seed_hosts=elasticsearch
+      - cluster.initial_master_nodes={{ groups['all'] | map('extract', hostvars, ['ansible_hostname']) | join(',') }}
+      - cluster.name=tg-docker-cluster
+      - bootstrap.memory_lock=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - node.ml=false
+      - xpack.ml.enabled=false
+      - xpack.monitoring.enabled=false
+      - xpack.security.enabled=false
+      - xpack.watcher.enabled=false
+      - TAKE_FILE_OWNERSHIP=true
+    volumes:
+      - "{{ es_path }}/data:/usr/share/elasticsearch/data"
+    deploy:
+      mode: global
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 2G
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  es_exporter:
+    image: justwatch/elasticsearch_exporter:1.0.2
+    command:
+      - '-es.uri=http://elasticsearch:9200'
+      - '-es.all=true'
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    volumes:
+      - "{{ kibana_path }}/config/kibana.yml:/usr/share/kibana/config/kibana.yml"
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+networks:
+  terragraph_net:
+    external: true

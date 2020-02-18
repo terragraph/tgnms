@@ -1,0 +1,26 @@
+---
+- name: create path
+  file:
+    path: "{{ alarms_path }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: copy compose
+  template:
+    src: docker-compose.yml
+    dest: "{{ alarms_path }}"
+    force: yes
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "0644"
+
+- name: run compose
+  shell: "docker stack deploy -c {{ alarms_path }}/docker-compose.yml --with-registry-auth tg-alarms"
+
+- name: clean compose
+  file:
+    path: "{{ alarms_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode

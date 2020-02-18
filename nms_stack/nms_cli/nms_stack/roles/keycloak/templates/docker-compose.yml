@@ -1,0 +1,21 @@
+version: '3.6'
+
+services:
+  keycloak:
+    image: jboss/keycloak:7.0.0
+    restart: unless-stopped
+    env_file:
+      - {{ keycloak_path }}/env/keycloak.env
+    volumes:
+      - {{ keycloak_path }}/docker_volumes/keycloak/realms/tgnms-realm.json:/tmp/tgnms-realm.json
+    command: ["-b", "::", "-c=standalone.xml"]
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+networks:
+  terragraph_net:
+    external: true

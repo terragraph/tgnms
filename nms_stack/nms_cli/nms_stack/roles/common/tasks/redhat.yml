@@ -1,0 +1,24 @@
+---
+- name: Add EPEL repo
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    gpgcheck: no
+
+- name: update centos/rhel
+  yum:
+    update_cache: yes
+    name: '*'
+    state: latest
+  register: result
+  # Defaults to 3 retries
+  until: result is success
+
+- name: Install pip and rsync
+  yum:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ pip_package }}"
+    - rsync

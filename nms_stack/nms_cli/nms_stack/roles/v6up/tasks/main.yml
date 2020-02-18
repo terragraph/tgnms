@@ -1,0 +1,36 @@
+---
+- name: create v6up paths
+  file:
+    path: "{{ item }}"
+    state: "directory"
+    owner: "{{ docker_user }}"
+    group: "docker"
+    mode: 0755
+  loop:
+    - "{{ terragraph_docker_path }}/v6up"
+    - "{{ terragraph_docker_path }}/v6up/env"
+
+- name: copy config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ terragraph_docker_path }}/v6up" }
+    - { src: "time.env", dest: "{{ terragraph_docker_path }}/v6up/env" }
+
+- name: run compose
+  docker_service:
+    project_src: "{{ terragraph_docker_path }}/v6up/."
+    build: no
+    state: present
+    pull: no
+    stopped: no
+
+- name: clean compose
+  file:
+    path: "{{ terragraph_docker_path }}/v6up/docker-compose.yml"
+    state: absent
+  when: not dev_mode

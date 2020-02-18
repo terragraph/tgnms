@@ -1,0 +1,63 @@
+---
+- name: create stats paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  with_items:
+    - "{{ logs_data_path }}"
+    - "{{ stats_gfs_path }}/env"
+    - "{{ stats_gfs_path }}/config"
+    - "{{ stats_gfs_path }}/config/alert_rules"
+    - "{{ prometheus_data_path }}/data"
+
+- name: copy env files
+  template:
+    src: "{{ item }}"
+    dest: "{{ stats_gfs_path }}/env"
+    mode: 0644
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+  with_items:
+    - cleaner.env
+    - time.env
+    - stats.env
+    - prometheus.env
+
+- name: overwrite managed stats configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ stats_gfs_path }}" }
+    - { src: "prometheus.yml", dest: "{{ stats_gfs_path }}/config" }
+
+- name: copy default stats configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+  loop:
+    - { src: "alertmanager.yml", dest: "{{ stats_gfs_path }}/config" }
+
+- name: add prometheus label to docker node
+  command: "docker node update --label-add \"prometheus=true\" {{ ansible_hostname }}"
+
+- name: run compose
+  command: "docker stack deploy -c {{ stats_gfs_path }}/docker-compose.yml --with-registry-auth stats"
+
+- name: clean compose
+  file:
+    path: "{{ stats_gfs_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode

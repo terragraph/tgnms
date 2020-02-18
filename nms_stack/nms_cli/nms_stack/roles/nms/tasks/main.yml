@@ -1,0 +1,82 @@
+---
+- name: create nms paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ logs_gfs_path }}"
+    - "{{ audit_logs_gfs_path }}"
+    - "{{ nms_path }}/docker_volumes"
+    - "{{ nms_path }}/docker_volumes/beringei/data"
+    - "{{ nms_path }}/docker_volumes/analytics/config"
+    - "{{ nms_path }}/env"
+
+- name: copy nms configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ nms_path }}" }
+    - { src: "add_controllers.sql", dest: "{{ nms_path }}" }
+    - { src: "PipelineConfig.json", dest: "{{ nms_path }}/docker_volumes/analytics/config" }
+
+- name: copy nms env files
+  template:
+    src: "{{ item }}"
+    dest: "{{ nms_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - "nms.env"
+    - "time.env"
+    - "grafana.env"
+    - "nms_auth.env"
+
+- name: copy nms user env file
+  template:
+    src: "{{ item }}"
+    dest: "{{ nms_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+  loop:
+    - "nms_custom.env"
+
+- name: run compose
+  shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth nms"
+
+- name: wait for nms to come up
+  command: docker run --network=terragraph_net byrnedo/alpine-curl curl nms_nms/healthcheck:80
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc >= 1
+  until: result.rc == 0
+
+- name: Add e2e controllers to database
+  shell: docker run -i --network=terragraph_net mysql:5 mysql -uroot -p12345 --host=database_db cxl < "{{ nms_path }}/add_controllers.sql"
+
+- name: Restart nms
+  command: docker service update --force nms_nms
+
+- name: clean add_controllers.sql
+  file:
+    path: "{{ nms_path }}/add_controllers.sql"
+    state: absent
+  when: not dev_mode
+
+- name: clean compose
+  file:
+    path: "{{ nms_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode

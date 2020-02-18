@@ -1,0 +1,60 @@
+version: '3.7'
+services:
+{% for host in groups['all'] %}
+  zoo{{ loop.index }}:
+    image: zookeeper
+    volumes:
+      - {{ zookeeper_path }}/conf:/conf
+      - {{ zookeeper_path }}/data:/data
+      - {{ zookeeper_path }}/datalog:/datalog
+    networks:
+      - terragraph_net
+    environment:
+      ZOO_MY_ID: {{ loop.index }}
+      ZOO_SERVERS: {{ zookeeper_servers }}
+    deploy:
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.hostname=={{ hostvars[host]['ansible_hostname'] }}
+      replicas: 1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+{% endfor %}
+
+  kafka:
+    image: secure.cxl-terragraph.com:443/kafka:latest
+    deploy:
+      mode: global
+    networks:
+      - terragraph_net
+    ports:
+      - target: 9096
+        published: 9096
+        protocol: tcp
+        mode: host
+    environment:
+      KAFKA_CREATE_TOPICS: "events:1:1,stats:1:1,hf_stats:1:1,alarms:1:1"
+      HOSTNAME_COMMAND: "cat /kafka/myip"
+      KAFKA_ZOOKEEPER_CONNECT: {{ zookeeper_clients }}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://[_{HOSTNAME_COMMAND}]:9096"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9096
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_LOG_DIRS: /kafka/logs
+      KAFKA_LOG_RETENTION_BYTES: {{ kafka_log_retention_bytes }}
+      EXTRA_ARGS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-0.11.0.jar=9876:/opt/jmx_exporter/kafka-2_0_0.yml"
+    volumes:
+      - /opt/terragraph/kafka:/kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+networks:
+  terragraph_net:
+    external: true

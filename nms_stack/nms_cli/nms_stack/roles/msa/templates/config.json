@@ -1,0 +1,21 @@
+{
+    "apiservice": {
+      "nms": {
+        "host": "nms",
+        "port": 80
+      },
+      "keycloak_enabled": {{ keycloak_enabled | to_json }}
+    },
+    "kafka": {
+      "bootstrap_servers": ["kafka:9092"]
+    },
+    "mysql": {
+      "host": "db",
+      "port": 3306
+    },
+    "prometheus": {
+      "host": "prometheus",
+      "port": 9090,
+      "intervals": [30]
+    }
+  }

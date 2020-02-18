@@ -1,0 +1,129 @@
+version: '3.7'
+
+services:
+  nms:
+    image: secure.cxl-terragraph.com:443/nmsv2:stable
+    env_file:
+      - {{ db_gfs_path }}/env/mysql.env
+      - {{ nms_path }}/env/nms.env
+      - {{ nms_path }}/env/nms_auth.env
+      - {{ nms_path }}/env/time.env
+      - {{ nms_path }}/env/nms_custom.env
+    restart: unless-stopped
+    volumes:
+      - {{ logs_gfs_path }}:/nodelogs
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z query_service 8086; do sleep 1; done && cd /app/fbcnms-projects/tgnms && yarn start"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  analytics:
+    image: secure.cxl-terragraph.com:443/analytics:latest
+    env_file:
+      - {{ db_gfs_path }}/env/mysql.env
+    restart: unless-stopped
+    volumes:
+      - {{ logs_gfs_path }}:/analytics/logs
+      - {{ nms_path }}/docker_volumes/analytics/config:/analytics/config
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "cd /usr/local/nms/analytics/module; python run_pipeline.py"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  jupyter:
+    image: secure.cxl-terragraph.com:443/analytics:latest
+    env_file:
+      - {{ db_gfs_path }}/env/mysql.env
+    restart: unless-stopped
+    volumes:
+      - {{ logs_gfs_path }}:/analytics/logs
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "jupyter notebook --no-browser --ip '0.0.0.0' --allow-root --port 8888 --notebook-dir /usr/local/nms --NotebookApp.token='' --NotebookApp.base_url=jupyter"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  grafana:
+    image: secure.cxl-terragraph.com:443/tgnms-grafana:latest
+    env_file:
+      - {{ db_gfs_path }}/env/mysql.env
+      - {{ nms_path }}/env/grafana.env
+    environment:
+      - GF_DATABASE_TYPE=mysql
+      - GF_DATABASE_HOST=db:3306
+      - GF_DATABASE_NAME=$${GRAFANA_DB}
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_SECURITY_ADMIN_PASSWORD=$${GRAFANA_ADMIN_PASS}
+      - GF_DATABASE_USER=$${GRAFANA_MYSQL_WRITER}
+      - GF_DATABASE_PASSWORD=$${GRAFANA_MYSQL_WRITER_PASS}
+      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Editor
+    restart: unless-stopped
+    networks:
+      - terragraph_net
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  grafana_util:
+    image: secure.cxl-terragraph.com:443/tgnms-grafana:latest
+    env_file:
+      - {{ db_gfs_path }}/env/mysql.env
+      - {{ nms_path }}/env/grafana.env
+    restart: "no"
+    deploy:
+      restart_policy:
+        condition: none
+    networks:
+      - terragraph_net
+    entrypoint: ["/bin/sh", "-c", "until nc -z grafana 3000; do sleep 1; done && until nc -z query_service 8086; do sleep 1; done && cd /var/lib/grafana && grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip db --ds_port 3306 --ds_file mysql_data_source.json --ds_user $${GRAFANA_MYSQL_READER} --ds_passwd $${GRAFANA_MYSQL_READER_PASS}; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-data-sources --ds_ip prometheus --ds_port 9090 --ds_file prometheus_data_source.json; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} add-users; grafana_cli -d -c grafana -w $${GRAFANA_ADMIN_PASS} import-dashboards"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  cadvisor:
+    image: google/cadvisor:latest
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /:/rootfs:ro
+     - /var/run:/var/run:rw
+     - /sys:/sys:ro
+     - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+     - terragraph_net
+    deploy:
+      mode: global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+networks:
+  terragraph_net:
+    external: true

@@ -1,0 +1,16 @@
+version: '3.6'
+
+services:
+  docker_proxy:
+    image: secure.cxl-terragraph.com:443/docker_proxy:latest
+    env_file:
+      - env/time.env
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    volumes:
+      - "/proc:/host/proc"
+      - "{{ ssh_keys_path }}:/secrets"

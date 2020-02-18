@@ -1,0 +1,32 @@
+---
+- name: create path
+  file:
+    path: "{{ e2e_path }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+- name: Make keycloak public key directory
+  file:
+    path: "{{ e2e_path }}/keycloak"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: include controllers
+  include_tasks: controller.yml
+  vars:
+    controller_name: "{{ ctrlr.name }}"
+    escaped_controller_name: "{{ ctrlr.name | trim | replace(' ', '_') | lower }}"
+    controller_port: "{{ ctrlr.ctrlr_port }}"
+    aggregator_port: "{{ ctrlr.agg_port }}"
+    e2e_app_port: "{{ ctrlr.app_port }}"
+    bt_seeder_port: "{{ ctrlr.bt_seeder_port}}"
+    controller_image: "{{ ctrlr.image if ctrlr.image is defined else e2e_image }}"
+    bt_announce_ip: "{{ ansible_default_ipv6.address }}"
+    bt_tracker_override: "http://[{{ ansible_default_ipv6.address }}]:6969/announce"
+  with_items: "{{ controllers_list }}"
+  loop_control:
+      loop_var: ctrlr
+      index_var: index

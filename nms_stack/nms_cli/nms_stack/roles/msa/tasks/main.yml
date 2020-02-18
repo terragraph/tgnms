@@ -1,0 +1,45 @@
+---
+- name: create msa paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ msa_path }}/docker_volumes"
+    - "{{ msa_path }}/docker_volumes/networktest"
+    - "{{ msa_path }}/env"
+
+- name: copy msa configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ msa_path }}" }
+    - { src: "config.json", dest: "{{ msa_path }}/docker_volumes/config.json" }
+    - { src: "networktest/service_config.json", dest: "{{ msa_path }}/docker_volumes/networktest" }
+
+- name: copy env files
+  template:
+    src: "{{ item }}"
+    dest: "{{ msa_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - "django.env"
+
+- name: run compose
+  shell: "docker stack deploy -c {{ msa_path }}/docker-compose.yml --with-registry-auth msa"
+
+- name: clean compose
+  file:
+    path: "{{ msa_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode

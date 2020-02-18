@@ -1,0 +1,40 @@
+{
+  "network_watchdog" : {
+    "period" : 30,
+    "minion_restart_links_white_list" : {"topologyName" : []},
+    "minion_restart_links_black_list" : {"topologyName" : []},
+    "detect_ignition_failure" : {
+      "enabled" : true
+    }
+  },
+  "insights_pipelines_hf" : {
+    "period" : 300,
+    "write_power_status" : {
+      "enabled" : true
+    },
+    "misc_insights" : {
+      "enabled" : true
+    },
+    "uptime_insights" : {
+      "enabled" : true
+    },
+    "link_health_insights" : {
+      "enabled" : true
+    }
+  },
+  "insights_pipelines_lf" : {
+    "period" : 900,
+    "write_power_status" : {
+      "enabled" : true
+    },
+    "misc_insights" : {
+      "enabled" : true
+    },
+    "uptime_insights" : {
+      "enabled" : true
+    },
+    "link_health_insights" : {
+      "enabled" : true
+    }
+  }
+}

@@ -1,0 +1,19 @@
+version: '3.6'
+
+services:
+  v6up:
+    image: secure.cxl-terragraph.com:443/docker_v6up:latest
+    env_file:
+      - env/time.env
+    restart: unless-stopped
+    network_mode: "host"
+    privileged: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    command: ["-p", "/host/proc"]
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/proc:/host/proc"

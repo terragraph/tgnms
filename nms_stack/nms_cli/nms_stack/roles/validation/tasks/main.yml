@@ -1,0 +1,19 @@
+---
+- name: common_validations
+  include: common_validation.yml
+  tags: ["common"]
+  run_once: true
+
+- name: e2e_validations
+  include: e2e_validation.yml
+  tags: ["e2e_controller"]
+  run_once: true
+
+- name: proxy_validations
+  include: proxy_validation.yml
+  tags: ["proxy"]
+  run_once: true
+
+- name: remote_validations
+  include: remote_validation.yml
+  tags: ["remote"]

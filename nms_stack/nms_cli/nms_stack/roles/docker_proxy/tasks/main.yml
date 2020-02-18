@@ -1,0 +1,30 @@
+---
+- name: create docker_proxy paths
+  file:
+    path: "{{ item }}"
+    state: "directory"
+    owner: "{{ docker_user }}"
+    group: "docker"
+    mode: 0755
+  loop:
+    - "{{ docker_proxy_path }}"
+    - "{{ docker_proxy_path }}/env"
+
+- name: copy config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ docker_proxy_path }}" }
+    - { src: "time.env", dest: "{{ docker_proxy_path }}/env" }
+
+- name: run compose
+  shell: "docker stack deploy -c {{ docker_proxy_path }}/docker-compose.yml --with-registry-auth docker_proxy"
+
+- name: clean compose
+  file:
+    path: "{{ docker_proxy_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode
