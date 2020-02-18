@@ -68,7 +68,7 @@ async def _fetch_default_routes(network_name: str, topology: Dict) -> DRS:
             default_routes.update(
                 (
                     await client.request(
-                        name=network_name,
+                        network_name=network_name,
                         endpoint="getDefaultRoutes",
                         params={"nodes": nodes},
                     )
@@ -84,7 +84,7 @@ async def _fetch_default_routes(network_name: str, topology: Dict) -> DRS:
         default_routes.update(
             (
                 await client.request(
-                    name=network_name,
+                    network_name=network_name,
                     endpoint="getDefaultRoutes",
                     params={"nodes": nodes},
                 )

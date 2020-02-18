@@ -179,7 +179,7 @@ async def modify_all_cut_edge_configs(
         try:
             response = await client.request(
                 endpoint="modifyNodeOverridesConfig",
-                name=network_name,
+                network_name=network_name,
                 params=node_config,
             )
             logging.info(
