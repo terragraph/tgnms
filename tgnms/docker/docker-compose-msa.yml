@@ -4,13 +4,9 @@ services:
   topology_service:
     image: secure.cxl-terragraph.com:443/topology_service:latest
     restart: always
-    env_file:
-      - ./env/topology_service.env
     volumes:
-      - ./docker_volumes/logs:/nano/topology_service/logs
       - ./docker_volumes/topology_service/service_config.json:/usr/local/nano/topology_service/service_config.json
       - ./docker_volumes/tglib/config.json:/usr/local/nano/topology_service/config.json
-      - ./mysql_init_scripts/topology_service.sql:/usr/local/nano/topology_service/topology_service.sql
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]
@@ -23,13 +19,9 @@ services:
   default_routes_service:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
     restart: always
-    env_file:
-      - ./env/default_routes_service.env
     volumes:
-      - ./docker_volumes/logs:/nano/default_routes_service/logs
       - ./docker_volumes/default_routes_service/service_config.json:/usr/local/nano/default_routes_service/service_config.json
       - ./docker_volumes/tglib/config.json:/usr/local/nano/default_routes_service/config.json
-      - ./mysql_init_scripts/default_routes_service.sql:/usr/local/nano/default_routes_service/default_routes_service.sql
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
@@ -43,7 +35,6 @@ services:
       image: secure.cxl-terragraph.com:443/cut_edge_optimizer:latest
       restart: always
       volumes:
-        - ./docker_volumes/logs:/nano/cut_edge_optimizer/logs
         - ./docker_volumes/cut_edge_optimizer/service_config.json:/usr/local/nano/cut_edge_optimizer/service_config.json
         - ./docker_volumes/tglib/config.json:/usr/local/nano/cut_edge_optimizer/config.json
       networks:
