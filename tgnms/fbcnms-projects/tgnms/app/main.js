@@ -6,7 +6,6 @@
  */
 
 import './common/axiosConfig';
-import './common/i18n';
 import '@fbcnms/babel-register/polyfill';
 
 import LoadingBox from './components/common/LoadingBox';

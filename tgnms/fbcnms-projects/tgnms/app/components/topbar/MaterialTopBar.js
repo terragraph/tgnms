@@ -36,9 +36,9 @@ import RouterIcon from '@material-ui/icons/Router';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TableChartIcon from '@material-ui/icons/TableChart';
-import Text from '@fbcnms/i18n/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 import UserMenu from './UserMenu';
 import classNames from 'classnames';
 import {NavLink} from 'react-router-dom';
@@ -46,7 +46,6 @@ import {isAuthorized} from '../../helpers/UserHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {withTranslation} from 'react-i18next';
 import type {ContextRouter} from 'react-router-dom';
 
 const DRAWER_WIDTH = 240;
@@ -294,7 +293,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             return (
               <Tooltip
                 key={viewOpts.name}
-                title={this.props.t(viewOpts.name, viewOpts.name)}
+                title={viewOpts.name}
                 placement="right"
                 disableHoverListener={drawerOpen}
                 disableFocusListener={true}
@@ -307,9 +306,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                   disabled={networkName === null && !networklessView}
                   button>
                   <ListItemIcon>{viewOpts.icon}</ListItemIcon>
-                  <ListItemText
-                    primary={this.props.t(viewOpts.name, viewOpts.name)}
-                  />
+                  <ListItemText primary={viewOpts.name} />
                 </ListItem>
               </Tooltip>
             );
@@ -318,7 +315,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             <>
               <Divider />
               <Tooltip
-                title={this.props.t('about', 'About')}
+                title="About"
                 placement="right"
                 disableHoverListener={drawerOpen}
                 disableFocusListener={true}
@@ -331,7 +328,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                   <ListItemIcon>
                     <InfoIcon />
                   </ListItemIcon>
-                  <ListItemText primary={this.props.t('about', 'About')} />
+                  <ListItemText primary="About" />
                 </ListItem>
               </Tooltip>
               <BuildInformationModal
@@ -378,9 +375,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
               }
             />
           ) : null}
-          {networkName !== null
-            ? networkName
-            : this.props.t('not_selected', 'Not Selected')}
+          {networkName !== null ? networkName : 'Not Selected'}
           <ArrowDropDownIcon />
         </Button>
         <Menu
@@ -391,7 +386,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
           MenuListProps={{
             subheader: (
               <ListSubheader component="div">
-                <strong>{this.props.t('network', 'Network')}</strong>
+                <strong>Network</strong>
               </ListSubheader>
             ),
           }}
@@ -417,9 +412,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
               </MenuItem>
             ))
           ) : (
-            <MenuItem disabled>
-              {this.props.t('no_networks_defined', 'No networks defined.')}
-            </MenuItem>
+            <MenuItem disabled>No networks defined.</MenuItem>
           )}
         </Menu>
       </div>
@@ -473,14 +466,14 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
           <Toolbar disableGutters={true}>
             <IconButton
               color="inherit"
-              aria-label={this.props.t('open_drawer', 'Open drawer')}
+              aria-label="Open drawer"
               onClick={this.onDrawerToggle}
               className={classes.drawerMenuButton}>
               {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
             </IconButton>
-            <Text i18nKey="terragraph_nms" variant="h6" color="inherit" noWrap>
+            <Typography variant="h6" color="inherit" noWrap>
               Terragraph NMS
-            </Text>
+            </Typography>
 
             <div className={classes.grow} />
 
@@ -505,5 +498,5 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
 MaterialTopBar.propTypes = {};
 
 export default withStyles(styles, {withTheme: true})(
-  withRouter(withTranslation()(MaterialTopBar)),
+  withRouter(MaterialTopBar),
 );

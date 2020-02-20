@@ -15,7 +15,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import PersonIcon from '@material-ui/icons/Person';
 import {getUser} from '../../helpers/UserHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useTranslation} from 'react-i18next';
 
 const useStyles = makeStyles(theme => ({
   menuIcon: {
@@ -39,7 +38,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function UserMenu() {
-  const {t} = useTranslation();
   const iconButtonRef = React.useRef<any>(null);
   const formRef = React.useRef<?HTMLFormElement>(null);
   const [isMenuOpen, setMenuOpen] = React.useState(false);
@@ -52,7 +50,7 @@ export default function UserMenu() {
         color="inherit"
         className={classes.menuIcon}
         data-testid="menu-toggle"
-        title={t('User Menu Toggle')}
+        title="User Menu Toggle"
         ref={iconButtonRef}
         onClick={() => setMenuOpen(true)}>
         <PersonIcon />
@@ -93,7 +91,7 @@ export default function UserMenu() {
             <ListItemIcon>
               <ExitToAppIcon />
             </ListItemIcon>
-            <ListItemText primary={t('Log Out')} />
+            <ListItemText primary="Log Out" />
           </MenuItem>
         </form>
       </Menu>

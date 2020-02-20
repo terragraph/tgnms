@@ -25,7 +25,6 @@ import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import StatusText from '../common/StatusText';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import SyncIcon from '@material-ui/icons/Sync';
-import Text from '@fbcnms/i18n/Text';
 import Typography from '@material-ui/core/Typography';
 import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Controller';
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
@@ -323,9 +322,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     return (
       <>
         <div className={classes.spaceBetween}>
-          <Text i18nKey="status" variant="subtitle2">
-            Status
-          </Text>
+          <Typography variant="subtitle2">Status</Typography>
           <Typography variant="body2">
             <StatusText
               status={link.is_alive}
@@ -339,9 +336,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
         </div>
         {link.link_type !== LinkType.WIRELESS ? (
           <div className={classes.spaceBetween}>
-            <Text i18nKey="type" variant="subtitle2">
-              Type
-            </Text>
+            <Typography variant="subtitle2">Type</Typography>
             <Typography variant="body2">
               {linkType ? toTitleCase(linkType) : 'unknown'}
             </Typography>
@@ -349,33 +344,25 @@ class LinkDetailsPanel extends React.Component<Props, State> {
         ) : null}
         {link.is_backup_cn_link ? (
           <div className={classes.spaceBetween}>
-            <Text i18nKey="role" variant="subtitle2">
-              Role
-            </Text>
+            <Typography variant="subtitle2">Role</Typography>
             <Typography variant="body2">Backup CN Link</Typography>
           </div>
         ) : null}
         <div className={classes.spaceBetween}>
-          <Text i18nKey="azimuth" variant="subtitle2">
-            Azimuth
-          </Text>
+          <Typography variant="subtitle2">Azimuth</Typography>
           <Typography variant="body2">
             {formatNumber(link._meta_.angle, 1)}&deg;
           </Typography>
         </div>
         <div className={classes.spaceBetween}>
-          <Text i18nKey="length" variant="subtitle2">
-            Length
-          </Text>
+          <Typography variant="subtitle2">Length</Typography>
           <Typography variant="body2">
             {formatNumber(link._meta_.distance, 1)} meters
           </Typography>
         </div>
         {!ignitionEnabled ? (
           <div className={classes.spaceBetween}>
-            <Text i18nKey="link_ignition" variant="subtitle2">
-              Link Ignition
-            </Text>
+            <Typography variant="subtitle2">Link Ignition</Typography>
             <Typography variant="body2">
               <StatusText
                 status={ignitionEnabled}
@@ -386,17 +373,13 @@ class LinkDetailsPanel extends React.Component<Props, State> {
           </div>
         ) : null}
         <div className={classes.spaceBetween}>
-          <Text i18nKey="ignition_attempts_1day" variant="subtitle2">
-            Ignition Attempts (1d)
-          </Text>
+          <Typography variant="subtitle2">Ignition Attempts (1d)</Typography>
           <Typography variant="body2">
             {linkAttempts ? formatNumber(Number.parseInt(linkAttempts)) : '-'}
           </Typography>
         </div>
         <div className={classes.spaceBetween}>
-          <Text i18nKey="availability" variant="subtitle2">
-            Availability
-          </Text>
+          <Typography variant="subtitle2">Availability</Typography>
           <Typography variant="body2">
             {renderAvailabilityWithColor(formatNumber(availability))}
           </Typography>

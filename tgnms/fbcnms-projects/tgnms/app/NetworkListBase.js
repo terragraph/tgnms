@@ -19,7 +19,6 @@ import {defaultNetworkMapOptions} from './contexts/NmsOptionsContext';
 import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {withTranslation} from 'react-i18next';
 
 import type {NetworkConfig} from './contexts/NetworkContext';
 import type {NetworkList} from './contexts/NetworkListContext';
@@ -197,5 +196,5 @@ class NetworkListBase extends React.Component<Props, State> {
 }
 
 export default withStyles(styles, {withTheme: true})(
-  withRouter(withTranslation()(NetworkListBase)),
+  withRouter(NetworkListBase),
 );

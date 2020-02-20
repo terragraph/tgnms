@@ -37,7 +37,6 @@ const topologyPeriodic = require('../server/topology/periodic');
 const {runMigrations, runSeeders} = require('./initDatabase');
 const logger = require('../server/log')(module);
 import access from '../server/middleware/access';
-import {i18nextInstance} from '../server/translations/service';
 
 const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? process.env.PORT : 80;
@@ -103,7 +102,6 @@ app.use('/topology', require('../server/topology/routes'));
 app.use('/user', require('../server/user/routes'));
 app.use('/network_test', require('../server/network_test/routes'));
 app.use('/nodelogs', require('../server/nodelogs/routes'));
-app.use('/translations', require('../server/translations/routes'));
 app.use('/websockets', require('../server/websockets/routes'));
 app.use('/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
@@ -117,7 +115,7 @@ app.use(
 topologyPeriodic.startPeriodicTasks();
 
 // Check if nodelogs directory exists
-const {NODELOG_DIR, TRANSLATIONS_DEFAULT_LOCALE} = require('../server/config');
+const {NODELOG_DIR} = require('../server/config');
 let NODELOGS_ENABLED = false;
 try {
   NODELOGS_ENABLED = fs.statSync(NODELOG_DIR).isDirectory();
@@ -138,17 +136,9 @@ app.use(
 
 // Catch All
 app.get('*', (req, res) => {
-  const requestedLanguage = i18nextInstance.services.languageDetector.detect(
-    req,
-    res,
-  );
   // construct config JSON to inject
   const configObj = {
     env: {},
-    i18n: {
-      locale: requestedLanguage || TRANSLATIONS_DEFAULT_LOCALE,
-      fallbackLocale: TRANSLATIONS_DEFAULT_LOCALE,
-    },
     networks: getAllNetworkConfigs(),
     user: req.user,
     version: process.env.npm_package_version,
@@ -204,7 +194,6 @@ app.get('*', (req, res) => {
     }
   });
   configObj.env.NODELOGS_ENABLED = NODELOGS_ENABLED;
-  configObj.env.SAVE_MISSING_TRANSLATIONS = devMode;
 
   res.render('index', {
     staticDist: staticDist,

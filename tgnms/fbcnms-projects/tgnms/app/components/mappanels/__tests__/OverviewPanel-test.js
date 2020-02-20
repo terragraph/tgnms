@@ -34,7 +34,7 @@ describe('OverviewPanel', () => {
 
   test('renders', () => {
     const {getByText} = render(<OverviewPanel {...commonProps} />);
-    expect(getByText('overview')).toBeInTheDocument();
+    expect(getByText(/overview/i)).toBeInTheDocument();
   });
 
   describe('Network', () => {

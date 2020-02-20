@@ -9,7 +9,6 @@ import {invert} from 'lodash';
 
 import FriendlyText from '../../common/FriendlyText';
 import Grid from '@material-ui/core/Grid';
-import Text from '@fbcnms/i18n/Text';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
@@ -71,37 +70,37 @@ export default function KafkaEventNotificationDialog({
   return (
     <Grid container direction="column" spacing={1}>
       <Grid item>
-        <Text color="textSecondary" variant="subtitle2">
+        <Typography color="textSecondary" variant="subtitle2">
           ID
-        </Text>
+        </Typography>
         <Typography variant="body1">
           {EVENT_IDS_INVERTED[eventValue.eventId]}
         </Typography>
       </Grid>
       <Grid item>
-        <Text color="textSecondary" variant="subtitle2">
+        <Typography color="textSecondary" variant="subtitle2">
           Node
-        </Text>
+        </Typography>
         <Typography variant="body1">{eventValue.nodeName}</Typography>
       </Grid>
       <Grid item>
-        <Text color="textSecondary" variant="subtitle2">
+        <Typography color="textSecondary" variant="subtitle2">
           Message
-        </Text>
+        </Typography>
         <Typography variant="body1">{eventValue.reason}</Typography>
       </Grid>
       <Grid item>
-        <Text color="textSecondary" variant="subtitle2">
+        <Typography color="textSecondary" variant="subtitle2">
           Timestamp
-        </Text>{' '}
+        </Typography>{' '}
         <Typography variant="body1">
           {renderTimestamp(eventValue.timestamp)}
         </Typography>
       </Grid>
       <Grid item>
-        <Text color="textSecondary" variant="subtitle2">
+        <Typography color="textSecondary" variant="subtitle2">
           Level
-        </Text>
+        </Typography>
         <FriendlyText
           text={EVENT_LEVELS_INVERTED[eventValue.level]}
           separator="_"
@@ -109,9 +108,9 @@ export default function KafkaEventNotificationDialog({
         />
       </Grid>
       <Grid item>
-        <Text color="textSecondary" variant="subtitle2">
+        <Typography color="textSecondary" variant="subtitle2">
           Category
-        </Text>
+        </Typography>
         <FriendlyText
           text={EVENT_CATEGORIES_INVERTED[eventValue.category]}
           separator="_"
@@ -119,12 +118,12 @@ export default function KafkaEventNotificationDialog({
         />
       </Grid>
       <Grid item xs={12} className={classes.rawJsonContainer}>
-        <Text
+        <Typography
           color="textSecondary"
           className={classes.detailsHeader}
           variant="subtitle2">
           Details
-        </Text>
+        </Typography>
         <pre className={classes.rawJsonPrettyPrint}>{prettyPrintRawJson}</pre>
       </Grid>
     </Grid>

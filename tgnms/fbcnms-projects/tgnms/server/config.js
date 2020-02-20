@@ -76,10 +76,6 @@ const LINK_HEALTH_TIME_WINDOW_HOURS = 24;
 // Structure:
 //   $NODELOG_DIR/<mac_addr>/yyyy-mm-dd_terragraph_<name>_logs.log<.lz4>
 const NODELOG_DIR = process.env.NODELOG_DIR || '/nodelogs';
-
-const TRANSLATIONS_DEFAULT_LOCALE =
-  process.env.TRANSLATIONS_DEFAULT_LOCALE || 'en_US';
-const LOCALES_DIR = process.env.LOCALES_DIR || './locales';
 const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
 // comma separated list of kafka hosts
@@ -142,8 +138,6 @@ module.exports = {
   KEYCLOAK_REALM,
   KEYCLOAK_CLIENT_ID,
   KEYCLOAK_CLIENT_SECRET,
-  TRANSLATIONS_DEFAULT_LOCALE,
-  LOCALES_DIR,
   DEVELOPMENT,
   KAFKA_HOSTS,
   SESSION_MAX_AGE_MS,

@@ -10,12 +10,10 @@ import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
 import NetworkContext from '../contexts/NetworkContext';
 import NmsOptionsContext from '../contexts/NmsOptionsContext';
-import i18next from 'i18next';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
 import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
-import {initReactI18next} from 'react-i18next';
 import {mockNetworkContext} from './data/NetworkContext';
 import {mockNmsOptionsContext} from './data/NmsOptionsContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
@@ -65,7 +63,6 @@ export function setTestUser(user: $Shape<User>) {
 }
 
 export function TestApp({children}: {children: React.Node}) {
-  i18next.use(initReactI18next).init({});
   return <MaterialTheme>{children}</MaterialTheme>;
 }
 

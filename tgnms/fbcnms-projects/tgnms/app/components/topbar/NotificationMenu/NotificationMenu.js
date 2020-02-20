@@ -27,7 +27,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkListContext from '../../../contexts/NetworkListContext';
 import NotificationDialog from './NotificationDialog';
-import Text from '@fbcnms/i18n/Text';
+import Typography from '@material-ui/core/Typography';
 import WarningIcon from '@material-ui/icons/Warning';
 import grey from '@material-ui/core/colors/grey';
 import orange from '@material-ui/core/colors/orange';
@@ -35,7 +35,6 @@ import red from '@material-ui/core/colors/red';
 import yellow from '@material-ui/core/colors/yellow';
 import {EventLevelValueMap} from '../../../../shared/types/Event';
 import {makeStyles} from '@material-ui/styles';
-import {useTranslation} from 'react-i18next';
 import {useWebSocketGroup} from '../../../contexts/WebSocketContext';
 import type {EventType} from '../../../../shared/types/Event';
 
@@ -73,7 +72,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function NotificationMenu() {
-  const {t} = useTranslation();
   const classes = useStyles();
   const iconButtonRef = React.useRef(null);
   const [isMenuOpen, setMenuOpen] = React.useState(false);
@@ -109,7 +107,7 @@ export default function NotificationMenu() {
             setMenuOpen(open => !open);
             setShowBadge(false);
           }}
-          title={t('Notification Menu Toggle')}
+          title="Notification Menu Toggle"
           aria-owns={isMenuOpen ? 'notification-menu' : undefined}
           aria-haspopup="true"
           data-testid="menu-toggle">
@@ -151,7 +149,7 @@ export default function NotificationMenu() {
             <ListSubheader disableSticky>
               <Grid container alignItems="center">
                 <Grid item xs={6}>
-                  {t('Recent Events')}
+                  Recent Events
                 </Grid>
                 <Grid container item justify="flex-end" xs={6}>
                   <IconButton
@@ -166,16 +164,16 @@ export default function NotificationMenu() {
         }}>
         {notifications.length === 0 && (
           <ListItem>
-            <Text color="textSecondary" data-testid="no-events-message">
+            <Typography color="textSecondary" data-testid="no-events-message">
               No events to show
-            </Text>
+            </Typography>
           </ListItem>
         )}
         {notifications.map(notification => (
           <MenuItem
             key={notification.key}
             onClick={() => selectNotification(notification)}
-            title={t('Show Details')}>
+            title="Show Details">
             <ListItemIcon className={classes.listItemIcon}>
               {notification.Icon}
             </ListItemIcon>
