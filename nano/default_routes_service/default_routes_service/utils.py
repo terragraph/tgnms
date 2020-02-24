@@ -63,6 +63,7 @@ async def _fetch_default_routes(network_name: str, topology: Dict) -> DRS:
     client = APIServiceClient(timeout=5)
     # batching the requests to reduce request load on E2E server
     for i, node in enumerate(topology["nodes"], 1):
+        nodes.append(node["name"])
         if i % batch_size == 0:
             # fetch default routes for batch_size number of nodes
             default_routes.update(
@@ -76,8 +77,6 @@ async def _fetch_default_routes(network_name: str, topology: Dict) -> DRS:
             )
             # reset the list of nodes
             nodes.clear()
-        else:
-            nodes.append(node["name"])
 
     # run again for the remainder of nodes
     if nodes:
