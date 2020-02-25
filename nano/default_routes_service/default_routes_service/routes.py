@@ -41,6 +41,10 @@ def parse_input_params(request: web.Request) -> Tuple[str, datetime, datetime]:
         raise web.HTTPBadRequest(text="Missing required 'start_dt' param")
     try:
         start_dt_obj = datetime.fromisoformat(start_dt)
+        if start_dt_obj.tzinfo:
+            raise web.HTTPBadRequest(
+                text="'start_dt' param must be UTC offset-naive datetime"
+            )
     except ValueError:
         raise web.HTTPBadRequest(text=f"'start_dt' is invalid ISO 8601: '{start_dt}'")
 
@@ -50,11 +54,15 @@ def parse_input_params(request: web.Request) -> Tuple[str, datetime, datetime]:
     else:
         try:
             end_dt_obj = datetime.fromisoformat(end_dt)
+            if end_dt_obj.tzinfo:
+                raise web.HTTPBadRequest(
+                    text="'end_dt' param must be UTC offset-naive datetime"
+                )
         except ValueError:
             raise web.HTTPBadRequest(text="'end_dt' param is not valid ISO 8601")
 
     if start_dt_obj >= end_dt_obj:
-        raise web.HTTPBadRequest(text="'start_dt' has to be less than 'end_dt' param")
+        raise web.HTTPBadRequest(text="'start_dt' must be less than 'end_dt' param")
 
     return network_name, start_dt_obj, end_dt_obj
 
@@ -83,13 +91,13 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
           type: string
       - in: query
         name: start_dt
-        description: The start UTC datetime of time window, in ISO 8601 format.
+        description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
         required: true
         schema:
           type: string
       - in: query
         name: end_dt
-        description: The end UTC datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
+        description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
         required: true
         schema:
           type: string
@@ -253,13 +261,13 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
           type: string
       - in: query
         name: start_dt
-        description: The start UTC datetime of time window, in ISO 8601 format.
+        description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
         required: true
         schema:
           type: string
       - in: query
         name: end_dt
-        description: The end UTC datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
+        description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
         required: true
         schema:
           type: string

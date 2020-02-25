@@ -41,13 +41,13 @@ async def handle_get_topology(request: web.Request) -> web.Response:
         type: string
     - in: query
       name: start_dt
-      description: The start UTC datetime of the query in ISO 8601 format
+      description: The start UTC offset-naive datetime of the query in ISO 8601 format
       required: true
       schema:
         type: string
     - in: query
       name: end_dt
-      description: The end UTC datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
+      description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
       schema:
         type: string
     responses:
@@ -66,6 +66,10 @@ async def handle_get_topology(request: web.Request) -> web.Response:
 
     try:
         start_dt_obj = datetime.fromisoformat(start_dt)
+        if start_dt_obj.tzinfo:
+            raise web.HTTPBadRequest(
+                text="'start_dt' param must be UTC offset-naive datetime"
+            )
     except ValueError:
         raise web.HTTPBadRequest(text=f"'start_dt' is invalid ISO 8601: '{start_dt}'")
 
@@ -75,6 +79,10 @@ async def handle_get_topology(request: web.Request) -> web.Response:
     else:
         try:
             end_dt_obj = datetime.fromisoformat(end_dt)
+            if end_dt_obj.tzinfo:
+                raise web.HTTPBadRequest(
+                    text="'end_dt' param must be UTC offset-naive datetime"
+                )
         except ValueError:
             raise web.HTTPBadRequest(text=f"'end_dt' is invalid ISO 8601: '{end_dt}'")
 
