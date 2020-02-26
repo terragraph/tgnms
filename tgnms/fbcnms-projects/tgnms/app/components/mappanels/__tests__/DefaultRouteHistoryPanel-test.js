@@ -101,7 +101,7 @@ test('renders routes when the query returns routes', async () => {
     </MuiPickersWrapper>,
   );
   expect(getByText('Route 3')).toBeInTheDocument();
-  expect(getByText('0.4% of the time - 5 hops')).toBeInTheDocument();
+  expect(getByText('0.139% of the time - 4 wireless hops')).toBeInTheDocument();
 });
 
 test('clicking a route calls the map function properly', async () => {

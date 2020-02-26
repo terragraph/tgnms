@@ -5,101 +5,44 @@
  * @flow strict-local
  */
 
+import type {DefaultRouteHistoryData} from '../../apiutils/DefaultRouteHistoryAPIUtil';
 import type {NodeMap} from '../../contexts/NetworkContext';
 
-export function testDefaultRouteHistory(): {[string]: Array<Array<string>>} {
+export function testDefaultRouteHistory(): {
+  history: Array<DefaultRouteHistoryData>,
+  util: {[string]: number},
+} {
   return {
-    '2019-11-18 21:50:24': [],
-    '2019-11-18 21:50:57': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra121.f1.tg.a404-if',
-      ],
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra111.f5.tg.a404-if',
-      ],
+    history: [
+      {
+        last_updated: '2020-02-20T16:16:32',
+        routes: [['11M96.1', '11M870.2', '11M870.1']],
+        hop_count: 3,
+      },
+      {
+        last_updated: '2020-02-20T16:17:32',
+        routes: [['11M96.1', '11M870.2', '11M870.1', '11M867.2']],
+        hop_count: 4,
+      },
+      {
+        last_updated: '2020-02-20T16:17:52',
+        routes: [['11M96.1', '11M870.2', '11M870.1']],
+        hop_count: 3,
+      },
+      {
+        last_updated: '2020-02-20T16:18:32',
+        routes: [['11M96.1', '11M870.2', '11M870.1', '11M867.2', '11M867.1']],
+        hop_count: 5,
+      },
     ],
-    '2019-11-18 21:52:00': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:01:04': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f5.tg.a404-if',
-        'terra221.f1.tg.a404-if',
-        'terra222.f1.tg.a404-if',
-        'terra121.f1.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:01:36': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:03:13': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f5.tg.a404-if',
-        'terra123.f1.tg.a404-if',
-        'terra121.f1.tg.a404-if',
-      ],
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f5.tg.a404-if',
-        'terra123.f1.tg.a404-if',
-        'terra111.f5.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:04:16': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:05:20': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:06:56': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-    ],
-    '2019-11-18 22:17:04': [],
-    '2019-11-18 22:18:40': [
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra411.f7.tg.a404-if',
-      ],
-      [
-        'terra213.f5.tg.a404-if',
-        'terra413.f7.tg.a404-if',
-        'terra121.f1.tg.a404-if',
-      ],
-    ],
+    util: {
+      "[['11M96.1', '11M870.2', '11M870.1']]": 90.271,
+      "[['11M96.1', '11M870.2', '11M870.1', '11M867.2']]": 0.139,
+      "[['11M96.1', '11M870.2', '11M870.1', '11M867.2', '11M867.1']]": 9.59,
+    },
   };
 }
+
 export function expectedOnUpdateRouteCall(): {
   links: {},
   node: string,
@@ -108,18 +51,13 @@ export function expectedOnUpdateRouteCall(): {
   return {
     links: {},
     node: 'test_node_name',
-    nodes: new Set([
-      'terra213.f5.tg.a404-if',
-      'terra413.f5.tg.a404-if',
-      'terra221.f1.tg.a404-if',
-      'terra222.f1.tg.a404-if',
-      'terra121.f1.tg.a404-if',
-    ]),
+    nodes: new Set(['11M96.1', '11M870.2', '11M870.1', '11M867.2']),
   };
 }
+
 export function testNodeMap(): NodeMap {
   return {
-    'terra221.f1.tg.a404-if': {
+    '11M96.1': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
       is_primary: false,
@@ -131,7 +69,7 @@ export function testNodeMap(): NodeMap {
       ant_azimuth: 0,
       ant_elevation: 0,
     },
-    'terra121.f1.tg.a404-if': {
+    '11M870.2': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
       is_primary: false,
@@ -143,7 +81,7 @@ export function testNodeMap(): NodeMap {
       ant_azimuth: 0,
       ant_elevation: 0,
     },
-    'terra222.f1.tg.a404-if': {
+    '11M870.1': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
       is_primary: false,
@@ -155,7 +93,7 @@ export function testNodeMap(): NodeMap {
       ant_azimuth: 0,
       ant_elevation: 0,
     },
-    'terra413.f5.tg.a404-if': {
+    '11M867.2': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
       is_primary: false,
@@ -167,7 +105,7 @@ export function testNodeMap(): NodeMap {
       ant_azimuth: 0,
       ant_elevation: 0,
     },
-    'terra213.f5.tg.a404-if': {
+    '11M867.1': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
       is_primary: false,
@@ -212,90 +150,6 @@ export function testNodeMap(): NodeMap {
       status: 3,
       wlan_mac_addrs: ['38:3a:21:b0:08:e3'],
       site_name: 'CC-N-CENT',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra411.f7.tg.a404-if': {
-      name: 'terra411.f7.tg.a404-if',
-      node_type: 2,
-      is_primary: true,
-      mac_addr: '38:3a:21:b0:02:ac',
-      pop_node: true,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:02:ac'],
-      site_name: 'CHALL-WING-NW',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra113.f5.tg.a404-if': {
-      name: 'terra113.f5.tg.a404-if',
-      node_type: 2,
-      is_primary: false,
-      mac_addr: '38:3a:21:b0:0a:13',
-      pop_node: true,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:0a:13'],
-      site_name: 'CC-SE',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra121.f1.tg.a404-if': {
-      name: 'terra121.f1.tg.a404-if',
-      node_type: 2,
-      is_primary: true,
-      mac_addr: '38:3a:21:b0:02:61',
-      pop_node: true,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:02:61'],
-      site_name: 'CC-N-CENT',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra223.f1.tg.a404-if': {
-      name: 'terra223.f1.tg.a404-if',
-      node_type: 2,
-      is_primary: false,
-      mac_addr: '38:3a:21:b0:09:77',
-      pop_node: false,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:09:77'],
-      site_name: 'TECH-NW',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra314.f1.tg.a404-if': {
-      name: 'terra314.f1.tg.a404-if',
-      node_type: 2,
-      is_primary: false,
-      mac_addr: '38:3a:21:b0:08:11',
-      pop_node: false,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:08:11'],
-      site_name: '12L212',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra114.f5.tg.a404-if': {
-      name: 'terra114.f5.tg.a404-if',
-      node_type: 2,
-      is_primary: false,
-      mac_addr: '38:3a:21:b0:09:e1',
-      pop_node: true,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:09:e1'],
-      site_name: 'CC-SE',
-      ant_azimuth: 0,
-      ant_elevation: 0,
-    },
-    'terra412.f7.tg.a404-if': {
-      name: 'terra412.f7.tg.a404-if',
-      node_type: 2,
-      is_primary: false,
-      mac_addr: '38:3a:21:b0:09:17',
-      pop_node: true,
-      status: 3,
-      wlan_mac_addrs: ['38:3a:21:b0:09:17'],
-      site_name: 'CHALL-WING-NW',
       ant_azimuth: 0,
       ant_elevation: 0,
     },

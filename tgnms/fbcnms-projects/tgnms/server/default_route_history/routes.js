@@ -21,15 +21,15 @@ router.get('/history', (req, res) => {
       .end();
     return;
   }
-  const {topologyName, nodeName, startTime, endTime} = req.query;
-  if (!topologyName || !nodeName || !startTime || !endTime) {
+  const {networkName, nodeName, startTime, endTime} = req.query;
+  if (!networkName || !nodeName || !startTime || !endTime) {
     return res.status(400).send();
   }
   const uri =
-    `${DEFAULT_ROUTES_HISTORY_HOST}/routes/history?topology_name=` +
-    `${querystring.escape(topologyName)}&node_name=` +
-    `${querystring.escape(nodeName)}&start_time=` +
-    `${querystring.escape(startTime)}&end_time=` +
+    `${DEFAULT_ROUTES_HISTORY_HOST}/routes/history?network_name=` +
+    `${querystring.escape(networkName)}&node_name=` +
+    `${querystring.escape(nodeName)}&start_dt=` +
+    `${querystring.escape(startTime)}&end_dt=` +
     `${querystring.escape(endTime)}`;
   return createRequest({
     uri: uri,

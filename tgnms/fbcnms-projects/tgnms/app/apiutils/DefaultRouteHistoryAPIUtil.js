@@ -15,23 +15,36 @@ export type DefaultRouteHistoryType = {
   startTime: string,
   endTime: string,
 };
-export const getDefaultRouteHistory = (
-  inputData: DefaultRouteHistoryType,
-): {[string]: Array<Array<string>>} => {
+
+type DefaultRouteHistory = {
+  history: {[string]: Array<DefaultRouteHistoryData>},
+  util: {[string]: {[string]: number}},
+};
+
+export type DefaultRouteHistoryData = {
+  last_updated: string,
+  routes: Array<Array<string>>,
+  hop_count: number,
+};
+
+export const getDefaultRouteHistory = (inputData: DefaultRouteHistoryType) => {
   return axios
-    .get<
-      DefaultRouteHistoryType,
-      {data: {[string]: {[string]: Array<Array<string>>}}},
-    >('/default_route_history/history', {
-      params: {
-        topologyName: inputData.networkName,
-        nodeName: inputData.nodeName,
-        startTime: inputData.startTime,
-        endTime: inputData.endTime,
+    .get<DefaultRouteHistoryType, DefaultRouteHistory>(
+      '/default_route_history/history',
+      {
+        params: {
+          networkName: inputData.networkName,
+          nodeName: inputData.nodeName,
+          startTime: inputData.startTime,
+          endTime: inputData.endTime,
+        },
       },
-    })
+    )
     .then(response => {
-      return response.data[inputData.nodeName];
+      return {
+        history: response.data.history[inputData.nodeName],
+        util: response.data.util[inputData.nodeName],
+      };
     })
     .catch(_err => {
       return undefined;
