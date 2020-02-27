@@ -5,8 +5,8 @@ services:
     image: secure.cxl-terragraph.com:443/topology_service:latest
     restart: always
     volumes:
-      - ./docker_volumes/topology_service/service_config.json:/usr/local/nano/topology_service/service_config.json
-      - ./docker_volumes/tglib/config.json:/usr/local/nano/topology_service/config.json
+      - ./docker_volumes/topology_service/service_config.json:/usr/local/topology_service/service_config.json
+      - ./docker_volumes/tglib/config.json:/usr/local/topology_service/config.json
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]
@@ -20,8 +20,8 @@ services:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
     restart: always
     volumes:
-      - ./docker_volumes/default_routes_service/service_config.json:/usr/local/nano/default_routes_service/service_config.json
-      - ./docker_volumes/tglib/config.json:/usr/local/nano/default_routes_service/config.json
+      - ./docker_volumes/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
+      - ./docker_volumes/tglib/config.json:/usr/local/default_routes_service/config.json
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
