@@ -37,3 +37,12 @@ export type VersionDto = {
   commit_hash: string,
   version: string,
 };
+
+export type DiffDto = {
+  commit: string,
+  author: string,
+  date: string,
+  title: string,
+};
+
+export type ChangelogDto = {[key: string]: Array<DiffDto>};

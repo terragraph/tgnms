@@ -13,6 +13,7 @@ import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import CodeIcon from '@material-ui/icons/Code';
+import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import Grid from '@material-ui/core/Grid';
@@ -40,6 +41,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import UserMenu from './UserMenu';
+import axios from 'axios';
 import classNames from 'classnames';
 import {NavLink} from 'react-router-dom';
 import {isAuthorized} from '../../helpers/UserHelpers';
@@ -191,24 +193,84 @@ const VIEWS = [
   },
 ];
 
+export function VersionModal({title, diffs}) {
+  const [expanded, setExpanded] = React.useState(false);
+  return (
+    <CustomExpansionPanel
+      title={title}
+      details={diffs}
+      expanded={expanded}
+      onChange={() => setExpanded(!expanded)}
+    />
+  );
+}
+
+const DiffModal = props => (
+  <Grid container spacing={1}>
+    <Grid item xs={4}>
+      Date
+    </Grid>
+    <Grid item xs={8}>
+      Title
+    </Grid>
+    {props.diffs &&
+      props.diffs.map((diffData, idx) => (
+        <React.Fragment key={'diff' + idx}>
+          <Grid item xs={4}>
+            {diffData.date}
+          </Grid>
+          <Grid item xs={8}>
+            {diffData.title}
+          </Grid>
+        </React.Fragment>
+      ))}
+  </Grid>
+);
+
+const ChangelogModal = () => {
+  const [changelog, setChangelog] = React.useState([]);
+  React.useEffect(() => {
+    axios.get('/api/v1/changelog').then(response => {
+      setChangelog(response.data);
+    });
+  }, []);
+  return (
+    <>
+      {Object.keys(changelog).map(versionStr => {
+        const diffList = changelog[versionStr];
+        return (
+          <VersionModal
+            key={'version-' + versionStr}
+            title={'Version ' + versionStr}
+            diffs={<DiffModal diffs={diffList} />}
+          />
+        );
+      })}
+    </>
+  );
+};
+
 const BuildInformationModal = props => (
   <MaterialModal
     open={props.buildInformationOpen}
     onClose={props.toggleBuildModal}
-    modalTitle={props.t('about', 'About')}
+    modalTitle="About"
     modalContent={
       <Grid container spacing={1}>
         <Grid item xs={4}>
-          {props.t('version', 'Version')}
+          Version
         </Grid>
         <Grid item xs={8}>
           {props.version}-{props.commitHash}
         </Grid>
         <Grid item xs={4}>
-          {props.t('date', 'Date')}
+          Date
         </Grid>
         <Grid item xs={8}>
           {props.commitDate}
+        </Grid>
+        <Grid item xs={12}>
+          <ChangelogModal />
         </Grid>
       </Grid>
     }
@@ -221,14 +283,14 @@ const BuildInformationModal = props => (
             target="_blank"
             onClick={props.toggleBuildModal}
             variant="outlined">
-            {props.t('submit_bug', 'Submit Bug')}
+            Submit Bug
           </Button>
         ) : null}
         <Button
           className={props.classes.button}
           onClick={props.toggleBuildModal}
           variant="outlined">
-          {props.t('close', 'Close')}
+          Close
         </Button>
       </>
     }
@@ -333,7 +395,6 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
               </Tooltip>
               <BuildInformationModal
                 classes={classes}
-                t={this.props.t}
                 buildInformationOpen={this.state.buildInformationOpen}
                 toggleBuildModal={toggleBuildModal}
                 version={version}
