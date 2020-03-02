@@ -418,7 +418,13 @@ class ConfigSidebar extends React.Component<Props, State> {
     }
     const actionItems = [{heading: 'Actions', actions}];
     return actionItems.length ? (
-      <ActionsMenu options={{actionItems, buttonClassName: 'actionsButton'}} />
+      <ActionsMenu
+        options={{
+          actionItems,
+          buttonClassName: 'actionsButton',
+          buttonName: 'Network Optimization\u2026',
+        }}
+      />
     ) : null;
   };
 

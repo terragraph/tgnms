@@ -91,7 +91,7 @@ test('renders network actions button', () => {
       <ConfigSidebar {...defaultProps} editMode="NETWORK" />
     </TestApp>,
   );
-  expect(getByText(/view actions/i)).toBeInTheDocument();
+  expect(getByText(/network optimization/i)).toBeInTheDocument();
 });
 
 test('renders network actions when button is clicked', () => {
@@ -100,8 +100,8 @@ test('renders network actions when button is clicked', () => {
       <ConfigSidebar {...defaultProps} editMode="NETWORK" />
     </TestApp>,
   );
-  expect(getByText(/view actions/i)).toBeInTheDocument();
-  fireEvent.click(getByText(/view actions/i));
+  expect(getByText(/network optimization/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/network optimization/i));
   expect(getByText('Actions')).toBeInTheDocument();
 });
 

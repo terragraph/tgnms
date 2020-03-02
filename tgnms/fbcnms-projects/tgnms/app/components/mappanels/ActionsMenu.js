@@ -27,6 +27,7 @@ type ActionOptions = {
     actions: Array<ActionType>,
   }>,
   buttonClassName?: string,
+  buttonName?: string,
 };
 
 type ActionType = {
@@ -65,7 +66,7 @@ class ActionsMenu extends React.Component<Props, State> {
             aria-haspopup={true}
             onClick={ev => this.setState({anchor: ev.currentTarget})}>
             <ListItemText
-              primary={'View Actions\u2026'}
+              primary={options.buttonName || 'View Actions\u2026'}
               primaryTypographyProps={{variant: 'button'}}
             />
           </ListItem>
