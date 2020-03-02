@@ -8,9 +8,17 @@
 import 'jest-dom/extend-expect';
 import ConfigSidebar from '../ConfigSidebar';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
 import {cleanup, fireEvent} from '@testing-library/react';
 import {mockNetworkConfig, renderWithRouter} from '../../../tests/testHelpers';
+
+beforeEach(() => {
+  initWindowConfig({
+    env: {
+      JSON_CONFIG_ENABLED: 'true',
+    },
+  });
+});
 
 afterEach(cleanup);
 

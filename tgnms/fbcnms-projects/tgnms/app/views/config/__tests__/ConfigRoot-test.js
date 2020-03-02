@@ -12,11 +12,19 @@ import {
   ConfigLayer,
   NetworkConfigMode,
 } from '../../../constants/ConfigConstants';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
 import {assertType} from '@fbcnms/util/assert';
 import {cleanup, fireEvent, waitForElement} from '@testing-library/react';
 import {getControllerConfig} from '../../../apiutils/ConfigAPIUtil';
 import {mockNetworkConfig, renderWithRouter} from '../../../tests/testHelpers';
+
+beforeEach(() => {
+  initWindowConfig({
+    env: {
+      JSON_CONFIG_ENABLED: 'true',
+    },
+  });
+});
 
 afterEach(cleanup);
 

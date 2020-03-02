@@ -23,6 +23,10 @@ export const FeatureFlags: {[string]: () => boolean} = {
   ALARMS_ENABLED: () => window.CONFIG.env.ALARMS_ENABLED,
   DEFAULT_ROUTES_HISTORY_ENABLED: () =>
     window.CONFIG.env.DEFAULT_ROUTES_HISTORY_ENABLED,
+  JSON_CONFIG_ENABLED: () =>
+    window.CONFIG.env.hasOwnProperty('JSON_CONFIG_ENABLED')
+      ? window.CONFIG.env.JSON_CONFIG_ENABLED === 'true'
+      : true,
   MAP_HISTORY_ENABLED: () => window.CONFIG.env.MAP_HISTORY_ENABLED,
 };
 

@@ -29,6 +29,7 @@ import {NetworkConfigMode} from '../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {createSelectInput} from '../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {shallowEqual} from '../../helpers/ConfigHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -665,17 +666,21 @@ class ConfigSidebar extends React.Component<Props, State> {
 
     // Common inputs
     const inputs = [
-      {
-        func: createSelectInput,
-        label: 'Editor',
-        value: 'useRawJsonEditor',
-        menuItems: editorOptions.map(({label, value}) => (
-          <MenuItem key={label} value={value}>
-            {label}
-          </MenuItem>
-        )),
-        onChange: onChangeEditorType,
-      },
+      ...(isFeatureEnabled('JSON_CONFIG_ENABLED')
+        ? [
+            {
+              func: createSelectInput,
+              label: 'Editor',
+              value: 'useRawJsonEditor',
+              menuItems: editorOptions.map(({label, value}) => (
+                <MenuItem key={label} value={value}>
+                  {label}
+                </MenuItem>
+              )),
+              onChange: onChangeEditorType,
+            },
+          ]
+        : []),
     ];
 
     return (
