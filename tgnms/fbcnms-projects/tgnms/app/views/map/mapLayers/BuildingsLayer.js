@@ -23,7 +23,7 @@ const PAINT_LAYER = {
     type: 'identity',
     property: 'min_height',
   },
-  'fill-extrusion-opacity': 0.6,
+  'fill-extrusion-opacity': 0.9,
 };
 
 type Props = {};
