@@ -179,7 +179,7 @@ export class HistoricalMetricsOverlayStrategy implements OverlayStrategy {
       const siteNodes = [...siteToNodesMap[siteName]];
       const nodeData = historicalData?.node_online;
       if (siteNodes.length === 0 || !nodeData) {
-        final[siteName] = SiteOverlayColors.health.empty.color;
+        final[siteName] = SiteOverlayColors.health.planned.color;
       } else {
         const siteAlive = new Set(
           siteNodes.map(nodeName =>
@@ -199,7 +199,7 @@ export class HistoricalMetricsOverlayStrategy implements OverlayStrategy {
         } else if (siteAlive.has('0')) {
           final[siteName] = SiteOverlayColors.health.unhealthy.color;
         } else {
-          final[siteName] = SiteOverlayColors.health.empty.color;
+          final[siteName] = SiteOverlayColors.health.planned.color;
         }
       }
       return final;

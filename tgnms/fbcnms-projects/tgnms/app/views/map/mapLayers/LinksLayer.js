@@ -165,7 +165,7 @@ class LinksLayer extends React.Component<Props> {
       !link.is_alive &&
       !hasLinkEverGoneOnline(link, offlineWhitelist)
     ) {
-      return LinkOverlayColors.ignition_status.unknown.color;
+      return LinkOverlayColors.ignition_status.planned.color;
     } else {
       return LinkOverlayColors.ignition_status.link_down.color;
     }

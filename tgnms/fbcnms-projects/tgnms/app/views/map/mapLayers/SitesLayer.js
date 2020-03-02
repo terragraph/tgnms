@@ -147,7 +147,7 @@ class SitesLayer extends React.Component<Props> {
       .length;
 
     if (siteNodes.length === 0) {
-      return SiteOverlayColors.health.empty.color;
+      return SiteOverlayColors.health.planned.color;
     } else if (
       healthyNodeCount === siteNodes.length &&
       healthyLinkCount === siteWiredLinks.length
@@ -157,7 +157,7 @@ class SitesLayer extends React.Component<Props> {
       if (
         !siteNodes.some(node => hasNodeEverGoneOnline(node, offlineWhitelist))
       ) {
-        return SiteOverlayColors.health.empty.color;
+        return SiteOverlayColors.health.planned.color;
       } else {
         return SiteOverlayColors.health.unhealthy.color;
       }
@@ -194,7 +194,7 @@ class SitesLayer extends React.Component<Props> {
       if (inRoutes) {
         return SiteOverlayColors.health.healthy.color;
       } else {
-        return SiteOverlayColors.health.empty.color;
+        return SiteOverlayColors.health.planned.color;
       }
     }
 

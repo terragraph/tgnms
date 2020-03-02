@@ -25,7 +25,7 @@ export const LinkOverlayColors = {
     link_up: {color: green[800]},
     link_down: {color: red[600]},
     igniting: {color: purple[500]},
-    unknown: {color: grey[500]},
+    planned: {color: grey[500]},
   },
   metric: {
     excellent: {color: green[800]},
@@ -41,7 +41,7 @@ export const SiteOverlayColors = {
     healthy: {color: green[800]},
     unhealthy: {color: red[600]},
     partial: {color: orange[500]},
-    empty: {color: grey[500]},
+    planned: {color: grey[500]},
   },
   polarity: {
     odd: {color: blue[500]},
