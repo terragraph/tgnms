@@ -81,18 +81,7 @@ const FIT_BOUND_OPTIONS = {padding: 32, maxZoom: 18, animate: false};
 // https://www.mapbox.com/api-documentation/#styles
 const DefaultMapBoxStyles = [
   {name: 'Streets', endpoint: 'streets-v10'},
-  {name: 'Outdoors', endpoint: 'outdoors-v10'},
-  {name: 'Light', endpoint: 'light-v9'},
-  {name: 'Dark', endpoint: 'dark-v9'},
-  {name: 'Satellite', endpoint: 'satellite-v9'},
-  {name: 'Satellite (Streets)', endpoint: 'satellite-streets-v10'},
-  {name: 'Navigation Preview (Day)', endpoint: 'navigation-preview-day-v4'},
-  {name: 'Navigation Preview (Night)', endpoint: 'navigation-preview-night-v4'},
-  {name: 'Navigation Guidance (Day)', endpoint: 'navigation-guidance-day-v4'},
-  {
-    name: 'Navigation Guidance (Night)',
-    endpoint: 'navigation-guidance-night-v4',
-  },
+  {name: 'Satellite', endpoint: 'satellite-streets-v10'},
 ];
 const getMapBoxStyleUrl = endpoint => 'mapbox://styles/mapbox/' + endpoint;
 
