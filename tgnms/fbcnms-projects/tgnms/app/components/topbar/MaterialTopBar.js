@@ -33,7 +33,6 @@ import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkListContext from '../../contexts/NetworkListContext';
 import NotificationMenu from './NotificationMenu/NotificationMenu';
 import React from 'react';
-import RouterIcon from '@material-ui/icons/Router';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TableChartIcon from '@material-ui/icons/TableChart';
@@ -173,15 +172,9 @@ const VIEWS = [
     hideCondition: () => !isFeatureEnabled('NETWORK_TEST_ENABLED'),
   },
   {
-    name: 'Node Config',
-    icon: <RouterIcon />,
-    viewName: 'node_config',
-    hideCondition: () => !isAuthorized(['CONFIG_READ', 'CONFIG_WRITE']),
-  },
-  {
-    name: 'E2E Config',
+    name: 'Network Config',
     icon: <BuildIcon />,
-    viewName: 'e2e_config',
+    viewName: 'network_config',
     hideCondition: () => !isAuthorized(['CONFIG_READ', 'CONFIG_WRITE']),
   },
   {

@@ -101,7 +101,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             icon: <RouterIcon />,
             func: () =>
               history.push({
-                pathname: '/node_config/' + networkName,
+                pathname: '/network_config/' + networkName,
                 search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
               }),
           },

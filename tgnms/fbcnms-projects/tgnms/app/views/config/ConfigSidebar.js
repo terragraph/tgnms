@@ -107,7 +107,7 @@ const e2eConfigBaseOptions = Object.freeze([
 
 type Props = {
   classes: {[string]: string},
-  editMode: string, // NetworkConfigMode or E2EConfigMode
+  editMode: string, // NetworkConfigMode
   useRawJsonEditor: boolean,
   networkName: string,
   networkConfig: NetworkConfig,

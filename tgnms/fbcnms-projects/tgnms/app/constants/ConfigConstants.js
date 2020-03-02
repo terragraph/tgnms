@@ -5,14 +5,10 @@
  * @flow strict-local
  */
 
-/** Config layers for nodes. */
+/** Config layers for nodes and E2E services. */
 export const NetworkConfigMode = Object.freeze({
   NETWORK: 'NETWORK',
   NODE: 'NODE',
-});
-
-/** Config layers for E2E services. */
-export const E2EConfigMode = Object.freeze({
   CONTROLLER: 'CONTROLLER',
   AGGREGATOR: 'AGGREGATOR',
 });

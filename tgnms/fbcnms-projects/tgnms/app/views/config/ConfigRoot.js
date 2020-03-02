@@ -19,11 +19,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {
-  ConfigLayer,
-  E2EConfigMode,
-  NetworkConfigMode,
-} from '../../constants/ConfigConstants';
+import {ConfigLayer, NetworkConfigMode} from '../../constants/ConfigConstants';
 import {
   cleanupObject,
   processConfigs,
@@ -97,7 +93,7 @@ type Props = {
   classes: {[string]: string},
   networkName: string,
   networkConfig: NetworkConfig,
-  editModes: typeof E2EConfigMode | typeof NetworkConfigMode,
+  editModes: typeof NetworkConfigMode,
   initialEditMode: ?string, // from editModes
   // parent's this.setState() - TODO - HACK! remove...
   setParentState: ({[string]: string}, () => any) => any,
@@ -159,7 +155,7 @@ class ConfigRoot extends React.Component<Props, State> {
       // Current selected config field (in ConfigTable)
       selectedField: null,
 
-      // Edit mode (NetworkConfigMode or E2EConfigMode)
+      // Edit mode (NetworkConfigMode)
       editMode: props.initialEditMode,
 
       // Raw JSON editor enabled?

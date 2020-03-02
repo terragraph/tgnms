@@ -8,7 +8,10 @@
 import 'jest-dom/extend-expect';
 import ConfigRoot from '../ConfigRoot';
 import React from 'react';
-import {ConfigLayer, E2EConfigMode} from '../../../constants/ConfigConstants';
+import {
+  ConfigLayer,
+  NetworkConfigMode,
+} from '../../../constants/ConfigConstants';
 import {TestApp} from '../../../tests/testHelpers';
 import {assertType} from '@fbcnms/util/assert';
 import {cleanup, fireEvent, waitForElement} from '@testing-library/react';
@@ -20,11 +23,11 @@ afterEach(cleanup);
 const defaultProps = {
   networkName: 'test',
   networkConfig: mockNetworkConfig(),
-  editModes: E2EConfigMode,
-  initialEditMode: E2EConfigMode.CONTROLLER,
+  editModes: NetworkConfigMode,
+  initialEditMode: NetworkConfigMode.CONTROLLER,
   setParentState: jest.fn(() => {}),
   getSidebarProps: () => {
-    return {editMode: E2EConfigMode.CONTROLLER, useMetadataBase: true};
+    return {editMode: NetworkConfigMode.CONTROLLER, useMetadataBase: true};
   },
   getRequests: () => [],
   getConfigLayers: jest.fn(() => [{id: ConfigLayer.BASE, value: {}}]),

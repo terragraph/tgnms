@@ -17,6 +17,20 @@ import {
 } from '../../constants/ConfigConstants';
 import {cloneDeep, get, merge} from 'lodash';
 import {
+  constructConfigFromMetadata,
+  getFirmwareVersions,
+  getNodeVersions,
+  getTopologyNodeList,
+} from '../../helpers/ConfigHelpers';
+import {
+  getAggregatorConfig,
+  getAggregatorConfigMetadata,
+  getControllerConfig,
+  getControllerConfigMetadata,
+  setAggregatorConfig,
+  setControllerConfig,
+} from '../../apiutils/ConfigAPIUtil';
+import {
   getAutoOverridesConfig,
   getBaseConfig,
   getConfigBundleStatus,
@@ -28,11 +42,6 @@ import {
   setNetworkOverridesConfig,
   setNodeOverridesConfig,
 } from '../../apiutils/ConfigAPIUtil';
-import {
-  getFirmwareVersions,
-  getNodeVersions,
-  getTopologyNodeList,
-} from '../../helpers/ConfigHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -40,6 +49,9 @@ import type {NetworkConfig as NetworkConfigType} from '../../contexts/NetworkCon
 import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
 import type {NodeConfigType} from '../../../shared/types/NodeConfig';
 import type {RouterHistory} from 'react-router-dom';
+
+import type {AggregatorConfigType} from '../../../shared/types/Aggregator';
+import type {ControllerConfigType} from '../../../shared/types/Controller';
 
 const styles = {};
 
@@ -53,7 +65,7 @@ type Props = {
 type State = {
   autoOverridesConfig: ?{[string]: $Shape<NodeConfigType>},
   baseConfigs: ?{[string]: $Shape<NodeConfigType>},
-  configMetadata: ?{[string]: $Shape<NodeConfigType>},
+  nodeConfigMetadata: ?{[string]: $Shape<NodeConfigType>},
   firmwareBaseConfigs: ?{[string]: $Shape<NodeConfigType>},
   hardwareBaseConfigs: ?{[string]: {[string]: $Shape<NodeConfigType>}},
   networkOverridesConfig: ?$Shape<NodeConfigType>,
@@ -62,6 +74,11 @@ type State = {
   selectedImage: string,
   selectedHardwareType: string,
   selectedFirmwareVersion: string,
+  controllerConfig: ?ControllerConfigType,
+  aggregatorConfig: ?AggregatorConfigType,
+  controllerConfigMetadata: ?ControllerConfigType,
+  aggregatorConfigMetadata: ?AggregatorConfigType,
+  useMetadataBase: boolean,
 };
 
 class NetworkConfig extends React.Component<Props, State> {
@@ -87,7 +104,7 @@ class NetworkConfig extends React.Component<Props, State> {
       nodeOverridesConfig: null,
 
       // Config metadata structures
-      configMetadata: null,
+      nodeConfigMetadata: null,
 
       // Currently selected node (in NODE view)
       // Data structure is defined in getTopologyNodeList() in ConfigHelpers
@@ -99,6 +116,17 @@ class NetworkConfig extends React.Component<Props, State> {
       selectedFirmwareVersion:
         this.getCurrentFirmwareVersion(networkConfig) ||
         DEFAULT_FIRMWARE_BASE_KEY,
+
+      // Controller Config structures
+      controllerConfig: null,
+      aggregatorConfig: null,
+
+      // Controller Config metadata structures
+      controllerConfigMetadata: null,
+      aggregatorConfigMetadata: null,
+
+      // Construct base controller config using metadata?
+      useMetadataBase: true,
     };
   }
 
@@ -179,10 +207,12 @@ class NetworkConfig extends React.Component<Props, State> {
       selectedFirmwareVersion,
       selectedHardwareType,
       selectedNodeInfo,
+      useMetadataBase,
     } = this.state;
 
     return {
       editMode,
+      useMetadataBase,
       selectedNodeInfo,
       baseConfigs,
       hardwareBaseConfigs,
@@ -213,7 +243,7 @@ class NetworkConfig extends React.Component<Props, State> {
       // Get base configs and metadata
       ...(isInitial
         ? [
-            {func: getConfigMetadata, key: 'configMetadata'},
+            {func: getConfigMetadata, key: 'nodeConfigMetadata'},
             {func: getBaseConfig, key: 'baseConfigs', data},
             {
               func: getFirmwareBaseConfig,
@@ -221,6 +251,14 @@ class NetworkConfig extends React.Component<Props, State> {
               data: firmwareData,
             },
             {func: getHardwareBaseConfig, key: 'hardwareBaseConfigs', data},
+            {
+              func: getControllerConfigMetadata,
+              key: 'controllerConfigMetadata',
+            },
+            {
+              func: getAggregatorConfigMetadata,
+              key: 'aggregatorConfigMetadata',
+            },
           ]
         : []),
 
@@ -228,6 +266,8 @@ class NetworkConfig extends React.Component<Props, State> {
       {func: getAutoOverridesConfig, key: 'autoOverridesConfig'},
       {func: getNetworkOverridesConfig, key: 'networkOverridesConfig'},
       {func: getNodeOverridesConfig, key: 'nodeOverridesConfig'},
+      {func: getControllerConfig, key: 'controllerConfig'},
+      {func: getAggregatorConfig, key: 'aggregatorConfig'},
     ];
   };
 
@@ -241,7 +281,19 @@ class NetworkConfig extends React.Component<Props, State> {
       selectedImage,
       selectedFirmwareVersion,
       selectedHardwareType,
+      useMetadataBase,
+      controllerConfigMetadata,
+      aggregatorConfigMetadata,
     } = this.state;
+
+    // Construct a fake controller "base layer" from metadata
+    if (useMetadataBase) {
+      if (editMode === NetworkConfigMode.CONTROLLER) {
+        return constructConfigFromMetadata(controllerConfigMetadata);
+      } else if (editMode === NetworkConfigMode.AGGREGATOR) {
+        return constructConfigFromMetadata(aggregatorConfigMetadata);
+      }
+    }
 
     // Merge software version base with hardware-specific base
     let imageVersion, firmwareVersion, hardwareType;
@@ -278,6 +330,8 @@ class NetworkConfig extends React.Component<Props, State> {
       autoOverridesConfig,
       networkOverridesConfig,
       nodeOverridesConfig,
+      controllerConfig,
+      aggregatorConfig,
     } = this.state;
 
     // Get base layer
@@ -286,41 +340,68 @@ class NetworkConfig extends React.Component<Props, State> {
       return []; // no node selected, so don't render anything
     }
 
-    return [
-      {id: ConfigLayer.BASE, value: baseLayer},
-      ...(editMode === NetworkConfigMode.NETWORK
-        ? [
-            // Network-only layers
-            {id: ConfigLayer.NETWORK, value: networkOverridesConfig || {}},
-          ]
-        : [
-            // Node layers
-            {
-              id: ConfigLayer.AUTO_NODE,
-              value: get(
-                autoOverridesConfig,
-                selectedNodeInfo ? selectedNodeInfo.name : '',
-                {},
-              ),
-            },
-            {id: ConfigLayer.NETWORK, value: networkOverridesConfig || {}},
-            {
-              id: ConfigLayer.NODE,
-              value: get(
-                nodeOverridesConfig,
-                selectedNodeInfo ? selectedNodeInfo.name : '',
-                {},
-              ),
-            },
-          ]),
-    ];
+    const configLayers = [];
+
+    if (editMode === NetworkConfigMode.CONTROLLER) {
+      configLayers.push({
+        id: ConfigLayer.E2E,
+        value: controllerConfig || {},
+      });
+    } else if (editMode === NetworkConfigMode.AGGREGATOR) {
+      configLayers.push({
+        id: ConfigLayer.E2E,
+        value: aggregatorConfig || {},
+      });
+    } else if (editMode === NetworkConfigMode.NETWORK) {
+      configLayers.push({
+        id: ConfigLayer.NETWORK,
+        value: networkOverridesConfig || {},
+      });
+    } else if (editMode === NetworkConfigMode.NODE) {
+      configLayers.push(
+        {
+          id: ConfigLayer.AUTO_NODE,
+          value: get(
+            autoOverridesConfig,
+            selectedNodeInfo ? selectedNodeInfo.name : '',
+            {},
+          ),
+        },
+        {id: ConfigLayer.NETWORK, value: networkOverridesConfig || {}},
+        {
+          id: ConfigLayer.NODE,
+          value: get(
+            nodeOverridesConfig,
+            selectedNodeInfo ? selectedNodeInfo.name : '',
+            {},
+          ),
+        },
+      );
+    }
+
+    return [{id: ConfigLayer.BASE, value: baseLayer}, ...configLayers];
   };
 
-  getConfigMetadata = _editMode => {
+  getConfigMetadata = editMode => {
     // Return the current config metadata
-    const {configMetadata} = this.state;
+    const {
+      nodeConfigMetadata,
+      controllerConfigMetadata,
+      aggregatorConfigMetadata,
+    } = this.state;
 
-    return configMetadata;
+    if (
+      editMode === NetworkConfigMode.CONTROLLER ||
+      editMode === NetworkConfigMode.AGGREGATOR
+    ) {
+      return editMode === NetworkConfigMode.CONTROLLER
+        ? controllerConfigMetadata
+        : editMode === NetworkConfigMode.AGGREGATOR
+        ? aggregatorConfigMetadata
+        : {};
+    }
+
+    return nodeConfigMetadata;
   };
 
   getConfigOverrides = editMode => {
@@ -329,12 +410,18 @@ class NetworkConfig extends React.Component<Props, State> {
       networkOverridesConfig,
       nodeOverridesConfig,
       selectedNodeInfo,
+      controllerConfig,
+      aggregatorConfig,
     } = this.state;
 
     if (editMode === NetworkConfigMode.NETWORK) {
       return networkOverridesConfig;
     } else if (editMode === NetworkConfigMode.NODE && selectedNodeInfo) {
       return get(nodeOverridesConfig, selectedNodeInfo.name, {});
+    } else if (editMode === NetworkConfigMode.CONTROLLER) {
+      return controllerConfig;
+    } else if (editMode === NetworkConfigMode.AGGREGATOR) {
+      return aggregatorConfig;
     } else {
       return {};
     }
@@ -350,6 +437,10 @@ class NetworkConfig extends React.Component<Props, State> {
     } else if (editMode === NetworkConfigMode.NODE && selectedNodeInfo) {
       const nodeConfig = {[selectedNodeInfo.name]: draftConfig};
       setNodeOverridesConfig(networkName, nodeConfig, onSuccess, onError);
+    } else if (editMode === NetworkConfigMode.CONTROLLER) {
+      setControllerConfig(networkName, draftConfig, onSuccess, onError);
+    } else if (editMode === NetworkConfigMode.AGGREGATOR) {
+      setAggregatorConfig(networkName, draftConfig, onSuccess, onError);
     }
   };
 
@@ -368,6 +459,11 @@ class NetworkConfig extends React.Component<Props, State> {
         this.handleSelectNode(topologyNodeList[0]);
       }
     }
+  };
+
+  handleSetConfigBase = (useMetadataBase, callback) => {
+    // Toggle the E2E config metadata base values in the sidebar
+    this.setState({useMetadataBase}, callback);
   };
 
   handleSelectNode = (node, callback) => {
@@ -431,10 +527,11 @@ class NetworkConfig extends React.Component<Props, State> {
         getConfigOverrides={this.getConfigOverrides}
         onSubmitDraft={this.handleSubmitDraft}
         onEditModeChanged={this.handleEditModeChange}
+        onSetConfigBase={this.handleSetConfigBase}
         onSelectNode={this.handleSelectNode}
         onSelectImage={this.handleSelectImage}
-        onSelectFirmwareVersion={this.handleSelectFirmwareVersion}
         onSelectHardwareType={this.handleSelectHardwareType}
+        onSelectFirmwareVersion={this.handleSelectFirmwareVersion}
       />
     );
   }
