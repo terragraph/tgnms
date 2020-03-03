@@ -78,9 +78,10 @@ export default function NmsAlarms(_props: Props) {
           makeTabLink={({match, keyName}) =>
             `/alarms/${match.params.networkName || ''}/${keyName}`
           }
-          thresholdEditorEnabled={false}
           getAlertType={getAlertType}
           filterLabels={filterLabels}
+          thresholdEditorEnabled={false}
+          alertManagerGlobalConfigEnabled={true}
         />
       </SnackbarProvider>
     </div>

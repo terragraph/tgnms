@@ -41,7 +41,7 @@ router.get('/silences', (req, res) =>
 
 router.post('/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusConfigUrl(`/0/alert`),
+    uri: formatPrometheusConfigUrl(`/alert`),
     method: req.method,
     json: req.body,
   };
@@ -56,7 +56,7 @@ router.put('/alert_config/:alertName', (req, res) => {
     return res.status(400).json({error: 'invalid alertName'});
   }
   const params = {
-    uri: formatPrometheusConfigUrl(`/0/alert/${alertName}`),
+    uri: formatPrometheusConfigUrl(`/alert/${alertName}`),
     method: req.method,
     json: req.body,
   };
@@ -65,9 +65,9 @@ router.put('/alert_config/:alertName', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.delete('/alert_config', (req, res) => {
+router.delete('/alert_config/:alertName', (req, res) => {
   const params = {
-    uri: formatPrometheusConfigUrl(`/0/alert`),
+    uri: formatPrometheusConfigUrl(`/alert/${req.params.alertName}`),
     method: req.method,
     qs: req.query,
   };
@@ -78,7 +78,7 @@ router.delete('/alert_config', (req, res) => {
 
 router.get('/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusConfigUrl(`/0/alert`),
+    uri: formatPrometheusConfigUrl(`/alert`),
     method: req.method,
     qs: req.query,
   };
@@ -89,7 +89,7 @@ router.get('/alert_config', (req, res) => {
 
 router.get('/receivers', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/0/receiver`),
+    uri: formatAlertManagerConfigUrl(`/receiver`),
     method: req.method,
     qs: req.query,
   })
@@ -98,7 +98,7 @@ router.get('/receivers', (req, res) =>
 );
 router.post('/receivers', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/0/receiver`),
+    uri: formatAlertManagerConfigUrl(`/receiver`),
     method: req.method,
     json: req.body,
   })
@@ -108,7 +108,7 @@ router.post('/receivers', (req, res) =>
 
 router.put('/receivers/:name', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/0/receiver/${req.params.name}`),
+    uri: formatAlertManagerConfigUrl(`/receiver/${req.params.name}`),
     method: req.method,
     json: req.body,
   })
@@ -118,7 +118,7 @@ router.put('/receivers/:name', (req, res) =>
 
 router.delete('/receivers/:name', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/0/receiver`),
+    uri: formatAlertManagerConfigUrl(`/receiver`),
     method: req.method,
     qs: {receiver: req.params.name},
   })
@@ -128,7 +128,7 @@ router.delete('/receivers/:name', (req, res) =>
 
 router.get('/routes', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/0/receiver/route`),
+    uri: formatAlertManagerConfigUrl(`/route`),
     method: req.method,
     qs: req.query,
   })
@@ -140,7 +140,7 @@ router.get('/routes', (req, res) =>
 
 router.post('/routes', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/0/receiver/route`),
+    uri: formatAlertManagerConfigUrl(`/route`),
     method: req.method,
     json: req.body,
   })
@@ -154,7 +154,6 @@ router.get('/tg_rules', (req, res) =>
   createRequest({
     uri: formatTgAlarmServiceUrl(`/rules`),
     method: req.method,
-    //json: req.body,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res)),
@@ -189,12 +188,31 @@ router.get('/matching_alerts/:alertExpr', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.post('/globalconfig', (req, res) =>
+  createRequest({
+    uri: formatAlertManagerConfigUrl('/global'),
+    method: req.method,
+    json: req.body,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res)),
+);
+
+router.get('/globalconfig', (req, res) => {
+  return createRequest({
+    uri: formatAlertManagerConfigUrl('/global'),
+    method: req.method,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
 function formatAlertManagerConfigUrl(uri) {
-  return `${ALERTMANAGER_CONFIG_URL}${uri}`;
+  return `${ALERTMANAGER_CONFIG_URL}/v1/tg${uri}`;
 }
 
 function formatPrometheusConfigUrl(uri) {
-  return `${PROMETHEUS_CONFIG_URL}${uri}`;
+  return `${PROMETHEUS_CONFIG_URL}/v1/tg${uri}`;
 }
 
 function formatAlertManagerUrl(uri) {

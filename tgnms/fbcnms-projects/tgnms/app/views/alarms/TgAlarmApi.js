@@ -39,11 +39,8 @@ export const TgApiUtil: ApiUtil = {
     }),
   deleteAlertRule: ({ruleName}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/alert_config`,
+      url: `${AM_BASE_URL}/alert_config/${ruleName}`,
       method: 'DELETE',
-      params: {
-        alert_name: ruleName,
-      },
     }),
 
   // suppressions
@@ -95,6 +92,16 @@ export const TgApiUtil: ApiUtil = {
     console.warn('not implemented');
     return Promise.resolve([]);
   },
+
+  // global config
+  getGlobalConfig: _req =>
+    makeRequest({url: `${AM_BASE_URL}/globalconfig`, method: 'GET'}),
+  editGlobalConfig: ({config}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/globalconfig`,
+      method: 'POST',
+      data: config,
+    }),
 };
 
 export const TgEventAlarmsApiUtil = {
