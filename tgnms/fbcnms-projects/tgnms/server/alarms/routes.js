@@ -8,6 +8,7 @@ import {
   ALERTMANAGER_CONFIG_URL,
   ALERTMANAGER_URL,
   PROMETHEUS_CONFIG_URL,
+  PROMETHEUS_URL,
   TG_ALARM_URL,
 } from '../config';
 
@@ -202,6 +203,30 @@ router.get('/globalconfig', (req, res) => {
   return createRequest({
     uri: formatAlertManagerConfigUrl('/global'),
     method: req.method,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
+router.get('/metric_series', (req, res) => {
+  let startTimeString: string;
+  if (typeof req.query.start === 'string') {
+    startTimeString = req.query.start;
+  } else {
+    /**
+     * prom's series endpoint will only show metric series which were active
+     * during the time interval. If no interval is provided, it will default
+     * to the most recent scrape so offset by a large amount of time to get
+     * all the metrics series.
+     */
+    const METRIC_SERIES_DATE_OFFSET = 180;
+    const startTime = new Date();
+    startTime.setDate(startTime.getDate() - METRIC_SERIES_DATE_OFFSET);
+    startTimeString = startTime.toISOString();
+  }
+  return createRequest({
+    uri: `${PROMETHEUS_URL}/api/v1/series?start=${startTimeString}&match[]={job="prometheus_cache"} `,
+    method: 'GET',
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res));

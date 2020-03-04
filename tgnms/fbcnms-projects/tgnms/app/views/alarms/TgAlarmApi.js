@@ -88,10 +88,11 @@ export const TgApiUtil: ApiUtil = {
     }),
 
   // metric series
-  getMetricSeries: _req => {
-    console.warn('not implemented');
-    return Promise.resolve([]);
-  },
+  getMetricSeries: _req =>
+    makeRequest({
+      url: `${AM_BASE_URL}/metric_series`,
+      method: 'GET',
+    }),
 
   // global config
   getGlobalConfig: _req =>
