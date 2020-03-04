@@ -40,6 +40,7 @@
     - { src: "scripts/create-default-realm-user.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
     - { src: "scripts/create-keycloak-database.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
     - { src: "scripts/keycloak.sql", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/create-service-account-client.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
 
 - name: copy keycloak env files
   template:

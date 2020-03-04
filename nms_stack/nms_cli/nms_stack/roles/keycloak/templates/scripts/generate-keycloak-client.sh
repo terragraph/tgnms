@@ -1,4 +1,5 @@
 #!/bin/bash
+# DEPRECATED - Creates the NMS client in keycloak
 function usage {
   echo "usage: generate-keycloak-client.sh <oauth client-id> <env file path> "
 }
