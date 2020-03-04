@@ -82,6 +82,7 @@ export default function NmsAlarms(_props: Props) {
           filterLabels={filterLabels}
           thresholdEditorEnabled={false}
           alertManagerGlobalConfigEnabled={true}
+          disabledTabs={['suppressions', 'routes']}
         />
       </SnackbarProvider>
     </div>
