@@ -46,11 +46,18 @@ EOF
     fi
   fi
 
-  echo "> generating client secret"
-  # regenerate the client secret
-  $KCADMIN create "clients/$ID/client-secret" -r $REALM
-  # query the new client secret
+  echo "> querying client secret"
   SECRET=$($KCADMIN get "clients/$ID/client-secret" -r $REALM | jq -r '.value')
+  # If secret is null, generate it
+  # This normally only happens with imported clients, not scripted clients
+  if [ -z "$SECRET" ] || [ "$SECRET" == "null" ];
+  then
+    echo "> generating client secret"
+    # generate the client secret
+    $KCADMIN create "clients/$ID/client-secret" -r $REALM
+    # query the new client secret
+    SECRET=$($KCADMIN get "clients/$ID/client-secret" -r $REALM | jq -r '.value')
+  fi
 
   echo "> writing out env file: $ENV_FILE"
   # generate the env file
