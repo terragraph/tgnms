@@ -15,10 +15,9 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.02.03",
+    version="2020.03.04",
     python_requires=">=3.7",
     packages=["scan_service"],
-    install_requires=["python-snappy>=0.5.4,<1.0"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["scan_service = scan_service.main:main"]},

@@ -1,9 +1,6 @@
 # Pull base image
 FROM secure.cxl-terragraph.com:443/tglib:latest
 
-# Install snappy driver
-RUN apk add --no-cache snappy g++ snappy-dev
-
 ARG WORKDIR=/usr/local/scan_service
 
 # Copy scan_service source files into docker container

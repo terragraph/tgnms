@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from calendar import timegm
 from datetime import datetime
 
 
+SCAN_TIME_DELTA_S = 120
+SCAN_TIME_DELTA_BWGD = (SCAN_TIME_DELTA_S * 1000) / 25.6
+
+
 def bwgd_to_datetime(bwgd: int) -> datetime:
-    # convert bwgd time to gps time (in ms) by adjusting the 25.6 ms
+    # Convert bwgd time to gps time (in ms) by adjusting the 25.6 ms
     # bwgd windows into milliseconds then calibrate gps time with unix epoch
     real_gps_time = bwgd * 256 / 10
     gps_time = real_gps_time - 18000
