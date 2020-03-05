@@ -66,7 +66,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
   actionItems;
   constructor(props) {
     super(props);
-    const {ctrlVersion, history, networkName, node} = props;
+    const {nodeDetailsProps, history, networkName, node} = props;
 
     this.actionItems = [
       {
@@ -82,7 +82,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             icon: <SyncIcon />,
             func: this.onRestartMinion,
           },
-          ...(supportsTopologyScan(ctrlVersion)
+          ...(supportsTopologyScan(nodeDetailsProps.ctrlVersion)
             ? [
                 {
                   label: 'Search Nearby',
