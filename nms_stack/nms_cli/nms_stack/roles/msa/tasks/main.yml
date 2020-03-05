@@ -8,32 +8,41 @@
     mode: 0755
   loop:
     - "{{ msa_path }}/docker_volumes"
-    - "{{ msa_path }}/docker_volumes/networktest"
+    - "{{ msa_path }}/scripts"
     - "{{ msa_path }}/env"
 
 - name: copy msa configs
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    mode: "0644"
     owner: "{{ docker_user }}"
     group: docker
+    mode: 0644
     force: yes
   loop:
     - { src: "docker-compose.yml", dest: "{{ msa_path }}" }
     - { src: "config.json", dest: "{{ msa_path }}/docker_volumes/config.json" }
-    - { src: "networktest/service_config.json", dest: "{{ msa_path }}/docker_volumes/networktest" }
 
-- name: copy env files
+- name: copy scripts
   template:
-    src: "{{ item }}"
-    dest: "{{ msa_path }}/env"
-    mode: "0644"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     owner: "{{ docker_user }}"
     group: docker
+    mode: 0755
     force: yes
   loop:
-    - "django.env"
+    - { src: "scripts/create_msa_database.sh", dest: "{{ msa_path }}/scripts"}
+    - { src: "scripts/msa.sql", dest: "{{ msa_path }}/scripts"}
+
+- name: establish services
+  include_tasks:
+    file: service.yml
+  with_items:
+    - { name: "default_routes_service", has_database: true }
+    - { name: "topology_service", has_database: true }
+  loop_control:
+    loop_var: service
 
 - name: run compose
   shell: "docker stack deploy -c {{ msa_path }}/docker-compose.yml --with-registry-auth msa"

@@ -1,0 +1,43 @@
+---
+- name: create service path
+  file:
+    path: "{{ msa_path }}/docker_volumes/{{ service.name }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: copy service config file
+  template:
+    src: "{{ service.name }}/service_config.json"
+    dest: "{{ msa_path }}/docker_volumes/{{ service.name }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+
+- name: copy db files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "alembic.ini", dest: "{{ msa_path }}/docker_volumes/{{ service.name }}"}
+    - { src: "msa_db.env", dest: "{{ msa_path }}/env/{{ service.name }}.env"}
+  when: service.has_database
+
+- name: create database and user
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ msa_path }}/scripts,target=/scripts
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ msa_path }}/env/{{ service.name }}.env
+    -e DB_HOST={{ db_host }}
+    -e DB_ROOT_USER={{ db_root_user }}
+    -e DB_ROOT_PASSWORD={{ db_root_password }}
+    mysql:5 /scripts/create_msa_database.sh
+  when: service.has_database

@@ -7,7 +7,7 @@ services:
       - {{ db_gfs_path }}/env/time.env
     environment:
       - MYSQL_HOST=
-      - MYSQL_ROOT_PASSWORD=12345
+      - MYSQL_ROOT_PASSWORD={{ db_root_password }}
     restart: unless-stopped
     volumes:
       - "{{ db_gfs_path }}/volumes/mysql_init_scripts:/docker-entrypoint-initdb.d:ro"

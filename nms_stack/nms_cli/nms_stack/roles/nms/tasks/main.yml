@@ -11,7 +11,6 @@
     - "{{ audit_logs_gfs_path }}"
     - "{{ nms_path }}/docker_volumes"
     - "{{ nms_path }}/docker_volumes/beringei/data"
-    - "{{ nms_path }}/docker_volumes/analytics/config"
     - "{{ nms_path }}/env"
 
 - name: copy nms configs
@@ -25,7 +24,6 @@
   loop:
     - { src: "docker-compose.yml", dest: "{{ nms_path }}" }
     - { src: "add_controllers.sql", dest: "{{ nms_path }}" }
-    - { src: "PipelineConfig.json", dest: "{{ nms_path }}/docker_volumes/analytics/config" }
 
 - name: copy nms env files
   template:

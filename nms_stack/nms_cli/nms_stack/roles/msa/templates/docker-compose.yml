@@ -1,20 +1,40 @@
 version: '3.7'
 
 services:
-  networktest:
-    image: secure.cxl-terragraph.com:443/networktest:latest
+  default_routes_service:
+    image: secure.cxl-terragraph.com:443/default_routes_service:latest
     env_file:
-      - {{ db_gfs_path }}/env/mysql.env
-      - {{ msa_path }}/env/django.env
+      - {{ msa_path }}/env/default_routes_service.env
     restart: always
     volumes:
-      - {{ msa_path }}/docker_volumes/config.json:/usr/local/nms/network_test/network_test/config.json
-      - {{ msa_path }}/docker_volumes/networktest/service_config.json:/usr/local/nms/network_test/network_test/service_config.json
+      - {{ msa_path }}/docker_volumes/config.json:/usr/local/default_routes_service/config.json
+      - {{ msa_path }}/docker_volumes/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
+      - {{ msa_path }}/docker_volumes/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
     ports:
-      - "8000:8080"
+      - "8080"
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "cd /usr/local/nms/network_test/network_test; until nc -z db 3306; do sleep 1; done && python manage.py migrate && python clean_up_db.py && python entry.py"]
+    command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  topology_service:
+    image: secure.cxl-terragraph.com:443/topology_service:latest
+    env_file:
+      - {{ msa_path }}/env/topology_service.env
+    restart: always
+    volumes:
+      - {{ msa_path }}/docker_volumes/config.json:/usr/local/topology_service/config.json
+      - {{ msa_path }}/docker_volumes/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
+      - {{ msa_path }}/docker_volumes/topology_service/service_config.json:/usr/local/topology_service/service_config.json
+    ports:
+      - "8080"
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]
     logging:
       driver: "json-file"
       options:

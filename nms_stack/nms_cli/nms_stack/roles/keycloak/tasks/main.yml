@@ -57,10 +57,10 @@
     --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
     --entrypoint=""
     --network=terragraph_net
-    --env-file={{ db_gfs_path }}/env/mysql.env
     --env-file={{ keycloak_path }}/env/keycloak.env
-    -e MYSQL_ROOT_USER=root
-    -e MYSQL_ROOT_PASSWORD=12345
+    -e DB_HOST={{ db_host }}
+    -e DB_ROOT_USER={{ db_root_user }}
+    -e DB_ROOT_PASSWORD={{ db_root_password }}
     mysql:5 /scripts/create-keycloak-database.sh
 
 - name: run compose
