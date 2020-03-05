@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Tuple
 
 from aiohttp import web
 from aiomysql.sa.result import RowProxy
-from sqlalchemy import outerjoin, select
-from sqlalchemy.orm import aliased
+from sqlalchemy import literal, select
 from tglib.clients import MySQLClient
 
 from .models import DefaultRoutesHistory, LinkCnRoutes
@@ -73,34 +72,34 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     ---
     description: Analyze default routes history for any node/all nodes of the network
     tags:
-      - Default Routes Service
+    - Default Routes Service
     produces:
-      - application/json
+    - application/json
     parameters:
-      - in: query
-        name: network_name
-        description: Name of the network.
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: node_name
-        description: Name of the node. Will fetch info for all nodes if not specified.
-        required: false
-        schema:
-          type: string
-      - in: query
-        name: start_dt
-        description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: end_dt
-        description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
-        required: true
-        schema:
-          type: string
+    - in: query
+      name: network_name
+      description: Name of the network.
+      required: true
+      schema:
+        type: string
+    - in: query
+      name: node_name
+      description: Name of the node. Will fetch info for all nodes if not specified.
+      required: false
+      schema:
+        type: string
+    - in: query
+      name: start_dt
+      description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
+      required: true
+      schema:
+        type: string
+    - in: query
+      name: end_dt
+      description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
+      required: true
+      schema:
+        type: string
     responses:
       "200":
         description: Successful operation. Returns analyzed default routes history.
@@ -113,35 +112,43 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     # get node name from request query
     node_name = request.rel_url.query.get("node_name")
 
-    # get entries for all nodes between start and end time
-    previous_entry = aliased(DefaultRoutesHistory)
-    query = (
-        select(
-            [
-                DefaultRoutesHistory.node_name,
-                DefaultRoutesHistory.routes,
-                DefaultRoutesHistory.last_updated,
-                DefaultRoutesHistory.hop_count,
-                previous_entry.routes.label("prev_routes"),
-            ]
-        )
-        .select_from(
-            outerjoin(
-                DefaultRoutesHistory,
-                previous_entry,
-                DefaultRoutesHistory.prev_routes_id == previous_entry.id,
-            )
-        )
+    select_params = [
+        DefaultRoutesHistory.routes,
+        DefaultRoutesHistory.last_updated,
+        DefaultRoutesHistory.hop_count,
+        DefaultRoutesHistory.node_name,
+    ]
+
+    # query to fetch all route changes in the given datetime window
+    in_qry = select([*select_params, literal(True).label("in_window")]).where(
+        (DefaultRoutesHistory.network_name == network_name)
+        & (DefaultRoutesHistory.last_updated >= start_dt_obj)
+        & (DefaultRoutesHistory.last_updated <= end_dt_obj)
+    )
+
+    # query to fetch latest routes before the given datetime window
+    out_qry = (
+        select([*select_params, literal(False).label("in_window")])
         .where(
             (DefaultRoutesHistory.network_name == network_name)
-            & (DefaultRoutesHistory.last_updated >= start_dt_obj)
-            & (DefaultRoutesHistory.last_updated <= end_dt_obj)
+            & (DefaultRoutesHistory.last_updated < start_dt_obj)
+        )
+        .order_by(DefaultRoutesHistory.last_updated.desc())
+        .group_by(
+            DefaultRoutesHistory.routes,
+            DefaultRoutesHistory.last_updated,
+            DefaultRoutesHistory.hop_count,
+            DefaultRoutesHistory.node_name,
         )
     )
 
     # if node name is provided, fetch info for that specific node
     if node_name is not None:
-        query = query.where(DefaultRoutesHistory.node_name == node_name)
+        in_qry = in_qry.where(DefaultRoutesHistory.node_name == node_name)
+        out_qry = out_qry.where(DefaultRoutesHistory.node_name == node_name).limit(1)
+
+    # merge both queries
+    query = out_qry.union_all(in_qry)
 
     logging.debug(
         f"Query to fetch node_name, routes and last_updated from db: {str(query)}"
@@ -154,11 +161,11 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     # iterate over the list of RowProxy objects to track changes in routes.
     routes_history: defaultdict = defaultdict(list)
     for row in results:
-        routes_history[row["node_name"]].append(
+        routes_history[row.node_name].append(
             {
-                "last_updated": row["last_updated"],
-                "routes": row["routes"],
-                "hop_count": row["hop_count"],
+                "last_updated": row.last_updated,
+                "routes": row.routes,
+                "hop_count": row.hop_count,
             }
         )
 
@@ -201,14 +208,16 @@ def compute_routes_utilization(
 
     # row data is in ascending order of time
     for row in raw_routes_data:
-        node_name = row["node_name"]
-        curr_routes = row["routes"]
-        prev_routes = row["prev_routes"]
-        curr_datetime = row["last_updated"]
+        node_name = row.node_name
+        curr_routes = row.routes
+        curr_datetime = row.last_updated
 
         # initialize the node
         if node_name not in routes_utilization:
-            prev_info[node_name] = {"routes": prev_routes, "datetime": start_dt}
+            prev_info[node_name] = {
+                "routes": curr_routes if not row.in_window else None,
+                "datetime": start_dt,
+            }
             routes_utilization[node_name] = defaultdict(float)
 
         # record time taken by the previous routes
@@ -243,34 +252,34 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
     ---
     description: Fetch CN default routes history for links.
     tags:
-      - Default Routes Service
+    - Default Routes Service
     produces:
-      - application/json
+    - application/json
     parameters:
-      - in: query
-        name: network_name
-        description: Name of the network.
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: link_name
-        description: Name of the link. Will fetch info for all links if not specified.
-        required: false
-        schema:
-          type: string
-      - in: query
-        name: start_dt
-        description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
-        required: true
-        schema:
-          type: string
-      - in: query
-        name: end_dt
-        description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
-        required: true
-        schema:
-          type: string
+    - in: query
+      name: network_name
+      description: Name of the network.
+      required: true
+      schema:
+        type: string
+    - in: query
+      name: link_name
+      description: Name of the link. Will fetch info for all links if not specified.
+      required: false
+      schema:
+        type: string
+    - in: query
+      name: start_dt
+      description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
+      required: true
+      schema:
+        type: string
+    - in: query
+      name: end_dt
+      description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
+      required: true
+      schema:
+        type: string
     responses:
       "200":
         description: Successful operation. Returns CN default routes history for the link.

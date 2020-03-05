@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import JSON, Column, DateTime, Integer, String, func
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -21,12 +21,6 @@ class DefaultRoutesHistory(Base):
     )
     routes = Column(JSON, nullable=False)
     hop_count = Column(Integer, nullable=False)
-    prev_routes_id = Column(
-        Integer,
-        ForeignKey("default_routes_history.id", ondelete="SET NULL"),
-        index=True,
-        nullable=True,
-    )
 
 
 class LinkCnRoutes(Base):

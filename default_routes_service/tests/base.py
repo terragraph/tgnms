@@ -4,7 +4,7 @@
 import logging
 import unittest
 
-from tests.routes_utilization import RoutesUtilization
+from tests.routes_utilization import RoutesUtilizationTests
 
 
 if __name__ == "__main__":

@@ -36,9 +36,8 @@ async def analyze_node(
         )
         logging.debug(f"Query for routes of {node_name} in database: {str(query)}")
         cursor = await conn.execute(query)
-        results = await cursor.fetchone()
-        id = results["id"] if results else None
-        prev_routes: List = results["routes"] if results else []
+        result = await cursor.fetchone()
+        prev_routes: List = result.routes if result else []
 
         # if current route is different from last stored route, then
         # add node data in history table
@@ -55,7 +54,6 @@ async def analyze_node(
                 last_updated=now,
                 routes=default_routes,
                 hop_count=hop_count,
-                prev_routes_id=id,
             )
             logging.debug(
                 "Query for inserting routes into history "
@@ -89,8 +87,8 @@ async def analyze_link_cn_routes(
         )
         logging.debug(f"Query for CN routes of {link_name} in database: {str(query)}")
         cursor = await conn.execute(query)
-        results = await cursor.fetchone()
-        prev_cn_routes: List = results["cn_routes"] if results else []
+        result = await cursor.fetchone()
+        prev_cn_routes: List = result.cn_routes if result else []
 
         # if current CN routes are different from last stored routes entry, then
         # add link data in the database
