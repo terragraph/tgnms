@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import distutils.cmd
-import distutils.log
-import os
+import distutils
 import pathlib
 import re
 import subprocess
 
-from setuptools import find_packages, setup
+from setuptools import Command, find_packages, setup
 
 
 HERE = pathlib.Path(__file__).parent
@@ -19,33 +17,36 @@ except IndexError:
     raise RuntimeError("Unable to determine version.")
 
 
-class BuildThriftCommand(distutils.cmd.Command):
+class BuildThriftCommand(Command):
     """A custom command to build thrift type definitions from thrift files."""
 
     description = "Build thrift type definitions"
     user_options = [
-        ("path=", None, "path to thrift files"),
-        ("out-path=", None, "output path for thrift files"),
+        ("path=", None, "path to raw thrift files"),
+        ("out-path=", None, "output path for compiled thrift files"),
     ]
 
     def initialize_options(self):
         """Set default values for options."""
-        self.path = "./if"
-        self.out_path = "."
+        self.path = str(HERE / "if")
+        self.out_path = str(HERE)
 
     def finalize_options(self):
         """Post-process options."""
-        assert os.path.exists(self.path), f"Thrift path {self.path} does not exist."
+        path = pathlib.Path(self.path)
+        if path.exists() and path.is_dir():
+            self.path = path
+        else:
+            raise RuntimeError(f"Thrift directory '{self.path}' does not exist.")
 
     def run(self):
         """Run command."""
-        for file in os.listdir(self.path):
-            if not file.endswith(".thrift"):
+        for file in self.path.iterdir():
+            if file.suffix != ".thrift":
                 continue
 
             # Remove 'namespace cpp2' line
-            file = f"{self.path}/{file}"
-            with open(file, "r+") as f:
+            with file.open("r+") as f:
                 lines = f.readlines()
 
                 f.seek(0)
