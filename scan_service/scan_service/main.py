@@ -7,14 +7,14 @@ import sys
 from typing import Dict
 
 from terragraph_thrift.Event.ttypes import Event, EventId
-from tglib.clients.kafka_consumer import KafkaConsumer
-from tglib.tglib import Client, init
+from tglib import ClientType, init
+from tglib.clients import KafkaConsumer
 
-from scan_service.response_rate_stats import ResponseRateStats
-from scan_service.scan_db import ScanDb
+from .response_rate_stats import ResponseRateStats
+from .scan_db import ScanDb
 
 
-async def main(config: Dict) -> None:
+async def async_main(config: Dict) -> None:
     """Get kafka consumer client, and listen for SCAN_COMPLETED events to start analysis"""
 
     consumer = KafkaConsumer().consumer
@@ -37,12 +37,14 @@ async def main(config: Dict) -> None:
             await scan_db.write_scan_response_rate_stats(resp_rates)
 
 
-if __name__ == "__main__":
+def main() -> None:
     try:
         with open("./service_config.json") as f:
             config = json.load(f)
-    except OSError:
+    except (json.JSONDecodeError, OSError):
         logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
-    init(lambda: main(config), {Client.KAFKA_CONSUMER, Client.MYSQL_CLIENT})
+    init(
+        lambda: async_main(config), {ClientType.KAFKA_CONSUMER, ClientType.MYSQL_CLIENT}
+    )

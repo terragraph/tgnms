@@ -10,8 +10,8 @@ from terragraph_thrift.Controller.ttypes import (
     ScanType,
 )
 
-from scan_service.scan import ScanGroup
-from scan_service.time_conv import bwgd_to_datetime
+from .scan import ScanGroup
+from .time_conv import bwgd_to_datetime
 
 
 class ResponseRateStats:

@@ -1,16 +1,17 @@
 # Pull base image
 FROM secure.cxl-terragraph.com:443/tglib:latest
 
-RUN apt-get update
-RUN apt-get -y upgrade
-
 # Install snappy driver
-RUN apt-get install -y build-essential python3.7-dev libsnappy-dev
+RUN apk add --no-cache snappy g++ snappy-dev
+
+ARG WORKDIR=/usr/local/scan_service
+
+# Copy scan_service source files into docker container
+WORKDIR $WORKDIR
+COPY scan_service/ .flake8 ./
 
 # Install scan_service
-WORKDIR /usr/local/scan_service
-COPY . .
-RUN pip install .
+RUN pip install .[ci]
 
-# Remove snappy driver build dependencies
-RUN apt-get purge -y --auto-remove build-essential python3.7-dev
+# Define default command
+CMD ["scan_service"]

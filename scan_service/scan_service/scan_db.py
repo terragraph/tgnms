@@ -9,13 +9,13 @@ from typing import Any, Callable, List, Optional
 
 import snappy
 from terragraph_thrift.Controller.ttypes import ScanResp
-from tglib.clients.mysql_client import MySQLClient
+from tglib.clients import MySQLClient
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAcceleratedFactory
 from thrift.TSerialization import deserialize
 
-from scan_service.response_rate_stats import ResponseRateStats
-from scan_service.scan import Scan, ScanGroup
-from scan_service.time_conv import datetime_to_bwgd
+from .response_rate_stats import ResponseRateStats
+from .scan import Scan, ScanGroup
+from .time_conv import datetime_to_bwgd
 
 
 SCAN_TIME_DELTA_S = 120
