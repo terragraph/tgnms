@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc.
 
+import distutils
 import os
-
-from setuptools import setup
+import pathlib
+import subprocess
 from sys import version_info
+
+from setuptools import Command, setup
+
 
 PACKAGE = "nms_cli"
 
@@ -21,6 +25,56 @@ ptr_params = {
     "run_flake8": True,
     "run_mypy": False,
 }
+
+
+SUBMODULES = {
+    "ansible-role-docker": (
+        "https://github.com/geerlingguy/ansible-role-docker.git",
+        "2.5.2",
+    ),
+    "ansible-role-glusterfs": (
+        "https://github.com/geerlingguy/ansible-role-glusterfs.git",
+        "3.0.0",
+    ),
+}
+
+
+class CloneSubmodulesCommand(Command):
+    """A custom command to clone git submodules."""
+
+    description = "Clone git submodules"
+    user_options = [
+        ("fbproxy", None, "pass fbproxy configuration parameter to github"),
+        ("fbproxy-url=", None, "fbproxy URL"),
+        ("path=", None, "submodule destination path"),
+    ]
+
+    def initialize_options(self) -> None:
+        """Set default values for options."""
+        self.fbproxy = False
+        self.fbproxy_url = "fwdproxy:8080"
+        self.path = str(pathlib.Path(__file__).parent / "nms_cli/nms_stack/roles")
+
+    def finalize_options(self) -> None:
+        """Post-process options."""
+        self.path = pathlib.Path(self.path)
+
+    def run(self) -> None:
+        """Run command."""
+        for name, (url, version) in SUBMODULES.items():
+            command = ["git", "clone", url, "-b", version]
+            if self.fbproxy:
+                command += [
+                    "-c",
+                    f"http.proxy={self.fbproxy_url}",
+                    "-c",
+                    f"https.proxy={self.fbproxy_url}",
+                ]
+
+            # Clone the repo to 'self.path/name'
+            command.append(self.path / name)
+            self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
+            subprocess.check_call(command)
 
 
 def package_ansible(directory):
@@ -41,12 +95,12 @@ setup(
     url="http://github.com/facebookexternal/terragraph-ansible/",
     author="Mike Nugent",
     author_email="mnugent@fb.com",
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.7",
         "Development Status :: 3 - Alpha",
-    ),
+    ],
     entry_points={"console_scripts": ["nms = nms_cli.nms:cli"]},
     python_requires=">=3.7",
     install_requires=[
@@ -57,5 +111,6 @@ setup(
         "pygments",
         "setuptools",
     ],
+    cmdclass={"clone_submodules": CloneSubmodulesCommand},
     test_suite=ptr_params["test_suite"],
 )
