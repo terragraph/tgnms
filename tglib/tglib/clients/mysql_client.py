@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import os
 from typing import Dict, Optional
 
 import pymysql
@@ -24,7 +25,7 @@ class MySQLClient(BaseClient):
             raise ClientRestartError()
 
         mysql_params = config.get("mysql")
-        required_params = ["host", "port", "user", "password", "db"]
+        required_params = ["host", "port"]
 
         if mysql_params is None:
             raise ConfigError("Missing required 'mysql' key")
@@ -32,6 +33,14 @@ class MySQLClient(BaseClient):
             raise ConfigError("Value for 'mysql' is not an object")
         if not all(param in mysql_params for param in required_params):
             raise ConfigError(f"Missing one or more required params: {required_params}")
+
+        mysql_params.update(
+            {
+                "db": os.getenv("DB_NAME"),
+                "user": os.getenv("DB_USER"),
+                "password": os.getenv("DB_PASSWORD"),
+            }
+        )
 
         try:
             cls._engine = await create_engine(**mysql_params)
