@@ -11,14 +11,14 @@ BEGIN
   DECLARE usr VARCHAR(100)  DEFAULT "";
   SET usr = (SELECT CURRENT_USER);
   IF usr LIKE 'root%'  then
-    /* grant access to default_routes_user user*/
-    SELECT 'Creating default_routes_user user account.' AS '';
-    CREATE USER IF NOT EXISTS 'default_routes_user'@'%' IDENTIFIED BY 'bj5q4aslzm';
-    GRANT ALL PRIVILEGES ON default_routes_service.* TO 'default_routes_user'@'%';
+    /* grant access to the 'default_routes_user' account */
+    SELECT 'Creating default_routes_service_user account.' AS '';
+    CREATE USER IF NOT EXISTS 'default_routes_service_user'@'%' IDENTIFIED BY 'bj5q4aslzm';
+    GRANT ALL PRIVILEGES ON default_routes_service.* TO 'default_routes_service_user'@'%';
     FLUSH PRIVILEGES;
   end if ;
 END; $$
 DELIMITER ;
 
-/* create new users only if current user is root */
+/* Create 'default_routes_service_user' if the current user is root */
 call Create_Default_Route();

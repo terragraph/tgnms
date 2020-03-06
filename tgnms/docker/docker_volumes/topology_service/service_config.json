@@ -1,11 +1,4 @@
 {
-  "overrides": {
-    "mysql": {
-      "db": "topology_service",
-      "user": "topology_user",
-      "password": "td7s25hjzmf"
-    }
-  },
   "num_consumers": 10,
   "pipelines": {
     "10_min_pipeline": {
