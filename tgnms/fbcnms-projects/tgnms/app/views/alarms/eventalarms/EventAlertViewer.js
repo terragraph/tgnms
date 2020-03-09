@@ -7,32 +7,75 @@
  * @flow strict-local
  * @format
  */
+import DescriptionIcon from '@material-ui/icons/Description';
 import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import React from 'react';
+import RouterIcon from '@material-ui/icons/Router';
 import Typography from '@material-ui/core/Typography';
-import {makeStyles} from '@material-ui/styles';
+import {
+  Detail,
+  Section,
+} from '@fbcnms/alarms/components/alertmanager/AlertDetails/AlertDetailsPane';
 
 import type {AlertViewerProps} from '@fbcnms/alarms/components/rules/RuleInterface';
+import type {EventType} from '../../../../shared/types/Event';
 
-const useStyles = makeStyles(() => ({
-  jsonText: {
-    wordBreak: 'break-word',
-  },
-}));
+const EVENT_LIMIT = 10;
 
 export default function EventAlertViewer({alert}: AlertViewerProps) {
-  const classes = useStyles();
-  const {alertname, id: _, severity, entity, network} = alert.labels || {};
-  const {description, eventId, events} = alert.annotations || {};
+  const {entity, network} = alert.labels || {};
+  const {description, events} = alert.annotations || {};
+
+  const allEvents = React.useMemo<Array<EventType>>(
+    () => (typeof events !== 'string' ? [] : JSON.parse(events)),
+    [events],
+  );
+  /**
+   * sometimes an alarm can have thousands of duplicate events. The first 10
+   * should suffice. If not, we can find a better way to render this.
+   */
+  const isTruncated = allEvents.length > EVENT_LIMIT;
   return (
-    <Grid>
-      <Typography>{alertname}</Typography>
-      <Typography>{severity}</Typography>
-      <Typography>{entity}</Typography>
-      <Typography>{network}</Typography>
-      <Typography>{description}</Typography>
-      <Typography>{eventId}</Typography>
-      <Typography className={classes.jsonText}>{events}</Typography>
+    <Grid container data-testid="event-alert-viewer" spacing={2}>
+      <Section title="Details">
+        <Detail icon={DescriptionIcon} title="Description">
+          <Typography color="textSecondary">{description}</Typography>
+        </Detail>
+        <Detail icon={RouterIcon} title="Network">
+          <Grid item>
+            <Typography color="textSecondary">{network}</Typography>
+          </Grid>
+        </Detail>
+        <Detail icon={RouterIcon} title="Entity">
+          <Typography>{entity}</Typography>
+        </Detail>
+      </Section>
+
+      <Section title="Events">
+        <List dense>
+          {allEvents.slice(0, EVENT_LIMIT).map((event, i) => (
+            <ListItem key={i}>
+              <ListItemText
+                primary={event.reason}
+                secondary={`${event.nodeName ||
+                  event?.nodeId ||
+                  'unknown'} ${new Date(event.timestamp).toLocaleTimeString()}`}
+              />
+            </ListItem>
+          ))}
+          {isTruncated && (
+            <ListItem>
+              <ListItemText
+                primary={`${allEvents.length -
+                  EVENT_LIMIT} more events not shown...`}
+              />
+            </ListItem>
+          )}
+        </List>
+      </Section>
     </Grid>
   );
 }
