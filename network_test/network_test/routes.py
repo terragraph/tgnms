@@ -38,7 +38,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     - application/json
     responses:
       "200":
-        description: Succesful operation.
+        description: Successful operation.
     """
     return web.json_response(
         [dict(row) for row in await Scheduler.list_schedules()],
@@ -64,7 +64,7 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
         type: integer
     responses:
       "200":
-        description: Succesful operation.
+        description: Successful operation.
     """
     schedule_id = int(request.match_info["schedule_id"])
     return web.json_response(
@@ -98,10 +98,10 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
           iperf_options:
             type: object
         required:
-          - enabled
-          - cron_expr
-          - test_type
-          - network_name
+        - enabled
+        - cron_expr
+        - test_type
+        - network_name
     produces:
     - text/plain
     responses:
@@ -182,10 +182,10 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
           iperf_options:
             type: object
         required:
-          - enabled
-          - cron_expr
-          - test_type
-          - network_name
+        - enabled
+        - cron_expr
+        - test_type
+        - network_name
     responses:
       "200":
         description: Successful operation.
@@ -348,8 +348,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
           iperf_options:
             type: object
         required:
-          - test_type
-          - network_name
+        - test_type
+        - network_name
     responses:
       "200":
         description: Successful operation.
