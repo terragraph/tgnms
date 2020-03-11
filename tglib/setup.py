@@ -5,8 +5,12 @@ import distutils
 import pathlib
 import re
 import subprocess
+import sys
 
 from setuptools import Command, find_packages, setup
+
+
+assert sys.version_info >= (3, 7, 0), "tglib requires >= Python 3.7"
 
 
 HERE = pathlib.Path(__file__).parent
@@ -15,6 +19,22 @@ try:
     version = re.findall(r'^__version__ = "([^\']+)"\r?$', txt, re.M)[0]
 except IndexError:
     raise RuntimeError("Unable to determine version.")
+
+
+ptr_params = {
+    "entry_point_module": "tglib/main",
+    "test_suite": "tests.base",
+    "test_suite_timeout": 300,
+    "required_coverage": {
+        "tglib/clients/prometheus_client.py": 89,
+        "tglib/utils/dict.py": 100,
+        "tglib/utils/ip.py": 100,
+        "TOTAL": 44,
+    },
+    "run_flake8": True,
+    "run_black": True,
+    "run_mypy": True,
+}
 
 
 class BuildThriftCommand(Command):
@@ -61,22 +81,6 @@ class BuildThriftCommand(Command):
             command.append(file)
             self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
             subprocess.check_call(command)
-
-
-ptr_params = {
-    "entry_point_module": "tglib/main",
-    "test_suite": "tests.base",
-    "test_suite_timeout": 300,
-    "required_coverage": {
-        "tglib/clients/prometheus_client.py": 89,
-        "tglib/utils/dict.py": 100,
-        "tglib/utils/ip.py": 100,
-        "TOTAL": 44,
-    },
-    "run_flake8": True,
-    "run_black": True,
-    "run_mypy": True,
-}
 
 
 setup(
