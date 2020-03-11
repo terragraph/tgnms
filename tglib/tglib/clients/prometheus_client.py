@@ -4,6 +4,7 @@
 import asyncio
 import dataclasses
 import logging
+from types import SimpleNamespace
 from typing import Any, Dict, Iterable, Optional, Pattern, Union, cast
 
 import aiohttp
@@ -16,6 +17,14 @@ from ..exceptions import (
 )
 from ..utils.ip import format_address
 from .base_client import BaseClient
+
+
+# START: Built-in Prometheus query transformation operators/functions
+
+ops = SimpleNamespace()
+ops.avg_over_time = lambda query, interval: f"avg_over_time({query} [{interval}])"
+
+# END: Built-in Prometheus query transformation operators/functions
 
 
 @dataclasses.dataclass
@@ -120,7 +129,7 @@ class PrometheusClient(BaseClient):
         metrics = cls._metrics_map[interval_sec]
 
         for query, metric in metrics.items():
-            datapoints.append(f"{query} {metric.value} {metric.time or ''}")
+            datapoints.append(f"{query} {metric.value} {metric.time or ''}".rstrip())
 
         metrics.clear()
         return datapoints
