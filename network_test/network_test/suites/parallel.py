@@ -38,8 +38,8 @@ class ParallelTest(BaseTest):
                 for link in topology["links"]
                 if link["link_type"] == LinkType.WIRELESS
             ]
-        except ClientRuntimeError as e:
-            logging.error(str(e))
+        except ClientRuntimeError:
+            logging.exception(f"Failed to fetch topology for {self.network_name}")
             return
 
         coros: List[asyncio.Future] = []

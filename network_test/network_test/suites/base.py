@@ -39,8 +39,8 @@ class BaseTest(abc.ABC):
 
         try:
             await asyncio.gather(*coros)
-        except ClientRuntimeError as e:
-            logging.error(f"Failed to stop one or more iperf session(s): {str(e)}")
+        except ClientRuntimeError:
+            logging.exception("Failed to stop one or more iperf session(s)")
 
         self.session_ids.clear()
         return True

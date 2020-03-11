@@ -57,8 +57,8 @@ class MultihopTest(BaseTest):
             if default_routes is None:
                 logging.error(f"Failed to fetch default routes for {self.network_name}")
                 return
-        except ClientRuntimeError as e:
-            logging.error(str(e))
+        except ClientRuntimeError:
+            logging.exception(f"Failed to fetch default routes for {self.network_name}")
             return
 
         start_time = time.monotonic()
