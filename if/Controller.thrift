@@ -2099,6 +2099,7 @@ struct IperfOptions {
   10: optional bool json;
   11: optional i32 bufferLength;
   12: optional IperfFormat format;
+  13: optional i32 parallelStreams;
 }
 
 /**
