@@ -65,11 +65,18 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
     responses:
       "200":
         description: Successful operation.
+      "404":
+        description: Unknown network test schedule ID.
     """
     schedule_id = int(request.match_info["schedule_id"])
+    schedule = await Scheduler.list_schedules(schedule_id)
+    if schedule is None:
+        raise web.HTTPNotFound(
+            text=f"No network test schedule with ID '{schedule_id}' was found"
+        )
+
     return web.json_response(
-        dict(await Scheduler.list_schedules(schedule_id)),
-        dumps=partial(json.dumps, default=custom_serializer),
+        dict(schedule), dumps=partial(json.dumps, default=custom_serializer)
     )
 
 
@@ -317,11 +324,18 @@ async def handle_get_execution(request: web.Request) -> web.Response:
     responses:
       "200":
         description: Successful operation.
+      "404":
+        description: Unknown network test execution ID.
     """
     execution_id = int(request.match_info["execution_id"])
+    execution = await Scheduler.list_executions(execution_id)
+    if execution is None:
+        raise web.HTTPNotFound(
+            text=f"No network test execution with ID '{execution_id}' was found"
+        )
+
     return web.json_response(
-        dict(await Scheduler.list_executions(execution_id)),
-        dumps=partial(json.dumps, default=custom_serializer),
+        dict(execution), dumps=partial(json.dumps, default=custom_serializer)
     )
 
 
