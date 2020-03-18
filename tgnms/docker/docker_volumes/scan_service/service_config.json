@@ -1,0 +1,4 @@
+{
+  "topics": ["events", "scan_results"],
+  "scan_data_dir": "/data/scans"
+}
