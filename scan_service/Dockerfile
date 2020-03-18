@@ -1,6 +1,9 @@
 # Pull base image
 FROM secure.cxl-terragraph.com:443/tglib:latest
 
+# Install MySQL
+RUN apk add mysql-client
+
 ARG WORKDIR=/usr/local/scan_service
 
 # Copy scan_service source files into docker container

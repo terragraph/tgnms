@@ -39,11 +39,11 @@ class TxScanResponse(Base):
     __tablename__ = "tx_scan_response"
 
     id = Column(Integer, primary_key=True)
-    scan_resp_path = Column(String)
+    scan_resp_path = Column(String(255))
     timestamp = Column(DateTime, server_default=func.now())
-    network_name = Column(String)
+    network_name = Column(String(255))
     scan_group_id = Column(Integer)
-    tx_node_name = Column(String)
+    tx_node_name = Column(String(255))
     token = Column(Integer)
     resp_id = Column(Integer)
     start_bwgd = Column(BigInteger)
@@ -60,9 +60,9 @@ class RxScanResponse(Base):
     __tablename__ = "rx_scan_response"
 
     id = Column(Integer, primary_key=True)
-    scan_resp_path = Column(String)
+    scan_resp_path = Column(String(255))
     timestamp = Column(DateTime, server_default=func.now())
-    rx_node_name = Column(String)
+    rx_node_name = Column(String(255))
     status = Column(SQLEnum(ScanFwStatus))
     new_beam_flag = Column(Integer)
     tx_scan_id = Column(Integer, ForeignKey("tx_scan_response.id"))
@@ -72,7 +72,7 @@ class ScanResponseRate(Base):
     __tablename__ = "scan_response_rate"
 
     id = Column(Integer, primary_key=True)
-    network_name = Column(String)
+    network_name = Column(String(255))
     scan_group_id = Column(Integer)
     scan_type = Column(SQLEnum(ScanType))
     scan_mode = Column(SQLEnum(ScanMode))
