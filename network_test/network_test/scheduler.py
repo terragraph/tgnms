@@ -6,6 +6,7 @@ import logging
 import time
 from contextlib import suppress
 from datetime import datetime
+from functools import partial
 from typing import Dict, Iterable, NoReturn, Optional
 
 from croniter import croniter
@@ -16,6 +17,7 @@ from tglib.exceptions import ClientRuntimeError
 from .models import (
     NetworkTestExecution,
     NetworkTestParams,
+    NetworkTestResult,
     NetworkTestSchedule,
     NetworkTestStatus,
     NetworkTestType,
@@ -58,7 +60,6 @@ class Schedule:
         # Cancel the task
         if self.task is None or not self.task.cancel():
             return False
-
         with suppress(asyncio.CancelledError):
             await self.task
 
@@ -76,6 +77,14 @@ class Scheduler:
     @classmethod
     def has_execution(cls, execution_id: int) -> bool:
         return execution_id in cls._executions
+
+    @classmethod
+    def get_execution_id(cls, session_id: str) -> Optional[int]:
+        for id, execution in cls._executions.items():
+            if session_id in execution.session_ids:
+                return id
+
+        return None
 
     @classmethod
     async def restart(cls) -> None:
@@ -97,15 +106,23 @@ class Scheduler:
         except ClientRuntimeError:
             logging.exception("Failed to stop one or more iperf session(s)")
 
-        # Mark all stale running tests as ABORTED in the DB
+        # Mark all stale running executions + test results as ABORTED in the DB
         async with MySQLClient().lease() as sa_conn:
-            query = (
+            update_execution_query = (
                 update(NetworkTestExecution)
-                .values(status=NetworkTestStatus.ABORTED)
                 .where(NetworkTestExecution.status == NetworkTestStatus.RUNNING)
+                .values(status=NetworkTestStatus.ABORTED)
             )
 
-            await sa_conn.execute(query)
+            await sa_conn.execute(update_execution_query)
+
+            update_result_query = (
+                update(NetworkTestResult)
+                .where(NetworkTestResult.status == NetworkTestStatus.RUNNING)
+                .values(status=NetworkTestStatus.ABORTED)
+            )
+
+            await sa_conn.execute(update_result_query)
             await sa_conn.connection.commit()
 
         # Start all of the schedules in the DB
@@ -161,8 +178,8 @@ class Scheduler:
         test: BaseTest,
         test_type: NetworkTestType,
     ) -> bool:
-        old_schedule = cls._schedules[schedule_id]
-        if not await old_schedule.stop():
+        prev_schedule = cls._schedules[schedule_id]
+        if not await prev_schedule.stop():
             return False
 
         async with MySQLClient().lease() as sa_conn:
@@ -226,7 +243,11 @@ class Scheduler:
     @classmethod
     async def start_execution(
         cls, test: BaseTest, test_type: NetworkTestType, params_id: Optional[int] = None
-    ) -> int:
+    ) -> Optional[int]:
+        prepare_output = await test.prepare()
+        if prepare_output is None:
+            return None
+
         async with MySQLClient().lease() as sa_conn:
             if params_id is None:
                 insert_params_query = insert(NetworkTestParams).values(
@@ -246,24 +267,48 @@ class Scheduler:
             execution_id = execution_row.lastrowid
             await sa_conn.connection.commit()
 
+        # Start the test
         cls._executions[execution_id] = test
-        test.task = asyncio.create_task(test.start())
+        test_assets, estimated_duration = prepare_output
+        test.task = asyncio.create_task(test.start(execution_id, test_assets))
+
+        # Schedule the cleanup task
+        cleanup = partial(asyncio.create_task, cls.stop_execution(execution_id))
+        loop = asyncio.get_event_loop()
+        loop.call_at(loop.time() + estimated_duration.total_seconds(), cleanup)
+
         return execution_id
 
     @classmethod
     async def stop_execution(cls, execution_id: int) -> bool:
         test = cls._executions[execution_id]
+        num_sessions = len(test.session_ids)
         if not await test.stop():
             return False
 
         async with MySQLClient().lease() as sa_conn:
-            query = (
-                update(NetworkTestExecution)
-                .where(NetworkTestExecution.id == execution_id)
+            update_result_query = (
+                update(NetworkTestResult)
+                .where(
+                    (NetworkTestResult.execution_id == execution_id)
+                    & (NetworkTestResult.status == NetworkTestStatus.RUNNING)
+                )
                 .values(status=NetworkTestStatus.ABORTED)
             )
 
-            await sa_conn.execute(query)
+            # Mark the entire execution as ABORTED if all sessions had to be terminated
+            result = await sa_conn.execute(update_result_query)
+            update_execution_query = (
+                update(NetworkTestExecution)
+                .where(NetworkTestExecution.id == execution_id)
+                .values(
+                    status=NetworkTestStatus.ABORTED
+                    if result.rowcount == num_sessions
+                    else NetworkTestStatus.FINISHED
+                )
+            )
+
+            await sa_conn.execute(update_execution_query)
             await sa_conn.connection.commit()
 
         del cls._executions[execution_id]

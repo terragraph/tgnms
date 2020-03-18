@@ -9,6 +9,7 @@ from typing import Dict
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
 
+from .processing import process_msg
 from .routes import routes
 from .scheduler import Scheduler
 
@@ -22,10 +23,8 @@ async def async_main(config: Dict) -> None:
     consumer.subscribe(config["topics"])
 
     async for msg in consumer:
-        value = json.loads(msg.value.decode("utf-8"))
-        logging.debug(value["output"])
+        await process_msg(msg.value.decode("utf-8"))
 
-        # TODO: (omikader) T57575677 Save results to MySQL
         # TODO: (omikader) T57575686 Fetch FW stats from Prometheus
 
 

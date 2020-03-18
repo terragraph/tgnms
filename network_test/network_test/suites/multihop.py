@@ -4,9 +4,8 @@
 import asyncio
 import logging
 import random
-import time
 from datetime import timedelta
-from typing import Dict
+from typing import Dict, List, Optional, Tuple
 
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
@@ -27,9 +26,7 @@ class MultihopTest(BaseTest):
 
         super().__init__(network_name, iperf_options)
 
-    async def start(self) -> None:
-        logging.info(f"Starting multihop link test on {self.network_name}")
-        logging.debug(f"iperf options: {self.iperf_options}")
+    async def prepare(self) -> Optional[Tuple[List, timedelta]]:
         self.session_ids.clear()
 
         try:
@@ -53,30 +50,42 @@ class MultihopTest(BaseTest):
                     params={"nodes": list(site_to_node_rep.values())},
                 )
             ).get("defaultRoutes")
-
             if default_routes is None:
-                logging.error(f"Failed to fetch default routes for {self.network_name}")
-                return
+                logging.error(f"No default routes available for {self.network_name}")
+                return None
+
+            test_assets = []
+            for node_name, routes in default_routes.items():
+                # Pick a random PoP node from the default routes if ECMP
+                pop_name = routes[random.randint(0, len(routes) - 1)][-1]
+                test_assets.append((name_to_mac[node_name], name_to_mac[pop_name]))
+
+            return (
+                test_assets,
+                timedelta(seconds=len(test_assets) * self.iperf_options["timeSec"]),
+            )
         except ClientRuntimeError:
-            logging.exception(f"Failed to fetch default routes for {self.network_name}")
-            return
+            logging.exception(f"Failed to prepare test assets for {self.network_name}")
+            return None
 
-        start_time = time.monotonic()
-        for i, (node_name, routes) in enumerate(default_routes.items(), 1):
-            logging.info(f"Processing node ({i}/{len(default_routes)})")
-            self.session_ids.clear()
+    async def start(self, execution_id: int, test_assets: List) -> None:
+        logging.info(f"Starting multihop link test on {self.network_name}")
+        logging.debug(f"iperf options: {self.iperf_options}")
 
-            # Pick a random PoP node from the default routes if ECMP
-            pop_name = routes[random.randint(0, len(routes) - 1)][-1]
+        loop = asyncio.get_event_loop()
+        start_time = loop.time()
+        client = APIServiceClient(timeout=1)
+        for i, (a_mac, z_mac) in enumerate(test_assets, 1):
+            logging.info(f"Processing node ({i}/{len(test_assets)})")
 
             # Run bidirectional iperf between the current node and the random PoP
-            coros = [
+            requests = [
                 client.request(
                     self.network_name,
                     "startTraffic",
                     params={
-                        "srcNodeId": name_to_mac[node_name],
-                        "dstNodeId": name_to_mac[pop_name],
+                        "srcNodeId": a_mac,
+                        "dstNodeId": z_mac,
                         "options": self.iperf_options,
                     },
                 ),
@@ -84,25 +93,28 @@ class MultihopTest(BaseTest):
                     self.network_name,
                     "startTraffic",
                     params={
-                        "srcNodeId": name_to_mac[pop_name],
-                        "dstNodeId": name_to_mac[node_name],
+                        "srcNodeId": z_mac,
+                        "dstNodeId": a_mac,
                         "options": self.iperf_options,
                     },
                 ),
             ]
 
-            for result in await asyncio.gather(*coros, return_exceptions=True):
-                if isinstance(result, ClientRuntimeError):
-                    logging.error(str(result))
-                elif "id" in result:
-                    self.session_ids.append(result["id"])
-                else:
-                    logging.error(result["message"])
+            values = [
+                {
+                    "execution_id": execution_id,
+                    "src_node_mac": a_mac,
+                    "dst_node_mac": z_mac,
+                },
+                {
+                    "execution_id": execution_id,
+                    "src_node_mac": z_mac,
+                    "dst_node_mac": a_mac,
+                },
+            ]
 
-            # Sleep before processing the next node if at least one session started
-            if self.session_ids:
+            # Sleep before processing the next node if the current node started successfully
+            if await self.save(requests, values):
                 await asyncio.sleep(self.iperf_options["timeSec"])
 
-            logging.debug(
-                f"Duration: {timedelta(seconds=time.monotonic() - start_time)}"
-            )
+            logging.debug(f"time: {timedelta(seconds=loop.time() - start_time)}")

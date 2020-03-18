@@ -371,6 +371,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         description: Invalid or missing parameters.
       "409":
         description: A test is already running on the network.
+      "500":
+        description: Failed to prepare network test assets.
     """
     body = await request.json()
 
@@ -398,6 +400,9 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         test = SequentialTest(network_name, iperf_options)
 
     execution_id = await Scheduler.start_execution(test, test_type)
+    if execution_id is None:
+        raise web.HTTPInternalServerError(text="Failed to prepare network test assets")
+
     return web.Response(
         text=f"Started new network test execution with ID: {execution_id}"
     )

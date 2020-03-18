@@ -10,9 +10,11 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     String,
+    Text,
     func,
 )
 from sqlalchemy.ext.declarative import declarative_base
@@ -66,5 +68,31 @@ class NetworkTestExecution(Base):
     id = Column(Integer, primary_key=True)
     params_id = Column(Integer, ForeignKey("network_test_params.id"), nullable=False)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
-    end_dt = Column(DateTime, nullable=True)
+    end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
     status = Column(Enum(NetworkTestStatus), nullable=False)
+
+
+class NetworkTestResult(Base):
+    __tablename__ = "network_test_result"
+
+    id = Column(Integer, primary_key=True)
+    execution_id = Column(
+        Integer, ForeignKey("network_test_execution.id"), nullable=False
+    )
+    status = Column(Enum(NetworkTestStatus), nullable=False)
+    src_node_mac = Column(String(255), nullable=False)
+    dst_node_mac = Column(String(255), nullable=False)
+    start_dt = Column(DateTime, server_default=func.now(), nullable=False)
+    end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
+    # Iperf Columns
+    iperf_min_throughput = Column(Float, nullable=True)
+    iperf_max_throughput = Column(Float, nullable=True)
+    iperf_avg_throughput = Column(Float, nullable=True)
+    iperf_min_lost_percent = Column(Float, nullable=True)
+    iperf_max_lost_percent = Column(Float, nullable=True)
+    iperf_avg_lost_percent = Column(Float, nullable=True)
+    iperf_min_retransmits = Column(Float, nullable=True)
+    iperf_max_retransmits = Column(Float, nullable=True)
+    iperf_avg_retransmits = Column(Float, nullable=True)
+    iperf_client_blob = Column(Text, nullable=True)
+    iperf_server_blob = Column(Text, nullable=True)
