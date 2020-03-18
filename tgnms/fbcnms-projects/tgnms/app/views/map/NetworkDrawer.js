@@ -24,6 +24,7 @@ import TopologyBuilderMenu from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
 import mapboxgl from 'mapbox-gl';
 import {SlideProps, TopologyElement} from '../../constants/MapPanelConstants';
+import {SnackbarProvider} from 'notistack';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
@@ -682,16 +683,23 @@ class NetworkDrawer extends React.Component<
           {topologyElements.map(el =>
             this.renderTopologyElement(el, SlideProps),
           )}
-
-          <TopologyBuilderMenu
-            bottomOffset={bottomOffset}
-            plannedSiteProps={plannedSiteProps}
-            editTopologyElement={editTopologyElement}
-            addTopologyElementType={addTopologyElementType}
-            params={topologyParams}
-            mapRef={mapRef}
-            updateTopologyPanelExpanded={this.updateTopologyPanelExpanded}
-          />
+          <SnackbarProvider
+            maxSnack={3}
+            autoHideDuration={10000}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}>
+            <TopologyBuilderMenu
+              bottomOffset={bottomOffset}
+              plannedSiteProps={plannedSiteProps}
+              editTopologyElement={editTopologyElement}
+              addTopologyElementType={addTopologyElementType}
+              params={topologyParams}
+              mapRef={mapRef}
+              updateTopologyPanelExpanded={this.updateTopologyPanelExpanded}
+            />
+          </SnackbarProvider>
         </div>
       </Drawer>
     );

@@ -187,9 +187,7 @@ class AddNodePanel extends React.Component<Props, State> {
       node.wlan_mac_addrs = wlanMacEdits.map(
         macEdit => macEdit.data.wlanMacs[0],
       );
-      sendTopologyBuilderRequest(networkName, 'addNode', {node}, 'node', {
-        onSuccess: onClose,
-      });
+      sendTopologyBuilderRequest(networkName, 'addNode', {node}, onClose);
     } else if (formType === FormType.EDIT) {
       const apiRequestAttempts = [];
       if (node.mac_addr !== initialParams.mac_addr) {

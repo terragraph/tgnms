@@ -6,7 +6,7 @@
  */
 
 import {LinkTypeValueMap} from '../../shared/types/Topology';
-import {apiServiceRequestWithConfirmation} from '../apiutils/ServiceAPIUtil';
+import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
 
 import type {LinkType, NodeType} from '../../shared/types/Topology';
 
@@ -28,36 +28,11 @@ export function sendTopologyBuilderRequest(
   networkName: string,
   endpoint: string,
   data: {},
-  typeStr: string,
-  options: {},
+  onClose: (?string) => void,
 ) {
-  apiServiceRequestWithConfirmation(networkName, endpoint, data, {
-    ...options,
-    desc: 'You are adding a ' + typeStr + ' to this topology.',
-    getSuccessStr: _msg => 'The ' + typeStr + ' was added sucessfully.',
-    successType: 'text',
-    getFailureStr: msg =>
-      `The ${typeStr} could not be added.<p><tt>${msg}</tt></p>`,
-    failureType: 'html',
-  });
-}
-
-/** Make a topology edit request (with confirmation and response alerts). */
-export function sendTopologyEditRequest(
-  networkName: string,
-  endpoint: string,
-  data: {},
-  typeStr: string,
-  options: {},
-) {
-  apiServiceRequestWithConfirmation(networkName, endpoint, data, {
-    ...options,
-    desc: 'You are making changes to a ' + typeStr + ' in this topology.',
-    getSuccessStr: _msg =>
-      'The changes to this ' + typeStr + ' were saved sucessfully.',
-    successType: 'text',
-    getFailureStr: msg =>
-      `The ${typeStr} could not be saved.<p><tt>${msg}</tt></p>`,
-    failureType: 'html',
-  });
+  apiServiceRequest(networkName, endpoint, data)
+    .then(_result => {
+      onClose('success');
+    })
+    .catch(error => onClose(error.message));
 }

@@ -15,6 +15,7 @@ import {
   mockTopology,
   renderAsync,
 } from '../../../tests/testHelpers';
+import {SnackbarProvider} from 'notistack';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
@@ -116,13 +117,21 @@ function TopologyBuilderWrapper({children}: {children: React.Node}) {
 
   return (
     <TestApp>
-      <NetworkContextWrapper
-        contextValue={{
-          networkConfig: mockNetworkConfig({topology: topology}),
-          ...topologyMaps,
+      <SnackbarProvider
+        maxSnack={3}
+        autoHideDuration={10000}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
         }}>
-        {children}
-      </NetworkContextWrapper>
+        <NetworkContextWrapper
+          contextValue={{
+            networkConfig: mockNetworkConfig({topology: topology}),
+            ...topologyMaps,
+          }}>
+          {children}
+        </NetworkContextWrapper>
+      </SnackbarProvider>
     </TestApp>
   );
 }

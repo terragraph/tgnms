@@ -17,10 +17,7 @@ import {
   formParseFloat,
 } from '../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
-import {
-  sendTopologyBuilderRequest,
-  sendTopologyEditRequest,
-} from '../../helpers/MapPanelHelpers';
+import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {LocationType} from '../../../shared/types/Topology';
 import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
@@ -136,17 +133,13 @@ class AddSitePanel extends React.Component<Props, State> {
     };
 
     if (formType === FormType.CREATE) {
-      sendTopologyBuilderRequest(networkName, 'addSite', {site}, 'site', {
-        onSuccess: onClose,
-      });
+      sendTopologyBuilderRequest(networkName, 'addSite', {site}, onClose);
     } else if (formType === FormType.EDIT) {
       const data = {
         siteName: initialParams.name,
         newSite: site,
       };
-      sendTopologyEditRequest(networkName, 'editSite', data, 'site', {
-        onSuccess: onClose,
-      });
+      sendTopologyBuilderRequest(networkName, 'editSite', data, onClose);
     }
   }
 
@@ -163,7 +156,7 @@ class AddSitePanel extends React.Component<Props, State> {
   }
 
   renderForm() {
-    const {classes, formType} = this.props;
+    const {classes, formType, onClose} = this.props;
 
     // Change form based on form type
     const submitButtonText =
@@ -237,7 +230,7 @@ class AddSitePanel extends React.Component<Props, State> {
             className={classes.button}
             variant="outlined"
             size="small"
-            onClick={() => this.props.onClose()}>
+            onClick={() => onClose()}>
             Cancel
           </Button>
         </div>

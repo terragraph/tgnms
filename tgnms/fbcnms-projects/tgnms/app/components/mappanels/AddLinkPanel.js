@@ -129,9 +129,7 @@ class AddLinkPanel extends React.Component<Props, State> {
       link.is_backup_cn_link = this.state.is_backup_cn_link;
     }
 
-    sendTopologyBuilderRequest(networkName, 'addLink', {link}, 'link', {
-      onSuccess: onClose,
-    });
+    sendTopologyBuilderRequest(networkName, 'addLink', {link}, onClose);
   }
 
   enableBackupCnOption() {

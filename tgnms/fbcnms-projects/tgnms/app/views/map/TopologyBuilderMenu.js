@@ -30,6 +30,7 @@ import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {convertType} from '../../helpers/ObjectHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 import type {
   EditLinkParams,
@@ -143,6 +144,25 @@ export default function TopologyBuilderMenu(props: Props) {
     }
   });
 
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const handleTopologyChangeSnackbar = (changeMessage: string) => {
+    if (changeMessage === 'success') {
+      enqueueSnackbar(
+        'Topology successfully changed! This change will take effect next topology pull.',
+        {variant: 'success'},
+      );
+    } else {
+      enqueueSnackbar('Topology change failed: ' + changeMessage, {
+        variant: 'error',
+      });
+    }
+  };
+
+  const onCloseTopologyPanel = useCallback(onCloseTopologyPanelCallback, [
+    onCloseTopologyPanelCallback,
+  ]);
+
   const handleActionsMenuOpen = useCallback(
     ev => {
       menuAnchorEl.current = ev.currentTarget;
@@ -158,25 +178,19 @@ export default function TopologyBuilderMenu(props: Props) {
       }),
     [editPanel, nodePanel.panelExpanded],
   );
-  const handleNodePanelClose = useCallback(() => {
-    // If editing a node and nothing else is selected,
-    // re-select the node onClose
-    const {formType, panelParams} = nodePanel;
-    if (formType === FormType.EDIT && !selectedElement) {
-      setSelected(TopologyElementType.NODE, panelParams?.name);
-    }
-    updateTopologyPanelExpanded(false);
-    editPanel(TopologyElement.node, {
-      showPanel: false,
-      panelParams: {},
-    });
-  }, [
-    setSelected,
-    editPanel,
-    nodePanel,
-    selectedElement,
-    updateTopologyPanelExpanded,
-  ]);
+
+  const handleNodePanelClose = useCallback(
+    (changeMessage?: string) => {
+      // If editing a node and nothing else is selected,
+      // re-select the node onClose
+      const {formType, panelParams} = nodePanel;
+      if (formType === FormType.EDIT && !selectedElement) {
+        setSelected(TopologyElementType.NODE, panelParams?.name);
+      }
+      onCloseTopologyPanel(TopologyElement.node, changeMessage);
+    },
+    [setSelected, onCloseTopologyPanel, nodePanel, selectedElement],
+  );
 
   const handleLinkPanelChange = useCallback(
     () =>
@@ -185,13 +199,13 @@ export default function TopologyBuilderMenu(props: Props) {
       }),
     [editPanel, linkPanel.panelExpanded],
   );
-  const handleLinkPanelClose = useCallback(() => {
-    editPanel(TopologyElement.link, {
-      showPanel: false,
-      panelParams: {},
-    });
-    updateTopologyPanelExpanded(false);
-  }, [editPanel, updateTopologyPanelExpanded]);
+
+  const handleLinkPanelClose = useCallback(
+    (changeMessage?: string) => {
+      onCloseTopologyPanel(TopologyElement.link, changeMessage);
+    },
+    [onCloseTopologyPanel],
+  );
 
   const handleSitePanelChange = useCallback(
     () =>
@@ -200,29 +214,27 @@ export default function TopologyBuilderMenu(props: Props) {
       }),
     [editPanel, sitePanel.panelExpanded],
   );
-  const handleSitePanelClose = useCallback(() => {
-    // Hide the planned state feature on the map
-    onRemovePlannedSite();
 
-    // If editing a site and nothing else is selected,
-    // re-select the site onClose
-    const {formType, panelParams} = sitePanel;
-    if (formType === FormType.EDIT && !selectedElement) {
-      setSelected(TopologyElementType.SITE, panelParams?.name || '');
-    }
-    updateTopologyPanelExpanded(false);
-    editPanel(TopologyElement.site, {
-      showPanel: false,
-      panelParams: {},
-    });
-  }, [
-    setSelected,
-    editPanel,
-    onRemovePlannedSite,
-    selectedElement,
-    sitePanel,
-    updateTopologyPanelExpanded,
-  ]);
+  const handleSitePanelClose = useCallback(
+    (changeMessage?: string) => {
+      // Hide the planned state feature on the map
+      onRemovePlannedSite();
+      // If editing a site and nothing else is selected,
+      // re-select the site onClose
+      const {formType, panelParams} = sitePanel;
+      if (formType === FormType.EDIT && !selectedElement) {
+        setSelected(TopologyElementType.SITE, panelParams?.name || '');
+      }
+      onCloseTopologyPanel(TopologyElement.site, changeMessage);
+    },
+    [
+      setSelected,
+      onRemovePlannedSite,
+      selectedElement,
+      sitePanel,
+      onCloseTopologyPanel,
+    ],
+  );
 
   const onAddTopology = useCallback(onAddTopologyCallback, [
     onAddTopologyCallback,
@@ -246,6 +258,20 @@ export default function TopologyBuilderMenu(props: Props) {
     () => onAddTopology<EditLinkParams>(TopologyElement.link),
     [onAddTopology],
   );
+
+  function onCloseTopologyPanelCallback(
+    type: $Values<typeof TopologyElement>,
+    changeMessage?: string,
+  ) {
+    editPanel(type, {
+      showPanel: false,
+      panelParams: {},
+    });
+    updateTopologyPanelExpanded(false);
+    if (changeMessage !== undefined) {
+      handleTopologyChangeSnackbar(changeMessage);
+    }
+  }
 
   function onAddTopologyCallback<T>(
     type: $Values<typeof TopologyElement>,
