@@ -7,13 +7,11 @@
 
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
-import Collapse from '@material-ui/core/Collapse';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import EditIcon from '@material-ui/icons/Edit';
 import EditRadioMacs from './EditRadioMacs';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import Switch from '@material-ui/core/Switch';
+import ShowAdvanced from './ShowAdvanced';
 import swal from 'sweetalert2';
 import {FormType} from '../../constants/MapPanelConstants';
 import {
@@ -98,7 +96,6 @@ type State = {
   // EditNodeParams is used other places in the code where wlan_mac_addrs
   // is exepcted to be an array so we redefine for this file
   wlan_mac_addrs: string,
-  showAdvanced: boolean,
   node_polarity: PolarityTypeType,
   wlanMacEdits: Array<ApiRequestAttemptsType>,
   error: boolean,
@@ -109,8 +106,6 @@ class AddNodePanel extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      showAdvanced: false,
-
       // Node properties
       name: '',
       is_primary: null,
@@ -296,7 +291,7 @@ class AddNodePanel extends React.Component<Props, State> {
       networkConfig,
       networkName,
     } = this.props;
-    const {error, showAdvanced} = this.state;
+    const {error} = this.state;
     // Change form based on form type
     const submitButtonText =
       formType === FormType.EDIT ? 'Save Changes' : 'Add Node';
@@ -442,22 +437,12 @@ class AddNodePanel extends React.Component<Props, State> {
             input.func({...input}, this.state, this.setState.bind(this)),
           )}
 
-        <Collapse in={showAdvanced}>
-          {advancedInputs
+        <ShowAdvanced
+          children={advancedInputs
             .filter(input => formType !== FormType.EDIT || input._editable)
             .map(input =>
               input.func({...input}, this.state, this.setState.bind(this)),
             )}
-        </Collapse>
-        <FormControlLabel
-          control={
-            <Switch
-              color="primary"
-              checked={showAdvanced}
-              onChange={() => this.setState({showAdvanced: !showAdvanced})}
-            />
-          }
-          label="Show Advanced"
         />
 
         <div>
