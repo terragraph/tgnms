@@ -34,7 +34,7 @@
     force: yes
 
 - name: add database label to docker node
-  shell: "docker node update --label-add \"database=true\" {{ ansible_hostname }}"
+  shell: "docker node update --label-add \"database=true\" {{ ansible_nodename }}"
 
 - name: run compose
   shell: "docker stack deploy -c {{ db_gfs_path }}/docker-compose.yml --with-registry-auth database"

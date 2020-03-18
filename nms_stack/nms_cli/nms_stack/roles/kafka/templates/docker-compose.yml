@@ -16,7 +16,7 @@ services:
       endpoint_mode: dnsrr
       placement:
         constraints:
-          - node.hostname=={{ hostvars[host]['ansible_hostname'] }}
+          - node.hostname=={{ hostvars[host]['ansible_nodename'] }}
       replicas: 1
     logging:
       driver: "json-file"

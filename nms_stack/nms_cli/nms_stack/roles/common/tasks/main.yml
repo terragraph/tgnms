@@ -16,15 +16,21 @@
     name: ansible-role-glusterfs
   when: groups.all | length > 1
 
+- name: upgrade pip, setuptools
+  pip:
+    name:
+      - pip
+      - setuptools
+    state: latest
+
 - name: pip install docker dependencies
   pip:
-    name: "{{ item }}"
+    name:
+      - docker
+      - docker-compose
+      - json-diff
+      - passlib
     state: present
-  loop:
-    - "docker"
-    - "docker-compose"
-    - "jsondiff"
-    - "passlib"
 
 - name: create docker daemon config path
   file:

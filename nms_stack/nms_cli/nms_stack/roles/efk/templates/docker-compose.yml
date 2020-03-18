@@ -19,7 +19,7 @@ services:
     environment:
       - node.name={{ '{{ .Node.Hostname }}' }}
       - discovery.seed_hosts=elasticsearch
-      - cluster.initial_master_nodes={{ groups['all'] | map('extract', hostvars, ['ansible_hostname']) | join(',') }}
+      - cluster.initial_master_nodes={{ groups['all'] | map('extract', hostvars, ['ansible_nodename']) | join(',') }}
       - cluster.name=tg-docker-cluster
       - bootstrap.memory_lock=false
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"

@@ -15,10 +15,12 @@
   # Defaults to 3 retries
   until: result is success
 
-- name: Install pip and rsync
+- name: Install system dependencies
   yum:
     name: "{{ item }}"
     state: present
   loop:
+    - gcc
     - "{{ pip_package }}"
+    - python-devel.x86_64
     - rsync
