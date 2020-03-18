@@ -15,9 +15,9 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.03.04",
+    version="2020.03.18",
     python_requires=">=3.7",
-    packages=["scan_service"],
+    packages=["scan_service", "scan_service/utils"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["scan_service = scan_service.main:main"]},
