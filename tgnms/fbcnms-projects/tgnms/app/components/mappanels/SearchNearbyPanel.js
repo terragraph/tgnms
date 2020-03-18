@@ -42,6 +42,7 @@ import {formatNumber} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
+  EditLinkParams,
   EditNodeParams,
   NearbyNodes,
 } from '../../components/mappanels/MapPanelTypes';
@@ -107,11 +108,7 @@ type Props = {
   nearbyNodes: NearbyNodes,
   onUpdateNearbyNodes: NearbyNodes => any,
   onAddNode: ($Shape<EditNodeParams>) => any,
-  onAddLink: ({
-    linkNode1: string,
-    linkNode2: string,
-    link_type: $Values<typeof LinkType>,
-  }) => any,
+  onAddLink: EditLinkParams => any,
   onAddSite: ($Shape<LocationType & {name: string}>) => any,
 };
 

@@ -7,47 +7,38 @@
 
 import * as React from 'react';
 import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
-import AddIcon from '@material-ui/icons/Add';
-import AddLinkPanel from '../../components/mappanels/AddLinkPanel';
-import AddLocationIcon from '@material-ui/icons/AddLocation';
-import AddNodePanel from '../../components/mappanels/AddNodePanel';
-import AddSitePanel from '../../components/mappanels/AddSitePanel';
-import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
-import Fab from '@material-ui/core/Fab';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
-import RouterIcon from '@material-ui/icons/Router';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
 import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
 import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
+import TopologyBuilderMenu from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
 import mapboxgl from 'mapbox-gl';
+import {SlideProps, TopologyElement} from '../../constants/MapPanelConstants';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
 import {withStyles, withTheme} from '@material-ui/core/styles';
 
 import type {
+  EditLinkParams,
   EditNodeParams,
   NearbyNodes,
-  PlannedSite,
+  PlannedSiteProps,
   Routes,
 } from '../../components/mappanels/MapPanelTypes';
 import type {Element, NetworkContextType} from '../../contexts/NetworkContext';
-import type {LocationType} from '../../../shared/types/Topology';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
+import type {SiteType} from '../../../shared/types/Topology';
 import type {Theme, WithStyles} from '@material-ui/core';
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
@@ -55,11 +46,6 @@ export const NetworkDrawerConstants = {
 };
 
 const styles = theme => ({
-  addButton: {
-    position: 'fixed',
-    right: 0,
-    margin: theme.spacing(2),
-  },
   appBarSpacer: theme.mixins.toolbar,
   content: {
     height: '100%',
@@ -85,12 +71,7 @@ type Props = {
   onNetworkTestPanelClosed: () => any,
   bottomOffset: number,
   mapRef: ?mapboxgl.Map,
-  plannedSiteProps: {
-    plannedSite: ?$Shape<PlannedSite>,
-    onUpdatePlannedSite: (site: ?$Shape<PlannedSite>) => any,
-    hideSite: string => any,
-    unhideSite: string => any,
-  },
+  plannedSiteProps: PlannedSiteProps,
   routesProps: Routes,
   searchNearbyProps: {|
     nearbyNodes: NearbyNodes,
@@ -99,37 +80,17 @@ type Props = {
   mapLayersProps: MapLayersProps,
 };
 
-const FormType = {
-  EDIT: 'EDIT',
-  CREATE: 'CREATE',
-};
-
 type State = {
-  // Topology builder menu
-  addButtonAnchorEl: ?HTMLElement,
-
   // Panels
   // -> expanded?
   overviewPanelExpanded: boolean,
   mapLayersPanelExpanded: boolean,
-  addNodePanelExpanded: boolean,
-  addLinkPanelExpanded: boolean,
-  addSitePanelExpanded: boolean,
   ignitionStatePanelExpanded: boolean,
   accessPointsPanelExpanded: boolean,
   upgradeProgressPanelExpanded: boolean,
   // -> visible?
-  showAddNodePanel: boolean,
-  showAddLinkPanel: boolean,
-  showAddSitePanel: boolean,
   showIgnitionStatePanel: boolean,
   showAccessPointsPanel: boolean,
-  // -> initial params?
-  addNodeParams: $Shape<EditNodeParams>,
-  addLinkParams: {},
-  addSiteParams: $Shape<LocationType & {name: string}>,
-  addNodeFormType: $Values<typeof FormType>,
-  addSiteFormType: $Values<typeof FormType>,
   // -> closing?
   closingNodes: {},
   closingLinks: {},
@@ -140,8 +101,11 @@ type State = {
   // State variable for resizable drawer
   width: number,
 
-  // Current site being edited
-  editingSite: ?string,
+  // Topology details
+  topologyParams: ?$Shape<EditNodeParams> | EditLinkParams | $Shape<SiteType>,
+  editTopologyElement: ?boolean,
+  addTopologyElementType: ?$Values<typeof TopologyElement>,
+  topologyPanelExpanded: boolean,
 };
 
 class NetworkDrawer extends React.Component<
@@ -152,34 +116,18 @@ class NetworkDrawer extends React.Component<
     super(props);
 
     this.state = {
-      // Topology builder menu
-      addButtonAnchorEl: null,
-
       // Panels
       // -> expanded?
       overviewPanelExpanded: !(
         props.context.selectedElement || props.context.pinnedElements.length
       ),
       mapLayersPanelExpanded: false,
-      addNodePanelExpanded: false,
-      addLinkPanelExpanded: false,
-      addSitePanelExpanded: false,
       ignitionStatePanelExpanded: false,
       accessPointsPanelExpanded: false,
       upgradeProgressPanelExpanded: true,
       // -> visible?
-      showAddNodePanel: false,
-      showAddLinkPanel: false,
-      showAddSitePanel: false,
       showIgnitionStatePanel: false,
       showAccessPointsPanel: false,
-      // -> initial params?
-      addNodeParams: {},
-      addLinkParams: {},
-      addSiteParams: {},
-      // -> form type? ('CREATE' or 'EDIT')
-      addNodeFormType: '',
-      addSiteFormType: '',
       // -> closing?
       closingNodes: {},
       closingLinks: {},
@@ -190,12 +138,25 @@ class NetworkDrawer extends React.Component<
       // State variable for resizable drawer
       width: NetworkDrawerConstants.DRAWER_MIN_WIDTH,
 
-      // Current site being edited
-      editingSite: null,
+      // Topology details
+      topologyParams: null,
+      editTopologyElement: null,
+      addTopologyElementType: null,
+      topologyPanelExpanded: false,
     };
   }
 
   componentDidUpdate(prevProps: Props) {
+    const {selectedElement, pinnedElements} = this.props.context;
+    const {
+      overviewPanelExpanded,
+      mapLayersPanelExpanded,
+      ignitionStatePanelExpanded,
+      accessPointsPanelExpanded,
+      upgradeProgressPanelExpanded,
+      topologyPanelExpanded,
+    } = this.state;
+
     // Expand or unexpand panels based on changes to context
     if (
       this.props.context.selectedElement &&
@@ -206,23 +167,20 @@ class NetworkDrawer extends React.Component<
     } else {
       // If there are no more selected/pinned elements and nothing is expanded,
       // expand the "Overview" panel
-      const hasTopologyElements =
-        this.props.context.selectedElement ||
-        this.props.context.pinnedElements.length;
+      const hasTopologyElements = selectedElement || pinnedElements.length;
       const prevHadTopologyElements =
         prevProps.context.selectedElement ||
         prevProps.context.pinnedElements.length;
       if (!hasTopologyElements && prevHadTopologyElements) {
         const isAnyPanelExpanded =
-          this.state.overviewPanelExpanded ||
-          this.state.mapLayersPanelExpanded ||
-          this.state.addNodePanelExpanded ||
-          this.state.addLinkPanelExpanded ||
-          this.state.addSitePanelExpanded ||
-          this.state.ignitionStatePanelExpanded ||
-          this.state.accessPointsPanelExpanded ||
-          this.state.upgradeProgressPanelExpanded ||
-          this.isSpeedTestMode();
+          overviewPanelExpanded ||
+          mapLayersPanelExpanded ||
+          ignitionStatePanelExpanded ||
+          accessPointsPanelExpanded ||
+          upgradeProgressPanelExpanded ||
+          topologyPanelExpanded;
+
+        this.isSpeedTestMode();
         if (!isAnyPanelExpanded) {
           this.handleoverViewPanelExpand();
         }
@@ -282,88 +240,6 @@ class NetworkDrawer extends React.Component<
     this.setState({[stateKey]: closingMap});
   }
 
-  onCloseAddButtonMenu() {
-    // Close the topology builder menu
-    this.setState({addButtonAnchorEl: null});
-  }
-
-  onAddPlannedSite = location => {
-    // Add a planned site to the map
-    const {context, mapRef, plannedSiteProps} = this.props;
-    const {plannedSite, onUpdatePlannedSite, unhideSite} = plannedSiteProps;
-    const {addSiteFormType, editingSite} = this.state;
-
-    // If there's already a planned site...
-    if (plannedSite && addSiteFormType === FormType.EDIT && editingSite) {
-      // Stop editing the previous site
-      unhideSite(editingSite);
-      this.setState({editingSite: null});
-    }
-
-    // Set initial position to the center of the map, or the provided location
-    let initialPosition = {latitude: 0, longitude: 0};
-    if (location) {
-      const {latitude, longitude} = location;
-      initialPosition = {latitude, longitude};
-    } else if (mapRef) {
-      const {lat, lng} = mapRef.getCenter();
-      initialPosition = {latitude: lat, longitude: lng};
-    } else if (context.networkConfig.bounds) {
-      // Use networkConfig if map reference isn't set (shouldn't happen...)
-      const [[minLng, minLat], [maxLng, maxLat]] = context.networkConfig.bounds;
-      const latitude = minLat + (maxLat - minLat) / 2;
-      const longitude = minLng + (maxLng - minLng) / 2;
-      initialPosition = {latitude, longitude};
-    }
-    this.setState({
-      addSiteParams: {
-        name: '',
-        altitude: 0,
-        accuracy: 40000000,
-      },
-      addSiteFormType: FormType.CREATE,
-    });
-    onUpdatePlannedSite(initialPosition);
-  };
-
-  onRemovePlannedSite = () => {
-    // Remove the planned site from the map
-    const {plannedSiteProps} = this.props;
-    const {onUpdatePlannedSite, unhideSite} = plannedSiteProps;
-    const {editingSite} = this.state;
-
-    // Stop editing the previous site
-    if (editingSite) {
-      unhideSite(editingSite);
-      this.setState({editingSite: null});
-    }
-
-    onUpdatePlannedSite(null);
-  };
-
-  onEditSite = params => {
-    // Edit the given site
-    const {plannedSiteProps} = this.props;
-    const {onUpdatePlannedSite, hideSite, unhideSite} = plannedSiteProps;
-    const {editingSite} = this.state;
-
-    // Stop editing the previous site
-    if (editingSite) {
-      unhideSite(editingSite);
-    }
-
-    const {name, latitude, longitude} = params;
-    this.setState({
-      showAddSitePanel: true,
-      addSiteParams: params,
-      addSiteFormType: FormType.EDIT,
-      addSitePanelExpanded: true,
-      editingSite: name,
-    });
-    onUpdatePlannedSite({latitude, longitude});
-    hideSite(name);
-  };
-
   isTestMode = () => {
     return (
       typeof this.props.networkTestId === 'string' &&
@@ -379,12 +255,13 @@ class NetworkDrawer extends React.Component<
     return {
       overviewPanelExpanded: false,
       mapLayersPanelExpanded: false,
-      addNodePanelExpanded: false,
-      addLinkPanelExpanded: false,
-      addSitePanelExpanded: false,
       ignitionStatePanelExpanded: false,
       accessPointsPanelExpanded: false,
       upgradeProgressPanelExpanded: false,
+      topologyParams: null,
+      editTopologyElement: null,
+      addTopologyElementType: null,
+      topologyPanelExpanded: false,
     };
   }
 
@@ -392,74 +269,24 @@ class NetworkDrawer extends React.Component<
     this.setState(this.getUnexpandPanelsState());
   }
 
-  renderTopologyBuilderMenu() {
-    // Render the FAB with topology builder actions (add node/link/site)
-    const {classes, bottomOffset} = this.props;
-    const {addButtonAnchorEl} = this.state;
-    const unexpandPanels = this.getUnexpandPanelsState();
+  onEditTopology = (params, topologyElement) => {
+    this.setState({
+      ...this.getUnexpandPanelsState(),
+      topologyParams: params,
+      editTopologyElement: true,
+      addTopologyElementType: topologyElement,
+    });
+  };
 
-    return (
-      <div>
-        <Fab
-          className={classes.addButton}
-          style={{bottom: bottomOffset}}
-          color="primary"
-          aria-haspopup="true"
-          onClick={ev => this.setState({addButtonAnchorEl: ev.currentTarget})}>
-          <AddIcon />
-        </Fab>
-        <Menu
-          id="topology-builder-menu"
-          anchorEl={addButtonAnchorEl}
-          open={Boolean(addButtonAnchorEl)}
-          onClose={() => this.onCloseAddButtonMenu()}>
-          <MenuItem
-            onClick={() => {
-              this.setState({
-                ...unexpandPanels,
-                addNodePanelExpanded: true,
-                showAddNodePanel: true,
-                addNodeParams: {},
-                addNodeFormType: FormType.CREATE,
-              });
-              this.onCloseAddButtonMenu();
-            }}>
-            <ListItemIcon>{<RouterIcon />}</ListItemIcon>
-            <ListItemText primary="Add Node" />
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              this.setState({
-                ...unexpandPanels,
-                addLinkPanelExpanded: true,
-                showAddLinkPanel: true,
-              });
-              this.onCloseAddButtonMenu();
-            }}>
-            <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
-            <ListItemText primary="Add Link" />
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              // Show a planned site feature on the map
-              this.onAddPlannedSite();
+  onAddTopology = (params, topologyElement) => {
+    this.setState({
+      ...this.getUnexpandPanelsState(),
+      topologyParams: params,
+      addTopologyElementType: topologyElement,
+    });
+  };
 
-              this.setState({
-                ...unexpandPanels,
-                addSitePanelExpanded: true,
-                showAddSitePanel: true,
-              });
-              this.onCloseAddButtonMenu();
-            }}>
-            <ListItemIcon>{<AddLocationIcon />}</ListItemIcon>
-            <ListItemText primary="Add Planned Site" />
-          </MenuItem>
-        </Menu>
-      </div>
-    );
-  }
-
-  renderTopologyElement({type, name, expanded}, slideProps) {
+  renderTopologyElement({type, name, expanded}, SlideProps) {
     // Render a topology element panel
     const {context, searchNearbyProps, routesProps} = this.props;
     const {networkConfig, pinnedElements} = context;
@@ -490,7 +317,7 @@ class NetworkDrawer extends React.Component<
       const {node: _, ...routesPropsWithoutNode} = routesProps;
       return (
         <Slide
-          {...slideProps}
+          {...SlideProps}
           key={name}
           in={!this.state.closingNodes.hasOwnProperty(name)}>
           <NodeDetailsPanel
@@ -514,15 +341,7 @@ class NetworkDrawer extends React.Component<
             onClose={() => this.onClosePanel(name, type, 'closingNodes')}
             pinned={pinned}
             onPin={() => context.togglePin(type, name, !pinned)}
-            onEdit={params =>
-              this.setState({
-                ...this.getUnexpandPanelsState(),
-                addNodePanelExpanded: true,
-                showAddNodePanel: true,
-                addNodeParams: params,
-                addNodeFormType: FormType.EDIT,
-              })
-            }
+            onEdit={params => this.onEditTopology(params, TopologyElement.node)}
             {...searchNearbyProps}
             {...routesPropsWithoutNode}
             node={node}
@@ -533,7 +352,7 @@ class NetworkDrawer extends React.Component<
       const link = linkMap[name];
       return (
         <Slide
-          {...slideProps}
+          {...SlideProps}
           key={name}
           in={!this.state.closingLinks.hasOwnProperty(name)}>
           <LinkDetailsPanel
@@ -571,7 +390,7 @@ class NetworkDrawer extends React.Component<
       );
       return (
         <Slide
-          {...slideProps}
+          {...SlideProps}
           key={name}
           in={!this.state.closingSites.hasOwnProperty(name)}>
           <SiteDetailsPanel
@@ -591,7 +410,12 @@ class NetworkDrawer extends React.Component<
             }
             pinned={pinned}
             onPin={() => context.togglePin(type, name, !pinned)}
-            onEdit={this.onEditSite}
+            onEdit={params =>
+              this.onEditTopology(
+                {name: params.name, location: {...params}},
+                TopologyElement.site,
+              )
+            }
             onUpdateRoutes={routesProps.onUpdateRoutes}
           />
         </Slide>
@@ -600,14 +424,14 @@ class NetworkDrawer extends React.Component<
     return null;
   }
 
-  renderDefaultRouteHistoryPanel(nodeName, slideProps) {
+  renderDefaultRouteHistoryPanel(nodeName, SlideProps) {
     const {context, routesProps} = this.props;
     const {topology} = context.networkConfig;
     const {networkName, nodeMap, siteMap, siteToNodesMap} = context;
     const node = nodeMap[nodeName];
     return (
       <Slide
-        {...slideProps}
+        {...SlideProps}
         key={node.site_name}
         in={!this.state.closingDefaultRoute.hasOwnProperty(node.site_name)}>
         <DefaultRouteHistoryPanel
@@ -630,7 +454,7 @@ class NetworkDrawer extends React.Component<
     );
   }
 
-  renderSearchNearby(nodeName, slideProps) {
+  renderSearchNearby(nodeName, SlideProps) {
     // Render a "Search Nearby" panel
     const {context, searchNearbyProps} = this.props;
     const {topology} = context.networkConfig;
@@ -639,7 +463,7 @@ class NetworkDrawer extends React.Component<
 
     return (
       <Slide
-        {...slideProps}
+        {...SlideProps}
         key={nodeName}
         in={!this.state.closingSearchNearby.hasOwnProperty(nodeName)}>
         <SearchNearbyPanel
@@ -650,39 +474,18 @@ class NetworkDrawer extends React.Component<
           onClose={() =>
             this.onClosePanel(nodeName, 'search_nearby', 'closingSearchNearby')
           }
-          onAddNode={params =>
-            this.setState({
-              ...this.getUnexpandPanelsState(),
-              addNodePanelExpanded: true,
-              showAddNodePanel: true,
-              addNodeParams: params,
-              addNodeFormType: FormType.CREATE,
-            })
-          }
-          onAddLink={params =>
-            this.setState({
-              ...this.getUnexpandPanelsState(),
-              addLinkPanelExpanded: true,
-              showAddLinkPanel: true,
-              addLinkParams: params,
-            })
-          }
-          onAddSite={params => {
-            // Show a planned site feature on the map
-            this.onAddPlannedSite(params);
-
-            this.setState({
-              ...this.getUnexpandPanelsState(),
-              addSitePanelExpanded: true,
-              showAddSitePanel: true,
-              addSiteParams: params,
-            });
-          }}
+          onAddNode={params => this.onAddTopology(params, TopologyElement.node)}
+          onAddLink={params => this.onAddTopology(params, TopologyElement.link)}
+          onAddSite={params => this.onAddTopology(params, TopologyElement.site)}
           {...searchNearbyProps}
         />
       </Slide>
     );
   }
+
+  updateTopologyPanelExpanded = topologyPanelExpanded => {
+    this.setState({...this.getUnexpandPanelsState(), topologyPanelExpanded});
+  };
 
   render() {
     const {
@@ -693,6 +496,7 @@ class NetworkDrawer extends React.Component<
       plannedSiteProps,
       searchNearbyProps,
       routesProps,
+      mapRef,
     } = this.props;
     const {
       networkName,
@@ -702,7 +506,6 @@ class NetworkDrawer extends React.Component<
       pinnedElements,
     } = context;
     const {
-      controller_version,
       topology,
       ignition_state,
       status_dump,
@@ -714,24 +517,16 @@ class NetworkDrawer extends React.Component<
       width,
       overviewPanelExpanded,
       mapLayersPanelExpanded,
-      addNodePanelExpanded,
-      addLinkPanelExpanded,
-      addSitePanelExpanded,
       ignitionStatePanelExpanded,
       accessPointsPanelExpanded,
       upgradeProgressPanelExpanded,
-      addNodeFormType,
-      addSiteFormType,
+      topologyParams,
+      editTopologyElement,
+      addTopologyElementType,
     } = this.state;
     const drawerDimensions = {
       width,
       height: bottomOffset === 0 ? '100%' : `calc(100% - ${bottomOffset}px)`,
-    };
-    const slideProps = {
-      direction: 'left',
-      mountOnEnter: true,
-      // Don't set unmountOnExit if any action is taken on mount!
-      // (interferes with onClosePanel() logic and causes unmount-mount-unmount)
     };
 
     // Build list of topology elements
@@ -838,83 +633,8 @@ class NetworkDrawer extends React.Component<
               this.setState({mapLayersPanelExpanded: !mapLayersPanelExpanded})
             }
           />
-
-          <Slide {...slideProps} unmountOnExit in={this.state.showAddNodePanel}>
-            <AddNodePanel
-              expanded={addNodePanelExpanded}
-              onPanelChange={() =>
-                this.setState({addNodePanelExpanded: !addNodePanelExpanded})
-              }
-              onClose={() => {
-                // If editing a node and nothing else is selected,
-                // re-select the node onClose
-                if (addNodeFormType === FormType.EDIT && !selectedElement) {
-                  context.setSelected(
-                    TopologyElementType.NODE,
-                    this.state.addNodeParams.name,
-                  );
-                }
-
-                this.setState({
-                  showAddNodePanel: false,
-                  addNodeParams: {},
-                });
-              }}
-              formType={addNodeFormType}
-              initialParams={this.state.addNodeParams}
-              ctrlVersion={controller_version}
-              networkConfig={context.networkConfig}
-              networkName={networkName}
-              topology={topology}
-            />
-          </Slide>
-          <Slide {...slideProps} unmountOnExit in={this.state.showAddLinkPanel}>
-            <AddLinkPanel
-              expanded={addLinkPanelExpanded}
-              onPanelChange={() =>
-                this.setState({addLinkPanelExpanded: !addLinkPanelExpanded})
-              }
-              onClose={() =>
-                this.setState({showAddLinkPanel: false, addLinkParams: {}})
-              }
-              initialParams={this.state.addLinkParams}
-              topology={topology}
-              networkName={networkName}
-            />
-          </Slide>
-          <Slide {...slideProps} unmountOnExit in={this.state.showAddSitePanel}>
-            <AddSitePanel
-              expanded={addSitePanelExpanded}
-              onPanelChange={() =>
-                this.setState({addSitePanelExpanded: !addSitePanelExpanded})
-              }
-              onClose={() => {
-                // Hide the planned state feature on the map
-                this.onRemovePlannedSite();
-
-                // If editing a site and nothing else is selected,
-                // re-select the site onClose
-                if (addSiteFormType === FormType.EDIT && !selectedElement) {
-                  context.setSelected(
-                    TopologyElementType.SITE,
-                    this.state.addSiteParams.name || '',
-                  );
-                }
-
-                this.setState({
-                  showAddSitePanel: false,
-                  addSiteParams: {},
-                });
-              }}
-              formType={addSiteFormType}
-              initialParams={this.state.addSiteParams}
-              networkName={networkName}
-              plannedSite={plannedSiteProps.plannedSite}
-              onUpdatePlannedSite={plannedSiteProps.onUpdatePlannedSite}
-            />
-          </Slide>
           <Slide
-            {...slideProps}
+            {...SlideProps}
             unmountOnExit
             in={this.state.showIgnitionStatePanel}>
             <IgnitionStatePanel
@@ -931,7 +651,7 @@ class NetworkDrawer extends React.Component<
             />
           </Slide>
           <Slide
-            {...slideProps}
+            {...SlideProps}
             unmountOnExit
             in={this.state.showAccessPointsPanel}>
             <AccessPointsPanel
@@ -952,18 +672,26 @@ class NetworkDrawer extends React.Component<
           </Slide>
 
           {Object.keys(searchNearbyProps.nearbyNodes).map(txNode =>
-            this.renderSearchNearby(txNode, slideProps),
+            this.renderSearchNearby(txNode, SlideProps),
           )}
 
           {routesProps.node
-            ? this.renderDefaultRouteHistoryPanel(routesProps.node, slideProps)
+            ? this.renderDefaultRouteHistoryPanel(routesProps.node, SlideProps)
             : null}
 
           {topologyElements.map(el =>
-            this.renderTopologyElement(el, slideProps),
+            this.renderTopologyElement(el, SlideProps),
           )}
 
-          {this.renderTopologyBuilderMenu()}
+          <TopologyBuilderMenu
+            bottomOffset={bottomOffset}
+            plannedSiteProps={plannedSiteProps}
+            editTopologyElement={editTopologyElement}
+            addTopologyElementType={addTopologyElementType}
+            params={topologyParams}
+            mapRef={mapRef}
+            updateTopologyPanelExpanded={this.updateTopologyPanelExpanded}
+          />
         </div>
       </Drawer>
     );

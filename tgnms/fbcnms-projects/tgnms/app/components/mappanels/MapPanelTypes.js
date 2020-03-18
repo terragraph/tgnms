@@ -2,9 +2,10 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
+import {LinkTypeValueMap} from '../../../shared/types/Topology';
 import type {LocationType, NodeType} from '../../../shared/types/Topology';
 
 export type TopologyScanInfo = {
@@ -26,7 +27,7 @@ export type Routes = {|
     node: ?string,
     links: {[string]: number},
     nodes: Set<string>,
-  }) => any,
+  }) => void,
 |};
 
 /*
@@ -39,6 +40,12 @@ export type EditNodeParams = {
   wlan_mac_addrs?: ?string,
 };
 
+export type EditLinkParams = {
+  linkNode1: string,
+  linkNode2: string,
+  link_type: $Values<typeof LinkTypeValueMap>,
+};
+
 export type NearbyNodes = {
   [string]: Array<TopologyScanInfo>,
 };
@@ -46,4 +53,11 @@ export type NearbyNodes = {
 export type PlannedSite = {
   name: string,
   ...$Shape<LocationType>,
+};
+
+export type PlannedSiteProps = {
+  plannedSite: ?$Shape<PlannedSite>,
+  onUpdatePlannedSite: (site: ?$Shape<PlannedSite>) => void,
+  hideSite: string => void,
+  unhideSite: string => void,
 };

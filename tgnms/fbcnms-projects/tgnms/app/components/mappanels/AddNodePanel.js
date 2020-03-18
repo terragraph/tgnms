@@ -15,6 +15,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Switch from '@material-ui/core/Switch';
 import swal from 'sweetalert2';
+import {FormType} from '../../constants/MapPanelConstants';
 import {
   NodeTypeValueMap,
   PolarityTypeValueMap as PolarityType,
@@ -78,17 +79,12 @@ const styles = theme => ({
   },
 });
 
-const FormType = Object.freeze({
-  CREATE: 'CREATE',
-  EDIT: 'EDIT',
-});
-
 type Props = {
   classes: {[string]: string},
   className?: string,
   ctrlVersion: string,
   expanded: boolean,
-  formType: string,
+  formType: $Values<typeof FormType>,
   initialParams: Object,
   networkConfig: NetworkConfig,
   networkName: string,
