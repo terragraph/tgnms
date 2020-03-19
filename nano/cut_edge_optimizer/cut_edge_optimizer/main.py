@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import time
-from typing import Dict, List, Set
+from typing import Dict
 
 from tglib import ClientType, init
 
@@ -21,6 +21,7 @@ class Job:
 
     name: str
     start_time: int
+    window_s: int
     params: Dict
 
 
@@ -28,12 +29,12 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
     """Add jobs from the pipeline configuration to the shared queue."""
     while True:
         start_time = time.time()
-
         tasks = [
             queue.put(
                 Job(
                     name=job["name"],
                     start_time=int(start_time),
+                    window_s=job["window_s"],
                     params=job.get("params", {}),
                 )
             )
@@ -64,7 +65,7 @@ async def consume(queue: asyncio.Queue) -> None:
 
         # Execute the job
         function = getattr(jobs, job.name)
-        await function(job.start_time, **job.params)
+        await function(job.start_time, job.window_s, **job.params)
         logging.info(f"Finished running the '{job.name}' job")
 
 
@@ -92,5 +93,10 @@ def main() -> None:
             config = json.load(file)
     except (json.JSONDecodeError, OSError):
         logging.exception("Failed to parse service configuration file")
+        sys.exit(1)
 
-    init(lambda: async_main(config), {ClientType.API_SERVICE_CLIENT}, routes)
+    init(
+        lambda: async_main(config),
+        {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
+        routes,
+    )

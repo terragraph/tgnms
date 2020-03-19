@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from typing import List
+from typing import List, Optional
 
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
@@ -13,9 +13,11 @@ from .config_operations import get_all_cut_edge_configs
 
 async def cut_edge_finder(
     start_time: int,
-    config_change_interval_s: int,
+    window_s: int,
+    config_change_delay_s: int,
     link_flap_backoff_ms: str,
-    link_impairment_detection: bool,
+    link_impairment_detection: int,
+    link_uptime_threshold: Optional[float] = None,
 ) -> None:
     """
     Use `getTopology` API request to fetch the latest topology
@@ -32,11 +34,12 @@ async def cut_edge_finder(
         else:
             coroutines.append(
                 get_all_cut_edge_configs(
-                    network_name,
                     topology,
+                    window_s,
                     link_flap_backoff_ms,
                     link_impairment_detection,
-                    config_change_interval_s,
+                    config_change_delay_s,
+                    link_uptime_threshold,
                 )
             )
 

@@ -9,9 +9,9 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
     "required_coverage": {
-        "cut_edge_optimizer/graph_analysis.py": 98,
-        "cut_edge_optimizer/config_operations.py": 55,
-        "TOTAL": 44,
+        "cut_edge_optimizer/graph_analysis.py": 65,
+        "cut_edge_optimizer/config_operations.py": 53,
+        "TOTAL": 43,
     },
     "run_flake8": True,
     "run_black": True,
@@ -20,7 +20,7 @@ ptr_params = {
 
 setup(
     name="cut_edge_optimizer",
-    version="2020.13.02",
+    version="2020.03.19",
     packages=["cut_edge_optimizer"],
     install_requires=["aiohttp", "networkx"],
     extras_require={"ci": ["ptr"]},
