@@ -8,7 +8,6 @@
  * @format
  */
 
-import {ERROR_MESSAGES} from './errors';
 import {Strategy} from 'passport-strategy';
 
 //use this in place of the real openid strategies until discovery finishes
@@ -18,6 +17,6 @@ export default class StubStrategy extends Strategy {
     this.name = 'stub';
   }
   authenticate() {
-    return this.fail({message: ERROR_MESSAGES.remoteDown});
+    return this.fail({message: 'No implementation found for strategy'});
   }
 }

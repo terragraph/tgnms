@@ -9,7 +9,7 @@ import passport from 'passport';
 const logger = require('../log')(module);
 import ApplicationUser from './User';
 import PasswordGrantStrategy from './PasswordGrantStrategy';
-import StubStrategy from './StubStrategy';
+import StubStrategy from '@fbcnms/auth/strategies/StubStrategy';
 import {CLIENT_ROOT_URL, LOGIN_ENABLED, SSO_ENABLED} from '../config';
 import {Strategy} from 'openid-client';
 import {initOidcClient} from './oidc';
