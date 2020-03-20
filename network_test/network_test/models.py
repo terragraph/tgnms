@@ -58,7 +58,7 @@ class NetworkTestParams(Base):
         nullable=True,
     )
     test_type = Column(Enum(NetworkTestType), nullable=False)
-    network_name = Column(String(255), nullable=False)
+    network_name = Column(String(255), index=True, nullable=False)
     iperf_options = Column(JSON, nullable=False)
 
 
@@ -69,7 +69,7 @@ class NetworkTestExecution(Base):
     params_id = Column(Integer, ForeignKey("network_test_params.id"), nullable=False)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
     end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
-    status = Column(Enum(NetworkTestStatus), nullable=False)
+    status = Column(Enum(NetworkTestStatus), index=True, nullable=False)
 
 
 class NetworkTestResult(Base):
@@ -79,9 +79,9 @@ class NetworkTestResult(Base):
     execution_id = Column(
         Integer, ForeignKey("network_test_execution.id"), nullable=False
     )
-    status = Column(Enum(NetworkTestStatus), nullable=False)
-    src_node_mac = Column(String(255), nullable=False)
-    dst_node_mac = Column(String(255), nullable=False)
+    status = Column(Enum(NetworkTestStatus), index=True, nullable=False)
+    src_node_mac = Column(String(255), index=True, nullable=False)
+    dst_node_mac = Column(String(255), index=True, nullable=False)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
     end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
     # Iperf Columns
