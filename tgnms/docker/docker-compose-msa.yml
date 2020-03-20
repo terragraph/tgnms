@@ -5,8 +5,8 @@ services:
       image: secure.cxl-terragraph.com:443/cut_edge_optimizer:latest
       restart: always
       volumes:
-        - ./docker_volumes/tglib/config.json:/usr/local/nano/cut_edge_optimizer/config.json
-        - ./docker_volumes/cut_edge_optimizer/service_config.json:/usr/local/nano/cut_edge_optimizer/service_config.json
+        - ./docker_volumes/tglib/config.json:/usr/local/cut_edge_optimizer/config.json
+        - ./docker_volumes/cut_edge_optimizer/service_config.json:/usr/local/cut_edge_optimizer/service_config.json
       networks:
         - terragraph_net
       command: ["/bin/sh", "-c", "cut_edge_optimizer"]
