@@ -344,7 +344,7 @@ class Scheduler:
             else:
                 query = query.where(NetworkTestSchedule.id == schedule_id)
                 cursor = await sa_conn.execute(query)
-                return await cursor.first()
+                return await cursor.first() or {}
 
     @staticmethod
     async def list_executions(execution_id: Optional[int] = None) -> Iterable:
@@ -370,7 +370,21 @@ class Scheduler:
             else:
                 query = query.where(NetworkTestExecution.id == execution_id)
                 cursor = await sa_conn.execute(query)
-                return await cursor.first()
+                return await cursor.first() or {}
+
+    @staticmethod
+    async def list_results(execution_id: int) -> Iterable:
+        async with MySQLClient().lease() as sa_conn:
+            ignore_cols = {"execution_id", "iperf_client_blob", "iperf_server_blob"}
+            query = select(
+                filter(
+                    lambda col: col.key not in ignore_cols,
+                    NetworkTestResult.__table__.columns,
+                )
+            ).where(NetworkTestResult.execution_id == execution_id)
+
+            cursor = await sa_conn.execute(query)
+            return await cursor.fetchall()
 
     @staticmethod
     async def is_network_busy(network_name: str) -> bool:

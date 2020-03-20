@@ -20,7 +20,7 @@ routes = web.RouteTableDef()
 
 def custom_serializer(obj: Any) -> str:
     if isinstance(obj, enum.Enum):
-        return str(obj.value)
+        return obj.name
     elif isinstance(obj, datetime):
         return datetime.isoformat(obj)
     else:
@@ -31,7 +31,7 @@ def custom_serializer(obj: Any) -> str:
 async def handle_get_schedules(request: web.Request) -> web.Response:
     """
     ---
-    description: Return a list of all network test schedules and current params.
+    description: Return all of the network test schedules and their current params.
     tags:
     - Network Test
     produces:
@@ -41,7 +41,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
         description: Successful operation.
     """
     return web.json_response(
-        [dict(row) for row in await Scheduler.list_schedules()],
+        {"schedules": [dict(row) for row in await Scheduler.list_schedules()]},
         dumps=partial(json.dumps, default=custom_serializer),
     )
 
@@ -50,7 +50,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
 async def handle_get_schedule(request: web.Request) -> web.Response:
     """
     ---
-    description: Return the test schedule and params given a network test schedule ID.
+    description: Return the network test schedule and params for a particular network test schedule ID.
     tags:
     - Network Test
     produces:
@@ -70,13 +70,14 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
     """
     schedule_id = int(request.match_info["schedule_id"])
     schedule = await Scheduler.list_schedules(schedule_id)
-    if schedule is None:
+    if not schedule:
         raise web.HTTPNotFound(
             text=f"No network test schedule with ID '{schedule_id}' was found"
         )
 
     return web.json_response(
-        dict(schedule), dumps=partial(json.dumps, default=custom_serializer)
+        {"schedule": dict(schedule)},
+        dumps=partial(json.dumps, default=custom_serializer),
     )
 
 
@@ -174,7 +175,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
         type: integer
     - in: body
       name: schedule
-      description: The updated schedule and params
+      description: The updated network test schedule and params
       schema:
         type: object
         properties:
@@ -290,7 +291,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
 async def handle_get_executions(request: web.Request) -> web.Response:
     """
     ---
-    description: Return a list of all network test executions and current params.
+    description: Return all of the network test executions and their params.
     tags:
     - Network Test
     produces:
@@ -300,7 +301,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:
         description: Successful operation.
     """
     return web.json_response(
-        [dict(row) for row in await Scheduler.list_executions()],
+        {"executions": [dict(row) for row in await Scheduler.list_executions()]},
         dumps=partial(json.dumps, default=custom_serializer),
     )
 
@@ -309,7 +310,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:
 async def handle_get_execution(request: web.Request) -> web.Response:
     """
     ---
-    description: Return the test execution and params given a network test execution ID.
+    description: Return the network test execution, params, results for a particular network test execution ID.
     tags:
     - Network Test
     produces:
@@ -329,13 +330,15 @@ async def handle_get_execution(request: web.Request) -> web.Response:
     """
     execution_id = int(request.match_info["execution_id"])
     execution = await Scheduler.list_executions(execution_id)
-    if execution is None:
+    if not execution:
         raise web.HTTPNotFound(
             text=f"No network test execution with ID '{execution_id}' was found"
         )
 
+    results = await Scheduler.list_results(execution_id)
     return web.json_response(
-        dict(execution), dumps=partial(json.dumps, default=custom_serializer)
+        {"execution": dict(execution), "results": [dict(row) for row in results]},
+        dumps=partial(json.dumps, default=custom_serializer),
     )
 
 
@@ -351,7 +354,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     parameters:
     - in: body
       name: execution
-      description: The network test execution to start.
+      description: The network test params of the execution.
       schema:
         type: object
         properties:
@@ -370,7 +373,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
       "400":
         description: Invalid or missing parameters.
       "409":
-        description: A test is already running on the network.
+        description: A network test is already running on the network.
       "500":
         description: Failed to prepare network test assets.
     """
@@ -412,7 +415,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
 async def handle_stop_execution(request: web.Request) -> web.Response:
     """
     ---
-    description: Stop a running test execution.
+    description: Stop a running network test execution.
     tags:
     - Network Test
     produces:
@@ -435,7 +438,7 @@ async def handle_stop_execution(request: web.Request) -> web.Response:
     execution_id = int(request.match_info["execution_id"])
     if not Scheduler.has_execution(execution_id):
         raise web.HTTPNotFound(
-            text=f"No network test execution with ID '{execution_id}' was found"
+            text=f"No running network test execution with ID '{execution_id}' was found"
         )
 
     if not await Scheduler.stop_execution(execution_id):
