@@ -14,7 +14,10 @@ routes for egressing the network. Each node-PoP pair is tested sequentially
 meaning the total test duration is bounded by the number of sites in the
 network.
 
-Multihop testing can be done using TCP or UDP. If TCP is chosen and an omit period is not provided, a period of two seconds is used to ignore TCP slowstart. In addition, a default session duration of one minute is used if one is not provided.
+Multihop testing can be done using TCP or UDP. If TCP is chosen and an omit
+period is not provided, a period of two seconds is used to ignore TCP
+slowstart. In addition, a default session duration of one minute is used if one
+is not provided.
 
 ### Parallel Link Test
 Start bidirectional UDP `iperf` sessions on all wireless links in a given
