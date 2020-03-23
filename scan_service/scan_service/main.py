@@ -31,10 +31,10 @@ async def events_handler(msg: str) -> None:
         event = json.loads(msg)
         event_id = event["eventId"]
         network_name = event["topologyName"]
-        event_details = json.loads(event["details"])
 
         # TODO: T62134320 to trigger scan response analysis at optimal times
         if event_id == EventId.SCAN_COMPLETE:
+            event_details = json.loads(event["details"])
             group_id = event_details["groupId"]
             groups = await get_scan_groups(network_name, group_id)
             resp_rates = [group.calculate_response_rate() for group in groups]
