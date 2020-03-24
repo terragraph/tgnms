@@ -27,7 +27,10 @@ export const FeatureFlags: {[string]: () => boolean} = {
     window.CONFIG.env.hasOwnProperty('JSON_CONFIG_ENABLED')
       ? window.CONFIG.env.JSON_CONFIG_ENABLED === 'true'
       : true,
-  MAP_HISTORY_ENABLED: () => window.CONFIG.env.MAP_HISTORY_ENABLED,
+  MAP_HISTORY_ENABLED: () =>
+    window.CONFIG.env.hasOwnProperty('MAP_HISTORY_ENABLED')
+      ? window.CONFIG.env.MAP_HISTORY_ENABLED === 'true'
+      : true,
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {
