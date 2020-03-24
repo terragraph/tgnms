@@ -44,12 +44,16 @@ class PrometheusClientTests(asynctest.TestCase):
         query = self.client.create_query("metric", labels)
         self.assertIn('intervalSec="30"', query)
 
-    def test_create_regex_query(self) -> None:
+    def test_create_query_regex_label(self) -> None:
         labels = {"foo": re.compile("bar|baz")}
         query = self.client.create_query("metric", labels)
         self.assertIn('foo=~"bar|baz"', query)
 
-    def test_query_ops(self) -> None:
+    def test_create_query_invalid_char_in_metric(self) -> None:
+        query = self.client.create_query("1-metric")
+        self.assertIn("1-metric", query)
+
+    def test_create_query_ops(self) -> None:
         labels = {"foo": "bar"}
         query = ops.avg_over_time(self.client.create_query("metric", labels), "24h")
         expected_query = 'avg_over_time(metric{intervalSec="30",foo="bar"} [24h])'

@@ -96,8 +96,8 @@ class PrometheusClient(BaseClient):
             else:
                 label_list.append(f'{name}="{val}"')
 
-        label_query = ",".join(label_list)
-        return PrometheusClient.normalize(f"{metric_name}{{{label_query}}}")
+        label_str = PrometheusClient.normalize(",".join(label_list))
+        return f"{metric_name}{{{label_str}}}"
 
     @classmethod
     def write_metrics(
