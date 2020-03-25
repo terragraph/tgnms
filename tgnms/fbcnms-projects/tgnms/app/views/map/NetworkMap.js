@@ -597,7 +597,6 @@ class NetworkMap extends React.Component<Props, State> {
                   }
                   networkDrawerWidth={networkDrawerWidth}
                 />
-                )}
               </div>
               {showTable && (
                 <div

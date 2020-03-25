@@ -10,6 +10,7 @@ import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
+import DrawerToggleButton from '../../components/common/DrawerToggleButton';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
@@ -41,6 +42,7 @@ import type {Element, NetworkContextType} from '../../contexts/NetworkContext';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
 import type {SiteType} from '../../../shared/types/Topology';
 import type {Theme, WithStyles} from '@material-ui/core';
+
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
   DRAWER_MAX_WIDTH: 800,
@@ -105,6 +107,8 @@ type State = {
   editTopologyElement: ?boolean,
   addTopologyElementType: ?$Values<typeof TopologyElement>,
   topologyPanelExpanded: boolean,
+  //show or hide drawer
+  drawerOpen: boolean,
 };
 
 class NetworkDrawer extends React.Component<
@@ -139,6 +143,7 @@ class NetworkDrawer extends React.Component<
       editTopologyElement: null,
       addTopologyElementType: null,
       topologyPanelExpanded: false,
+      drawerOpen: true,
     };
   }
 
@@ -481,6 +486,32 @@ class NetworkDrawer extends React.Component<
     this.setState({...this.getUnexpandPanelsState(), topologyPanelExpanded});
   };
 
+  onDrawerToggle = () => {
+    const {drawerOpen} = this.state;
+    const {theme, onNetworkDrawerResize} = this.props;
+    const newWidth = drawerOpen ? 0 : NetworkDrawerConstants.DRAWER_MIN_WIDTH;
+    onNetworkDrawerResize(newWidth);
+    this.setState({drawerOpen: !drawerOpen}, () => {
+      // Figure out duration of animation
+      let duration = theme.transitions.duration.enteringScreen;
+      if (drawerOpen) {
+        duration = theme.transitions.duration.leavingScreen;
+      }
+
+      // Add a some buffer to the duration in case it misses an edge
+      duration += 20;
+      const startTime = new Date().getTime();
+      const interval = setInterval(() => {
+        // Clear the interval after
+        if (new Date().getTime() - startTime > duration) {
+          clearInterval(interval);
+          return;
+        }
+        window.dispatchEvent(new Event('resize'));
+      }, 10 /* 100 fps, should be good */);
+    });
+  };
+
   render() {
     const {
       classes,
@@ -516,7 +547,9 @@ class NetworkDrawer extends React.Component<
       topologyParams,
       editTopologyElement,
       addTopologyElementType,
+      drawerOpen,
     } = this.state;
+
     const drawerDimensions = {
       width: networkDrawerWidth,
       height: '100%',
@@ -691,6 +724,11 @@ class NetworkDrawer extends React.Component<
               updateTopologyPanelExpanded={this.updateTopologyPanelExpanded}
             />
           </SnackbarProvider>
+          <DrawerToggleButton
+            drawerWidth={networkDrawerWidth}
+            drawerOpen={drawerOpen}
+            onDrawerToggle={this.onDrawerToggle}
+          />
         </div>
       </Drawer>
     );
