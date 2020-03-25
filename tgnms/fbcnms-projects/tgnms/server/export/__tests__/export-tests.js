@@ -25,7 +25,7 @@ describe('test kml exports', () => {
     // the \ufeff character messes parsing up, we just replace
     // it with an empty char
     const cleanedString = response.res.text.replace('\ufeff', '');
-    parseString(cleanedString, function(err, result) {
+    parseString(cleanedString, function (err, result) {
       if (err !== null) {
         throw 'resulting xml is invalid';
       }

@@ -58,9 +58,7 @@ router.get('/query/dataArray', (req, res) => {
 /** Query raw stats given a relative time (e.g. 5 minutes ago) */
 router.get('/query/raw/since', (req, res) => {
   const end = moment().unix();
-  const start = moment()
-    .subtract(req.query.value, req.query.units)
-    .unix();
+  const start = moment().subtract(req.query.value, req.query.units).unix();
 
   const data = {
     query: req.query.query,

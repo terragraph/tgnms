@@ -60,17 +60,18 @@ export default function EventAlertViewer({alert}: AlertViewerProps) {
             <ListItem key={i}>
               <ListItemText
                 primary={event.reason}
-                secondary={`${event.nodeName ||
-                  event?.nodeId ||
-                  'unknown'} ${new Date(event.timestamp).toLocaleTimeString()}`}
+                secondary={`${
+                  event.nodeName || event?.nodeId || 'unknown'
+                } ${new Date(event.timestamp).toLocaleTimeString()}`}
               />
             </ListItem>
           ))}
           {isTruncated && (
             <ListItem>
               <ListItemText
-                primary={`${allEvents.length -
-                  EVENT_LIMIT} more events not shown...`}
+                primary={`${
+                  allEvents.length - EVENT_LIMIT
+                } more events not shown...`}
               />
             </ListItem>
           )}

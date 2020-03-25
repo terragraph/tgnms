@@ -418,9 +418,7 @@ describe('DELETE /schedule/:scheduleId', () => {
       });
     });
     const app = setupApp();
-    await request(app)
-      .delete('/network_test/schedule/1')
-      .expect(200);
+    await request(app).delete('/network_test/schedule/1').expect(200);
   });
 });
 
