@@ -21,4 +21,5 @@ export const TopologyElement = {
   site: 'site',
   node: 'node',
   link: 'link',
+  upload: 'upload',
 };

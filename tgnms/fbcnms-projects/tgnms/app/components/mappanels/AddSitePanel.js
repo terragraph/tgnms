@@ -17,11 +17,11 @@ import Typography from '@material-ui/core/Typography';
 import {
   basicTemplates,
   defaultTemplate,
-  templateTopologyBuilderRequest,
-} from '../../helpers/templateHelpers';
+} from '../../constants/TemplateConstants';
 import {createNumericInput, formParseFloat} from '../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
 import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
+import {templateTopologyBuilderRequest} from '../../helpers/templateHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {

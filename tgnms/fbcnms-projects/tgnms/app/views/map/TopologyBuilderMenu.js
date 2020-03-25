@@ -18,6 +18,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../contexts/NetworkContext';
+import PublishIcon from '@material-ui/icons/Publish';
 import RouterIcon from '@material-ui/icons/Router';
 import Slide from '@material-ui/core/Slide';
 import mapboxgl from 'mapbox-gl';
@@ -27,6 +28,7 @@ import {
   TopologyElement,
 } from '../../constants/MapPanelConstants';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
+import {UploadTopologyPanel} from '../../components/mappanels/UploadTopologyPanel';
 import {convertType} from '../../helpers/ObjectHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useEffect, useState} from 'react';
@@ -80,6 +82,9 @@ export default function TopologyBuilderMenu(props: Props) {
   const menuAnchorEl = React.useRef<?HTMLElement>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [siteName, setSiteName] = useState(null);
+  const [uploadTopologyPanel, setUploadTopologyPanel] = useState<
+    PanelProps<{}>,
+  >({});
   const [sitePanel, setSitePanel] = useState<PanelProps<$Shape<SiteType>>>({});
   const [linkPanel, setLinkPanel] = useState<PanelProps<EditLinkParams>>({});
   const [nodePanel, setNodePanel] = useState<
@@ -109,20 +114,24 @@ export default function TopologyBuilderMenu(props: Props) {
         ...overrides,
         panelParams: convertType<EditLinkParams>(overrides?.panelParams),
       });
-    }
-    if (name === TopologyElement.site) {
+    } else if (name === TopologyElement.site) {
       setSitePanel({
         ...sitePanel,
         ...overrides,
         panelParams: convertType<$Shape<SiteType>>(overrides?.panelParams),
       });
-    }
-    if (name === TopologyElement.node) {
+    } else if (name === TopologyElement.node) {
       setNodePanel({
         ...nodePanel,
         ...overrides,
         panelParams:
           convertType<$Shape<EditNodeParams>>(overrides?.panelParams) || {},
+      });
+    } else if (name === TopologyElement.upload) {
+      setUploadTopologyPanel({
+        ...uploadTopologyPanel,
+        ...overrides,
+        panelParams: {},
       });
     }
   }
@@ -258,6 +267,26 @@ export default function TopologyBuilderMenu(props: Props) {
     [onAddTopology],
   );
 
+  const onUploadTopology = useCallback(
+    () => onAddTopology<{}>(TopologyElement.upload),
+    [onAddTopology],
+  );
+
+  const handleUploadTopologyPanelChange = useCallback(
+    () =>
+      editPanel(TopologyElement.upload, {
+        panelExpanded: !uploadTopologyPanel.panelExpanded,
+      }),
+    [editPanel, uploadTopologyPanel.panelExpanded],
+  );
+
+  const handleUploadTopologyPanelClose = useCallback(
+    (changeMessage?: string) => {
+      onCloseTopologyPanel(TopologyElement.upload, changeMessage);
+    },
+    [onCloseTopologyPanel],
+  );
+
   function onCloseTopologyPanelCallback(
     type: $Values<typeof TopologyElement>,
     changeMessage?: string,
@@ -364,6 +393,14 @@ export default function TopologyBuilderMenu(props: Props) {
           topology={topology}
         />
       </Slide>
+      <Slide {...SlideProps} unmountOnExit in={uploadTopologyPanel.showPanel}>
+        <UploadTopologyPanel
+          expanded={uploadTopologyPanel.panelExpanded}
+          onClose={handleUploadTopologyPanelClose}
+          onPanelChange={handleUploadTopologyPanelChange}
+          networkName={networkName}
+        />
+      </Slide>
       <Fab
         data-testid="addTopologyIcon"
         className={classes.addButton}
@@ -388,6 +425,10 @@ export default function TopologyBuilderMenu(props: Props) {
         <MenuItem onClick={onAddSite}>
           <ListItemIcon>{<AddLocationIcon />}</ListItemIcon>
           <ListItemText primary="Add Planned Site" />
+        </MenuItem>
+        <MenuItem onClick={onUploadTopology}>
+          <ListItemIcon>{<PublishIcon />}</ListItemIcon>
+          <ListItemText primary="Upload Topology File" />
         </MenuItem>
       </Menu>
     </>

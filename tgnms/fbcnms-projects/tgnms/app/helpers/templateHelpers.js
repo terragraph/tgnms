@@ -8,6 +8,7 @@
 import {LinkTypeValueMap, NodeTypeValueMap} from '../../shared/types/Topology';
 import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
 
+import type {AnpLink, AnpNode, AnpSite} from '../constants/TemplateConstants';
 import type {LinkType, NodeType, SiteType} from '../../shared/types/Topology';
 
 type HardwareType = {
@@ -39,7 +40,7 @@ export type SiteTemplate = {
   nodes: Array<NodeTemplate>,
 };
 
-export type ApiBuilterInput = {
+export type ApiBuilerInput = {
   onClose: (?string) => void,
   networkName: string,
   template: SiteTemplate & {name: string},
@@ -48,7 +49,13 @@ export type ApiBuilterInput = {
 export type UploadTopologyType = {
   sites: Array<$Shape<SiteType>>,
   nodes: Array<$Shape<NodeTemplate>>,
-  links: Array<$Shape<LinkTemplate>>,
+  links: Array<LinkTemplate>,
+};
+
+export type AnpUploadTopologyType = {
+  sites: {[string]: AnpSite},
+  nodes: {[string]: AnpNode},
+  links: {[string]: AnpLink},
 };
 
 function createLinkData(overrides?: LinkTemplate): $Shape<LinkType> {
@@ -74,80 +81,7 @@ function createNodeData(overrides?: $Shape<NodeType>): $Shape<NodeType> {
   };
 }
 
-export const defaultTemplate: SiteTemplate = {
-  name: 'blank',
-  site: {},
-  nodes: [],
-};
-
-export const basicTemplates: Array<SiteTemplate> = [
-  {
-    name: 'CN',
-    site: {},
-    nodes: [
-      {
-        node_type: NodeTypeValueMap.CN,
-        is_primary: true,
-        pop_node: false,
-      },
-    ],
-  },
-  {
-    name: 'DN',
-    site: {},
-    nodes: [
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: true,
-        pop_node: false,
-      },
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: false,
-        pop_node: false,
-      },
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: false,
-        pop_node: false,
-      },
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: false,
-        pop_node: false,
-      },
-    ],
-  },
-  {
-    name: 'POP',
-    site: {},
-    nodes: [
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: true,
-        pop_node: true,
-      },
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: false,
-        pop_node: true,
-      },
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: false,
-        pop_node: true,
-      },
-      {
-        node_type: NodeTypeValueMap.DN,
-        is_primary: false,
-        pop_node: true,
-      },
-    ],
-  },
-  defaultTemplate,
-];
-
-export function templateTopologyBuilderRequest(input: ApiBuilterInput) {
+export function templateTopologyBuilderRequest(input: ApiBuilerInput) {
   const {template, networkName, onClose} = input;
   const links = [];
   const nodes = template.nodes.map((nodeTemplate, index) => {
@@ -180,7 +114,7 @@ export function templateTopologyBuilderRequest(input: ApiBuilterInput) {
 export function uploadTopologyBuilderRequest(
   data: UploadTopologyType,
   networkName: string,
-  onClose: (?string) => void,
+  onClose: (message?: string) => void,
 ) {
   apiServiceRequest(networkName, 'bulkAdd', data)
     .then(_result => {
