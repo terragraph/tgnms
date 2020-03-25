@@ -105,14 +105,8 @@ describe('basic line rendering', () => {
       'coordinates',
     );
     // coordinates go from site1 to midpoint between site1 and site2
-    expect(site1SegmentCoordinates).toEqual([
-      [1, 1],
-      [5.5, 5.5],
-    ]);
-    expect(site2SegmentCoordinates).toEqual([
-      [5.5, 5.5],
-      [10, 10],
-    ]);
+    expect(site1SegmentCoordinates).toEqual([[1, 1], [5.5, 5.5]]);
+    expect(site2SegmentCoordinates).toEqual([[5.5, 5.5], [10, 10]]);
   });
 
   test('renders line features with correct colors', () => {

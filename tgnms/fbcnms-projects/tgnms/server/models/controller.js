@@ -7,7 +7,7 @@
 
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
 
-export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
+export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   const Controller = sequelize.define(
     'controller',
     {
@@ -40,7 +40,7 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
     },
   );
 
-  Controller.associate = function (models) {
+  Controller.associate = function(models) {
     // associations can be defined here
     models.controller.hasOne(models.topology, {
       foreignKey: 'primary_controller',

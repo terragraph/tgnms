@@ -134,13 +134,11 @@ class BatchUpgradeTable extends React.Component<Props, State> {
                   </TableCell>
                 </TableRow>
               ) : (
-                orderBy(
-                  data,
-                  [this.state.orderBy],
-                  [this.state.order],
-                ).map(batch => (
-                  <BatchUpgradeTableEntry key={batch.name} batch={batch} />
-                ))
+                orderBy(data, [this.state.orderBy], [this.state.order]).map(
+                  batch => (
+                    <BatchUpgradeTableEntry key={batch.name} batch={batch} />
+                  ),
+                )
               )}
             </TableBody>
           </Table>

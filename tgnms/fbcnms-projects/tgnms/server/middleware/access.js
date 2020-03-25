@@ -19,7 +19,7 @@ import type {User as UserType} from '../../shared/auth/User';
 
 const logger = require('../log')(module);
 
-export default function (permissions: void | Permission | Array<Permission>) {
+export default function(permissions: void | Permission | Array<Permission>) {
   return async function access(
     req: Request,
     res: ExpressResponse,

@@ -225,7 +225,9 @@ class NetworkTestExecutionsTable extends React.PureComponent<
 
     if (!query) {
       query = {
-        afterDate: moment().subtract(30, 'days').format(),
+        afterDate: moment()
+          .subtract(30, 'days')
+          .format(),
       };
     }
 

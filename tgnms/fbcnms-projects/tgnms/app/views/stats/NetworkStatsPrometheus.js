@@ -148,7 +148,9 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
     // create a graph for each key name
     const {networkConfig} = this.props;
     const endTs = moment().unix();
-    const startTs = moment().subtract(this.state.minAgo, 'minutes').unix();
+    const startTs = moment()
+      .subtract(this.state.minAgo, 'minutes')
+      .unix();
     return this.state.keysSelected.map((graphKey, pos) => {
       const graphOpts = {
         query: createQuery(graphKey.value, {

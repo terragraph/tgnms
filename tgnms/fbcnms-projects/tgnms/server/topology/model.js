@@ -437,16 +437,10 @@ function updateInitialCoordinates(networkName) {
   // add map bounds (format: [[west, south], [east, north]])
   let bounds;
   if (sites.length > 0) {
-    bounds = [
-      [minLng, minLat],
-      [maxLng, maxLat],
-    ];
+    bounds = [[minLng, minLat], [maxLng, maxLat]];
   } else {
     // if a topology has no sites defined, default to MPK campus
-    bounds = [
-      [-122.149742, 37.4835208],
-      [-122.145169, 37.4866381],
-    ];
+    bounds = [[-122.149742, 37.4835208], [-122.145169, 37.4866381]];
   }
   networkState[networkName].bounds = bounds;
 }
@@ -826,7 +820,7 @@ function runNowAndWatchForTopologyUpdate() {
 
     // when an event is received, something is changed, just query
     // for the new truth
-    const eventHandler = function (event) {
+    const eventHandler = function(event) {
       logger.debug(
         'received event type: ' + event.type + ' data: ' + event.data,
       );

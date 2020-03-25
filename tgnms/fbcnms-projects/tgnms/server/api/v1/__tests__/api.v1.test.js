@@ -116,7 +116,9 @@ test('networkContractTest', async () => {
 
   getAllNetworkConfigs.mockReturnValue(mockGetAllNetworkConfigs());
 
-  const response = await request(app).get('/api/v1/networks').expect(200);
+  const response = await request(app)
+    .get('/api/v1/networks')
+    .expect(200);
   expect(response.body.length).toBe(2);
   expect(response.body[0]).toStrictEqual(responses.foo);
   expect(response.body[1]).toStrictEqual(responses.bar);
@@ -140,7 +142,9 @@ test('missingNetworkNameContractTest', async () => {
 
   getNetworkConfig.mockReturnValue(mockGetNetworkConfig(networkName));
 
-  await request(app).get(`/api/v1/networks/${networkName}`).expect(404);
+  await request(app)
+    .get(`/api/v1/networks/${networkName}`)
+    .expect(404);
 });
 
 function mockGetAllNetworkConfigs() {

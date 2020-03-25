@@ -20,7 +20,9 @@ test('returns 401 if token is missing', async () => {
     throw new Error();
   });
   const app = setupApp(protectedRoute);
-  await request(app).get('/static/test').expect(401);
+  await request(app)
+    .get('/static/test')
+    .expect(401);
   expect(protectedRoute).not.toHaveBeenCalled();
 });
 
@@ -29,7 +31,9 @@ test('returns 403 if token is invalid', async () => {
     throw new Error();
   });
   const app = setupApp(protectedRoute);
-  await request(app).get('/static/test?token=invalid').expect(403);
+  await request(app)
+    .get('/static/test?token=invalid')
+    .expect(403);
   expect(protectedRoute).not.toHaveBeenCalled();
 });
 
@@ -40,11 +44,15 @@ test('returns 403 if token has already been used', async () => {
   const app = setupApp(protectedRoute);
   const token = await generateAndStoreOtp();
   // use the token once
-  await request(app).get(`/static/test?token=${token}`).expect(200);
+  await request(app)
+    .get(`/static/test?token=${token}`)
+    .expect(200);
   expect(protectedRoute).toHaveBeenCalled();
 
   //try to use it again
-  await request(app).get(`/static/test?token=${token}`).expect(403);
+  await request(app)
+    .get(`/static/test?token=${token}`)
+    .expect(403);
 });
 
 test('lets the request through if token is valid and has not been used', async () => {
@@ -53,7 +61,9 @@ test('lets the request through if token is valid and has not been used', async (
   });
   const app = setupApp(protectedRoute);
   const token = await generateAndStoreOtp();
-  await request(app).get(`/static/test?token=${token}`).expect(200);
+  await request(app)
+    .get(`/static/test?token=${token}`)
+    .expect(200);
   expect(protectedRoute).toHaveBeenCalled();
 });
 
@@ -73,12 +83,16 @@ test('can store and validate multiple tokens at once', async () => {
 
   // all of these should succeed
   for (const token of tokens) {
-    await request(app).get(`/static/test?token=${token}`).expect(200);
+    await request(app)
+      .get(`/static/test?token=${token}`)
+      .expect(200);
   }
 
   //all of these should fail
   for (const token of tokens) {
-    await request(app).get(`/static/test?token=${token}`).expect(403);
+    await request(app)
+      .get(`/static/test?token=${token}`)
+      .expect(403);
   }
 });
 

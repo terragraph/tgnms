@@ -37,7 +37,10 @@ router.get('/overlay/linkStat/:topologyName/:metricName', (req, res) => {
     (err, httpResponse, _body) => {
       if (err) {
         logger.error('Error fetching from query service: %s', err);
-        res.status(500).send('Error fetching data').end();
+        res
+          .status(500)
+          .send('Error fetching data')
+          .end();
         return;
       }
       res.send(httpResponse.body).end();
@@ -72,7 +75,10 @@ router.get('/multi_chart', (req, res, _next) => {
       if (httpResponse) {
         res.send(httpResponse.body).end();
       } else {
-        res.status(500).send('No Data').end();
+        res
+          .status(500)
+          .send('No Data')
+          .end();
       }
     },
   );

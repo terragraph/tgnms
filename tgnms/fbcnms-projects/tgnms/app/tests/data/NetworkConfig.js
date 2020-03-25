@@ -158,7 +158,7 @@ export function mockTopology(
   );
 
   const helpers: TopologyTestHelpers = {
-    addSite: function (siteDef: $Shape<SiteType>) {
+    addSite: function(siteDef: $Shape<SiteType>) {
       if (site_set.has(siteDef.name)) {
         throw new Error('Duplicate site');
       }
@@ -170,7 +170,7 @@ export function mockTopology(
       topology.sites.push(site);
       return helpers;
     },
-    addNode: function (nodeDef: $Shape<NodeType>) {
+    addNode: function(nodeDef: $Shape<NodeType>) {
       const node = mockNode(nodeDef);
       if (node_set.has(node.name)) {
         throw new Error('Duplicate node');
@@ -186,7 +186,7 @@ export function mockTopology(
 
       return helpers;
     },
-    addLink: function (linkDef: $Shape<LinkType>) {
+    addLink: function(linkDef: $Shape<LinkType>) {
       // if no name is provided, generate one
       if (!linkDef.name) {
         linkDef.name = `link-${linkDef.a_node_name}-${linkDef.z_node_name}`;

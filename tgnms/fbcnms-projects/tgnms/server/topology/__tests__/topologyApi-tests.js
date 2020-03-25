@@ -24,8 +24,12 @@ jest.mock('../../config', () => ({
 describe('api contract tests', () => {
   test('if no link health is cached, should return 404', async () => {
     const app = setupApp();
-    await request(app).get(`/topology/link_health/somenetwork`).expect(404);
-    await request(app).get(`/topology/link_health/somenetwork/24`).expect(404);
+    await request(app)
+      .get(`/topology/link_health/somenetwork`)
+      .expect(404);
+    await request(app)
+      .get(`/topology/link_health/somenetwork/24`)
+      .expect(404);
   });
   test('get /link_health/topology returns cached link health info', async () => {
     const networkName = 'test net';

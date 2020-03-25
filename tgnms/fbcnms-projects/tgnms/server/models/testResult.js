@@ -89,7 +89,7 @@ type TestResultAttributes = {|
 
 export type TestResult = TestResultAttributes & Model<TestResultAttributes>;
 
-export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
+export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   const TestResult = sequelize.define(
     'api_testresult',
     {
@@ -329,7 +329,7 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
     },
   );
 
-  TestResult.associate = function (models) {
+  TestResult.associate = function(models) {
     models.api_testresult.belongsTo(models.api_testrunexecution, {
       as: 'test_execution',
       foreignKey: 'test_run_execution_id',

@@ -38,11 +38,9 @@ const tokenSetMock = {
 };
 
 jest.mock('openid-client');
-jest
-  .spyOn(require('openid-client'), 'TokenSet')
-  .mockImplementation(function () {
-    return tokenSetMock;
-  });
+jest.spyOn(require('openid-client'), 'TokenSet').mockImplementation(function() {
+  return tokenSetMock;
+});
 
 afterEach(() => {
   jest.resetAllMocks();

@@ -17,7 +17,7 @@ const MOCK_FILE_NAME = 'tg-image.bin';
 
 // make Date.now() stable so we can assert against it
 jest.spyOn(Date, 'now').mockReturnValue(MOCK_DATE);
-jest.mock('fs', () => new (require('memfs').Volume)());
+jest.mock('fs', () => new (require('memfs')).Volume());
 
 beforeEach(() => {
   fsMock.mkdirSync('./' + NETWORK_UPGRADE_IMAGES_REL_PATH, {recursive: true});

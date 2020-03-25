@@ -16,9 +16,8 @@ const styles = theme => {
   const depressions = {};
   theme.shadows.forEach((_, index) => {
     depressions[`depression${index}`] = {
-      boxShadow: `inset 0 ${index}px ${
-        2 * index
-      }px rgba(0,0,0,.39), 0 -1px 1px #fff, 0 1px 0 #fff`,
+      boxShadow: `inset 0 ${index}px ${2 *
+        index}px rgba(0,0,0,.39), 0 -1px 1px #fff, 0 1px 0 #fff`,
     };
   });
 

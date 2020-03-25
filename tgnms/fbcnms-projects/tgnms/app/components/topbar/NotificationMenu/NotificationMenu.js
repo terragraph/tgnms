@@ -232,8 +232,8 @@ function useKafkaNotificationSource({addNotification}) {
        */
       if (
         kafkaValue.topologyName !== currentTopology &&
-        typeof kafkaValue.topologyName === 'string' &&
-        kafkaValue.topologyName !== ''
+        (typeof kafkaValue.topologyName === 'string' &&
+          kafkaValue.topologyName !== '')
       ) {
         return;
       }
@@ -243,9 +243,9 @@ function useKafkaNotificationSource({addNotification}) {
       const notification = {
         key: payload.offset,
         primaryText: kafkaValue.reason,
-        secondaryText: `${
-          kafkaValue.nodeName || kafkaValue.nodeId || 'unknown'
-        } • ${timeString}`,
+        secondaryText: `${kafkaValue.nodeName ||
+          kafkaValue.nodeId ||
+          'unknown'} • ${timeString}`,
         details: kafkaValue,
         source: NOTIFICATION_SOURCE.EVENTS_KAFKA,
         data: payload,

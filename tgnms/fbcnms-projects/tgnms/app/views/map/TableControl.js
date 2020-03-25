@@ -90,9 +90,8 @@ class TableControl extends React.Component<Props> {
           this.isTableVisible(this.props)
             ? this.makeUrl(baseUrl)
             : this.makeUrl(
-                `${baseUrl}${baseUrl.slice(-1) !== '/' ? '/' : ''}${
-                  this.previousTable || 'nodes'
-                }`,
+                `${baseUrl}${baseUrl.slice(-1) !== '/' ? '/' : ''}${this
+                  .previousTable || 'nodes'}`,
               )
         }>
         <span className={classes.flexContainer}>

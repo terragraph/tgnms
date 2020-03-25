@@ -7,7 +7,7 @@
 
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
 
-export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
+export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   const WirelessController = sequelize.define(
     'wireless_controller',
     {
@@ -39,7 +39,7 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
     },
   );
 
-  WirelessController.associate = function (models) {
+  WirelessController.associate = function(models) {
     // associations can be defined here
     models.wireless_controller.hasOne(models.topology, {
       foreignKey: 'wireless_controller',

@@ -31,7 +31,7 @@ export type TestExecution = {|
   test_results: ?Array<TestResult>,
 |};
 
-export default function (sequelize: any, DataTypes: any) {
+export default function(sequelize: any, DataTypes: any) {
   const TestExecution = sequelize.define(
     'api_testrunexecution',
     {
@@ -95,7 +95,7 @@ export default function (sequelize: any, DataTypes: any) {
       timestamps: false,
     },
   );
-  TestExecution.associate = function (models) {
+  TestExecution.associate = function(models) {
     models.api_testrunexecution.hasMany(models.api_testresult, {
       as: 'test_results',
       foreignKey: 'test_run_execution_id',

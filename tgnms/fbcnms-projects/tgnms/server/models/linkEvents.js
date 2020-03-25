@@ -7,7 +7,7 @@
 'use strict';
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
 
-export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
+export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   const LinkEvent = sequelize.define(
     'link_event',
     {
