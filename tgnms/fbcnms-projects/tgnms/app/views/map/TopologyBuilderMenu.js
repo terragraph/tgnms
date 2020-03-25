@@ -43,12 +43,12 @@ const useStyles = makeStyles(theme => ({
   addButton: {
     position: 'fixed',
     right: 0,
+    bottom: 0,
     margin: theme.spacing(2),
   },
 }));
 
 type Props = {
-  bottomOffset: number,
   plannedSiteProps: PlannedSiteProps,
   editTopologyElement: ?boolean,
   addTopologyElementType: ?$Values<typeof TopologyElement>,
@@ -67,7 +67,6 @@ type PanelProps<T> = {
 export default function TopologyBuilderMenu(props: Props) {
   // Render the FAB with topology builder actions (add node/link/site)
   const {
-    bottomOffset,
     plannedSiteProps,
     updateTopologyPanelExpanded,
     editTopologyElement,
@@ -367,7 +366,6 @@ export default function TopologyBuilderMenu(props: Props) {
       <Fab
         data-testid="addTopologyIcon"
         className={classes.addButton}
-        style={{bottom: bottomOffset}}
         color="primary"
         aria-haspopup="true"
         onClick={handleActionsMenuOpen}>

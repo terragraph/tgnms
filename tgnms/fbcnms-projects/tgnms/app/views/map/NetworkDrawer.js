@@ -70,7 +70,6 @@ type Props = {
   speedTestId: ?string,
   networkTestId: ?string,
   onNetworkTestPanelClosed: () => any,
-  bottomOffset: number,
   mapRef: ?mapboxgl.Map,
   plannedSiteProps: PlannedSiteProps,
   routesProps: Routes,
@@ -79,6 +78,8 @@ type Props = {
     onUpdateNearbyNodes: NearbyNodes => any,
   |},
   mapLayersProps: MapLayersProps,
+  onNetworkDrawerResize: number => any,
+  networkDrawerWidth: number,
 };
 
 type State = {
@@ -98,9 +99,6 @@ type State = {
   closingSites: {},
   closingSearchNearby: {},
   closingDefaultRoute: {},
-
-  // State variable for resizable drawer
-  width: number,
 
   // Topology details
   topologyParams: ?$Shape<EditNodeParams> | EditLinkParams | $Shape<SiteType>,
@@ -135,9 +133,6 @@ class NetworkDrawer extends React.Component<
       closingSites: {},
       closingSearchNearby: {},
       closingDefaultRoute: {},
-
-      // State variable for resizable drawer
-      width: NetworkDrawerConstants.DRAWER_MIN_WIDTH,
 
       // Topology details
       topologyParams: null,
@@ -196,9 +191,7 @@ class NetworkDrawer extends React.Component<
   }
 
   handleHorizontalResize = width => {
-    // Handle dragger resize event
-    this.setState({width});
-
+    this.props.onNetworkDrawerResize(width);
     // Force map to resize
     window.dispatchEvent(new Event('resize'));
   };
@@ -491,13 +484,13 @@ class NetworkDrawer extends React.Component<
   render() {
     const {
       classes,
-      bottomOffset,
       context,
       mapLayersProps,
       plannedSiteProps,
       searchNearbyProps,
       routesProps,
       mapRef,
+      networkDrawerWidth,
     } = this.props;
     const {
       networkName,
@@ -515,7 +508,6 @@ class NetworkDrawer extends React.Component<
       wireless_controller_stats,
     } = context.networkConfig;
     const {
-      width,
       overviewPanelExpanded,
       mapLayersPanelExpanded,
       ignitionStatePanelExpanded,
@@ -526,8 +518,8 @@ class NetworkDrawer extends React.Component<
       addTopologyElementType,
     } = this.state;
     const drawerDimensions = {
-      width,
-      height: bottomOffset === 0 ? '100%' : `calc(100% - ${bottomOffset}px)`,
+      width: networkDrawerWidth,
+      height: '100%',
     };
 
     // Build list of topology elements
@@ -691,7 +683,6 @@ class NetworkDrawer extends React.Component<
               horizontal: 'right',
             }}>
             <TopologyBuilderMenu
-              bottomOffset={bottomOffset}
               plannedSiteProps={plannedSiteProps}
               editTopologyElement={editTopologyElement}
               addTopologyElementType={addTopologyElementType}

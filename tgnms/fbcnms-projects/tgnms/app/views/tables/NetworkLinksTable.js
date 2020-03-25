@@ -138,18 +138,18 @@ class NetworkLinksTable extends React.Component<Props, State> {
     },
     {
       key: 'alive',
-      label: 'Alive?',
+      label: 'Alive',
       render: renderStatusColor,
       sort: true,
       width: 100,
     },
     {
-      key: 'alive_perc',
-      label: 'Uptime',
+      key: 'availability_chart',
+      label: 'Availability Chart',
       appendAvailWindow: true,
-      render: this.renderAlivePerc.bind(this),
+      render: this.renderLinkAvailability.bind(this),
       sort: true,
-      width: 120,
+      width: 810,
     },
     {
       key: 'avail_perc',
@@ -160,14 +160,6 @@ class NetworkLinksTable extends React.Component<Props, State> {
       width: 120,
     },
     {
-      key: 'availability_chart',
-      label: 'Uptime/Availability',
-      appendAvailWindow: true,
-      render: this.renderLinkAvailability.bind(this),
-      sort: true,
-      width: 810,
-    },
-    {
       key: 'linkup_attempts',
       label: 'Ignition Attempts (1d)',
       sort: true,
@@ -175,7 +167,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
     },
     {
       key: 'distance',
-      label: 'Distance (m)',
+      label: 'Length (m)',
       render: this.renderDistance.bind(this),
       sort: true,
       width: 120,

@@ -22,6 +22,7 @@ import {
   TestExecutionOverlayStrategy,
 } from './overlays';
 import {MILLISECONDS_TO_MINUTES} from '../../constants/LayerConstants';
+import {NetworkDrawerConstants} from './NetworkDrawer';
 import {Route, withRouter} from 'react-router-dom';
 import {
   deleteUrlSearchParam,
@@ -33,7 +34,6 @@ import {
   getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {RouterHistory} from 'react-router-dom';
 
 import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
 import type {
@@ -50,6 +50,7 @@ import type {
 } from '../../components/mappanels/MapPanelTypes';
 import type {Route as NodeRoute} from '../../contexts/RouteContext';
 import type {OverlayStrategy} from './overlays';
+import type {RouterHistory} from 'react-router-dom';
 
 const styles = theme => ({
   appBarSpacer: theme.mixins.toolbar,
@@ -144,6 +145,7 @@ type State = {
   //The exact time selectd to view historical stats
   selectedTime: Date,
   siteMapOverrides: ?{[string]: string},
+  networkDrawerWidth: number,
 };
 
 class NetworkMap extends React.Component<Props, State> {
@@ -208,6 +210,7 @@ class NetworkMap extends React.Component<Props, State> {
       historicalDate: networkMapOptions.historicalDate,
       selectedTime: networkMapOptions.selectedTime,
       siteMapOverrides: null,
+      networkDrawerWidth: NetworkDrawerConstants.DRAWER_MIN_WIDTH,
     };
 
     // when switching to other tabs of the NMS, the URL gets overwritten.
@@ -483,6 +486,7 @@ class NetworkMap extends React.Component<Props, State> {
       historicalDate,
       selectedTime,
       isHistoricalOverlay,
+      networkDrawerWidth,
     } = this.state;
 
     const overlaysConfig = this.overlayStrategy.getOverlaysConfig();
@@ -545,7 +549,6 @@ class NetworkMap extends React.Component<Props, State> {
                   />
                 </MapBoxGL>
                 <NetworkDrawer
-                  bottomOffset={showTable ? tableHeight : 0}
                   context={context}
                   mapRef={mapRef}
                   mapLayersProps={{
@@ -589,11 +592,19 @@ class NetworkMap extends React.Component<Props, State> {
                   networkTestId={getTestOverlayId(location)}
                   speedTestId={getSpeedTestId(location)}
                   onNetworkTestPanelClosed={this.exitTestOverlayMode}
+                  onNetworkDrawerResize={networkDrawerWidth =>
+                    this.setState({networkDrawerWidth})
+                  }
+                  networkDrawerWidth={networkDrawerWidth}
                 />
                 )}
               </div>
               {showTable && (
-                <div style={{height: tableHeight}}>
+                <div
+                  style={{
+                    height: tableHeight,
+                    width: `calc(100% - ${networkDrawerWidth}px)`,
+                  }}>
                   <div className={classes.draggerContainer}>
                     <Dragger
                       direction="vertical"
