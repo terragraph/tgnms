@@ -361,6 +361,7 @@ export default function TopologyBuilderMenu(props: Props) {
           networkName={networkName}
           plannedSite={plannedSiteProps.plannedSite}
           onUpdatePlannedSite={plannedSiteProps.onUpdatePlannedSite}
+          topology={topology}
         />
       </Slide>
       <Fab

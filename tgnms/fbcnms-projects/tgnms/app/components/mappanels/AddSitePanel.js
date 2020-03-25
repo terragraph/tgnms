@@ -8,19 +8,29 @@
 import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import EditIcon from '@material-ui/icons/Edit';
+import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
+import PlannedSiteTemplates from './PlannedSiteTemplates';
 import React from 'react';
+import ShowAdvanced from './ShowAdvanced';
 import Typography from '@material-ui/core/Typography';
 import {
-  createNumericInput,
-  createTextInput,
-  formParseFloat,
-} from '../../helpers/FormHelpers';
+  basicTemplates,
+  defaultTemplate,
+  templateTopologyBuilderRequest,
+} from '../../helpers/templateHelpers';
+import {createNumericInput, formParseFloat} from '../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
 import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {LocationType} from '../../../shared/types/Topology';
+
+import type {
+  LocationType,
+  SiteType,
+  TopologyType,
+} from '../../../shared/types/Topology';
 import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
+import type {SiteTemplate} from '../../helpers/templateHelpers';
 
 const styles = theme => ({
   button: {
@@ -56,6 +66,7 @@ type Props = {
   networkName: string,
   plannedSite: ?PlannedSite,
   onUpdatePlannedSite: ($Shape<PlannedSite>) => any,
+  topology: TopologyType,
 };
 
 type State = {
@@ -64,6 +75,9 @@ type State = {
   longitude: number,
   altitude: number,
   accuracy: number,
+  currentTemplate: SiteTemplate,
+  templates: Array<SiteTemplate>,
+  nodeNumber: number,
 };
 
 class AddSitePanel extends React.Component<Props, State> {
@@ -77,6 +91,10 @@ class AddSitePanel extends React.Component<Props, State> {
       longitude: props.plannedSite ? props.plannedSite.longitude : 0,
       altitude: 0,
       accuracy: 40000000,
+
+      currentTemplate: defaultTemplate,
+      templates: basicTemplates,
+      nodeNumber: 0,
 
       ...this.props.initialParams,
     };
@@ -119,10 +137,19 @@ class AddSitePanel extends React.Component<Props, State> {
     }
   }
 
+  updateTemplateDetails = (input: {
+    detail: string,
+    value: string | SiteTemplate,
+  }) => {
+    const {detail, value} = input;
+    this.setState({[detail]: value});
+  };
+
   onSubmit() {
     const {initialParams, onClose, networkName, formType} = this.props;
+    const {currentTemplate, nodeNumber} = this.state;
 
-    const site = {
+    const site: SiteType = {
       name: this.state.name.trim(),
       location: {
         latitude: formParseFloat(this.state.latitude),
@@ -132,8 +159,20 @@ class AddSitePanel extends React.Component<Props, State> {
       },
     };
 
-    if (formType === FormType.CREATE) {
+    if (formType === FormType.CREATE && currentTemplate.name === 'blank') {
       sendTopologyBuilderRequest(networkName, 'addSite', {site}, onClose);
+    } else if (
+      formType === FormType.CREATE &&
+      currentTemplate.name !== 'blank'
+    ) {
+      const template = {...currentTemplate};
+      template.site = site;
+      template.nodes = template.nodes.slice(0, nodeNumber);
+      templateTopologyBuilderRequest({
+        onClose,
+        networkName,
+        template,
+      });
     } else if (formType === FormType.EDIT) {
       const data = {
         siteName: initialParams.name,
@@ -155,21 +194,31 @@ class AddSitePanel extends React.Component<Props, State> {
     }
   }
 
+  handleTemplateSelectionChange = newTemplateName => {
+    const {templates} = this.state;
+    const selectedTemplate = templates.find(
+      template => template.name === newTemplateName,
+    );
+    this.setState({
+      nodeNumber: selectedTemplate?.nodes.length,
+      currentTemplate: {...selectedTemplate},
+      name:
+        selectedTemplate?.name && selectedTemplate?.name !== 'blank'
+          ? selectedTemplate.name + '_' + Date.now()
+          : '',
+    });
+  };
+
   renderForm() {
-    const {classes, formType, onClose} = this.props;
+    const {classes, formType, onClose, topology} = this.props;
+    const {currentTemplate, templates, nodeNumber, name} = this.state;
 
     // Change form based on form type
     const submitButtonText =
       formType === FormType.EDIT ? 'Save Changes' : 'Add Site';
 
-    // Create inputs
-    const inputs = [
-      {
-        func: createTextInput,
-        label: 'Site Name',
-        value: 'name',
-        required: true,
-      },
+    // Create advancedInputs
+    const advancedInputs = [
       {
         func: createNumericInput,
         label: 'Latitude',
@@ -207,16 +256,33 @@ class AddSitePanel extends React.Component<Props, State> {
     ];
 
     return (
-      <div style={{width: '100%'}}>
-        <Typography className={classes.infoText} variant="body2">
-          <InfoIcon classes={{root: classes.iconCentered}} />
-          Move this site by dragging the white circle marker on the map.
-        </Typography>
-
-        {inputs.map(input =>
-          input.func({...input}, this.state, this.setState.bind(this)),
-        )}
-
+      <Grid container direction="column" spacing={2}>
+        <Grid item>
+          <Typography className={classes.infoText} variant="body2">
+            <InfoIcon classes={{root: classes.iconCentered}} />
+            Move this site by dragging the white circle marker on the map.
+          </Typography>
+        </Grid>
+        <Grid item>
+          <PlannedSiteTemplates
+            currentTemplate={currentTemplate}
+            templates={templates}
+            nodeNumber={nodeNumber}
+            siteName={name}
+            handleTemplateSelectionChange={this.handleTemplateSelectionChange}
+            updateTemplateDetails={this.updateTemplateDetails}
+            topology={topology}
+          />
+        </Grid>
+        <Grid item>
+          <ShowAdvanced
+            children={advancedInputs
+              .filter(_input => formType !== FormType.EDIT)
+              .map(input =>
+                input.func({...input}, this.state, this.setState.bind(this)),
+              )}
+          />
+        </Grid>
         <div>
           <Button
             className={classes.button}
@@ -234,7 +300,7 @@ class AddSitePanel extends React.Component<Props, State> {
             Cancel
           </Button>
         </div>
-      </div>
+      </Grid>
     );
   }
 
