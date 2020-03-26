@@ -265,7 +265,7 @@ export function useWebSocketGroup<T: any>(
   listener: WebSocketMessageListener<T>,
 ) {
   const listenerRef = React.useRef<WebSocketMessageListener<T>>(listener);
-  const webSocketContext = React.useContext(WebSocketContext);
+  const {joinGroup} = React.useContext(WebSocketContext);
 
   React.useEffect(() => {
     listenerRef.current = listener;
@@ -275,9 +275,9 @@ export function useWebSocketGroup<T: any>(
     const handleMessage = (message: WebSocketMessage<T>) => {
       listenerRef.current(message);
     };
-    const leaveGroup = webSocketContext.joinGroup(name, handleMessage);
+    const leaveGroup = joinGroup(name, handleMessage);
     return leaveGroup;
-  }, [name, listenerRef, webSocketContext]);
+  }, [name, listenerRef, joinGroup]);
 }
 
 export default WebSocketContext;

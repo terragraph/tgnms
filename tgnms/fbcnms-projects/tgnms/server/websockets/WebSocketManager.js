@@ -154,7 +154,7 @@ export default class WebSocketManager {
         }
         data.isAlive = false;
         try {
-          socket.ping(noop);
+          socket.ping();
         } catch (err) {
           logger.error(err, socket);
           socket.terminate();
@@ -174,8 +174,6 @@ export default class WebSocketManager {
   createGroup = (name: string) => ({name, sockets: new Set()});
   createSocketData = () => ({groups: new Set(), isAlive: true});
 }
-
-function noop() {}
 
 export type SocketData = {
   /*
