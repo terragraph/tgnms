@@ -40,10 +40,9 @@ export function createPrometheusRequest<T>(options: {[string]: any}) {
           return reject(err);
         }
         if (response.statusCode >= 300) {
-          logger.debug(response);
           return reject(
             new Error(
-              `upstream prometheus returned HTTP ${response.statusCode}`,
+              `upstream prometheus returned HTTP ${response.statusCode} - ${response.body}`,
             ),
           );
         }
