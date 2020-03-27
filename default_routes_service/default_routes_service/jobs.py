@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
 
 from terragraph_thrift.Topology.ttypes import LinkType, NodeType
-from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric
+from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
 
 from .analysis import analyze_link_cn_routes, analyze_node
 from .utils import DRS
@@ -58,7 +58,7 @@ async def analyze_routes(start_time: int, drs_objs: List[DRS]) -> None:
                     if route_hop_count > hop_count:
                         hop_count = route_hop_count
 
-            labels = {"network": drs.network_name, "nodeName": node_name}
+            labels = {consts.network: drs.network_name, consts.node_name: node_name}
             metrics += [
                 PrometheusMetric(
                     name="default_routes_wireless_hop_total",
@@ -66,7 +66,7 @@ async def analyze_routes(start_time: int, drs_objs: List[DRS]) -> None:
                     value=hop_count,
                 ),
                 PrometheusMetric(
-                    name="default_routes_has_ecmp",
+                    name="default_routes_node_has_ecmp",
                     labels=labels,
                     value=int(len(default_routes) > 1),
                 ),
@@ -125,7 +125,10 @@ async def compute_link_cn_routes(start_time: int, drs_objs: List[DRS]) -> None:
                     drs.default_routes[node_name] for node_name in link_cn_nodes
                 ] if link_cn_nodes is not None else []
 
-                labels = {"network": drs.network_name, "linkName": link["name"]}
+                labels = {
+                    consts.network: drs.network_name,
+                    consts.link_name: link["name"],
+                }
                 metrics.append(
                     PrometheusMetric(
                         name="default_routes_cn_routes_total",

@@ -40,16 +40,18 @@ class PrometheusClientTests(asynctest.TestCase):
             self.assertEqual(self.client.normalize(raw), normalized)
 
     def test_format_query(self) -> None:
-        labels = {"foo": "bar"}
-        negate_labels = {"baz": "qux"}
+        labels = {"foo": "bar", "quux": True}
+        negate_labels = {"baz": "qux", "quuz": False}
         query = self.client.format_query("metric", labels, negate_labels)
-        self.assertEqual('metric{foo="bar",baz!="qux"}', query)
+        expected_query = 'metric{foo="bar",quux="true",baz!="qux",quuz!="false"}'
+        self.assertEqual(query, expected_query)
 
     def test_format_query_regex_label(self) -> None:
         labels = {"foo": re.compile("bar|baz")}
         negate_labels = {"qux": re.compile("quux|quuz")}
         query = self.client.format_query("metric", labels, negate_labels)
-        self.assertEqual('metric{foo=~"bar|baz",qux!~"quux|quuz"}', query)
+        expected_query = 'metric{foo=~"bar|baz",qux!~"quux|quuz"}'
+        self.assertEqual(query, expected_query)
 
     def test_format_query_invalid_char_in_metric(self) -> None:
         query = self.client.format_query("1-metric")

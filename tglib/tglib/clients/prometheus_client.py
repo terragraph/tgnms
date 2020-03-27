@@ -19,15 +19,24 @@ from ..utils.ip import format_address
 from .base_client import BaseClient
 
 
+# Tyoe alias: query_str -> (value, timestamp)
 MetricCache = Dict[str, Tuple[Union[int, float], Optional[int]]]
 
+# Common labels
+consts = SimpleNamespace()
+consts.node_mac = "nodeMac"
+consts.node_name = "nodeName"
+consts.is_pop = "pop"
+consts.is_cn = "cn"
+consts.site_name = "siteName"
+consts.link_name = "linkName"
+consts.link_direction = "linkDirection"
+consts.data_interval = "intervalSec"
+consts.network = "network"
 
-# START: Built-in Prometheus query transformation operators/functions
-
+# Built-in Prometheus query transformation operators/functions
 ops = SimpleNamespace()
 ops.avg_over_time = lambda query, interval: f"avg_over_time({query} [{interval}])"
-
-# END: Built-in Prometheus query transformation operators/functions
 
 
 @dataclasses.dataclass
@@ -102,12 +111,16 @@ class PrometheusClient(BaseClient):
             if isinstance(val, Pattern):
                 label_list.append(f'{name}=~"{val.pattern}"')
             else:
+                if isinstance(val, bool):
+                    val = str(val).lower()
                 label_list.append(f'{name}="{val}"')
 
         for name, val in negate_labels.items():
             if isinstance(val, Pattern):
                 label_list.append(f'{name}!~"{val.pattern}"')
             else:
+                if isinstance(val, bool):
+                    val = str(val).lower()
                 label_list.append(f'{name}!="{val}"')
 
         label_str = PrometheusClient.normalize(",".join(label_list))
