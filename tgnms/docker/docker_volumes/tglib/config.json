@@ -16,6 +16,6 @@
   "prometheus": {
     "host": "prometheus",
     "port": 9090,
-    "intervals": [30]
+    "scrape_intervals": ["30s"]
   }
 }
