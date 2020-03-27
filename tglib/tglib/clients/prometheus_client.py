@@ -5,7 +5,7 @@ import asyncio
 import dataclasses
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, Iterable, Optional, Pattern, Union, cast
+from typing import Any, Dict, List, Optional, Pattern, Tuple, Union, cast
 
 import aiohttp
 
@@ -17,6 +17,9 @@ from ..exceptions import (
 )
 from ..utils.ip import format_address
 from .base_client import BaseClient
+
+
+MetricCache = Dict[str, Tuple[Union[int, float], Optional[int]]]
 
 
 # START: Built-in Prometheus query transformation operators/functions
@@ -35,13 +38,15 @@ class PrometheusMetric:
     scrape timestamp, set 'honor_timestamps' to 'false' in the Prometheus
     config and omit the 'time' field."""
 
+    name: str
+    labels: Dict[str, Any]
     value: Union[int, float]
     time: Optional[int] = None
 
 
 class PrometheusClient(BaseClient):
     _addr: Optional[str] = None
-    _metrics_map: Optional[Dict[int, Dict[str, PrometheusMetric]]] = None
+    _metrics_map: Optional[Dict[str, MetricCache]] = None
     _session: Optional[aiohttp.ClientSession] = None
 
     def __init__(self, timeout: int) -> None:
@@ -53,7 +58,7 @@ class PrometheusClient(BaseClient):
             raise ClientRestartError()
 
         prom_params = config.get("prometheus")
-        required_params = ["host", "port", "intervals"]
+        required_params = ["host", "port", "scrape_intervals"]
 
         if prom_params is None:
             raise ConfigError("Missing required 'prometheus' key")
@@ -63,7 +68,7 @@ class PrometheusClient(BaseClient):
             raise ConfigError(f"Missing one or more required params: {required_params}")
 
         cls._addr = format_address(prom_params["host"], prom_params["port"])
-        cls._metrics_map = {int(i): {} for i in prom_params["intervals"]}
+        cls._metrics_map = {i: {} for i in prom_params["scrape_intervals"]}
         cls._session = aiohttp.ClientSession()
 
     @classmethod
@@ -86,50 +91,63 @@ class PrometheusClient(BaseClient):
         )
 
     @staticmethod
-    def create_query(metric_name: str, labels: Dict[str, Any] = {}) -> str:
+    def format_query(
+        metric_name: str,
+        labels: Dict[str, Any] = {},
+        negate_labels: Dict[str, Any] = {},
+    ) -> str:
         """Form a Prometheus query from the metric_name and labels."""
-        label_list = [] if "intervalSec" in labels else ['intervalSec="30"']
-
-        for name, val in sorted(labels.items()):
+        label_list = []
+        for name, val in labels.items():
             if isinstance(val, Pattern):
                 label_list.append(f'{name}=~"{val.pattern}"')
             else:
                 label_list.append(f'{name}="{val}"')
 
+        for name, val in negate_labels.items():
+            if isinstance(val, Pattern):
+                label_list.append(f'{name}!~"{val.pattern}"')
+            else:
+                label_list.append(f'{name}!="{val}"')
+
         label_str = PrometheusClient.normalize(",".join(label_list))
-        return f"{metric_name}{{{label_str}}}"
+        return f"{metric_name}{{{label_str}}}" if label_str else metric_name
 
     @classmethod
     def write_metrics(
-        cls, interval_sec: int, metrics: Dict[str, PrometheusMetric]
+        cls, scrape_interval: str, metrics: List[PrometheusMetric]
     ) -> bool:
-        """Add new/update metrics to the given 'interval_sec' metric map."""
+        """Add/update metrics to the given scrape interval cache."""
         if cls._metrics_map is None:
             raise ClientStoppedError()
-
-        if interval_sec not in cls._metrics_map:
-            logging.error(f"No metrics map available for {interval_sec}s")
+        if scrape_interval not in cls._metrics_map:
+            logging.error(f"No metrics queue found for {scrape_interval}")
             return False
 
-        curr_metrics = cls._metrics_map[interval_sec]
-        cls._metrics_map[interval_sec] = {**curr_metrics, **metrics}
+        # Format the incoming metrics
+        curr_metrics = {}
+        for metric in metrics:
+            id = cls.format_query(metric.name, metric.labels)
+            curr_metrics[id] = (metric.value, metric.time)
+
+        prev_metrics = cls._metrics_map[scrape_interval]
+        prev_metrics.update(curr_metrics)
         return True
 
     @classmethod
-    def poll_metrics(cls, interval_sec: int) -> Optional[Iterable[str]]:
-        """Scrape the metrics for the given 'interval_sec'."""
+    def poll_metrics(cls, scrape_interval: str) -> Optional[List[str]]:
+        """Scrape the metrics cache for the given scrape interval."""
         if cls._metrics_map is None:
             raise ClientStoppedError()
 
-        if interval_sec not in cls._metrics_map:
-            logging.error(f"No metrics map available for {interval_sec}s")
+        if scrape_interval not in cls._metrics_map:
+            logging.error(f"No metrics map available for {scrape_interval}")
             return None
 
         datapoints = []
-        metrics = cls._metrics_map[interval_sec]
-
-        for query, metric in metrics.items():
-            datapoints.append(f"{query} {metric.value} {metric.time or ''}".rstrip())
+        metrics = cls._metrics_map[scrape_interval]
+        for id, (value, time) in metrics.items():
+            datapoints.append(f"{id} {value} {time or ''}".rstrip())
 
         metrics.clear()
         return datapoints

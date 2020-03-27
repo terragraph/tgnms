@@ -26,7 +26,7 @@ async def analyze_routes(start_time: int, drs_objs: List[DRS]) -> None:
     """
     now = datetime.now()
     coroutines = []
-    metrics: Dict[str, PrometheusMetric] = {}
+    metrics: List[PrometheusMetric] = []
     client = PrometheusClient(timeout=2)
 
     for drs in drs_objs:
@@ -58,13 +58,19 @@ async def analyze_routes(start_time: int, drs_objs: List[DRS]) -> None:
                     if route_hop_count > hop_count:
                         hop_count = route_hop_count
 
-            labels = {"network_name": drs.network_name, "node_name": node_name}
-            id = client.create_query(metric_name="node_hop_count", labels=labels)
-            metrics[id] = PrometheusMetric(value=hop_count)
-
-            # log stat for the node in time series DB. 1 if ECMP else 0
-            id = client.create_query(metric_name="node_routes_ecmp", labels=labels)
-            metrics[id] = PrometheusMetric(value=int(len(default_routes) > 1))
+            labels = {"network": drs.network_name, "nodeName": node_name}
+            metrics += [
+                PrometheusMetric(
+                    name="default_routes_wireless_hop_total",
+                    labels=labels,
+                    value=hop_count,
+                ),
+                PrometheusMetric(
+                    name="default_routes_has_ecmp",
+                    labels=labels,
+                    value=int(len(default_routes) > 1),
+                ),
+            ]
 
             coroutines.append(
                 analyze_node(
@@ -73,7 +79,7 @@ async def analyze_routes(start_time: int, drs_objs: List[DRS]) -> None:
             )
 
     # push all stats to internal buffer
-    client.write_metrics(interval_sec=30, metrics=metrics)
+    client.write_metrics(scrape_interval="30s", metrics=metrics)
 
     # analyze default routes for all nodes
     await asyncio.gather(*coroutines)
@@ -86,7 +92,7 @@ async def compute_link_cn_routes(start_time: int, drs_objs: List[DRS]) -> None:
     """
     now = datetime.now()
     coroutines = []
-    metrics: Dict[str, PrometheusMetric] = {}
+    metrics: List[PrometheusMetric] = []
     client = PrometheusClient(timeout=2)
 
     for drs in drs_objs:
@@ -119,11 +125,14 @@ async def compute_link_cn_routes(start_time: int, drs_objs: List[DRS]) -> None:
                     drs.default_routes[node_name] for node_name in link_cn_nodes
                 ] if link_cn_nodes is not None else []
 
-                labels = {"network_name": drs.network_name, "link_name": link["name"]}
-                id = client.create_query(
-                    metric_name="link_cn_routes_count", labels=labels
+                labels = {"network": drs.network_name, "linkName": link["name"]}
+                metrics.append(
+                    PrometheusMetric(
+                        name="default_routes_cn_routes_total",
+                        labels=labels,
+                        value=len(cn_routes),
+                    )
                 )
-                metrics[id] = PrometheusMetric(value=len(cn_routes))
 
                 coroutines.append(
                     analyze_link_cn_routes(
@@ -132,7 +141,7 @@ async def compute_link_cn_routes(start_time: int, drs_objs: List[DRS]) -> None:
                 )
 
     # push link CN routes count stats to internal buffer
-    client.write_metrics(interval_sec=30, metrics=metrics)
+    client.write_metrics(scrape_interval="30s", metrics=metrics)
 
     # analyze and write CN routes to SQL database
     await asyncio.gather(*coroutines)

@@ -139,6 +139,9 @@ glusterfs_gpg_key_version: 4.1
 # `kafka_log_retention_bytes` is the maximum size of the log for each topic partition before deleting it.
 kafka_log_retention_bytes: 1073741824  # 1GB
 
+# Prometheus Config
+prom_default_scrape_interval: 30s
+
 # Relative to data dir in respective docker_volume
 E2E_CONFIG_FILE: cfg/controller_config.json
 E2E_TOPOLOGY_FILE: e2e_topology.conf

@@ -12,7 +12,7 @@ from tglib.exceptions import ClientRestartError
 class PrometheusClientTests(asynctest.TestCase):
     async def setUp(self) -> None:
         self.timeout = 1
-        self.config = {"host": "prometheus", "port": 9090, "intervals": [30]}
+        self.config = {"host": "prometheus", "port": 9090, "scrape_intervals": ["30s"]}
 
         await PrometheusClient.start({"prometheus": self.config})
         self.client = PrometheusClient(self.timeout)
@@ -39,24 +39,26 @@ class PrometheusClientTests(asynctest.TestCase):
         for raw, normalized in strings.items():
             self.assertEqual(self.client.normalize(raw), normalized)
 
-    def test_create_query_no_interval_sec(self) -> None:
+    def test_format_query(self) -> None:
         labels = {"foo": "bar"}
-        query = self.client.create_query("metric", labels)
-        self.assertIn('intervalSec="30"', query)
+        negate_labels = {"baz": "qux"}
+        query = self.client.format_query("metric", labels, negate_labels)
+        self.assertEqual('metric{foo="bar",baz!="qux"}', query)
 
-    def test_create_query_regex_label(self) -> None:
+    def test_format_query_regex_label(self) -> None:
         labels = {"foo": re.compile("bar|baz")}
-        query = self.client.create_query("metric", labels)
-        self.assertIn('foo=~"bar|baz"', query)
+        negate_labels = {"qux": re.compile("quux|quuz")}
+        query = self.client.format_query("metric", labels, negate_labels)
+        self.assertEqual('metric{foo=~"bar|baz",qux!~"quux|quuz"}', query)
 
-    def test_create_query_invalid_char_in_metric(self) -> None:
-        query = self.client.create_query("1-metric")
-        self.assertIn("1-metric", query)
+    def test_format_query_invalid_char_in_metric(self) -> None:
+        query = self.client.format_query("1-metric")
+        self.assertEqual("1-metric", query)
 
-    def test_create_query_ops(self) -> None:
+    def test_format_query_ops(self) -> None:
         labels = {"foo": "bar"}
-        query = ops.avg_over_time(self.client.create_query("metric", labels), "24h")
-        expected_query = 'avg_over_time(metric{intervalSec="30",foo="bar"} [24h])'
+        query = ops.avg_over_time(self.client.format_query("metric", labels), "24h")
+        expected_query = 'avg_over_time(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
 
     async def test_query_range(self) -> None:
@@ -121,61 +123,78 @@ class PrometheusClientTests(asynctest.TestCase):
         )
 
     def test_write_metrics(self) -> None:
-        interval = self.config["intervals"][0]
-        metrics = {}
+        good_interval = self.config["scrape_intervals"][0]
+        metrics = []
 
         for i in range(10):
-            id = self.client.create_query(metric_name="foo", labels={"number": i})
-            metrics[id] = PrometheusMetric(value=i, time=1)
-            self.assertTrue(self.client.write_metrics(interval, metrics))
+            metric = PrometheusMetric(name="foo", labels={"number": i}, value=i, time=1)
+            metrics.append(metric)
+
+        self.assertTrue(self.client.write_metrics(good_interval, metrics))
 
     def test_write_metrics_invalid_interval(self) -> None:
-        bad_interval = 11
-        self.assertNotIn(bad_interval, self.config["intervals"])
+        bad_interval = "11s"
+        self.assertNotIn(bad_interval, self.config["scrape_intervals"])
         self.assertFalse(self.client.write_metrics(bad_interval, []))
 
     def test_poll_metrics(self) -> None:
-        interval = self.config["intervals"][0]
-        metrics = {}
+        good_interval = self.config["scrape_intervals"][0]
+        metrics = []
 
         for i in range(10):
-            id = self.client.create_query(metric_name="foo", labels={"number": i})
-            metrics[id] = PrometheusMetric(value=i, time=1)
-            self.assertTrue(self.client.write_metrics(interval, metrics))
+            metric = PrometheusMetric(name="foo", labels={"number": i}, value=i, time=1)
+            metrics.append(metric)
 
-        datapoints = self.client.poll_metrics(interval)
+        self.assertTrue(self.client.write_metrics(good_interval, metrics))
+        datapoints = self.client.poll_metrics(good_interval)
         self.assertEqual(len(datapoints), 10)
 
         # This call returns an empty list because no metrics were written in between
-        self.assertEqual(len(self.client.poll_metrics(interval)), 0)
+        self.assertEqual(len(self.client.poll_metrics(good_interval)), 0)
 
     def test_write_metrics_no_timestamp(self) -> None:
-        interval = self.config["intervals"][0]
+        good_interval = self.config["scrape_intervals"][0]
 
-        id = self.client.create_query(metric_name="foo")
-        self.client.write_metrics(interval, {id: PrometheusMetric(value=100)})
+        metric = PrometheusMetric(name="foo", labels={"bar": "baz"}, value=100)
+        self.assertTrue(self.client.write_metrics(good_interval, [metric]))
 
-        datapoints = self.client.poll_metrics(interval)
+        datapoints = self.client.poll_metrics(good_interval)
         self.assertEqual(len(datapoints), 1)
-
-        self.assertEqual(datapoints[0], 'foo{intervalSec="30"} 100')
+        self.assertEqual(datapoints[0], 'foo{bar="baz"} 100')
 
     def test_redundant_write_metrics(self) -> None:
-        interval = self.config["intervals"][0]
+        good_interval = self.config["scrape_intervals"][0]
 
-        id = self.client.create_query(metric_name="foo")
-        self.client.write_metrics(interval, {id: PrometheusMetric(value=0, time=1)})
-        self.client.write_metrics(interval, {id: PrometheusMetric(value=100, time=1)})
+        self.assertTrue(
+            self.client.write_metrics(
+                good_interval,
+                [
+                    PrometheusMetric(
+                        name="foo", labels={"bar": "baz"}, value=100, time=1
+                    )
+                ],
+            )
+        )
+        self.assertTrue(
+            self.client.write_metrics(
+                good_interval,
+                [
+                    PrometheusMetric(
+                        name="foo", labels={"bar": "baz"}, value=101, time=1
+                    )
+                ],
+            )
+        )
 
-        datapoints = self.client.poll_metrics(interval)
+        datapoints = self.client.poll_metrics(good_interval)
         self.assertEqual(len(datapoints), 1)
-        self.assertEqual(datapoints[0], 'foo{intervalSec="30"} 100 1')
+        self.assertEqual(datapoints[0], 'foo{bar="baz"} 101 1')
 
     def test_poll_metrics_empty_queue(self) -> None:
-        interval = self.config["intervals"][0]
-        self.assertEqual(len(self.client.poll_metrics(interval)), 0)
+        good_interval = self.config["scrape_intervals"][0]
+        self.assertFalse(self.client.poll_metrics(good_interval))
 
     def test_poll_metrics_invalid_interval(self) -> None:
-        bad_interval = 11
-        self.assertNotIn(bad_interval, self.config["intervals"])
+        bad_interval = "11s"
+        self.assertNotIn(bad_interval, self.config["scrape_intervals"])
         self.assertIsNone(self.client.poll_metrics(bad_interval))

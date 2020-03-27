@@ -31,19 +31,19 @@ async def handle_get_status(request: web.Request) -> web.Response:
     return web.Response(text="Alive")
 
 
-@routes.get(r"/metrics/{interval:\d+}s")
+@routes.get(r"/metrics/{scrape_interval:[0-9]+(ms|[smhdwy])}")
 async def handle_get_metrics(request: web.Request) -> web.Response:
     """
     ---
-    description: Return Prometheus metrics for the specified interval.
+    description: Return Prometheus metrics for the specified scrape interval.
     tags:
     - Prometheus
     produces:
     - text/plain
     parameters:
     - in: path
-      name: interval
-      description: Prometheus scrape metric interval (in seconds).
+      name: scrape_interval
+      description: Prometheusm metric scrape interval (in seconds).
       required: true
       schema:
         type: integer
@@ -51,19 +51,19 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
       "200":
         description: Successful operation.
       "404":
-        description: No metrics queue available for the specified interval.
+        description: No metrics queue available for the specified scrape interval.
       "500":
         description: Prometheus client is not running.
     """
-    interval = int(request.match_info["interval"])
+    scrape_interval = request.match_info["scrape_interval"]
 
     try:
-        metrics = PrometheusClient.poll_metrics(interval)
+        metrics = PrometheusClient.poll_metrics(scrape_interval)
     except ClientStoppedError as e:
         raise web.HTTPInternalServerError(text=f"{str(e)}")
 
     if metrics is None:
-        raise web.HTTPNotFound(text=f"No metrics queue available for {interval}s")
+        raise web.HTTPNotFound(text=f"No metrics available for {scrape_interval}")
 
     # Return a string because Prometheus only accepts a text-based exposition format
     metrics_str = "\n".join(metrics)
