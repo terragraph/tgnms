@@ -15,6 +15,7 @@ import PublishIcon from '@material-ui/icons/Publish';
 import React, {forwardRef, useCallback, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import UploadTopologyConfirmationModal from './UploadTopologyConfirmationModal';
 import {
   ANP_NODE_TYPE,
   ANP_STATUS_TYPE,
@@ -205,15 +206,11 @@ export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
           </TextField>
         </Grid>
         <Grid item>
-          <Button
-            className={classes.button}
-            variant="contained"
-            color="primary"
-            size="small"
+          <UploadTopologyConfirmationModal
             disabled={uploadTopology ? false : true}
-            onClick={onSubmit}>
-            Upload
-          </Button>
+            onSubmit={onSubmit}
+            uploadTopology={uploadTopology}
+          />
           <Button
             className={classes.button}
             variant="outlined"
