@@ -7,6 +7,7 @@ import unittest
 from tests.dict_utils_tests import DictUtilsTests
 from tests.ip_utils_tests import IPUtilsTests
 from tests.prometheus_tests import PrometheusClientTests
+from tests.serialization_tests import SerializationTests
 
 
 if __name__ == "__main__":
