@@ -26,11 +26,12 @@ class PrometheusConsts {
   // link labels
   const static std::string LABEL_LINK_NAME;
   const static std::string LABEL_LINK_DIRECTION;
+  // network labels
+  const static std::string LABEL_NETWORK;
   // data interval
   const static std::string LABEL_DATA_INTERVAL;
   // metric format
   const static std::string METRIC_FORMAT;
-
 };
 
 } // namespace gorilla

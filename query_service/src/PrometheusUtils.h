@@ -45,9 +45,6 @@ class PrometheusUtils {
       const std::string& jobName,
       const std::vector<Metric>& metricList);
 
-  // format network name
-  static std::string formatNetworkLabel(const std::string& topologyName);
-
   // format key/label names by removing characters disallowed by prometheus
   static std::string formatPrometheusKeyName(const std::string& keyName);
 };

@@ -42,18 +42,27 @@ using facebook::terragraph::thrift::Topology;
 
 DEFINE_int32(topology_refresh_interval_s, 60, "Topology refresh interval");
 DEFINE_int32(ping_interval_s, 10, "Interval at which ping sweeps are started");
-DEFINE_int32(num_packets, 10, "Number of packets to send to each host per ping sweep");
+DEFINE_int32(
+    num_packets,
+    10,
+    "Number of packets to send to each host per ping sweep");
 DEFINE_int32(num_sender_threads, 1, "Number of sender threads");
 DEFINE_int32(num_receiver_threads, 1, "Number of receiver threads");
 DEFINE_int32(target_port, 31338, "Target port");
 DEFINE_int32(cooldown_time_s, 1, "Cooldown time");
 DEFINE_int32(port_count, 64, "Number of ports to ping from");
 DEFINE_int32(base_port, 25000, "The starting UDP port to bind to");
-DEFINE_int32(pinger_rate_pps, 5, "Rate at which hosts are probed in pings per second");
+DEFINE_int32(
+    pinger_rate_pps,
+    5,
+    "Rate at which hosts are probed in pings per second");
 DEFINE_int32(socket_buffer_size, 425984, "Socket buffer size to send/recv");
 DEFINE_string(src_ip, "", "The IP source address to use in probe");
 DEFINE_string(src_if, "", "The interface to use if src_ip is not defined");
-DEFINE_string(prometheus_job_name, "ping_service", "Prometheus job name for submitting metrics");
+DEFINE_string(
+    prometheus_job_name,
+    "ping_service",
+    "Prometheus job name for submitting metrics");
 
 struct AggrUdpPingStat {
   thrift::Target target;
@@ -167,12 +176,14 @@ std::vector<UdpTestPlan> getTestPlans() {
 std::vector<std::string> getMetricLabels(
     const thrift::Target& target,
     int dataInterval) {
-  std::vector<std::string> labels = {
-      PrometheusUtils::formatNetworkLabel(target.network),
-      folly::sformat(
-          PrometheusConsts::METRIC_FORMAT,
-          PrometheusConsts::LABEL_DATA_INTERVAL,
-          dataInterval)};
+  std::vector<std::string> labels = {folly::sformat(
+                                         PrometheusConsts::METRIC_FORMAT,
+                                         PrometheusConsts::LABEL_NETWORK,
+                                         target.network),
+                                     folly::sformat(
+                                         PrometheusConsts::METRIC_FORMAT,
+                                         PrometheusConsts::LABEL_DATA_INTERVAL,
+                                         dataInterval)};
 
   if (!target.name.empty()) {
     labels.insert(

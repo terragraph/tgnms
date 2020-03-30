@@ -41,10 +41,10 @@ const std::set<std::string> RUCKUS_SKIP_LABELS = {"approvedTime",
                                                   "uptime"};
 using namespace facebook::terragraph;
 
+using apache::thrift::SimpleJSONSerializer;
 using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::chrono::system_clock;
-using apache::thrift::SimpleJSONSerializer;
 
 namespace facebook {
 namespace gorilla {
@@ -98,9 +98,12 @@ void AggregatorService::fetchAndLogTopologyMetrics(
   int popNodes = 0;
   // quicker lookups of node metadata
   long ts = StatsUtils::getTimeInMs();
-  std::string networkLabel = PrometheusUtils::formatNetworkLabel(topology.name);
+  std::string networkLabel = folly::sformat(
+      PrometheusConsts::METRIC_FORMAT,
+      PrometheusConsts::LABEL_NETWORK,
+      topology.name);
   std::string intervalLabel = folly::sformat(
-      "{}=\"{}\"",
+      PrometheusConsts::METRIC_FORMAT,
       PrometheusConsts::LABEL_DATA_INTERVAL,
       FLAGS_agg_time_period);
   std::unordered_map<std::string, thrift::Node> nodeNameMap{};
@@ -114,22 +117,24 @@ void AggregatorService::fetchAndLogTopologyMetrics(
         networkLabel,
         intervalLabel,
         folly::sformat(
-            "{}=\"{}\"",
+            PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_NODE_NAME,
             PrometheusUtils::formatPrometheusKeyName(node.name)),
         folly::sformat(
-            "{}=\"{}\"",
+            PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_NODE_IS_POP,
             node.pop_node ? "true" : "false"),
         folly::sformat(
-            "{}=\"{}\"",
+            PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_NODE_IS_CN,
             node.node_type == thrift::NodeType::CN ? "true" : "false"),
     };
     // ensure mac_addr is set
     if (!node.mac_addr.empty()) {
       nodeLabels.emplace_back(folly::sformat(
-          "{}=\"{}\"", PrometheusConsts::LABEL_NODE_MAC, node.mac_addr));
+          PrometheusConsts::METRIC_FORMAT,
+          PrometheusConsts::LABEL_NODE_MAC,
+          node.mac_addr));
     }
     // record status of node
     aggValues.emplace_back(Metric(
@@ -168,11 +173,11 @@ void AggregatorService::fetchAndLogTopologyMetrics(
         networkLabel,
         intervalLabel,
         folly::sformat(
-            "{}=\"{}\"",
+            PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_LINK_NAME,
             PrometheusUtils::formatPrometheusKeyName(link.name)),
         folly::sformat(
-            "{}=\"{}\"",
+            PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_NODE_IS_CN,
             hasCnNode ? "true" : "false")};
     // record link metrics
@@ -213,8 +218,10 @@ void AggregatorService::fetchAndLogRuckusControllerMetrics(
     long ts = StatsUtils::getTimeInMs();
     for (const auto& wap : WirelessControllerStats.items()) {
       VLOG(2) << "\tAP: " << wap.first;
-      std::vector<std::string> wapMetaData{
-          PrometheusUtils::formatNetworkLabel(topologyConfig.name)};
+      std::vector<std::string> wapMetaData{folly::sformat(
+          PrometheusConsts::METRIC_FORMAT,
+          PrometheusConsts::LABEL_NETWORK,
+          topologyConfig.name)};
       for (const auto& ruckusKey : wap.second.items()) {
         const std::string ruckusKeyName = ruckusKey.first.asString();
         // skip ruckus numeric labels and null values
@@ -224,7 +231,7 @@ void AggregatorService::fetchAndLogRuckusControllerMetrics(
         }
         VLOG(2) << "\tLabel: " << ruckusKey.first << " = " << ruckusKey.second;
         wapMetaData.emplace_back(folly::sformat(
-            "{}=\"{}\"",
+            PrometheusConsts::METRIC_FORMAT,
             ruckusKeyName,
             PrometheusUtils::formatPrometheusKeyName(
                 ruckusKey.second.asString())));

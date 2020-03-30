@@ -22,6 +22,8 @@ const std::string PrometheusConsts::LABEL_SITE_NAME{"siteName"};
 // link labels
 const std::string PrometheusConsts::LABEL_LINK_NAME{"linkName"};
 const std::string PrometheusConsts::LABEL_LINK_DIRECTION{"linkDirection"};
+// network labels
+const std::string PrometheusConsts::LABEL_NETWORK{"network"};
 // data interval
 const std::string PrometheusConsts::LABEL_DATA_INTERVAL{"intervalSec"};
 // metric format

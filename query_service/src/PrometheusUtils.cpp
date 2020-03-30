@@ -30,10 +30,6 @@ DEFINE_int32(
     1000000 /* one million metrics */,
     "Total stats requests accepted per interval");
 DEFINE_string(
-    prometheus_network_name_label,
-    "network",
-    "Prometheus network/topology name label");
-DEFINE_string(
     kafka_health_topic,
     "health_stats",
     "Kafka topic for link health statistics");
@@ -44,14 +40,6 @@ DEFINE_string(
 
 namespace facebook {
 namespace gorilla {
-
-std::string PrometheusUtils::formatNetworkLabel(
-    const std::string& topologyName) {
-  return folly::sformat(
-      PrometheusConsts::METRIC_FORMAT,
-      FLAGS_prometheus_network_name_label,
-      topologyName);
-}
 
 std::string PrometheusUtils::formatPrometheusKeyName(
     const std::string& keyName) {
@@ -85,7 +73,10 @@ bool PrometheusUtils::writeNodeStats(
     }
     std::string keyName = StatsUtils::toLowerCase(stat.key);
     std::vector<std::string> labelTags = {
-        PrometheusUtils::formatNetworkLabel(nodeInfo->first),
+        folly::sformat(
+            PrometheusConsts::METRIC_FORMAT,
+            PrometheusConsts::LABEL_NETWORK,
+            nodeInfo->first),
         folly::sformat(
             PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_DATA_INTERVAL,
@@ -166,11 +157,7 @@ bool PrometheusUtils::enqueueMetrics(
       labelsString = "{" + jobNameLabel + "}";
     }
     prometheusDataPoints.push_back(folly::sformat(
-        "{}{} {} {}",
-        metric.name,
-        labelsString,
-        metric.value,
-        metric.ts));
+        "{}{} {} {}", metric.name, labelsString, metric.value, metric.ts));
   }
   std::string postData = folly::join("\n", prometheusDataPoints) + "\n";
 
