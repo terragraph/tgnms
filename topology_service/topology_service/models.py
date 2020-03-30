@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, Integer, String, func
+from sqlalchemy import JSON, Column, DateTime, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -16,6 +16,4 @@ class TopologyHistory(Base):
     id = Column(Integer, primary_key=True)
     network_name = Column(String(255), index=True, nullable=False)
     topology = Column(JSON, nullable=False)
-    last_updated = Column(
-        DateTime, server_default=func.now(), index=True, nullable=False
-    )
+    last_updated = Column(DateTime, index=True, nullable=False)

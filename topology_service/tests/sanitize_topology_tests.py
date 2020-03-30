@@ -8,14 +8,14 @@ from topology_service.utils import sanitize_topology
 
 class SanitizeTopologyTests(unittest.TestCase):
     def test_empty_topology(self) -> None:
-        input = {"name": "Topo A", "config": {}, "links": [], "nodes": [], "sites": []}
-        expected_output = {"name": "Topo A", "links": [], "nodes": [], "sites": []}
-        sanitize_topology(input)
-        self.assertDictEqual(expected_output, input)
+        topology = {"name": "test", "config": {}, "links": [], "nodes": [], "sites": []}
+        expected_output = {"name": "test", "links": [], "nodes": [], "sites": []}
+        sanitize_topology(topology)
+        self.assertDictEqual(expected_output, topology)
 
     def test_basic_topology(self) -> None:
-        input = {
-            "name": "Topo A",
+        topology = {
+            "name": "test",
             "config": {},
             "links": [
                 {
@@ -80,7 +80,7 @@ class SanitizeTopologyTests(unittest.TestCase):
         }
 
         expected_output = {
-            "name": "Topo A",
+            "name": "test",
             "links": [
                 {
                     "a_node_mac": "00:00:00:00:00:00",
@@ -139,5 +139,5 @@ class SanitizeTopologyTests(unittest.TestCase):
             ],
         }
 
-        sanitize_topology(input)
-        self.assertDictEqual(expected_output, input)
+        sanitize_topology(topology)
+        self.assertDictEqual(expected_output, topology)

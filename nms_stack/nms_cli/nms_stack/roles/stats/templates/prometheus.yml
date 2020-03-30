@@ -42,3 +42,8 @@ scrape_configs:
     honor_labels: true
     static_configs:
       - targets: ['prometheus_cache:9091']
+
+  - job_name: 'topology_service'
+    metrics_path: /metrics/{{ prom_default_scrape_interval }}
+    static_configs:
+      - targets: ['topology_service:8080']

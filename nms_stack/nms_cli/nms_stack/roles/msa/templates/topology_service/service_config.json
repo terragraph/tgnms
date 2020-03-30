@@ -1,6 +1,15 @@
 {
     "num_consumers": 10,
     "pipelines": {
+      "30_sec_pipeline": {
+        "period": 30,
+        "jobs": [
+          {
+            "name": "count_network_assets",
+            "enabled": true
+          }
+        ]
+      },
       "10_min_pipeline": {
         "period": 600,
         "jobs": [

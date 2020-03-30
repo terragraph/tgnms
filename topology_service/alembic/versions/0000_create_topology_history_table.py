@@ -23,12 +23,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("network_name", sa.String(length=255), nullable=False),
         sa.Column("topology", sa.JSON(), nullable=False),
-        sa.Column(
-            "last_updated",
-            sa.DateTime(),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("last_updated", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

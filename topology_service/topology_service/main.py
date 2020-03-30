@@ -8,10 +8,11 @@ import json
 import logging
 import sys
 import time
-from typing import Dict
+from typing import Any, Dict
 
 from tglib import ClientType, init
 from tglib.clients import APIServiceClient
+from tglib.exceptions import ClientRuntimeError
 
 from . import jobs
 from .routes import routes
@@ -22,11 +23,11 @@ class Job:
     """Struct for representing pipeline job configurations."""
 
     name: str
-    start_time: int
+    start_time_ms: int
     params: Dict
 
 
-async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
+async def produce(queue: asyncio.Queue, name: str, pipeline: Dict[str, Any]) -> None:
     """Add jobs from the pipeline configuration to the shared queue."""
     client = APIServiceClient(timeout=2)
 
@@ -35,12 +36,16 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
 
         logging.info("Fetching topologies for all networks from API service")
         topologies = await client.request_all("getTopology", return_exceptions=True)
+        for network_name, topology in list(topologies.items()):
+            if isinstance(topology, ClientRuntimeError):
+                logging.error(f"Failed to fetch topology for {network_name}")
+                del topologies[network_name]
 
         tasks = [
             queue.put(
                 Job(
                     name=job["name"],
-                    start_time=int(start_time),
+                    start_time_ms=int(round(start_time * 1e3)),
                     params={
                         **job.get("params", {}),
                         "topologies": copy.deepcopy(topologies),
@@ -74,13 +79,13 @@ async def consume(queue: asyncio.Queue) -> None:
 
         # Execute the job
         function = getattr(jobs, job.name)
-        await function(job.start_time, **job.params)
+        await function(job.start_time_ms, **job.params)
         logging.info(f"Finished running the '{job.name}' job")
 
 
-async def async_main(config: Dict) -> None:
-    logging.info("#### Starting the 'Topology Service' ####")
-    logging.debug(f"Found service config: {config}")
+async def async_main(config: Dict[str, Any]) -> None:
+    logging.info("#### Starting the 'topology_service' ####")
+    logging.debug(f"service config: {config}")
 
     q: asyncio.Queue = asyncio.Queue()
 
@@ -106,6 +111,10 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {ClientType.API_SERVICE_CLIENT, ClientType.MYSQL_CLIENT},
+        {
+            ClientType.API_SERVICE_CLIENT,
+            ClientType.MYSQL_CLIENT,
+            ClientType.PROMETHEUS_CLIENT,
+        },
         routes,
     )

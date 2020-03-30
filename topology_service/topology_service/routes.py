@@ -27,7 +27,7 @@ def custom_serializer(obj: Any) -> str:
 async def handle_get_topology(request: web.Request) -> web.Response:
     """
     ---
-    description: Fetch all of a network's topologies between a given datetime range.
+    description: Fetch all of a network's topologies between a given UTC datetime range.
     tags:
     - Topology History
     produces:
@@ -35,7 +35,7 @@ async def handle_get_topology(request: web.Request) -> web.Response:
     parameters:
     - in: path
       name: network_name
-      description: The name of the network to query
+      description: The name of the network
       required: true
       schema:
         type: string

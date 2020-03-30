@@ -2,11 +2,12 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-from typing import Dict
+from typing import Any, Dict
 
 
-def sanitize_topology(topology: Dict) -> None:
-    """
+def sanitize_topology(topology: Dict[str, Any]) -> None:
+    """Sanitize the topology object, in place, of all ephemeral values.
+
     1. Drop all configuration and state params from topology.
     2. Sort the list of nodes, links and sites.
     """
@@ -24,5 +25,4 @@ def sanitize_topology(topology: Dict) -> None:
     topology["nodes"] = sorted(topology["nodes"], key=lambda node: (node["name"]))
     topology["links"] = sorted(topology["links"], key=lambda link: (link["name"]))
     topology["sites"] = sorted(topology["sites"], key=lambda site: (site["name"]))
-
     logging.debug(f"{topology['name']} topology after clean up: {topology}")
