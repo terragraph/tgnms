@@ -65,6 +65,7 @@ type Props = {
   onDraftChange: (?Array<string>, ?(string | number)) => any,
   selectedField: ?Array<string>,
   onSelectField: (?Array<string>) => any,
+  hideDeprecatedFields: boolean,
 };
 
 type State = {
@@ -131,7 +132,13 @@ class ConfigTable extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, data, onDraftChange, selectedField} = this.props;
+    const {
+      classes,
+      data,
+      hideDeprecatedFields,
+      onDraftChange,
+      selectedField,
+    } = this.props;
     const {searchValue, searchFilter} = this.state;
     const filter = searchFilter.trim().toLowerCase();
     const orderedData = orderBy(
@@ -186,17 +193,22 @@ class ConfigTable extends React.Component<Props, State> {
               </TableRow>
             </TableHead>
             <TableBody>
-              {orderedData.map(entry => (
-                <ConfigTableEntry
-                  key={entry.field.join('\0')}
-                  {...entry}
-                  onDraftChange={onDraftChange}
-                  onSelect={this.handleRowSelect}
-                  isSelected={isEqual(entry.field, selectedField)}
-                  isVisible={this.isEntryVisible(entry, filter)}
-                  colSpan={columns.length}
-                />
-              ))}
+              {orderedData.map(entry => {
+                if (hideDeprecatedFields && entry.metadata.deprecated) {
+                  return null;
+                }
+                return (
+                  <ConfigTableEntry
+                    key={entry.field.join('\0')}
+                    {...entry}
+                    onDraftChange={onDraftChange}
+                    onSelect={this.handleRowSelect}
+                    isSelected={isEqual(entry.field, selectedField)}
+                    isVisible={this.isEntryVisible(entry, filter)}
+                    colSpan={columns.length}
+                  />
+                );
+              })}
             </TableBody>
           </Table>
         </div>

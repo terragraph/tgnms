@@ -79,6 +79,7 @@ type State = {
   controllerConfigMetadata: ?ControllerConfigType,
   aggregatorConfigMetadata: ?AggregatorConfigType,
   useMetadataBase: boolean,
+  hideDeprecatedFields: boolean,
 };
 
 class NetworkConfig extends React.Component<Props, State> {
@@ -127,6 +128,9 @@ class NetworkConfig extends React.Component<Props, State> {
 
       // Construct base controller config using metadata?
       useMetadataBase: true,
+
+      // Hide deprecated fields from the view
+      hideDeprecatedFields: true,
     };
   }
 
@@ -208,11 +212,13 @@ class NetworkConfig extends React.Component<Props, State> {
       selectedHardwareType,
       selectedNodeInfo,
       useMetadataBase,
+      hideDeprecatedFields,
     } = this.state;
 
     return {
       editMode,
       useMetadataBase,
+      hideDeprecatedFields,
       selectedNodeInfo,
       baseConfigs,
       hardwareBaseConfigs,
@@ -466,6 +472,11 @@ class NetworkConfig extends React.Component<Props, State> {
     this.setState({useMetadataBase}, callback);
   };
 
+  handleSetHideDeprecated = (hideDeprecatedFields, callback) => {
+    // Toggle hiding deprecated field options
+    this.setState({hideDeprecatedFields}, callback);
+  };
+
   handleSelectNode = (node, callback) => {
     // Select a node in the sidebar
     const {selectedNodeInfo} = this.state;
@@ -528,6 +539,7 @@ class NetworkConfig extends React.Component<Props, State> {
         onSubmitDraft={this.handleSubmitDraft}
         onEditModeChanged={this.handleEditModeChange}
         onSetConfigBase={this.handleSetConfigBase}
+        onSetHideDeprecated={this.handleSetHideDeprecated}
         onSelectNode={this.handleSelectNode}
         onSelectImage={this.handleSelectImage}
         onSelectHardwareType={this.handleSelectHardwareType}

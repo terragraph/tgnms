@@ -106,6 +106,12 @@ const e2eConfigBaseOptions = Object.freeze([
   {label: 'Hidden', value: false},
 ]);
 
+// Hide deprecated options?
+const deprecatedFieldOptions = Object.freeze([
+  {label: 'Hidden', value: true},
+  {label: 'Show all', value: false},
+]);
+
 type Props = {
   classes: {[string]: string},
   editMode: string, // NetworkConfigMode
@@ -126,7 +132,9 @@ type Props = {
   onSelectFirmwareVersion: string => void,
   topologyNodeList: ?Array<NodeConfigStatusType>,
   useMetadataBase: ?boolean,
+  hideDeprecatedFields: boolean,
   onSetConfigBase: boolean => void,
+  onSetHideDeprecated: boolean => void,
   onConfigRefresh: (string, boolean) => void,
   onUpdateSnackbar: (string, string) => void,
 };
@@ -138,6 +146,7 @@ type State = {
   selectedFirmwareVersion: string,
   nodeFilter: string,
   useMetadataBase: boolean,
+  hideDeprecatedFields: boolean,
   searchFilter: string,
   showFullNodeConfigModal: boolean,
   showClearNodeAutoConfigModal: boolean,
@@ -151,6 +160,7 @@ class ConfigSidebar extends React.Component<Props, State> {
     selectedHardwareType: '',
     nodeFilter: nodeFilterOptions[0].label,
     useMetadataBase: false,
+    hideDeprecatedFields: true,
     searchFilter: '',
     showFullNodeConfigModal: false,
     showClearNodeAutoConfigModal: false,
@@ -164,6 +174,7 @@ class ConfigSidebar extends React.Component<Props, State> {
       selectedHardwareType: nextProps.selectedHardwareType,
       selectedFirmwareVersion: nextProps.selectedFirmwareVersion,
       useMetadataBase: nextProps.useMetadataBase,
+      hideDeprecatedFields: nextProps.hideDeprecatedFields,
     };
   }
 
@@ -441,6 +452,7 @@ class ConfigSidebar extends React.Component<Props, State> {
       onSelectImage,
       onSelectHardwareType,
       onSelectFirmwareVersion,
+      onSetHideDeprecated,
       topologyNodeList,
     } = this.props;
 
@@ -481,6 +493,17 @@ class ConfigSidebar extends React.Component<Props, State> {
             )),
             onChange: onSelectHardwareType,
           },
+          {
+            func: createSelectInput,
+            label: 'Deprecated Fields',
+            value: 'hideDeprecatedFields',
+            menuItems: deprecatedFieldOptions.map(({label, value}) => (
+              <MenuItem key={label} value={value}>
+                {label}
+              </MenuItem>
+            )),
+            onChange: onSetHideDeprecated,
+          },
         ];
 
     return (
@@ -512,6 +535,7 @@ class ConfigSidebar extends React.Component<Props, State> {
       networkName,
       selectedNodeInfo,
       onSelectNode,
+      onSetHideDeprecated,
     } = this.props;
     const {nodeFilter, searchFilter, showFullNodeConfigModal} = this.state;
     const renderedNodeList = this.filterTopologyNodes(nodeFilter);
@@ -527,6 +551,17 @@ class ConfigSidebar extends React.Component<Props, State> {
           </MenuItem>
         )),
         onChange: this.handleChangeFilterOption,
+      },
+      {
+        func: createSelectInput,
+        label: 'Deprecated Fields',
+        value: 'hideDeprecatedFields',
+        menuItems: deprecatedFieldOptions.map(({label, value}) => (
+          <MenuItem key={label} value={value}>
+            {label}
+          </MenuItem>
+        )),
+        onChange: onSetHideDeprecated,
       },
     ];
 
@@ -634,7 +669,12 @@ class ConfigSidebar extends React.Component<Props, State> {
 
   renderE2eSidebar = () => {
     // Render the left sidebar for controller/aggregator config
-    const {classes, useRawJsonEditor, onSetConfigBase} = this.props;
+    const {
+      classes,
+      useRawJsonEditor,
+      onSetConfigBase,
+      onSetHideDeprecated,
+    } = this.props;
 
     const inputs = useRawJsonEditor
       ? []
@@ -649,6 +689,17 @@ class ConfigSidebar extends React.Component<Props, State> {
               </MenuItem>
             )),
             onChange: onSetConfigBase,
+          },
+          {
+            func: createSelectInput,
+            label: 'Deprecated Fields',
+            value: 'hideDeprecatedFields',
+            menuItems: deprecatedFieldOptions.map(({label, value}) => (
+              <MenuItem key={label} value={value}>
+                {label}
+              </MenuItem>
+            )),
+            onChange: onSetHideDeprecated,
           },
         ];
 

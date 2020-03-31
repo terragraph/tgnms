@@ -38,6 +38,8 @@ const defaultProps = {
   onSelectHardwareType: jest.fn(() => {}),
   topologyNodeList: [],
   useMetadataBase: false,
+  hideDeprecatedFields: true,
+  onSetHideDeprecated: jest.fn(() => {}),
   onSetConfigBase: jest.fn(() => {}),
   onConfigRefresh: jest.fn(() => {}),
   onUpdateSnackbar: jest.fn(() => {}),
@@ -164,14 +166,16 @@ test('renders node filter change', async () => {
 });
 
 test('change E2E base fields', () => {
-  const {getByText} = renderWithRouter(
+  const {getAllByText, getByText} = renderWithRouter(
     <TestApp>
       <ConfigSidebar {...defaultProps} editMode="E2E" />
     </TestApp>,
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
-  expect(getByText('Hidden')).toBeInTheDocument();
-  fireEvent.mouseDown(getByText('Hidden'));
+  expect(getAllByText('Hidden').length == 2);
+  // First hidden is for the 'Base Fields' option
+  fireEvent.mouseDown(getAllByText('Hidden')[0]);
+  // Second hidden is for the 'Hide Deprecated Fields' option
   expect(getByText('Show all')).toBeInTheDocument();
   fireEvent.click(getByText('Show all'));
   expect(defaultProps.onSetConfigBase).toHaveBeenCalled();

@@ -35,7 +35,11 @@ const defaultProps = {
   initialEditMode: NetworkConfigMode.CONTROLLER,
   setParentState: jest.fn(() => {}),
   getSidebarProps: () => {
-    return {editMode: NetworkConfigMode.CONTROLLER, useMetadataBase: true};
+    return {
+      editMode: NetworkConfigMode.CONTROLLER,
+      useMetadataBase: true,
+      hideDeprecatedFields: true,
+    };
   },
   getRequests: () => [],
   getConfigLayers: jest.fn(() => [{id: ConfigLayer.BASE, value: {}}]),
@@ -44,6 +48,7 @@ const defaultProps = {
   onSubmitDraft: jest.fn(() => {}),
   onEditModeChanged: jest.fn(() => {}),
   onSetConfigBase: jest.fn(() => {}),
+  onSetHideDeprecated: jest.fn(() => {}),
 };
 
 test('renders spinner initially without crashing', () => {

@@ -19,6 +19,7 @@ const defaultProps = {
   onDraftChange: jest.fn(() => {}),
   selectedField: null,
   onSelectField: jest.fn(() => {}),
+  hideDeprecatedFields: true,
 };
 
 test('renders without crashing', async () => {

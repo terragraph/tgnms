@@ -108,6 +108,7 @@ type Props = {
     selectedHardwareType?: ?string,
     topologyNodeList?: ?Array<NodeConfigStatusType>,
     useMetadataBase?: boolean,
+    hideDeprecatedFields: boolean,
   },
   getRequests: boolean => Array<Object>,
   getConfigLayers: string => Array<{
@@ -123,6 +124,7 @@ type Props = {
   onSelectFirmwareVersion?: ?(string, () => any) => any,
   onSelectHardwareType?: ?(string, () => any) => any,
   onSetConfigBase?: ?(boolean, () => any) => any,
+  onSetHideDeprecated: ?(boolean, () => any) => any,
 };
 
 type State = {
@@ -454,6 +456,14 @@ class ConfigRoot extends React.Component<Props, State> {
     onSetConfigBase && onSetConfigBase(useMetadataBase, this.updateConfigData);
   };
 
+  handleSetHideDeprecated = hideDeprecatedFields => {
+    // Toggle hiding deprecated field options
+    const {onSetHideDeprecated} = this.props;
+
+    onSetHideDeprecated &&
+      onSetHideDeprecated(hideDeprecatedFields, this.updateConfigData);
+  };
+
   renderAddFieldButton = () => {
     // Render the FAB to add a new field
     const {classes} = this.props;
@@ -493,6 +503,7 @@ class ConfigRoot extends React.Component<Props, State> {
             onSelectHardwareType={this.handleSelectHardwareType}
             onSelectFirmwareVersion={this.handleSelectFirmwareVersion}
             onSetConfigBase={this.handleSetConfigBase}
+            onSetHideDeprecated={this.handleSetHideDeprecated}
             onConfigRefresh={this.getConfigsForNetwork}
             onUpdateSnackbar={this.updateSnackbar}
           />
@@ -511,6 +522,7 @@ class ConfigRoot extends React.Component<Props, State> {
           ) : (
             <ConfigTable
               data={configData}
+              hideDeprecatedFields={sidebarProps.hideDeprecatedFields}
               onDraftChange={this.handleDraftChange}
               selectedField={selectedField}
               onSelectField={this.handleSelectField}
