@@ -95,6 +95,6 @@ async def handle_get_topology(request: web.Request) -> web.Response:
     async with MySQLClient().lease() as sa_conn:
         cursor = await sa_conn.execute(query)
         return web.json_response(
-            [dict(row) for row in await cursor.fetchall()],
+            {"topologies": [dict(row) for row in await cursor.fetchall()]},
             dumps=partial(json.dumps, default=custom_serializer),
         )
