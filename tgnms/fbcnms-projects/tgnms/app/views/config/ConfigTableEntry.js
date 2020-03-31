@@ -31,8 +31,8 @@ import {
   ConfigLayer,
 } from '../../constants/ConfigConstants';
 import {isEqual, truncate} from 'lodash';
+import {isPunctuation, toTitleCase} from '../../helpers/StringHelpers';
 import {shallowEqual, validateField} from '../../helpers/ConfigHelpers';
-import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -435,8 +435,12 @@ class ConfigTableEntry extends React.Component<Props, State> {
       colSpan,
     } = this.props;
     const {localInputValue} = this.state;
-    const {type, deprecated, readOnly} = metadata;
+    const {type, desc, deprecated, readOnly} = metadata;
     const fieldName = field.join(CONFIG_FIELD_DELIMITER);
+    let description = desc || 'n/a';
+    if (isPunctuation(description.slice(-1))) {
+      description = description.slice(0, -1);
+    }
 
     // Get the config value
     const value = this.getFieldValue(layers);
@@ -492,6 +496,18 @@ class ConfigTableEntry extends React.Component<Props, State> {
               ),
             }}
             {...mainTdProps}>
+            {description}
+          </TableCell>
+          <TableCell
+            component="th"
+            scope="row"
+            classes={{
+              root: classNames(
+                classes.tdField,
+                deprecated && classes.strikethrough,
+              ),
+            }}
+            {...mainTdProps}>
             {fieldName}
             {draftValueExists ? <span className={classes.red}> *</span> : null}
           </TableCell>
@@ -516,7 +532,6 @@ class ConfigTableEntry extends React.Component<Props, State> {
             ) : null}
           </TableCell>
         </TableRow>
-
         {this.state.lazyInit ? (
           <TableRow
             className={classNames(

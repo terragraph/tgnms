@@ -49,6 +49,7 @@ const styles = theme => ({
 });
 
 const columns = Object.freeze([
+  {label: 'Description', orderBy: ['field']},
   {label: 'Field', orderBy: ['field']},
   {label: 'Status', orderBy: ['hasTopLevelOverride', 'hasOverride', 'field']},
   {
