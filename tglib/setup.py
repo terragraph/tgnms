@@ -79,7 +79,7 @@ class BuildThriftCommand(Command):
 
             # Run the thrift command
             command = ["/usr/local/bin/thrift", "--gen", "py", "-out", self.out_path]
-            command.append(file)
+            command.append(str(file))
             self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
             subprocess.check_call(command)
 
