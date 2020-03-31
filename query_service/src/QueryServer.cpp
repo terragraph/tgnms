@@ -39,13 +39,21 @@ DEFINE_int32(
     "Number of threads to listen on. Numbers <= 0 "
     "will use the number of cores on this machine.");
 DEFINE_bool(enable_scans, true, "Enable the scan response service");
+DEFINE_string(kafka_broker_endpoint_list, "", "Kafka broker endpoint list");
+// regular frequency node stats
 DEFINE_bool(enable_kafka_stats, false, "Enable Kafka stats service");
 DEFINE_string(
     kafka_stats_topic,
     "stats",
     "Topic name for regular frequency stats");
 DEFINE_int32(kafka_consumer_threads, 5, "Kafka consumer reader threads");
-DEFINE_string(kafka_broker_endpoint_list, "", "Kafka broker endpoint list");
+// high frequency node stats
+DEFINE_bool(enable_kafka_hf_stats, false, "Enable Kafka HF stats service");
+DEFINE_string(
+    kafka_hf_stats_topic,
+    "hf_stats",
+    "Topic name for high frequency stats");
+DEFINE_int32(kafka_hf_consumer_threads, 1, "Kafka HF consumer reader threads");
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
@@ -105,16 +113,31 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "Starting Kafka Stats Service";
     for (int threadCountIdx = 0; threadCountIdx < FLAGS_kafka_consumer_threads;
          threadCountIdx++) {
-      // TODO - support HF stats
+      const std::string threadName = std::to_string(threadCountIdx);
       KafkaStatsService* kafkaStatsService = new KafkaStatsService(
           FLAGS_kafka_broker_endpoint_list,
           FLAGS_kafka_stats_topic,
           30 /* interval in seconds */,
-          threadCountIdx);
+          threadName);
       kafkaStatsServiceList.emplace_back(std::move(kafkaStatsService));
     }
   } else {
     LOG(INFO) << "Kafka Stats Service Disabled";
+  }
+  if (FLAGS_enable_kafka_hf_stats) {
+    LOG(INFO) << "Starting HF Kafka Stats Service";
+    for (int threadCountIdx = 0; threadCountIdx < FLAGS_kafka_hf_consumer_threads;
+         threadCountIdx++) {
+      const std::string threadName = "HF-" + std::to_string(threadCountIdx);
+      KafkaStatsService* kafkaStatsService = new KafkaStatsService(
+          FLAGS_kafka_broker_endpoint_list,
+          FLAGS_kafka_hf_stats_topic,
+          1 /* interval in seconds */,
+          threadName);
+      kafkaStatsServiceList.emplace_back(std::move(kafkaStatsService));
+    }
+  } else {
+    LOG(INFO) << "Kafka HF Stats Service Disabled";
   }
 
   httpThread.join();

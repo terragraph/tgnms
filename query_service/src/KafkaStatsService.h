@@ -25,7 +25,7 @@ class KafkaStatsService {
       const std::string& brokerEndpointList,
       const std::string& statsTopic,
       const int intervalSec,
-      const int consumerId);
+      const std::string& consumerId);
   ~KafkaStatsService();
 
   void start(const std::string& topicName);
@@ -39,7 +39,7 @@ class KafkaStatsService {
   std::thread workerThread_;
   std::string brokerEndpointList_;
   int intervalSec_;
-  int consumerId_;
+  std::string consumerId_;
 };
 
 } // namespace gorilla

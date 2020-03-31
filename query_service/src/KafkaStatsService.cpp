@@ -56,7 +56,7 @@ KafkaStatsService::KafkaStatsService(
     const std::string& brokerEndpointList,
     const std::string& statsTopic,
     const int intervalSec,
-    const int consumerId)
+    const std::string& consumerId)
     : brokerEndpointList_(brokerEndpointList),
       intervalSec_(intervalSec),
       consumerId_(consumerId) {
@@ -193,7 +193,7 @@ void KafkaStatsService::start(const std::string& topicName) {
         if (!wroteStats) {
           LOG(ERROR) << "Error writing stats to prometheus queue (attempt "
                      << writeAttempts
-                     << "), waiting for successful push between continuing.";
+                     << "), waiting for successful push before continuing.";
           std::this_thread::sleep_for(std::chrono::seconds(
               FLAGS_prometheus_cache_push_wait_interval_sec));
         }
