@@ -30,7 +30,7 @@ ptr_params = {
         "tglib/utils/dict.py": 100,
         "tglib/utils/ip.py": 100,
         "tglib/utils/serialization.py": 100,
-        "TOTAL": 47,
+        "TOTAL": 48,
     },
     "run_flake8": True,
     "run_black": True,

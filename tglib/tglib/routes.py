@@ -31,7 +31,7 @@ async def handle_get_status(request: web.Request) -> web.Response:
     return web.Response(text="Alive")
 
 
-@routes.get(r"/metrics/{scrape_interval:[0-9]+(ms|[smhdwy])}")
+@routes.get("/metrics/{scrape_interval:[0-9]+(ms|[smhdwy])}")
 async def handle_get_metrics(request: web.Request) -> web.Response:
     """
     ---
@@ -205,7 +205,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(text="Failed to update configuration")
 
 
-@routes.put(r"/log/{level:[A-Z]+}")
+@routes.put("/log/{level:[A-Z]+}")
 async def handle_set_log_level(request: web.Request) -> web.Response:
     """
     ---

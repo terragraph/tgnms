@@ -63,14 +63,15 @@ class PrometheusClientTests(asynctest.TestCase):
         expected_query = 'avg_over_time(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
 
-    async def test_query_range(self) -> None:
+    @asynctest.patch("time.time", return_value=100)
+    async def test_query_range(self, patched_time_time) -> None:
         self.client._session.get.return_value.__aenter__.return_value.json = (
             asynctest.CoroutineMock()
         )
 
         host = self.config["host"]
         port = self.config["port"]
-        params = {"query": "foo", "start": 0, "end": 100, "step": "bar"}
+        params = {"query": "foo", "step": "30s", "start": 0, "end": 100}
 
         await self.client.query_range(**params)
         self.client._session.get.assert_called_with(
@@ -86,13 +87,28 @@ class PrometheusClientTests(asynctest.TestCase):
             timeout=self.timeout,
         )
 
-    async def test_query_invalid_range(self) -> None:
-        params = {"query": "foo", "start": 100, "end": 0, "step": "bar"}
-        self.assertGreater(params["start"], params["end"])
+        # Test that the mock value of time.time() is used when no "end" is provided
+        del params["end"]
+        await self.client.query_range(**params)
+        self.client._session.get.assert_called_with(
+            f"http://{host}:{port}/api/v1/query_range",
+            params={**params, "end": 100},
+            timeout=self.timeout,
+        )
 
+    async def test_query_range_invalid_params(self) -> None:
+        params = {"query": "foo", "step": "30s", "start": 100, "end": 0}
+        self.assertGreater(params["start"], params["end"])
         with self.assertRaises(ValueError):
             await self.client.query_range(**params)
+        with self.assertRaises(ValueError):
+            await self.client.query_range_ts(**params)
 
+        duration_re = "[0-9]+[smhdwy]"
+        params = {"query": "foo", "step": "bar", "start": 0, "end": 100}
+        self.assertNotRegex(params["step"], duration_re)
+        with self.assertRaises(ValueError):
+            await self.client.query_range(**params)
         with self.assertRaises(ValueError):
             await self.client.query_range_ts(**params)
 

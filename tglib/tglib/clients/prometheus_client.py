@@ -4,6 +4,8 @@
 import asyncio
 import dataclasses
 import logging
+import re
+import time
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Pattern, Tuple, Union, cast
 
@@ -159,19 +161,29 @@ class PrometheusClient(BaseClient):
 
         datapoints = []
         metrics = cls._metrics_map[scrape_interval]
-        for id, (value, time) in metrics.items():
-            datapoints.append(f"{id} {value} {time or ''}".rstrip())
+        for id, (value, ts) in metrics.items():
+            datapoints.append(f"{id} {value} {ts or ''}".rstrip())
 
         metrics.clear()
         return datapoints
 
-    async def query_range(self, query: str, start: int, end: int, step: str) -> Dict:
-        """Return the data for the given query and range."""
+    async def query_range(
+        self, query: str, step: str, start: int, end: Optional[int] = None
+    ) -> Dict:
+        """Return the data for the given query and range.
+
+        If not provided, the end time will default to the current unix time.
+        """
         if self._addr is None or self._session is None:
             raise ClientStoppedError()
+        if end is None:
+            end = int(round(time.time()))
 
+        duration_re = "[0-9]+[smhdwy]"
+        if not re.match(duration_re, step):
+            raise ValueError(f"Step resolution must be a valid duration, {duration_re}")
         if start > end:
-            raise ValueError("Start time cannot be after end time")
+            raise ValueError(f"Start time cannot be after end time: {start} > {end}")
 
         url = f"http://{self._addr}/api/v1/query_range"
         params = {"query": query, "start": start, "end": end, "step": step}
@@ -188,8 +200,8 @@ class PrometheusClient(BaseClient):
     async def query_latest(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest datum for the given query.
 
-        The current Prometheus server time is used as default if no
-        evaluation timestamp is provided.
+        The current Prometheus server time is used as default if no evaluation
+        timestamp is provided.
         """
         if self._addr is None or self._session is None:
             raise ClientStoppedError()
@@ -209,9 +221,11 @@ class PrometheusClient(BaseClient):
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             raise ClientRuntimeError(msg=f"Query request to {url} failed") from e
 
-    async def query_range_ts(self, query: str, start: int, end: int, step: str) -> Dict:
+    async def query_range_ts(
+        self, query: str, step: str, start: int, end: Optional[int] = None
+    ) -> Dict:
         """Return timestamp emissions corresponding to the query and range."""
-        return await self.query_range(f"timestamp({query})", start, end, step)
+        return await self.query_range(f"timestamp({query})", step, start, end)
 
     async def query_latest_ts(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest timestamp emission for the given query.
