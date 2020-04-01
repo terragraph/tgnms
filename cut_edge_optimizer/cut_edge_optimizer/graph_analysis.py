@@ -37,7 +37,6 @@ def build_topology_graph(topology: Dict) -> Tuple[nx.Graph, Set[str]]:
 
 
 def find_cn_cut_edges(graph: nx.Graph, cns: Set[str]) -> Set[str]:
-    cut_edges = nx.bridges(graph)
     # check if topology has unconnected nodes so they don't affect cut-edge analysis
     topology_components = list(nx.connected_components(graph))
     logging.debug(f"Number of connected components {len(topology_components)}")
@@ -47,7 +46,7 @@ def find_cn_cut_edges(graph: nx.Graph, cns: Set[str]) -> Set[str]:
     pops = {node for node in graph["source"]}
     # mapping from cut-edge to the CNs it cuts off, if any
     cn_cut_edges = set()
-    for edge in cut_edges:
+    for edge in nx.bridges(graph):
         link_attributes = graph.get_edge_data(*edge)
         # skip wired links
         if link_attributes.get("link_type") == LinkType.WIRELESS:

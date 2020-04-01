@@ -7,7 +7,7 @@ from typing import Dict
 from aiohttp import web
 from tglib.clients import APIServiceClient
 
-from .config_operations import get_all_cut_edge_configs, modify_all_cut_edge_configs
+from .config_operations import get_all_cut_edge_configs
 
 
 routes = web.RouteTableDef()

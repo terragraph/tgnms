@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 from copy import deepcopy
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Optional, Set
 
 from tglib import ClientType, init
 from tglib.clients import APIServiceClient
@@ -95,11 +95,11 @@ def prepare_node_config(
 
 
 def prepare_all_configs(
-    reponse: Dict[str, str], link_impairment_detection: int, link_flap_backoff_ms: str
+    response: Dict[str, str], link_impairment_detection: int, link_flap_backoff_ms: str
 ) -> List[Dict]:
     overrides_needed_all: List[Dict] = []
-    if reponse["overrides"]:
-        overrides_current_all = json.loads(reponse["overrides"])
+    if response["overrides"]:
+        overrides_current_all = json.loads(response["overrides"])
         for node_name, node_overrides in overrides_current_all.items():
             logging.debug(f"node: {node_name}, overrides: {node_overrides}")
             if node_overrides == "":
@@ -118,6 +118,25 @@ def prepare_all_configs(
     return overrides_needed_all
 
 
+async def modify_all_cut_edge_configs(
+    network_name: str, configs_all: List[Dict], config_change_interval: int
+) -> None:
+    client = APIServiceClient(timeout=5)
+    for node_config in configs_all:
+        logging.info(f"Modifying config overrides in {network_name} with {node_config}")
+        try:
+            response = await client.request(
+                network_name, endpoint="modifyNodeOverridesConfig", params=node_config
+            )
+            logging.info(
+                f"modifyNodeOverridesConfig response in {network_name} is {response}"
+            )
+        except ClientRuntimeError:
+            logging.exception(f"modifyNodeOverridesConfig call failed")
+            continue
+        await asyncio.sleep(config_change_interval)
+
+
 async def get_all_cut_edge_configs(
     topology: Dict,
     window_s: int,
@@ -130,11 +149,13 @@ async def get_all_cut_edge_configs(
     network_name = topology["name"]
     logging.info(f"Running cut edge config optimization for {network_name}.")
     configs_all: List[Dict] = []
+
     # create topology graph
     topology_graph, cns = build_topology_graph(topology)
     if not cns:
         logging.info(f"{network_name} has no CNs")
         return configs_all
+
     # find all edges that when down cut off one or more CNs
     cn_cut_edges: Set = set()
     if link_uptime_threshold and 0 <= link_uptime_threshold < 1:
@@ -146,21 +167,21 @@ async def get_all_cut_edge_configs(
     if not cn_cut_edges:
         logging.info(f"{network_name} has no CN cut edges")
         return configs_all
-
     logging.info(
         f"{network_name} has {len(cn_cut_edges)} edges that cut off one or more CNs"
     )
+
     # to avoid repeating for the common node in P2MP
     node_set = {node_name for edge in cn_cut_edges for node_name in edge}
     # get the current config overrides for all nodes in cut edges
     try:
         response = await APIServiceClient(timeout=5).request(
+            network_name,
             endpoint="getNodeOverridesConfig",
-            network_name=network_name,
             params={"nodes": list(node_set)},
         )
-    except ClientRuntimeError as e:
-        logging.error(f"getNodeOverridesConfig call failed: {str(e)}")
+    except ClientRuntimeError:
+        logging.exception(f"getNodeOverridesConfig call failed")
         return configs_all
 
     # prepare config overrides for all nodes that need config changes
@@ -169,7 +190,8 @@ async def get_all_cut_edge_configs(
     )
     if configs_all:
         logging.info(
-            f"{network_name} requires cut edge config changes to {len(configs_all)} nodes"
+            f"{network_name} requires cut edge config "
+            f"changes to {len(configs_all)} nodes"
         )
         if not dry_run:
             await modify_all_cut_edge_configs(
@@ -179,24 +201,3 @@ async def get_all_cut_edge_configs(
         logging.info(f"{network_name} does not require any cut edge config changes")
 
     return configs_all
-
-
-async def modify_all_cut_edge_configs(
-    network_name: str, configs_all: List[Dict], config_change_interval: int
-) -> None:
-    client = APIServiceClient(timeout=5)
-    for node_config in configs_all:
-        logging.info(f"Modifying config overrides in {network_name} with {node_config}")
-        try:
-            response = await client.request(
-                endpoint="modifyNodeOverridesConfig",
-                network_name=network_name,
-                params=node_config,
-            )
-            logging.info(
-                f"modifyNodeOverridesConfig response in {network_name} is {response}"
-            )
-        except ClientRuntimeError as e:
-            logging.info(f"modifyNodeOverridesConfig call failed: {e}")
-            continue
-        await asyncio.sleep(config_change_interval)
