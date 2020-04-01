@@ -8,6 +8,7 @@
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 import React from 'react';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import UnfoldMoreIcon from '@material-ui/icons/UnfoldMore';
 import classnames from 'classnames';
@@ -415,6 +416,7 @@ class CustomTable extends React.Component<Props, State> {
       maxHeight: style.height - 2 * paddingTopBottom,
     };
 
+    const {label, tooltip = ''} = columns[columnIndex];
     return (
       <div
         key={key}
@@ -428,12 +430,12 @@ class CustomTable extends React.Component<Props, State> {
           )
         }>
         <div style={contentStyle} className={classes.gridRowCellContent}>
-          <div className="CustomTable__HeaderRowCell__Title">
-            <Typography variant="subtitle2">
-              {columns[columnIndex].label}
-            </Typography>
-            {carets}
-          </div>
+          <Tooltip title={tooltip} placement="top-start">
+            <div className="CustomTable__HeaderRowCell__Title">
+              <Typography variant="subtitle2">{label}</Typography>
+              {carets}
+            </div>
+          </Tooltip>
           {filter}
         </div>
       </div>

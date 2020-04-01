@@ -211,6 +211,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
       label: 'Avg MCS',
       render: cell => this.renderFloatPoint('mcs', cell),
       sort: true,
+      tooltip: 'Modulation and Coding Scheme',
       width: 60,
     },
     {
@@ -218,6 +219,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
       label: 'Avg SNR',
       render: cell => this.renderFloatPoint('snr', cell),
       sort: true,
+      tooltip: 'Signal-to-noise ratio',
       width: 60,
     },
     {
@@ -225,6 +227,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
       label: 'Avg PER',
       render: cell => this.renderFloatPoint('per', cell),
       sort: true,
+      tooltip: 'Packet Error Rate',
       width: 60,
     },
     {
@@ -232,6 +235,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
       label: 'Avg tput(PPS)',
       render: cell => this.renderFloatPoint('tput', cell),
       sort: true,
+      tooltip: 'Throughput (packets per second)',
       width: 60,
     },
     {
@@ -239,6 +243,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
       label: 'Avg txPower',
       render: cell => this.renderFloatPoint('txpower', cell),
       sort: true,
+      tooltip: 'Transmission power',
       width: 60,
     },
     {
