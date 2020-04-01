@@ -11,4 +11,4 @@ COPY topology_service/ .flake8 ./
 RUN pip install .[ci]
 
 # Define default command
-CMD ["topology_service"]
+CMD ["/bin/sh"]

@@ -1,6 +1,6 @@
 # Analytics
 The `analytics` service is a collection of periodic pipelines and jobs that
-generate and pubslih derived stats using lower level (firmware) stats.
+generate and publish derived stats using lower level (firmware) stats.
 
 The service consumes stats from the timeseries database and computes derived
 stats that are then written back to the timeseries database for UI consumption

@@ -11,4 +11,4 @@ COPY network_test/ .flake8 ./
 RUN pip install .[ci]
 
 # Define default command
-CMD ["network_test"]
+CMD ["/bin/sh"]

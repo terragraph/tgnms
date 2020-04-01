@@ -11,4 +11,4 @@ COPY default_routes_service/ .flake8 ./
 RUN pip install .[ci]
 
 # Define default command
-CMD ["default_routes_service"]
+CMD ["/bin/sh"]

@@ -11,4 +11,4 @@ COPY cut_edge_optimizer/ .flake8 ./
 RUN pip install .[ci]
 
 # Start the service
-CMD ["cut_edge_optimizer"]
+CMD ["/bin/sh"]
