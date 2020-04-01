@@ -4,23 +4,22 @@
 from setuptools import find_packages, setup
 
 
+ptr_params = {
+    "entry_point_module": "analytics/main",
+    "test_suite": "tests.base",
+    "test_suite_timeout": 300,
+    "run_flake8": True,
+    "run_black": True,
+    "run_mypy": True,
+}
+
 setup(
     name="analytics",
-    version="2019.9.04",
+    version="2020.04.01",
+    packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
-    packages=find_packages(),
-    package_data={"module": ["AnalyticsConfig.json"], "tests": ["auto_test.sh"]},
-    include_package_data=True,
-    install_requires=[
-        "click==7.0",
-        "croniter==0.3.30",
-        "django==2.1.1",
-        "jupyter==1.0.0",
-        "matplotlib==2.2.2",
-        "mysqlclient==1.3.13",
-        "numpy==1.14.5",
-        "pandas==0.25.0",
-        "requests==2.19.1",
-        "tabulate==0.8.3",
-    ],
+    install_requires=[],
+    extras_require={"ci": ["ptr"]},
+    test_suite=ptr_params["test_suite"],
+    entry_points={"console_scripts": ["analytics = analytics.main:main"]},
 )
