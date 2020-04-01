@@ -403,11 +403,13 @@ class NetworkLinksTable extends React.Component<Props, State> {
   formatAnalyzerValue(obj, propertyName) {
     if (
       obj.hasOwnProperty(propertyName) &&
+      // $FlowFixMe Found by upgrading to 0.120.0
       obj[propertyName] !== INVALID_VALUE
     ) {
       return typeof obj !== 'number'
         ? Number.parseFloat(obj[propertyName])
-        : obj[propertyName];
+        : // $FlowFixMe Found by upgrading to 0.120.0
+          obj[propertyName];
     }
     return '-';
   }
