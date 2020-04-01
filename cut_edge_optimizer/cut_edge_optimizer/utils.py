@@ -4,7 +4,7 @@
 import logging
 from typing import Dict
 
-from tglib.clients.prometheus_client import PrometheusClient, ops
+from tglib.clients.prometheus_client import PrometheusClient, consts, ops
 from tglib.exceptions import ClientRuntimeError
 
 
@@ -16,9 +16,9 @@ async def get_link_status(topology: Dict, window_s: int) -> Dict[str, float]:
     """
     client = PrometheusClient(timeout=2)
     active_links: Dict = {}
-    labels = {"network": topology["name"]}
+    labels = {consts.network: topology["name"]}
     query = ops.avg_over_time(
-        client.create_query("link_online", labels), f"{window_s}s"
+        client.format_query("link_online", labels), f"{window_s}s"
     )
     logging.debug(f"Prometheus query: {query}")
     try:
