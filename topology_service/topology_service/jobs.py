@@ -16,7 +16,7 @@ from .utils import sanitize_topology
 
 
 async def save_latest_topologies(
-    start_time_ms: int, topologies: Dict[str, Any]
+    start_time_ms: int, topologies: Dict[str, Dict[str, Any]]
 ) -> None:
     """Sanitize each topology and save the contents in the database."""
     if not topologies:
@@ -24,7 +24,6 @@ async def save_latest_topologies(
     for topology in topologies.values():
         sanitize_topology(topology)
 
-    last_updated = datetime.utcfromtimestamp(start_time_ms / 1e3)
     async with MySQLClient().lease() as sa_conn:
         # Get the latest copy of each valid network's topology to compare
         query = select([TopologyHistory.network_name, TopologyHistory.topology]).where(
@@ -38,27 +37,29 @@ async def save_latest_topologies(
             & (TopologyHistory.network_name.in_(topologies.keys()))
         )
 
-        values = []
         cursor = await sa_conn.execute(query)
-        for result in await cursor.fetchall():
+        last_updated = datetime.utcfromtimestamp(start_time_ms / 1e3)
+
+        values = []
+        for row in await cursor.fetchall():
             # Compare the latest recorded topology with the current one
-            if result.topology == topologies[result.network_name]:
-                logging.debug(f"{result.network_name} is unchanged, skipping")
+            if row.topology == topologies[row.network_name]:
+                logging.debug(f"{row.network_name} is unchanged")
             else:
-                logging.info(f"The topology for {result.network_name} changed, saving")
+                logging.info(f"The topology for {row.network_name} changed")
                 values.append(
                     {
-                        "network_name": result.network_name,
-                        "topology": topologies[result.network_name],
+                        "network_name": row.network_name,
+                        "topology": topologies[row.network_name],
                         "last_updated": last_updated,
                     }
                 )
 
-            del topologies[result.network_name]
+            del topologies[row.network_name]
 
         # Add all newly seen networks
         for network_name, topology in topologies.items():
-            logging.info(f"New network found: {network_name}, saving")
+            logging.info(f"New network found: {network_name}")
             values.append(
                 {
                     "network_name": network_name,
@@ -73,13 +74,15 @@ async def save_latest_topologies(
             await sa_conn.connection.commit()
 
 
-async def count_network_assets(start_time_ms: int, topologies: Dict[str, Any]) -> None:
+async def count_network_assets(
+    start_time_ms: int, topologies: Dict[str, Dict[str, Any]]
+) -> None:
     """Take stock of all topologies and write stats to the timeseries database."""
     if not topologies:
         return
-    for network_name, topology in topologies.items():
-        metrics = []
 
+    metrics = []
+    for network_name, topology in topologies.items():
         # Save site location information for link distance calculation later
         site_name_to_loc = {}
         for site in topology["sites"]:
@@ -210,5 +213,5 @@ async def count_network_assets(start_time_ms: int, topologies: Dict[str, Any]) -
             ),
         ]
 
-        # Write the metrics to memory
-        PrometheusClient.write_metrics(scrape_interval="30s", metrics=metrics)
+    # Write the metrics to memory
+    PrometheusClient.write_metrics(scrape_interval="30s", metrics=metrics)

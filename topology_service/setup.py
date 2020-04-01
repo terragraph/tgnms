@@ -16,7 +16,7 @@ ptr_params = {
 
 setup(
     name="topology_service",
-    version="2020.03.30",
+    version="2020.03.31",
     packages=find_packages(exclude=["tests"]),
     install_requires=[
         "aiohttp",
