@@ -23,7 +23,7 @@ def custom_serializer(obj: Any) -> str:
         return str(obj)
 
 
-@routes.get(r"/topology/{network_name:.+}")
+@routes.get("/topology/{network_name:.+}")
 async def handle_get_topology(request: web.Request) -> web.Response:
     """
     ---
