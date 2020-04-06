@@ -28,7 +28,7 @@ import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
 import {useAlarmContext} from '@fbcnms/alarms/components/AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useForm} from '@fbcnms/alarms/components/hooks';
+import {useForm} from '@fbcnms/ui/hooks';
 
 import type {EventRule} from './EventAlarmsTypes';
 import type {
