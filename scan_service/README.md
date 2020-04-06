@@ -26,13 +26,9 @@ The service stores scan data and analysis results inside of a MySQL database.
 Each table it interacts with is defined by a file in `scan_service/models`.
 The tables are defined as follows:
 
-- `tx_scan_response`: Each row in this table represents the response from the
-initiator node in a scan. It contains parameters used in the scan it ran and
-metadata about the group of scans it ran in.
-
-- `rx_scan_response`: Each row in this table represents the response from a
-responder node in a scan. It contains data about the the signals it listened
-to as well as the unique id of the `tx_scan_response` it is associated with.
+- `tx_scan_response`: Each row in this table represents the Scan results for 
+scan token. It contains parameters used in the scan it ran and metadata about 
+the group of scans it ran in.
 
 - `scan_response_rate`: Each row in this table contains analysis data about
 the response rate and error rate for a scan group (a series of scans of the

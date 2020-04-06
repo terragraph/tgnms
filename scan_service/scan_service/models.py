@@ -35,6 +35,26 @@ ScanType = Enum("ScanType", ThriftScanType._NAMES_TO_VALUES)  # type: ignore
 Base: Any = declarative_base()
 
 
+class ScanResults(Base):
+    __tablename__ = "scan_results"
+
+    id = Column(Integer, primary_key=True)
+    group_id = Column(Integer, nullable=True)
+    n_responses_waiting = Column(Integer, nullable=True)
+    network_name = Column(String(255), nullable=False)
+    resp_id = Column(Integer, nullable=False)
+    scan_mode = Column(SQLEnum(ScanMode), nullable=False)
+    scan_result_path = Column(String(255), nullable=True)
+    scan_sub_type = Column(SQLEnum(ScanSubType), nullable=True)
+    scan_type = Column(SQLEnum(ScanType), nullable=False)
+    start_bwgd = Column(BigInteger, nullable=False)
+    status = Column(SQLEnum(ScanFwStatus), nullable=False)
+    timestamp = Column(DateTime, server_default=func.now(), nullable=False)
+    token = Column(Integer, nullable=False)
+    tx_node_name = Column(String(255), nullable=False)
+    tx_power = Column(Integer, nullable=True)
+
+
 class TxScanResponse(Base):
     __tablename__ = "tx_scan_response"
 

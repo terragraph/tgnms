@@ -19,6 +19,8 @@ async def scan_results_handler(scan_data_dir: str, msg: str) -> None:
         scan_msg = json.loads(msg)
         scan_result = scan_msg["result"]
         network_name = scan_msg["topologyName"]
+        token = scan_result["token"]
+        logging.info(f"Received scan response token '{token}' for {network_name}")
         await write_scan_data(scan_data_dir, network_name, scan_result)
     except json.JSONDecodeError:
         logging.exception("Failed to deserialize scan data")
@@ -32,8 +34,9 @@ async def events_handler(msg: str) -> None:
         event_id = event["eventId"]
         network_name = event["topologyName"]
 
-        # TODO: T62134320 to trigger scan response analysis at optimal times
-        if event_id == EventId.SCAN_COMPLETE:
+        # TODO: T64970789: Refactor response_rate calculation logic
+        # Temporarily disabled
+        if False and event_id == EventId.SCAN_COMPLETE:
             event_details = json.loads(event["details"])
             group_id = event_details["groupId"]
             groups = await get_scan_groups(network_name, group_id)

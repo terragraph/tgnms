@@ -4,7 +4,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from sqlalchemy import insert, join, select
@@ -15,6 +15,7 @@ from ..models import (
     ScanFwStatus,
     ScanMode,
     ScanResponseRate,
+    ScanResults,
     ScanSubType,
     ScanType,
     TxScanResponse,
@@ -23,105 +24,55 @@ from ..scan import Scan, ScanGroup
 from .time import SCAN_TIME_DELTA_BWGD, datetime_to_bwgd
 
 
-def write_raw_data(scan_data_dir: str, data: Dict) -> Optional[str]:
-    """Write raw scan data to file in scan data directory and return name of file"""
-    try:
-        fname = str(uuid4()) + ".json"
-        with open(scan_data_dir + fname, "w+") as f:
-            json.dump(data, f)
-        return fname
-    except OSError:
-        logging.exception("Unable to write scan data")
-        return None
-    except TypeError:
-        logging.exception("Unable to encode scan data to JSON")
-        return None
-
-
 async def write_scan_data(
     scan_data_dir: str, network_name: str, scan_result: Dict
 ) -> None:
     """Write scan data to database and save raw data to disk"""
+    scan_data = scan_result["data"]
+    token = scan_result["token"]
+
+    # Save scan data to file system
+    fname: Any = f"{uuid4()}.json"
     try:
-        token = scan_result["token"]
-        scan_data = scan_result["data"]
-    except KeyError:
-        logging.exception("Invalid scan result")
-        return
+        with open(scan_data_dir + fname, "w+") as f:
+            json.dump(scan_result, f)
+    except OSError:
+        logging.exception("Unable to write scan data to disk")
+        fname = None
 
-    if scan_data["respId"] == 0:
-        logging.error(f"Invalid scan response id from {network_name}, skipping")
-        return
-    if not scan_data["responses"]:
-        logging.info(
-            f"Received scan result with empty response list from {network_name}"
-        )
+    # If there is no tx response in the scan data responses, we mark the response
+    # as erroneous.
+    scan_responses = scan_data["responses"]
+    tx_node_name = scan_data["txNode"]
+    tx_response = scan_responses.get(tx_node_name, {})
+    if tx_response:
+        status = ScanFwStatus(tx_response["status"])
+    else:
+        status = ScanFwStatus.UNSPECIFIED_ERROR  # type: ignore
 
-    # scan_data contains some metadata about the scan as well as a list of responses
-    # from rx nodes and the tx node involved in the scan, we will save the metadata
-    # and the tx response data in a row in the TxScanResponse table and save each
-    # rx response in the RxScanResponse table, with a foreign key to the TxScanResponse
-    # entry that it is associated with
-    has_tx_response = False
-    rx_responses = []
-
-    # Populate tx response with data available from scan_data
-    tx_response = {
+    # Populate scan results entry
+    response = {
+        "group_id": scan_data.get("groupId"),
+        "n_responses_waiting": scan_data.get("nResponsesWaiting"),
         "network_name": network_name,
-        "scan_group_id": scan_data["groupId"],
-        "tx_node_name": scan_data["txNode"],
-        "token": token,
         "resp_id": scan_data["respId"],
-        "start_bwgd": scan_data["startBwgdIdx"],
-        "scan_type": ScanType(scan_data["type"]),
-        "scan_sub_type": (
-            ScanSubType(scan_data["subType"]) if "subType" in scan_data else None
-        ),
         "scan_mode": ScanMode(scan_data["mode"]),
-        "apply": scan_data.get("apply", None),
-        "n_responses_waiting": scan_data.get("nResponsesWaiting", None),
+        "scan_result_path": fname,
+        "scan_sub_type": (
+            ScanSubType(scan_data["subType"]) if scan_data.get("subType") else None
+        ),
+        "scan_type": ScanType(scan_data["type"]),
+        "start_bwgd": scan_data["startBwgdIdx"],
+        "status": status,
+        "token": token,
+        "tx_node_name": tx_node_name,
+        "tx_power": tx_response.get("txPwrIndex"),
     }
 
-    # Create rx response entries and finish populating tx response by iterating through
-    # scan_data's node responses
-    for node_name, response in scan_data["responses"].items():
-        # Save scan data from tx node responses seperately than data from rx node
-        # responses
-        if node_name == tx_response["tx_node_name"]:
-            has_tx_response = True
-            tx_response.update(
-                {
-                    "scan_resp_path": write_raw_data(scan_data_dir, response),
-                    "status": ScanFwStatus(response["status"]),
-                    "tx_power": response.get("txPwrIndex", None),
-                }
-            )
-        else:
-            rx_response = {
-                "scan_resp_path": write_raw_data(scan_data_dir, response),
-                "rx_node_name": node_name,
-                "status": ScanFwStatus(response["status"]),
-            }
-            rx_responses.append(rx_response)
-
-    # If there is no tx response in the scan data, we mark the response as erroneous.
-    # We can identify unreturned tx scan responses because they will have a status of
-    # UNSPECIFIED_ERROR and a null response data path.
-    if not has_tx_response:
-        tx_response["scan_resp_path"] = None
-        tx_response["status"] = ScanFwStatus.UNSPECIFIED_ERROR  # type: ignore
-
-    # Write new scan data into db
+    # Write scan results into db
     async with MySQLClient().lease() as conn:
-        # Insert tx response
-        tx_response_query = insert(TxScanResponse).values(tx_response)
-        tx_response_row = await conn.execute(tx_response_query)
-
-        # Add foreign key relationship and insert rx responses
-        for rx_response in rx_responses:
-            rx_response["tx_scan_id"] = tx_response_row.lastrowid
-
-        await conn.execute(insert(RxScanResponse).values(rx_responses))
+        query = insert(ScanResults).values(response)
+        await conn.execute(query)
         await conn.connection.commit()
 
 
