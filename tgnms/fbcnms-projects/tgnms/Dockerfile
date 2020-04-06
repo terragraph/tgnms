@@ -26,7 +26,7 @@ COPY fbcnms-projects/tgnms .
 RUN yarn run build
 
 # Create deploy image
-FROM node:alpine
+FROM node:12.13-alpine
 
 # Install developer-friendly utils
 RUN apk add bash curl grep tzdata vim
