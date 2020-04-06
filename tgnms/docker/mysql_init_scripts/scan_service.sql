@@ -26,26 +26,20 @@ call Create_Scan_Service();
 
 SELECT 'Creating scan_service tables.' AS '';
 
-CREATE TABLE IF NOT EXISTS `tx_scan_response` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `scan_resp_path` varchar(255) DEFAULT NULL,
-  `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
-  `network_name` varchar(255) DEFAULT NULL,
-  `scan_group_id` int(11) DEFAULT NULL,
-  `tx_node_name` varchar(255) DEFAULT NULL,
-  `token` int(11) DEFAULT NULL,
-  `resp_id` int(11) DEFAULT NULL,
-  `start_bwgd` bigint(20) DEFAULT NULL,
-  `scan_type` enum(
-      'PBF',
-      'IM',
-      'RTCAL',
-      'CBF_TX',
-      'CBF_RX',
-      'TOPO',
-      'TEST_UPD_AWV'
-    ) DEFAULT NULL,
-  `scan_sub_type` enum(
+CREATE TABLE scan_results (                                                                                                                                                                     
+    id INTEGER NOT NULL AUTO_INCREMENT,                                                                                                                                                         
+    group_id INTEGER,                                                                                                                                                                           
+    n_responses_waiting INTEGER,                                                                                                                                                                
+    network_name VARCHAR(255) NOT NULL,                                                                                                                                                         
+    resp_id INTEGER NOT NULL,                                                                                                                                                                   
+    scan_mode ENUM(
+      'COARSE',
+      'FINE',
+      'SELECTIVE',
+      'RELATIVE'
+    ) NOT NULL,                                                                                                                            
+    scan_result_path VARCHAR(255),                                                                                                                                                              
+    scan_sub_type ENUM(
       'NO_CAL',
       'TOP_RX_CAL',
       'TOP_TX_CAL',
@@ -57,15 +51,18 @@ CREATE TABLE IF NOT EXISTS `tx_scan_response` (
       'RX_CBF_VICTIM',
       'TX_CBF_AGGRESSOR',
       'TX_CBF_VICTIM'
-    ) DEFAULT NULL,
-  `scan_mode` enum(
-      'COARSE',
-      'FINE',
-      'SELECTIVE',
-      'RELATIVE'
-    ) DEFAULT NULL,
-  `apply` tinyint(1) DEFAULT NULL,
-  `status` enum(
+    ),           
+    scan_type ENUM(
+      'PBF',
+      'IM',
+      'RTCAL',
+      'CBF_TX',
+      'CBF_RX',
+      'TOPO',
+      'TEST_UPD_AWV'
+    ) NOT NULL,                                                                                                        
+    start_bwgd BIGINT NOT NULL,                                                                                                                                                                 
+    status ENUM(
       'COMPLETE',
       'INVALID_TYPE',
       'INVALID_START_TSF',
@@ -78,39 +75,13 @@ CREATE TABLE IF NOT EXISTS `tx_scan_response` (
       'UNEXPECTED_ERROR',
       'EXPIRED_TSF',
       'INCOMPL_RTCAL_BEAMS_FOR_VBS'
-    ) DEFAULT NULL,
-  `tx_power` int(11) DEFAULT NULL,
-  `n_responses_waiting` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-);
-
-CREATE TABLE IF NOT EXISTS `rx_scan_response` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `scan_resp_path` varchar(255) DEFAULT NULL,
-  `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
-  `rx_node_name` varchar(255) DEFAULT NULL,
-  `status` enum(
-      'COMPLETE',
-      'INVALID_TYPE',
-      'INVALID_START_TSF',
-      'INVALID_STA',
-      'AWV_IN_PROG',
-      'STA_NOT_ASSOC',
-      'REQ_BUFFER_FULL',
-      'LINK_SHUT_DOWN',
-      'UNSPECIFIED_ERROR',
-      'UNEXPECTED_ERROR',
-      'EXPIRED_TSF',
-      'INCOMPL_RTCAL_BEAMS_FOR_VBS'
-    ) DEFAULT NULL,
-  `new_beam_flag` int(11) DEFAULT NULL,
-  `tx_scan_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `tx_scan_id` (`tx_scan_id`),
-  CONSTRAINT `rx_scan_response_ibfk_1` 
-  FOREIGN KEY (`tx_scan_id`) 
-  REFERENCES `tx_scan_response` (`id`)
-);
+    ) NOT NULL,
+    timestamp DATETIME NOT NULL DEFAULT now(),                                                                                                                                                  
+    token INTEGER NOT NULL,                                                                                                                                                                     
+    tx_node_name VARCHAR(255) NOT NULL,                                                                                                                                                         
+    tx_power INTEGER,                                                                                                                                                                           
+    PRIMARY KEY (id)                                                                                                                                                                            
+); 
 
 CREATE TABLE IF NOT EXISTS `scan_response_rate` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
