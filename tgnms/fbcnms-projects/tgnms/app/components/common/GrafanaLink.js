@@ -55,34 +55,42 @@ export default function GrafanaLink({
   prometheusVars,
   ...props
 }: Props) {
-  const grafanaBaseUrl = window.CONFIG.env.GRAFANA_URL;
   const href = React.useMemo(() => {
-    let baseUrl: URL;
-    try {
-      baseUrl = new URL(grafanaBaseUrl);
-    } catch (err) {
-      baseUrl = new URL('/grafana', window.location.origin);
-    }
-    if (dashboard && dashboard.trim() !== '') {
-      baseUrl.pathname += `/d/${dashboard}`;
-    }
-    if (vars) {
-      for (const [key, val] of Object.entries(vars)) {
-        const v = (val: any);
-        baseUrl.searchParams.append(key, v);
-      }
-    }
-    if (prometheusVars) {
-      for (const [key, val] of Object.entries(prometheusVars)) {
-        const v = formatPrometheusVal((val: any));
-        baseUrl.searchParams.append(key, v);
-      }
-    }
-    return baseUrl.toString();
-  }, [dashboard, grafanaBaseUrl, prometheusVars, vars]);
+    return buildGrafanaUrl(dashboard, prometheusVars, vars);
+  }, [dashboard, prometheusVars, vars]);
 
   const Component = component || DefaultLink;
   return <Component {...props} href={href} children={children} />;
+}
+
+export function buildGrafanaUrl(
+  dashboard: $Values<typeof GrafanaDashboardUUID>,
+  prometheusVars?: {[string]: string},
+  vars?: {[string]: string},
+) {
+  const grafanaBaseUrl = window.CONFIG.env.GRAFANA_URL;
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(grafanaBaseUrl);
+  } catch (err) {
+    baseUrl = new URL('/grafana', window.location.origin);
+  }
+  if (dashboard && dashboard.trim() !== '') {
+    baseUrl.pathname += `/d/${dashboard}`;
+  }
+  if (vars) {
+    for (const [key, val] of Object.entries(vars)) {
+      const v = (val: any);
+      baseUrl.searchParams.append(key, v);
+    }
+  }
+  if (prometheusVars) {
+    for (const [key, val] of Object.entries(prometheusVars)) {
+      const v = formatPrometheusVal((val: any));
+      baseUrl.searchParams.append(key, v);
+    }
+  }
+  return baseUrl.toString();
 }
 
 function DefaultLink(

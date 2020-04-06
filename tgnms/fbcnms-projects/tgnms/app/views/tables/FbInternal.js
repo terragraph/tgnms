@@ -6,10 +6,8 @@
  */
 
 import Button from '@material-ui/core/Button';
+import DashboardLink from '../../components/common/DashboardLink';
 import GrafanaIcon from '../../components/common/GrafanaIcon';
-import GrafanaLink, {
-  GrafanaDashboardUUID,
-} from '../../components/common/GrafanaLink';
 import React from 'react';
 import type {LinkType} from '../../../shared/types/Topology';
 import type {NetworkContextType} from '../../contexts/NetworkContext';
@@ -74,16 +72,10 @@ export function renderDashboardLinks(
   const {classes} = this.props;
   const {context} = additionalParams;
   const buttons = [
-    <GrafanaLink
-      dashboard={GrafanaDashboardUUID.link}
+    <DashboardLink
       key={`grafana-link-${row.a_node_name}-${row.z_node_name}`}
       data-testid="grafana-link"
-      vars={{
-        'var-network': context.networkName,
-      }}
-      prometheusVars={{
-        'var-link_name': row.name,
-      }}>
+      linkName={row.name}>
       <Button
         className={classes.button}
         color="primary"
@@ -92,7 +84,7 @@ export function renderDashboardLinks(
         variant="outlined">
         <GrafanaIcon />
       </Button>
-    </GrafanaLink>,
+    </DashboardLink>,
   ];
 
   const odsLink = renderODSLink(row.a_node_name, row.z_node_name, context);
@@ -120,25 +112,12 @@ export function renderDashboardLinks(
 }
 
 // this creates only a Grafana Link
-export function renderGrafanaLink(
-  cell: string,
-  row: $Shape<LinkType>,
-  style: {[string]: string},
-  additionalParams: {context: NetworkContextType},
-) {
+export function renderGrafanaLink(cell: string, row: $Shape<LinkType>) {
   const {classes} = this.props;
   return (
     <>
       <div className={classes.cell}>{cell}</div>
-      <GrafanaLink
-        dashboard={GrafanaDashboardUUID.link}
-        data-testid="grafana-link"
-        vars={{
-          'var-network': additionalParams.context.networkName,
-        }}
-        prometheusVars={{
-          'var-link_name': row.name,
-        }}>
+      <DashboardLink data-testid="grafana-link" linkName={row.name}>
         <Button
           className={classes.button}
           color="primary"
@@ -147,7 +126,7 @@ export function renderGrafanaLink(
           variant="outlined">
           <GrafanaIcon />
         </Button>
-      </GrafanaLink>
+      </DashboardLink>
     </>
   );
 }

@@ -13,7 +13,6 @@ import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import GrafanaIcon from '../common/GrafanaIcon';
-import GrafanaLink, {GrafanaDashboardUUID} from '../common/GrafanaLink';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -162,6 +161,16 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     });
   }
 
+  onShowDashboards() {
+    // Take user to the dashboard page with pre-populated link
+    const {link, history, networkName} = this.props;
+
+    history.push({
+      pathname: '/dashboards/' + networkName,
+      search: `?${STATS_LINK_QUERY_PARAM}=${link.name}`,
+    });
+  }
+
   onDeleteLink() {
     // Delete this link
     const {link, networkName} = this.props;
@@ -182,8 +191,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
 
   renderActions() {
     // Render actions
-    const {link, networkName} = this.props;
-
+    const {link} = this.props;
     const actionItems = [
       ...(link.link_type === LinkType.WIRELESS
         ? [
@@ -225,18 +233,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
           {
             label: 'View in Grafana',
             icon: <GrafanaIcon gray={true} />,
-            component: props => (
-              <GrafanaLink
-                {...props}
-                dashboard={GrafanaDashboardUUID.link}
-                vars={{
-                  'var-network': networkName,
-                }}
-                prometheusVars={{
-                  'var-link_name': link.name,
-                }}
-              />
-            ),
+            func: () => this.onShowDashboards(),
           },
           {
             label: 'Delete Link',
