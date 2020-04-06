@@ -11,7 +11,7 @@ import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import EditIcon from '@material-ui/icons/Edit';
 import EditRadioMacs from './EditRadioMacs';
 import MenuItem from '@material-ui/core/MenuItem';
-import ShowAdvanced from './ShowAdvanced';
+import ShowAdvanced from '../common/ShowAdvanced';
 import swal from 'sweetalert2';
 import {FormType} from '../../constants/MapPanelConstants';
 import {

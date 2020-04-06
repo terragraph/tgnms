@@ -12,7 +12,7 @@ import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import PlannedSiteTemplates from './PlannedSiteTemplates';
 import React from 'react';
-import ShowAdvanced from './ShowAdvanced';
+import ShowAdvanced from '../common/ShowAdvanced';
 import Typography from '@material-ui/core/Typography';
 import {
   basicTemplates,
