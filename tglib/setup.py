@@ -98,7 +98,16 @@ setup(
         "pymysql==0.9.2",
         "sqlalchemy>=1.3.5,<2.0",
     ],
-    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
+    extras_require={
+        "ci": ["ptr"],
+        "docs": ["aiohttp-swagger>=1.0.9,<2.0"],
+        "jupyter": [
+            "jupyter>=1.0.0,<2.0",
+            "matplotlib>=3.2.1,<4.0",
+            "numpy>=1.18.2,<2.0",
+            "pandas>=1.0.3,<2.0",
+        ],
+    },
     cmdclass={"build_thrift": BuildThriftCommand},
     test_suite=ptr_params["test_suite"],
 )
