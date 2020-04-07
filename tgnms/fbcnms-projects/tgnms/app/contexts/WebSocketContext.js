@@ -13,8 +13,8 @@ import {
 } from '../../shared/dto/WebSockets';
 import type {WebSocketCommand} from '../../shared/dto/WebSockets';
 
-export type WebSocketContextType = {|
-  getRawSocket: () => ?WebSocket,
+export type WebSocketContextType<TSocket: WebSocket> = {|
+  getRawSocket: () => ?TSocket,
   joinGroup: (
     groupName: string,
     listener: WebSocketMessageListener<any>,
@@ -22,24 +22,26 @@ export type WebSocketContextType = {|
   isOpen: boolean,
 |};
 
-export const WebSocketContext = React.createContext<WebSocketContextType>({
+export const WebSocketContext = React.createContext<
+  WebSocketContextType<WebSocket>,
+>({
   getRawSocket: () => null,
   joinGroup: (_groupName, _listener) => () => {},
   isOpen: false,
 });
 
-export type WebSocketProviderProps = {|
+export type WebSocketProviderProps<TSocket: WebSocket> = {|
   children: React.Element<any>,
   path?: string,
-  socketFactory?: WebSocketFactory,
+  socketFactory?: WebSocketFactory<TSocket>,
 |};
 
 type WebSocketMessageListener<T> = {
   (message: WebSocketMessage<T>): any,
 };
 
-type WebSocketFactory = {
-  ({path: string} | void): WebSocket,
+type WebSocketFactory<TSocket> = {
+  ({path: string} | void): TSocket,
 };
 
 type GroupDef = {
@@ -47,11 +49,11 @@ type GroupDef = {
   listeners: Set<WebSocketMessageListener<any>>,
 };
 
-export function WebSocketProvider({
+export function WebSocketProvider<TSocket: WebSocket>({
   children,
   path,
   socketFactory,
-}: WebSocketProviderProps) {
+}: WebSocketProviderProps<TSocket>) {
   const {socket, isOpen, send} = useDurableWebSocket({
     socketFactory,
     path,
@@ -184,14 +186,14 @@ function defaultSocketFactory(params: void | {path: string}): WebSocket {
  * is actually connected. Once the socket actually connects, the components
  * will automatically be part of the groups.
  */
-export function useDurableWebSocket(
+export function useDurableWebSocket<TSocket: WebSocket>(
   {
     socketFactory = defaultSocketFactory,
   }: {
-    socketFactory?: WebSocketFactory,
+    socketFactory?: WebSocketFactory<TSocket>,
   } = {socketFactory: defaultSocketFactory},
-): {socket: ?WebSocket, isOpen: boolean, send: (json: string) => any} {
-  const [socket, setSocket] = React.useState<?WebSocket>(null);
+): {socket: ?TSocket, isOpen: boolean, send: (json: string) => any} {
+  const [socket, setSocket] = React.useState<?TSocket>(null);
   const messageQueue = React.useRef<Array<string>>([]);
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const socketFactoryRef = React.useRef(socketFactory);
@@ -260,7 +262,7 @@ export function useDurableWebSocket(
  * Hook which listens to messages to the specified group. Automatically stops
  * listening when the component unmounts
  */
-export function useWebSocketGroup<T: any>(
+export function useWebSocketGroup<T>(
   name: string,
   listener: WebSocketMessageListener<T>,
 ) {

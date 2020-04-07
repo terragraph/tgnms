@@ -21,6 +21,8 @@ import {
 import {act, renderHook} from '@testing-library/react-hooks';
 import {cleanup} from '@testing-library/react';
 
+import type {MockWebSocketType} from '../../tests/mocks/MockWebSocket';
+
 jest.useFakeTimers();
 beforeEach(() => {
   global.WebSocket = jest
@@ -36,19 +38,22 @@ afterEach(() => {
 
 describe('useDurableWebSocket', () => {
   test('should not start sending messages until the socket has connected', () => {
-    const {result} = renderHook(() => useDurableWebSocket(), {
-      wrapper: WebSocketProvider,
-    });
+    const {result} = renderHook(
+      () => useDurableWebSocket<MockWebSocketType>(),
+      {
+        wrapper: WebSocketProvider,
+      },
+    );
     act(() => {
       result.current.send(JSON.stringify({message: 'test'}));
     });
     act(() => {
-      expect(result.current.socket.send).not.toHaveBeenCalled();
+      expect(result.current.socket?.send).not.toHaveBeenCalled();
     });
     act(() => {
-      result.current.socket.triggerOpen();
+      result.current.socket?.triggerOpen();
     });
-    expect(result.current.socket.send).toHaveBeenCalled();
+    expect(result.current.socket?.send).toHaveBeenCalled();
   });
 
   test('should reconnect after disconnecting', () => {
@@ -60,18 +65,18 @@ describe('useDurableWebSocket', () => {
     act(() => {
       jest.runAllTimers();
     });
-    expect(currentSock.readyState).toBe(WEBSOCKET_READYSTATE.OPEN);
+    expect(currentSock?.readyState).toBe(WEBSOCKET_READYSTATE.OPEN);
     act(() => {
-      currentSock.triggerClose();
+      currentSock?.triggerClose();
     });
-    expect(currentSock.readyState).toBe(WEBSOCKET_READYSTATE.CLOSED);
+    expect(currentSock?.readyState).toBe(WEBSOCKET_READYSTATE.CLOSED);
     act(() => {
       jest.runAllTimers();
     });
 
     // we should have a new socket after reconnect attempt
     expect(currentSock).not.toBe(result.current.socket);
-    expect(result.current.socket.readyState).toBe(WEBSOCKET_READYSTATE.OPEN);
+    expect(result.current.socket?.readyState).toBe(WEBSOCKET_READYSTATE.OPEN);
   });
 
   test('should only attempt reconnect one at a time', () => {
@@ -103,16 +108,19 @@ describe('useDurableWebSocket', () => {
   });
 
   test('should set isOpen in state when it opens/closes', () => {
-    const {result} = renderHook(() => useDurableWebSocket(), {
-      wrapper: WebSocketProvider,
-    });
+    const {result} = renderHook(
+      () => useDurableWebSocket<MockWebSocketType>(),
+      {
+        wrapper: WebSocketProvider,
+      },
+    );
     expect(result.current.isOpen).toBe(false);
     act(() => {
-      result.current.socket.triggerOpen();
+      result.current.socket?.triggerOpen();
     });
     expect(result.current.isOpen).toBe(true);
     act(() => {
-      result.current.socket.triggerClose();
+      result.current.socket?.triggerClose();
     });
     expect(result.current.isOpen).toBe(false);
   });

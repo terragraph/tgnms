@@ -15,6 +15,16 @@ import {
   WebSocketMessage,
 } from '../../../shared/dto/WebSockets';
 
+/**
+ * create a fake type for MockWebSocket to let flow know it's ok to use
+ * MockWebsocket in place of a websocket
+ */
+export type MockWebSocketType = WebSocket & {
+  triggerOpen: () => void,
+  triggerClose: () => void,
+  triggerMessage: () => void,
+};
+
 export default class MockWebSocket extends EventEmitter {
   readyState = WEBSOCKET_READYSTATE.CLOSED;
   // eslint-disable-next-line no-undef
