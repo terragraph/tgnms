@@ -21,16 +21,16 @@ The entry point for the `tglib` framework is the `init` function. This function
 accepts up to three arguments.
 
 The first is a `lambda` function wrapper to the entry point for your application
-logic. The second parameter is a set of `Clients` that your service needs in
+logic. The second parameter is a set of `ClientTypes` that your service needs in
 order to execute the application logic. The final parameter is an optional
 `aiohttp.web.RouteTableDef` for defining additional endpoints to add to the HTTP
 server. See the `./examples` directory for basic usages of the framework.
 
 ### Configuration
 All per-service configuration should be supplied in the form of a JSON
-configuration file in the service's top level directory. Overrides to the base
-`tglib` configurations (mounted as `./config.json`) should be specified in an
-object behind the reserved key `"overrides"`.
+configuration file (mounted as `service_config.json`) in the service's top level
+directory. Overrides to the base `tglib` configurations (mounted as `config.json`)
+should be specified in an object behind the reserved key `"overrides"`.
 
 ## Development
 `tglib` uses semantic versioning (_major_._minor_._patch_) to define the version
@@ -58,7 +58,7 @@ Raw thrift files are copied into the `./if` directory and compiled into Python
 during the creation of the `tglib` Docker image. During development, it may be
 necessary to regenerate the Python thrift definitions. This can be done by
 running the following commands.
-```Bash
+```Shell
 $ python setup.py build_thrift
 $ pip install .
 ```
