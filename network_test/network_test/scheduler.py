@@ -317,25 +317,20 @@ class Scheduler:
     @staticmethod
     async def list_schedules(schedule_id: Optional[int] = None) -> Iterable:
         async with MySQLClient().lease() as sa_conn:
-            query = (
-                select(
-                    [
-                        NetworkTestSchedule,
-                        NetworkTestParams.id.label("params_id"),
-                        NetworkTestParams.test_type,
-                        NetworkTestParams.network_name,
-                        NetworkTestParams.iperf_options,
-                    ]
+            query = select(
+                [
+                    NetworkTestSchedule,
+                    NetworkTestParams.id.label("params_id"),
+                    NetworkTestParams.test_type,
+                    NetworkTestParams.network_name,
+                    NetworkTestParams.iperf_options,
+                ]
+            ).select_from(
+                join(
+                    NetworkTestParams,
+                    NetworkTestSchedule,
+                    NetworkTestParams.schedule_id == NetworkTestSchedule.id,
                 )
-                .select_from(
-                    join(
-                        NetworkTestParams,
-                        NetworkTestSchedule,
-                        NetworkTestParams.schedule_id == NetworkTestSchedule.id,
-                    )
-                )
-                .order_by(NetworkTestParams.id.desc())
-                .limit(1)
             )
 
             if schedule_id is None:
