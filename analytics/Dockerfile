@@ -9,6 +9,3 @@ COPY analytics/ .flake8 ./
 
 # Install analytics
 RUN pip install .[ci]
-
-# Define default command
-CMD ["/bin/sh"]

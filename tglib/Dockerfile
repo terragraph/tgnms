@@ -103,6 +103,3 @@ RUN apk add --no-cache --virtual build-deps gcc libffi-dev musl-dev openssl-dev 
     python setup.py build_thrift && pip install .[ci,docs] && \
     ptr --system-site-packages && \
     apk del build-deps
-
-# Set default command
-CMD ["/bin/sh"]

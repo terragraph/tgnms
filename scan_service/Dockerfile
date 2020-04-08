@@ -6,12 +6,9 @@ RUN apk add mysql-client
 
 ARG WORKDIR=/usr/local/scan_service
 
-# Copy scan_service source files into docker container
+# Copy scan_service source
 WORKDIR $WORKDIR
 COPY scan_service/ .flake8 ./
 
 # Install scan_service
 RUN pip install .[ci]
-
-# Define default command
-CMD ["scan_service"]
