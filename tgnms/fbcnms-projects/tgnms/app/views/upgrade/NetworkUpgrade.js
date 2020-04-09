@@ -58,7 +58,7 @@ class NetworkUpgrade extends React.Component<Props> {
         alive: isNodeAlive(node.status),
         siteName: node.site_name,
         popNode: node.pop_node,
-        upgradeStatus: UpgradeStatusToString[(upgradeStatus?.usType)],
+        upgradeStatus: UpgradeStatusToString[upgradeStatus?.usType],
         upgradeStatusReason: upgradeStatus?.reason,
         version: statusReport?.version,
         nextVersion: upgradeStatus?.nextImage?.version,
@@ -74,7 +74,7 @@ class NetworkUpgrade extends React.Component<Props> {
 
       return {
         name: node.name,
-        upgradeStatus: UpgradeStatusToString[(upgradeStatus?.usType)],
+        upgradeStatus: UpgradeStatusToString[upgradeStatus?.usType],
         upgradeReqId: upgradeStatus?.upgradeReqId,
         version: statusReport?.version,
         nextVersion: upgradeStatus?.nextImage?.version,

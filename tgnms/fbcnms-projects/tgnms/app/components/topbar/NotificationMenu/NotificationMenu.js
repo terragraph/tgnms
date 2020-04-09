@@ -232,8 +232,8 @@ function useKafkaNotificationSource({addNotification}) {
        */
       if (
         kafkaValue.topologyName !== currentTopology &&
-        (typeof kafkaValue.topologyName === 'string' &&
-          kafkaValue.topologyName !== '')
+        typeof kafkaValue.topologyName === 'string' &&
+        kafkaValue.topologyName !== ''
       ) {
         return;
       }

@@ -305,7 +305,10 @@ class NetworkMap extends React.Component<Props, State> {
     if (mapRef) {
       const {bbox, center} = feature;
       if (bbox) {
-        mapRef.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]]);
+        mapRef.fitBounds([
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[3]],
+        ]);
       } else {
         mapRef.flyTo({center});
       }

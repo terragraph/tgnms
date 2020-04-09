@@ -437,10 +437,16 @@ function updateInitialCoordinates(networkName) {
   // add map bounds (format: [[west, south], [east, north]])
   let bounds;
   if (sites.length > 0) {
-    bounds = [[minLng, minLat], [maxLng, maxLat]];
+    bounds = [
+      [minLng, minLat],
+      [maxLng, maxLat],
+    ];
   } else {
     // if a topology has no sites defined, default to MPK campus
-    bounds = [[-122.149742, 37.4835208], [-122.145169, 37.4866381]];
+    bounds = [
+      [-122.149742, 37.4835208],
+      [-122.145169, 37.4866381],
+    ];
   }
   networkState[networkName].bounds = bounds;
 }
