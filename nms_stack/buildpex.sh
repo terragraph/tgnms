@@ -31,24 +31,10 @@ rm -f ${OUTPUT_FILE}
 echo "Making venv"
 python3 -m venv ${BASE_VENV}
 ${BASE_VENV}/bin/pip install --upgrade pip setuptools wheel
-${BASE_VENV}/bin/pip install --no-cache-dir ansible==${ANSIBLE_VERSION} black pex requests
+${BASE_VENV}/bin/pip install --no-cache-dir ansible==${ANSIBLE_VERSION} pex requests
 
-# Get a list of submodules
-git_submodules="$(git submodule status . | awk '{print $2}')"
-
-# Submodules Check
-echo "Checking Submodules"
-for gs in $git_submodules; do
-    if [ -z "$(ls $gs)" ]; then
-        echo "Submodule $gs in not initialized, Please update your submodules."
-        echo "e.g. git submodule init && git submodule update"
-	exit 1
-    fi
-done
-
-# Black
-echo "Black"
-${BASE_VENV}/bin/black --check --exclude "$(echo $git_submodules .eggs ./build | sed 's/ /|/g')" .
+# Clone submodules
+${BASE_VENV}/bin/python3 setup.py clone_submodules
 
 # push versions to console for debugging
 echo "Packages"
