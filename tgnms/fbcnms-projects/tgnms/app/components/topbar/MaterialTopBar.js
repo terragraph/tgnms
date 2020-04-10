@@ -236,13 +236,13 @@ const ChangelogModal = () => {
   }, []);
   return (
     <>
-      {Object.keys(changelog).map(versionStr => {
-        const diffList = changelog[versionStr];
+      {changelog.map(versionData => {
+        const versionStr = versionData.version;
         return (
           <VersionModal
             key={'version-' + versionStr}
             title={'Version ' + versionStr}
-            diffs={<DiffModal diffs={diffList} />}
+            diffs={<DiffModal diffs={versionData.diffs} />}
           />
         );
       })}
@@ -255,6 +255,7 @@ const BuildInformationModal = props => (
     open={props.buildInformationOpen}
     onClose={props.toggleBuildModal}
     modalTitle="About"
+    data-testid="about-modal"
     modalContent={
       <Grid container spacing={1}>
         <Grid item xs={4}>
@@ -385,6 +386,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                 <ListItem
                   classes={{root: classes.drawerListItem}}
                   disabled={false}
+                  data-testid="toggle-about-modal"
                   onClick={toggleBuildModal}
                   button>
                   <ListItemIcon>

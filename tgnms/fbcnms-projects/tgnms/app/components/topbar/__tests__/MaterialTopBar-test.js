@@ -131,3 +131,32 @@ describe('Network Menu', () => {
     expect(getByText('Network B')).toBeInTheDocument();
   });
 });
+
+describe('About modal', () => {
+  test('renders about modal when commit vars set', () => {
+    initWindowConfig({
+      env: {
+        COMMIT_DATE: '2020.01.01',
+        COMMIT_HASH: 'fdfdsfsdff',
+      },
+    });
+    const {getByText, getByTestId, queryByTestId} = renderWithRouter(
+      <TestApp>
+        <MaterialTopBar />
+      </TestApp>,
+    );
+    expect(getByText('About')).toBeInTheDocument();
+    expect(queryByTestId('about-modal')).not.toBeInTheDocument();
+    fireEvent.click(getByTestId('toggle-about-modal'));
+    expect(queryByTestId('about-modal')).toBeInTheDocument();
+  });
+
+  test('does not render about modal when commit vars not set', () => {
+    const {queryByText} = renderWithRouter(
+      <TestApp>
+        <MaterialTopBar />
+      </TestApp>,
+    );
+    expect(queryByText('About')).not.toBeInTheDocument();
+  });
+});
