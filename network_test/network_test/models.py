@@ -96,5 +96,6 @@ class NetworkTestResult(Base):
     iperf_min_retransmits = Column(Float, nullable=True)
     iperf_max_retransmits = Column(Float, nullable=True)
     iperf_avg_retransmits = Column(Float, nullable=True)
-    iperf_client_blob = Column(Text, nullable=True)
-    iperf_server_blob = Column(Text, nullable=True)
+    # 64KiB to induce mediumtext column type
+    iperf_client_blob = Column(Text(65536), nullable=True)
+    iperf_server_blob = Column(Text(65536), nullable=True)
