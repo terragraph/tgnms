@@ -9,4 +9,8 @@ RUN apk add --no-cache --virtual build-deps gcc g++ linux-headers && \
     pip install .[jupyter] && \
     apk del build-deps
 
-CMD ["/bin/sh"]
+# Copy the startup script
+COPY tglib/jupyter/00-start_server.py /root/.ipython/profile_default/startup
+
+# Create the notebook directory
+RUN mkdir jupyter/notebooks
