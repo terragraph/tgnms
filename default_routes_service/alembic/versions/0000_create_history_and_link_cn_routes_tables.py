@@ -23,12 +23,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("network_name", sa.String(length=100), nullable=False),
         sa.Column("node_name", sa.String(length=255), nullable=False),
-        sa.Column(
-            "last_updated",
-            sa.DateTime(),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("last_updated", sa.DateTime(), nullable=False),
         sa.Column("routes", sa.JSON(), nullable=False),
         sa.Column("hop_count", sa.Integer(), nullable=False),
         sa.Column("prev_routes_id", sa.Integer(), nullable=True),
@@ -66,12 +61,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("network_name", sa.String(length=100), nullable=False),
         sa.Column("link_name", sa.String(length=255), nullable=False),
-        sa.Column(
-            "last_updated",
-            sa.DateTime(),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("last_updated", sa.DateTime(), nullable=False),
         sa.Column("cn_routes", sa.JSON(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )

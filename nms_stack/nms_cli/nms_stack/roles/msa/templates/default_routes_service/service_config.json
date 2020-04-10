@@ -1,15 +1,15 @@
 {
   "num_consumers": 10,
   "pipelines": {
-    "analysis_pipeline": {
+    "route_analysis_pipeline": {
       "period": 60,
       "jobs": [
         {
-          "name": "analyze_routes",
+          "name": "process_default_routes",
           "enabled": true
         },
         {
-          "name": "compute_link_cn_routes",
+          "name": "process_congested_cn_egress_links",
           "enabled": true
         }
       ]

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 ptr_params = {
     "entry_point_module": "default_routes_service/main",
     "test_suite": "tests.base",
-    "test_suite_timeout": 600,
-    "required_coverage": {"default_routes_service/routes.py": 42, "TOTAL": 20},
+    "test_suite_timeout": 300,
+    "required_coverage": {"default_routes_service/routes.py": 42, "TOTAL": 19},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,
@@ -16,8 +16,8 @@ ptr_params = {
 
 setup(
     name="default_routes_service",
-    version="2020.03.27",
-    packages=["default_routes_service"],
+    version="2020.04.08",
+    packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "aiomysql", "alembic>=1.3.3,<2.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"]},
     test_suite=ptr_params["test_suite"],
