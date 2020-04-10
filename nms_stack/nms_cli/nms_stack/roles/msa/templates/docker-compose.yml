@@ -5,16 +5,28 @@ services:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
     env_file:
       - {{ msa_path }}/env/default_routes_service.env
-    restart: always
+    restart: unless-stopped
     volumes:
       - {{ msa_path }}/docker_volumes/config.json:/usr/local/default_routes_service/config.json
       - {{ msa_path }}/docker_volumes/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
       - {{ msa_path }}/docker_volumes/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
-    ports:
-      - "8080"
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  jupyter:
+    image: secure.cxl-terragraph.com:443/jupyter:latest
+    restart: unless-stopped
+    volumes:
+      - {{ msa_path }}/docker_volumes/config.json:/usr/local/tglib/jupyter/notebooks/config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "jupyter notebook --ip '0.0.0.0' --port 8888 --no-browser --allow-root --notebook-dir /usr/local/tglib/jupyter/notebooks --NotebookApp.token='' --NotebookApp.base_url=jupyter"]
     logging:
       driver: "json-file"
       options:
@@ -25,13 +37,11 @@ services:
     image: secure.cxl-terragraph.com:443/topology_service:latest
     env_file:
       - {{ msa_path }}/env/topology_service.env
-    restart: always
+    restart: unless-stopped
     volumes:
       - {{ msa_path }}/docker_volumes/config.json:/usr/local/topology_service/config.json
       - {{ msa_path }}/docker_volumes/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
       - {{ msa_path }}/docker_volumes/topology_service/service_config.json:/usr/local/topology_service/service_config.json
-    ports:
-      - "8080"
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]

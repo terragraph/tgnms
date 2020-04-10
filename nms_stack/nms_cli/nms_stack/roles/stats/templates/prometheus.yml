@@ -29,6 +29,15 @@ scrape_configs:
         type: 'A'
         port: 8080
 
+  - job_name: 'jupyter'
+    metrics_path: /metrics/{{ prom_default_scrape_interval }}
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        target_label: __name__
+        replacement: "jupyter_${1}"
+    static_configs:
+      - targets: ['jupyter:8080']
+
   - job_name: 'kafka'
     dns_sd_configs:
       - names:
