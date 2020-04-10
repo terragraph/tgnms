@@ -33,7 +33,7 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict[str, Any]) -> 
     if pipeline["period"] < 60:
         raise ValueError("Pipeline's 'period' cannot be less than 60 seconds")
 
-    client = APIServiceClient(timeout=1)
+    client = APIServiceClient(timeout=5)
     while True:
         start_time = time.time()
         network_info = {}
