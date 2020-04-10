@@ -12,12 +12,10 @@ if("$ENV{ASAN}" STREQUAL "1")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -DASAN=ON")
 endif()
 
-find_library(MYSQL_CLIENT_LIB NAMES "mysqlclient"
-  PATHS "/usr/local/mysql/lib"
-  NO_DEFAULT_PATH
-)
+find_library(MYSQL_CLIENT_LIB mysqlclient)
 find_library(CURL curl)
 find_library(SNAPPY snappy)
+find_library(LIBZ z)
 
 set(QUERY_SRCS
     AggregatorService.cpp
@@ -76,7 +74,7 @@ target_link_libraries(
     query_handlers_lib
     nms_thrift
     ${CURL}
-    ${FBTHRIFT_LIBRARIES}
+    ${LIBZ}
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${LIBGLOG_LIBRARIES}
@@ -85,7 +83,9 @@ target_link_libraries(
     ${MYSQL_CLIENT_LIB}
     ${RDKAFKA_LIBRARIES}
     ${CPPKAFKA_LIBRARIES}
+    ${FBTHRIFT_LIBRARIES}
     mysqlcppconn
+    -ldl
 )
 
 add_executable(query_service ${QUERY_SERVICE_SRCS})
@@ -103,6 +103,9 @@ target_link_libraries(
     ${CPPKAFKA_LIBRARIES}
     Threads::Threads
     ${SNAPPY}
+    ${LIBZ}
+    -ldl
+    -levent
 )
 
 # Prevent overriding the parent project's compiler/linker

@@ -521,7 +521,6 @@ struct UpgradeCommitPlanReq {
  *                                 to upgrade in each batch
  */
 typedef list<set<string>>
-  (cpp.type = "std::vector<std::unordered_set<std::string>>")
   CommitBatches
 struct UpgradeCommitPlan {
   1: CommitBatches commitBatches;

@@ -16,7 +16,8 @@
 #include <unistd.h>
 
 #include <folly/Likely.h>
-#include <folly/io/async/EventBase.h>
+#include <folly/io/async/EventHandler.h>
+#include <folly/net/NetworkSocket.h>
 
 using namespace folly;
 
@@ -108,12 +109,12 @@ void AsyncUdpSocket::bind(const folly::SocketAddress& address) {
   ownership_ = FDOwnership::OWNS;
 
   // Attach to EventHandler
-  EventHandler::changeHandlerFD(fd_);
+  EventHandler::changeHandlerFD(NetworkSocket::fromFd(fd_));
 
   if (address.getPort() != 0) {
     localAddress_ = address;
   } else {
-    localAddress_.setFromLocalAddress(fd_);
+    localAddress_.setFromLocalAddress(NetworkSocket::fromFd(fd_));
   }
 }
 
@@ -123,8 +124,8 @@ void AsyncUdpSocket::setFD(int fd, FDOwnership ownership) {
   fd_ = fd;
   ownership_ = ownership;
 
-  EventHandler::changeHandlerFD(fd_);
-  localAddress_.setFromLocalAddress(fd_);
+  EventHandler::changeHandlerFD(NetworkSocket::fromFd(fd_));
+  localAddress_.setFromLocalAddress(NetworkSocket::fromFd(fd_));
 }
 
 ssize_t AsyncUdpSocket::write(
@@ -133,7 +134,8 @@ ssize_t AsyncUdpSocket::write(
   // UDP's typical MTU size is 1500, so a high number of buffers does not make
   // sense. Optimize for buffer chains with buffers smaller than 16
   iovec vec[16];
-  size_t iovec_len = buf->fillIov(vec, sizeof(vec) / sizeof(vec[0]));
+  auto iovec_res = buf->fillIov(vec, sizeof(vec) / sizeof(vec[0]));
+  size_t iovec_len = iovec_res.numIovecs;
   if (UNLIKELY(iovec_len == 0)) {
     buf->coalesce();
     vec[0].iov_base = const_cast<uint8_t*>(buf->data());

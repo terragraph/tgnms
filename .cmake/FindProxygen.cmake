@@ -18,7 +18,7 @@ find_path(
 
 find_library(
   PROXYGEN_LIBRARY
-  NAMES proxygenlib
+  NAMES proxygen
   HINTS
     "/usr/local/facebook/lib"
   )

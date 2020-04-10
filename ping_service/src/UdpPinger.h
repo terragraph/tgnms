@@ -15,9 +15,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include <folly/ExceptionString.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <folly/io/async/NotificationQueue.h>
 #include <folly/stats/Histogram.h>
+#include <folly/String.h>
 
 #include "AsyncUdpSocket.h"
 #include "Probe.h"

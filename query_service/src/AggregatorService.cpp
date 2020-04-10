@@ -21,9 +21,8 @@
 #include "if/gen-cpp2/Topology_types_custom_protocol.h"
 
 #include <folly/String.h>
-#include <folly/ThreadName.h>
+#include <folly/system/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <cmath>
 
@@ -74,8 +73,8 @@ void AggregatorService::doPeriodicWork() {
   auto topologyList = topologyInstance->getTopologyList();
   for (const auto& topologyConfig : topologyList) {
     std::vector<Metric> aggValues{};
-    auto topology = topologyConfig.second->topology;
-    fetchAndLogTopologyMetrics(aggValues, topology);
+    auto topology = topologyConfig.second->topology_ref();
+    fetchAndLogTopologyMetrics(aggValues, *topology);
     fetchAndLogWirelessControllerMetrics(aggValues, *(topologyConfig.second));
     // write metrics to prometheus (per network)
     if (!PrometheusUtils::enqueueMetrics("aggregator_service", aggValues)) {
@@ -200,8 +199,8 @@ void AggregatorService::fetchAndLogTopologyMetrics(
 void AggregatorService::fetchAndLogWirelessControllerMetrics(
     std::vector<Metric>& aggValues,
     const query::TopologyConfig& topologyConfig) {
-  if (topologyConfig.__isset.wireless_controller &&
-      topologyConfig.wireless_controller.type == "ruckus") {
+  if (topologyConfig.wireless_controller_ref() &&
+      topologyConfig.wireless_controller_ref()->type == "ruckus") {
     fetchAndLogRuckusControllerMetrics(aggValues, topologyConfig);
   }
 }
@@ -209,7 +208,7 @@ void AggregatorService::fetchAndLogWirelessControllerMetrics(
 void AggregatorService::fetchAndLogRuckusControllerMetrics(
     std::vector<Metric>& aggValues,
     const query::TopologyConfig& topologyConfig) {
-  const auto& wac = topologyConfig.wireless_controller;
+  const auto& wac = *topologyConfig.wireless_controller_ref();
   VLOG(1) << "Fetching metrics from ruckus controller: " << wac.url;
   folly::dynamic WirelessControllerStats =
       WirelessController::ruckusControllerStats(wac);

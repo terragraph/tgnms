@@ -19,7 +19,6 @@
 #include <folly/DynamicConverter.h>
 #include <folly/io/IOBuf.h>
 #include <proxygen/httpserver/ResponseBuilder.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 using apache::thrift::SimpleJSONSerializer;

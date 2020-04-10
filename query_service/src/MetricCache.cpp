@@ -15,7 +15,6 @@
 
 #include <folly/MacAddress.h>
 #include <folly/Optional.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <iostream>
 #include <regex>
@@ -138,13 +137,13 @@ void MetricCache::updateMetricNames(const thrift::Topology& request) {
                   << linkMetric.first << " for radio mac: " << radioMac;
           stats::KeyMetaData& keyData = (*nodeKeyLookupLock)[radioMac][keyName];
           // push key data for link metric
-          keyData.topologyName = request.name;
-          keyData.linkName = link.name;
-          keyData.shortName = linkMetric.first;
-          keyData.linkDirection = key.linkDirection;
+          *keyData.topologyName_ref() = request.name;
+          *keyData.linkName_ref() = link.name;
+          *keyData.shortName_ref() = linkMetric.first;
+          *keyData.linkDirection_ref() = key.linkDirection;
           // copy to short key name for lookups
           (*nodeKeyLookupLock)[radioMac][linkMetric.first] = keyData;
-          VLOG(3) << "\tLoaded key: [" << radioMac << "][" << keyData.shortName
+          VLOG(3) << "\tLoaded key: [" << radioMac << "][" << linkMetric.first
                   << "]";
         }
       }

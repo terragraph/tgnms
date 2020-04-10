@@ -10,11 +10,10 @@
 #include "ScanRespService.h"
 
 #include <folly/String.h>
-#include <folly/ThreadName.h>
+#include <folly/system/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/json.h>
 #include <snappy.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "ApiServiceClient.h"
@@ -100,10 +99,10 @@ void ScanRespService::timerCb() {
 
   for (const auto& topologyConfig : topologyList) {
     VLOG(2) << "Topology: " << topologyConfig.first;
-    auto topology = topologyConfig.second->topology;
-    if (!topology.name.empty() && !topology.nodes.empty() &&
-        !topology.links.empty()) {
-      const auto idRange = getScanRespIdRange(topology.name);
+    auto topology = topologyConfig.second->topology_ref();
+    if (!topology->name.empty() && !topology->nodes.empty() &&
+        !topology->links.empty()) {
+      const auto idRange = getScanRespIdRange(topology->name);
       auto scanStatus = ApiServiceClient::makeRequest<ScanStatus>(
           topologyConfig.second->primary_controller.ip,
           topologyConfig.second->primary_controller.api_port,
@@ -111,12 +110,12 @@ void ScanRespService::timerCb() {
           folly::toJson(idRange) /* post data */);
 
       if (!scanStatus) {
-        LOG(INFO) << "Failed to fetch scan status for " << topology.name;
+        LOG(INFO) << "Failed to fetch scan status for " << topology->name;
         continue;
       }
 
       VLOG(2) << "Received " << scanStatus->scans.size()
-              << " scan responses from " << topology.name;
+              << " scan responses from " << topology->name;
 
       // if we read the max number of scans on any topology, use the shorter
       // poll period, otherwise, use the longer poll period
@@ -127,7 +126,7 @@ void ScanRespService::timerCb() {
 
       int errCode;
       try {
-        errCode = writeData(*scanStatus, topology.name);
+        errCode = writeData(*scanStatus, topology->name);
       } catch (const std::exception& ex) {
         LOG(ERROR) << "Error writing scan response to mySQL: "
                    << folly::exceptionStr(ex);
@@ -135,7 +134,7 @@ void ScanRespService::timerCb() {
       if (errCode < 0) {
         LOG(ERROR) << "writeData returned an error code = " << errCode;
       } else {
-        setNewScanRespId(*scanStatus, topology.name);
+        setNewScanRespId(*scanStatus, topology->name);
       }
     }
   }
@@ -214,19 +213,19 @@ int ScanRespService::writeData(
     // combinedStatus indicates a non-zero status (error) - we can get
     // more information by looking at the detailed scan response stored as a
     // blob in MySQL
-    int nResponsesWaiting = scan.second.__isset.nResponsesWaiting
-        ? scan.second.nResponsesWaiting
+    int nResponsesWaiting = scan.second.nResponsesWaiting_ref()
+        ? *scan.second.nResponsesWaiting_ref()
         : 0;
     mySqlScanTxResponse.combinedStatus =
         nResponsesWaiting > 0 ? (1 << INCOMPLETE_RESPONSE) : 0;
     mySqlScanTxResponse.nResponsesWaiting = nResponsesWaiting;
     mySqlScanTxResponse.respId = respId;
-    mySqlScanTxResponse.applyFlag = scan.second.apply;
+    mySqlScanTxResponse.applyFlag = *scan.second.apply_ref();
     mySqlScanTxResponse.scanType = (int16_t)scan.second.type;
-    mySqlScanTxResponse.scanSubType = (int16_t)scan.second.subType;
+    mySqlScanTxResponse.scanSubType = (int16_t)*scan.second.subType_ref();
     mySqlScanTxResponse.scanMode = (int16_t)scan.second.mode;
     mySqlScanTxResponse.token = scan.first;
-    mySqlScanTxResponse.groupId = scan.second.groupId;
+    *mySqlScanTxResponse.groupId_ref() = *scan.second.groupId_ref();
 
     std::vector<scans::MySqlScanRxResp> mySqlScanRxResponses;
     bool duplicateScanResp = false;
@@ -240,7 +239,7 @@ int ScanRespService::writeData(
         // node id deprecated - rely on mac addr
         mySqlScanTxResponse.txNodeId = 0;
         mySqlScanTxResponse.status = responses.second.status;
-        mySqlScanTxResponse.txPower = responses.second.txPwrIndex;
+        mySqlScanTxResponse.txPower = *responses.second.txPwrIndex_ref();
         mySqlScanTxResponse.combinedStatus =
             (responses.second.status != ScanFwStatus::COMPLETE) << TX_ERROR;
         mySqlScanTxResponse.network = topologyName;
@@ -340,11 +339,11 @@ int ScanRespService::writeData(
         mySqlScanRxResponse.rxNodeId = 0;
         mySqlScanRxResponse.rxNodeName = responses.first;
         // new_beam_flag indicates if the beam changed
-        mySqlScanRxResponse.newBeamFlag = scan.second.apply &&
+        mySqlScanRxResponse.newBeamFlag = *scan.second.apply_ref() &&
                 ((scan.second.type == ScanType::PBF) &&
-                 (responses.second.azimuthBeam != responses.second.newBeam)) ||
+                 (*responses.second.azimuthBeam_ref() != *responses.second.newBeam_ref())) ||
             ((scan.second.type == ScanType::RTCAL) &&
-             (responses.second.oldBeam != responses.second.newBeam));
+             (*responses.second.oldBeam_ref() != *responses.second.newBeam_ref()));
         // one bit per individual node response - so we can query it
         mySqlScanTxResponse.combinedStatus =
             ((responses.second.status != ScanFwStatus::COMPLETE) << RX_ERROR);

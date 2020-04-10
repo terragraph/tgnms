@@ -15,9 +15,11 @@ find_path(
         "/usr/local/facebook/include"
 )
 
+find_library(FMT fmt)
+
 find_library(
     FBTHRIFT_CORE_LIBRARY
-    NAMES thrift
+    NAMES thrift-core
     HINTS
         "/usr/local/facebook/lib"
 )
@@ -37,18 +39,46 @@ find_library(
 )
 
 find_library(
-    FBTHRIFT_Z_LIBRARY
-    NAMES thriftz
+    PROTOCOL_LIBRARY
+    NAMES protocol
+    HINTS
+        "/usr/local/facebook/lib"
+)
+
+find_library(
+    TRANSPORT_LIBRARY
+    NAMES transport
+    HINTS
+        "/usr/local/facebook/lib"
+)
+
+find_library(
+    FBTHRIFT_METADATA_LIBRARY
+    NAMES thriftmetadata
+    HINTS
+        "/usr/local/facebook/lib"
+)
+
+find_library(
+    FBTHRIFT_FROZEN2_LIBRARY
+    NAMES thriftfrozen2
     HINTS
         "/usr/local/facebook/lib"
 )
 
 set(FBTHRIFT_LIBRARIES
     ${FBTHRIFT_CORE_LIBRARY}
+    ${FBTHRIFT_PROTOCOL_LIBRARY}
     ${FBTHRIFT_CPP2_LIBRARY}
     ${FBTHRIFT_PROTOCOL_LIBRARY}
-    ${FBTHRIFT_Z_LIBRARY}
+    ${FBTHRIFT_METADATA_LIBRARY}
+    ${FBTHRIFT_FROZEN2_LIBRARY}
+    ${PROTOCOL_LIBRARY}
+    ${TRANSPORT_LIBRARY}
     ${OPENSSL_LIBRARIES}
+    ${FOLLY_LIBRARIES}
+    ${FMT}
+    -lpthread
 )
 
 include(FindPackageHandleStandardArgs)

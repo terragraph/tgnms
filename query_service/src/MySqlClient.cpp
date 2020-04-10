@@ -18,7 +18,6 @@
 #include <folly/MapUtil.h>
 #include <folly/io/IOBuf.h>
 #include <thrift/lib/cpp/protocol/TProtocolTypes.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_string(mysql_url, "localhost", "mysql host");
@@ -114,17 +113,19 @@ void MySqlClient::refreshTopologies() noexcept {
       config->primary_controller.api_port = res->getInt("papi_port");
       const std::string backupIp = res->getString("bip");
       if (!backupIp.empty()) {
-        config->__isset.backup_controller = true;
-        config->backup_controller.ip = backupIp;
-        config->backup_controller.api_port = res->getInt("bapi_port");
+        query::ControllerConfig backupController;
+        backupController.ip = backupIp;
+        backupController.api_port = res->getInt("bapi_port");
+        config->set_backup_controller(backupController);
       }
       const std::string wacType = res->getString("wac_type");
       if (!wacType.empty()) {
-        config->__isset.wireless_controller = true;
-        config->wireless_controller.type = wacType;
-        config->wireless_controller.url = res->getString("wac_url");
-        config->wireless_controller.username = res->getString("wac_username");
-        config->wireless_controller.password = res->getString("wac_password");
+        query::WirelessController wirelessController;
+        wirelessController.type = wacType;
+        wirelessController.url = res->getString("wac_url");
+        wirelessController.username = res->getString("wac_username");
+        wirelessController.password = res->getString("wac_password");
+        config->set_wireless_controller(wirelessController);
       }
       // add to topology list
       topologyIdTmp[config->id] = config;
@@ -266,12 +267,12 @@ int MySqlClient::writeTxScanResponse(
     // by a NO_TX_RESPONSE status), set the scan response to null
     if (scanResponse.scanResp.empty()) {
       // tracking ASAN failure new-delete-mismatch
-      //prep_stmt->setNull(14, 0); // scanResp
+      // prep_stmt->setNull(14, 0); // scanResp
     } else {
       prep_stmt->setString(14, scanResponse.scanResp);
     }
-    prep_stmt->setInt(15, scanResponse.nResponsesWaiting);
-    prep_stmt->setInt(16, scanResponse.groupId);
+    prep_stmt->setInt(15, *scanResponse.nResponsesWaiting_ref());
+    prep_stmt->setInt(16, *scanResponse.groupId_ref());
 
     prep_stmt->execute();
     return MySqlOk;
@@ -359,8 +360,7 @@ bool MySqlClient::writeScanResponses(
   return true;
 }
 
-folly::Optional<LinkStateMap>
-MySqlClient::refreshLatestLinkState() noexcept {
+folly::Optional<LinkStateMap> MySqlClient::refreshLatestLinkState() noexcept {
   try {
     auto connection = openConnection();
     if (!connection) {
@@ -368,21 +368,20 @@ MySqlClient::refreshLatestLinkState() noexcept {
       return folly::none;
     }
     std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
-    std::unique_ptr<sql::ResultSet> res(
-        stmt->executeQuery(
-          "SELECT `id`, `linkName`, `linkDirection`, `eventType`, "
-            "UNIX_TIMESTAMP(`startTs`) AS startTs, "
-            "UNIX_TIMESTAMP(`endTs`) AS endTs FROM "
-              "(SELECT `linkName` linkNameLatest, "
-                "`linkDirection` linkDirLatest, "
-                "MAX(`endTs`) AS max_ts "
-              "FROM `link_event` "
-              "GROUP BY `linkName`, `linkDirection`) "
-          "AS `latest_event`"
-          "INNER JOIN `link_event` "
-          "ON (latest_event.max_ts=link_event.endTs) "
-          "AND (latest_event.linkNameLatest=link_event.linkName)"
-          "AND (latest_event.linkDirLatest=link_event.linkDirection)"));
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        "SELECT `id`, `linkName`, `linkDirection`, `eventType`, "
+        "UNIX_TIMESTAMP(`startTs`) AS startTs, "
+        "UNIX_TIMESTAMP(`endTs`) AS endTs FROM "
+        "(SELECT `linkName` linkNameLatest, "
+        "`linkDirection` linkDirLatest, "
+        "MAX(`endTs`) AS max_ts "
+        "FROM `link_event` "
+        "GROUP BY `linkName`, `linkDirection`) "
+        "AS `latest_event`"
+        "INNER JOIN `link_event` "
+        "ON (latest_event.max_ts=link_event.endTs) "
+        "AND (latest_event.linkNameLatest=link_event.linkName)"
+        "AND (latest_event.linkDirLatest=link_event.linkDirection)"));
 
     LOG(INFO) << "refreshLatestLinkEvents: Number of links: "
               << res->rowsCount();
@@ -401,7 +400,7 @@ MySqlClient::refreshLatestLinkState() noexcept {
       stats::EventDescription linkStateDescr;
       linkStateDescr.dbId = keyId;
       // convert from DB string enum('LINK_UP','LINK_UP_DATADOWN')
-      linkStateDescr.linkState = eventType == "LINK_UP"
+      *linkStateDescr.linkState_ref() = eventType == "LINK_UP"
           ? stats::LinkStateType::LINK_UP
           : stats::LinkStateType::LINK_UP_DATADOWN;
       linkStateDescr.startTime = startTs;
@@ -416,8 +415,9 @@ MySqlClient::refreshLatestLinkState() noexcept {
   return folly::none;
 }
 
-void
-MySqlClient::updateLinkState(const long keyId, const time_t endTs) noexcept {
+void MySqlClient::updateLinkState(
+    const long keyId,
+    const time_t endTs) noexcept {
   VLOG(2) << "updateLinkState(" << keyId << ", " << endTs << ")";
   auto stmt =
       "UPDATE `link_event` SET `endTs` = FROM_UNIXTIME(?) WHERE `id` = ?";
@@ -438,8 +438,7 @@ MySqlClient::updateLinkState(const long keyId, const time_t endTs) noexcept {
   }
 }
 
-void
-MySqlClient::addLinkState(
+void MySqlClient::addLinkState(
     const std::string& topologyName,
     const std::string& linkName,
     const stats::LinkDirection& linkDir,
@@ -468,7 +467,8 @@ MySqlClient::addLinkState(
     prep_stmt->setString(
         3, (linkDir == stats::LinkDirection::LINK_A ? "A" : "Z"));
     // get string name for link state
-    prep_stmt->setString(4, stats::_LinkStateType_VALUES_TO_NAMES.at(linkState));
+    prep_stmt->setString(
+        4, stats::_LinkStateType_VALUES_TO_NAMES.at(linkState));
     prep_stmt->setInt(5, startTs);
     prep_stmt->setInt(6, endTs);
     prep_stmt->execute();

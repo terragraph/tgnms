@@ -8,6 +8,18 @@
 
 find_package(Folly REQUIRED)
 
+find_library(
+    SODIUM
+    NAMES "sodium"
+    HINTS "/usr/local/lib"
+)
+
+find_library(
+    FIZZ
+    NAMES "fizz"
+    HINTS "/usr/local/facebook/lib"
+)
+
 find_path(
     WANGLE_INCLUDE_DIR
     NAMES "wangle/channel/Pipeline.h"
@@ -22,7 +34,13 @@ find_library(
         "/usr/local/facebook/lib"
 )
 
-set(WANGLE_LIBRARIES ${WANGLE_LIBRARY} ${FOLLY_LIBRARIES})
+set(
+    WANGLE_LIBRARIES
+    ${WANGLE_LIBRARY}
+    ${FOLLY_LIBRARIES}
+    ${SODIUM}
+    ${FIZZ}
+)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(

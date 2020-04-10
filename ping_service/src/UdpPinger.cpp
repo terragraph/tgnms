@@ -20,11 +20,13 @@
 #include <future>
 #include <thread>
 
-#include <folly/Logging.h>
-#include <folly/ThreadName.h>
+#include <folly/Format.h>
 #include <folly/gen/Base.h>
 #include <folly/gen/Core.h>
-#include <folly/stats/Histogram-defs.h>
+#include <folly/GLog.h>
+#include <folly/logging/Init.h>
+#include <folly/logging/Logger.h>
+#include <folly/system/ThreadName.h>
 
 using folly::to;
 using folly::gen::as;

@@ -15,7 +15,6 @@
 #include <folly/DynamicConverter.h>
 #include <folly/io/IOBuf.h>
 #include <proxygen/httpserver/ResponseBuilder.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
@@ -61,8 +60,8 @@ void WirelessControllerStatsHandler::onEOM() noexcept {
   try {
     auto topologyInstance = TopologyStore::getInstance();
     auto topologyConfig = topologyInstance->getTopology(req.topologyName);
-    if (!topologyConfig->__isset.wireless_controller ||
-        topologyConfig->wireless_controller.type != "ruckus") {
+    if (!topologyConfig->wireless_controller_ref() ||
+        topologyConfig->wireless_controller_ref()->type != "ruckus") {
       ResponseBuilder(downstream_)
           .status(412, "Error")
           .body(
@@ -72,7 +71,7 @@ void WirelessControllerStatsHandler::onEOM() noexcept {
       return;
     }
     folly::dynamic ruckusStats = WirelessController::ruckusControllerStats(
-        topologyConfig->wireless_controller);
+        *(topologyConfig->wireless_controller_ref()));
     responseJson = folly::toJson(ruckusStats);
   } catch (const std::invalid_argument& ex) {
     LOG(ERROR) << "Unable to find topology \"" << req.topologyName << "\".";

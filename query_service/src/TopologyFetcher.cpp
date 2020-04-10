@@ -16,9 +16,8 @@
 
 #include <folly/IPAddress.h>
 #include <folly/String.h>
-#include <folly/ThreadName.h>
+#include <folly/system/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_int32(topology_refresh_interval, 30, "Topology refresh interval");
@@ -68,7 +67,7 @@ void TopologyFetcher::refreshTopologyCache() {
     } else if (topology->nodes.empty()) {
       LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
-      topologyConfig.second->topology = *topology;
+      *topologyConfig.second->topology_ref() = *topology;
       // update metric cache for network
       auto metricCache = MetricCache::getInstance();
       metricCache->updateMetricNames(*topology);

@@ -18,9 +18,8 @@
 #include <cppkafka/configuration.h>
 #include <cppkafka/consumer.h>
 #include <folly/String.h>
-#include <folly/ThreadName.h>
+#include <folly/system/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <cmath>
 
@@ -102,23 +101,26 @@ void NetworkHealthService::consume(const std::string& topicName) {
         auto stat =
             SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
                 statMsg);
-        std::string macAddr = StatsUtils::toLowerCase(stat.entity);
+        std::string macAddr = StatsUtils::toLowerCase(*stat.entity_ref());
         std::string keyName = StatsUtils::toLowerCase(stat.key);
         // lookup meta-data for node
         auto nodeKeyInfo =
             metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
         // skip non-health metrics
-        if (!nodeKeyInfo || nodeKeyInfo->shortName.empty() ||
-            !healthKeys_.count(nodeKeyInfo->shortName)) {
+        if (!nodeKeyInfo || nodeKeyInfo->shortName_ref() ||
+	    nodeKeyInfo->shortName_ref()->empty() ||
+            !healthKeys_.count(*nodeKeyInfo->shortName_ref())) {
           VLOG(3) << "Dropping non-health key: " << keyName;
           continue;
         }
-        if (nodeKeyInfo->topologyName.empty()) {
+        if (!nodeKeyInfo->topologyName_ref() ||
+            nodeKeyInfo->topologyName_ref()->empty()) {
           VLOG(3) << "No topology name defined for: " << macAddr
                   << ", key: " << keyName;
           continue;
         }
-        if (nodeKeyInfo->linkName.empty()) {
+        if (!nodeKeyInfo->linkName_ref() ||
+	    nodeKeyInfo->linkName_ref()->empty()) {
           VLOG(3) << "No link name defined for: " << macAddr
                   << ", key: " << keyName;
           continue;
@@ -134,16 +136,17 @@ void NetworkHealthService::consume(const std::string& topicName) {
         }
         // record sample for batch processing
         LinkStatsByDirection* linkStatsByDirection =
-            &linkHealthStats_[nodeKeyInfo->topologyName][nodeKeyInfo->linkName];
+            &linkHealthStats_[*nodeKeyInfo->topologyName_ref()]
+	    		     [*nodeKeyInfo->linkName_ref()];
         LinkStatsByTime* linkStats;
-        if (nodeKeyInfo->linkDirection == stats::LinkDirection::LINK_A) {
+        if (*nodeKeyInfo->linkDirection_ref() == stats::LinkDirection::LINK_A) {
           linkStats = &linkStatsByDirection->linkA;
         } else {
           linkStats = &linkStatsByDirection->linkZ;
         }
-        if (nodeKeyInfo->shortName == "fw_uptime") {
+        if (*nodeKeyInfo->shortName_ref() == "fw_uptime") {
           (*linkStats)[stat.timestamp].fwUptime = stat.value;
-        } else if (nodeKeyInfo->shortName == "link_avail") {
+        } else if (*nodeKeyInfo->shortName_ref() == "link_avail") {
           (*linkStats)[stat.timestamp].linkAvail = stat.value;
         }
       }
@@ -194,7 +197,7 @@ void NetworkHealthService::linkHealthUpdater() {
         for (const auto& linkEvent : eventList) {
           LOG(INFO) << "\tEvent: " << linkEvent.startTime << " <-> "
                     << linkEvent.endTime << " | "
-                    << _LinkStateType_VALUES_TO_NAMES.at(linkEvent.linkState);
+                    << _LinkStateType_VALUES_TO_NAMES.at(*linkEvent.linkState_ref());
         }
         NetworkHealthUtils::updateLinkEventRecords(
             topologyName, linkName, stats::LinkDirection::LINK_A, eventList);

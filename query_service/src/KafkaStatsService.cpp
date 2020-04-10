@@ -18,8 +18,7 @@
 #include <cppkafka/consumer.h>
 #include <cppkafka/producer.h>
 #include <folly/String.h>
-#include <folly/ThreadName.h>
-#include <thrift/lib/cpp/util/ThriftSerializer.h>
+#include <folly/system/ThreadName.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_string(
@@ -73,16 +72,18 @@ KafkaStatsService::~KafkaStatsService() {
 folly::Optional<terragraph::thrift::AggrStat>
 KafkaStatsService::getFriendlyMetric(const terragraph::thrift::AggrStat& stat) {
   auto metricCacheInstance = MetricCache::getInstance();
-  std::string macAddr = StatsUtils::toLowerCase(stat.entity);
+  std::string macAddr = StatsUtils::toLowerCase(*stat.entity_ref());
   std::string keyName = StatsUtils::toLowerCase(stat.key);
   // lookup meta-data for node
   auto nodeKeyInfo = metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
-  if (!nodeKeyInfo || nodeKeyInfo->shortName.empty()) {
+  if (!nodeKeyInfo ||
+      !nodeKeyInfo->shortName_ref() ||
+      nodeKeyInfo->shortName_ref()->empty()) {
     return folly::none;
   }
   // make a copy of the stat with the short name as the key
   terragraph::thrift::AggrStat shortNameStat(stat);
-  shortNameStat.key = nodeKeyInfo->shortName;
+  shortNameStat.key = *(nodeKeyInfo->shortName_ref());
   return shortNameStat;
 }
 
@@ -98,7 +99,7 @@ void KafkaStatsService::start(const std::string& topicName) {
       {"auto.commit.interval.ms", 5000},
       {"enable.auto.commit", true},
   };
-  folly::Optional<cppkafka::TopicPartitionList> assignedPartitionList = nullptr;
+  folly::Optional<cppkafka::TopicPartitionList> assignedPartitionList;
   cppkafka::Consumer kafkaConsumer(kafkaConfig);
   kafkaConsumer.set_assignment_callback(
       [&](const cppkafka::TopicPartitionList& partitions) {
