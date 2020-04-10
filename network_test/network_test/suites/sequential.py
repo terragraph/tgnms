@@ -11,11 +11,13 @@ from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .base import BaseTest
+from .base import BaseTest, TestAsset
 
 
-class SequentialTest(BaseTest):
-    def __init__(self, network_name: str, iperf_options: Dict) -> None:
+class Sequential(BaseTest):
+    def __init__(
+        self, network_name: str, iperf_options: Dict, whitelist: List[str]
+    ) -> None:
         # Set default test configurations
         iperf_options["protocol"] = IperfTransportProtocol.UDP
         iperf_options["json"] = True
@@ -24,19 +26,31 @@ class SequentialTest(BaseTest):
         if "timeSec" not in iperf_options:
             iperf_options["timeSec"] = 60  # 1 minute
 
-        super().__init__(network_name, iperf_options)
+        super().__init__(network_name, iperf_options, whitelist)
 
-    async def prepare(self) -> Optional[Tuple[List, timedelta]]:
+    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
+        """Prepare the network test assets.
+
+        The duration is the number of assets, post whitelist filtering, multiplied
+        by the duration of each session as each asset is tested sequentially.
+        """
         self.session_ids.clear()
 
         try:
             client = APIServiceClient(timeout=1)
             topology = await client.request(self.network_name, "getTopology")
-            test_assets = [
-                (link["a_node_mac"], link["z_node_mac"])
-                for link in topology["links"]
-                if link["link_type"] == LinkType.WIRELESS
-            ]
+            whitelist_set = set(self.whitelist)
+
+            test_assets = []
+            for link in topology["links"]:
+                if link["link_type"] != LinkType.WIRELESS:
+                    continue
+                if self.whitelist and link["name"] not in whitelist_set:
+                    continue
+
+                test_assets.append(
+                    TestAsset(link["a_node_mac"], link["z_node_mac"], link["name"])
+                )
 
             return (
                 test_assets,
@@ -46,14 +60,14 @@ class SequentialTest(BaseTest):
             logging.exception(f"Failed to prepare test assets for {self.network_name}")
             return None
 
-    async def start(self, execution_id: int, test_assets: List) -> None:
+    async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
         logging.info(f"Starting sequential link test on {self.network_name}")
         logging.debug(f"iperf options: {self.iperf_options}")
 
         loop = asyncio.get_event_loop()
         start_time = loop.time()
         client = APIServiceClient(timeout=1)
-        for i, (a_mac, z_mac) in enumerate(test_assets, 1):
+        for i, asset in enumerate(test_assets, 1):
             logging.info(f"Processing link ({i}/{len(test_assets)})")
 
             # Run bidirectional iperf on the current link
@@ -62,8 +76,8 @@ class SequentialTest(BaseTest):
                     self.network_name,
                     "startTraffic",
                     params={
-                        "srcNodeId": a_mac,
-                        "dstNodeId": z_mac,
+                        "srcNodeId": asset.src_node_mac,
+                        "dstNodeId": asset.dst_node_mac,
                         "options": self.iperf_options,
                     },
                 ),
@@ -71,8 +85,8 @@ class SequentialTest(BaseTest):
                     self.network_name,
                     "startTraffic",
                     params={
-                        "srcNodeId": z_mac,
-                        "dstNodeId": a_mac,
+                        "srcNodeId": asset.dst_node_mac,
+                        "dstNodeId": asset.src_node_mac,
                         "options": self.iperf_options,
                     },
                 ),
@@ -81,13 +95,15 @@ class SequentialTest(BaseTest):
             values = [
                 {
                     "execution_id": execution_id,
-                    "src_node_mac": a_mac,
-                    "dst_node_mac": z_mac,
+                    "src_node_mac": asset.src_node_mac,
+                    "dst_node_mac": asset.dst_node_mac,
+                    "link_name": asset.link_name,
                 },
                 {
                     "execution_id": execution_id,
-                    "src_node_mac": z_mac,
-                    "dst_node_mac": a_mac,
+                    "src_node_mac": asset.dst_node_mac,
+                    "dst_node_mac": asset.src_node_mac,
+                    "link_name": asset.link_name,
                 },
             ]
 

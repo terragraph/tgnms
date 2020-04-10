@@ -15,7 +15,7 @@ ptr_params = {
 
 setup(
     name="network_test",
-    version="2020.03.19",
+    version="2020.04.09",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=["aiohttp", "croniter>=0.3.30,<1.0", "sqlalchemy"],

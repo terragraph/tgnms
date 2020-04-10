@@ -21,9 +21,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 class NetworkTestType(enum.Enum):
-    MULTIHOP_TEST = "multihop"
-    PARALLEL_LINK_TEST = "parallel"
-    SEQUENTIAL_LINK_TEST = "sequential"
+    MULTIHOP = "multihop"
+    PARALLEL = "parallel"
+    SEQUENTIAL = "sequential"
 
     @classmethod
     def has_value(cls, value) -> bool:
@@ -60,6 +60,7 @@ class NetworkTestParams(Base):
     test_type = Column(Enum(NetworkTestType), nullable=False)
     network_name = Column(String(255), index=True, nullable=False)
     iperf_options = Column(JSON, nullable=False)
+    whitelist = Column(JSON, nullable=True)
 
 
 class NetworkTestExecution(Base):
@@ -82,6 +83,7 @@ class NetworkTestResult(Base):
     status = Column(Enum(NetworkTestStatus), index=True, nullable=False)
     src_node_mac = Column(String(255), index=True, nullable=False)
     dst_node_mac = Column(String(255), index=True, nullable=False)
+    link_name = Column(String(255), nullable=True)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
     end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
     # Iperf Columns

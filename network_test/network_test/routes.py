@@ -12,7 +12,7 @@ from croniter import croniter
 
 from .models import NetworkTestType
 from .scheduler import Schedule, Scheduler
-from .suites import BaseTest, MultihopTest, ParallelTest, SequentialTest
+from .suites import BaseTest, Multihop, Parallel, Sequential
 
 
 routes = web.RouteTableDef()
@@ -46,7 +46,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     )
 
 
-@routes.get(r"/schedule/{schedule_id:\d+}")
+@routes.get("/schedule/{schedule_id:[0-9]+}")
 async def handle_get_schedule(request: web.Request) -> web.Response:
     """
     ---
@@ -105,6 +105,8 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
             type: string
           iperf_options:
             type: object
+          whitelist:
+            type: array
         required:
         - enabled
         - cron_expr
@@ -144,20 +146,21 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
 
     iperf_options = body.get("iperf_options", {})
+    whitelist = body.get("whitelist", [])
 
     test: BaseTest
-    if test_type == NetworkTestType.MULTIHOP_TEST:
-        test = MultihopTest(network_name, iperf_options)
-    elif test_type == NetworkTestType.PARALLEL_LINK_TEST:
-        test = ParallelTest(network_name, iperf_options)
-    elif test_type == NetworkTestType.SEQUENTIAL_LINK_TEST:
-        test = SequentialTest(network_name, iperf_options)
+    if test_type == NetworkTestType.MULTIHOP:
+        test = Multihop(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.PARALLEL:
+        test = Parallel(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL:
+        test = Sequential(network_name, iperf_options, whitelist)
 
     schedule_id = await Scheduler.add_schedule(schedule, test, test_type)
     return web.Response(text=f"Added network test schedule with ID: {schedule_id}")
 
 
-@routes.put(r"/schedule/{schedule_id:\d+}")
+@routes.put("/schedule/{schedule_id:[0-9]+}")
 async def handle_modify_schedule(request: web.Request) -> web.Response:
     """
     ---
@@ -189,6 +192,8 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
             type: string
           iperf_options:
             type: object
+          whitelist:
+            type: array
         required:
         - enabled
         - cron_expr
@@ -236,14 +241,15 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
 
     iperf_options = body.get("iperf_options", {})
+    whitelist = body.get("whitelist", [])
 
     test: BaseTest
-    if test_type == NetworkTestType.MULTIHOP_TEST:
-        test = MultihopTest(network_name, iperf_options)
-    elif test_type == NetworkTestType.PARALLEL_LINK_TEST:
-        test = ParallelTest(network_name, iperf_options)
-    elif test_type == NetworkTestType.SEQUENTIAL_LINK_TEST:
-        test = SequentialTest(network_name, iperf_options)
+    if test_type == NetworkTestType.MULTIHOP:
+        test = Multihop(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.PARALLEL:
+        test = Parallel(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL:
+        test = Sequential(network_name, iperf_options, whitelist)
 
     if not await Scheduler.modify_schedule(schedule_id, schedule, test, test_type):
         raise web.HTTPInternalServerError(text="Failed to modify network test schedule")
@@ -251,7 +257,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     return web.Response(text="Successfully updated network test schedule")
 
 
-@routes.delete(r"/schedule/{schedule_id:\d+}")
+@routes.delete("/schedule/{schedule_id:[0-9]+}")
 async def handle_delete_schedule(request: web.Request) -> web.Response:
     """
     ---
@@ -306,7 +312,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     )
 
 
-@routes.get(r"/execution/{execution_id:\d+}")
+@routes.get("/execution/{execution_id:[0-9]+}")
 async def handle_get_execution(request: web.Request) -> web.Response:
     """
     ---
@@ -364,6 +370,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             type: string
           iperf_options:
             type: object
+          whitelist:
+            type: array
         required:
         - test_type
         - network_name
@@ -372,6 +380,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         description: Successful operation.
       "400":
         description: Invalid or missing parameters.
+      "404":
+        description: Whitelist yielded no matching test assets.
       "409":
         description: A network test is already running on the network.
       "500":
@@ -393,25 +403,30 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         raise web.HTTPConflict(text=f"A test is already running on '{network_name}'")
 
     iperf_options = body.get("iperf_options", {})
+    whitelist = body.get("whitelist", [])
 
     test: BaseTest
-    if test_type == NetworkTestType.MULTIHOP_TEST:
-        test = MultihopTest(network_name, iperf_options)
-    elif test_type == NetworkTestType.PARALLEL_LINK_TEST:
-        test = ParallelTest(network_name, iperf_options)
-    elif test_type == NetworkTestType.SEQUENTIAL_LINK_TEST:
-        test = SequentialTest(network_name, iperf_options)
+    if test_type == NetworkTestType.MULTIHOP:
+        test = Multihop(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.PARALLEL:
+        test = Parallel(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL:
+        test = Sequential(network_name, iperf_options, whitelist)
 
-    execution_id = await Scheduler.start_execution(test, test_type)
-    if execution_id is None:
+    prepare_output = await test.prepare()
+    if prepare_output is None:
         raise web.HTTPInternalServerError(text="Failed to prepare network test assets")
+    test_assets, _ = prepare_output
+    if whitelist and not test_assets:
+        raise web.HTTPNotFound(text=f"No test assets matched whitelist: {whitelist}")
 
+    execution_id = await Scheduler.start_execution(test, test_type, prepare_output)
     return web.Response(
         text=f"Started new network test execution with ID: {execution_id}"
     )
 
 
-@routes.delete(r"/execution/{execution_id:\d+}")
+@routes.delete("/execution/{execution_id:[0-9]+}")
 async def handle_stop_execution(request: web.Request) -> web.Response:
     """
     ---

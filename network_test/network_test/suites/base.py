@@ -3,10 +3,11 @@
 
 import abc
 import asyncio
+import dataclasses
 import logging
 from contextlib import suppress
 from datetime import timedelta
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from sqlalchemy import insert
 from tglib.clients import APIServiceClient, MySQLClient
@@ -15,24 +16,41 @@ from tglib.exceptions import ClientRuntimeError
 from ..models import NetworkTestResult, NetworkTestStatus
 
 
+@dataclasses.dataclass
+class TestAsset:
+    """Struct for representing an individual asset under test."""
+
+    src_node_mac: str
+    dst_node_mac: str
+    link_name: Optional[str] = None
+
+
 class BaseTest(abc.ABC):
-    def __init__(self, network_name: str, iperf_options: Dict) -> None:
+    def __init__(
+        self,
+        network_name: str,
+        iperf_options: Dict[str, Any],
+        whitelist: Optional[List[str]],
+    ) -> None:
         self.network_name = network_name
         self.iperf_options = iperf_options
+        self.whitelist: List[str] = whitelist or []
         self.session_ids: Set[str] = set()
         self.task: Optional[asyncio.Task] = None
 
     @abc.abstractmethod
-    async def prepare(self) -> Optional[Tuple[List, timedelta]]:
+    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
         """Prepare the information needed to start the test.
 
         Fetch the network assets needed to start the test from the API service and
         estimate the time it would take the test to complete (in seconds).
+
+        If provided, use the test's whitelist to test specific assets.
         """
         pass
 
     @abc.abstractmethod
-    async def start(self, execution_id: int, test_assets: List) -> None:
+    async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
         """Start the test.
 
         Issue "startTraffic" iperf commands to the API service.
@@ -66,7 +84,9 @@ class BaseTest(abc.ABC):
         self.session_ids.clear()
         return True
 
-    async def save(self, requests: List[asyncio.Future], values: List[Dict]) -> bool:
+    async def save(
+        self, requests: List[asyncio.Future], values: List[Dict[str, Any]]
+    ) -> bool:
         """Save the per-link test results in MySQL.
 
         Kick off the asyncio Futures and save the NetworkTestResult values in the

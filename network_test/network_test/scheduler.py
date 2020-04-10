@@ -5,9 +5,9 @@ import asyncio
 import logging
 import time
 from contextlib import suppress
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
-from typing import Dict, Iterable, NoReturn, Optional
+from typing import Dict, Iterable, List, NoReturn, Optional, Tuple
 
 from croniter import croniter
 from sqlalchemy import delete, exists, insert, join, select, update
@@ -22,7 +22,7 @@ from .models import (
     NetworkTestStatus,
     NetworkTestType,
 )
-from .suites import BaseTest, MultihopTest, ParallelTest, SequentialTest
+from .suites import BaseTest, Multihop, Parallel, Sequential, TestAsset
 
 
 class Schedule:
@@ -34,6 +34,11 @@ class Schedule:
     async def start(
         self, test: BaseTest, test_type: NetworkTestType, params_id: int
     ) -> NoReturn:
+        """Start the schedule task.
+
+        Loops forever and tries to start a new test execution when the cron
+        expression is evaluated.
+        """
         iter = croniter(self.cron_expr, datetime.now())
 
         while True:
@@ -50,13 +55,31 @@ class Schedule:
                 logging.info("Schedule is currently disabled, skipping...")
                 continue
 
-            # Start the test if the network is unoccupied
+            # Skip if the network is occupied
             if await Scheduler.is_network_busy(test.network_name):
                 logging.warning(f"A test is already running on {test.network_name}")
-            else:
-                await Scheduler.start_execution(test, test_type, params_id)
+                continue
+
+            # Skip if the test assets could not be prepared
+            prepare_output = await test.prepare()
+            if prepare_output is None:
+                logging.error("Failed to prepare network test assets")
+                continue
+
+            # Skip if no assets were found using the whitelist
+            test_assets, _ = prepare_output
+            if test.whitelist and not test_assets:
+                logging.error(f"No test assets matched whitelist: {test.whitelist}")
+                continue
+
+            # Start the test if all the "skip checks" are negative
+            await Scheduler.start_execution(test, test_type, prepare_output, params_id)
 
     async def stop(self) -> bool:
+        """Stop the schedule task.
+
+        Cancel the task and await the result.
+        """
         # Cancel the task
         if self.task is None or not self.task.cancel():
             return False
@@ -72,14 +95,17 @@ class Scheduler:
 
     @classmethod
     def has_schedule(cls, schedule_id: int) -> bool:
+        """Verify that a schedule_id belongs to a running schedule."""
         return schedule_id in cls._schedules
 
     @classmethod
     def has_execution(cls, execution_id: int) -> bool:
+        """Verify that an execution_id belongs to a running execution."""
         return execution_id in cls._executions
 
     @classmethod
     def get_execution_id(cls, session_id: str) -> Optional[int]:
+        """Get the test execution_id for a particular iperf session_id."""
         for id, execution in cls._executions.items():
             if session_id in execution.session_ids:
                 return id
@@ -88,6 +114,7 @@ class Scheduler:
 
     @classmethod
     async def restart(cls) -> None:
+        """Clean up any stray sessions and restart the schedules in the DB."""
         # Stop all stale running tests
         try:
             client = APIServiceClient(timeout=1)
@@ -130,12 +157,12 @@ class Scheduler:
             schedule = Schedule(row.enabled, row.cron_expr)
 
             test: BaseTest
-            if row.test_type == NetworkTestType.MULTIHOP_TEST:
-                test = MultihopTest(row.network_name, row.iperf_options)
-            elif row.test_type == NetworkTestType.PARALLEL_LINK_TEST:
-                test = ParallelTest(row.network_name, row.iperf_options)
-            elif row.test_type == NetworkTestType.SEQUENTIAL_LINK_TEST:
-                test = SequentialTest(row.network_name, row.iperf_options)
+            if row.test_type == NetworkTestType.MULTIHOP:
+                test = Multihop(row.network_name, row.iperf_options, row.whitelist)
+            elif row.test_type == NetworkTestType.PARALLEL:
+                test = Parallel(row.network_name, row.iperf_options, row.whitelist)
+            elif row.test_type == NetworkTestType.SEQUENTIAL:
+                test = Sequential(row.network_name, row.iperf_options, row.whitelist)
 
             cls._schedules[row.id] = schedule
             schedule.task = asyncio.create_task(
@@ -146,6 +173,7 @@ class Scheduler:
     async def add_schedule(
         cls, schedule: Schedule, test: BaseTest, test_type: NetworkTestType
     ) -> int:
+        """Add a new schedule to the DB and start the internal task."""
         async with MySQLClient().lease() as sa_conn:
             insert_schedule_query = insert(NetworkTestSchedule).values(
                 enabled=schedule.enabled, cron_expr=schedule.cron_expr
@@ -159,11 +187,11 @@ class Scheduler:
                 test_type=test_type,
                 network_name=test.network_name,
                 iperf_options=test.iperf_options,
+                whitelist=test.whitelist or None,
             )
 
             params_row = await sa_conn.execute(insert_params_query)
             params_id = params_row.lastrowid
-
             await sa_conn.connection.commit()
 
         cls._schedules[schedule_id] = schedule
@@ -178,6 +206,8 @@ class Scheduler:
         test: BaseTest,
         test_type: NetworkTestType,
     ) -> bool:
+        """Stop the running schedule, update the DB, and restart."""
+        # Stop the existing schedule
         prev_schedule = cls._schedules[schedule_id]
         if not await prev_schedule.stop():
             return False
@@ -202,16 +232,19 @@ class Scheduler:
             params_row = await cursor.first()
             params_id = params_row.id
 
+            # Insert new params row if the values differ
             if not (
                 params_row.test_type == test_type
                 and params_row.network_name == test.network_name
                 and params_row.iperf_options == test.iperf_options
+                and set(params_row.whitelist or []) == set(test.whitelist)
             ):
                 insert_params_query = insert(NetworkTestParams).values(
                     schedule_id=schedule_id,
                     test_type=test_type,
                     network_name=test.network_name,
                     iperf_options=test.iperf_options,
+                    whitelist=test.whitelist or None,
                 )
 
                 params_row = await sa_conn.execute(insert_params_query)
@@ -219,12 +252,14 @@ class Scheduler:
 
             await sa_conn.connection.commit()
 
+        # Start the new schedule
         cls._schedules[schedule_id] = schedule
         schedule.task = asyncio.create_task(schedule.start(test, test_type, params_id))
         return True
 
     @classmethod
     async def delete_schedule(cls, schedule_id: int) -> bool:
+        """Stop the schedule and delete the entry from the DB."""
         schedule = cls._schedules[schedule_id]
         if not await schedule.stop():
             return False
@@ -242,18 +277,20 @@ class Scheduler:
 
     @classmethod
     async def start_execution(
-        cls, test: BaseTest, test_type: NetworkTestType, params_id: Optional[int] = None
-    ) -> Optional[int]:
-        prepare_output = await test.prepare()
-        if prepare_output is None:
-            return None
-
+        cls,
+        test: BaseTest,
+        test_type: NetworkTestType,
+        prepare_output: Tuple[List[TestAsset], timedelta],
+        params_id: Optional[int] = None,
+    ) -> int:
+        """Add a new execution to the DB and start the internal task."""
         async with MySQLClient().lease() as sa_conn:
             if params_id is None:
                 insert_params_query = insert(NetworkTestParams).values(
                     test_type=test_type,
                     network_name=test.network_name,
                     iperf_options=test.iperf_options,
+                    whitelist=test.whitelist or None,
                 )
 
                 params_row = await sa_conn.execute(insert_params_query)
@@ -281,6 +318,7 @@ class Scheduler:
 
     @classmethod
     async def stop_execution(cls, execution_id: int) -> bool:
+        """Stop the execution and mark it as aborted in the DB."""
         test = cls._executions[execution_id]
         num_sessions = len(test.session_ids)
         if not await test.stop():
@@ -316,6 +354,7 @@ class Scheduler:
 
     @staticmethod
     async def list_schedules(schedule_id: Optional[int] = None) -> Iterable:
+        """Fetch all the schedules, or a particular schedule if given the ID."""
         async with MySQLClient().lease() as sa_conn:
             query = select(
                 [
@@ -324,6 +363,7 @@ class Scheduler:
                     NetworkTestParams.test_type,
                     NetworkTestParams.network_name,
                     NetworkTestParams.iperf_options,
+                    NetworkTestParams.whitelist,
                 ]
             ).select_from(
                 join(
@@ -343,6 +383,7 @@ class Scheduler:
 
     @staticmethod
     async def list_executions(execution_id: Optional[int] = None) -> Iterable:
+        """Fetch all the executions, or a particular execution if given the ID."""
         async with MySQLClient().lease() as sa_conn:
             query = select(
                 [
@@ -350,6 +391,7 @@ class Scheduler:
                     NetworkTestParams.test_type,
                     NetworkTestParams.network_name,
                     NetworkTestParams.iperf_options,
+                    NetworkTestParams.whitelist,
                 ]
             ).select_from(
                 join(
@@ -369,6 +411,7 @@ class Scheduler:
 
     @staticmethod
     async def list_results(execution_id: int) -> Iterable:
+        """Fetch the test results for a particular network test execution ID."""
         async with MySQLClient().lease() as sa_conn:
             ignore_cols = {"execution_id", "iperf_client_blob", "iperf_server_blob"}
             query = select(
@@ -383,6 +426,7 @@ class Scheduler:
 
     @staticmethod
     async def is_network_busy(network_name: str) -> bool:
+        """Check if a test is currently running on the network."""
         async with MySQLClient().lease() as sa_conn:
             query = select(
                 [

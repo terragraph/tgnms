@@ -10,11 +10,13 @@ from typing import Dict, List, Optional, Tuple
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .base import BaseTest
+from .base import BaseTest, TestAsset
 
 
-class MultihopTest(BaseTest):
-    def __init__(self, network_name: str, iperf_options: Dict) -> None:
+class Multihop(BaseTest):
+    def __init__(
+        self, network_name: str, iperf_options: Dict, whitelist: List[str]
+    ) -> None:
         # Set default test configurations
         iperf_options["json"] = True
         if "bitrate" not in iperf_options:
@@ -24,9 +26,17 @@ class MultihopTest(BaseTest):
         if "omitSec" not in iperf_options:
             iperf_options["omitSec"] = 2  # 2 seconds
 
-        super().__init__(network_name, iperf_options)
+        super().__init__(network_name, iperf_options, whitelist)
 
-    async def prepare(self) -> Optional[Tuple[List, timedelta]]:
+    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
+        """Prepare the network test assets.
+
+        'link_name' is omitted as multihop tests are potentially run across multiple
+        links from a node to a PoP.
+
+        The duration is the number of assets, post whitelist filtering, multiplied
+        by the duration of each session as each asset is tested sequentially.
+        """
         self.session_ids.clear()
 
         try:
@@ -54,11 +64,18 @@ class MultihopTest(BaseTest):
                 logging.error(f"No default routes available for {self.network_name}")
                 return None
 
+            whitelist_set = set(self.whitelist)
             test_assets = []
             for node_name, routes in default_routes.items():
+                if self.whitelist and node_name not in whitelist_set:
+                    continue
+
                 # Pick a random PoP node from the default routes if ECMP
                 pop_name = routes[random.randint(0, len(routes) - 1)][-1]
-                test_assets.append((name_to_mac[node_name], name_to_mac[pop_name]))
+
+                test_assets.append(
+                    TestAsset(name_to_mac[node_name], name_to_mac[pop_name])
+                )
 
             return (
                 test_assets,
@@ -68,14 +85,14 @@ class MultihopTest(BaseTest):
             logging.exception(f"Failed to prepare test assets for {self.network_name}")
             return None
 
-    async def start(self, execution_id: int, test_assets: List) -> None:
+    async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
         logging.info(f"Starting multihop link test on {self.network_name}")
         logging.debug(f"iperf options: {self.iperf_options}")
 
         loop = asyncio.get_event_loop()
         start_time = loop.time()
         client = APIServiceClient(timeout=1)
-        for i, (a_mac, z_mac) in enumerate(test_assets, 1):
+        for i, asset in enumerate(test_assets, 1):
             logging.info(f"Processing node ({i}/{len(test_assets)})")
 
             # Run bidirectional iperf between the current node and the random PoP
@@ -84,8 +101,8 @@ class MultihopTest(BaseTest):
                     self.network_name,
                     "startTraffic",
                     params={
-                        "srcNodeId": a_mac,
-                        "dstNodeId": z_mac,
+                        "srcNodeId": asset.src_node_mac,
+                        "dstNodeId": asset.dst_node_mac,
                         "options": self.iperf_options,
                     },
                 ),
@@ -93,8 +110,8 @@ class MultihopTest(BaseTest):
                     self.network_name,
                     "startTraffic",
                     params={
-                        "srcNodeId": z_mac,
-                        "dstNodeId": a_mac,
+                        "srcNodeId": asset.dst_node_mac,
+                        "dstNodeId": asset.src_node_mac,
                         "options": self.iperf_options,
                     },
                 ),
@@ -103,13 +120,13 @@ class MultihopTest(BaseTest):
             values = [
                 {
                     "execution_id": execution_id,
-                    "src_node_mac": a_mac,
-                    "dst_node_mac": z_mac,
+                    "src_node_mac": asset.src_node_mac,
+                    "dst_node_mac": asset.dst_node_mac,
                 },
                 {
                     "execution_id": execution_id,
-                    "src_node_mac": z_mac,
-                    "dst_node_mac": a_mac,
+                    "src_node_mac": asset.dst_node_mac,
+                    "dst_node_mac": asset.src_node_mac,
                 },
             ]
 

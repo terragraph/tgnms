@@ -7,11 +7,17 @@ Three types of tests are currently supported. As the tests are being conducted,
 key firmware link stats are collected from Prometheus and saved in the database
 alongside the raw `iperf` blobs.
 
+Network tests can be conducted holistically or on individual segments of the
+topology by supplying an optional `whitelist` parameter to the `schedule` or
+`execution` API creation endpoints. The `whitelist` is expected to be a list of
+link names in the case of **Parallel** and **Sequential** tests, and a list of
+node names in the case of **Multihop** tests.
+
 ### Multihop Test
 Start bidirectional `iperf` sessions from one node per site to one of its
 default PoP nodes. One PoP is randomly selected if a particular node has ECMP
 routes for egressing the network. Each node-PoP pair is tested sequentially
-meaning the total test duration is bounded by the number of sites in the
+meaning the total test duration is bounded by the number of nodes in the
 network.
 
 Multihop testing can be done using TCP or UDP. If TCP is chosen and an omit
