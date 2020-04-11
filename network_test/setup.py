@@ -18,7 +18,12 @@ setup(
     version="2020.04.09",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
-    install_requires=["aiohttp", "croniter>=0.3.30,<1.0", "sqlalchemy"],
+    install_requires=[
+        "aiohttp",
+        "alembic>=1.3.3,<2.0",
+        "croniter>=0.3.30,<1.0",
+        "sqlalchemy",
+    ],
     extras_require={"ci": ["ptr"]},
     entry_points={"console_scripts": ["network_test = network_test.main:main"]},
 )
