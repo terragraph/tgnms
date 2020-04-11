@@ -67,7 +67,7 @@ void TopologyFetcher::refreshTopologyCache() {
     } else if (topology->nodes.empty()) {
       LOG(INFO) << "Empty topology for: " << topologyConfig.second->name;
     } else {
-      *topologyConfig.second->topology_ref() = *topology;
+      topologyConfig.second->set_topology(*topology);
       // update metric cache for network
       auto metricCache = MetricCache::getInstance();
       metricCache->updateMetricNames(*topology);

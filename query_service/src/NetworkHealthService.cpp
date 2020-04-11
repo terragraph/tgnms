@@ -197,7 +197,7 @@ void NetworkHealthService::linkHealthUpdater() {
         for (const auto& linkEvent : eventList) {
           LOG(INFO) << "\tEvent: " << linkEvent.startTime << " <-> "
                     << linkEvent.endTime << " | "
-                    << _LinkStateType_VALUES_TO_NAMES.at(*linkEvent.linkState_ref());
+                    << _LinkStateType_VALUES_TO_NAMES.at(linkEvent.linkState);
         }
         NetworkHealthUtils::updateLinkEventRecords(
             topologyName, linkName, stats::LinkDirection::LINK_A, eventList);

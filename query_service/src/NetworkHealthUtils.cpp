@@ -102,14 +102,14 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
     if (lastEvent != nullptr) {
       VLOG(1) << "Last link event: " << lastEvent->startTime << " <-> "
               << lastEvent->endTime << " | "
-              << stats::_LinkStateType_VALUES_TO_NAMES.at(*lastEvent->linkState_ref());
+              << stats::_LinkStateType_VALUES_TO_NAMES.at(lastEvent->linkState);
     }
     ASSERT(fwUptime >= 0);
     const time_t startTs = ts - (fwUptime / FLAGS_fw_uptime_slope);
     if (fwUptimeDelta == linkAvailDelta) {
       // single event for link_up
       if (lastEvent != nullptr && startTs <= lastEvent->endTime &&
-          *lastEvent->linkState_ref() == stats::LinkStateType::LINK_UP) {
+          lastEvent->linkState == stats::LinkStateType::LINK_UP) {
         // covers last interval
         VLOG(1) << "\t[a] Updated endTime of lastEvent from "
                 << lastEvent->endTime << " -> " << ts;
@@ -123,7 +123,7 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
             ? std::max(startTs, lastEvent->endTime)
             : startTs;
         eventLinkUp.endTime = ts;
-        *eventLinkUp.linkState_ref() = stats::LinkStateType::LINK_UP;
+        eventLinkUp.linkState = stats::LinkStateType::LINK_UP;
         eventList.emplace_back(eventLinkUp);
       }
     } else {
@@ -138,8 +138,7 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
           lastEvent != nullptr ? lastEvent->endTime : 0;
       // last event is link_up_datadown and whole interval was datadown
       if (lastEvent != nullptr && startTs <= lastEvent->endTime &&
-          lastEvent->linkState_ref() &&
-          *lastEvent->linkState_ref() == stats::LinkStateType::LINK_UP) {
+          lastEvent->linkState == stats::LinkStateType::LINK_UP) {
         // extend last event if link_up, then add link_up_datadown
         VLOG(1) << "\t[c] Updated endTime of lastEvent from "
                 << lastEvent->endTime << " -> " << eventTransitionTime;
@@ -159,12 +158,12 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
         VLOG(1) << "\t[d] Added new LINK_UP event from "
                 << eventLinkUp.startTime << " <-> " << eventTransitionTime;
         ASSERT(eventLinkUp.startTime < eventLinkUp.endTime);
-        *eventLinkUp.linkState_ref() = stats::LinkStateType::LINK_UP;
+        eventLinkUp.linkState = stats::LinkStateType::LINK_UP;
         eventList.emplace_back(eventLinkUp);
       } else if (
           linkAvailDelta == 0 && lastEvent != nullptr &&
           startTs <= lastEvent->endTime &&
-          *lastEvent->linkState_ref() == stats::LinkStateType::LINK_UP_DATADOWN) {
+          lastEvent->linkState == stats::LinkStateType::LINK_UP_DATADOWN) {
         // we dont need a link_up event, extend last one
         VLOG(1) << "\t[e] Updated endTime of lastEvent from "
                 << lastEvent->endTime << " -> " << ts;
@@ -179,8 +178,7 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
         eventLinkUpDataDown.endTime = ts;
         VLOG(1) << "\t[f] Added new LINK_UP_DATADOWN event from "
                 << eventTransitionTime << " <-> " << ts;
-        *eventLinkUpDataDown.linkState_ref() =
-            stats::LinkStateType::LINK_UP_DATADOWN;
+        eventLinkUpDataDown.linkState = stats::LinkStateType::LINK_UP_DATADOWN;
         eventList.emplace_back(eventLinkUpDataDown);
       }
     }
@@ -235,7 +233,7 @@ void NetworkHealthUtils::updateLinkEventRecords(
           topologyName,
           linkName,
           linkDirection,
-          *event.linkState_ref(),
+          event.linkState,
           event.startTime,
           event.endTime);
     }

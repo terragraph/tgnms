@@ -137,10 +137,10 @@ void MetricCache::updateMetricNames(const thrift::Topology& request) {
                   << linkMetric.first << " for radio mac: " << radioMac;
           stats::KeyMetaData& keyData = (*nodeKeyLookupLock)[radioMac][keyName];
           // push key data for link metric
-          *keyData.topologyName_ref() = request.name;
-          *keyData.linkName_ref() = link.name;
-          *keyData.shortName_ref() = linkMetric.first;
-          *keyData.linkDirection_ref() = key.linkDirection;
+          keyData.set_topologyName(request.name);
+          keyData.set_linkName(link.name);
+          keyData.set_shortName(linkMetric.first);
+          keyData.set_linkDirection(key.linkDirection);
           // copy to short key name for lookups
           (*nodeKeyLookupLock)[radioMac][linkMetric.first] = keyData;
           VLOG(3) << "\tLoaded key: [" << radioMac << "][" << linkMetric.first

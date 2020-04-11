@@ -57,8 +57,8 @@ struct EventDescription {
   1: i64 dbId,
   10: i64 startTime,
   11: i64 endTime,
-  20: optional string description,
-  21: optional LinkStateType linkState,
+  20: string description = "",
+  21: LinkStateType linkState,
 }
 
 struct EventList {
@@ -66,7 +66,7 @@ struct EventList {
   1: double linkAlive,
   2: list<EventDescription> events,
   // percentage - link is in LINK_UP - capable of passing data packets
-  3: optional double linkAvailForData,
+  3: double linkAvailForData,
 }
 
 /**

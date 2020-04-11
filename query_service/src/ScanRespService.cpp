@@ -225,7 +225,7 @@ int ScanRespService::writeData(
     mySqlScanTxResponse.scanSubType = (int16_t)*scan.second.subType_ref();
     mySqlScanTxResponse.scanMode = (int16_t)scan.second.mode;
     mySqlScanTxResponse.token = scan.first;
-    *mySqlScanTxResponse.groupId_ref() = *scan.second.groupId_ref();
+    mySqlScanTxResponse.set_groupId(*scan.second.groupId_ref());
 
     std::vector<scans::MySqlScanRxResp> mySqlScanRxResponses;
     bool duplicateScanResp = false;

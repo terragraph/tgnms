@@ -400,7 +400,7 @@ folly::Optional<LinkStateMap> MySqlClient::refreshLatestLinkState() noexcept {
       stats::EventDescription linkStateDescr;
       linkStateDescr.dbId = keyId;
       // convert from DB string enum('LINK_UP','LINK_UP_DATADOWN')
-      *linkStateDescr.linkState_ref() = eventType == "LINK_UP"
+      linkStateDescr.linkState = eventType == "LINK_UP"
           ? stats::LinkStateType::LINK_UP
           : stats::LinkStateType::LINK_UP_DATADOWN;
       linkStateDescr.startTime = startTs;
