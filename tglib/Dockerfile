@@ -1,15 +1,14 @@
 # Pull base image
-FROM alpine:edge
+FROM alpine:edge AS thrift
 
 ARG FB_VERSION=v2020.01.13.00
 ARG FMT_VERSION=6.1.2
 ARG ZSTD_VERSION=v1.4.4
 
 # Add testing repo for double-conversion-dev and glog-dev packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
-    echo "@py http://dl-cdn.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
-# Install dependencies, build fbthrift, and clean up
+# Install dependencies, build thrift, and remove build dependencies
 RUN apk update && apk add --no-cache --virtual build-deps \
                       binutils-gold \
                       bison \
@@ -81,25 +80,44 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     cmake .. && \
     make -j $(nproc) install && \
     ln -s thrift1 /usr/local/bin/thrift && \
-    # Remove dependencies and strip all symbols from external libraries
-    strip -s /usr/local/lib/*.a && \
-    apk del build-deps && \
-    # Install python3 and build fbthrift python library
-    apk add --no-cache python3@py python3-dev@py py3-six@py && \
+    # Remove build dependencies
+    apk del build-deps
+
+# Pull base image
+FROM alpine:3.10 AS builder
+
+COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/fbthrift
+COPY --from=thrift /usr/local/bin/thrift /usr/local/bin
+
+# Install fbthrift python library
+RUN apk update && apk add --no-cache python3 && \
     ln -s python3 /usr/bin/python && \
-    python -m pip install --upgrade pip setuptools wheel && \
-    pip install ../thrift/lib/py && \
-    # Clean up
-    rm -rf /opt/*
+    python -m pip install --upgrade pip setuptools && \
+    pip install /usr/local/fbthrift
 
 # Copy tglib source and raw thrift files
 WORKDIR /usr/local/tglib
 COPY tglib/ .
 COPY if/ ./if
 
-# Install dependencies, compile raw thrift files, build tglib, run ptr, and remove dependencies
-RUN apk add --no-cache --virtual build-deps gcc libffi-dev musl-dev openssl-dev && \
-    apk add --no-cache boost-filesystem libstdc++ && \
-    python setup.py build_thrift && pip install .[ci,docs] && \
-    ptr --system-site-packages && \
+# Compile thrift files
+RUN apk add --no-cache boost-filesystem libstdc++ --repository http://dl-cdn.alpinelinux.org/alpine/edge/main && \
+    python setup.py build_thrift --out-path=/usr/lib/python3.7/site-packages
+
+# Install tglib
+RUN apk add --no-cache --virtual build-deps gcc libffi-dev musl-dev openssl-dev python3-dev && \
+    pip install . && \
     apk del build-deps
+
+# Pull base image
+FROM alpine:edge
+
+RUN echo "@py http://dl-cdn.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories
+
+# Install python3
+RUN apk update && apk add --no-cache python3@py && \
+    ln -s python3 /usr/bin/python
+
+# Copy python dependencies
+COPY --from=builder /usr/bin/easy_install /usr/bin/pip /usr/bin/
+COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
