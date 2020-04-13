@@ -86,6 +86,8 @@ RUN apk update && apk add --no-cache --virtual build-deps \
 # Pull base image
 FROM alpine:3.10 AS builder
 
+RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
+
 COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/fbthrift
 COPY --from=thrift /usr/local/bin/thrift /usr/local/bin
 
@@ -93,7 +95,8 @@ COPY --from=thrift /usr/local/bin/thrift /usr/local/bin
 RUN apk update && apk add --no-cache python3 && \
     ln -s python3 /usr/bin/python && \
     python -m pip install --upgrade pip setuptools && \
-    pip install /usr/local/fbthrift
+    pip install /usr/local/fbthrift && \
+    rm -rf /usr/local/fbthrift
 
 # Copy tglib source and raw thrift files
 WORKDIR /usr/local/tglib
@@ -101,7 +104,7 @@ COPY tglib/ .
 COPY if/ ./if
 
 # Compile thrift files
-RUN apk add --no-cache boost-filesystem libstdc++ --repository http://dl-cdn.alpinelinux.org/alpine/edge/main && \
+RUN apk add --no-cache boost-filesystem@edge libstdc++@edge && \
     python setup.py build_thrift --out-path=/usr/lib/python3.7/site-packages
 
 # Install tglib
