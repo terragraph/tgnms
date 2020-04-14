@@ -25,15 +25,35 @@ services:
       - ./docker_volumes/tglib/config.json:/usr/local/default_routes_service/config.json
       - ./docker_volumes/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
       - ./docker_volumes/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
+      - ./mysql_init_scripts/default_routes_service.sql:/usr/local/default_routes_service/default_routes_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < default_routes_service.sql && alembic upgrade head && default_routes_service"]
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
         max-file: "10"
-  
+
+  network_test:
+    image: secure.cxl-terragraph.com:443/network_test:latest
+    env_file:
+      - ./env/network_test.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/network_test/config.json
+      - ./docker_volumes/network_test/alembic.ini:/usr/local/network_test/alembic.ini
+      - ./docker_volumes/network_test/service_config.json:/usr/local/network_test/service_config.json
+      - ./mysql_init_scripts/network_test.sql:/usr/local/network_test/network_test.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < network_test.sql && alembic upgrade head && network_test"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
   scan_service:
     image: secure.cxl-terragraph.com:443/scan_service:latest
     env_file:
@@ -45,7 +65,7 @@ services:
       - ./mysql_init_scripts/scan_service.sql:/usr/local/scan_service/scan_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "mysql -hdb -uroot -p12345 < scan_service.sql && scan_service"]
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < scan_service.sql && scan_service"]
     logging:
       driver: "json-file"
       options:
@@ -61,9 +81,10 @@ services:
       - ./docker_volumes/tglib/config.json:/usr/local/topology_service/config.json
       - ./docker_volumes/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
       - ./docker_volumes/topology_service/service_config.json:/usr/local/topology_service/service_config.json
+      - ./mysql_init_scripts/topology_service.sql:/usr/local/topology_service/topology_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < topology_service.sql && alembic upgrade head && topology_service"]
     logging:
       driver: "json-file"
       options:

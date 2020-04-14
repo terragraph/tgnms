@@ -23,36 +23,23 @@ scrape_configs:
     # scheme defaults to 'http'.
     # honor_labels: true
     static_configs:
-            - targets: ['localhost:9090', 'cadvisor:8080']
-
-  - job_name: 'bqs_30s'
-    metrics_path: /metrics/30s
-    static_configs:
-            - targets: ['bqs:8086']
-
-  - job_name: 'bqs_1s'
-    metrics_path: /metrics/1s
-    scrape_interval: 1s
-    scrape_timeout: 1s
-    static_configs:
-            - targets: ['bqs:8086']
-
-  - job_name: 'udp_ping_client_30s'
-    metrics_path: /metrics/30s
-    static_configs:
-            - targets: ['udp_ping_client:3047']
-
-  - job_name: 'udp_ping_client_1s'
-    metrics_path: /metrics/1s
-    scrape_interval: 1s
-    scrape_timeout: 1s
-    static_configs:
-            - targets: ['udp_ping_client:3047']
+      - targets: ['localhost:9090', 'cadvisor:8080']
 
   - job_name: 'default_routes_service'
     metrics_path: /metrics/30s
-    scrape_interval: 60s
-    scrape_timeout: 1s
-    honor_timestamps: false
     static_configs:
-            - targets: ['default_routes_service:8080']
+      - targets: ['default_routes_service:8080']
+
+  - job_name: 'jupyter'
+    metrics_path: /metrics/30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        target_label: __name__
+        replacement: "jupyter_${1}"
+    static_configs:
+      - targets: ['jupyter:8080']
+
+  - job_name: 'topology_service'
+    metrics_path: /metrics/30s
+    static_configs:
+      - targets: ['topology_service:8080']
