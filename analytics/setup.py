@@ -19,7 +19,7 @@ setup(
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=[],
-    extras_require={"ci": ["ptr"]},
+    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["analytics = analytics.main:main"]},
 )

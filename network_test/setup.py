@@ -24,6 +24,6 @@ setup(
         "croniter>=0.3.30,<1.0",
         "sqlalchemy",
     ],
-    extras_require={"ci": ["ptr"]},
+    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     entry_points={"console_scripts": ["network_test = network_test.main:main"]},
 )

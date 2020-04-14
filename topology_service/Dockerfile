@@ -8,4 +8,4 @@ WORKDIR $WORKDIR
 COPY topology_service/ .flake8 ./
 
 # Install topology_service
-RUN pip install .[ci]
+RUN pip install .

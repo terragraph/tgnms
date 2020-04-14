@@ -8,4 +8,4 @@ WORKDIR $WORKDIR
 COPY scan_service/ .flake8 ./
 
 # Install scan_service
-RUN pip install .[ci]
+RUN pip install .

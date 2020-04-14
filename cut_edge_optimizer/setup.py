@@ -23,7 +23,7 @@ setup(
     version="2020.03.19",
     packages=["cut_edge_optimizer"],
     install_requires=["aiohttp", "networkx"],
-    extras_require={"ci": ["ptr"]},
+    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     test_suite=ptr_params["test_suite"],
     entry_points={
         "console_scripts": ["cut_edge_optimizer = cut_edge_optimizer.main:main"]

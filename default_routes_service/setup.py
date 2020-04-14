@@ -19,7 +19,7 @@ setup(
     version="2020.04.08",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "aiomysql", "alembic>=1.3.3,<2.0", "sqlalchemy"],
-    extras_require={"ci": ["ptr"]},
+    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     test_suite=ptr_params["test_suite"],
     entry_points={
         "console_scripts": ["default_routes_service = default_routes_service.main:main"]

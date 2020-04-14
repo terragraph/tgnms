@@ -8,4 +8,4 @@ WORKDIR $WORKDIR
 COPY analytics/ .flake8 ./
 
 # Install analytics
-RUN pip install .[ci]
+RUN pip install .

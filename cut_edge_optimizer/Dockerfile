@@ -8,4 +8,4 @@ WORKDIR $WORKDIR
 COPY cut_edge_optimizer/ .flake8 ./
 
 # Install cut_edge_optimizer
-RUN pip install .[ci]
+RUN pip install .

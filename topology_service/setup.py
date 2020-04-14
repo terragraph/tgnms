@@ -24,7 +24,7 @@ setup(
         "geopy>=1.21.0,<2.0",
         "sqlalchemy",
     ],
-    extras_require={"ci": ["ptr"]},
+    extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     test_suite=ptr_params["test_suite"],
     entry_points={"console_scripts": ["topology_service = topology_service.main:main"]},
 )
