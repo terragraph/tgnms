@@ -8,7 +8,7 @@ ptr_params = {
     "entry_point_module": "topology_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {"topology_service/utils.py": 100, "TOTAL": 8},
+    "required_coverage": {"topology_service/utils.py": 100, "TOTAL": 7},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,

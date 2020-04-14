@@ -7,7 +7,7 @@ import time
 from contextlib import suppress
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Dict, Iterable, List, NoReturn, Optional, Tuple
+from typing import Any, Dict, Iterable, List, NoReturn, Optional, Tuple
 
 from croniter import croniter
 from sqlalchemy import delete, exists, insert, join, select, update
@@ -202,9 +202,11 @@ class Scheduler:
     async def modify_schedule(
         cls,
         schedule_id: int,
-        schedule: Schedule,
-        test: BaseTest,
-        test_type: NetworkTestType,
+        enabled: bool,
+        cron_expr: str,
+        network_name: str,
+        iperf_options: Dict[str, Any],
+        whitelist: List[str],
     ) -> bool:
         """Stop the running schedule, update the DB, and restart."""
         # Stop the existing schedule
@@ -216,9 +218,8 @@ class Scheduler:
             update_schedule_query = (
                 update(NetworkTestSchedule)
                 .where(NetworkTestSchedule.id == schedule_id)
-                .values(enabled=schedule.enabled, cron_expr=schedule.cron_expr)
+                .values(enabled=enabled, cron_expr=cron_expr)
             )
-
             await sa_conn.execute(update_schedule_query)
 
             get_params_query = (
@@ -227,15 +228,22 @@ class Scheduler:
                 .order_by(NetworkTestParams.id.desc())
                 .limit(1)
             )
-
             cursor = await sa_conn.execute(get_params_query)
             params_row = await cursor.first()
             params_id = params_row.id
 
+            test: BaseTest
+            test_type = params_row.test_type
+            if test_type == NetworkTestType.MULTIHOP:
+                test = Multihop(network_name, iperf_options, whitelist)
+            elif test_type == NetworkTestType.PARALLEL:
+                test = Parallel(network_name, iperf_options, whitelist)
+            elif test_type == NetworkTestType.SEQUENTIAL:
+                test = Sequential(network_name, iperf_options, whitelist)
+
             # Insert new params row if the values differ
             if not (
-                params_row.test_type == test_type
-                and params_row.network_name == test.network_name
+                params_row.network_name == test.network_name
                 and params_row.iperf_options == test.iperf_options
                 and set(params_row.whitelist or []) == set(test.whitelist)
             ):
@@ -246,13 +254,13 @@ class Scheduler:
                     iperf_options=test.iperf_options,
                     whitelist=test.whitelist or None,
                 )
-
                 params_row = await sa_conn.execute(insert_params_query)
                 params_id = params_row.lastrowid
 
             await sa_conn.connection.commit()
 
         # Start the new schedule
+        schedule = Schedule(enabled, cron_expr)
         cls._schedules[schedule_id] = schedule
         schedule.task = asyncio.create_task(schedule.start(test, test_type, params_id))
         return True

@@ -8,7 +8,7 @@ from typing import Any
 
 from aiohttp import web
 from sqlalchemy import select
-from tglib.clients import MySQLClient
+from tglib.clients import APIServiceClient, MySQLClient
 
 from .models import TopologyHistory
 
@@ -57,6 +57,9 @@ async def handle_get_topology(request: web.Request) -> web.Response:
         description: Invalid or missing parameters.
     """
     network_name = request.match_info["network_name"]
+    if network_name not in APIServiceClient.network_names():
+        raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
+
     start_dt = request.rel_url.query.get("start_dt")
     end_dt = request.rel_url.query.get("end_dt")
 

@@ -5,7 +5,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import Dict, Iterable, Optional, cast
+from typing import Collection, Dict, Optional, cast
 
 import aiohttp
 
@@ -34,14 +34,6 @@ class APIServiceClient(BaseClient):
 
     def __init__(self, timeout: int) -> None:
         self.timeout = timeout
-
-    @property
-    def network_names(self) -> Iterable[str]:
-        """Return a container of valid network names."""
-        if self._networks is None:
-            raise ClientStoppedError()
-
-        return self._networks.keys()
 
     @classmethod
     async def start(cls, config: Dict) -> None:
@@ -127,6 +119,14 @@ class APIServiceClient(BaseClient):
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             raise ClientRuntimeError(msg="Failed to refresh JWT") from e
 
+    @classmethod
+    def network_names(cls) -> Collection[str]:
+        """Return a collection of valid network names."""
+        if cls._networks is None:
+            raise ClientStoppedError()
+
+        return cls._networks.keys()
+
     async def request(
         self, network_name: str, endpoint: str, params: Dict = {}
     ) -> Dict:
@@ -184,7 +184,7 @@ class APIServiceClient(BaseClient):
             raise ClientStoppedError()
 
         tasks = []
-        for network_name in self._networks.keys():
+        for network_name in self.network_names():
             params = params_map.get(network_name)
             if params is None:
                 tasks.append(self.request(network_name, endpoint))
@@ -193,7 +193,7 @@ class APIServiceClient(BaseClient):
 
         return dict(
             zip(
-                self._networks.keys(),
+                self.network_names(),
                 await asyncio.gather(*tasks, return_exceptions=return_exceptions),
             )
         )

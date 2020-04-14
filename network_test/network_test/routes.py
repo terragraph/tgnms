@@ -9,6 +9,7 @@ from typing import Any
 
 from aiohttp import web
 from croniter import croniter
+from tglib.clients import APIServiceClient
 
 from .models import NetworkTestType
 from .scheduler import Schedule, Scheduler
@@ -144,6 +145,8 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
     network_name = body.get("network_name")
     if network_name is None:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
+    if network_name not in APIServiceClient.network_names():
+        raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
     iperf_options = body.get("iperf_options", {})
     whitelist = body.get("whitelist", [])
@@ -186,8 +189,6 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
             type: boolean
           cron_expr:
             type: string
-          test_type:
-            type: string
           network_name:
             type: string
           iperf_options:
@@ -197,7 +198,6 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
         required:
         - enabled
         - cron_expr
-        - test_type
         - network_name
     responses:
       "200":
@@ -227,31 +227,18 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     if not croniter.is_valid(cron_expr):
         raise web.HTTPBadRequest(text=f"'{cron_expr}' is not a valid cron expression")
 
-    schedule = Schedule(enabled, cron_expr)
-
-    test_type = body.get("test_type")
-    if not NetworkTestType.has_value(test_type):
-        raise web.HTTPBadRequest(
-            text=f"No network test type for '{test_type}' was found"
-        )
-    test_type = NetworkTestType(test_type)
-
     network_name = body.get("network_name")
     if network_name is None:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
+    if network_name not in APIServiceClient.network_names():
+        raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
     iperf_options = body.get("iperf_options", {})
     whitelist = body.get("whitelist", [])
 
-    test: BaseTest
-    if test_type == NetworkTestType.MULTIHOP:
-        test = Multihop(network_name, iperf_options, whitelist)
-    elif test_type == NetworkTestType.PARALLEL:
-        test = Parallel(network_name, iperf_options, whitelist)
-    elif test_type == NetworkTestType.SEQUENTIAL:
-        test = Sequential(network_name, iperf_options, whitelist)
-
-    if not await Scheduler.modify_schedule(schedule_id, schedule, test, test_type):
+    if not await Scheduler.modify_schedule(
+        schedule_id, enabled, cron_expr, network_name, iperf_options, whitelist
+    ):
         raise web.HTTPInternalServerError(text="Failed to modify network test schedule")
 
     return web.Response(text="Successfully updated network test schedule")
@@ -399,6 +386,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     network_name = body.get("network_name")
     if network_name is None:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
+    if network_name not in APIServiceClient.network_names():
+        raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
     if await Scheduler.is_network_busy(network_name):
         raise web.HTTPConflict(text=f"A test is already running on '{network_name}'")
 
