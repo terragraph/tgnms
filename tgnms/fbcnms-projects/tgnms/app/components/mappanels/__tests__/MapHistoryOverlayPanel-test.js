@@ -6,84 +6,117 @@
  */
 
 import 'jest-dom/extend-expect';
+import * as React from 'react';
 import MapHistoryOverlayPanel from '../MapHistoryOverlayPanel';
-import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {HistoricalMetricsOverlayStrategy} from '../../../views/map/overlays';
-import {MuiPickersWrapper, renderAsync} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {
+  MapContextWrapper,
+  NmsOptionsContextWrapper,
+} from '../../../tests/testHelpers';
+import {
+  MuiPickersWrapper,
+  TestApp,
+  renderAsync,
+} from '../../../tests/testHelpers';
+import {act, cleanup, fireEvent} from '@testing-library/react';
+import {mockNetworkMapOptions} from '../../../tests/data/NmsOptionsContext';
 
+import type {MapContext} from '../../../contexts/MapContext';
+import type {NmsOptionsContextType} from '../../../contexts/NmsOptionsContext';
+
+jest.mock('axios');
 afterEach(() => {
   jest.clearAllMocks();
   cleanup();
 });
 
-const overlay = new HistoricalMetricsOverlayStrategy();
-
-const defaultProps = {
-  overlaysConfig: overlay.getOverlaysConfig(),
-  selectedOverlays: overlay.getDefaultOverlays(),
-  onHistoricalTimeChange: jest.fn(),
-  onHistoricalDateChange: jest.fn(),
-  onOverlaySelectChange: jest.fn(),
-  overlayLoading: false,
-  date: new Date(),
-  selectedTime: new Date(),
-};
-
-test('renders loading without crashing', () => {
-  const {getByTestId} = render(
-    <MuiPickersWrapper>
-      <MapHistoryOverlayPanel {...defaultProps} overlayLoading={true} />
-    </MuiPickersWrapper>,
+test('renders loading without crashing', async () => {
+  const setIsOverlayLoading = jest.fn();
+  jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
+  expect(setIsOverlayLoading).not.toHaveBeenCalled();
+  await renderAsync(
+    <Wrapper mapValue={{setIsOverlayLoading}}>
+      <MapHistoryOverlayPanel />
+    </Wrapper>,
   );
-  expect(getByTestId('loadingCircle')).toBeInTheDocument();
+  expect(setIsOverlayLoading).toHaveBeenCalledWith(true);
 });
 
 test('renders after loading without crashing', async () => {
+  jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
   const {getByText} = await renderAsync(
-    <MuiPickersWrapper>
-      <MapHistoryOverlayPanel {...defaultProps} />
-    </MuiPickersWrapper>,
+    <Wrapper>
+      <MapHistoryOverlayPanel />
+    </Wrapper>,
   );
   expect(getByText('Current Value:')).toBeInTheDocument();
-  expect(getByText('Link Lines Overlay')).toBeInTheDocument();
-  expect(getByText('Online')).toBeInTheDocument();
 });
 
 test('date change triggers new api call', async () => {
-  const {getByText} = await renderAsync(
-    <MuiPickersWrapper>
-      <MapHistoryOverlayPanel {...defaultProps} />
-    </MuiPickersWrapper>,
+  const axiosMock = jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
+  const setOverlayMock = jest.fn();
+  await renderAsync(
+    <Wrapper mapValue={{setOverlayData: setOverlayMock}}>
+      <MapHistoryOverlayPanel />
+    </Wrapper>,
   );
-  expect(getByText('Online')).toBeInTheDocument();
   const datePicker = nullthrows(document.getElementById('date'));
-  fireEvent.change(datePicker, {target: {value: '10/10/2010'}});
-  expect(defaultProps.onHistoricalDateChange).toHaveBeenCalledTimes(1);
+  // should be called once at load
+  expect(axiosMock).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    fireEvent.change(datePicker, {target: {value: '10/10/2010'}});
+  });
+  // and once after date change
+  expect(axiosMock).toHaveBeenCalledTimes(2);
+  expect(setOverlayMock).toHaveBeenCalled();
 });
 
 test('invalid date change does not trigger new api call', async () => {
-  const {getByText} = await renderAsync(
-    <MuiPickersWrapper>
-      <MapHistoryOverlayPanel {...defaultProps} />
-    </MuiPickersWrapper>,
+  const axiosMock = jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
+  await renderAsync(
+    <Wrapper>
+      <MapHistoryOverlayPanel />
+    </Wrapper>,
   );
-  expect(getByText('Online')).toBeInTheDocument();
+  expect(axiosMock).toHaveBeenCalledTimes(1);
   const datePicker = nullthrows(document.getElementById('date'));
-  fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
-  expect(defaultProps.onHistoricalDateChange).not.toHaveBeenCalled();
+  await act(async () => {
+    fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
+  });
+  expect(axiosMock).toHaveBeenCalledTimes(1);
 });
 
-test('selecting a new metric causes map update', async () => {
-  const {getByText} = await renderAsync(
-    <MuiPickersWrapper>
-      <MapHistoryOverlayPanel {...defaultProps} />
-    </MuiPickersWrapper>,
+function Wrapper({
+  children,
+  mapValue,
+  optionsValue,
+}: {
+  children: React.Node,
+  mapValue?: $Shape<MapContext>,
+  optionsValue?: $Shape<NmsOptionsContextType>,
+}) {
+  return (
+    <TestApp>
+      <MuiPickersWrapper>
+        <NmsOptionsContextWrapper
+          contextValue={{
+            networkMapOptions: mockNetworkMapOptions(
+              (optionsValue || {}).networkMapOptions,
+            ),
+          }}>
+          <MapContextWrapper contextValue={mapValue}>
+            {children}
+          </MapContextWrapper>
+        </NmsOptionsContextWrapper>
+      </MuiPickersWrapper>
+    </TestApp>
   );
-  expect(getByText('Link Lines Overlay')).toBeInTheDocument();
-  expect(getByText('Online')).toBeInTheDocument();
-  fireEvent.mouseDown(getByText('Online'));
-  fireEvent.click(getByText('SNR'));
-  expect(defaultProps.onOverlaySelectChange).toHaveBeenCalled();
-});
+}

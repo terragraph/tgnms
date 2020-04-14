@@ -7,6 +7,7 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import DefaultOverlayPanel from './DefaultOverlayPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -18,17 +19,13 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import {MAPMODE, useMapContext} from '../../contexts/MapContext';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {overlayLayers} from '../../constants/LayerConstants';
-import {withStyles} from '@material-ui/core/styles';
 
-import type {
-  OverlayConfig,
-  OverlaysConfig,
-  SelectedLayersType,
-  SelectedOverlays,
-} from '../../views/map/NetworkMapTypes';
+import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
 
 const styles = theme => ({
   formContainer: {
@@ -81,234 +78,212 @@ const styles = theme => ({
   },
 });
 
+const useStyles = makeStyles(styles);
+
 export type Props = {
-  selectedLayers: SelectedLayersType,
-  onLayerSelectChange: SelectedLayersType => any,
-  // overlays
-  overlaysConfig: OverlaysConfig,
-  overlayLoading: boolean,
-  selectedOverlays: SelectedOverlays,
-  onOverlaySelectChange: SelectedOverlays => any,
   // map styles
   selectedMapStyle: string,
   mapStylesConfig: Array<{endpoint: string, name: string}>,
   onMapStyleSelectChange: string => any,
-  onHistoricalTimeChange: number => void,
-  onHistoricalDateChange: Date => void,
-  setIsHistoricalOverlay: boolean => void,
-  isHistoricalOverlay: boolean,
-  historicalDate: Date,
-  selectedTime: Date,
-  // TODO extract to customexpansionpanel
   expanded: boolean,
   onPanelChange: () => any,
 };
 
-class MapLayersPanel extends React.Component<
-  Props & {classes: {[string]: string}},
-> {
-  handleOverlaySelectionChange = layerId => event => {
-    const {selectedOverlays, onOverlaySelectChange} = this.props;
-    const overlayId = event.target.value;
-    selectedOverlays[layerId] = overlayId;
-
-    // invoke handler
-    onOverlaySelectChange(selectedOverlays);
-  };
-
-  handleLayerSelectionChange = layerId => {
-    const {selectedLayers, onLayerSelectChange} = this.props;
-    selectedLayers[layerId] = !selectedLayers[layerId];
-
-    // invoke handler
-    onLayerSelectChange(selectedLayers);
-  };
-
-  renderLayersForm() {
-    const {classes, selectedLayers} = this.props;
-    return (
-      <FormGroup key="layers" row={false} className={classes.formGroup}>
-        <FormLabel component="legend">Layers</FormLabel>
-        {overlayLayers.map(({layerId, name}) => (
-          <FormControlLabel
-            key={layerId}
-            control={
-              <Switch
-                color="primary"
-                checked={selectedLayers[layerId]}
-                onChange={_evt => this.handleLayerSelectionChange(layerId)}
-                value={layerId}
-              />
-            }
-            label={name}
+export default function MapLayersPanel({
+  expanded,
+  onPanelChange,
+  selectedMapStyle,
+  mapStylesConfig,
+  onMapStyleSelectChange,
+}: Props) {
+  const classes = useStyles();
+  return (
+    <CustomExpansionPanel
+      title="Map Layers"
+      details={
+        <div className={classes.formContainer}>
+          <LayersForm />
+          <OverlaySection />
+          <MapStylesForm
+            selectedMapStyle={selectedMapStyle}
+            mapStylesConfig={mapStylesConfig}
+            onMapStyleSelectChange={onMapStyleSelectChange}
           />
-        ))}
-      </FormGroup>
-    );
-  }
-
-  handleTableChange = (_event, value) => {
-    this.props.setIsHistoricalOverlay(value);
-  };
-
-  renderOverlays() {
-    const {
-      classes,
-      isHistoricalOverlay,
-      overlaysConfig,
-      selectedOverlays,
-      onHistoricalTimeChange,
-      onHistoricalDateChange,
-      onOverlaySelectChange,
-      historicalDate,
-      overlayLoading,
-      selectedTime,
-    } = this.props;
-    return isFeatureEnabled('MAP_HISTORY_ENABLED') ? (
-      <div className={classes.formContainer}>
-        <Tabs
-          value={isHistoricalOverlay}
-          onChange={this.handleTableChange}
-          classes={{
-            root: classes.tabsRoot,
-            indicator: classes.tabsIndicator,
-          }}>
-          <Tab
-            classes={{root: classes.tabRoot, selected: classes.tabSelected}}
-            disableRipple
-            label="Current"
-            value={false}
-          />
-          <Tab
-            classes={{root: classes.tabRoot, selected: classes.tabSelected}}
-            disableRipple
-            label="History"
-            value={true}
-          />
-        </Tabs>
-        <div className={classes.sectionPadding} />
-
-        {isHistoricalOverlay ? (
-          <MapHistoryOverlayPanel
-            overlaysConfig={overlaysConfig}
-            selectedOverlays={selectedOverlays}
-            onHistoricalTimeChange={onHistoricalTimeChange}
-            onHistoricalDateChange={onHistoricalDateChange}
-            onOverlaySelectChange={onOverlaySelectChange}
-            date={historicalDate}
-            overlayLoading={overlayLoading}
-            selectedTime={selectedTime}
-          />
-        ) : (
-          <div>
-            {this.renderOverlaysForm()}
-            {this.renderMapStylesForm()}
-          </div>
-        )}
-      </div>
-    ) : (
-      <div>
-        {this.renderOverlaysForm()}
-        {this.renderMapStylesForm()}
-      </div>
-    );
-  }
-
-  renderOverlaysForm() {
-    const {
-      classes,
-      overlaysConfig,
-      selectedOverlays,
-      overlayLoading,
-    } = this.props;
-    return objectValuesTypesafe<OverlayConfig>(overlaysConfig).map(
-      layerOverlays => {
-        const layerId = layerOverlays.layerId;
-        const overlays = layerOverlays.overlays;
-        const legendName = overlayLayers.find(
-          layer => layer.layerId === layerId,
-        )?.name;
-
-        // map overlay id -> type to render legend keys
-        const overlay = layerOverlays.overlays.find(
-          overlay => overlay.id === selectedOverlays[layerId],
-        );
-        return (
-          <FormGroup row={false} key={layerId} className={classes.formGroup}>
-            <FormLabel component="legend">
-              <span>{legendName} Overlay</span>
-              {overlayLoading && (
-                <CircularProgress
-                  className={classes.loadingIndicator}
-                  size={16}
-                />
-              )}
-            </FormLabel>
-            <Select
-              value={selectedOverlays[layerId]}
-              key={layerId}
-              className={classes.select}
-              onChange={this.handleOverlaySelectionChange(layerId)}>
-              {overlays.map(overlay => {
-                return (
-                  <MenuItem key={overlay.id} value={overlay.id}>
-                    {overlay.name}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-            <MapOverlayLegend overlay={overlay} layerOverlays={layerOverlays} />
-          </FormGroup>
-        );
-      },
-    );
-  }
-
-  renderMapStylesForm() {
-    const {
-      classes,
-      mapStylesConfig,
-      selectedMapStyle,
-      onMapStyleSelectChange,
-    } = this.props;
-    return (
-      <FormGroup row={false} className={classes.formGroup}>
-        <FormLabel component="legend">Map Style</FormLabel>
-        <Select
-          value={selectedMapStyle}
-          className={classes.select}
-          onChange={event => onMapStyleSelectChange(event.target.value)}>
-          {mapStylesConfig.map(({endpoint, name}) => (
-            <MenuItem key={endpoint} value={endpoint}>
-              {name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormGroup>
-    );
-  }
-
-  renderForms() {
-    const {classes} = this.props;
-    return (
-      <div className={classes.formContainer}>
-        {this.renderLayersForm()}
-        {this.renderOverlays()}
-      </div>
-    );
-  }
-
-  render() {
-    const {expanded, onPanelChange} = this.props;
-    return (
-      <CustomExpansionPanel
-        title="Map Layers"
-        details={this.renderForms()}
-        expanded={expanded}
-        onChange={onPanelChange}
-      />
-    );
-  }
+        </div>
+      }
+      expanded={expanded}
+      onChange={onPanelChange}
+    />
+  );
 }
 
-export default withStyles(styles)(MapLayersPanel);
+function OverlaySection() {
+  const classes = useStyles();
+  const {mapMode, setMapMode} = useMapContext();
+  const handleTabChange = React.useCallback(
+    (_event, value) => {
+      setMapMode(value);
+    },
+    [setMapMode],
+  );
+  return (
+    <div className={classes.formContainer}>
+      {isFeatureEnabled('MAP_HISTORY_ENABLED') && (
+        <>
+          <Tabs
+            value={mapMode}
+            onChange={handleTabChange}
+            classes={{
+              root: classes.tabsRoot,
+              indicator: classes.tabsIndicator,
+            }}>
+            <Tab
+              classes={{root: classes.tabRoot}}
+              disableRipple
+              label="Current"
+              value={MAPMODE.DEFAULT}
+            />
+            <Tab
+              classes={{root: classes.tabRoot}}
+              disableRipple
+              label="History"
+              value={MAPMODE.HISTORICAL}
+            />
+          </Tabs>
+        </>
+      )}
+      <div>
+        {mapMode === MAPMODE.DEFAULT && <DefaultOverlayPanel />}
+        {mapMode === MAPMODE.HISTORICAL && <MapHistoryOverlayPanel />}
+        <div>
+          <OverlaysForm />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const useFormStyles = makeStyles(theme => ({
+  formGroup: {
+    marginBottom: theme.spacing(2),
+  },
+  select: {
+    marginBottom: theme.spacing(1),
+  },
+  loadingIndicator: {
+    marginLeft: theme.spacing(1),
+    marginTop: -4,
+  },
+}));
+function LayersForm() {
+  const {selectedLayers, setIsLayerSelected} = useMapContext();
+  const classes = useFormStyles();
+
+  return (
+    <FormGroup key="layers" row={false} className={classes.formGroup}>
+      <FormLabel component="legend">Layers</FormLabel>
+      {overlayLayers.map(({layerId, name}) => (
+        <FormControlLabel
+          key={layerId}
+          control={
+            <Switch
+              color="primary"
+              checked={selectedLayers[layerId]}
+              onChange={_evt =>
+                setIsLayerSelected(layerId, !selectedLayers[layerId])
+              }
+              value={layerId}
+            />
+          }
+          label={name}
+        />
+      ))}
+    </FormGroup>
+  );
+}
+
+function OverlaysForm() {
+  const classes = useFormStyles();
+  const {
+    overlaysConfig,
+    selectedOverlays,
+    setLayerOverlay,
+    isOverlayLoading,
+  } = useMapContext();
+
+  return objectValuesTypesafe<OverlayConfig>(overlaysConfig).map(
+    layerOverlays => {
+      const layerId = layerOverlays.layerId;
+      const overlays = layerOverlays.overlays;
+      const legendName = overlayLayers.find(layer => layer.layerId === layerId)
+        ?.name;
+
+      // map overlay id -> type to render legend keys
+      const currentLayerOverlay = layerOverlays.overlays.find(
+        overlay => overlay.id === selectedOverlays[layerId],
+      );
+      if (overlays.length < 2) {
+        return null;
+      }
+      return (
+        <FormGroup row={false} key={layerId} className={classes.formGroup}>
+          <FormLabel component="legend">
+            <span>{legendName} Overlay</span>
+            {isOverlayLoading && (
+              <CircularProgress
+                className={classes.loadingIndicator}
+                size={16}
+              />
+            )}
+          </FormLabel>
+          <Select
+            value={selectedOverlays[layerId] || ''}
+            key={layerId}
+            className={classes.select}
+            onChange={e => setLayerOverlay(layerId, e.target.value)}>
+            {overlays.map(overlay => {
+              return (
+                <MenuItem key={overlay.id} value={overlay.id}>
+                  {overlay.name}
+                </MenuItem>
+              );
+            })}
+          </Select>
+          <MapOverlayLegend
+            overlay={currentLayerOverlay}
+            layerOverlays={layerOverlays}
+          />
+        </FormGroup>
+      );
+    },
+  );
+}
+
+type MapStylesFormProps = {|
+  selectedMapStyle: string,
+  mapStylesConfig: Array<{endpoint: string, name: string}>,
+  onMapStyleSelectChange: string => any,
+|};
+function MapStylesForm({
+  mapStylesConfig,
+  selectedMapStyle,
+  onMapStyleSelectChange,
+}: MapStylesFormProps) {
+  const classes = useStyles();
+
+  return (
+    <FormGroup row={false} className={classes.formGroup}>
+      <FormLabel component="legend">Map Style</FormLabel>
+      <Select
+        value={selectedMapStyle}
+        className={classes.select}
+        onChange={event => onMapStyleSelectChange(event.target.value)}>
+        {mapStylesConfig.map(({endpoint, name}) => (
+          <MenuItem key={endpoint} value={endpoint}>
+            {name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormGroup>
+  );
+}

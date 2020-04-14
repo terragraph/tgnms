@@ -6,16 +6,22 @@
  */
 
 import * as React from 'react';
+import MapContext from '../contexts/MapContext';
 import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
 import NetworkContext from '../contexts/NetworkContext';
 import NmsOptionsContext from '../contexts/NmsOptionsContext';
+import {
+  LINK_METRIC_OVERLAYS,
+  SITE_METRIC_OVERLAYS,
+} from '../constants/LayerConstants';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
 import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockNetworkContext} from './data/NetworkContext';
 import {mockNmsOptionsContext} from './data/NmsOptionsContext';
+import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
@@ -63,7 +69,11 @@ export function setTestUser(user: $Shape<User>) {
 }
 
 export function TestApp({children}: {children: React.Node}) {
-  return <MaterialTheme>{children}</MaterialTheme>;
+  return (
+    <Router history={createMemoryHistory()}>
+      <MaterialTheme>{children}</MaterialTheme>
+    </Router>
+  );
 }
 
 export function MuiPickersWrapper({children}: {children: React.Node}) {
@@ -102,6 +112,43 @@ export function NmsOptionsContextWrapper({
   );
 }
 
+export function MapContextWrapper({
+  contextValue,
+  children,
+}: {|
+  children: React.Node,
+  contextValue?: $Shape<MapContextType>,
+|}) {
+  const val: MapContextType = {
+    mapMode: '',
+    setMapMode: jest.fn(),
+    selectedLayers: {
+      link_lines: true,
+      site_icons: true,
+      buildings_3d: true,
+      site_name_popups: true,
+    },
+    setIsLayerSelected: jest.fn(),
+    overlaysConfig: {},
+    setOverlaysConfig: jest.fn(),
+    selectedOverlays: {
+      link_lines: 'ignition_status',
+      site_icons: 'health',
+    },
+    setLayerOverlay: jest.fn(),
+    setSelectedOverlays: jest.fn(),
+    overlays: {
+      link_lines: LINK_METRIC_OVERLAYS.ignition_status,
+      site_icons: SITE_METRIC_OVERLAYS.health,
+    },
+    overlayData: {},
+    setOverlayData: jest.fn(),
+    isOverlayLoading: false,
+    setIsOverlayLoading: jest.fn(),
+    ...(contextValue || {}: $Shape<MapContextType>),
+  };
+  return <MapContext.Provider value={val}>{children}</MapContext.Provider>;
+}
 /*
  * Use this if a component asyncronously loads data when it is rendered.
  *

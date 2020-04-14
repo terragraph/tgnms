@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import {MetricsOverlayStrategy} from '../../views/map/overlays';
 import {defaultValue as NmsOptionsContextDefaultValue} from '../../contexts/NmsOptionsContext';
 import type {NetworkMapOptions} from '../../views/map/NetworkMapTypes';
 import type {NmsOptionsContextType} from '../../contexts/NmsOptionsContext';
@@ -36,19 +35,21 @@ export function mockNmsOptionsContext(
 export function mockNetworkMapOptions(
   overrides?: $Shape<NetworkMapOptions>,
 ): NetworkMapOptions {
-  const overlay = new MetricsOverlayStrategy();
   return {
-    overlayStrategy: overlay,
-    selectedOverlays: overlay.getDefaultOverlays(),
     selectedLayers: {
       site_icons: true,
       link_lines: true,
       site_name_popups: false,
       buildings_3d: false,
     },
-    linkOverlayMetrics: {},
+    selectedOverlays: {
+      link_lines: 'ignition_status',
+      site_icons: 'health',
+    },
     historicalDate: new Date(),
     selectedTime: new Date(),
+    mapMode: '',
+    overlayData: {},
     ...overrides,
   };
 }

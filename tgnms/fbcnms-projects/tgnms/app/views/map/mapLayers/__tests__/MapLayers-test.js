@@ -13,10 +13,15 @@ import MapLayers from '../MapLayers';
 import SitePopupsLayer from '../SitePopupsLayer';
 import SitesLayer from '../SitesLayer';
 import {Layer} from 'react-mapbox-gl';
-import {TestApp, mockOverlay, mockRoutes} from '../../../../tests/testHelpers';
+import {
+  MapContextWrapper,
+  TestApp,
+  mockRoutes,
+} from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 import {mockNetworkContext} from '../../../../tests/data/NetworkContext';
 
+import type {MapContext} from '../../../../contexts/MapContext';
 import type {Props} from '../MapLayers';
 
 const sitesLayerSpy = jest.spyOn(SitesLayer, 'render');
@@ -28,32 +33,26 @@ afterEach(cleanup);
 
 const commonProps: Props = {
   context: mockNetworkContext(),
-  selectedLayers: {
-    link_lines: false,
-    site_icons: false,
-    buildings_3d: false,
-    site_name_popups: false,
-  },
   plannedSite: null,
   nearbyNodes: {},
   routes: mockRoutes(),
-  siteMapOverrides: null,
   onPlannedSiteMoved: jest.fn(),
   hiddenSites: new Set(),
-  selectedOverlays: {
-    link_lines: 'testLines',
-    site_icons: 'testSite',
-  },
-  historicalOverlay: null,
-  overlay: mockOverlay(),
-  linkMetricData: null,
 };
 
 test('renders with no layers selected', () => {
   render(
-    <TestApp>
+    <Wrapper
+      mapValue={{
+        selectedLayers: {
+          link_lines: false,
+          site_icons: false,
+          buildings_3d: false,
+          site_name_popups: false,
+        },
+      }}>
       <MapLayers {...commonProps} />
-    </TestApp>,
+    </Wrapper>,
   );
   expect(Layer).not.toHaveBeenCalled();
   expect(sitesLayerSpy).not.toHaveBeenCalled();
@@ -64,17 +63,17 @@ test('renders with no layers selected', () => {
 
 test('renders all layers if selected', () => {
   render(
-    <TestApp>
-      <MapLayers
-        {...commonProps}
-        selectedLayers={{
+    <Wrapper
+      mapValue={{
+        selectedLayers: {
           link_lines: true,
           site_icons: true,
           buildings_3d: true,
           site_name_popups: true,
-        }}
-      />
-    </TestApp>,
+        },
+      }}>
+      <MapLayers {...commonProps} />
+    </Wrapper>,
   );
   expect(Layer).toHaveBeenCalled();
   expect(sitesLayerSpy).toHaveBeenCalled();
@@ -82,3 +81,17 @@ test('renders all layers if selected', () => {
   expect(buildingsLayerSpy).toHaveBeenCalled();
   expect(sitePopupsLayerSpy).toHaveBeenCalled();
 });
+
+function Wrapper({
+  children,
+  mapValue,
+}: {
+  children: React.Node,
+  mapValue?: $Shape<MapContext>,
+}) {
+  return (
+    <TestApp>
+      <MapContextWrapper contextValue={mapValue}>{children}</MapContextWrapper>
+    </TestApp>
+  );
+}

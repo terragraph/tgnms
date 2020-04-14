@@ -5,51 +5,44 @@
  * @flow
  */
 
-import React from 'react';
-import {
-  HistoricalMetricsOverlayStrategy,
-  MetricsOverlayStrategy,
-  TestExecutionOverlayStrategy,
-} from '../views/map/overlays';
+import * as React from 'react';
 import {getHistoricalDate} from '../helpers/NetworkHelpers';
-import {getTestOverlayId} from '../helpers/NetworkTestHelpers';
+
 import type {NetworkMapOptions} from '../views/map/NetworkMapTypes';
 
 export type NmsOptionsContextType = {|
   networkMapOptions: NetworkMapOptions,
   networkTablesOptions: {},
-  updateNetworkMapOptions: NetworkMapOptions => void,
+  updateNetworkMapOptions: UpdateNetworkMapOptions,
   updateNetworkTableOptions: () => void,
 |};
 
+export type UpdateNetworkMapOptions = ($Shape<NetworkMapOptions>) => void;
+
 export function defaultNetworkMapOptions() {
-  const testId = getTestOverlayId(location);
   const historicalDate = getHistoricalDate(location);
-  let overlayStrategy;
-  if (testId) {
-    overlayStrategy = new TestExecutionOverlayStrategy({
-      testId,
-    });
-  } else if (historicalDate) {
-    overlayStrategy = new HistoricalMetricsOverlayStrategy();
-  } else {
-    overlayStrategy = new MetricsOverlayStrategy();
-  }
+
+  const now = new Date();
+  const defaultDate: Date = historicalDate
+    ? new Date(historicalDate)
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const defaultTime: Date = historicalDate
+    ? new Date(
+        defaultDate.getFullYear(),
+        defaultDate.getMonth(),
+        defaultDate.getDate(),
+      )
+    : new Date();
 
   return {
-    overlayStrategy: overlayStrategy,
-    selectedOverlays: overlayStrategy.getDefaultOverlays(),
     selectedLayers: {
       site_icons: true,
       link_lines: true,
       site_name_popups: false,
       buildings_3d: false,
     },
-    linkOverlayMetrics: {},
-    historicalDate: historicalDate
-      ? new Date(historicalDate)
-      : new Date(new Date().toISOString().split('T')[0] + 'T08:00:00Z'),
-    selectedTime: new Date(),
+    historicalDate: defaultDate,
+    selectedTime: defaultTime,
   };
 }
 
@@ -66,3 +59,24 @@ const NmsOptionsContext = React.createContext<NmsOptionsContextType>(
 );
 
 export default NmsOptionsContext;
+
+export function NmsOptionsContextProvider({children}: {children: React.Node}) {
+  const [networkMapOptions, setNetworkMapOptions] = React.useState(
+    defaultNetworkMapOptions(),
+  );
+  const updateNetworkMapOptions = React.useCallback(
+    update => setNetworkMapOptions(curr => ({...curr, ...update})),
+    [setNetworkMapOptions],
+  );
+  return (
+    <NmsOptionsContext.Provider
+      value={{
+        networkMapOptions: networkMapOptions,
+        networkTablesOptions: {},
+        updateNetworkMapOptions: updateNetworkMapOptions,
+        updateNetworkTableOptions: () => {},
+      }}>
+      {children}
+    </NmsOptionsContext.Provider>
+  );
+}

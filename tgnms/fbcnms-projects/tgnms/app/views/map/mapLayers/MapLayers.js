@@ -11,32 +11,23 @@ import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
+import {useMapContext} from '../../../contexts/MapContext';
 
 import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
 import type {NetworkContextType} from '../../../contexts/NetworkContext';
-import type {
-  Overlay,
-  SelectedLayersType,
-  SelectedOverlays,
-} from '../NetworkMapTypes';
 import type {
   PlannedSite,
   Routes,
 } from '../../../components/mappanels/MapPanelTypes';
 
-export type Props = {
+export type Props = {|
   context: NetworkContextType,
-  selectedLayers: SelectedLayersType,
   plannedSite: ?PlannedSite,
   nearbyNodes: NearbyNodes,
   routes: Routes,
-  siteMapOverrides: ?{[string]: string},
   onPlannedSiteMoved: Object => any,
   hiddenSites: Set<string>,
-  selectedOverlays: SelectedOverlays,
-  overlay: Overlay,
-  linkMetricData: ?{[string]: {}},
-};
+|};
 
 const onFeatureMouseEnter = mapEvent => {
   // Change cursor when hovering over sites/links
@@ -83,17 +74,18 @@ function getSelectedSites(selectedElement, siteMap, nodeMap, linkMap) {
 
 export default function MapLayers(props: Props) {
   const {
-    context,
     selectedLayers,
+    selectedOverlays,
+    overlays,
+    overlayData,
+  } = useMapContext();
+  const {
+    context,
     plannedSite,
     nearbyNodes,
     routes,
-    siteMapOverrides,
     onPlannedSiteMoved,
     hiddenSites,
-    selectedOverlays,
-    overlay,
-    linkMetricData,
   } = props;
 
   const {
@@ -129,11 +121,10 @@ export default function MapLayers(props: Props) {
     nodeMap,
     linkMap,
   );
-
   return (
     <>
       {buildings_3d ? <BuildingsLayer key="3d-buildings-layer" /> : null}
-      {link_lines ? (
+      {link_lines && overlays.link_lines ? (
         <LinksLayer
           key="links-layer"
           onLinkMouseEnter={onFeatureMouseEnter}
@@ -148,15 +139,15 @@ export default function MapLayers(props: Props) {
           selectedNodeName={selectedNodeName}
           nodeMap={nodeMap}
           siteMap={siteMap}
-          overlay={overlay}
+          overlay={overlays.link_lines}
           ignitionState={ignition_state}
           nearbyNodes={nearbyNodes}
           routes={routes}
           offlineWhitelist={offline_whitelist}
-          metricData={linkMetricData}
+          metricData={overlayData.link_lines}
         />
       ) : null}
-      {site_icons ? (
+      {site_icons && overlays.site_icons ? (
         <SitesLayer
           key="sites-layer"
           onSiteMouseEnter={onFeatureMouseEnter}
@@ -177,7 +168,7 @@ export default function MapLayers(props: Props) {
           hiddenSites={hiddenSites}
           routes={routes}
           offlineWhitelist={offline_whitelist}
-          siteMapOverrides={siteMapOverrides}
+          siteMapOverrides={overlayData.site_icons}
         />
       ) : null}
       {site_name_popups ? (

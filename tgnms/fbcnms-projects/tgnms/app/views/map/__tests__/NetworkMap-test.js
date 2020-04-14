@@ -11,6 +11,7 @@ import NetworkMap from '../NetworkMap';
 import {Layer} from 'react-mapbox-gl';
 import {
   NetworkContextWrapper,
+  NmsOptionsContextWrapper,
   TestApp,
   initWindowConfig,
   mockNetworkConfig,
@@ -19,6 +20,7 @@ import {
 } from '../../../tests/testHelpers';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
 import {defaultNetworkMapOptions} from '../../../contexts/NmsOptionsContext';
+import {mockNetworkMapOptions} from '../../../tests/data/NmsOptionsContext';
 
 beforeEach(() => {
   initWindowConfig();
@@ -64,9 +66,12 @@ test('renders with some sites and links', () => {
 function MapWrapper({children, ...contextProps}: {children: React.Node}) {
   return (
     <TestApp>
-      <NetworkContextWrapper {...contextProps}>
-        {children}
-      </NetworkContextWrapper>
+      <NmsOptionsContextWrapper
+        contextValue={{networkMapOptions: mockNetworkMapOptions()}}>
+        <NetworkContextWrapper {...contextProps}>
+          {children}
+        </NetworkContextWrapper>
+      </NmsOptionsContextWrapper>
     </TestApp>
   );
 }
