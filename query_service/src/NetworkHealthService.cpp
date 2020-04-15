@@ -18,8 +18,8 @@
 #include <cppkafka/configuration.h>
 #include <cppkafka/consumer.h>
 #include <folly/String.h>
-#include <folly/system/ThreadName.h>
 #include <folly/io/async/AsyncTimeout.h>
+#include <folly/system/ThreadName.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <cmath>
 
@@ -107,8 +107,8 @@ void NetworkHealthService::consume(const std::string& topicName) {
         auto nodeKeyInfo =
             metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
         // skip non-health metrics
-        if (!nodeKeyInfo || nodeKeyInfo->shortName_ref() ||
-	    nodeKeyInfo->shortName_ref()->empty() ||
+        if (!nodeKeyInfo || !nodeKeyInfo->shortName_ref() ||
+            nodeKeyInfo->shortName_ref()->empty() ||
             !healthKeys_.count(*nodeKeyInfo->shortName_ref())) {
           VLOG(3) << "Dropping non-health key: " << keyName;
           continue;
@@ -120,7 +120,7 @@ void NetworkHealthService::consume(const std::string& topicName) {
           continue;
         }
         if (!nodeKeyInfo->linkName_ref() ||
-	    nodeKeyInfo->linkName_ref()->empty()) {
+            nodeKeyInfo->linkName_ref()->empty()) {
           VLOG(3) << "No link name defined for: " << macAddr
                   << ", key: " << keyName;
           continue;
@@ -137,7 +137,7 @@ void NetworkHealthService::consume(const std::string& topicName) {
         // record sample for batch processing
         LinkStatsByDirection* linkStatsByDirection =
             &linkHealthStats_[*nodeKeyInfo->topologyName_ref()]
-	    		     [*nodeKeyInfo->linkName_ref()];
+                             [*nodeKeyInfo->linkName_ref()];
         LinkStatsByTime* linkStats;
         if (*nodeKeyInfo->linkDirection_ref() == stats::LinkDirection::LINK_A) {
           linkStats = &linkStatsByDirection->linkA;
@@ -181,7 +181,8 @@ void NetworkHealthService::linkHealthUpdater() {
         // find the last event from DB
         auto linkNameIt = linkState->find(linkName);
         if (linkNameIt != linkState->end()) {
-          auto linkDirIt = linkNameIt->second.find(stats::LinkDirection::LINK_A);
+          auto linkDirIt =
+              linkNameIt->second.find(stats::LinkDirection::LINK_A);
           if (linkDirIt != linkNameIt->second.end()) {
             lastEvent = linkDirIt->second;
           }
