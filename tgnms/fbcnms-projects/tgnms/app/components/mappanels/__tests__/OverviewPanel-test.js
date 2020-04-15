@@ -66,28 +66,28 @@ describe('OverviewPanel', () => {
   });
 
   describe('Services', () => {
-    test('shows query service online status', () => {
+    test('shows Prometheus online status', () => {
       const {rerender, getByTestId} = render(
         <OverviewPanel
           {...commonProps}
           networkConfig={mockNetworkConfig({
-            query_service_online: true,
+            prometheus_online: true,
           })}
         />,
       );
 
-      expect(getByTestId('queryservice-status').textContent).toBe('Online');
+      expect(getByTestId('prometheus-status').textContent).toBe('Online');
 
       rerender(
         <OverviewPanel
           {...commonProps}
           networkConfig={mockNetworkConfig({
-            query_service_online: false,
+            prometheus_online: false,
           })}
         />,
       );
 
-      expect(getByTestId('queryservice-status').textContent).toBe('Offline');
+      expect(getByTestId('prometheus-status').textContent).toBe('Offline');
     });
 
     test('shows controller online status', () => {

@@ -122,12 +122,6 @@ type State = {
   availabilityConfigOpen: ?boolean,
 };
 
-// allow switching between stats backends
-const STATS_DS =
-  window?.CONFIG?.env?.STATS_BACKEND === 'prometheus'
-    ? 'prometheus'
-    : 'beringei';
-
 class OverviewPanel extends React.Component<Props, State> {
   _serviceAvailabilityInterval: IntervalID;
   state = {
@@ -528,7 +522,7 @@ class OverviewPanel extends React.Component<Props, State> {
               : '-'}
           </Typography>
 
-          {STATS_DS === 'prometheus' && this.renderAvailabilityConfig(context)}
+          {this.renderAvailabilityConfig(context)}
         </div>
 
         <div className={classes.indented}>
@@ -739,13 +733,13 @@ class OverviewPanel extends React.Component<Props, State> {
         </div>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2" gutterBottom>
-            Query Service
+            Prometheus
           </Typography>
           <Typography
             variant="subtitle2"
             gutterBottom
-            data-testid="queryservice-status">
-            <StatusText status={networkConfig.query_service_online} />
+            data-testid="prometheus-status">
+            <StatusText status={networkConfig.prometheus_online} />
           </Typography>
         </div>
       </>

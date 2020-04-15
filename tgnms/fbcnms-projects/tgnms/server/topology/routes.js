@@ -14,7 +14,7 @@ const {
   reloadInstanceConfig,
   removeRequester,
 } = require('./model');
-const {LINK_HEALTH_TIME_WINDOW_HOURS, STATS_BACKEND} = require('../config');
+const {LINK_HEALTH_TIME_WINDOW_HOURS} = require('../config');
 
 const {
   createController,
@@ -40,7 +40,7 @@ router.get(
       isNaN(timeWindowHours)
     ) {
       networkLinkHealth = getNetworkLinkHealth(topologyName);
-    } else if (STATS_BACKEND === 'prometheus') {
+    } else {
       // query for non-default health window
       networkLinkHealth = await fetchNetworkHealthFromDb(
         topologyName,

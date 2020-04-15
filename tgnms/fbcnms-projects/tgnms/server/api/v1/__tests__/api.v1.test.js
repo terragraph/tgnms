@@ -38,7 +38,7 @@ const configs = {
       e2e_port: 7777,
       id: 2,
     },
-    query_service_online: true,
+    prometheus_online: true,
     site_overrides: {},
   },
   bar: {
@@ -63,7 +63,7 @@ const configs = {
       e2e_port: 7777,
       id: 4,
     },
-    query_service_online: true,
+    prometheus_online: true,
     site_overrides: {},
   },
 };
@@ -86,7 +86,7 @@ const responses = {
       e2e_port: 7777,
       id: 2,
     },
-    query_service_online: true,
+    prometheus_online: true,
     site_overrides: {},
   },
   bar: {
@@ -106,7 +106,7 @@ const responses = {
       e2e_port: 7777,
       id: 4,
     },
-    query_service_online: true,
+    prometheus_online: true,
     site_overrides: {},
   },
 };

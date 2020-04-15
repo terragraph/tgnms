@@ -8,14 +8,12 @@ const {
   getAllNetworkConfigs,
   getAllTopologyNames,
   refreshNetworkHealth,
-  refreshWirelessControllerCache,
   refreshTopologies,
-  refreshQueryServiceStatus,
+  refreshPrometheusStatus,
   runNowAndWatchForTopologyUpdate,
   scheduleScansUpdate,
   //watchForTopologyUpdate,
 } = require('./model');
-const {refreshAnalyzerData} = require('./analyzer_data');
 const {runNowAndSchedule} = require('../scheduler');
 
 const _ = require('lodash');
@@ -31,17 +29,10 @@ const MS_IN_MIN = 60 * 1000;
 const DEFAULT_SCAN_POLL_INTERVAL = 1 * MS_IN_MIN;
 const DEFAULT_TOPOLOGY_REFRESH_INTERVAL = 5 * MS_IN_SEC;
 const HEALTH_REFRESH_INTERVAL = 30 * MS_IN_SEC;
-const WIRELESS_CONTROLLER_REFRESH_INTERVAL = 1 * MS_IN_MIN;
 
 function startPeriodicTasks() {
   logger.debug('periodic: starting periodic tasks...');
   const config = getAllNetworkConfigs();
-
-  // wireless controller data is fetched from BQS
-  runNowAndSchedule(
-    refreshWirelessControllerData,
-    WIRELESS_CONTROLLER_REFRESH_INTERVAL,
-  );
 
   runNowAndSchedule(refreshHealthData, HEALTH_REFRESH_INTERVAL);
 
@@ -74,27 +65,9 @@ function refreshHealthData() {
       configName,
     );
     refreshNetworkHealth(configName);
-    refreshAnalyzerData(configName);
   });
-  // determine query service status
-  refreshQueryServiceStatus();
-}
-
-function refreshWirelessControllerData() {
-  logger.debug('periodic: refreshing wireless controller cache');
-  const allConfigs = getAllNetworkConfigs();
-  Object.keys(allConfigs).forEach(configName => {
-    const config = allConfigs[configName];
-    // verify a wireless controller is defined
-    if (!config.wireless_controller) {
-      return;
-    }
-    logger.debug(
-      'periodic: refreshing cache (wireless controller) for %s',
-      configName,
-    );
-    refreshWirelessControllerCache(configName);
-  });
+  // determine Prometheus status
+  refreshPrometheusStatus();
 }
 
 module.exports = {

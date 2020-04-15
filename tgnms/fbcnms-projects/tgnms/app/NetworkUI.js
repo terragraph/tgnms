@@ -13,7 +13,6 @@ import NetworkContext from './contexts/NetworkContext';
 import NetworkDashboards from './views/dashboards/NetworkDashboards';
 import NetworkListContext from './contexts/NetworkListContext';
 import NetworkMap from './views/map/NetworkMap';
-import NetworkStatsBeringei from './views/stats/NetworkStatsBeringei';
 import NetworkStatsPrometheus from './views/stats/NetworkStatsPrometheus';
 import NetworkTables from './views/tables/NetworkTables';
 import NetworkTest from './views/network_test/NetworkTest';
@@ -61,10 +60,6 @@ const styles = _theme => ({
 const REFRESH_INTERVAL = window.CONFIG.refresh_interval
   ? window.CONFIG.refresh_interval
   : 5000;
-
-// allow switching between stats backends
-const STATS_DS =
-  window.CONFIG.env.STATS_BACKEND === 'prometheus' ? 'prometheus' : 'beringei';
 
 type Props = {
   classes: {[string]: string},
@@ -309,16 +304,9 @@ class NetworkUI extends React.Component<Props, State> {
         this.setState({networkLinkHealth: response.data || {}});
       });
 
-    if (STATS_DS === 'prometheus') {
-      // prometheus data format differs, eventually we'll drop beringei
-      axios.get(`/metrics/node_health/${networkName}`).then(response => {
-        this.setState({networkNodeHealthPrometheus: response.data || {}});
-      });
-    } else {
-      axios.get(`/topology/node_health/${networkName}`).then(response => {
-        this.setState({networkNodeHealth: response.data || {}});
-      });
-    }
+    axios.get(`/metrics/node_health/${networkName}`).then(response => {
+      this.setState({networkNodeHealthPrometheus: response.data || {}});
+    });
   };
 
   updateNetworkAnalyzer = networkName => {
@@ -498,17 +486,11 @@ class NetworkUI extends React.Component<Props, State> {
             )}
             <Route
               path={`/stats/:networkName`}
-              render={() =>
-                STATS_DS === 'prometheus' ? (
-                  <NetworkStatsPrometheus
-                    networkConfig={this.state.networkConfig}
-                  />
-                ) : (
-                  <NetworkStatsBeringei
-                    networkConfig={this.state.networkConfig}
-                  />
-                )
-              }
+              render={() => (
+                <NetworkStatsPrometheus
+                  networkConfig={this.state.networkConfig}
+                />
+              )}
             />
             <Route
               path={`/dashboards/:networkName`}

@@ -18,7 +18,7 @@ export class NetworkDto {
   backup: ControllerDto;
   controller_online: boolean;
   primary: ControllerDto;
-  query_service_online: boolean;
+  prometheus_online: boolean;
   site_overrides: Object;
 
   constructor(init: $ReadOnly<NetworkDto>) {
@@ -26,7 +26,7 @@ export class NetworkDto {
     this.backup = init.backup;
     this.controller_online = init.controller_online;
     this.primary = init.primary;
-    this.query_service_online = init.query_service_online;
+    this.prometheus_online = init.prometheus_online;
     this.site_overrides = init.site_overrides;
   }
 }

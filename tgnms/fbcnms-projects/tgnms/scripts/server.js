@@ -152,7 +152,6 @@ app.get('*', (req, res) => {
     'NETWORKTEST_HOST',
     'LOGIN_ENABLED',
     'TILE_STYLE',
-    'STATS_BACKEND',
     'COMMIT_DATE',
     'COMMIT_HASH',
     'NOTIFICATION_MENU_ENABLED',

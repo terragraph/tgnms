@@ -78,7 +78,7 @@ export type NetworkConfig = {
   ignition_state: IgnitionState,
   backup: E2EController,
   primary: E2EController,
-  query_service_online: boolean,
+  prometheus_online: boolean,
   site_overrides: {
     name: string,
     location: LocationType,

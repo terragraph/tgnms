@@ -5,10 +5,9 @@
  */
 
 const {
-  QUERY_SERVICE_URL,
   LINK_HEALTH_TIME_WINDOW_HOURS,
   LOGIN_ENABLED,
-  STATS_BACKEND,
+  PROMETHEUS_URL,
   STATS_ALLOWED_DELAY_SEC,
 } = require('../config');
 const EventSource = require('eventsource');
@@ -21,16 +20,12 @@ const {
   HAPeerType,
   determineActiveController,
 } = require('../high_availability/model');
-import {
-  GraphAggregationValueMap as GraphAggregation,
-  StatsOutputFormatValueMap as StatsOutputFormat,
-} from '../../shared/types/Stats';
 import {LinkStateType} from '../../thrift/gen-nodejs/Stats_types';
 
 import {getLinkEvents, getNetworkList, updateOnlineWhitelist} from './network';
 const _ = require('lodash');
-const request = require('request');
 const logger = require('../log')(module);
+import axios from 'axios';
 import moment from 'moment';
 
 const networkLinkHealth = {};
@@ -42,7 +37,7 @@ let networkInstanceConfig = {};
 //let fbinternal = false;
 // hold all state
 const networkState = {};
-// backend service status - just query service for now
+// backend service status - just Prometheus for now
 const serviceState = {};
 
 // This array and the two functions below keep tracks of topology
@@ -515,45 +510,8 @@ function getNetworkState(networkName) {
   return null;
 }
 
-function refreshWirelessControllerCache(topologyName) {
-  logger.debug(
-    'Request to update wireless controller cache for %s',
-    topologyName,
-  );
-  const wacUrl = QUERY_SERVICE_URL + '/wireless_controller_stats';
-  const req = {topologyName};
-  request.post(
-    {
-      url: wacUrl,
-      body: JSON.stringify(req),
-    },
-    (err, httpResponse, body) => {
-      if (err || httpResponse.statusCode !== 200) {
-        logger.error('Error fetching wireless controller cache: %s', err);
-        return;
-      }
-
-      try {
-        const wacCache = JSON.parse(body);
-        if (networkState.hasOwnProperty(topologyName)) {
-          networkState[topologyName].wireless_controller_stats = wacCache;
-        }
-      } catch (ex) {
-        console.log(ex);
-        logger.error('Unable to parse wireless controller stats');
-        return;
-      }
-      logger.debug('Fetched wireless controller stats.');
-    },
-  );
-}
-
 async function refreshNetworkHealth(topologyName) {
-  if (STATS_BACKEND === 'prometheus') {
-    await cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
-  } else {
-    await cacheNetworkHealthFromBeringei(topologyName);
-  }
+  await cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
 }
 
 async function cacheNetworkHealthFromDb(topologyName, timeWindowHours) {
@@ -661,105 +619,17 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
   });
 }
 
-function refreshQueryServiceStatus() {
-  // call the test handler to verify service is alive
-  const testHandlerUrl = QUERY_SERVICE_URL + '/';
-  request.post(
-    {
-      body: JSON.stringify({}),
-      url: testHandlerUrl,
-    },
-    (err, httpResponse, _body) => {
-      if (err || httpResponse.statusCode !== 200) {
-        logger.error('Error fetching from query service: %s', err);
-        serviceState.query_service_online = false;
-        return;
-      }
-      serviceState.query_service_online = true;
-    },
-  );
-}
-
-function cacheNetworkHealthFromBeringei(topologyName) {
-  if (!networkInstanceConfig.hasOwnProperty(topologyName)) {
-    logger.error('network_health: Unknown topology %s', topologyName);
-    return;
-  }
-  // refresh link health
-  const startTime = new Date();
-  const linkQuery = {
-    aggregation: GraphAggregation.NONE,
-    countPerSecond: Math.floor(1000 / 25.6),
-    keyNames: ['fw_uptime', 'link_avail'],
-    maxResults: 0, // All results
-    minAgo: 24 * 60, // 24 hours
-    outputFormat: StatsOutputFormat.EVENT_LINK,
-    topologyName,
-  };
-  const chartUrl = QUERY_SERVICE_URL + '/stats_query';
-  request.post(
-    {
-      body: JSON.stringify(linkQuery),
-      url: chartUrl,
-    },
-    (err, httpResponse, _body) => {
-      if (err) {
-        logger.error('Error fetching from query service: %s', err);
-        return;
-      }
-      const totalTime = new Date() - startTime;
-      logger.debug(
-        'Fetched link health for %s in %s ms',
-        topologyName,
-        totalTime,
-      );
-      let parsed;
-      try {
-        parsed = JSON.parse(httpResponse.body);
-      } catch (ex) {
-        logger.error('Failed to parse link health json.');
-        return;
-      }
-      networkLinkHealth[topologyName] = parsed;
-    },
-  );
-  const nodeQuery = {
-    aggregation: GraphAggregation.NONE,
-    countPerSecond: 1,
-    keyNames: ['e2e_minion.uptime'],
-    maxResults: 0, // All results
-    minAgo: 24 * 60, // 24 hours
-    outputFormat: StatsOutputFormat.EVENT_NODE,
-    topologyName,
-  };
-  // refresh node (minion) health
-  request.post(
-    {
-      body: JSON.stringify(nodeQuery),
-      url: chartUrl,
-    },
-    (err, httpResponse, _body) => {
-      if (err) {
-        logger.error('Error fetching from query service: %s', err);
-        return;
-      }
-      // set BQS online
-      const totalTime = new Date() - startTime;
-      logger.debug(
-        'Fetched node health for %s in %s ms',
-        topologyName,
-        totalTime,
-      );
-      let parsed;
-      try {
-        parsed = JSON.parse(httpResponse.body);
-      } catch (ex) {
-        logger.error('Failed to parse node health json.');
-        return;
-      }
-      networkNodeHealth[topologyName] = parsed;
-    },
-  );
+function refreshPrometheusStatus() {
+  // call the test handler to verify service is healthy
+  const testHandlerUrl = PROMETHEUS_URL + '/-/healthy';
+  axios.get(testHandlerUrl).then(res => {
+    if (res.status !== 200) {
+      logger.error('Error fetching from health status from Prometheus');
+      serviceState.prometheus_online = false;
+      return;
+    }
+    serviceState.prometheus_online = true;
+  });
 }
 
 // This used to run every 5 seconds, but we now set up a persistent connection,
@@ -955,9 +825,8 @@ module.exports = {
   getNetworkState,
   refreshNetworkHealth,
   refreshTopologies,
-  refreshWirelessControllerCache,
   reloadInstanceConfig,
   removeRequester,
   runNowAndWatchForTopologyUpdate,
-  refreshQueryServiceStatus,
+  refreshPrometheusStatus,
 };

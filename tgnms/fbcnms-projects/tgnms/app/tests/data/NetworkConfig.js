@@ -71,7 +71,7 @@ export function mockNetworkConfig(
     },
     backup: mockCtrl,
     primary: mockCtrl,
-    query_service_online: true,
+    prometheus_online: true,
     site_overrides: {
       name: '',
       location: mockLocation,

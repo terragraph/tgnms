@@ -4,16 +4,9 @@
  * @format
  */
 
-const {STATS_BACKEND} = require('../config');
-
 const express = require('express');
 const router = express.Router();
 
-// restrict metric routes based on backend
-if (STATS_BACKEND === 'prometheus') {
-  router.use('', require('./routes_prometheus'));
-} else {
-  router.use('', require('./beringei'));
-}
+router.use('', require('./routes_prometheus'));
 
 module.exports = router;

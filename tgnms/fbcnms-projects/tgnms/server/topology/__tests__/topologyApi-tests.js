@@ -14,7 +14,6 @@ jest.mock('request');
 jest.mock('../../models');
 
 jest.mock('../../config', () => ({
-  STATS_BACKEND: 'prometheus',
   LINK_HEALTH_TIME_WINDOW_HOURS: 24,
 }));
 
