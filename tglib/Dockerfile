@@ -108,7 +108,7 @@ RUN apk add --no-cache boost-filesystem@edge libstdc++@edge && \
     python setup.py build_thrift --out-path=/usr/lib/python3.7/site-packages
 
 # Install tglib
-RUN apk add --no-cache --virtual build-deps gcc libffi-dev musl-dev openssl-dev python3-dev && \
+RUN apk add --no-cache --virtual build-deps gcc libffi-dev make musl-dev openssl-dev python3-dev && \
     pip install . && \
     apk del build-deps
 

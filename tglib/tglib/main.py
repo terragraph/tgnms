@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import signal
+import uvloop
 from typing import Callable, Optional, Set, cast
 
 from aiohttp import web
@@ -89,6 +90,7 @@ def init(
     except ImportError:
         pass
 
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     web.run_app(app)
 
 
