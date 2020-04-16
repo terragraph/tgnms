@@ -79,48 +79,53 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     cd fbthrift/build && \
     cmake .. && \
     make -j $(nproc) install && \
-    ln -s thrift1 /usr/local/bin/thrift && \
     # Remove build dependencies
     apk del build-deps
 
 # Pull base image
 FROM alpine:3.10 AS builder
 
+COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/thrift
+COPY --from=thrift /usr/local/bin/thrift1 /usr/local/bin/thrift
+
 RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
 
-COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/fbthrift
-COPY --from=thrift /usr/local/bin/thrift /usr/local/bin
-
-# Install fbthrift python library
+# Install thrift python library
 RUN apk update && apk add --no-cache python3 && \
     ln -s python3 /usr/bin/python && \
     python -m pip install --upgrade pip setuptools && \
-    pip install /usr/local/fbthrift && \
-    rm -rf /usr/local/fbthrift
+    pip install /usr/local/thrift && \
+    rm -rf /usr/local/thrift
 
 # Copy tglib source and raw thrift files
 WORKDIR /usr/local/tglib
 COPY tglib/ .
-COPY if/ ./if
+COPY if/*.thrift ./if/
 
 # Compile thrift files
 RUN apk add --no-cache boost-filesystem@edge libstdc++@edge && \
     python setup.py build_thrift --out-path=/usr/lib/python3.7/site-packages
 
 # Install tglib
-RUN apk add --no-cache --virtual build-deps gcc libffi-dev make musl-dev openssl-dev python3-dev && \
+RUN apk add --no-cache --virtual build-deps \
+        gcc \
+        libffi-dev \
+        make \
+        musl-dev \
+        openssl-dev \
+        python3-dev && \
     pip install . && \
     apk del build-deps
 
 # Pull base image
 FROM alpine:edge
 
+# Copy python dependencies
+COPY --from=builder /usr/bin/easy_install /usr/bin/pip /usr/bin/
+COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+
 RUN echo "@py http://dl-cdn.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories
 
 # Install python3
 RUN apk update && apk add --no-cache python3@py && \
     ln -s python3 /usr/bin/python
-
-# Copy python dependencies
-COPY --from=builder /usr/bin/easy_install /usr/bin/pip /usr/bin/
-COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
