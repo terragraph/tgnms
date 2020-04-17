@@ -199,10 +199,14 @@ export const STEP_SIZE = 60;
 export const INTERVAL_SEC = 30;
 export const MILLISECONDS_TO_MINUTES = 60000;
 
-// map overlay layers
-export const overlayLayers: Array<{|
+export const mapLayers: Array<{|
   layerId: $Keys<LayerData<*>>,
   name: string,
+  /**
+   * Static layers cannot have their overlay changed and do not require
+   * an overlay config to render.
+   */
+  isStatic?: boolean,
 |}> = [
   {
     layerId: 'link_lines',
@@ -219,10 +223,12 @@ export const overlayLayers: Array<{|
   {
     layerId: 'site_name_popups',
     name: 'Site Name Popups',
+    isStatic: true,
   },
   {
     layerId: 'buildings_3d',
     name: '3D Buildings',
+    isStatic: true,
   },
 ];
 

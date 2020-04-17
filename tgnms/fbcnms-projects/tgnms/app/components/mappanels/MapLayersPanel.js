@@ -22,8 +22,8 @@ import Tabs from '@material-ui/core/Tabs';
 import {MAPMODE, useMapContext} from '../../contexts/MapContext';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
+import {mapLayers} from '../../constants/LayerConstants';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {overlayLayers} from '../../constants/LayerConstants';
 
 import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
 
@@ -176,28 +176,34 @@ const useFormStyles = makeStyles(theme => ({
   },
 }));
 function LayersForm() {
-  const {selectedLayers, setIsLayerSelected} = useMapContext();
+  const {selectedLayers, setIsLayerSelected, overlaysConfig} = useMapContext();
   const classes = useFormStyles();
 
   return (
     <FormGroup key="layers" row={false} className={classes.formGroup}>
       <FormLabel component="legend">Layers</FormLabel>
-      {overlayLayers.map(({layerId, name}) => (
-        <FormControlLabel
-          key={layerId}
-          control={
-            <Switch
-              color="primary"
-              checked={selectedLayers[layerId]}
-              onChange={_evt =>
-                setIsLayerSelected(layerId, !selectedLayers[layerId])
-              }
-              value={layerId}
-            />
-          }
-          label={name}
-        />
-      ))}
+      {mapLayers.map(({layerId, name, isStatic}) => {
+        // non-static overlays require an overlay config
+        if (!isStatic && !overlaysConfig[layerId]) {
+          return null;
+        }
+        return (
+          <FormControlLabel
+            key={layerId}
+            control={
+              <Switch
+                color="primary"
+                checked={selectedLayers[layerId]}
+                onChange={_evt =>
+                  setIsLayerSelected(layerId, !selectedLayers[layerId])
+                }
+                value={layerId}
+              />
+            }
+            label={name}
+          />
+        );
+      })}
     </FormGroup>
   );
 }
@@ -215,7 +221,7 @@ function OverlaysForm() {
     layerOverlays => {
       const layerId = layerOverlays.layerId;
       const overlays = layerOverlays.overlays;
-      const legendName = overlayLayers.find(layer => layer.layerId === layerId)
+      const legendName = mapLayers.find(layer => layer.layerId === layerId)
         ?.name;
 
       // map overlay id -> type to render legend keys
