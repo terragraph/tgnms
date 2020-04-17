@@ -16,6 +16,8 @@ from .scheduler import Scheduler
 
 async def async_main(config: Dict) -> None:
     # Reschedule any tests found in the schedule upon startup
+    if "execution_timeout_s" in config:
+        Scheduler.timeout = config["execution_timeout_s"]
     await Scheduler.restart()
 
     # Poll test result topics for completed sessions

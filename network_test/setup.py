@@ -6,7 +6,6 @@ from setuptools import find_packages, setup
 
 ptr_params = {
     "entry_point_module": "network_test/main",
-    "test_suite": "tests.base",
     "test_suite_timeout": 300,
     "run_flake8": True,
     "run_black": True,
@@ -15,8 +14,8 @@ ptr_params = {
 
 setup(
     name="network_test",
-    version="2020.04.09",
-    packages=find_packages(exclude=["tests"]),
+    version="2020.04.17",
+    packages=find_packages(),
     python_requires=">=3.7",
     install_requires=[
         "aiohttp",

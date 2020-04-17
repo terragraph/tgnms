@@ -10,7 +10,7 @@ from functools import partial
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Tuple
 
 from croniter import croniter
-from sqlalchemy import delete, exists, insert, join, select, update
+from sqlalchemy import delete, exists, func, insert, join, select, update
 from tglib.clients import APIServiceClient, MySQLClient
 from tglib.exceptions import ClientRuntimeError
 
@@ -90,6 +90,7 @@ class Schedule:
 
 
 class Scheduler:
+    timeout: int = 0
     _schedules: Dict[int, Schedule] = {}
     _executions: Dict[int, BaseTest] = {}
 
@@ -209,11 +210,6 @@ class Scheduler:
         whitelist: List[str],
     ) -> bool:
         """Stop the running schedule, update the DB, and restart."""
-        # Stop the existing schedule
-        prev_schedule = cls._schedules[schedule_id]
-        if not await prev_schedule.stop():
-            return False
-
         async with MySQLClient().lease() as sa_conn:
             update_schedule_query = (
                 update(NetworkTestSchedule)
@@ -258,6 +254,11 @@ class Scheduler:
                 params_id = params_row.lastrowid
 
             await sa_conn.connection.commit()
+
+        # Stop the existing schedule
+        prev_schedule = cls._schedules[schedule_id]
+        if not await prev_schedule.stop():
+            return False
 
         # Start the new schedule
         schedule = Schedule(enabled, cron_expr)
@@ -320,7 +321,7 @@ class Scheduler:
         # Schedule the cleanup task
         cleanup = partial(asyncio.create_task, cls.stop_execution(execution_id))
         loop = asyncio.get_event_loop()
-        loop.call_at(loop.time() + estimated_duration.total_seconds(), cleanup)
+        loop.call_later(estimated_duration.total_seconds() + cls.timeout, cleanup)
 
         return execution_id
 
@@ -328,10 +329,6 @@ class Scheduler:
     async def stop_execution(cls, execution_id: int) -> bool:
         """Stop the execution and mark it as aborted in the DB."""
         test = cls._executions[execution_id]
-        num_sessions = len(test.session_ids)
-        if not await test.stop():
-            return False
-
         async with MySQLClient().lease() as sa_conn:
             update_result_query = (
                 update(NetworkTestResult)
@@ -348,14 +345,20 @@ class Scheduler:
                 update(NetworkTestExecution)
                 .where(NetworkTestExecution.id == execution_id)
                 .values(
-                    status=NetworkTestStatus.ABORTED
-                    if result.rowcount == num_sessions
+                    status=NetworkTestStatus.FAILED
+                    if not test.session_ids
+                    else NetworkTestStatus.ABORTED
+                    if len(test.session_ids) == result.rowcount
                     else NetworkTestStatus.FINISHED
                 )
             )
 
             await sa_conn.execute(update_execution_query)
             await sa_conn.connection.commit()
+
+        # Stop the test
+        if not await test.stop():
+            return False
 
         del cls._executions[execution_id]
         return True
@@ -364,20 +367,30 @@ class Scheduler:
     async def list_schedules(schedule_id: Optional[int] = None) -> Iterable:
         """Fetch all the schedules, or a particular schedule if given the ID."""
         async with MySQLClient().lease() as sa_conn:
-            query = select(
-                [
-                    NetworkTestSchedule,
-                    NetworkTestParams.id.label("params_id"),
-                    NetworkTestParams.test_type,
-                    NetworkTestParams.network_name,
-                    NetworkTestParams.iperf_options,
-                    NetworkTestParams.whitelist,
-                ]
-            ).select_from(
-                join(
-                    NetworkTestParams,
-                    NetworkTestSchedule,
-                    NetworkTestParams.schedule_id == NetworkTestSchedule.id,
+            query = (
+                select(
+                    [
+                        NetworkTestSchedule,
+                        NetworkTestParams.id.label("params_id"),
+                        NetworkTestParams.test_type,
+                        NetworkTestParams.network_name,
+                        NetworkTestParams.iperf_options,
+                        NetworkTestParams.whitelist,
+                    ]
+                )
+                .select_from(
+                    join(
+                        NetworkTestParams,
+                        NetworkTestSchedule,
+                        NetworkTestParams.schedule_id == NetworkTestSchedule.id,
+                    )
+                )
+                .where(
+                    NetworkTestParams.id.in_(
+                        select([func.max(NetworkTestParams.id)]).group_by(
+                            NetworkTestParams.schedule_id
+                        )
+                    )
                 )
             )
 
@@ -453,5 +466,4 @@ class Scheduler:
                 ]
             )
 
-            cursor = await sa_conn.execute(query)
-            return await cursor.scalar()
+            return await sa_conn.scalar(query)

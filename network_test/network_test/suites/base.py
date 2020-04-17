@@ -64,8 +64,10 @@ class BaseTest(abc.ABC):
         the API service.
         """
         # Cancel the task
-        if self.task is None or not self.task.cancel():
+        if self.task is None:
             return False
+
+        self.task.cancel()
         with suppress(asyncio.CancelledError):
             await self.task
 
@@ -90,13 +92,13 @@ class BaseTest(abc.ABC):
         """Save the per-link test results in MySQL.
 
         Kick off the asyncio Futures and save the NetworkTestResult values in the
-        database. Return True if the sessions started successfully, otherwise False.
+        database. Return True if any session started successfully, otherwise False.
         """
         for response, value in zip(
             await asyncio.gather(*requests, return_exceptions=True), values
         ):
             if isinstance(response, ClientRuntimeError):
-                logging.error(response, exc_info=True)
+                logging.error(response)
                 value["status"] = NetworkTestStatus.FAILED
             elif "id" in response:
                 self.session_ids.add(response["id"])
@@ -110,4 +112,4 @@ class BaseTest(abc.ABC):
             await sa_conn.execute(query)
             await sa_conn.connection.commit()
 
-        return value["status"] == NetworkTestStatus.RUNNING
+        return any(value["status"] == NetworkTestStatus.RUNNING for value in values)
