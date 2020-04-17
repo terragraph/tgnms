@@ -58,6 +58,9 @@ def init(
     except OSError as e:
         raise ConfigError("Failed to load configuration file") from e
 
+    # Use uvloop to make asyncio fast
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
     # Create web application object and shutdown event
     app = web.Application()
     app["main"] = main
@@ -90,7 +93,6 @@ def init(
     except ImportError:
         pass
 
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     web.run_app(app)
 
 
