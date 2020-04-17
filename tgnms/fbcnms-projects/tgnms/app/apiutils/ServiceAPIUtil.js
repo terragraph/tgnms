@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import swal from 'sweetalert2';
+import type {AxiosXHRConfig} from 'axios';
 
 type AxiosE2EAck = {
   message: string, // from thrift::E2EAck
@@ -32,7 +33,39 @@ type apiRequestOptions = {
   onSuccess?: () => any,
 };
 
+type APIServiceResponse<R> = {
+  success?: boolean,
+  message?: ?string,
+  ...R,
+};
+
 /** Make an API service request. */
+export function apiRequest<T, R>({
+  networkName,
+  endpoint,
+  data = {},
+  config,
+}: {
+  networkName: string,
+  endpoint: string,
+  data?: T,
+  config?: $Shape<AxiosXHRConfig<T, APIServiceResponse<R>>>,
+}): Promise<APIServiceResponse<R>> {
+  return axios
+    .post<T, APIServiceResponse<R>>(
+      `/apiservice/${networkName}/api/${endpoint}`,
+      data,
+      config,
+    )
+    .then(response => {
+      if (response.data.success === false) {
+        throw new Error(response.data.message);
+      }
+      return response.data;
+    });
+}
+
+// DEPRECATED - use apiRequest instead
 export const apiServiceRequest = (
   networkName: string,
   apiMethod: string,

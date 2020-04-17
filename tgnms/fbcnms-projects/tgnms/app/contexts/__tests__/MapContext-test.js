@@ -48,6 +48,7 @@ const testOverlaysConfig = {
 const allLayersSelected = {
   link_lines: true,
   site_icons: true,
+  area_polygons: true,
   buildings_3d: true,
   site_name_popups: true,
 };
@@ -97,6 +98,7 @@ describe('setters', () => {
     expect(result.current.selectedLayers).toEqual({
       link_lines: true,
       site_icons: true,
+      area_polygons: false,
       buildings_3d: false,
       site_name_popups: false,
     });
@@ -110,6 +112,7 @@ describe('setters', () => {
     expect(result.current.selectedLayers).toEqual({
       link_lines: true,
       site_icons: true,
+      area_polygons: false,
       buildings_3d: false,
       site_name_popups: false,
     });
@@ -122,6 +125,7 @@ describe('setters', () => {
     expect(result.current.selectedLayers).toEqual({
       link_lines: true,
       site_icons: false,
+      area_polygons: false,
       buildings_3d: true,
       site_name_popups: false,
     });
@@ -248,6 +252,7 @@ describe('optionsContext integration', () => {
     expect(result.current.selectedLayers).toEqual({
       link_lines: true,
       site_icons: true,
+      area_polygons: false,
     });
     expect(result.current.selectedOverlays).toEqual({});
   });

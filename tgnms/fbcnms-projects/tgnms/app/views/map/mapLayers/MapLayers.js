@@ -7,6 +7,7 @@
 
 import BuildingsLayer from './BuildingsLayer';
 import LinksLayer from './LinksLayer';
+import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
@@ -93,6 +94,7 @@ export default function MapLayers(props: Props) {
     link_lines,
     site_name_popups,
     buildings_3d,
+    area_polygons,
   } = selectedLayers;
 
   const {
@@ -174,6 +176,13 @@ export default function MapLayers(props: Props) {
       {site_name_popups ? (
         <SitePopupsLayer key="popups-layer" topology={networkConfig.topology} />
       ) : null}
+      {area_polygons && overlays.area_polygons && (
+        <PolygonLayer
+          key="polygon-layer"
+          overlay={overlays.area_polygons}
+          data={overlayData.area_polygons}
+        />
+      )}
     </>
   );
 }

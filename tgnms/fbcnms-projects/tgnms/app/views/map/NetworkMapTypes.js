@@ -18,6 +18,7 @@ export type LayerData<T> = $Shape<{|
   site_icons: T,
   site_name_popups: T,
   buildings_3d: T,
+  area_polygons: T,
 |}>;
 
 // selected overlay ids for each layer
@@ -35,6 +36,10 @@ export type OverlayConfig = {|
   legend: {},
 |};
 
+export type OverlayComponentProps = {|
+  overlay: Overlay,
+|};
+
 export type Overlay = {|
   name: string,
   type: string,
@@ -47,6 +52,11 @@ export type Overlay = {|
   overlayLegendType?: string,
   aggregate?: any => number,
   formatText?: (link: any, value: any) => string,
+  /**
+   * Render MapboxGL Sources, Layers, Features to construct this overlay. This
+   * will completely override the default logic of the layer.
+   */
+  Component?: React.ComponentType<OverlayComponentProps>,
 |};
 
 export type SelectedLayersType = LayerData<boolean>;

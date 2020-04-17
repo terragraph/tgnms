@@ -49,6 +49,7 @@ test('renders with no layers selected', () => {
           site_icons: false,
           buildings_3d: false,
           site_name_popups: false,
+          area_polygons: false,
         },
       }}>
       <MapLayers {...commonProps} />
@@ -70,6 +71,7 @@ test('renders all layers if selected', () => {
           site_icons: true,
           buildings_3d: true,
           site_name_popups: true,
+          area_polygons: true,
         },
       }}>
       <MapLayers {...commonProps} />

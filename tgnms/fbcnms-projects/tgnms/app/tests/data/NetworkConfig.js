@@ -334,3 +334,80 @@ export function mockOverlay(overrides?: $Shape<Overlay>): Overlay {
     ...overrides,
   };
 }
+
+/**
+ * Creates a mock figure 0 like:
+ * (site2)---(site3)
+ *    |         |
+ *    |         |
+ * (site1)---(site4)
+ */
+export function mockFig0() {
+  const topology = mockTopology();
+  topology.__test
+    .addSite({
+      name: 'site1',
+      location: {latitude: 0, longitude: 0, accuracy: 1, altitude: 1},
+    })
+    .addSite({
+      name: 'site2',
+      location: {latitude: 0, longitude: 1, accuracy: 1, altitude: 1},
+    })
+    .addSite({
+      name: 'site3',
+      location: {latitude: 1, longitude: 1, accuracy: 1, altitude: 1},
+    })
+    .addSite({
+      name: 'site4',
+      location: {latitude: 1, longitude: 0, accuracy: 1, altitude: 1},
+    })
+    .addNode({
+      name: 'site1-0',
+      site_name: 'site1',
+    })
+    .addNode({
+      name: 'site1-1',
+      site_name: 'site1',
+    })
+    .addNode({
+      name: 'site2-0',
+      site_name: 'site2',
+    })
+    .addNode({
+      name: 'site2-1',
+      site_name: 'site2',
+    })
+    .addNode({
+      name: 'site3-0',
+      site_name: 'site3',
+    })
+    .addNode({
+      name: 'site3-1',
+      site_name: 'site3',
+    })
+    .addNode({
+      name: 'site4-0',
+      site_name: 'site4',
+    })
+    .addNode({
+      name: 'site4-1',
+      site_name: 'site4',
+    })
+    .addLink({
+      a_node_name: 'site1-1',
+      z_node_name: 'site2-0',
+    })
+    .addLink({
+      a_node_name: 'site2-1',
+      z_node_name: 'site3-0',
+    })
+    .addLink({
+      a_node_name: 'site3-1',
+      z_node_name: 'site4-0',
+    })
+    .addLink({
+      a_node_name: 'site4-1',
+      z_node_name: 'site1-0',
+    });
+  return topology;
+}

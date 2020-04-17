@@ -78,10 +78,10 @@ export type ProviderProps = {|
   defaultMapMode?: string,
   overlayData?: LayerData<{}>,
 |};
-
 const defaultSelectedLayers: SelectedLayersType = {
   link_lines: true,
   site_icons: true,
+  area_polygons: false,
 };
 export function MapContextProvider({children, defaultMapMode}: ProviderProps) {
   const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
@@ -142,13 +142,12 @@ export function MapContextProvider({children, defaultMapMode}: ProviderProps) {
   const setOverlaysConfigSelectDefaults = React.useCallback(
     (conf: OverlaysConfig) => {
       setOverlaysConfig(conf);
-
       const selectionUpdate = {};
-      if (conf.link_lines && conf.link_lines.defaultOverlayId) {
-        selectionUpdate.link_lines = conf.link_lines.defaultOverlayId;
-      }
-      if (conf.site_icons && conf.site_icons.defaultOverlayId) {
-        selectionUpdate.site_icons = conf.site_icons.defaultOverlayId;
+      for (const layerId in conf) {
+        const layerConf = conf[layerId];
+        if (typeof layerConf.defaultOverlayId === 'string') {
+          selectionUpdate[layerId] = layerConf.defaultOverlayId;
+        }
       }
       if (!networkMapOptions.selectedOverlays) {
         setSelectedOverlays(curr => ({...curr, ...selectionUpdate}));

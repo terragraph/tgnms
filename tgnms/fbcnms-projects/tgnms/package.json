@@ -15,7 +15,7 @@
     "test": "(cd ../../ && yarn run test)",
     "test:app": "(cd ../../ && yarn run test app)",
     "test:server": "(cd ../../ && yarn run test server)",
-    "test:coverage": "(cd ../../ && yarn run test --all --coverage --collectCoverageFrom='[\"**/fbcnms-projects/tgnms/**/*.js\",\"**/fbcnms-packages/fbcnms-alarms/**/*.js\", \"!**/__tests__/**\", \"!**/__mocks__/**\", \"!**/thrift/gen-nodejs/**\", \"!**/fbcnms-projects/tgnms/shared/types/**/*\", \"!**/fbcnms-projects/tgnms/server/seeders/*\", \"!**/fbcnms-projects/tgnms/server/migrations/*\"]' --coverageReporters=text)"
+    "test:coverage": "(cd ../../ && yarn run test --all --coverage --collectCoverageFrom='[\"**/fbcnms-projects/tgnms/**/*.js\",\"**/fbcnms-packages/fbcnms-alarms/**/*.js\", \"!**/__tests__/**\", \"!**/__mocks__/**\", \"!**/thrift/gen-nodejs/**\", \"!**/fbcnms-projects/tgnms/shared/types/**/*\", \"!**/fbcnms-projects/tgnms/server/seeders/*\", \"!**/fbcnms-projects/tgnms/server/migrations/*\", \"!**/fbcnms-projects/tgnms/static/*\"]' --coverageReporters=text)"
   },
   "dependencies": {
     "@date-io/moment": "^1.3.11",
@@ -27,6 +27,7 @@
     "@material-ui/icons": "^4.0.0",
     "@material-ui/pickers": "^3.2.8",
     "@material-ui/styles": "^4.0.0",
+    "@turf/turf": "^5.1.6",
     "axios": "^0.18.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
@@ -46,6 +47,7 @@
     "express-session": "^1.15.6",
     "express-ws": "^2.0.0",
     "geolib": "^2.0.24",
+    "ip-address": "^6.2.0",
     "is-ip": "^2.0.0",
     "kafka-node": "^4.1.3",
     "lodash": "^4.17.11",

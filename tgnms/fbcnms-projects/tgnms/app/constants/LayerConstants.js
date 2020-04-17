@@ -16,9 +16,11 @@ import red from '@material-ui/core/colors/red';
 import {HEALTH_CODES, HEALTH_DEFS} from './HealthConstants';
 import {MCS_DATARATE_TABLE} from './NetworkConstants';
 import {formatNumber} from '../helpers/StringHelpers';
+//TODO don't import from views
+import PrefixZoneOverlay from '../views/map/overlays/PrefixZoneOverlay';
 const MEGABITS = Math.pow(1000, 2);
 
-import type {Overlay} from '../views/map/NetworkMapTypes';
+import type {LayerData, Overlay} from '../views/map/NetworkMapTypes';
 
 export const LinkOverlayColors = {
   ignition_status: {
@@ -198,7 +200,10 @@ export const INTERVAL_SEC = 30;
 export const MILLISECONDS_TO_MINUTES = 60000;
 
 // map overlay layers
-export const overlayLayers = [
+export const overlayLayers: Array<{|
+  layerId: $Keys<LayerData<*>>,
+  name: string,
+|}> = [
   {
     layerId: 'link_lines',
     name: 'Link Lines',
@@ -206,6 +211,10 @@ export const overlayLayers = [
   {
     layerId: 'site_icons',
     name: 'Site Icons',
+  },
+  {
+    layerId: 'area_polygons',
+    name: 'Areas',
   },
   {
     layerId: 'site_name_popups',
@@ -217,12 +226,14 @@ export const overlayLayers = [
   },
 ];
 
-export const SITE_METRIC_OVERLAYS: {[string]: Overlay} = {
+type Overlays = {[string]: Overlay};
+
+export const SITE_METRIC_OVERLAYS: Overlays = {
   health: {name: 'Health', type: 'health', id: 'health'},
   polarity: {name: 'Polarity', type: 'polarity', id: 'polarity'},
 };
 
-export const HISTORICAL_SITE_METRIC_OVERLAYS: {[string]: Overlay} = {
+export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
   node_online: {
     name: 'Node Online',
     type: 'metric',
@@ -230,7 +241,7 @@ export const HISTORICAL_SITE_METRIC_OVERLAYS: {[string]: Overlay} = {
   },
 };
 
-export const HISTORICAL_LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
+export const HISTORICAL_LINK_METRIC_OVERLAYS: Overlays = {
   link_online: {
     name: 'Online',
     type: 'metric',
@@ -241,7 +252,7 @@ export const HISTORICAL_LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   },
 };
 
-export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
+export const LINK_METRIC_OVERLAYS: Overlays = {
   //{name: 'Performance Health', id: 'perf_health'},
   //{name: 'Availability', id: 'availability'},
   //{name: 'Uptime', id: 'uptime'},
@@ -340,7 +351,7 @@ export const LINK_METRIC_OVERLAYS: {[string]: Overlay} = {
   },
 };
 
-export const TEST_EXECUTION_LINK_OVERLAYS: {[string]: Overlay} = {
+export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
   health: {
     name: 'Health',
     type: 'metric',
@@ -379,5 +390,14 @@ export const TEST_EXECUTION_LINK_OVERLAYS: {[string]: Overlay} = {
     formatText: (_link, value: number) => {
       return formatNumber(value, 1);
     },
+  },
+};
+
+export const AREA_POLYGONS: Overlays = {
+  prefix_zone: {
+    name: 'Prefix Zone',
+    type: 'prefix_zone',
+    id: 'prefix_zone',
+    Component: PrefixZoneOverlay,
   },
 };

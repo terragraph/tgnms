@@ -10,6 +10,7 @@ import NetworkContext from '../../contexts/NetworkContext';
 import axios from 'axios';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import {
+  AREA_POLYGONS,
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
   SITE_METRIC_OVERLAYS,
@@ -26,6 +27,7 @@ const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;
 const defaultOverlays = {
   link_lines: 'ignition_status',
   site_icons: 'health',
+  area_polygons: 'prefix_zone',
 };
 
 export default function DefaultOverlayPanel() {
@@ -59,6 +61,12 @@ export default function DefaultOverlayPanel() {
         overlays: objectValuesTypesafe<Overlay>(SITE_METRIC_OVERLAYS),
         legend: SiteOverlayColors,
         defaultOverlayId: defaultOverlays.site_icons,
+      },
+      area_polygons: {
+        layerId: 'area_polygons',
+        overlays: objectValuesTypesafe<Overlay>(AREA_POLYGONS),
+        defaultOverlayId: defaultOverlays.area_polygons,
+        legend: SiteOverlayColors,
       },
     });
   }, [setOverlaysConfig, setSelectedOverlays]);

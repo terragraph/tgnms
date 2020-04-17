@@ -17,6 +17,13 @@ export default function ReactMapboxGl(_config) {
   return MapBoxGLMock;
 }
 
+export const Source = jest.fn(({children, ...props}) => {
+  const domAttributes = convertPropsToDomAttributes(props);
+  return (
+    <span data-mapbox-type="source" children={children} {...domAttributes} />
+  );
+});
+
 export const Feature = jest.fn(({children, ...props}) => {
   const domAttributes = convertPropsToDomAttributes(props);
   return (

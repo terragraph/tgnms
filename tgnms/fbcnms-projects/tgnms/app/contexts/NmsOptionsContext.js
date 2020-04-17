@@ -38,6 +38,7 @@ export function defaultNetworkMapOptions() {
     selectedLayers: {
       site_icons: true,
       link_lines: true,
+      area_polygons: false,
       site_name_popups: false,
       buildings_3d: false,
     },
