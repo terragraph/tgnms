@@ -120,12 +120,12 @@ RUN apk add --no-cache --virtual build-deps \
 # Pull base image
 FROM alpine:edge
 
-# Copy python dependencies
-COPY --from=builder /usr/bin/easy_install /usr/bin/pip /usr/bin/
-COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
-
 RUN echo "@py http://dl-cdn.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories
 
 # Install python3
 RUN apk update && apk add --no-cache python3@py && \
     ln -s python3 /usr/bin/python
+
+# Copy python dependencies
+COPY --from=builder /usr/bin/easy_install /usr/bin/pip /usr/bin/
+COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
