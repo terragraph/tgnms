@@ -117,6 +117,50 @@ RUN cmake .. && \
 
 RUN rm -rf /tmp/*
 
+# dev build
+FROM alpine:latest AS dev
+
+ENV WORKDIR /usr/local/nms
+
+# copy build files for query + ping services
+COPY docker $WORKDIR/docker/
+COPY CMakeLists.txt $WORKDIR/CMakeLists.txt
+COPY .cmake $WORKDIR/.cmake/
+COPY if $WORKDIR/if/
+COPY ping_service $WORKDIR/ping_service/
+COPY query_service $WORKDIR/query_service/
+
+# install most of the same packages from builder
+RUN apk update
+RUN apk add bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev libtool libevent-dev gmock gtest-dev vim curl mariadb-connector-c-dev snappy-dev git lz4-dev xz-dev
+# some packages aren't in mainline
+RUN apk add double-conversion-dev glog-dev --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/
+
+# copy thrift binary
+COPY --from=builder /usr/local/facebook/bin/thrift1 /usr/local/facebook/bin/thrift1
+
+# fb libs needed for compilation/linking
+COPY --from=builder /usr/local/facebook/include /usr/local/facebook/include
+COPY --from=builder /usr/local/facebook/lib /usr/local/facebook/lib
+
+# only needed for compilation
+COPY --from=builder /usr/local/lib64/libfmt.a /usr/local/lib64/libfmt.a
+COPY --from=builder /usr/local/lib/libsodium.a /usr/local/lib/libsodium.a
+COPY --from=builder /usr/local/include /usr/local/include
+COPY --from=builder /usr/local/lib64/libzstd.a /usr/local/lib64/libzstd.a
+
+# copy the fb libraries we just built
+COPY --from=builder /usr/local/lib64/librdkafka.so* /usr/local/lib64/
+COPY --from=builder /usr/local/lib/libsodium.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libcppkafka.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libmysqlcppconn.so* /usr/local/lib/
+
+# copy the stripped binary
+WORKDIR /usr/local/nms/build
+COPY --from=builder /usr/local/nms/build/bin/query_service bin/
+COPY --from=builder /usr/local/nms/build/bin/udp_ping_client bin/
+COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test bin/
+
 FROM alpine:latest
 
 # some packages aren't in mainline
@@ -130,10 +174,7 @@ COPY --from=builder /usr/local/lib/libcppkafka.so.0.3.1 /usr/local/lib/
 COPY --from=builder /usr/local/lib/libmysqlcppconn.so.6 /usr/local/lib/
 
 # copy the stripped binary
-WORKDIR /usr/local/nms/build/bin
-COPY --from=builder /usr/local/nms/build/bin/query_service .
-COPY --from=builder /usr/local/nms/build/bin/udp_ping_client .
-COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test .
-
-# use same workdir as old image so 'bin/query_service' stays functional
 WORKDIR /usr/local/nms/build
+COPY --from=builder /usr/local/nms/build/bin/query_service bin/
+COPY --from=builder /usr/local/nms/build/bin/udp_ping_client bin/
+COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test bin/
