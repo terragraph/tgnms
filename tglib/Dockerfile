@@ -82,7 +82,7 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     # Remove build dependencies
     apk del build-deps
 
-# Pull base image
+# Pull base image. Pin to alpine:3.10 for python3.7
 FROM alpine:3.10 AS builder
 
 COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/thrift
@@ -117,13 +117,11 @@ RUN apk add --no-cache --virtual build-deps \
     pip install . && \
     apk del build-deps
 
-# Pull base image
-FROM alpine:edge
-
-RUN echo "@py http://dl-cdn.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories
+# Pull base image. Pin to alpine:3.10 for python3.7
+FROM alpine:3.10
 
 # Install python3
-RUN apk update && apk add --no-cache python3@py && \
+RUN apk update && apk add --no-cache python3 && \
     ln -s python3 /usr/bin/python
 
 # Copy python dependencies
