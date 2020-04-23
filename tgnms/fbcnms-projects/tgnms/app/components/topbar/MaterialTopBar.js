@@ -12,7 +12,6 @@ import BuildIcon from '@material-ui/icons/Build';
 import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import CodeIcon from '@material-ui/icons/Code';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
@@ -159,12 +158,6 @@ const VIEWS = [
     icon: <AlarmIcon />,
     viewName: 'alarms',
     hideCondition: () => !isFeatureEnabled('ALARMS_ENABLED'),
-  },
-  {
-    name: 'Logs',
-    icon: <CodeIcon />,
-    viewName: 'logs',
-    hideCondition: () => !isFeatureEnabled('NODELOGS_ENABLED'),
   },
   {
     name: 'Upgrade',

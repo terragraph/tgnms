@@ -68,10 +68,6 @@ const SOFTWARE_PORTAL_API_ID = process.env.SOFTWARE_PORTAL_API_ID || 'tgdev';
 // Default time window to cache link health for
 const LINK_HEALTH_TIME_WINDOW_HOURS = 24;
 
-// Directory containing all node logs
-// Structure:
-//   $NODELOG_DIR/<mac_addr>/yyyy-mm-dd_terragraph_<name>_logs.log<.lz4>
-const NODELOG_DIR = process.env.NODELOG_DIR || '/nodelogs';
 const DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
 // comma separated list of kafka hosts
@@ -117,7 +113,6 @@ module.exports = {
   MYSQL_PASS,
   MYSQL_PORT,
   MYSQL_USER,
-  NODELOG_DIR,
   NODEUPDATE_SERVER_URL,
   NODEUPDATE_AUTH_TOKEN,
   SOFTWARE_PORTAL_URL,

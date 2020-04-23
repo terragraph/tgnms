@@ -19,7 +19,6 @@ import NetworkTest from './views/network_test/NetworkTest';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NmsAlarms from './views/alarms/NmsAlarms';
 import NmsOptionsContext from './contexts/NmsOptionsContext';
-import NodeLogs from './views/logs/NodeLogs';
 import React from 'react';
 import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -495,10 +494,6 @@ class NetworkUI extends React.Component<Props, State> {
             <Route
               path={`/dashboards/:networkName`}
               render={() => <NetworkDashboards networkName={networkName} />}
-            />
-            <Route
-              path={`/logs/:networkName`}
-              render={() => <NodeLogs networkName={networkName} />}
             />
             <Route
               path={`/tables/:networkName`}

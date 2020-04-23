@@ -13,7 +13,6 @@ export const FeatureFlags: {[string]: () => boolean} = {
   NOTIFICATION_MENU_ENABLED: () =>
     !!window.CONFIG?.env.NOTIFICATION_MENU_ENABLED,
   LOGIN_ENABLED: () => window.CONFIG?.env?.LOGIN_ENABLED,
-  NODELOGS_ENABLED: () => window.CONFIG.env.NODELOGS_ENABLED,
   SAVE_MISSING_TRANSLATIONS: () => window.CONFIG.env.SAVE_MISSING_TRANSLATIONS,
   GRAFANA_ENABLED: () => window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
   SERVICE_AVAILABILITY_ENABLED: () =>

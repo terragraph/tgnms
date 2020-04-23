@@ -17,7 +17,6 @@ const compression = require('compression');
 const connectSession = require('connect-session-sequelize');
 const cookieParser = require('cookie-parser');
 const express = require('express');
-const fs = require('fs');
 const passport = require('passport');
 const path = require('path');
 const paths = require('fbcnms-webpack-config/paths');
@@ -101,7 +100,6 @@ app.use('/nodeupdateservice', require('../server/nodeupdateservice/routes'));
 app.use('/topology', require('../server/topology/routes'));
 app.use('/user', require('../server/user/routes'));
 app.use('/network_test', require('../server/network_test/routes'));
-app.use('/nodelogs', require('../server/nodelogs/routes'));
 app.use('/websockets', require('../server/websockets/routes'));
 app.use('/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
@@ -113,18 +111,6 @@ app.use(
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();
-
-// Check if nodelogs directory exists
-const {NODELOG_DIR} = require('../server/config');
-let NODELOGS_ENABLED = false;
-try {
-  NODELOGS_ENABLED = fs.statSync(NODELOG_DIR).isDirectory();
-} catch (_err) {}
-if (!NODELOGS_ENABLED) {
-  logger.error(
-    'Node logs directory not found! (NODELOG_DIR=' + NODELOG_DIR + ')',
-  );
-}
 
 app.use(
   webpackSmartMiddleware({
@@ -193,7 +179,6 @@ app.get('*', (req, res) => {
       configObj.env[key] = process.env[key];
     }
   });
-  configObj.env.NODELOGS_ENABLED = NODELOGS_ENABLED;
 
   res.render('index', {
     staticDist: staticDist,
