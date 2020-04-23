@@ -26,19 +26,19 @@ call Create_Scan_Service();
 
 SELECT 'Creating scan_service tables.' AS '';
 
-CREATE TABLE scan_results (                                                                                                                                                                     
-    id INTEGER NOT NULL AUTO_INCREMENT,                                                                                                                                                         
-    group_id INTEGER,                                                                                                                                                                           
-    n_responses_waiting INTEGER,                                                                                                                                                                
-    network_name VARCHAR(255) NOT NULL,                                                                                                                                                         
-    resp_id INTEGER NOT NULL,                                                                                                                                                                   
+CREATE TABLE IF NOT EXISTS scan_results (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    group_id INTEGER,
+    n_responses_waiting INTEGER,
+    network_name VARCHAR(255) NOT NULL,
+    resp_id INTEGER NOT NULL,
     scan_mode ENUM(
       'COARSE',
       'FINE',
       'SELECTIVE',
       'RELATIVE'
-    ) NOT NULL,                                                                                                                            
-    scan_result_path VARCHAR(255),                                                                                                                                                              
+    ) NOT NULL,
+    scan_result_path VARCHAR(255),
     scan_sub_type ENUM(
       'NO_CAL',
       'TOP_RX_CAL',
@@ -51,7 +51,7 @@ CREATE TABLE scan_results (
       'RX_CBF_VICTIM',
       'TX_CBF_AGGRESSOR',
       'TX_CBF_VICTIM'
-    ),           
+    ),
     scan_type ENUM(
       'PBF',
       'IM',
@@ -60,8 +60,8 @@ CREATE TABLE scan_results (
       'CBF_RX',
       'TOPO',
       'TEST_UPD_AWV'
-    ) NOT NULL,                                                                                                        
-    start_bwgd BIGINT NOT NULL,                                                                                                                                                                 
+    ) NOT NULL,
+    start_bwgd BIGINT NOT NULL,
     status ENUM(
       'COMPLETE',
       'INVALID_TYPE',
@@ -76,12 +76,12 @@ CREATE TABLE scan_results (
       'EXPIRED_TSF',
       'INCOMPL_RTCAL_BEAMS_FOR_VBS'
     ) NOT NULL,
-    timestamp DATETIME NOT NULL DEFAULT now(),                                                                                                                                                  
-    token INTEGER NOT NULL,                                                                                                                                                                     
-    tx_node_name VARCHAR(255) NOT NULL,                                                                                                                                                         
-    tx_power INTEGER,                                                                                                                                                                           
-    PRIMARY KEY (id)                                                                                                                                                                            
-); 
+    timestamp DATETIME NOT NULL DEFAULT now(),
+    token INTEGER NOT NULL,
+    tx_node_name VARCHAR(255) NOT NULL,
+    tx_power INTEGER,
+    PRIMARY KEY (id)
+);
 
 CREATE TABLE IF NOT EXISTS `scan_response_rate` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -127,4 +127,16 @@ CREATE TABLE IF NOT EXISTS `scan_response_rate` (
   `total_rx_resp` int(11) DEFAULT NULL,
   `rx_errors` json DEFAULT NULL,
   PRIMARY KEY (`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS connectivity_results (
+  id INTEGER NOT NULL AUTO_INCREMENT,
+  group_id INTEGER DEFAULT NULL,
+  network_name VARCHAR(255) NOT NULL,
+  token INTEGER NOT NULL,
+  tx_node VARCHAR(255) NOT NULL,
+  rx_node VARCHAR(255) NOT NULL,
+  routes json NOT NULL,
+  PRIMARY KEY (id)
 );
