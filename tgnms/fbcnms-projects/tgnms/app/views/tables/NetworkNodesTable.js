@@ -5,15 +5,27 @@
  * @flow
  */
 
-import CustomTable from '../../components/common/CustomTable';
+import Collapse from '@material-ui/core/Collapse';
+import Divider from '@material-ui/core/Divider';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
 import NetworkContext from '../../contexts/NetworkContext';
+import Paper from '@material-ui/core/Paper';
 import React from 'react';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
-import {SortDirection} from 'react-virtualized';
 import {TopologyElementType} from '../../constants/NetworkConstants';
 import {isNodeAlive} from '../../helpers/NetworkHelpers';
-import {renderStatusColor} from '../../helpers/TableHelpers';
-
 import type {NetworkContextType} from '../../contexts/NetworkContext';
 
 type NetworkNodeRowType = {
@@ -35,116 +47,72 @@ type Props = {
 };
 
 type State = {
-  selectedNodes: Array<string>,
   selectedSite: ?string,
-  sortBy: string,
-  sortDirection: $Values<typeof SortDirection>,
+  openSections: {[string]: boolean},
 };
 
 // TODO add logic when selecting nodes
 export default class NetworkNodesTable extends React.Component<Props, State> {
   state = {
     // Selected elements (derived from NetworkContext)
-    selectedNodes: [],
     selectedSite: null,
 
-    // Keep track of current sort state
-    sortBy: 'site_name',
-    sortDirection: SortDirection.ASC,
+    // Keep track of sections opened
+    openSections: {}, // site_name: boolean
   };
 
   static getDerivedStateFromProps(nextProps: Props, _prevState: State) {
     // Update selected rows
-    const {selectedElement, siteToNodesMap} = nextProps.context;
+    const {selectedElement} = nextProps.context;
 
-    if (selectedElement) {
-      if (selectedElement.type === TopologyElementType.NODE) {
-        return {selectedNodes: [selectedElement.name]};
-      } else if (selectedElement.type === TopologyElementType.SITE) {
-        return {
-          selectedNodes: Array.from<string>(
-            siteToNodesMap[selectedElement.name],
-          ),
-          selectedSite: selectedElement.name,
-        };
-      }
+    if (selectedElement && selectedElement.type === TopologyElementType.SITE) {
+      return {
+        selectedSite: selectedElement.name,
+      };
     }
-    return {selectedNodes: [], selectedSite: null};
+    return {selectedSite: null};
   }
 
   headers = [
     {
       label: 'Name',
       key: 'name',
-      isKey: true,
-      width: 200,
-      sort: true,
-      filter: true,
     },
-    {label: 'MAC', key: 'mac_addr', width: 160, sort: true, filter: true},
+    {label: 'MAC', key: 'mac_addr'},
     {
       label: 'IPv6',
       key: 'ipv6',
-      width: 180,
-      sort: true,
-      filter: true,
-      render: this.renderNullable.bind(this),
     },
-    {label: 'Type', key: 'node_type', width: 80, sort: true},
+    {label: 'Type', key: 'node_type'},
     {
       label: 'Board ID',
       key: 'hw_board_id',
-      width: 180,
-      sort: true,
-      render: this.renderNullable.bind(this),
     },
     {
       label: 'Alive?',
       key: 'alive',
-      width: 90,
-      sort: true,
-      render: renderStatusColor,
     },
     {
       label: 'Site',
       key: 'site_name',
-      width: 160,
-      sort: true,
-      sortFunc: this.siteSortFunc.bind(this),
     },
     {
       label: 'POP?',
       key: 'pop_node',
-      width: 120,
-      sort: true,
-      render: renderStatusColor,
     },
     {
       label: 'Minion Restarts (24hr)',
       key: 'minion_restarts',
-      width: 140,
-      sort: true,
-      render: this.renderNullable.bind(this),
     },
     {
       label: 'Image Version',
       key: 'version',
-      width: 700,
-      sort: true,
-      render: this.renderNullable.bind(this),
     },
     {
       label: 'Uboot Version',
       key: 'uboot_version',
-      width: 700,
-      sort: true,
-      render: this.renderNullable.bind(this),
     },
   ];
-
-  rowHeight = 60;
-  headerHeight = 80;
-  overscanRowCount = 10;
 
   _trimVersionString(v: string) {
     const releasePrefix = 'RELEASE_ ';
@@ -152,11 +120,15 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
     return index >= 0 ? v.substring(index) : v;
   }
 
-  getTableRows(context: NetworkContextType): Array<NetworkNodeRowType> {
-    const {networkConfig} = context;
-    const {topology, status_dump} = networkConfig;
+  getTableRows(
+    context: NetworkContextType,
+    siteName: string,
+  ): Array<NetworkNodeRowType> {
+    const {networkConfig, nodeMap, siteToNodesMap} = context;
+    const {status_dump} = networkConfig;
     const rows = [];
-    topology.nodes.forEach(node => {
+    siteToNodesMap[siteName].forEach(nodeName => {
+      const node = nodeMap[nodeName];
       const statusReport =
         status_dump &&
         status_dump.statusReports &&
@@ -213,86 +185,116 @@ export default class NetworkNodesTable extends React.Component<Props, State> {
     return rows;
   }
 
-  tableOnRowSelect = (row: NetworkNodeRowType) => {
-    // Select a row
+  tableOnRowSelect = (nodeName: string) => {
+    // Select a node
     const {context} = this.props;
-    context.setSelected(TopologyElementType.NODE, row.name);
+    context.setSelected(TopologyElementType.NODE, nodeName);
   };
 
-  siteSortFunc(
-    a: NetworkNodeRowType,
-    b: NetworkNodeRowType,
-    order: $Values<typeof SortDirection>,
-  ) {
-    // order is desc or asc
-    const {selectedSite} = this.state;
-    if (selectedSite) {
-      // Move selected site nodes to the top
-      if (a.site_name === selectedSite) {
-        return -1;
-      } else if (b.site_name === selectedSite) {
-        return 1;
-      }
-    }
-
-    if (order === SortDirection.DESC) {
-      if (a.site_name > b.site_name) {
-        return -1;
-      } else if (a.site_name < b.site_name) {
-        return 1;
-      }
-      return 0;
-    } else {
-      if (a.site_name < b.site_name) {
-        return -1;
-      } else if (a.site_name > b.site_name) {
-        return 1;
-      }
-      return 0;
-    }
-  }
-
-  tableOnSortChange = (
-    sortBy: string,
-    sortDirection: $Values<typeof SortDirection>,
-  ) => {
+  toggleSection = (siteName: string) => {
+    const {openSections} = this.state;
     this.setState({
-      sortBy,
-      sortDirection,
-      selectedSite: sortBy === 'site_name' ? this.state.selectedSite : null,
+      openSections: {...openSections, [siteName]: !openSections[siteName]},
     });
   };
 
-  renderNullable(cell: number, _row: NetworkNodeRowType) {
-    if (cell === null) {
-      return <span style={{fontStyle: 'italic'}}>Not Available</span>;
+  renderCell = (cell: number | string | ?boolean) => {
+    if (typeof cell === 'boolean') {
+      return <span>{cell ? 'Yes' : 'No'}</span>;
     } else {
-      return <span>{'' + cell}</span>;
+      return cell ? (
+        <span>{cell}</span>
+      ) : (
+        <span style={{fontStyle: 'italic'}}>Not Available</span>
+      );
     }
-  }
+  };
 
   render() {
     const {context} = this.props;
-    const {sortBy, sortDirection, selectedNodes} = this.state;
-
+    const {openSections} = this.state;
+    const {nodeMap, siteToNodesMap} = context;
+    const sites = context.networkConfig.topology.sites;
     return (
       <NetworkContext.Consumer>
-        {() => {
-          return (
-            <CustomTable
-              rowHeight={this.rowHeight}
-              headerHeight={this.headerHeight}
-              overscanRowCount={this.overscanRowCount}
-              columns={this.headers}
-              data={this.getTableRows(context)}
-              sortBy={sortBy}
-              sortDirection={sortDirection}
-              onRowSelect={row => this.tableOnRowSelect(row)}
-              onSortChange={this.tableOnSortChange}
-              selected={selectedNodes}
-            />
-          );
-        }}
+        {() => (
+          <List style={{overflow: 'auto'}}>
+            {sites.map(site => {
+              const onlineCount = [
+                ...siteToNodesMap[site.name],
+              ].filter(nodeName => isNodeAlive(nodeMap[nodeName].status))
+                .length;
+              return (
+                <React.Fragment key={site.name}>
+                  <ListItem
+                    button
+                    onClick={() => this.toggleSection(site.name)}>
+                    <ListItemIcon>
+                      <LocationOnIcon />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={site.name}
+                      secondary={`${onlineCount}/${
+                        siteToNodesMap[site.name].size
+                      } nodes online`}
+                    />
+                    {openSections[site.name] ? <ExpandLess /> : <ExpandMore />}
+                  </ListItem>
+                  <Collapse in={openSections[site.name]} unmountOnExit>
+                    <TableContainer component={Paper}>
+                      <Table size="medium">
+                        <TableHead>
+                          <TableRow>
+                            {this.headers.map(header => (
+                              <TableCell key={header.label} align="center">
+                                {header.label}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {this.getTableRows(context, site.name).map(
+                            (row, i) => (
+                              <TableRow
+                                key={row.name + '-' + i}
+                                onClick={() => this.tableOnRowSelect(row.name)}>
+                                {Object.keys(row)
+                                  .sort((a, b) => {
+                                    const aIndex = this.headers.findIndex(
+                                      header => header.key === a,
+                                    );
+                                    const bIndex = this.headers.findIndex(
+                                      header => header.key === b,
+                                    );
+                                    if (aIndex > bIndex) {
+                                      return 1;
+                                    }
+                                    if (aIndex < bIndex) {
+                                      return -1;
+                                    }
+                                    return 0;
+                                  })
+                                  .filter(key => key != 'name')
+                                  .map(key => (
+                                    <TableCell
+                                      key={row.name + '-' + key}
+                                      align="center">
+                                      {this.renderCell(row[key])}
+                                    </TableCell>
+                                  ))}
+                              </TableRow>
+                            ),
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Collapse>
+                  <Divider />
+                </React.Fragment>
+              );
+            })}
+          </List>
+        )}
       </NetworkContext.Consumer>
     );
   }
