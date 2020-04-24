@@ -86,6 +86,17 @@ class NetworkTestResult(Base):
     link_name = Column(String(255), nullable=True)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
     end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
+    # Firmware Columns
+    mcs_avg = Column(Float, nullable=True)
+    rssi_avg = Column(Float, nullable=True)
+    snr_avg = Column(Float, nullable=True)
+    rx_beam_idx = Column(Float, nullable=True)
+    rx_packet_count = Column(Float, nullable=True)
+    rx_per = Column(Float, nullable=True)
+    tx_beam_idx = Column(Float, nullable=True)
+    tx_packet_count = Column(Float, nullable=True)
+    tx_per = Column(Float, nullable=True)
+    tx_pwr_avg = Column(Float, nullable=True)
     # Iperf Columns
     iperf_min_throughput = Column(Float, nullable=True)
     iperf_max_throughput = Column(Float, nullable=True)

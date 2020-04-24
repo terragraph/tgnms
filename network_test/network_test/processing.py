@@ -4,12 +4,13 @@
 import logging
 from typing import Any, Dict
 
-from sqlalchemy import update
+from sqlalchemy import select, update
 from tglib.clients import MySQLClient
 
 from .models import NetworkTestResult, NetworkTestStatus
 from .scheduler import Scheduler
-from .stats import compute_iperf_stats, parse_msg
+from .stats import compute_firmware_stats, compute_iperf_stats, parse_msg
+from .suites import Multihop
 
 
 async def process_msg(msg: str) -> None:
@@ -18,11 +19,12 @@ async def process_msg(msg: str) -> None:
     if parsed is None:
         return
 
-    execution_id = Scheduler.get_execution_id(parsed.session_id)
-    if execution_id is None:
+    get_execution_output = Scheduler.get_execution(parsed.session_id)
+    if get_execution_output is None:
         logging.warning(f"Session ID '{parsed.session_id}' has no matching execution")
         return
 
+    execution_id, test = get_execution_output
     values: Dict[str, Any] = {}
     async with MySQLClient().lease() as sa_conn:
         if "error" in parsed.output or not parsed.output["intervals"]:
@@ -35,6 +37,27 @@ async def process_msg(msg: str) -> None:
                 values["iperf_client_blob"] = msg
 
             values.update(compute_iperf_stats(parsed))
+            if not isinstance(test, Multihop):
+                get_results_query = select(
+                    [NetworkTestResult.start_dt, NetworkTestResult.link_name]
+                ).where(
+                    (NetworkTestResult.execution_id == execution_id)
+                    & (NetworkTestResult.src_node_mac == parsed.src_node_id)
+                    & (NetworkTestResult.dst_node_mac == parsed.dst_node_id)
+                )
+
+                cursor = await sa_conn.execute(get_results_query)
+                row = await cursor.first()
+                values.update(
+                    await compute_firmware_stats(
+                        row.start_dt,
+                        test.iperf_options["timeSec"],
+                        test.network_name,
+                        row.link_name,
+                        parsed.src_node_id,
+                        parsed.dst_node_id,
+                    )
+                )
 
         query = (
             update(NetworkTestResult)

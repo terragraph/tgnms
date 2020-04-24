@@ -104,11 +104,11 @@ class Scheduler:
         return execution_id in cls._executions
 
     @classmethod
-    def get_execution_id(cls, session_id: str) -> Optional[int]:
-        """Get the test execution_id for a particular iperf session_id."""
+    def get_execution(cls, session_id: str) -> Optional[Tuple[int, BaseTest]]:
+        """Get the test execution and ID for a particular iperf session_id."""
         for id, execution in cls._executions.items():
             if session_id in execution.session_ids:
-                return id
+                return id, execution
 
         return None
 

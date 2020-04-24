@@ -33,12 +33,13 @@ consts.is_cn = "cn"
 consts.site_name = "siteName"
 consts.link_name = "linkName"
 consts.link_direction = "linkDirection"
-consts.data_interval = "intervalSec"
 consts.network = "network"
 
 # Built-in Prometheus query transformation operators/functions
 ops = SimpleNamespace()
 ops.avg_over_time = lambda query, interval: f"avg_over_time({query} [{interval}])"
+ops.delta = lambda query, interval: f"delta({query} [{interval}])"
+ops.resets = lambda query, interval: f"resets({query} [{interval}])"
 
 
 @dataclasses.dataclass

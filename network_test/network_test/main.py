@@ -27,8 +27,6 @@ async def async_main(config: Dict) -> None:
     async for msg in consumer:
         await process_msg(msg.value.decode("utf-8"))
 
-        # TODO: (omikader) T57575686 Fetch FW stats from Prometheus
-
 
 def main() -> None:
     try:
@@ -44,6 +42,7 @@ def main() -> None:
             ClientType.API_SERVICE_CLIENT,
             ClientType.KAFKA_CONSUMER,
             ClientType.MYSQL_CLIENT,
+            ClientType.PROMETHEUS_CLIENT,
         },
         routes,
     )
