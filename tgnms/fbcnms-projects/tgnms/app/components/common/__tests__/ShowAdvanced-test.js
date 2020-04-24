@@ -9,8 +9,8 @@ import 'jest-dom/extend-expect';
 import React from 'react';
 import ShowAdvanced from '../ShowAdvanced';
 import TextField from '@material-ui/core/TextField';
+import {cast, renderAsync} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
-import {renderAsync} from '../../../tests/testHelpers';
 
 afterEach(cleanup);
 
@@ -47,5 +47,8 @@ test('clicking button twice Opens then closes menu', async () => {
   fireEvent.click(getByText('Show Advanced'));
   expect(getByText('test advanced input')).toBeInTheDocument();
   fireEvent.click(getByText('Show Advanced'));
-  expect(getByText('test advanced input').location === null);
+  expect(
+    cast<{location: ?string}>(getByText('test advanced input')).location ===
+      null,
+  );
 });

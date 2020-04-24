@@ -71,7 +71,7 @@ test('clicking select all selects all nodes', async () => {
     </TestApp>,
   );
   expect(getByText('Node Upgrade Status')).toBeInTheDocument();
-  fireEvent.click(getByTestId('selectAllBox').childNodes[0].childNodes[0]);
+  fireEvent.click(getByTestId('selectAllBox').children[0].children[0]);
   expect(getByText('4 selected')).toBeInTheDocument();
 });
 
@@ -86,7 +86,7 @@ test('clicking select all while nodes are selected deselects all nodes', async (
   fireEvent.click(getByText('test2'));
   expect(getByText('2 selected')).toBeInTheDocument();
   expect(queryByText('Node Upgrade Status')).not.toBeInTheDocument();
-  fireEvent.click(getByTestId('selectAllBox').childNodes[0].childNodes[0]);
+  fireEvent.click(getByTestId('selectAllBox').children[0].children[0]);
   expect(getByText('Node Upgrade Status')).toBeInTheDocument();
 });
 

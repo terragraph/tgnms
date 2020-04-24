@@ -25,6 +25,7 @@ import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
+import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
 import type {User} from '../../shared/auth/User';
 
@@ -173,10 +174,20 @@ export function MapContextWrapper({
  * with
  * const {getByText} = await renderAsync(<MyComponent/>);
  */
-export async function renderAsync(...renderArgs: Array<any>): Promise<any> {
+export async function renderAsync(
+  ...renderArgs: Array<any>
+): Promise<RenderResult<>> {
   let result;
   await act(async () => {
     result = await render(...renderArgs);
   });
-  return result;
+  if (result) {
+    return result;
+  } else {
+    throw new Error();
+  }
+}
+
+export function cast<T>(x: any): T {
+  return (x: T);
 }

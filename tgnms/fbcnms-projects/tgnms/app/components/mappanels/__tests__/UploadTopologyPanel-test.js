@@ -7,7 +7,7 @@
 
 import 'jest-dom/extend-expect';
 import React from 'react';
-import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, cast, renderAsync} from '../../../tests/testHelpers';
 import {UploadTopologyPanel} from '../UploadTopologyPanel';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 import {mockUploadJson} from '../../../tests/data/UploadTopology';
@@ -37,7 +37,9 @@ test('clicking button opens file selector', async () => {
     </TestApp>,
   );
 
-  const inputEl = getByTestId('fileInput');
+  const inputEl = cast<HTMLElement & {files: Array<File>}>(
+    getByTestId('fileInput'),
+  );
   const file = new File([mockUploadJson()], 'test.json', {type: '.json'});
   Object.defineProperty(inputEl, 'files', {value: [file]});
 
