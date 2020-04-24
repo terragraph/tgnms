@@ -14,8 +14,9 @@ import NmsConfig from './views/nms_config/NmsConfig';
 import axios from 'axios';
 import {NmsOptionsContextProvider} from './contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {generatePath, matchPath} from 'react-router';
 import {objectValuesTypesafe} from './helpers/ObjectHelpers';
-import {withRouter} from 'react-router-dom';
+import {useLocation, withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {NetworkConfig} from './contexts/NetworkContext';
@@ -97,7 +98,6 @@ class NetworkListBase extends React.Component<Props, State> {
       // update network list context
       const networkList = response.data;
       this.setState({networkList});
-      this.updateNetworkName(networkList);
     });
   };
 
@@ -106,38 +106,33 @@ class NetworkListBase extends React.Component<Props, State> {
     this.refreshTopologyList();
   };
 
-  updateNetworkName = networkList => {
-    // Update network name if needed based on new network list
-    const currentNetworkName = this.getNetworkName();
-
-    // If current network doesn't exist, redirect to /config
-    if (currentNetworkName && !networkList.hasOwnProperty(currentNetworkName)) {
-      this.props.history.push(CONFIG_URL);
-    }
-  };
-
   getNetworkName = () => {
-    // Return the current network name
-    const splitPath = this.props.location.pathname.split('/');
-    if (splitPath.length >= 3 && splitPath[2].length) {
-      return splitPath[2];
+    const match = matchPath(this.props.location.pathname, {
+      path: '/:viewName/:networkName',
+      strict: false,
+      exact: false,
+    });
+    if (this.state.networkList && match?.params?.networkName != null) {
+      const network = this.state.networkList[match.params.networkName];
+      if (network != null) {
+        return match.params.networkName;
+      } else {
+        return null;
+      }
     }
     return null;
   };
 
-  //TODO: use this.props.match instead of manually parsing the url
-  //TODO: give this a better name
   changeNetworkName = networkName => {
-    // Change the current network name
-    const splitPath = this.props.location.pathname.split('/');
-    if (splitPath.length >= 3) {
-      // replace network name (first parameter)
-      splitPath[2] = networkName;
-    } else {
-      // push network name
-      splitPath.push(networkName);
-    }
-    return splitPath.join('/');
+    const curr = matchPath(this.props.location.pathname, {
+      path: '/:viewName/:networkName?/:rest?',
+    });
+    const newPath = generatePath('/:viewName/:networkName/:rest?', {
+      viewName: curr?.params?.viewName ?? 'map',
+      networkName,
+      rest: curr?.params?.rest,
+    });
+    return newPath;
   };
 
   render() {
@@ -164,13 +159,7 @@ class NetworkListBase extends React.Component<Props, State> {
                   permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
                 />
                 <Route path="/:viewName/:networkName" component={NetworkUI} />
-                <Redirect
-                  to={
-                    defaultNetworkName
-                      ? `/map/${defaultNetworkName}`
-                      : CONFIG_URL
-                  }
-                />
+                <NetworkRedirect defaultNetworkName={defaultNetworkName} />
               </Switch>
             </main>
           </div>
@@ -183,3 +172,18 @@ class NetworkListBase extends React.Component<Props, State> {
 export default withStyles(styles, {withTheme: true})(
   withRouter(NetworkListBase),
 );
+
+function NetworkRedirect({defaultNetworkName}: {defaultNetworkName: ?string}) {
+  const location = useLocation();
+  const match = matchPath(location.pathname, {
+    path: '/:viewName',
+  });
+  const viewName = match?.params?.viewName || 'map';
+  return (
+    <Redirect
+      to={
+        defaultNetworkName ? `/${viewName}/${defaultNetworkName}` : CONFIG_URL
+      }
+    />
+  );
+}

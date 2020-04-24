@@ -178,21 +178,13 @@ class NetworkTables extends React.Component<Props, State> {
             path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests})`}
             component={this.renderNetworkTable}
           />
-          <Redirect exact from={`${match.path}/:table`} to="/404" />
           {/** fixes a routing bug when this view is embedded in another page*/}
           {this.props.isEmbedded !== true && (
             <>
               <Redirect
-                strict
                 exact
                 from={match.path}
                 to={`${match.url}/${TABLE_TYPE.nodes}`}
-              />
-              {/* Handle trailing slash */}
-              <Redirect
-                exact
-                from={match.path}
-                to={`${match.url}${TABLE_TYPE.nodes}`}
               />
             </>
           )}
