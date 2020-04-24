@@ -37,6 +37,7 @@ class BaseTest(abc.ABC):
         self.whitelist: List[str] = whitelist or []
         self.session_ids: Set[str] = set()
         self.task: Optional[asyncio.Task] = None
+        self.cleanup_handle: Optional[asyncio.Handle] = None
 
     @abc.abstractmethod
     async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
@@ -64,10 +65,11 @@ class BaseTest(abc.ABC):
         the API service.
         """
         # Cancel the task
-        if self.task is None:
+        if self.task is None or self.cleanup_handle is None:
             return False
 
         self.task.cancel()
+        self.cleanup_handle.cancel()
         with suppress(asyncio.CancelledError):
             await self.task
 

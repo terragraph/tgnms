@@ -277,7 +277,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     if not await Scheduler.delete_schedule(schedule_id):
         raise web.HTTPInternalServerError(text="Failed to delete network test schedule")
 
-    return web.Response(text=f"Successfully deleted network test schedule")
+    return web.Response(text="Successfully deleted network test schedule")
 
 
 @routes.get("/execution")

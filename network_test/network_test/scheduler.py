@@ -6,7 +6,6 @@ import logging
 import time
 from contextlib import suppress
 from datetime import datetime, timedelta
-from functools import partial
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Tuple
 
 from croniter import croniter
@@ -155,8 +154,6 @@ class Scheduler:
 
         # Start all of the schedules in the DB
         for row in await cls.list_schedules():
-            schedule = Schedule(row.enabled, row.cron_expr)
-
             test: BaseTest
             if row.test_type == NetworkTestType.MULTIHOP:
                 test = Multihop(row.network_name, row.iperf_options, row.whitelist)
@@ -165,6 +162,7 @@ class Scheduler:
             elif row.test_type == NetworkTestType.SEQUENTIAL:
                 test = Sequential(row.network_name, row.iperf_options, row.whitelist)
 
+            schedule = Schedule(row.enabled, row.cron_expr)
             cls._schedules[row.id] = schedule
             schedule.task = asyncio.create_task(
                 schedule.start(test, row.test_type, row.params_id)
@@ -319,9 +317,12 @@ class Scheduler:
         test.task = asyncio.create_task(test.start(execution_id, test_assets))
 
         # Schedule the cleanup task
-        cleanup = partial(asyncio.create_task, cls.stop_execution(execution_id))
         loop = asyncio.get_event_loop()
-        loop.call_later(estimated_duration.total_seconds() + cls.timeout, cleanup)
+        test.cleanup_handle = loop.call_later(
+            estimated_duration.total_seconds() + cls.timeout,
+            asyncio.create_task,
+            cls.stop_execution(execution_id),
+        )
 
         return execution_id
 
@@ -339,7 +340,7 @@ class Scheduler:
                 .values(status=NetworkTestStatus.ABORTED)
             )
 
-            # Mark the entire execution as ABORTED if all sessions had to be terminated
+            # Mark the entire execution as ABORTED if any sessions had to be terminated
             result = await sa_conn.execute(update_result_query)
             update_execution_query = (
                 update(NetworkTestExecution)
@@ -348,7 +349,7 @@ class Scheduler:
                     status=NetworkTestStatus.FAILED
                     if not test.session_ids
                     else NetworkTestStatus.ABORTED
-                    if len(test.session_ids) == result.rowcount
+                    if result.rowcount
                     else NetworkTestStatus.FINISHED
                 )
             )

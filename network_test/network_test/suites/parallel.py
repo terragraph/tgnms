@@ -40,7 +40,6 @@ class Parallel(BaseTest):
             client = APIServiceClient(timeout=1)
             topology = await client.request(self.network_name, "getTopology")
             whitelist_set = set(self.whitelist)
-
             test_assets = []
             for link in topology["links"]:
                 if link["link_type"] != LinkType.WIRELESS:

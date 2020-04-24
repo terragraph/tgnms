@@ -46,12 +46,11 @@ def parse_msg(msg: str) -> Optional[ParsedIperfMsg]:
 
 
 def compute_iperf_stats(parsed: ParsedIperfMsg) -> Dict:
-    if parsed.options["protocol"] == IperfTransportProtocol.TCP:
-        return compute_tcp_iperf_stats(parsed)
-    elif parsed.options["protocol"] == IperfTransportProtocol.UDP:
-        return compute_udp_iperf_stats(parsed)
-    else:
-        return {}
+    return (
+        compute_tcp_iperf_stats(parsed)
+        if parsed.options["protocol"] == IperfTransportProtocol.TCP
+        else compute_udp_iperf_stats(parsed)
+    )
 
 
 def compute_tcp_iperf_stats(parsed: ParsedIperfMsg) -> Dict:

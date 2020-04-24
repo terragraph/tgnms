@@ -7,6 +7,7 @@ import random
 from datetime import timedelta
 from typing import Dict, List, Optional, Tuple
 
+from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
@@ -23,7 +24,8 @@ class Multihop(BaseTest):
             iperf_options["bitrate"] = 300000000  # 300 MB/s
         if "timeSec" not in iperf_options:
             iperf_options["timeSec"] = 60  # 1 minute
-        if "omitSec" not in iperf_options:
+        if "protocol" not in iperf_options:
+            iperf_options["protocol"] = IperfTransportProtocol.TCP
             iperf_options["omitSec"] = 2  # 2 seconds
 
         super().__init__(network_name, iperf_options, whitelist)
@@ -42,37 +44,41 @@ class Multihop(BaseTest):
         try:
             client = APIServiceClient(timeout=1)
             topology = await client.request(self.network_name, "getTopology")
-
-            # Shuffle the nodes to avoid picking the same site representative each time
-            random.shuffle(topology["nodes"])
-
-            site_to_node_rep: Dict[str, str] = {}
+            nodes: List[str] = []
             name_to_mac: Dict[str, str] = {}
-            for node in topology["nodes"]:
-                name_to_mac[node["name"]] = node["mac_addr"]
-                if not node["pop_node"] and node["site_name"] not in site_to_node_rep:
-                    site_to_node_rep[node["site_name"]] = node["name"]
+            if self.whitelist:
+                whitelist_set = set(self.whitelist)
+                for node in topology["nodes"]:
+                    if node["pop_node"]:
+                        name_to_mac[node["name"]] = node["mac_addr"]
+                    elif node["name"] in whitelist_set:
+                        name_to_mac[node["name"]] = node["mac_addr"]
+                        nodes.append(node["name"])
+            else:
+                # Shuffle the nodes to avoid picking the same site representative each time
+                random.shuffle(topology["nodes"])
+                site_to_node_rep: Dict[str, str] = {}
+                for node in topology["nodes"]:
+                    if node["pop_node"]:
+                        name_to_mac[node["name"]] = node["mac_addr"]
+                    elif node["site_name"] not in site_to_node_rep:
+                        name_to_mac[node["name"]] = node["mac_addr"]
+                        site_to_node_rep[node["site_name"]] = node["name"]
+                nodes = list(site_to_node_rep.values())
 
             default_routes = (
                 await client.request(
-                    self.network_name,
-                    "getDefaultRoutes",
-                    params={"nodes": list(site_to_node_rep.values())},
+                    self.network_name, "getDefaultRoutes", params={"nodes": nodes}
                 )
             ).get("defaultRoutes")
             if default_routes is None:
                 logging.error(f"No default routes available for {self.network_name}")
                 return None
 
-            whitelist_set = set(self.whitelist)
             test_assets = []
             for node_name, routes in default_routes.items():
-                if self.whitelist and node_name not in whitelist_set:
-                    continue
-
                 # Pick a random PoP node from the default routes if ECMP
                 pop_name = routes[random.randint(0, len(routes) - 1)][-1]
-
                 test_assets.append(
                     TestAsset(name_to_mac[node_name], name_to_mac[pop_name])
                 )
