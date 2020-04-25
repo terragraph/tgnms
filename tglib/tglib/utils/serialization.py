@@ -10,7 +10,8 @@ def thrift2binary(thrift_obj) -> bytes:
     transport = TTransport.TMemoryBuffer()
     protocol = TBinaryProtocol.TBinaryProtocol(transport)
     thrift_obj.write(protocol)
-    return transport.getvalue()
+    value: bytes = transport.getvalue()
+    return value
 
 
 def thrift2json(thrift_obj) -> bytes:
@@ -18,4 +19,5 @@ def thrift2json(thrift_obj) -> bytes:
     transport = TTransport.TMemoryBuffer()
     protocol = TJSONProtocol.TJSONProtocol(transport)
     thrift_obj.write(protocol)
-    return transport.getvalue()
+    value: bytes = transport.getvalue()
+    return value

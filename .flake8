@@ -8,6 +8,6 @@ exclude =
   .hg,
   __pycache__,
   _bin/*,
-  _build/*,
+  _build/*
 
 max-complexity = 12

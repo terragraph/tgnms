@@ -99,7 +99,7 @@ RUN apk update && apk add --no-cache python3 && \
 
 # Copy tglib source and raw thrift files
 WORKDIR /usr/local/tglib
-COPY tglib/ .
+COPY tglib/ .flake8 ./
 COPY if/*.thrift ./if/
 
 # Compile thrift files
