@@ -165,10 +165,10 @@ class NetworkMap extends React.Component<Props, State> {
 
   handleTableResize = height => {
     // Handle dragger resize event on the table
-    this.setState({tableHeight: height});
-
-    // Force map to resize
-    window.dispatchEvent(new Event('resize'));
+    this.setState({tableHeight: height}, () =>
+      // Force map to resize
+      window.dispatchEvent(new Event('resize')),
+    );
   };
 
   onToggleTable = (showTable?: boolean) => {
@@ -345,6 +345,8 @@ class NetworkMap extends React.Component<Props, State> {
                     location={location}
                     history={history}
                     isEmbedded={true}
+                    onResize={this.handleTableResize}
+                    tableHeight={tableHeight}
                   />
                 </div>
               )}
