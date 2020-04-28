@@ -23,7 +23,11 @@ import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {LinkType, TopologyType} from '../../../shared/types/Topology';
+import type {
+  LinkType,
+  NodeType as Node,
+  TopologyType,
+} from '../../../shared/types/Topology';
 
 const styles = {
   button: {
@@ -40,6 +44,7 @@ type Props = {
   onClose: () => any,
   initialParams: {},
   networkName: string,
+  nodeMap: {[string]: Node},
   topology: TopologyType,
 };
 
@@ -52,6 +57,9 @@ type State = {
   is_backup_cn_link?: boolean,
   initialParams: {},
 };
+
+const MAX_DN = 2;
+const MAX_CN = 15;
 
 class AddLinkPanel extends React.Component<Props, State> {
   constructor(props) {
@@ -85,6 +93,77 @@ class AddLinkPanel extends React.Component<Props, State> {
     this.setState(this.props.initialParams);
   }
 
+  countConnectedNodesByType(nodes: Array<Node>, links: Array<LinkType>) {
+    const {nodeMap} = this.props;
+    const nodeCounter = {};
+    nodes.forEach(node => {
+      nodeCounter[node.name] = {cn: 0, dn: 0};
+      if (node.node_type === NodeType.DN) {
+        links.forEach(link => {
+          const nodeNames = [link.a_node_name, link.z_node_name];
+          if (nodeNames.includes(node.name)) {
+            const otherNodeName =
+              node.name === nodeNames[0] ? nodeNames[1] : nodeNames[0];
+            const otherNode = nodeMap[otherNodeName];
+            otherNode.node_type === NodeType.DN
+              ? nodeCounter[node.name].dn++
+              : nodeCounter[node.name].cn++;
+          }
+        });
+      }
+    });
+    return nodeCounter;
+  }
+
+  validateTopologyChange(linkNode1, linkNode2) {
+    const {nodeMap, topology} = this.props;
+
+    const node1 = nodeMap[linkNode1];
+    const node2 = nodeMap[linkNode2];
+    const nodeCounters = this.countConnectedNodesByType(
+      [node1, node2],
+      topology.links,
+    );
+    // nodeCounters: {[nodeName]: {cn: number, dn: number}}
+    const count1 = nodeCounters[node1.name];
+    const count2 = nodeCounters[node2.name];
+    // update counters based on potential new link endpoint's type
+    // alert if limits are exceeded
+    if (count1.cn + (node2.node_type === NodeType.CN ? 1 : 0) > MAX_CN) {
+      swal({
+        title: 'Distribution Limit Exceeded',
+        text: `${node1.name} has already met the limit for CN distribution`,
+        type: 'error',
+      });
+      return false;
+    }
+    if (count1.dn + (node2.node_type === NodeType.DN ? 1 : 0) > MAX_DN) {
+      swal({
+        title: 'Distribution Limit Exceeded',
+        text: `${node1.name} has already met the limit for DN distribution`,
+        type: 'error',
+      });
+      return false;
+    }
+    if (count2.cn + (node1.node_type === NodeType.CN ? 1 : 0) > MAX_CN) {
+      swal({
+        title: 'Distribution Limit Exceeded',
+        text: `${node2.name} has already met the limit for CN distribution`,
+        type: 'error',
+      });
+      return false;
+    }
+    if (count2.dn + (node1.node_type === NodeType.DN ? 1 : 0) > MAX_DN) {
+      swal({
+        title: 'Distribution Limit Exceeded',
+        text: `${node2.name} has already met the limit for DN distribution`,
+        type: 'error',
+      });
+      return false;
+    }
+    return true;
+  }
+
   onSubmit() {
     const {networkName, onClose} = this.props;
     const {
@@ -101,6 +180,14 @@ class AddLinkPanel extends React.Component<Props, State> {
         text: 'Please fill in all form fields.',
         type: 'error',
       });
+      return;
+    }
+
+    // max CN and DN distrubtion per DN check
+    if (
+      link_type === LinkTypeValueMap.WIRELESS &&
+      !this.validateTopologyChange(linkNode1, linkNode2)
+    ) {
       return;
     }
 

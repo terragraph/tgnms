@@ -375,6 +375,7 @@ export default function TopologyBuilderMenu(props: Props) {
           initialParams={linkPanel.panelParams}
           topology={topology}
           networkName={networkName}
+          nodeMap={context.nodeMap}
         />
       </Slide>
       <Slide {...SlideProps} unmountOnExit in={sitePanel.showPanel}>
