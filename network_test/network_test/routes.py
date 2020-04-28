@@ -11,7 +11,7 @@ from aiohttp import web
 from croniter import croniter
 from tglib.clients import APIServiceClient
 
-from .models import NetworkTestType
+from .models import NetworkTestStatus, NetworkTestType
 from .scheduler import Schedule, Scheduler
 from .suites import BaseTest, Multihop, Parallel, Sequential
 
@@ -35,14 +35,58 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     description: Return all of the network test schedules and their current params.
     tags:
     - Network Test
+    parameters:
+    - in: query
+      name: test_type
+      description: The type of network test.
+      schema:
+        type: string
+    - in: query
+      name: network_name
+      description: The name of the network.
+      schema:
+        type: string
+    - in: query
+      name: protocol
+      description: The iperf transport protocol (6=TCP, 17=UDP).
+      schema:
+        type: int
+        enum: [6, 17]
     produces:
     - application/json
     responses:
       "200":
         description: Successful operation.
+      "400":
+        description: Invalid filter parameters.
     """
+    test_type = request.rel_url.query.get("test_type")
+    if test_type is not None:
+        if NetworkTestType.has_value(test_type):
+            test_type = NetworkTestType(test_type)
+        else:
+            raise web.HTTPBadRequest(text=f"Invalid 'test_type': {test_type}")
+
+    network_name = request.rel_url.query.get("network_name")
+
+    protocol = request.rel_url.query.get("protocol")
+    if protocol is not None:
+        try:
+            protocol = int(protocol)
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text=f"'protocol' must be a valid integer value: {protocol}"
+            )
+
     return web.json_response(
-        {"schedules": [dict(row) for row in await Scheduler.list_schedules()]},
+        {
+            "schedules": [
+                dict(row)
+                for row in await Scheduler.list_schedules(
+                    test_type, network_name, protocol
+                )
+            ]
+        },
         dumps=partial(json.dumps, default=custom_serializer),
     )
 
@@ -51,7 +95,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
 async def handle_get_schedule(request: web.Request) -> web.Response:
     """
     ---
-    description: Return the network test schedule and params for a particular network test schedule ID.
+    description: Return the network test schedule, params, and execution history for a particular network test schedule ID.
     tags:
     - Network Test
     produces:
@@ -70,14 +114,15 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
         description: Unknown network test schedule ID.
     """
     schedule_id = int(request.match_info["schedule_id"])
-    schedule = await Scheduler.list_schedules(schedule_id)
-    if not schedule:
+    schedule_output = await Scheduler.describe_schedule(schedule_id)
+    if schedule_output is None:
         raise web.HTTPNotFound(
             text=f"No network test schedule with ID '{schedule_id}' was found"
         )
 
+    schedule, executions = schedule_output
     return web.json_response(
-        {"schedule": dict(schedule)},
+        {"schedule": dict(schedule), "executions": [dict(row) for row in executions]},
         dumps=partial(json.dumps, default=custom_serializer),
     )
 
@@ -136,10 +181,10 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
     schedule = Schedule(enabled, cron_expr)
 
     test_type = body.get("test_type")
+    if test_type is None:
+        raise web.HTTPBadRequest(text="Missing required 'test_type' param")
     if not NetworkTestType.has_value(test_type):
-        raise web.HTTPBadRequest(
-            text=f"No network test type for '{test_type}' was found"
-        )
+        raise web.HTTPBadRequest(text=f"Invalid 'test_type': {test_type}")
     test_type = NetworkTestType(test_type)
 
     network_name = body.get("network_name")
@@ -287,14 +332,84 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     description: Return all of the network test executions and their params.
     tags:
     - Network Test
+    parameters:
+    - in: query
+      name: test_type
+      description: The type of network test.
+      schema:
+        type: string
+    - in: query
+      name: network_name
+      description: The name of the network.
+      schema:
+        type: string
+    - in: query
+      name: protocol
+      description: The iperf transport protocol (6=TCP, 17=UDP).
+      schema:
+        type: int
+        enum: [6, 17]
+    - in: query
+      name: status
+      description: The status of the execution.
+      schema:
+        type: string
+    - in: query
+      name: start_dt
+      description: The start UTC offset-naive datetime in ISO 8601 format.
+      schema:
+        type: string
     produces:
     - application/json
     responses:
       "200":
         description: Successful operation.
+      "400":
+        description: Invalid filter parameters.
     """
+    test_type = request.rel_url.query.get("test_type")
+    if test_type is not None:
+        if NetworkTestType.has_value(test_type):
+            test_type = NetworkTestType(test_type)
+        else:
+            raise web.HTTPBadRequest(text=f"Invalid 'test_type': {test_type}")
+
+    network_name = request.rel_url.query.get("network_name")
+
+    protocol = request.rel_url.query.get("protocol")
+    if protocol is not None:
+        try:
+            protocol = int(protocol)
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text=f"'protocol' must be a valid integer value: {protocol}"
+            )
+
+    status = request.rel_url.query.get("status")
+    if status is not None:
+        if NetworkTestStatus.has_value(status):
+            status = NetworkTestStatus(status)
+        else:
+            raise web.HTTPBadRequest(text=f"Invalid 'status': {status}")
+
+    start_dt = request.rel_url.query.get("start_dt")
+    if start_dt is not None:
+        try:
+            start_dt = datetime.fromisoformat(start_dt)
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text=f"'start_dt' must be valid ISO 8601 format: {start_dt}"
+            )
+
     return web.json_response(
-        {"executions": [dict(row) for row in await Scheduler.list_executions()]},
+        {
+            "executions": [
+                dict(row)
+                for row in await Scheduler.list_executions(
+                    test_type, network_name, protocol, status, start_dt
+                )
+            ]
+        },
         dumps=partial(json.dumps, default=custom_serializer),
     )
 
@@ -303,7 +418,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:
 async def handle_get_execution(request: web.Request) -> web.Response:
     """
     ---
-    description: Return the network test execution, params, results for a particular network test execution ID.
+    description: Return the network test execution, params, and results for a particular network test execution ID.
     tags:
     - Network Test
     produces:
@@ -322,13 +437,13 @@ async def handle_get_execution(request: web.Request) -> web.Response:
         description: Unknown network test execution ID.
     """
     execution_id = int(request.match_info["execution_id"])
-    execution = await Scheduler.list_executions(execution_id)
-    if not execution:
+    execution_output = await Scheduler.describe_execution(execution_id)
+    if execution_output is None:
         raise web.HTTPNotFound(
             text=f"No network test execution with ID '{execution_id}' was found"
         )
 
-    results = await Scheduler.list_results(execution_id)
+    execution, results = execution_output
     return web.json_response(
         {"execution": dict(execution), "results": [dict(row) for row in results]},
         dumps=partial(json.dumps, default=custom_serializer),
@@ -377,17 +492,17 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     body = await request.json()
 
     test_type = body.get("test_type")
+    if test_type is None:
+        raise web.HTTPBadRequest(text="Missing required 'test_type' param")
     if not NetworkTestType.has_value(test_type):
-        raise web.HTTPBadRequest(
-            text=f"No network test type for '{test_type}' was found"
-        )
+        raise web.HTTPBadRequest(text=f"Invalid 'test_type': {test_type}")
     test_type = NetworkTestType(test_type)
 
     network_name = body.get("network_name")
     if network_name is None:
         raise web.HTTPBadRequest(text="Missing required 'network_name' param")
     if network_name not in APIServiceClient.network_names():
-        raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
+        raise web.HTTPBadRequest(text=f"Invalid 'network_name': {network_name}")
     if await Scheduler.is_network_busy(network_name):
         raise web.HTTPConflict(text=f"A test is already running on '{network_name}'")
 

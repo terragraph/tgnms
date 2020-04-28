@@ -26,15 +26,19 @@ class NetworkTestType(enum.Enum):
     SEQUENTIAL = "sequential"
 
     @classmethod
-    def has_value(cls, value) -> bool:
+    def has_value(cls, value: str) -> bool:
         return any(value == item.value for item in cls)
 
 
 class NetworkTestStatus(enum.Enum):
-    RUNNING = 1
-    FINISHED = 2
-    ABORTED = 3
-    FAILED = 4
+    RUNNING = "running"
+    FINISHED = "finished"
+    ABORTED = "aborted"
+    FAILED = "failed"
+
+    @classmethod
+    def has_value(cls, value: str) -> bool:
+        return any(value == item.value for item in cls)
 
 
 Base: Any = declarative_base()

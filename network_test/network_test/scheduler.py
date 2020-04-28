@@ -140,7 +140,6 @@ class Scheduler:
                 .where(NetworkTestExecution.status == NetworkTestStatus.RUNNING)
                 .values(status=NetworkTestStatus.ABORTED)
             )
-
             await sa_conn.execute(update_execution_query)
 
             update_result_query = (
@@ -148,7 +147,6 @@ class Scheduler:
                 .where(NetworkTestResult.status == NetworkTestStatus.RUNNING)
                 .values(status=NetworkTestStatus.ABORTED)
             )
-
             await sa_conn.execute(update_result_query)
             await sa_conn.connection.commit()
 
@@ -177,7 +175,6 @@ class Scheduler:
             insert_schedule_query = insert(NetworkTestSchedule).values(
                 enabled=schedule.enabled, cron_expr=schedule.cron_expr
             )
-
             schedule_row = await sa_conn.execute(insert_schedule_query)
             schedule_id = schedule_row.lastrowid
 
@@ -188,7 +185,6 @@ class Scheduler:
                 iperf_options=test.iperf_options,
                 whitelist=test.whitelist or None,
             )
-
             params_row = await sa_conn.execute(insert_params_query)
             params_id = params_row.lastrowid
             await sa_conn.connection.commit()
@@ -275,7 +271,6 @@ class Scheduler:
             query = delete(NetworkTestSchedule).where(
                 NetworkTestSchedule.id == schedule_id
             )
-
             await sa_conn.execute(query)
             await sa_conn.connection.commit()
 
@@ -299,14 +294,12 @@ class Scheduler:
                     iperf_options=test.iperf_options,
                     whitelist=test.whitelist or None,
                 )
-
                 params_row = await sa_conn.execute(insert_params_query)
                 params_id = params_row.lastrowid
 
             insert_execution_query = insert(NetworkTestExecution).values(
                 params_id=params_id, status=NetworkTestStatus.RUNNING
             )
-
             execution_row = await sa_conn.execute(insert_execution_query)
             execution_id = execution_row.lastrowid
             await sa_conn.connection.commit()
@@ -353,7 +346,6 @@ class Scheduler:
                     else NetworkTestStatus.FINISHED
                 )
             )
-
             await sa_conn.execute(update_execution_query)
             await sa_conn.connection.commit()
 
@@ -365,8 +357,48 @@ class Scheduler:
         return True
 
     @staticmethod
-    async def list_schedules(schedule_id: Optional[int] = None) -> Iterable:
-        """Fetch all the schedules, or a particular schedule if given the ID."""
+    async def describe_schedule(
+        schedule_id: int,
+    ) -> Optional[Tuple[Iterable, Iterable]]:
+        """Fetch a particular schedule and its execution history given the ID."""
+        async with MySQLClient().lease() as sa_conn:
+            get_schedule_query = select([NetworkTestSchedule]).where(
+                NetworkTestSchedule.id == schedule_id
+            )
+            cursor = await sa_conn.execute(get_schedule_query)
+            schedule = await cursor.first()
+            if not schedule:
+                return None
+
+            get_executions_query = select(
+                [
+                    NetworkTestParams.test_type,
+                    NetworkTestParams.network_name,
+                    NetworkTestParams.iperf_options,
+                    NetworkTestParams.whitelist,
+                    NetworkTestExecution,
+                ]
+            ).select_from(
+                join(
+                    join(
+                        NetworkTestParams,
+                        NetworkTestSchedule,
+                        NetworkTestParams.schedule_id == NetworkTestSchedule.id,
+                    ),
+                    NetworkTestExecution,
+                    NetworkTestExecution.params_id == NetworkTestParams.id,
+                )
+            )
+            cursor = await sa_conn.execute(get_executions_query)
+            return schedule, await cursor.fetchall()
+
+    @staticmethod
+    async def list_schedules(
+        test_type: Optional[NetworkTestType] = None,
+        network_name: Optional[str] = None,
+        protocol: Optional[int] = None,
+    ) -> Iterable:
+        """Fetch all the schedules, or a subset, with optional filtering."""
         async with MySQLClient().lease() as sa_conn:
             query = (
                 select(
@@ -395,17 +427,68 @@ class Scheduler:
                 )
             )
 
-            if schedule_id is None:
-                cursor = await sa_conn.execute(query)
-                return await cursor.fetchall()
-            else:
-                query = query.where(NetworkTestSchedule.id == schedule_id)
-                cursor = await sa_conn.execute(query)
-                return await cursor.first() or {}
+            # Add filter conditions
+            if test_type is not None:
+                query = query.where(NetworkTestParams.test_type == test_type)
+            if network_name is not None:
+                query = query.where(NetworkTestParams.network_name == network_name)
+            if protocol is not None:
+                query = query.where(
+                    NetworkTestParams.iperf_options["protocol"] == protocol
+                )
+
+            cursor = await sa_conn.execute(query)
+            return await cursor.fetchall()
 
     @staticmethod
-    async def list_executions(execution_id: Optional[int] = None) -> Iterable:
-        """Fetch all the executions, or a particular execution if given the ID."""
+    async def describe_execution(
+        execution_id: int,
+    ) -> Optional[Tuple[Iterable, Iterable]]:
+        """Fetch a particular execution and its results given the ID."""
+        async with MySQLClient().lease() as sa_conn:
+            get_execution_query = (
+                select(
+                    [
+                        NetworkTestExecution,
+                        NetworkTestParams.test_type,
+                        NetworkTestParams.network_name,
+                        NetworkTestParams.iperf_options,
+                        NetworkTestParams.whitelist,
+                    ]
+                )
+                .select_from(
+                    join(
+                        NetworkTestExecution,
+                        NetworkTestParams,
+                        NetworkTestExecution.params_id == NetworkTestParams.id,
+                    )
+                )
+                .where(NetworkTestExecution.id == execution_id)
+            )
+            cursor = await sa_conn.execute(get_execution_query)
+            execution = await cursor.first()
+            if not execution:
+                return None
+
+            ignore_cols = {"execution_id", "iperf_client_blob", "iperf_server_blob"}
+            get_results_query = select(
+                filter(
+                    lambda col: col.key not in ignore_cols,
+                    NetworkTestResult.__table__.columns,
+                )
+            ).where(NetworkTestResult.execution_id == execution_id)
+            cursor = await sa_conn.execute(get_results_query)
+            return execution, await cursor.fetchall()
+
+    @staticmethod
+    async def list_executions(
+        test_type: Optional[NetworkTestType] = None,
+        network_name: Optional[str] = None,
+        protocol: Optional[int] = None,
+        status: Optional[NetworkTestStatus] = None,
+        start_dt: Optional[datetime] = None,
+    ) -> Iterable:
+        """Fetch all the executions, or a subset, with optional filtering."""
         async with MySQLClient().lease() as sa_conn:
             query = select(
                 [
@@ -423,25 +506,19 @@ class Scheduler:
                 )
             )
 
-            if execution_id is None:
-                cursor = await sa_conn.execute(query)
-                return await cursor.fetchall()
-            else:
-                query = query.where(NetworkTestExecution.id == execution_id)
-                cursor = await sa_conn.execute(query)
-                return await cursor.first() or {}
-
-    @staticmethod
-    async def list_results(execution_id: int) -> Iterable:
-        """Fetch the test results for a particular network test execution ID."""
-        async with MySQLClient().lease() as sa_conn:
-            ignore_cols = {"execution_id", "iperf_client_blob", "iperf_server_blob"}
-            query = select(
-                filter(
-                    lambda col: col.key not in ignore_cols,
-                    NetworkTestResult.__table__.columns,
+            # Add filter conditions
+            if test_type is not None:
+                query = query.where(NetworkTestParams.test_type == test_type)
+            if network_name is not None:
+                query = query.where(NetworkTestParams.network_name == network_name)
+            if protocol is not None:
+                query = query.where(
+                    NetworkTestParams.iperf_options["protocol"] == protocol
                 )
-            ).where(NetworkTestResult.execution_id == execution_id)
+            if status is not None:
+                query = query.where(NetworkTestExecution.status == status)
+            if start_dt is not None:
+                query = query.where(NetworkTestExecution.start_dt >= start_dt)
 
             cursor = await sa_conn.execute(query)
             return await cursor.fetchall()
@@ -466,5 +543,4 @@ class Scheduler:
                     )
                 ]
             )
-
             return await sa_conn.scalar(query)
