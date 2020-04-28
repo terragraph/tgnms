@@ -276,11 +276,9 @@ class AddSitePanel extends React.Component<Props, State> {
         </Grid>
         <Grid item>
           <ShowAdvanced
-            children={advancedInputs
-              .filter(_input => formType !== FormType.EDIT)
-              .map(input =>
-                input.func({...input}, this.state, this.setState.bind(this)),
-              )}
+            children={advancedInputs.map(input =>
+              input.func({...input}, this.state, this.setState.bind(this)),
+            )}
           />
         </Grid>
         <div>
