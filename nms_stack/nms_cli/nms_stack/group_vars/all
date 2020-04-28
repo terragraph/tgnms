@@ -45,9 +45,9 @@ terragraph_docker_path: /opt/terragraph
 
 # List of controllers
 #
-# All port numbers should be unique.
-# `controller_list.name` may only contain alphabets, numbers, spaces,
-#  underscores and hyphens
+# All port numbers must be unique.
+# `controller_list.name` may only contain alphabets, numbers, spaces and
+#  underscores
 controllers_list:
     - 'name': 'example_first'
       'ctrlr_port': '7007'

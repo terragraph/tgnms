@@ -30,7 +30,7 @@
   assert:
     that:
       - not("{{ item.name }}" == '')
-      - item.name is match('^[a-zA-Z0-9][a-zA-Z0-9\s_-]*$')
+      - item.name is match('^[a-zA-Z0-9][a-zA-Z0-9\s_]*$')
       - "{{ item.ctrlr_port }} >= 1025"
       - "{{ item.ctrlr_port  }} <= 65535"
       - "{{ item.agg_port }} >= 1025"
@@ -40,6 +40,6 @@
       - "{{ item.bt_seeder_port }} >= 1025"
       - "{{ item.bt_seeder_port  }} <= 65535"
     msg: >
-         Controller name cannot be blank and should only contain letters, numbers, spaces, hyphens, and underscores.
+         Controller name cannot be blank and should only contain letters, numbers, spaces and underscores.
          Controller ports must be between 1025 and 65535.
   with_items: "{{ controllers_list }}"
