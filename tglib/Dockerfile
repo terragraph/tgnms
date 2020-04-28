@@ -68,6 +68,7 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     cd /opt && \
     git clone https://github.com/rsocket/rsocket-cpp.git && \
     cd rsocket-cpp && \
+    git checkout 5683e40dde0b0bdb311c1dc3b0ad1fe39dd78480 && \
     mkdir _build && \
     cd _build && \
     cmake .. -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF && \

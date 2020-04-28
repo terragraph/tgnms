@@ -87,10 +87,12 @@ RUN wget -O /tmp/wangle.tar.gz https://github.com/facebook/wangle/archive/v${FB_
     cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/facebook . && \
     make -j $(nproc) install
 
-# rsocket does not have a working release to pin to
-RUN wget -O /tmp/rsocket-cpp-master.tar.gz https://github.com/rsocket/rsocket-cpp/archive/master.tar.gz && \
-    tar xf /tmp/rsocket-cpp-master.tar.gz && \
-    cd /tmp/rsocket-cpp-master/build && \
+# rsocket-cpp broke against our version of folly in
+# https://github.com/rsocket/rsocket-cpp/commit/a520ddfba9f817e0cb179df8b59bdd55809b1b2b
+RUN git clone https://github.com/rsocket/rsocket-cpp.git /tmp/rsocket-cpp && \
+    cd /tmp/rsocket-cpp && \
+    git checkout 5683e40dde0b0bdb311c1dc3b0ad1fe39dd78480 && \
+    cd build && \
     cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH=/usr/local/facebook/lib/cmake .. && \
     make -j $(nproc) install
 
