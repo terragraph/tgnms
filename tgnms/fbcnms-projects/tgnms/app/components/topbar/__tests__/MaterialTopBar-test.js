@@ -54,26 +54,6 @@ describe('Drawer feature flags', () => {
     );
     expect(result.queryByTestId('menu-toggle')).toBeInTheDocument();
   });
-
-  test('NETWORKTEST_HOST shows/hides Network Tests', () => {
-    let result = renderWithRouter(
-      <TestApp>
-        <MaterialTopBar />
-      </TestApp>,
-    );
-    expect(result.queryByText('Network Tests')).not.toBeInTheDocument();
-    initWindowConfig({
-      env: {
-        NETWORKTEST_HOST: 'example.com',
-      },
-    });
-    result = renderWithRouter(
-      <TestApp>
-        <MaterialTopBar />
-      </TestApp>,
-    );
-    expect(result.getByText('Network Tests')).toBeInTheDocument();
-  });
 });
 
 describe('Network Menu', () => {

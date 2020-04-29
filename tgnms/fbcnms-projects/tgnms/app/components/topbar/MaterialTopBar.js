@@ -29,7 +29,6 @@ import MaterialModal from '../../components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkListContext from '../../contexts/NetworkListContext';
 import NotificationMenu from './NotificationMenu/NotificationMenu';
 import React from 'react';
@@ -164,12 +163,6 @@ const VIEWS = [
     icon: <CloudUploadIcon />,
     viewName: 'upgrade',
     hideCondition: () => !isAuthorized(['UPGRADE_READ', 'UPGRADE_WRITE']),
-  },
-  {
-    name: 'Network Tests',
-    icon: <NetworkCheckIcon />,
-    viewName: 'network_test',
-    hideCondition: () => !isFeatureEnabled('NETWORK_TEST_ENABLED'),
   },
   {
     name: 'Network Config',

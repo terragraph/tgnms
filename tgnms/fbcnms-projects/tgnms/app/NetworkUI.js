@@ -15,7 +15,6 @@ import NetworkListContext from './contexts/NetworkListContext';
 import NetworkMap from './views/map/NetworkMap';
 import NetworkStatsPrometheus from './views/stats/NetworkStatsPrometheus';
 import NetworkTables from './views/tables/NetworkTables';
-import NetworkTest from './views/network_test/NetworkTest';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NmsAlarms from './views/alarms/NmsAlarms';
 import NmsOptionsContext from './contexts/NmsOptionsContext';
@@ -522,10 +521,6 @@ class NetworkUI extends React.Component<Props, State> {
                   networkConfig={this.state.networkConfig}
                 />
               )}
-            />
-            <Route
-              path={'/network_test/:networkName'}
-              component={NetworkTest}
             />
             <Redirect to="/config" />
           </Switch>
