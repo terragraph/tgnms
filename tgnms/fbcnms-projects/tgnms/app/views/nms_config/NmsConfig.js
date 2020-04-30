@@ -82,12 +82,7 @@ const styles = theme => ({
   },
 });
 
-const columns = [
-  'Network',
-  'Primary Controller',
-  'Backup Controller',
-  'Wireless AP Controller',
-];
+const columns = ['Network', 'Primary Controller', 'Backup Controller'];
 
 class NmsConfig extends React.Component {
   state = {
@@ -337,11 +332,7 @@ class NmsConfig extends React.Component {
                   {hasNetworks ? (
                     Object.keys(networkList).map(networkName => {
                       const networkConfig = networkList[networkName];
-                      const {
-                        primary,
-                        backup,
-                        wireless_controller,
-                      } = networkConfig;
+                      const {primary, backup} = networkConfig;
                       return (
                         <TableRow key={networkName} className={classes.row}>
                           <TableCell
@@ -365,9 +356,6 @@ class NmsConfig extends React.Component {
                           </TableCell>
                           {this.renderControllerRow(primary || {})}
                           {this.renderControllerRow(backup || {})}
-                          <TableCell size="small">
-                            {wireless_controller?.url || <em>not set</em>}
-                          </TableCell>
                         </TableRow>
                       );
                     })
