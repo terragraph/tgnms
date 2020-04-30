@@ -10,7 +10,7 @@ import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from './contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
-import NmsConfig from './views/nms_config/NmsConfig';
+import NmsSettings from './views/nms_config/NmsSettings';
 import axios from 'axios';
 import {NmsOptionsContextProvider} from './contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -155,7 +155,7 @@ class NetworkListBase extends React.Component<Props, State> {
               <Switch>
                 <AuthorizedRoute
                   path={CONFIG_URL}
-                  component={NmsConfig}
+                  component={NmsSettings}
                   permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
                 />
                 <Route path="/:viewName/:networkName" component={NetworkUI} />

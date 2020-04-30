@@ -5,7 +5,6 @@
  * @flow
  */
 
-require('dotenv').config();
 const {
   optionalInt,
   requiredBool,
@@ -15,7 +14,6 @@ const {
 const API_REQUEST_TIMEOUT = requiredInt(process.env.API_REQUEST_TIMEOUT, 5000);
 
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
-// NOTE: Login is disabled by default until its deployed publicly
 const LOGIN_ENABLED = requiredBool(process.env.LOGIN_ENABLED, false);
 const SSO_ENABLED = requiredBool(process.env.SSO_ENABLED, false);
 const SESSION_MAX_AGE_MS = optionalInt(process.env.SESSION_MAX_AGE_MS);
@@ -59,6 +57,7 @@ const NODEUPDATE_SERVER_URL =
 const NODEUPDATE_AUTH_TOKEN = process.env.NODEUPDATE_AUTH_TOKEN || '';
 
 // URL and auth token for Terragraph's software portal
+const SOFTWARE_PORTAL_ENABLED = process.env.SOFTWARE_PORTAL_ENABLED || false;
 const SOFTWARE_PORTAL_URL =
   process.env.SOFTWARE_PORTAL_URL || 'https://sw.terragraph.link';
 const SOFTWARE_PORTAL_API_TOKEN =
@@ -115,6 +114,7 @@ module.exports = {
   MYSQL_USER,
   NODEUPDATE_SERVER_URL,
   NODEUPDATE_AUTH_TOKEN,
+  SOFTWARE_PORTAL_ENABLED,
   SOFTWARE_PORTAL_URL,
   SOFTWARE_PORTAL_API_TOKEN,
   SOFTWARE_PORTAL_API_ID,

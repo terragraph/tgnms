@@ -10,7 +10,8 @@ if (!process.env.NODE_ENV) {
 } else {
   process.env.BABEL_ENV = process.env.NODE_ENV;
 }
-import {LOGIN_ENABLED, SESSION_MAX_AGE_MS} from '../server/config';
+require('../server/settings/settings').initialize();
+const {LOGIN_ENABLED, SESSION_MAX_AGE_MS} = require('../server/config');
 
 const bodyParser = require('body-parser');
 const compression = require('compression');
@@ -24,7 +25,7 @@ const session = require('express-session');
 const staticDist = require('fbcnms-webpack-config/staticDist').default;
 
 const webpackSmartMiddleware = configureWebpackSmartMiddleware();
-import {otpMiddleware} from '../server/middleware/otp';
+const {otpMiddleware} = require('../server/middleware/otp');
 const {
   refreshTopologies,
   getAllNetworkConfigs,
@@ -35,7 +36,7 @@ const {sequelize} = require('../server/models');
 const topologyPeriodic = require('../server/topology/periodic');
 const {runMigrations, runSeeders} = require('./initDatabase');
 const logger = require('../server/log')(module);
-import access from '../server/middleware/access';
+const access = require('../server/middleware/access').default;
 
 const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? process.env.PORT : 80;
@@ -104,6 +105,7 @@ app.use('/websockets', require('../server/websockets/routes'));
 app.use('/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
 app.use('/healthcheck', require('../server/healthcheck/routes'));
+app.use('/settings', require('../server/settings/routes'));
 app.use(
   '/default_route_history',
   require('../server/default_route_history/routes'),
@@ -142,12 +144,13 @@ app.get('*', (req, res) => {
     'COMMIT_HASH',
     'NOTIFICATION_MENU_ENABLED',
     'SERVICE_AVAILABILITY_ENABLED',
-    'SOFTWARE_PORTAL_URL',
+    'SOFTWARE_PORTAL_ENABLED',
     'ALARMS_ENABLED',
     'EVENTS_V1_ENABLED',
     'DEFAULT_ROUTES_HISTORY_ENABLED',
     'JSON_CONFIG_ENABLED',
     'MAP_HISTORY_ENABLED',
+    'NMS_SETTINGS_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

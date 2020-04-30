@@ -9,6 +9,7 @@ import CustomSnackbar from '../../components/common/CustomSnackbar';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import EditIcon from '@material-ui/icons/Edit';
 import FileDownloadIcon from '@material-ui/icons/CloudDownload';
+import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InstallerAppConfig from '../../components/installerapp/InstallerAppConfig';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -38,24 +39,15 @@ import {requestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
-  root: {
-    padding: theme.spacing(),
-  },
-  button: {
-    margin: theme.spacing(),
-  },
   leftIcon: {
     paddingRight: theme.spacing(),
   },
   paper: {
     flexGrow: 1,
     padding: theme.spacing(),
-    margin: theme.spacing(),
     overflowX: 'auto',
   },
-  table: {
-    minWidth: 700,
-  },
+  table: {},
   headerCell: {
     fontWeight: 'bold',
   },
@@ -310,84 +302,89 @@ class NmsConfig extends React.Component {
     const hasNetworks = Object.keys(networkList).length > 0;
 
     return (
-      <div className={classes.root}>
-        <Button
-          variant="outlined"
-          className={classes.button}
-          onClick={this.handleAddNetwork}>
-          <PlaylistAddIcon className={classes.leftIcon} />
-          Create Network
-        </Button>
-        <InstallerAppConfig variant="outlined" className={classes.button}>
-          <MobileFriendlyIcon className={classes.leftIcon} />
-          Mobile App Setup
-        </InstallerAppConfig>
-        <Paper className={classes.paper} elevation={2}>
-          <Table className={classes.table}>
-            <TableHead>
-              <TableRow>
-                {columns.map(col => (
-                  <TableCell
-                    key={col}
-                    className={classes.headerCell}
-                    size="small">
-                    {col}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            {networkList ? (
-              <TableBody>
-                {hasNetworks ? (
-                  Object.keys(networkList).map(networkName => {
-                    const networkConfig = networkList[networkName];
-                    const {
-                      primary,
-                      backup,
-                      wireless_controller,
-                    } = networkConfig;
-                    return (
-                      <TableRow key={networkName} className={classes.row}>
-                        <TableCell
-                          className={classes.noWrap}
-                          component="th"
-                          scope="row"
-                          size="small">
-                          <IconButton
-                            classes={{root: classes.menuIconButton}}
-                            onClick={ev =>
-                              this.setState({
-                                menuAnchorEl: ev.currentTarget,
-                                menuNetworkName: networkName,
-                              })
-                            }>
-                            <MoreVertIcon />
-                          </IconButton>
-                          <strong className={classes.vertCenter}>
-                            {networkName}
-                          </strong>
-                        </TableCell>
-                        {this.renderControllerRow(primary || {})}
-                        {this.renderControllerRow(backup || {})}
-                        <TableCell size="small">
-                          {wireless_controller?.url || <em>not set</em>}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
+      <Grid container direction="column" data-testid="nms-config" spacing={2}>
+        <Grid container item spacing={2}>
+          <Grid item>
+            <Button variant="outlined" onClick={this.handleAddNetwork}>
+              <PlaylistAddIcon className={classes.leftIcon} />
+              Create Network
+            </Button>
+          </Grid>
+          <Grid item>
+            <InstallerAppConfig variant="outlined">
+              <MobileFriendlyIcon className={classes.leftIcon} />
+              Mobile App Setup
+            </InstallerAppConfig>
+          </Grid>
+        </Grid>
+        <Grid item>
+          <Paper className={classes.paper} elevation={2}>
+            <Table className={classes.table}>
+              <TableHead>
+                <TableRow>
+                  {columns.map(col => (
                     <TableCell
-                      className={classes.centerText}
-                      colSpan={columns.length}>
-                      Click on the "Create Network" button to get started!
+                      key={col}
+                      className={classes.headerCell}
+                      size="small">
+                      {col}
                     </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            ) : null}
-          </Table>
-        </Paper>
+                  ))}
+                </TableRow>
+              </TableHead>
+              {networkList ? (
+                <TableBody>
+                  {hasNetworks ? (
+                    Object.keys(networkList).map(networkName => {
+                      const networkConfig = networkList[networkName];
+                      const {
+                        primary,
+                        backup,
+                        wireless_controller,
+                      } = networkConfig;
+                      return (
+                        <TableRow key={networkName} className={classes.row}>
+                          <TableCell
+                            className={classes.noWrap}
+                            component="th"
+                            scope="row"
+                            size="small">
+                            <IconButton
+                              classes={{root: classes.menuIconButton}}
+                              onClick={ev =>
+                                this.setState({
+                                  menuAnchorEl: ev.currentTarget,
+                                  menuNetworkName: networkName,
+                                })
+                              }>
+                              <MoreVertIcon />
+                            </IconButton>
+                            <strong className={classes.vertCenter}>
+                              {networkName}
+                            </strong>
+                          </TableCell>
+                          {this.renderControllerRow(primary || {})}
+                          {this.renderControllerRow(backup || {})}
+                          <TableCell size="small">
+                            {wireless_controller?.url || <em>not set</em>}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        className={classes.centerText}
+                        colSpan={columns.length}>
+                        Click on the "Create Network" button to get started!
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              ) : null}
+            </Table>
+          </Paper>
+        </Grid>
 
         <Menu
           anchorEl={menuAnchorEl}
@@ -451,7 +448,7 @@ class NmsConfig extends React.Component {
             this.setState({snackbarProps: {...snackbarProps, open: false}})
           }
         />
-      </div>
+      </Grid>
     );
   };
 }

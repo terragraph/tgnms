@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "yarn run start:dev",
-    "start:dev": "nodemon -w scripts/ -w server/ scripts/server --exec 'node -r @fbcnms/babel-register --inspect'",
+    "start:dev": "nodemon -w scripts/ -w server/ -w .settings/ scripts/server --exec 'node -r @fbcnms/babel-register --inspect'",
     "build": "rimraf dist && NODE_ENV=production node -r '@fbcnms/babel-register' ../../node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js --progress --profile --colors",
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
     "sequelize": "./node_modules/.bin/sequelize --seeders-path server/seeders --migrationss-path server/migrations $*",

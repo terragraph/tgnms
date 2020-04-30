@@ -13,12 +13,11 @@ export const FeatureFlags: {[string]: () => boolean} = {
   NOTIFICATION_MENU_ENABLED: () =>
     !!window.CONFIG?.env.NOTIFICATION_MENU_ENABLED,
   LOGIN_ENABLED: () => window.CONFIG?.env?.LOGIN_ENABLED,
-  SAVE_MISSING_TRANSLATIONS: () => window.CONFIG.env.SAVE_MISSING_TRANSLATIONS,
   GRAFANA_ENABLED: () => window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
   SERVICE_AVAILABILITY_ENABLED: () =>
     window.CONFIG.env.SERVICE_AVAILABILITY_ENABLED === 'true',
   SOFTWARE_PORTAL_ENABLED: () =>
-    window.CONFIG.env.hasOwnProperty('SOFTWARE_PORTAL_URL'),
+    window.CONFIG?.env?.SOFTWARE_PORTAL_ENABLED === 'true',
   ALARMS_ENABLED: () => window.CONFIG.env.ALARMS_ENABLED,
   DEFAULT_ROUTES_HISTORY_ENABLED: () =>
     window.CONFIG.env.DEFAULT_ROUTES_HISTORY_ENABLED,
@@ -30,6 +29,9 @@ export const FeatureFlags: {[string]: () => boolean} = {
     window.CONFIG.env.hasOwnProperty('MAP_HISTORY_ENABLED')
       ? window.CONFIG.env.MAP_HISTORY_ENABLED === 'true'
       : true,
+  NMS_SETTINGS_ENABLED: () =>
+    typeof window.CONFIG.env['NMS_SETTINGS_ENABLED'] === 'string' &&
+    window.CONFIG.env['NMS_SETTINGS_ENABLED'] !== 'false',
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {

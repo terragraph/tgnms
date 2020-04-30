@@ -130,7 +130,7 @@ test('clicking delete image button sends a delete request', async () => {
 
 test('if software portal is enabled, images from software portal are shown', async () => {
   initWindowConfig({
-    env: {SOFTWARE_PORTAL_URL: 'https://sw.terragraph.link'},
+    env: {SOFTWARE_PORTAL_ENABLED: 'true'},
   });
   const fetchUpgradeImagesMock = jest
     .spyOn(require('../../../helpers/UpgradeHelpers'), 'fetchUpgradeImages')

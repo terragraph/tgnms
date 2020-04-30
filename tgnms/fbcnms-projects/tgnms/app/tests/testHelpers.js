@@ -11,16 +11,23 @@ import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
 import NetworkContext from '../contexts/NetworkContext';
 import NmsOptionsContext from '../contexts/NmsOptionsContext';
+import {EMPTY_SETTINGS_STATE} from '../../shared/dto/Settings';
 import {
   LINK_METRIC_OVERLAYS,
   SITE_METRIC_OVERLAYS,
 } from '../constants/LayerConstants';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
+import {Provider as SettingsFormContextProvider} from '../views/nms_config/SettingsFormContext';
 import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockNetworkContext} from './data/NetworkContext';
 import {mockNmsOptionsContext} from './data/NmsOptionsContext';
+import type {
+  EnvMap,
+  SettingDefinition,
+  SettingsState,
+} from '../../shared/dto/Settings';
 import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
@@ -69,9 +76,15 @@ export function setTestUser(user: $Shape<User>) {
   window.CONFIG.user = user;
 }
 
-export function TestApp({children}: {children: React.Node}) {
+export function TestApp({
+  children,
+  route,
+}: {
+  children: React.Node,
+  route?: string,
+}) {
   return (
-    <Router history={createMemoryHistory()}>
+    <Router history={createMemoryHistory({initialEntries: [route || '/']})}>
       <MaterialTheme>{children}</MaterialTheme>
     </Router>
   );
@@ -150,6 +163,41 @@ export function MapContextWrapper({
   };
   return <MapContext.Provider value={val}>{children}</MapContext.Provider>;
 }
+
+export function SettingsFormContextWrapper({
+  children,
+  settings,
+  values,
+  settingsState,
+}: {
+  children: React.Node,
+  settings?: Array<SettingDefinition>,
+  values?: EnvMap,
+  settingsState?: ?SettingsState,
+}) {
+  const settingLookup = React.useMemo(
+    () =>
+      (settings ? settings : []).reduce<{[string]: SettingDefinition}>(
+        (map, s) => ({...map, [s.key]: s}),
+        {},
+      ),
+    [settings],
+  );
+  return (
+    <SettingsFormContextProvider
+      getInput={k => ({
+        config: settingLookup[k],
+        value: values ? values[k] : '',
+        isOverridden: false,
+        onChange: jest.fn(),
+      })}
+      formState={values || {}}
+      settingsState={settingsState || EMPTY_SETTINGS_STATE}>
+      {children}
+    </SettingsFormContextProvider>
+  );
+}
+
 /*
  * Use this if a component asyncronously loads data when it is rendered.
  *
@@ -190,4 +238,11 @@ export async function renderAsync(
 
 export function cast<T>(x: any): T {
   return (x: T);
+}
+
+export function coerceClass<T>(value: {}, t: Class<T>): T {
+  if (value instanceof t) {
+    return value;
+  }
+  throw new Error('invalid instance type');
 }
