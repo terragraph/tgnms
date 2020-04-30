@@ -11,6 +11,7 @@
     - "{{ audit_logs_gfs_path }}"
     - "{{ nms_path }}/docker_volumes"
     - "{{ nms_path }}/docker_volumes/beringei/data"
+    - "{{ nms_path }}/docker_volumes/settings"
     - "{{ nms_path }}/env"
 
 - name: copy nms configs
