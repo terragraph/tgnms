@@ -6,6 +6,7 @@
  */
 
 import SettingsEngine, {logger as settingsLogger} from '../SettingsEngine';
+import {SETTINGS} from '../settings';
 
 import type {EnvMap} from '../../../shared/dto/Settings';
 import type {JestMockFn} from 'jest';
@@ -18,6 +19,19 @@ let signalMock: JestMockFn<*, *>;
 let killMock: JestMockFn<*, *>;
 jest.mock('fs', () => new (require('memfs').Volume)());
 jest.spyOn(fsMock, 'writeFileSync');
+/**
+ * SettingsEngine spams logs. If logs need to be visible for debugging tests,
+ * remove the mock implementations.
+ */
+const errorLogSpy = jest
+  .spyOn(settingsLogger, 'error')
+  .mockImplementation(() => {});
+const warnLogSpy = jest
+  .spyOn(settingsLogger, 'warn')
+  .mockImplementation(() => {});
+const _infoLogSpy = jest
+  .spyOn(settingsLogger, 'info')
+  .mockImplementation(() => {});
 const OLD_ENV = process.env;
 beforeEach(() => {
   jest.useFakeTimers();
@@ -40,72 +54,6 @@ afterEach(() => {
 });
 
 describe('Settings Engine', () => {
-  const TEST_SETTINGS = [
-    {
-      key: 'PORT',
-      required: true,
-      dataType: 'INT',
-      defaultValue: 8080,
-      requiresRestart: true,
-    },
-    {
-      key: 'API_REQUEST_TIMEOUT',
-      required: false,
-      dataType: 'INT',
-      defaultValue: 5000,
-      requiresRestart: false,
-    },
-    {
-      key: 'LOG_LEVEL',
-      required: false,
-      dataType: 'STRING',
-      defaultValue: 'info',
-      requiresRestart: true,
-    },
-    {
-      key: 'MYSQL_DB',
-      required: true,
-      dataType: 'STRING',
-      defaultValue: '',
-      requiresRestart: true,
-    },
-    {
-      key: 'MYSQL_HOST',
-      required: true,
-      dataType: 'STRING',
-      defaultValue: '',
-      requiresRestart: true,
-    },
-    {
-      key: 'MYSQL_PASS',
-      required: true,
-      dataType: 'SECRET_STRING',
-      defaultValue: '',
-      requiresRestart: true,
-    },
-    {
-      key: 'MYSQL_PORT',
-      required: true,
-      dataType: 'STRING',
-      defaultValue: '',
-      requiresRestart: true,
-    },
-    {
-      key: 'MYSQL_USER',
-      required: true,
-      dataType: 'STRING',
-      defaultValue: '',
-      requiresRestart: true,
-    },
-
-    {
-      key: 'LOGIN_ENABLED',
-      required: true,
-      dataType: 'STRING',
-      defaultValue: 'info',
-      requiresRestart: true,
-    },
-  ];
   let settings: SettingsEngine;
 
   beforeEach(() => {
@@ -116,7 +64,7 @@ describe('Settings Engine', () => {
       const processEnvBefore = {...process.env};
       writeEnvFile(`API_REQUEST_TIMEOUT=1000`);
       expect(processEnvBefore['API_REQUEST_TIMEOUT']).toBe(undefined);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter['API_REQUEST_TIMEOUT']).toBe('1000');
     });
@@ -128,7 +76,7 @@ describe('Settings Engine', () => {
       DONOTOVERWRITE=overwritten, fail!`,
       );
       expect(processEnvBefore['DONOTOVERWRITE']).toBe('expected-value');
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter['DONOTOVERWRITE']).toBe('expected-value');
     });
@@ -142,19 +90,16 @@ describe('Settings Engine', () => {
       }`,
       );
       expect(processEnvBefore['DONOTOVERWRITE']).toBe('expected-value');
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter['DONOTOVERWRITE']).toBe('expected-value');
     });
     test('DISABLE_ENV_FILE disables loading from the env file', () => {
-      const warnLogSpy = jest
-        .spyOn(settingsLogger, 'warn')
-        .mockImplementation(() => {});
       process.env['DISABLE_ENV_FILE'] = '';
       const processEnvBefore = {...process.env};
       writeEnvFile(`FAIL_IF_EXISTS=failure`);
       expect(processEnvBefore['FAIL_IF_EXISTS']).toBe(undefined);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter['FAIL_IF_EXISTS']).toBe(undefined);
       expect(warnLogSpy).toHaveBeenCalled();
@@ -162,42 +107,39 @@ describe('Settings Engine', () => {
     test('NMS_SETTINGS_ENABLED=false disables loading from the settings file', () => {
       process.env['NMS_SETTINGS_ENABLED'] = 'false';
       const processEnvBefore = {...process.env};
-      writeSettingsFile(`{"LOG_LEVEL":"failure"}`);
-      expect(processEnvBefore['LOG_LEVEL']).toBe(undefined);
-      settings.initialize(TEST_SETTINGS);
+      writeSettingsFile(`{"MYSQL_USER":"failure"}`);
+      expect(processEnvBefore['MYSQL_USER']).toBe(undefined);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
-      expect(processEnvAfter['LOG_LEVEL']).toBe(undefined);
+      expect(processEnvAfter['MYSQL_USER']).toBe(undefined);
     });
     test('values from .env file are loaded into process.env', () => {
       writeEnvFile(`
     API_REQUEST_TIMEOUT=1000
     UNREGISTERED_KEY=unregistered
     `);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter['API_REQUEST_TIMEOUT']).toBe('1000');
       expect(processEnvAfter['UNREGISTERED_KEY']).toBe('unregistered');
     });
     test('invalid settings file logs error and continues', () => {
-      const errorLogSpy = jest
-        .spyOn(settingsLogger, 'error')
-        .mockImplementation(() => {});
       writeSettingsFile(`{"SHOULDNOTEXIST":"SHOULDNOTEXIST", bad json...}`);
       expect(errorLogSpy).not.toHaveBeenCalled();
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(process.env['SHOULDNOTEXIST']).toBe(undefined);
       expect(errorLogSpy).toHaveBeenCalled();
     });
     test('invalid settings file does not affect settings from env file', () => {
       writeSettingsFile(`{"SHOULDNOTEXIST":"SHOULDNOTEXIST", bad json...}`);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(process.env['SHOULDNOTEXIST']).toBe(undefined);
     });
     test('values from settings file are loaded into process.env', () => {
       const processEnvBefore = {...process.env};
       writeSettingsFile(`{"PORT":"8081"}`);
       expect(processEnvBefore.PORT).toBe(undefined);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter.PORT).toBe('8081');
     });
@@ -206,25 +148,22 @@ describe('Settings Engine', () => {
       writeSettingsFile(`{"PORT":"SETTINGS_VAL"}`);
       writeEnvFile(`PORT=ENV_VAL`);
       expect(processEnvBefore.PORT).toBe(undefined);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
       expect(processEnvAfter.PORT).toBe('SETTINGS_VAL');
     });
     test('logs error if settings file is specified but not found at startup', () => {
-      const errorLogSpy = jest
-        .spyOn(settingsLogger, 'error')
-        .mockImplementation(() => {});
       fsMock.unlinkSync('settings.json');
       expect(fsMock.existsSync('settings.json')).toBe(false);
       expect(errorLogSpy).not.toHaveBeenCalled();
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(errorLogSpy).toHaveBeenCalled();
     });
     test('sets settingsState properly', () => {
       writeSettingsFile(`{"PORT":"8080","API_REQUEST_TIMEOUT":"5000"}`);
       writeEnvFile(`PORT=8081
       API_REQUEST_TIMEOUT=100`);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(settings.state).toMatchObject({
         current: {
           PORT: '8080',
@@ -253,7 +192,7 @@ describe('Settings Engine', () => {
     });
     test('settingsState is frozen', () => {
       writeSettingsFile(`{"PORT":"8080","API_REQUEST_TIMEOUT":"5000"}`);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(() => {
         const state = settings.state;
         state.current = {};
@@ -271,7 +210,7 @@ describe('Settings Engine', () => {
 
     test('updates the current settings state', () => {
       const _envBefore = {...process.env};
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       const _envConfigure = {...process.env};
       expect(settings.state).toMatchObject({
         current: {
@@ -290,7 +229,7 @@ describe('Settings Engine', () => {
     test('updates process.env', () => {
       const envBefore = {...process.env};
       expect(envBefore.PORT).toBe(undefined);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         PORT: '8085',
       });
@@ -298,7 +237,7 @@ describe('Settings Engine', () => {
       expect(envUpdated.PORT).toBe('8085');
     });
     test('writes to configured settings json file', () => {
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         MYSQL_PORT: '3390',
       });
@@ -312,7 +251,7 @@ describe('Settings Engine', () => {
     });
     test('does not overwrite env vars which came from the CLI environment', () => {
       process.env.MYSQL_USER = 'no-overwrite';
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
 
       settings.update({
         MYSQL_USER: 'updated',
@@ -322,7 +261,7 @@ describe('Settings Engine', () => {
     });
     test('overwrites env vars which came from .env', () => {
       writeEnvFile('LOGIN_ENABLED=overwrite');
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         LOGIN_ENABLED: 'true',
       });
@@ -330,7 +269,7 @@ describe('Settings Engine', () => {
       expect(envUpdated.LOGIN_ENABLED).toBe('true');
     });
     test('overwrites env vars which came from settings json file', () => {
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         MYSQL_USER: 'updated',
       });
@@ -338,7 +277,7 @@ describe('Settings Engine', () => {
       expect(envUpdated.MYSQL_USER).toBe('updated');
     });
     test('if any updated settings require restart, the NMS is restarted', () => {
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(killMock).not.toHaveBeenCalled();
       settings.update({
         MYSQL_USER: 'updated',
@@ -347,7 +286,7 @@ describe('Settings Engine', () => {
       expect(killMock).toHaveBeenCalled();
     });
     test('if no updated settings require restart, no restart occurs', () => {
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       expect(killMock).not.toHaveBeenCalled();
       expect(killMock).not.toHaveBeenCalled();
       settings.update({
@@ -360,7 +299,7 @@ describe('Settings Engine', () => {
     test('creates settings file if it does not already exist', () => {
       fsMock.unlinkSync('settings.json');
       expect(fsMock.existsSync('settings.json')).toBe(false);
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         API_REQUEST_TIMEOUT: '2000',
       });
@@ -372,7 +311,7 @@ describe('Settings Engine', () => {
       expect(fsMock.existsSync('settings.json')).toBe(false);
       expect(fsMock.existsSync(newpath)).toBe(false);
       process.env['NMS_SETTINGS_FILE'] = newpath;
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         API_REQUEST_TIMEOUT: '2000',
       });
@@ -381,7 +320,7 @@ describe('Settings Engine', () => {
     test('only writes settings which are different from existing environment', () => {
       // overwrite settings file to prevent merge
       writeSettingsFile('{}');
-      settings.initialize(TEST_SETTINGS);
+      settings.initialize(SETTINGS);
       settings.update({
         MYSQL_USER: 'test',
       });
@@ -397,9 +336,6 @@ describe('Settings Engine', () => {
   describe('helpers', () => {
     describe('_makeSettingsMap', () => {
       test('logs errors and overwrites duplicate keys', () => {
-        const errorLogSpy = jest
-          .spyOn(settingsLogger, 'error')
-          .mockImplementation(() => {});
         expect(errorLogSpy).not.toHaveBeenCalled();
         const settingsMap = settings._makeSettingsMap([
           {

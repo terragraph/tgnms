@@ -6,7 +6,6 @@
  */
 const express = require('express');
 const router = express.Router();
-const config = require('../config');
 import access from '../middleware/access';
 import {getSettingsState, testSettings, updateSettings} from './settings';
 
@@ -15,8 +14,7 @@ router.get('/', (req, res) => {
   return res.json(getSettingsState());
 });
 router.post('/', (req, res) => {
-  updateSettings(req.body);
-  return res.json(config);
+  return res.json(updateSettings(req.body));
 });
 router.post('/test', (req, res) => {
   return testSettings(req.body).then(result => res.json(result));

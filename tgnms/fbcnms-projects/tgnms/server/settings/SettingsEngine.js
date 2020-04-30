@@ -261,7 +261,9 @@ export default class SettingsEngine {
       prevent = false;
       logger.info('settings updated. restarting...');
       setTimeout(() => {
-        logger.debug('restart signal timeout exceeded. quitting... ');
+        logger.error(
+          'restart signal timeout exceeded. exiting process may hang...',
+        );
         cleanup();
         return process.kill(process.pid, RESTART_SIGNAL);
       }, 1000);

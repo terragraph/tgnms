@@ -28,3 +28,19 @@ export async function postSettings(env: EnvMap): Promise<SettingsState> {
   const response = await axios.post<EnvMap, SettingsState>('/settings', env);
   return response.data;
 }
+
+export async function checkRestartStatus(
+  req: ?{
+    timeout?: number,
+  },
+): Promise<boolean> {
+  const {timeout} = {timeout: 1000, ...(req || {})};
+  try {
+    await axios.get('/healthcheck', {
+      timeout: timeout,
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}

@@ -11,6 +11,7 @@ import * as settingsApi from '../../apiutils/SettingsAPIUtil';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import MaterialModal from '../../components/common/MaterialModal';
+import RestartWatcherModal, {useRestartWatcher} from './RestartWatcher';
 import Typography from '@material-ui/core/Typography';
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import red from '@material-ui/core/colors/red';
@@ -19,12 +20,11 @@ import {Provider as SettingsFormContextProvider} from './SettingsFormContext';
 import {makeStyles} from '@material-ui/styles';
 import {useConfirmationModalState} from '../../hooks/modalHooks';
 import {useForm} from '@fbcnms/ui/hooks/index';
-
 import type {CancelTokenSource} from 'axios';
 import type {EnvMap, SettingsState} from '../../../shared/dto/Settings';
 import type {InputData} from './SettingsFormContext';
 
-const useStyles = makeStyles(_theme => ({
+const useStyles = makeStyles(theme => ({
   oldValue: {
     backgroundColor: red[100],
     color: red[400],
@@ -36,6 +36,9 @@ const useStyles = makeStyles(_theme => ({
     backgroundColor: lightGreen[300],
     color: lightGreen[900],
     whiteSpace: 'nowrap',
+  },
+  restartWarning: {
+    color: theme.palette.warning.dark,
   },
 }));
 
@@ -80,6 +83,23 @@ export default function SettingsForm({
     }
     return changes;
   }, [formState, originalSettings]);
+
+  const restartWatcher = useRestartWatcher();
+  // changed settings which require a restart
+  const settingsRequiringRestart = React.useMemo<Array<string>>(() => {
+    const keys = [];
+    if (!settingsState) {
+      return keys;
+    }
+    for (const key of changedSettings) {
+      const setting = settingsState.registeredSettings[key];
+      if (setting.requiresRestart) {
+        keys.push(key);
+      }
+    }
+    return keys;
+  }, [settingsState, changedSettings]);
+
   const handleSubmit = React.useCallback(
     (event: SyntheticEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -94,9 +114,18 @@ export default function SettingsForm({
            */
           console.error(err);
         }
+        if (settingsRequiringRestart.length > 0) {
+          restartWatcher.start();
+        }
       });
     },
-    [requestConfirmation, makeRequest, refreshSettings],
+    [
+      requestConfirmation,
+      makeRequest,
+      refreshSettings,
+      restartWatcher,
+      settingsRequiringRestart,
+    ],
   );
 
   return (
@@ -151,11 +180,24 @@ export default function SettingsForm({
           </Grid>
         </form>
       </Grid>
+      <RestartWatcherModal watcher={restartWatcher} />
       <MaterialModal
         open={isOpen}
         modalTitle="Confirm Settings Change"
         modalContent={
           <Grid container direction="column">
+            {settingsRequiringRestart.length > 0 && (
+              <Grid item xs={12}>
+                <Typography className={classes.restartWarning}>
+                  Warning: The following settings require an NMS restart
+                </Typography>
+                <ul>
+                  {settingsRequiringRestart.map(s => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </Grid>
+            )}
             <Grid item xs={12}>
               <Typography>
                 Please review your settings changes. Submitting these changes
@@ -242,7 +284,7 @@ export function useSettingsForm() {
   const getInput = React.useCallback(
     (key: string) => {
       const isOverridden =
-        typeof settingsState?.envMaps?.initialEnv[key] === 'string';
+        typeof settingsState?.envMaps.initialEnv[key] === 'string';
       return ({
         isOverridden,
         config: settingsState?.registeredSettings[key],
