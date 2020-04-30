@@ -25,7 +25,7 @@
     - { src: "docker-compose.yml", dest: "{{ nms_path }}" }
     - { src: "add_controllers.sql", dest: "{{ nms_path }}" }
 
-- name: copy nms env files
+- name: overwrite nms env files
   template:
     src: "{{ item }}"
     dest: "{{ nms_path }}/env"
@@ -37,9 +37,8 @@
     - "nms.env"
     - "time.env"
     - "grafana.env"
-    - "nms_auth.env"
 
-- name: copy nms user env file
+- name: copy default nms env files
   template:
     src: "{{ item }}"
     dest: "{{ nms_path }}/env"
@@ -49,6 +48,7 @@
     force: no
   loop:
     - "nms_custom.env"
+    - "nms_auth.env"
 
 - name: run compose
   shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth nms"
