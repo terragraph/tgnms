@@ -43,10 +43,7 @@ export function initOidcClient(): Promise<OpenidClient> {
       'missing required environment variable KEYCLOAK_HOST, KEYCLOAK_REALM ',
     );
   }
-  const issuerUrl = new URL(KEYCLOAK_HOST);
-  const newPathname = `/auth/realms/${KEYCLOAK_REALM}`;
-  issuerUrl.pathname = trimEnd(issuerUrl.pathname, '/') + newPathname;
-
+  const issuerUrl = makeKeycloakURL({KEYCLOAK_HOST, KEYCLOAK_REALM});
   return getOidcClient({
     issuerUrl: issuerUrl.toString(),
     clientId: KEYCLOAK_CLIENT_ID,
@@ -56,6 +53,19 @@ export function initOidcClient(): Promise<OpenidClient> {
     clientAwaiter.resolveClient(client);
     return client;
   });
+}
+
+export function makeKeycloakURL({
+  KEYCLOAK_HOST,
+  KEYCLOAK_REALM,
+}: {
+  KEYCLOAK_HOST: string,
+  KEYCLOAK_REALM: string,
+}): URL {
+  const issuerUrl = new URL(KEYCLOAK_HOST);
+  const newPathname = `/auth/realms/${KEYCLOAK_REALM}`;
+  issuerUrl.pathname = trimEnd(issuerUrl.pathname, '/') + newPathname;
+  return issuerUrl;
 }
 
 export function __TESTSONLY_getOidcClient() {

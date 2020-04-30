@@ -177,7 +177,50 @@ export default function NmsSettings() {
                         setting="TG_ALARM_URL"
                       />
                     </SettingGroup>
-
+                    <SettingGroup
+                      title="Authentication"
+                      tester={
+                        <SettingsTester
+                          keys={[
+                            'KEYCLOAK_HTTP_PROXY',
+                            'KEYCLOAK_HOST',
+                            'KEYCLOAK_REALM',
+                            'KEYCLOAK_CLIENT_ID',
+                            'KEYCLOAK_CLIENT_SECRET',
+                            'CLIENT_ROOT_URL',
+                          ]}
+                        />
+                      }>
+                      <SettingInput
+                        label="Authentication Enabled"
+                        setting="LOGIN_ENABLED"
+                        isFeatureToggle
+                      />
+                      <SettingInput
+                        label="Keycloak Realm"
+                        setting="KEYCLOAK_REALM"
+                      />
+                      <SettingInput
+                        label="Keycloak Client ID"
+                        setting="KEYCLOAK_CLIENT_ID"
+                      />
+                      <SettingInput
+                        label="Keycloak Client Secret"
+                        setting="KEYCLOAK_CLIENT_SECRET"
+                      />
+                      <SettingInput
+                        label="Keycloak Host"
+                        setting="KEYCLOAK_HOST"
+                      />
+                      <SettingInput
+                        label="NMS Client Root URL"
+                        setting="CLIENT_ROOT_URL"
+                      />
+                      <SettingInput
+                        label="Keycloak HTTP Proxy"
+                        setting="KEYCLOAK_HTTP_PROXY"
+                      />
+                    </SettingGroup>
                     <SettingGroup
                       title="Database"
                       tester={

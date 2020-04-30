@@ -5,12 +5,14 @@
  * @flow
  */
 import axios from 'axios';
+import type {Client as OpenidClient} from 'openid-client';
 import type {SettingTest, TestResult} from '../../shared/dto/Settings';
 
 export const TESTER = {
   MYSQL: 'MYSQL',
   SOFTWARE_PORTAL: 'SOFTWARE_PORTAL',
   ALARMS: 'ALARMS',
+  KEYCLOAK: 'KEYCLOAK',
 };
 
 export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
@@ -91,6 +93,42 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
       success: true,
       message: 'Alarm services connected successfully',
     };
+  },
+  [TESTER.KEYCLOAK]: async config => {
+    const {
+      KEYCLOAK_REALM,
+      KEYCLOAK_CLIENT_ID,
+      KEYCLOAK_CLIENT_SECRET,
+      KEYCLOAK_HOST,
+    } = config;
+
+    const {Issuer: OpenidIssuer} = require('openid-client');
+    const {makeKeycloakURL} = require('../user/oidc');
+    const issuerUrl = makeKeycloakURL({
+      KEYCLOAK_HOST,
+      KEYCLOAK_REALM,
+    }).toString();
+    /**
+     * TODO: test KEYCLOAK_HTTP_PROXY T63546077
+     * Not testing KEYCLOAK_HTTP_PROXY currently since it would overwrite the
+     * global proxy setting.
+     */
+    const issuer = await OpenidIssuer.discover(issuerUrl);
+    const openidClient: OpenidClient = new issuer.Client({
+      client_id: KEYCLOAK_CLIENT_ID,
+      client_secret: KEYCLOAK_CLIENT_SECRET,
+    });
+
+    const grant = await openidClient.grant({
+      grant_type: 'client_credentials',
+    });
+    if (!grant && typeof grant.access_token !== 'string') {
+      return {
+        success: false,
+        message: 'OAuth grant failed. Users may have trouble logging in.',
+      };
+    }
+    return {success: true, message: 'Success!'};
   },
 };
 

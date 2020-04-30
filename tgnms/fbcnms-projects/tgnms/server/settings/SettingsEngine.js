@@ -143,14 +143,13 @@ export default class SettingsEngine {
         const result = await tester(env);
         results[key] = result;
       } catch (error) {
+        logger.error(error);
         results[key] = {
           success: false,
-          message: error.message || 'Error testing settings',
+          message: error.message || 'Settings Test Failed',
         };
       }
     }
-    console.dir(results);
-
     return results;
   };
 
