@@ -114,6 +114,7 @@
     - { role: alarms, tags: ["alarms"] }
     - { role: keycloak, tags: ["keycloak"], when: keycloak_enabled }
     - { role: msa, tags: ["msa", "tglib"] }
+    - { role: monitoring, tags: ["monitoring", "monitor"]}
 
 - hosts: all
   become: true

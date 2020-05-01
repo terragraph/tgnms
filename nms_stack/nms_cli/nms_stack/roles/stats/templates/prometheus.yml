@@ -29,6 +29,13 @@ scrape_configs:
         type: 'A'
         port: 8080
 
+  - job_name: 'gluster_exporter'
+    dns_sd_configs:
+      - names:
+        - 'tasks.gluster_exporter'
+        type: 'A'
+        port: 9713
+
   - job_name: 'default_routes_service'
     metrics_path: /metrics/{{ prom_default_scrape_interval }}
     static_configs:
