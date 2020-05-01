@@ -108,3 +108,15 @@ class ScanResponseRate(Base):
     tx_errors = Column(JSON)
     total_rx_resp = Column(Integer)
     rx_errors = Column(JSON)
+
+
+class ConnectivityResults(Base):
+    __tablename__ = "connectivity_results"
+
+    id = Column(Integer, primary_key=True)
+    network_name = Column(String(255), nullable=False)
+    group_id = Column(Integer, nullable=True)
+    token = Column(Integer, nullable=False)
+    tx_node = Column(String(255), nullable=False)
+    rx_node = Column(String(255), nullable=False)
+    routes = Column(JSON, nullable=False)

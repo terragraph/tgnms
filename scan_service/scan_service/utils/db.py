@@ -11,6 +11,7 @@ from sqlalchemy import insert, join, select
 from tglib.clients import MySQLClient
 
 from ..models import (
+    ConnectivityResults,
     RxScanResponse,
     ScanFwStatus,
     ScanMode,
@@ -170,4 +171,11 @@ async def write_scan_response_rate_stats(response_stats_list: List[Dict]) -> Non
     """Write scan response rate stats to database"""
     async with MySQLClient().lease() as conn:
         await conn.execute(insert(ScanResponseRate).values(response_stats_list))
+        await conn.connection.commit()
+
+
+async def write_connectivity_results(result: List[Dict]) -> None:
+    """Write connectivity results to database"""
+    async with MySQLClient().lease() as conn:
+        await conn.execute(insert(ConnectivityResults).values(result))
         await conn.connection.commit()

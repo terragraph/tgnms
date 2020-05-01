@@ -5,13 +5,20 @@ import json
 import logging
 import os
 import sys
-from typing import Any, Dict
+from typing import Dict
 
 from terragraph_thrift.Event.ttypes import EventId
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
 
-from .utils.db import get_scan_groups, write_scan_data, write_scan_response_rate_stats
+from .connectivity import analyze_connectivity
+from .data_loader import get_im_data
+from .utils.db import (
+    get_scan_groups,
+    write_connectivity_results,
+    write_scan_data,
+    write_scan_response_rate_stats,
+)
 
 
 async def scan_results_handler(scan_data_dir: str, msg: str) -> None:
@@ -22,6 +29,12 @@ async def scan_results_handler(scan_data_dir: str, msg: str) -> None:
         token = scan_result["token"]
         logging.info(f"Received scan response token '{token}' for {network_name}")
         await write_scan_data(scan_data_dir, network_name, scan_result)
+
+        data_im = get_im_data(scan_result["data"])
+        if data_im is not None:
+            connectivity_results = analyze_connectivity(data_im, network_name)
+            await write_connectivity_results(connectivity_results)
+
     except json.JSONDecodeError:
         logging.exception("Failed to deserialize scan data")
     except KeyError:
@@ -66,11 +79,9 @@ def main() -> None:
     try:
         with open("./service_config.json") as f:
             config = json.load(f)
-
         scan_data_dir = config["scan_data_dir"]
         if not scan_data_dir.endswith("/"):
             scan_data_dir += "/"
-
         os.makedirs(scan_data_dir)
     except FileExistsError:
         pass

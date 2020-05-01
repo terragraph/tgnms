@@ -4,6 +4,8 @@
 import logging
 import unittest
 
+from tests.connectivity_tests import ConnectivityTests
+
 
 if __name__ == "__main__":
     # Suppress logging statements during tests

@@ -8,4 +8,5 @@ WORKDIR $WORKDIR
 COPY scan_service/ .flake8 ./
 
 # Install scan_service
-RUN pip install .
+RUN apk add py3-numpy && \
+  pip install .
