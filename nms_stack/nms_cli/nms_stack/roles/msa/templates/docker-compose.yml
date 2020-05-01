@@ -4,12 +4,12 @@ services:
   default_routes_service:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
     env_file:
-      - {{ msa_path }}/env/default_routes_service.env
+      - {{ msa_gfs_path }}/env/default_routes_service.env
     restart: unless-stopped
     volumes:
-      - {{ msa_path }}/docker_volumes/config.json:/usr/local/default_routes_service/config.json
-      - {{ msa_path }}/docker_volumes/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
-      - {{ msa_path }}/docker_volumes/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/default_routes_service/config.json
+      - {{ msa_gfs_path }}/config/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
+      - {{ msa_gfs_path }}/config/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && default_routes_service"]
@@ -23,7 +23,7 @@ services:
     image: secure.cxl-terragraph.com:443/jupyter:latest
     restart: unless-stopped
     volumes:
-      - {{ msa_path }}/docker_volumes/config.json:/usr/local/tglib/jupyter/notebooks/config.json
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/tglib/jupyter/notebooks/config.json
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "jupyter notebook --ip '0.0.0.0' --port 8888 --no-browser --allow-root --notebook-dir /usr/local/tglib/jupyter/notebooks --NotebookApp.token='' --NotebookApp.base_url=jupyter"]
@@ -36,12 +36,12 @@ services:
   topology_service:
     image: secure.cxl-terragraph.com:443/topology_service:latest
     env_file:
-      - {{ msa_path }}/env/topology_service.env
+      - {{ msa_gfs_path }}/env/topology_service.env
     restart: unless-stopped
     volumes:
-      - {{ msa_path }}/docker_volumes/config.json:/usr/local/topology_service/config.json
-      - {{ msa_path }}/docker_volumes/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
-      - {{ msa_path }}/docker_volumes/topology_service/service_config.json:/usr/local/topology_service/service_config.json
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/topology_service/config.json
+      - {{ msa_gfs_path }}/config/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
+      - {{ msa_gfs_path }}/config/topology_service/service_config.json:/usr/local/topology_service/service_config.json
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "alembic upgrade head && topology_service"]

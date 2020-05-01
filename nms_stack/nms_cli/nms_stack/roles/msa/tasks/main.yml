@@ -7,9 +7,9 @@
     group: docker
     mode: 0755
   loop:
-    - "{{ msa_path }}/docker_volumes"
-    - "{{ msa_path }}/scripts"
-    - "{{ msa_path }}/env"
+    - "{{ msa_gfs_path }}/config"
+    - "{{ msa_gfs_path }}/scripts"
+    - "{{ msa_gfs_path }}/env"
 
 - name: copy msa configs
   template:
@@ -20,8 +20,8 @@
     mode: 0644
     force: yes
   loop:
-    - { src: "docker-compose.yml", dest: "{{ msa_path }}" }
-    - { src: "config.json", dest: "{{ msa_path }}/docker_volumes/config.json" }
+    - { src: "docker-compose.yml", dest: "{{ msa_gfs_path }}" }
+    - { src: "config.json", dest: "{{ msa_gfs_path }}/config" }
 
 - name: copy scripts
   template:
@@ -32,8 +32,8 @@
     mode: 0755
     force: yes
   loop:
-    - { src: "scripts/create_msa_database.sh", dest: "{{ msa_path }}/scripts"}
-    - { src: "scripts/msa.sql", dest: "{{ msa_path }}/scripts"}
+    - { src: "scripts/create_msa_database.sh", dest: "{{ msa_gfs_path }}/scripts"}
+    - { src: "scripts/msa.sql", dest: "{{ msa_gfs_path }}/scripts"}
 
 - name: establish services
   include_tasks:
@@ -45,10 +45,10 @@
     loop_var: service
 
 - name: run compose
-  shell: "docker stack deploy -c {{ msa_path }}/docker-compose.yml --with-registry-auth msa"
+  shell: "docker stack deploy -c {{ msa_gfs_path }}/docker-compose.yml --with-registry-auth msa"
 
 - name: clean compose
   file:
-    path: "{{ msa_path }}/docker-compose.yml"
+    path: "{{ msa_gfs_path }}/docker-compose.yml"
     state: absent
   when: not dev_mode

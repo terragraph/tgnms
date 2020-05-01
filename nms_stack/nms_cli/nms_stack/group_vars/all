@@ -168,7 +168,7 @@ efk_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/efk"
 fluentd_path: "{{ efk_path }}/fluentd"
 kibana_path: "{{ efk_path }}/kibana"
 audit_logs_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/audit_logs"
-msa_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/msa"
+msa_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/msa"
 
 # Non Gluster Paths
 logs_data_path: "{{ terragraph_docker_path }}/logs"
