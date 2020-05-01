@@ -74,24 +74,6 @@ services:
         max-size: "20m"
         max-file: "10"
 
-  cadvisor:
-    image: google/cadvisor:latest
-    volumes:
-     - /var/run/docker.sock:/var/run/docker.sock:ro
-     - /:/rootfs:ro
-     - /var/run:/var/run:rw
-     - /sys:/sys:ro
-     - /var/lib/docker/:/var/lib/docker:ro
-    networks:
-     - terragraph_net
-    deploy:
-      mode: global
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "10"
-
 networks:
   terragraph_net:
     external: true
