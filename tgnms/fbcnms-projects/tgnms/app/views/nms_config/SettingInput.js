@@ -23,7 +23,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useSettingsFormContext} from './SettingsFormContext';
 
 const dataTypeToInputType = {
-  INT: 'text',
+  INT: 'number',
   STRING: 'text',
   SECRET_STRING: 'text',
   STRING_ARRAY: 'text',
@@ -90,7 +90,7 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
     value,
   ]);
   const {isSecret, inputType, isSecretVisible, toggleSecret} = useSecretState(
-    config?.dataType,
+    config?.dataType || DATATYPE.STRING,
   );
 
   const [isOverrideLocked, setIsOverrideLocked] = React.useState(false);
@@ -117,7 +117,7 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
           label={label}
         />
       )}
-      {config && settingType === 'text' && (
+      {config && settingType !== 'checkbox' && (
         <TextField
           id={config?.key}
           name={config?.key}
@@ -182,16 +182,17 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
   );
 }
 
-function useSecretState(dataType: ?string) {
+function useSecretState(dataType: string) {
   const isSecret = dataType === DATATYPE.SECRET_STRING;
   const [showSecret, setShowSecret] = React.useState(false);
   const toggleShow = React.useCallback(() => setShowSecret(val => !val), [
     setShowSecret,
   ]);
+  const visibleInputType = dataTypeToInputType[dataType];
   // determine the HTMLInputType of the input
   const inputType = React.useMemo(
-    () => (!isSecret || showSecret ? 'text' : 'password'),
-    [isSecret, showSecret],
+    () => (!isSecret || showSecret ? visibleInputType : 'password'),
+    [isSecret, showSecret, visibleInputType],
   );
   return {
     isSecret,

@@ -41,6 +41,7 @@ const useStyles = makeStyles(theme => ({
     height: 80,
     maxHeight: 80,
     overflowY: 'auto',
+    maxWidth: '100%',
   },
   statusPaper: {
     minHeight: 30,
@@ -85,8 +86,14 @@ export default function SettingsTester({keys}: {keys: Array<string>}) {
         string,
         {success: boolean, message?: string},
       >(data);
-      const testResults = results.map(([_testerKey, result]) => result.message);
-      setMessage(testResults.join(', '));
+      const errorMessages = results
+        .filter(([_, {success}]) => !success)
+        .map(([_, {message}]) => message);
+      if (errorMessages.length > 0) {
+        setMessage(errorMessages.join(', '));
+      } else {
+        setMessage('Success!');
+      }
       for (const [_, {success}] of results) {
         if (!success) {
           return error();

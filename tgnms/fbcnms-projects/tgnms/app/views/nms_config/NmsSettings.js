@@ -144,6 +144,21 @@ export default function NmsSettings() {
                       />
                     </SettingGroup>
                     <SettingGroup
+                      title="Stats"
+                      tester={
+                        <SettingsTester keys={['PROMETHEUS', 'GRAFANA_URL']} />
+                      }>
+                      <SettingInput
+                        label="Prometheus URL"
+                        setting="PROMETHEUS"
+                      />
+                      <SettingInput label="Grafana URL" setting="GRAFANA_URL" />
+                      <SettingInput
+                        label="Stats Max Delay (Seconds)"
+                        setting="STATS_ALLOWED_DELAY_SEC"
+                      />
+                    </SettingGroup>
+                    <SettingGroup
                       title="Alarms"
                       tester={
                         <SettingsTester

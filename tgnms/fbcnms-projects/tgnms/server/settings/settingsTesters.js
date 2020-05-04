@@ -13,6 +13,8 @@ export const TESTER = {
   SOFTWARE_PORTAL: 'SOFTWARE_PORTAL',
   ALARMS: 'ALARMS',
   KEYCLOAK: 'KEYCLOAK',
+  PROMETHEUS: 'PROMETHEUS',
+  GRAFANA: 'GRAFANA',
 };
 
 export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
@@ -127,6 +129,22 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
         success: false,
         message: 'OAuth grant failed. Users may have trouble logging in.',
       };
+    }
+    return {success: true, message: 'Success!'};
+  },
+  [TESTER.PROMETHEUS]: async config => {
+    const {PROMETHEUS} = config;
+    const response = await axios.get(`${PROMETHEUS}/api/v1/query?query=up`);
+    if (!response.data || response.data?.status !== 'success') {
+      return {success: false, message: 'Invalid Prometheus response'};
+    }
+    return {success: true, message: 'Success!'};
+  },
+  [TESTER.GRAFANA]: async config => {
+    const {GRAFANA_URL} = config;
+    const response = await axios.get(`${GRAFANA_URL}/api/dashboards/home`);
+    if (!response.data || !response.data.meta) {
+      return {success: false, message: 'Invalid Grafana response'};
     }
     return {success: true, message: 'Success!'};
   },

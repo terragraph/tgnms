@@ -208,8 +208,28 @@ export const SETTINGS: Array<SettingDefinition> = [
     required: false,
     dataType: 'STRING',
     requiresRestart: true,
-    tester: TESTER.KEYCLOAK,
     validations: ['URL'],
+  },
+  {
+    key: 'PROMETHEUS',
+    required: false,
+    dataType: 'STRING',
+    requiresRestart: true,
+    validations: ['URL'],
+    tester: TESTER.PROMETHEUS,
+  },
+  {
+    key: 'GRAFANA_URL',
+    required: false,
+    dataType: 'STRING',
+    requiresRestart: true,
+    tester: TESTER.GRAFANA,
+  },
+  {
+    key: 'STATS_ALLOWED_DELAY_SEC',
+    required: false,
+    dataType: 'INT',
+    requiresRestart: true,
   },
 ];
 

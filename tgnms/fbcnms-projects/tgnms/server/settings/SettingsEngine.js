@@ -121,7 +121,7 @@ export default class SettingsEngine {
     return this.state;
   };
   /**
-   *
+   * Test a set of setting values against their configured test functions
    */
   test = async (
     testValues: EnvMap,
@@ -146,7 +146,7 @@ export default class SettingsEngine {
         logger.error(error);
         results[key] = {
           success: false,
-          message: error.message || 'Settings Test Failed',
+          message: `${key}: ${error.message || 'Test Failed'}`,
         };
       }
     }

@@ -225,7 +225,7 @@ router.get('/metric_series', (req, res) => {
     startTimeString = startTime.toISOString();
   }
   return createRequest({
-    uri: `${PROMETHEUS_URL}/api/v1/series?start=${startTimeString}&match[]={job="prometheus_cache"} `,
+    uri: `${PROMETHEUS_URL}/api/v1/series?start=${startTimeString}&match[]={job="prometheus_cache"}`,
     method: 'GET',
   })
     .then(response => res.status(response.statusCode).send(response.body))
