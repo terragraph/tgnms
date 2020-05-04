@@ -1,7 +1,7 @@
 # Pull base image
 FROM alpine:edge AS thrift
 
-ARG FB_VERSION=v2020.01.13.00
+ARG FB_VERSION=v2020.05.04.00
 ARG FMT_VERSION=6.1.2
 ARG ZSTD_VERSION=v1.4.4
 
@@ -66,9 +66,8 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     make -j $(nproc) install && \
     # Install rsocket and yarpl
     cd /opt && \
-    git clone https://github.com/rsocket/rsocket-cpp.git && \
+    git clone -b $FB_VERSION https://github.com/rsocket/rsocket-cpp.git && \
     cd rsocket-cpp && \
-    git checkout 5683e40dde0b0bdb311c1dc3b0ad1fe39dd78480 && \
     mkdir _build && \
     cd _build && \
     cmake .. -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF && \
