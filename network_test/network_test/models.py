@@ -64,7 +64,7 @@ class NetworkTestParams(Base):
     test_type = Column(Enum(NetworkTestType), nullable=False)
     network_name = Column(String(255), index=True, nullable=False)
     iperf_options = Column(JSON, nullable=False)
-    whitelist = Column(JSON, nullable=True)
+    whitelist = Column(JSON(none_as_null=True), nullable=True)
 
 
 class NetworkTestExecution(Base):

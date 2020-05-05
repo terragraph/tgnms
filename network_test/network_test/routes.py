@@ -2,9 +2,9 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import enum
+import functools
 import json
 from datetime import datetime
-from functools import partial
 from typing import Any
 
 from aiohttp import web
@@ -52,6 +52,11 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
       schema:
         type: int
         enum: [6, 17]
+    - in: query
+      name: partial
+      description: If the test is only run on part of the network
+      schema:
+        type: boolean
     produces:
     - application/json
     responses:
@@ -78,16 +83,24 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
                 text=f"'protocol' must be a valid integer value: {protocol}"
             )
 
+    partial = request.rel_url.query.get("partial")
+    if partial == "true":
+        partial = True
+    elif partial == "false":
+        partial = False
+    else:
+        raise web.HTTPBadRequest(text=f"'partial' must be true/false: {partial}")
+
     return web.json_response(
         {
             "schedules": [
                 dict(row)
                 for row in await Scheduler.list_schedules(
-                    test_type, network_name, protocol
+                    test_type, network_name, protocol, partial
                 )
             ]
         },
-        dumps=partial(json.dumps, default=custom_serializer),
+        dumps=functools.partial(json.dumps, default=custom_serializer),
     )
 
 
@@ -123,7 +136,7 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
     schedule, executions = schedule_output
     return web.json_response(
         {"schedule": dict(schedule), "executions": [dict(row) for row in executions]},
-        dumps=partial(json.dumps, default=custom_serializer),
+        dumps=functools.partial(json.dumps, default=custom_serializer),
     )
 
 
@@ -325,7 +338,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     return web.Response(text="Successfully deleted network test schedule")
 
 
-@routes.get("/execution")
+@routes.get("/execution")  # noqa: C901
 async def handle_get_executions(request: web.Request) -> web.Response:
     """
     ---
@@ -349,6 +362,11 @@ async def handle_get_executions(request: web.Request) -> web.Response:
       schema:
         type: int
         enum: [6, 17]
+    - in: query
+      name: partial
+      description: If the test is only run on part of the network
+      schema:
+        type: boolean
     - in: query
       name: status
       description: The status of the execution.
@@ -385,6 +403,14 @@ async def handle_get_executions(request: web.Request) -> web.Response:
                 text=f"'protocol' must be a valid integer value: {protocol}"
             )
 
+    partial = request.rel_url.query.get("partial")
+    if partial == "true":
+        partial = True
+    elif partial == "false":
+        partial = False
+    else:
+        raise web.HTTPBadRequest(text=f"'partial' must be true/false: {partial}")
+
     status = request.rel_url.query.get("status")
     if status is not None:
         if NetworkTestStatus.has_value(status):
@@ -406,11 +432,11 @@ async def handle_get_executions(request: web.Request) -> web.Response:
             "executions": [
                 dict(row)
                 for row in await Scheduler.list_executions(
-                    test_type, network_name, protocol, status, start_dt
+                    test_type, network_name, protocol, partial, status, start_dt
                 )
             ]
         },
-        dumps=partial(json.dumps, default=custom_serializer),
+        dumps=functools.partial(json.dumps, default=custom_serializer),
     )
 
 
@@ -446,7 +472,7 @@ async def handle_get_execution(request: web.Request) -> web.Response:
     execution, results = execution_output
     return web.json_response(
         {"execution": dict(execution), "results": [dict(row) for row in results]},
-        dumps=partial(json.dumps, default=custom_serializer),
+        dumps=functools.partial(json.dumps, default=custom_serializer),
     )
 
 

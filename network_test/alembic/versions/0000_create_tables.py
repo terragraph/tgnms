@@ -36,7 +36,7 @@ def upgrade():
         ),
         sa.Column("network_name", sa.String(length=255), nullable=False),
         sa.Column("iperf_options", sa.JSON(), nullable=False),
-        sa.Column("whitelist", sa.JSON(), nullable=True),
+        sa.Column("whitelist", sa.JSON(none_as_null=True), nullable=True),
         sa.ForeignKeyConstraint(
             ["schedule_id"], ["network_test_schedule.id"], ondelete="SET NULL"
         ),

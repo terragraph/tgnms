@@ -397,6 +397,7 @@ class Scheduler:
         test_type: Optional[NetworkTestType] = None,
         network_name: Optional[str] = None,
         protocol: Optional[int] = None,
+        partial: Optional[bool] = None,
     ) -> Iterable:
         """Fetch all the schedules, or a subset, with optional filtering."""
         async with MySQLClient().lease() as sa_conn:
@@ -436,6 +437,11 @@ class Scheduler:
                 query = query.where(
                     NetworkTestParams.iperf_options["protocol"] == protocol
                 )
+            if partial is not None:
+                if partial:
+                    query = query.where(NetworkTestParams.whitelist.isnot(None))
+                else:
+                    query = query.where(NetworkTestParams.whitelist.is_(None))
 
             cursor = await sa_conn.execute(query)
             return await cursor.fetchall()
@@ -485,6 +491,7 @@ class Scheduler:
         test_type: Optional[NetworkTestType] = None,
         network_name: Optional[str] = None,
         protocol: Optional[int] = None,
+        partial: Optional[bool] = None,
         status: Optional[NetworkTestStatus] = None,
         start_dt: Optional[datetime] = None,
     ) -> Iterable:
@@ -515,6 +522,11 @@ class Scheduler:
                 query = query.where(
                     NetworkTestParams.iperf_options["protocol"] == protocol
                 )
+            if partial is not None:
+                if partial:
+                    query = query.where(NetworkTestParams.whitelist.isnot(None))
+                else:
+                    query = query.where(NetworkTestParams.whitelist.is_(None))
             if status is not None:
                 query = query.where(NetworkTestExecution.status == status)
             if start_dt is not None:
