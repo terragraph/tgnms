@@ -133,19 +133,19 @@ class Scheduler:
         except ClientRuntimeError:
             logging.exception("Failed to stop one or more iperf session(s)")
 
-        # Mark all stale running executions + test results as ABORTED in the DB
+        # Mark all stale running executions + test results as FAILED in the DB
         async with MySQLClient().lease() as sa_conn:
             update_execution_query = (
                 update(NetworkTestExecution)
                 .where(NetworkTestExecution.status == NetworkTestStatus.RUNNING)
-                .values(status=NetworkTestStatus.ABORTED)
+                .values(status=NetworkTestStatus.FAILED)
             )
             await sa_conn.execute(update_execution_query)
 
             update_result_query = (
                 update(NetworkTestResult)
                 .where(NetworkTestResult.status == NetworkTestStatus.RUNNING)
-                .values(status=NetworkTestStatus.ABORTED)
+                .values(status=NetworkTestStatus.FAILED)
             )
             await sa_conn.execute(update_result_query)
             await sa_conn.connection.commit()
@@ -314,14 +314,19 @@ class Scheduler:
         test.cleanup_handle = loop.call_later(
             estimated_duration.total_seconds() + cls.timeout,
             asyncio.create_task,
-            cls.stop_execution(execution_id),
+            cls.stop_execution(execution_id, is_manual=False),
         )
 
         return execution_id
 
     @classmethod
-    async def stop_execution(cls, execution_id: int) -> bool:
-        """Stop the execution and mark it as aborted in the DB."""
+    async def stop_execution(cls, execution_id: int, is_manual: bool = True) -> bool:
+        """Stop the execution and mark it as aborted in the DB.
+
+        This logic can be invoked manually via the HTTP API or via the cleanup task.
+        Mark sessions and tests as ABORTED if it is from the API and FAILED if it is
+        from the cleanup task.
+        """
         test = cls._executions[execution_id]
         async with MySQLClient().lease() as sa_conn:
             update_result_query = (
@@ -330,19 +335,23 @@ class Scheduler:
                     (NetworkTestResult.execution_id == execution_id)
                     & (NetworkTestResult.status == NetworkTestStatus.RUNNING)
                 )
-                .values(status=NetworkTestStatus.ABORTED)
+                .values(
+                    status=NetworkTestStatus.ABORTED
+                    if is_manual
+                    else NetworkTestStatus.FAILED
+                )
             )
 
-            # Mark the entire execution as ABORTED if any sessions had to be terminated
+            # Mark the entire execution as FINISHED if at least one session completed
             result = await sa_conn.execute(update_result_query)
             update_execution_query = (
                 update(NetworkTestExecution)
                 .where(NetworkTestExecution.id == execution_id)
                 .values(
-                    status=NetworkTestStatus.FAILED
-                    if not test.session_ids
-                    else NetworkTestStatus.ABORTED
-                    if result.rowcount
+                    status=NetworkTestStatus.ABORTED
+                    if is_manual
+                    else NetworkTestStatus.FAILED
+                    if not test.session_ids or result.rowcount == len(test.session_ids)
                     else NetworkTestStatus.FINISHED
                 )
             )
