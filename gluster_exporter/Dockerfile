@@ -13,3 +13,4 @@ RUN install -D /dev/null /var/log/gluster-exporter/exporter.log && \
     ln -sf /dev/stdout /var/log/gluster-exporter/exporter.log
 
 COPY --from=builder /usr/local/sbin/gluster-exporter /usr/local/sbin/gluster-exporter
+ENTRYPOINT ["/usr/local/sbin/gluster-exporter"]

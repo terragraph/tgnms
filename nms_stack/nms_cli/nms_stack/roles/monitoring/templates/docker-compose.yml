@@ -29,7 +29,6 @@ services:
       - {{ monitoring_gfs_path }}/gluster_exporter/config:/usr/local/etc/gluster-exporter
     networks:
       - terragraph_net
-    command: ["gluster-exporter"]
     logging:
       driver: "json-file"
       options:
