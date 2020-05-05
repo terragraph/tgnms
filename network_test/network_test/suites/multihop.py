@@ -33,9 +33,6 @@ class Multihop(BaseTest):
     async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
         """Prepare the network test assets.
 
-        'link_name' is omitted as multihop tests are potentially run across multiple
-        links from a node to a PoP.
-
         The duration is the number of assets, post whitelist filtering, multiplied
         by the duration of each session as each asset is tested sequentially.
         """
@@ -80,7 +77,7 @@ class Multihop(BaseTest):
                 # Pick a random PoP node from the default routes if ECMP
                 pop_name = routes[random.randint(0, len(routes) - 1)][-1]
                 test_assets.append(
-                    TestAsset(name_to_mac[node_name], name_to_mac[pop_name])
+                    TestAsset(node_name, name_to_mac[node_name], name_to_mac[pop_name])
                 )
 
             return (
@@ -126,11 +123,13 @@ class Multihop(BaseTest):
             values = [
                 {
                     "execution_id": execution_id,
+                    "asset_name": asset.name,
                     "src_node_mac": asset.src_node_mac,
                     "dst_node_mac": asset.dst_node_mac,
                 },
                 {
                     "execution_id": execution_id,
+                    "asset_name": asset.name,
                     "src_node_mac": asset.dst_node_mac,
                     "dst_node_mac": asset.src_node_mac,
                 },

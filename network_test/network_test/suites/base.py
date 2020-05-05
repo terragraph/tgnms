@@ -20,9 +20,9 @@ from ..models import NetworkTestResult, NetworkTestStatus
 class TestAsset:
     """Struct for representing an individual asset under test."""
 
+    name: str
     src_node_mac: str
     dst_node_mac: str
-    link_name: Optional[str] = None
 
 
 class BaseTest(abc.ABC):

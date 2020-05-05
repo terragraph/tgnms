@@ -48,7 +48,7 @@ class Sequential(BaseTest):
                     continue
 
                 test_assets.append(
-                    TestAsset(link["a_node_mac"], link["z_node_mac"], link["name"])
+                    TestAsset(link["name"], link["a_node_mac"], link["z_node_mac"])
                 )
 
             return (
@@ -94,15 +94,15 @@ class Sequential(BaseTest):
             values = [
                 {
                     "execution_id": execution_id,
+                    "asset_name": asset.name,
                     "src_node_mac": asset.src_node_mac,
                     "dst_node_mac": asset.dst_node_mac,
-                    "link_name": asset.link_name,
                 },
                 {
                     "execution_id": execution_id,
+                    "asset_name": asset.name,
                     "src_node_mac": asset.dst_node_mac,
                     "dst_node_mac": asset.src_node_mac,
-                    "link_name": asset.link_name,
                 },
             ]
 

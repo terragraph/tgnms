@@ -39,7 +39,7 @@ async def process_msg(msg: str) -> None:
             values.update(compute_iperf_stats(parsed))
             if not isinstance(test, Multihop):
                 get_results_query = select(
-                    [NetworkTestResult.start_dt, NetworkTestResult.link_name]
+                    [NetworkTestResult.start_dt, NetworkTestResult.asset_name]
                 ).where(
                     (NetworkTestResult.execution_id == execution_id)
                     & (NetworkTestResult.src_node_mac == parsed.src_node_id)
@@ -50,12 +50,12 @@ async def process_msg(msg: str) -> None:
                 row = await cursor.first()
                 values.update(
                     await compute_firmware_stats(
-                        row.start_dt,
-                        test.iperf_options["timeSec"],
-                        test.network_name,
-                        row.link_name,
-                        parsed.src_node_id,
-                        parsed.dst_node_id,
+                        start_dt=row.start_dt,
+                        session_duration=test.iperf_options["timeSec"],
+                        network_name=test.network_name,
+                        link_name=row.asset_name,
+                        src_node_mac=parsed.src_node_id,
+                        dst_node_mac=parsed.dst_node_id,
                     )
                 )
 

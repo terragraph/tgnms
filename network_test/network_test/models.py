@@ -87,7 +87,7 @@ class NetworkTestResult(Base):
     status = Column(Enum(NetworkTestStatus), index=True, nullable=False)
     src_node_mac = Column(String(255), index=True, nullable=False)
     dst_node_mac = Column(String(255), index=True, nullable=False)
-    link_name = Column(String(255), nullable=True)
+    asset_name = Column(String(255), nullable=False)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
     end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
     # Firmware Columns

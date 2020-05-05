@@ -88,7 +88,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
         partial = True
     elif partial == "false":
         partial = False
-    else:
+    elif partial is not None:
         raise web.HTTPBadRequest(text=f"'partial' must be true/false: {partial}")
 
     return web.json_response(
@@ -408,7 +408,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:
         partial = True
     elif partial == "false":
         partial = False
-    else:
+    elif partial is not None:
         raise web.HTTPBadRequest(text=f"'partial' must be true/false: {partial}")
 
     status = request.rel_url.query.get("status")
