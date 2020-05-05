@@ -61,13 +61,16 @@ const defaultView = 'networks';
 export default function NmsSettings() {
   const classes = useStyles();
   const match = useRouteMatch('/config/:networkName/:view?');
-  const networkName = match?.params?.networkName ?? '_';
   const view = match?.params?.view ?? defaultView;
+
   if (!isFeatureEnabled('NMS_SETTINGS_ENABLED')) {
     // if the feature is disabled, show the NmsConfig UI like before
     return (
       <Grid container className={classes.root}>
-        <Route path="/config/:networkName" component={NmsConfig} />
+        <Switch>
+          <Route path="/config/:networkName" component={NmsConfig} />
+          <DefaultRedirect />
+        </Switch>
       </Grid>
     );
   }
@@ -268,10 +271,7 @@ export default function NmsSettings() {
                 )}
               />
 
-              <Redirect
-                from="/config"
-                to={`/config/${networkName}/${defaultView}`}
-              />
+              <DefaultRedirect />
             </Switch>
           </Paper>
         </Grid>
@@ -338,5 +338,13 @@ function TabLink(props: {value: string}) {
       component={Link}
       to={props.value}
     />
+  );
+}
+
+function DefaultRedirect() {
+  const match = useRouteMatch('/config/:networkName/:view?');
+  const networkName = match?.params?.networkName ?? '_';
+  return (
+    <Redirect from="/config" to={`/config/${networkName}/${defaultView}`} />
   );
 }
