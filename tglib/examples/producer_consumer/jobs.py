@@ -6,7 +6,7 @@ from typing import List
 from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric
 
 
-async def add_x(start_time: int, metric_name: str, x: int) -> None:
+async def add_x(start_time_ms: int, metric_name: str, x: int) -> None:
     """Add 'x' to the latest value of 'metric_name'.
 
     Write the derived stat back to Prometheus using the same labels.
@@ -20,7 +20,7 @@ async def add_x(start_time: int, metric_name: str, x: int) -> None:
     for result in response["data"]["result"]:
         name = f"{metric_name}_plus_{x}"
         labels = result["metric"]
-        value = result["value"][1]
-        metrics.append(PrometheusMetric(name, labels, value, start_time))
+        value = result["value"][1] + x
+        metrics.append(PrometheusMetric(name, labels, value, start_time_ms))
 
     client.write_metrics(scrape_interval="30s", metrics=metrics)

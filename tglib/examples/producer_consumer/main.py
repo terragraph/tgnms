@@ -32,7 +32,7 @@ class Job:
     """Struct for representing pipeline job configurations."""
 
     name: str
-    start_time: int
+    start_time_ms: int
     params: Dict
 
 
@@ -45,7 +45,7 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
             queue.put(
                 Job(
                     name=job["name"],
-                    start_time=int(start_time),
+                    start_time_ms=int(round(start_time * 1e3)),
                     params=job.get("params", {}),
                 )
             )

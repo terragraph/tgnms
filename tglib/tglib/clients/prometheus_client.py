@@ -21,7 +21,7 @@ from ..utils.ip import format_address
 from .base_client import BaseClient
 
 
-# Tyoe alias: query_str -> (value, timestamp)
+# Tyoe alias: query_str -> (value, time)
 MetricCache = Dict[str, Tuple[Union[int, float], Optional[int]]]
 
 # Common labels
@@ -34,6 +34,7 @@ consts.site_name = "siteName"
 consts.link_name = "linkName"
 consts.link_direction = "linkDirection"
 consts.network = "network"
+consts.data_interval_s = "intervalSec"
 
 # Built-in Prometheus query transformation operators/functions
 ops = SimpleNamespace()
@@ -143,8 +144,8 @@ class PrometheusClient(BaseClient):
         # Format the incoming metrics
         curr_metrics = {}
         for metric in metrics:
-            id = cls.format_query(metric.name, metric.labels)
-            curr_metrics[id] = (metric.value, metric.time)
+            query_str = cls.format_query(metric.name, metric.labels)
+            curr_metrics[query_str] = (metric.value, metric.time)
 
         prev_metrics = cls._metrics_map[scrape_interval]
         prev_metrics.update(curr_metrics)
@@ -162,8 +163,8 @@ class PrometheusClient(BaseClient):
 
         datapoints = []
         metrics = cls._metrics_map[scrape_interval]
-        for id, (value, ts) in metrics.items():
-            datapoints.append(f"{id} {value} {ts or ''}".rstrip())
+        for query_str, (value, ts) in metrics.items():
+            datapoints.append(f"{query_str} {value} {ts or ''}".rstrip())
 
         metrics.clear()
         return datapoints
