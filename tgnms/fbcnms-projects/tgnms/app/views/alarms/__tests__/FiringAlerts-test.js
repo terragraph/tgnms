@@ -13,8 +13,8 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import NmsAlarms from '../NmsAlarms';
+import {AlarmsTestWrapper} from '@fbcnms/alarms/test/testHelpers';
 import {EventIdValueMap} from '../../../../shared/types/Event';
-import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {TgApiUtil as TgApiUtilMock} from '../TgAlarmApi';
 import {
   act,
@@ -61,9 +61,9 @@ test('Firing alerts tab renders', () => {
     .spyOn(TgApiUtilMock, 'viewFiringAlerts')
     .mockReturnValueOnce(firingAlerts);
   const {getByText} = render(
-    <SymphonyWrapper>
+    <AlarmsTestWrapper>
       <NmsAlarms {...commonProps} />
-    </SymphonyWrapper>,
+    </AlarmsTestWrapper>,
   );
   expect(getByText('<<testalert>>')).toBeInTheDocument();
   expect(getByText(/notice/i)).toBeInTheDocument();
@@ -86,9 +86,9 @@ test('Clicking view alert shows alert details', async () => {
     .spyOn(TgApiUtilMock, 'viewFiringAlerts')
     .mockReturnValueOnce(firingAlerts);
   const {getByText, getByTestId} = render(
-    <SymphonyWrapper>
+    <AlarmsTestWrapper>
       <NmsAlarms {...commonProps} />
-    </SymphonyWrapper>,
+    </AlarmsTestWrapper>,
     {baseElement: document?.body ?? undefined},
   );
   act(() => {
@@ -120,9 +120,9 @@ xtest('Clicking view alert on an event alert shows the EventAlertViewer', async 
     .spyOn(TgApiUtilMock, 'viewFiringAlerts')
     .mockReturnValueOnce(firingAlerts);
   const {getByText, getByLabelText, getByTestId} = render(
-    <SymphonyWrapper>
+    <AlarmsTestWrapper>
       <NmsAlarms {...commonProps} />
-    </SymphonyWrapper>,
+    </AlarmsTestWrapper>,
     {baseElement: document?.body ?? undefined},
   );
   act(() => {
