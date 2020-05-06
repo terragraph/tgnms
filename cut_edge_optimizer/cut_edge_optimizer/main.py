@@ -97,6 +97,10 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
+        {
+            ClientType.API_SERVICE_CLIENT,
+            ClientType.MYSQL_CLIENT,
+            ClientType.PROMETHEUS_CLIENT,
+        },
         routes,
     )

@@ -8,7 +8,7 @@ from typing import List, Optional
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .config_operations import get_all_cut_edge_configs
+from .config_operations import process_cut_edges
 
 
 async def cut_edge_finder(
@@ -26,21 +26,17 @@ async def cut_edge_finder(
     """
     logging.info("Fetching topologies for all networks from API service")
     client = APIServiceClient(timeout=2)
-    all_topologies = await client.request_all("getTopology", return_exceptions=True)
-    coroutines: List = []
-    for network_name, topology in all_topologies.items():
+    topologies = await client.request_all("getTopology", return_exceptions=True)
+    for network_name, topology in list(topologies.items()):
         if isinstance(topology, ClientRuntimeError):
-            logging.error(f"Error in fetching topology for {network_name}.")
-        else:
-            coroutines.append(
-                get_all_cut_edge_configs(
-                    topology,
-                    window_s,
-                    link_flap_backoff_ms,
-                    link_impairment_detection,
-                    config_change_delay_s,
-                    link_uptime_threshold,
-                )
-            )
+            logging.error(f"Failed to fetch topology for {network_name}")
+            del topologies[network_name]
 
-    await asyncio.gather(*coroutines)
+    await process_cut_edges(
+        topologies,
+        window_s,
+        link_flap_backoff_ms,
+        link_impairment_detection,
+        config_change_delay_s,
+        link_uptime_threshold,
+    )

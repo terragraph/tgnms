@@ -16,7 +16,7 @@ def build_topology_graph(topology: Dict) -> Tuple[nx.Graph, Set[str]]:
     cns: Set[str] = set()
     for node in topology["nodes"]:
         nodes.append((node["name"], node))
-        # connecting all PoP nodes to a common 'source' since PoP-PoP connections
+        # Connecting all PoP nodes to a common 'source' since PoP-PoP connections
         # are not in the topology
         if node["pop_node"] and node["is_primary"]:
             edges.append(
@@ -36,58 +36,58 @@ def build_topology_graph(topology: Dict) -> Tuple[nx.Graph, Set[str]]:
     return graph, cns
 
 
-def find_cn_cut_edges(graph: nx.Graph, cns: Set[str]) -> Set[str]:
-    # check if topology has unconnected nodes so they don't affect cut-edge analysis
+def find_cn_cut_edges(graph: nx.Graph, cns: Set[str]) -> Set[Tuple[str, str]]:
+    # Check if topology has unconnected nodes so they don't affect cut-edge analysis
     topology_components = list(nx.connected_components(graph))
     logging.debug(f"Number of connected components {len(topology_components)}")
     if len(topology_components) > 1:
         logging.warning("Topology already has some unconnected nodes")
 
     pops = {node for node in graph["source"]}
-    # mapping from cut-edge to the CNs it cuts off, if any
+    # Mapping from cut-edge to the CNs it cuts off, if any
     cn_cut_edges = set()
-    for edge in nx.bridges(graph):
-        link_attributes = graph.get_edge_data(*edge)
-        # skip wired links
+    for a_node, z_node in nx.bridges(graph):
+        link_attributes = graph.get_edge_data(a_node, z_node)
+        # Skip wired links
         if link_attributes.get("link_type") == LinkType.WIRELESS:
-            logging.debug(f"Analyzing cut edge between {edge[0]} and {edge[1]}")
-            if is_cn_cut_edge(graph, edge, cns, pops, topology_components):
-                cn_cut_edges.add(edge)
+            logging.debug(f"Analyzing cut edge between {a_node} and {z_node}")
+            if is_cn_cut_edge(graph, a_node, z_node, cns, pops, topology_components):
+                cn_cut_edges.add((a_node, z_node))
     return cn_cut_edges
 
 
 def is_cn_cut_edge(
     graph: nx.Graph,
-    edge: Tuple[str, str],
+    a_node: str,
+    z_node: str,
     cns: Set[str],
     pops: Set[str],
     topology_components: List[Set[str]],
 ) -> bool:
-    # if the edge is a CN-DN edge then it is a CN cut edge
-    cut_cns = set(edge) & cns
+    # If the edge is a CN-DN edge then it is a CN cut edge
+    cut_cns = set((a_node, z_node)) & cns
     if cut_cns:
-        logging.debug(f"Cut edge between {edge[0]} and {edge[1]} cuts off CN {cut_cns}")
+        logging.debug(f"Cut edge between {a_node} and {z_node} cuts off CN {cut_cns}")
         return True
-    # for non-CN cut edges check if removing the link cuts off a CN from PoPs
-    graph.remove_edge(*edge)
+    # For non-CN cut edges check if removing the link cuts off a CN from PoPs
+    graph.remove_edge(a_node, z_node)
     connected_components = nx.connected_components(graph)
-    # if removing the edge has created a graph component that has no PoPs but has CNs
+    # If removing the edge has created a graph component that has no PoPs but has CNs
     # then it is a CN cut edge
     for component in connected_components:
-        # if this component isn't already disconnected in the original topology
+        # If this component isn't already disconnected in the original topology
         # i.e. it has been created by removing the edge
         if component not in topology_components:
             if not (component & pops):
                 cut_cns = component & cns
                 if cut_cns:
                     logging.debug(
-                        f"Cut edge between {edge[0]} and {edge[1]} cuts off CNs "
-                        f"{cut_cns}"
+                        f"Cut edge between {a_node} and {z_node} cuts off CNs {cut_cns}"
                     )
                     # the edge is added back to the graph with out link attributes.
-                    graph.add_edge(*edge)
+                    graph.add_edge(a_node, z_node)
                     return True
-    graph.add_edge(*edge)
+    graph.add_edge(a_node, z_node)
     return False
 
 

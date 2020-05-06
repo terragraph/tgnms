@@ -72,17 +72,17 @@ class GraphAnalysisTests(unittest.TestCase):
         topology_components = list(nx.connected_components(self.graph))
         cut_edges = nx.bridges(self.graph)
         graph = deepcopy(self.graph)
-        for edge in cut_edges:
-            if edge == ("TEST.18-41.s1", "TEST.18-61.P4"):
+        for a_node, z_node in cut_edges:
+            if (a_node, z_node) == ("TEST.18-41.s1", "TEST.18-61.P4"):
                 self.assertTrue(
                     is_cn_cut_edge(
-                        self.graph, edge, self.cns, pops, topology_components
+                        self.graph, a_node, z_node, self.cns, pops, topology_components
                     )
                 )
-            if edge == ("TEST.18-41.p1", "TEST.18-41.s1"):
+            if (a_node, z_node) == ("TEST.18-41.p1", "TEST.18-41.s1"):
                 self.assertFalse(
                     is_cn_cut_edge(
-                        self.graph, edge, self.cns, pops, topology_components
+                        self.graph, a_node, z_node, self.cns, pops, topology_components
                     )
                 )
         self.assertEqual(len(graph.nodes), len(self.graph.nodes))

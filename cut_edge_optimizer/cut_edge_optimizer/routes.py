@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import logging
+import asyncio
+from collections import defaultdict
 from typing import Dict
 
 from aiohttp import web
 from tglib.clients import APIServiceClient
 
-from .config_operations import get_all_cut_edge_configs
+from .config_operations import (
+    get_cn_cut_edges,
+    get_current_overrides_configs,
+    prepare_changes,
+    update_overrides_configs,
+)
+from .db import (
+    delete_node_entries,
+    get_previous_overrides_configs,
+    insert_overrides_configs,
+)
+from .graph_analysis import build_topology_graph
 
 
 routes = web.RouteTableDef()
@@ -57,9 +69,11 @@ async def start(request: web.Request) -> web.Response:
         - link_impairment_detection
     responses:
       "200":
-        description: Successful operation. Returns a list of all cut edge modifications in the network.
+        description: Successful operation.
       "400":
         description: Invalid or missing parameters.
+      "404":
+        description: Unable to run cut edge optimization.
     """
     body = await request.json()
     network_name = body.get("network_name")
@@ -80,24 +94,67 @@ async def start(request: web.Request) -> web.Response:
 
     window_s = body.get("window_s", 86400)
 
+    dry_run = body.get("dry_run", True)
+
     link_uptime_threshold = body.get("link_uptime_threshold")
     if link_uptime_threshold and not 0 <= link_uptime_threshold < 1:
         raise web.HTTPBadRequest(
             text="If provided, 'link_uptime_threshold' must be in the range [0, 1)"
         )
 
-    topology: Dict = await APIServiceClient(timeout=1).request(
-        network_name, endpoint="getTopology"
-    )
+    api_client = APIServiceClient(timeout=2)
+    topology: Dict = await api_client.request(network_name, endpoint="getTopology")
 
-    # Get the current configuration overrides for all nodes in cut edges
-    configs_all = await get_all_cut_edge_configs(
-        topology,
-        window_s,
-        link_flap_backoff_ms,
-        link_impairment_detection,
-        config_change_delay_s,
-        link_uptime_threshold,
-        body.get("dry_run", True),
+    # Create topology graph
+    topology_graph, cns = build_topology_graph(topology)
+    if not cns:
+        raise web.HTTPNotFound(text=f"{network_name} has no CNs")
+
+    # Get all CN cut edges
+    cn_cut_edges = await get_cn_cut_edges(
+        network_name, topology, cns, topology_graph, window_s, link_uptime_threshold
     )
-    return web.json_response(configs_all)
+    if cn_cut_edges is None:
+        raise web.HTTPNotFound(text=f"{network_name} has no CN cut edges")
+
+    # To avoid repeating for the common node in P2MP
+    node_set = {node_name for edge in cn_cut_edges for node_name in edge}
+
+    # Get previous config overrides for all nodes in cut edges
+    previous_config = await get_previous_overrides_configs({network_name})
+
+    # Get current config for all nodes of cut edges
+    current_overrides_configs = await get_current_overrides_configs(
+        api_client, network_name, node_set
+    )
+    if current_overrides_configs is None:
+        raise web.HTTPBadRequest(
+            text="Unable to get current node overrides config from API service"
+        )
+
+    overrides, entries_to_insert, entries_to_delete = prepare_changes(
+        network_name,
+        current_overrides_configs,
+        previous_config.get(network_name, {}),
+        link_impairment_detection,
+        link_flap_backoff_ms,
+    )
+    if overrides:
+        if not dry_run:
+            await asyncio.gather(
+                update_overrides_configs(
+                    api_client, network_name, overrides, config_change_delay_s
+                ),
+                insert_overrides_configs(entries_to_insert),
+                delete_node_entries(entries_to_delete),
+            )
+    else:
+        raise web.HTTPNotFound(
+            text=f"{network_name} does not require any cut edge config changes"
+        )
+
+    response = defaultdict(list)
+    for is_modify, override in overrides:
+        response["modify" if is_modify else "set"].append(override)
+
+    return web.json_response(response)
