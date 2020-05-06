@@ -2,19 +2,22 @@ version: '3.6'
 
 services:
   cut_edge_optimizer:
-      image: secure.cxl-terragraph.com:443/cut_edge_optimizer:latest
-      restart: always
-      volumes:
-        - ./docker_volumes/tglib/config.json:/usr/local/cut_edge_optimizer/config.json
-        - ./docker_volumes/cut_edge_optimizer/service_config.json:/usr/local/cut_edge_optimizer/service_config.json
-      networks:
-        - terragraph_net
-      command: ["/bin/sh", "-c", "cut_edge_optimizer"]
-      logging:
-        driver: "json-file"
-        options:
-          max-size: "20m"
-          max-file: "10"
+    image: secure.cxl-terragraph.com:443/cut_edge_optimizer:latest
+    env_file:
+      - ./env/cut_edge_optimizer.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/cut_edge_optimizer/config.json
+      - ./docker_volumes/cut_edge_optimizer/service_config.json:/usr/local/cut_edge_optimizer/service_config.json
+      - ./mysql_init_scripts/cut_edge_optimizer.sql:/usr/local/cut_edge_optimizer/cut_edge_optimizer.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < cut_edge_optimizer.sql && cut_edge_optimizer"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
 
   default_routes_service:
     image: secure.cxl-terragraph.com:443/default_routes_service:latest
