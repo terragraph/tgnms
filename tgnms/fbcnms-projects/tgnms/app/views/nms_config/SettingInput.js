@@ -20,6 +20,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {DATATYPE, Validators} from '../../../shared/dto/Settings';
 import {makeStyles} from '@material-ui/styles';
+import {useSecretToggle} from './useSecretToggle';
 import {useSettingsFormContext} from './SettingsFormContext';
 
 const dataTypeToInputType = {
@@ -37,7 +38,6 @@ const useStyles = makeStyles(theme => ({
     top: 0,
     right: 0,
   },
-  secretToggle: {},
   overrideText: {
     color: theme.palette.warning.dark,
   },
@@ -89,7 +89,8 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
     validate,
     value,
   ]);
-  const {isSecret, inputType, isSecretVisible, toggleSecret} = useSecretState(
+
+  const {isHidden, isSecret, isSecretVisible, toggleSecret} = useSecretToggle(
     config?.dataType || DATATYPE.STRING,
   );
 
@@ -139,7 +140,7 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
           value={value || ''}
           onChange={e => onChange(e.target.value)}
           fullWidth
-          type={inputType}
+          type={isHidden ? 'password' : 'text'}
           disabled={isOverrideLocked}
           InputLabelProps={{
             shrink: true,
@@ -148,7 +149,10 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
             startAdornment: isOverridden && (
               <InputAdornment position="start">
                 <Typography variant="caption" className={classes.overrideText}>
-                  Override: {settingsForm.settingsState.current[config?.key]}
+                  Override:{' '}
+                  {isHidden
+                    ? '******'
+                    : settingsForm.settingsState.current[config?.key]}
                 </Typography>
               </InputAdornment>
             ),
@@ -157,7 +161,6 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
                 <span className={classes.configKey}>{config?.key}</span>
                 {isSecret && (
                   <Button
-                    classes={{root: classes.secretToggle}}
                     aria-label="toggle secret visibility"
                     onClick={toggleSecret}
                     size="small">
@@ -180,24 +183,4 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
       )}
     </Grid>
   );
-}
-
-function useSecretState(dataType: string) {
-  const isSecret = dataType === DATATYPE.SECRET_STRING;
-  const [showSecret, setShowSecret] = React.useState(false);
-  const toggleShow = React.useCallback(() => setShowSecret(val => !val), [
-    setShowSecret,
-  ]);
-  const visibleInputType = dataTypeToInputType[dataType];
-  // determine the HTMLInputType of the input
-  const inputType = React.useMemo(
-    () => (!isSecret || showSecret ? visibleInputType : 'password'),
-    [isSecret, showSecret, visibleInputType],
-  );
-  return {
-    isSecret,
-    inputType,
-    isSecretVisible: showSecret,
-    toggleSecret: toggleShow,
-  };
 }

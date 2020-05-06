@@ -15,11 +15,13 @@ import RestartWatcherModal, {useRestartWatcher} from './RestartWatcher';
 import Typography from '@material-ui/core/Typography';
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import red from '@material-ui/core/colors/red';
+import {DATATYPE} from '../../../shared/dto/Settings';
 import {EMPTY_SETTINGS_STATE} from '../../../shared/dto/Settings';
 import {Provider as SettingsFormContextProvider} from './SettingsFormContext';
 import {makeStyles} from '@material-ui/styles';
 import {useConfirmationModalState} from '../../hooks/modalHooks';
 import {useForm} from '@fbcnms/ui/hooks/index';
+import {useSecretToggle} from './useSecretToggle';
 import type {CancelTokenSource} from 'axios';
 import type {EnvMap, SettingsState} from '../../../shared/dto/Settings';
 import type {InputData} from './SettingsFormContext';
@@ -205,33 +207,20 @@ export default function SettingsForm({
               </Typography>
             </Grid>
             <Grid item>
-              <ul>
-                {changedSettings.map(key => (
-                  <li key={key}>
-                    <Grid container spacing={2} alignItems="flex-start">
-                      <Grid item>
-                        <Typography variant="body2">{key}</Typography>
-                      </Grid>
-                      <Grid item container direction="column" spacing={1}>
-                        <Grid item>
-                          <Typography>
-                            <del className={classes.oldValue}>
-                              {originalSettings[key]}
-                            </del>
-                          </Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography>
-                            <ins className={classes.newValue}>
-                              {formState[key]}
-                            </ins>
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  </li>
-                ))}
-              </ul>
+              {settingsState && (
+                <ul>
+                  {changedSettings.map(key => (
+                    <li key={key}>
+                      <ReviewSettingChanges
+                        setting={key}
+                        settingsState={settingsState}
+                        formState={formState}
+                        initialFormState={originalSettings}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Grid>
           </Grid>
         }
@@ -248,6 +237,61 @@ export default function SettingsForm({
         }
       />
     </>
+  );
+}
+
+function ReviewSettingChanges({
+  setting,
+  settingsState,
+  formState,
+  initialFormState,
+}: {
+  setting: string,
+  settingsState: SettingsState,
+  formState: EnvMap,
+  initialFormState: EnvMap,
+}) {
+  const classes = useStyles();
+  const settingConfig = settingsState.registeredSettings[setting];
+  const {isHidden, isSecret, isSecretVisible, toggleSecret} = useSecretToggle(
+    settingConfig?.dataType || DATATYPE.STRING,
+  );
+
+  const oldVal = initialFormState[setting];
+  const newVal = formState[setting];
+  const mask = (x: string) => '*'.repeat(x.length);
+  return (
+    <Grid container spacing={2} alignItems="center">
+      <Grid item>
+        <Typography variant="body2">{setting}</Typography>
+      </Grid>
+      <Grid item>
+        {isSecret && (
+          <Button
+            aria-label="toggle secret visibility"
+            onClick={toggleSecret}
+            size="small">
+            {isSecretVisible ? 'Hide' : 'Show'}
+          </Button>
+        )}
+      </Grid>
+      <Grid item container direction="column" spacing={0}>
+        <Grid item>
+          <Typography>
+            <del className={classes.oldValue}>
+              {isHidden ? mask(oldVal) : oldVal}
+            </del>
+          </Typography>
+        </Grid>
+        <Grid item>
+          <Typography>
+            <ins className={classes.newValue}>
+              {isHidden ? mask(newVal) : newVal}
+            </ins>
+          </Typography>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 }
 
