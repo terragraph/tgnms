@@ -33,7 +33,7 @@ type Props = {
 
 export default function LoadingBox(props: Props) {
   const classes = useStyles(props);
-  const fullScreen = props.fullScreen ? props.fullScreen : true;
+  const fullScreen = props.fullScreen !== null ? props.fullScreen : true;
   return (
     <div
       className={classes.root}
