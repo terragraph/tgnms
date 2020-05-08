@@ -80,28 +80,28 @@ describe('Settings Engine', () => {
       const processEnvAfter = {...process.env};
       expect(processEnvAfter['DONOTOVERWRITE']).toBe('expected-value');
     });
-    test('settings from settings file do not overwrite existing env vars', () => {
-      process.env['DONOTOVERWRITE'] = 'expected-value';
+    test('settings from settings file overwrite existing env vars', () => {
+      process.env['LOGIN_ENABLED'] = 'false';
       const processEnvBefore = {...process.env};
       writeSettingsFile(
         `{
         "API_REQUEST_TIMEOUT":"value",
-        "DONOTOVERWRITE":"overwritten, fail!"
+        "LOGIN_ENABLED":"settings-file-value"
       }`,
       );
-      expect(processEnvBefore['DONOTOVERWRITE']).toBe('expected-value');
+      expect(processEnvBefore['LOGIN_ENABLED']).toBe('false');
       settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
-      expect(processEnvAfter['DONOTOVERWRITE']).toBe('expected-value');
+      expect(processEnvAfter['LOGIN_ENABLED']).toBe('settings-file-value');
     });
     test('DISABLE_ENV_FILE disables loading from the env file', () => {
       process.env['DISABLE_ENV_FILE'] = '';
       const processEnvBefore = {...process.env};
-      writeEnvFile(`FAIL_IF_EXISTS=failure`);
-      expect(processEnvBefore['FAIL_IF_EXISTS']).toBe(undefined);
+      writeEnvFile(`API_REQUEST_TIMEOUT=failure`);
+      expect(processEnvBefore['API_REQUEST_TIMEOUT']).toBe(undefined);
       settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
-      expect(processEnvAfter['FAIL_IF_EXISTS']).toBe(undefined);
+      expect(processEnvAfter['API_REQUEST_TIMEOUT']).toBe(undefined);
       expect(warnLogSpy).toHaveBeenCalled();
     });
     test('NMS_SETTINGS_ENABLED=false disables loading from the settings file', () => {
@@ -124,16 +124,16 @@ describe('Settings Engine', () => {
       expect(processEnvAfter['UNREGISTERED_KEY']).toBe('unregistered');
     });
     test('invalid settings file logs error and continues', () => {
-      writeSettingsFile(`{"SHOULDNOTEXIST":"SHOULDNOTEXIST", bad json...}`);
+      writeSettingsFile(`{"API_REQUEST_TIMEOUT":"invalid", bad json...}`);
       expect(errorLogSpy).not.toHaveBeenCalled();
       settings.initialize(SETTINGS);
-      expect(process.env['SHOULDNOTEXIST']).toBe(undefined);
+      expect(process.env['API_REQUEST_TIMEOUT']).toBe(undefined);
       expect(errorLogSpy).toHaveBeenCalled();
     });
     test('invalid settings file does not affect settings from env file', () => {
-      writeSettingsFile(`{"SHOULDNOTEXIST":"SHOULDNOTEXIST", bad json...}`);
+      writeSettingsFile(`{"API_REQUEST_TIMEOUT":"invalid", bad json...}`);
       settings.initialize(SETTINGS);
-      expect(process.env['SHOULDNOTEXIST']).toBe(undefined);
+      expect(process.env['API_REQUEST_TIMEOUT']).toBe(undefined);
     });
     test('values from settings file are loaded into process.env', () => {
       const processEnvBefore = {...process.env};
@@ -250,14 +250,14 @@ describe('Settings Engine', () => {
       });
     });
     test('does not overwrite env vars which came from the CLI environment', () => {
-      process.env.MYSQL_USER = 'no-overwrite';
+      process.env.MYSQL_USER = 'wrong value';
       settings.initialize(SETTINGS);
 
       settings.update({
         MYSQL_USER: 'updated',
       });
       const envUpdated = {...process.env};
-      expect(envUpdated.MYSQL_USER).toBe('no-overwrite');
+      expect(envUpdated.MYSQL_USER).toBe('updated');
     });
     test('overwrites env vars which came from .env', () => {
       writeEnvFile('LOGIN_ENABLED=overwrite');

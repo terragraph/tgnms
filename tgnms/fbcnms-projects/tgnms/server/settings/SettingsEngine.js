@@ -291,7 +291,7 @@ export default class SettingsEngine {
     const settingsKeys = Object.keys(state.registeredSettings);
     const {dotenvEnv, settingsFileEnv, initialEnv} = state.envMaps;
     const finalizedSettings = this._mergeKeys(
-      [dotenvEnv, settingsFileEnv, initialEnv],
+      [dotenvEnv, initialEnv, settingsFileEnv],
       settingsKeys,
     );
     return finalizedSettings;

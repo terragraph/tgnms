@@ -10,14 +10,9 @@ import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import Lock from '@material-ui/icons/Lock';
-import LockOpen from '@material-ui/icons/LockOpen';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import {DATATYPE, Validators} from '../../../shared/dto/Settings';
 import {makeStyles} from '@material-ui/styles';
 import {useSecretToggle} from './useSecretToggle';
@@ -50,9 +45,7 @@ export type Props = {|
 export default function SettingInput({setting, label, isFeatureToggle}: Props) {
   const classes = useStyles();
   const settingsForm = useSettingsFormContext();
-  const {isOverridden, config, value, onChange} = settingsForm.getInput(
-    setting,
-  );
+  const {config, value, onChange} = settingsForm.getInput(setting);
   const [errorText, setErrorText] = React.useState<?string>();
   const validate = React.useCallback(
     (val: ?string) => {
@@ -94,11 +87,6 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
     config?.dataType || DATATYPE.STRING,
   );
 
-  const [isOverrideLocked, setIsOverrideLocked] = React.useState(false);
-  React.useEffect(() => {
-    setIsOverrideLocked(isOverridden);
-  }, [isOverridden]);
-
   const settingType = config ? dataTypeToInputType[config.dataType] : 'text';
   return (
     <Grid item>
@@ -123,39 +111,16 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
           id={config?.key}
           name={config?.key}
           error={hasError}
-          helperText={
-            typeof errorText === 'string'
-              ? errorText
-              : isOverridden && (
-                  <Typography
-                    className={classes.overrideText}
-                    variant="caption"
-                    color="error">
-                    This setting is currently overridden. Changes will be saved,
-                    but will not take effect until the override is removed.
-                  </Typography>
-                )
-          }
+          helperText={errorText}
           label={label}
           value={value || ''}
           onChange={e => onChange(e.target.value)}
           fullWidth
           type={isHidden ? 'password' : 'text'}
-          disabled={isOverrideLocked}
           InputLabelProps={{
             shrink: true,
           }}
           InputProps={{
-            startAdornment: isOverridden && (
-              <InputAdornment position="start">
-                <Typography variant="caption" className={classes.overrideText}>
-                  Override:{' '}
-                  {isHidden
-                    ? '******'
-                    : settingsForm.settingsState.current[config?.key]}
-                </Typography>
-              </InputAdornment>
-            ),
             endAdornment: (
               <InputAdornment position="end">
                 <span className={classes.configKey}>{config?.key}</span>
@@ -166,15 +131,6 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
                     size="small">
                     {isSecretVisible ? 'Hide' : 'Show'}
                   </Button>
-                )}
-                {isOverridden && (
-                  <Tooltip title={'Edit anyway'}>
-                    <IconButton
-                      aria-label="toggle override lock"
-                      onClick={() => setIsOverrideLocked(x => !x)}>
-                      {isOverrideLocked ? <Lock /> : <LockOpen />}
-                    </IconButton>
-                  </Tooltip>
                 )}
               </InputAdornment>
             ),
