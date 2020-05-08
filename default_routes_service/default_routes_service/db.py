@@ -62,7 +62,7 @@ async def save_default_routes(
                         }
                     )
 
-            del curr_routes[row.network_name][row.node_name]
+                del curr_routes[row.network_name][row.node_name]
 
         # Add all newly seen default routes
         for network_name, node_name_map in curr_routes.items():
@@ -131,7 +131,7 @@ async def save_cn_egress_routes(
                         }
                     )
 
-            del curr_routes[row.network_name][row.link_name]
+                del curr_routes[row.network_name][row.link_name]
 
         # Add all newly seen CN egress routes
         for network_name, link_name_map in curr_routes.items():
