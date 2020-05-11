@@ -12,6 +12,7 @@ import MaterialModal from '../../components/common/MaterialModal';
 import React, {useCallback, useState} from 'react';
 import ScheduleParams from './ScheduleParams';
 import ScheduleTime from './ScheduleTime';
+import {MODAL_MODE} from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 
 import type {ScheduleParamsType} from './SchedulerTypes';
@@ -32,34 +33,37 @@ const useModalStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
+export type Props = {
   buttonTitle: string,
   modalTitle: string,
-  modalSubmitText: string,
+  modalSubmitText?: string,
   modalScheduleText?: string,
-  handleSubmit: () => void,
-  handleSchedule?: string => void,
-  scheduleParams: ScheduleParamsType,
+  onSubmit: (?string, boolean) => void,
   enableTime?: boolean,
+  scheduleParams: ScheduleParamsType,
+  modalMode: $Values<typeof MODAL_MODE>,
+  initialCronString?: string,
 };
 
 export default function SchedulerModal(props: Props) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const classes = useModalStyles();
-
-  const enableTime = props.enableTime === undefined ? true : props.enableTime;
-
   const {
     buttonTitle,
     modalTitle,
     modalSubmitText,
     modalScheduleText,
-    handleSchedule,
-    handleSubmit,
+    onSubmit,
     scheduleParams,
+    modalMode,
+    initialCronString,
   } = props;
 
-  const [adHoc, setAdHoc] = useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const classes = useModalStyles();
+
+  const editModalMode = modalMode === MODAL_MODE.EDIT;
+  const enableTime = props.enableTime === undefined ? true : props.enableTime;
+
+  const [adHoc, setAdHoc] = useState(editModalMode ? false : true);
   const [cronString, setCronString] = useState(null);
 
   const handleCronStringUpdate = (newCronString: ?string) =>
@@ -68,21 +72,19 @@ export default function SchedulerModal(props: Props) {
   const handleAdHocChange = (newAdHoc: boolean) => setAdHoc(newAdHoc);
 
   const handleClose = useCallback(() => {
-    setIsOpen(false), setAdHoc(true);
-  }, [setIsOpen, setAdHoc]);
+    setIsOpen(false), setAdHoc(editModalMode ? false : true);
+  }, [editModalMode]);
 
   const handleSubmitButtonPress = useCallback(() => {
-    if (adHoc) {
-      handleSubmit();
-    }
-    if (cronString && handleSchedule) {
-      handleSchedule(cronString);
-    }
-  }, [adHoc, cronString, handleSchedule, handleSubmit]);
+    onSubmit(cronString, adHoc);
+    handleClose();
+  }, [onSubmit, cronString, handleClose, adHoc]);
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} variant="outlined">
+      <Button
+        onClick={() => setIsOpen(true)}
+        variant={editModalMode ? 'text' : 'outlined'}>
         {buttonTitle}
       </Button>
       <MaterialModal
@@ -102,8 +104,10 @@ export default function SchedulerModal(props: Props) {
                 <Grid item>
                   <ScheduleTime
                     adHoc={adHoc}
-                    handleAdHocChange={handleAdHocChange}
-                    handleCronStringUpdate={handleCronStringUpdate}
+                    onAdHocChange={handleAdHocChange}
+                    onCronStringUpdate={handleCronStringUpdate}
+                    modalMode={modalMode || MODAL_MODE.CREATE}
+                    initialCronString={initialCronString}
                   />
                 </Grid>
               </>
@@ -124,7 +128,9 @@ export default function SchedulerModal(props: Props) {
               color="primary"
               onClick={handleSubmitButtonPress}
               variant="contained">
-              {adHoc ? modalSubmitText : modalScheduleText || 'Schedue'}
+              {adHoc
+                ? modalSubmitText || 'Submit'
+                : modalScheduleText || 'Schedule'}
             </Button>
           </>
         }

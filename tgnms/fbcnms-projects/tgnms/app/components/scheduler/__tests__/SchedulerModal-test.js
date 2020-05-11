@@ -8,6 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import SchedulerModal from '../SchedulerModal';
+import {MODAL_MODE} from '../../../constants/ScheduleConstants';
 import {TestApp} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
@@ -17,8 +18,10 @@ const defaultProps = {
   buttonTitle: 'testButtonTitle',
   modalTitle: 'testModalTitle',
   modalSubmitText: 'testSubmit',
-  handleSubmit: jest.fn(),
+  onSubmit: jest.fn(),
+  modalMode: MODAL_MODE.CREATE,
   scheduleParams: {typeSelector: <div />, advancedParams: <div />},
+  updateAfterActionClick: jest.fn(),
 };
 
 test('renders without crashing', () => {
@@ -50,7 +53,7 @@ test('onclick calls onSubmit', () => {
   );
   fireEvent.click(getByText('testButtonTitle'));
   fireEvent.click(getByText('testSubmit'));
-  expect(defaultProps.handleSubmit).toHaveBeenCalled();
+  expect(defaultProps.onSubmit).toHaveBeenCalled();
 });
 
 test('disabling time does not allow schedule', () => {

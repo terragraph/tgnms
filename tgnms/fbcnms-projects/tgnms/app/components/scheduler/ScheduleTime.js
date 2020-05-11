@@ -13,33 +13,50 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useEffect, useState} from 'react';
 import TabbedButton from '../common/TabbedButton';
 import TextField from '@material-ui/core/TextField';
-import {DAYS, FREQUENCIES} from '../../constants/ScheduleConstants';
+import {DAYS, FREQUENCIES, MODAL_MODE} from '../../constants/ScheduleConstants';
 import {KeyboardTimePicker} from '@material-ui/pickers';
+import {getParsedCronString} from '../../helpers/ScheduleHelpers';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
 type Props = {
-  handleCronStringUpdate: (?string) => void,
-  handleAdHocChange: boolean => void,
+  onCronStringUpdate: (?string) => void,
+  onAdHocChange: boolean => void,
   adHoc: boolean,
+  modalMode: $Values<typeof MODAL_MODE>,
+  initialCronString?: string,
 };
 
 export default function ScheduleTime(props: Props) {
-  const {handleCronStringUpdate, handleAdHocChange, adHoc} = props;
+  const {
+    onCronStringUpdate,
+    onAdHocChange,
+    adHoc,
+    modalMode,
+    initialCronString,
+  } = props;
 
-  const [frequency, setFrequency] = useState(FREQUENCIES.never);
-  const [day, setDay] = useState(DAYS.MON);
-  const [selectedDate, setSelectedDate] = React.useState(new Date());
+  const {initialDay, initialTime, initialFrequency} = initialCronString
+    ? getParsedCronString({cronString: initialCronString})
+    : {initialDay: null, initialTime: null, initialFrequency: null};
+
+  const [frequency, setFrequency] = useState(
+    initialFrequency || FREQUENCIES.never,
+  );
+  const [day, setDay] = useState(initialDay || DAYS.MON);
+  const [selectedDate, setSelectedDate] = React.useState(
+    initialTime ? new Date(initialTime) : new Date(),
+  );
 
   const handleFrequencyChange = useCallback(
     (newFrequency: $Values<typeof FREQUENCIES>) => {
       if (newFrequency === FREQUENCIES.monthly) {
         setDay(1);
-      } else {
+      } else if (typeof day === 'number') {
         setDay(DAYS.MON);
       }
       setFrequency(newFrequency);
     },
-    [setFrequency],
+    [setFrequency, day],
   );
 
   const handleDayChange = useCallback(
@@ -49,27 +66,41 @@ export default function ScheduleTime(props: Props) {
     [setDay],
   );
 
-  const handleNowClick = () => handleAdHocChange(true);
-  const handleLaterClick = () => handleAdHocChange(false);
+  const handleNowClick = () => onAdHocChange(true);
+  const handleLaterClick = () => onAdHocChange(false);
 
   const handleDateChange = date => {
     if (date.toString() === 'Invalid Date') {
       return;
     }
-    setSelectedDate(new Date(date));
+    setSelectedDate(new Date(date.toString()));
   };
 
   useEffect(() => {
-    setFrequency(adHoc ? FREQUENCIES.never : FREQUENCIES.weekly);
-    setDay(DAYS.MON);
-  }, [adHoc, setFrequency, setDay]);
+    if (!initialCronString) {
+      setFrequency(adHoc ? FREQUENCIES.never : FREQUENCIES.weekly);
+      setDay(DAYS.MON);
+    }
+  }, [adHoc, setFrequency, setDay, initialCronString]);
 
-  useEffect(() => {
-    const time = selectedDate.getMinutes() + ' ' + selectedDate.getHours();
-    const currentDay =
+  const getDayValue = useCallback(() => {
+    const adHocDay =
       frequency === FREQUENCIES.monthly
         ? selectedDate.getDate()
         : selectedDate.getDay();
+
+    const scheduledDay =
+      frequency === FREQUENCIES.monthly
+        ? day
+        : objectValuesTypesafe<string>(DAYS).indexOf(day);
+
+    return adHoc ? adHocDay : scheduledDay;
+  }, [adHoc, day, frequency, selectedDate]);
+
+  useEffect(() => {
+    const time =
+      selectedDate.getUTCMinutes() + ' ' + selectedDate.getUTCHours();
+    const cronDay = getDayValue();
     let cronString;
     switch (frequency) {
       case FREQUENCIES.never:
@@ -79,36 +110,38 @@ export default function ScheduleTime(props: Props) {
         cronString = `${time} * * *`;
         break;
       case FREQUENCIES.weekly:
-        cronString = `${time} * * ${adHoc ? currentDay : day}`;
+        cronString = `${time} * * ${cronDay}`;
         break;
       case FREQUENCIES.biweekly:
-        cronString = `${time} * * ${adHoc ? currentDay : day}#1,${
-          adHoc ? currentDay : day
-        }#3`;
+        cronString = `${time} * * ${cronDay}#1,${cronDay}#3`;
         break;
       case FREQUENCIES.monthly:
-        cronString = `${time} ${adHoc ? currentDay : day} * *`;
+        cronString = `${time} ${cronDay} * *`;
         break;
     }
-    handleCronStringUpdate(cronString);
-  }, [selectedDate, day, frequency, adHoc, handleCronStringUpdate]);
+    onCronStringUpdate(cronString);
+  }, [selectedDate, day, frequency, adHoc, onCronStringUpdate, getDayValue]);
 
   return (
     <FormGroup row={false}>
       <Grid container direction="column" spacing={2}>
-        <Grid item>
-          <FormLabel component="legend">
-            <span>Start</span>
-          </FormLabel>
-        </Grid>
-        <Grid item>
-          <TabbedButton
-            leftText="now"
-            rightText="later"
-            leftOnclick={handleNowClick}
-            rightOnclick={handleLaterClick}
-          />
-        </Grid>
+        {modalMode === MODAL_MODE.CREATE && (
+          <>
+            <Grid item>
+              <FormLabel component="legend">
+                <span>Start</span>
+              </FormLabel>
+            </Grid>
+            <Grid item>
+              <TabbedButton
+                leftText="now"
+                rightText="later"
+                leftOnclick={handleNowClick}
+                rightOnclick={handleLaterClick}
+              />
+            </Grid>
+          </>
+        )}
         <Grid item container spacing={1}>
           <Grid
             item

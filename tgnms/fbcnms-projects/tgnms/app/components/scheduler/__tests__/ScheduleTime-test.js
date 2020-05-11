@@ -8,15 +8,17 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ScheduleTime from '../ScheduleTime';
+import {MODAL_MODE} from '../../../constants/ScheduleConstants';
 import {MuiPickersWrapper, renderAsync} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(cleanup);
 
 const defaultProps = {
-  handleCronStringUpdate: jest.fn(),
-  handleAdHocChange: jest.fn(),
+  onCronStringUpdate: jest.fn(),
+  onAdHocChange: jest.fn(),
   adHoc: true,
+  modalMode: MODAL_MODE.CREATE,
 };
 
 test('renders without crashing', () => {
@@ -25,14 +27,14 @@ test('renders without crashing', () => {
   expect(getByText('Frequency')).toBeInTheDocument();
 });
 
-test('clicking later adds date and time pickers and calls handleAdHocChange', () => {
+test('clicking later adds date and time pickers and calls onAdHocChange', () => {
   const {getByText} = render(<ScheduleTime {...defaultProps} />);
   expect(getByText('later')).toBeInTheDocument();
   fireEvent.click(getByText('later'));
-  expect(defaultProps.handleAdHocChange).toHaveBeenCalled();
+  expect(defaultProps.onAdHocChange).toHaveBeenCalled();
 });
 
-test('frequency selector changes cron string and call handleCronStringUpdate ', async () => {
+test('frequency selector changes cron string and call onCronStringUpdate ', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
       <ScheduleTime {...defaultProps} />
@@ -42,10 +44,10 @@ test('frequency selector changes cron string and call handleCronStringUpdate ', 
   fireEvent.mouseDown(getByText('Does not repeat'));
   expect(getByText('Once a day')).toBeInTheDocument();
   fireEvent.click(getByText('Once a day'));
-  expect(defaultProps.handleCronStringUpdate).toHaveBeenCalled();
+  expect(defaultProps.onCronStringUpdate).toHaveBeenCalled();
 });
 
-test('pickers change cron string and call handleCronStringUpdate ', async () => {
+test('pickers change cron string and call onCronStringUpdate ', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
       <ScheduleTime {...defaultProps} adHoc={false} />
@@ -55,5 +57,5 @@ test('pickers change cron string and call handleCronStringUpdate ', async () => 
   fireEvent.mouseDown(getByText('Monday'));
   expect(getByText('Tuesday')).toBeInTheDocument();
   fireEvent.click(getByText('Tuesday'));
-  expect(defaultProps.handleCronStringUpdate).toHaveBeenCalled();
+  expect(defaultProps.onCronStringUpdate).toHaveBeenCalled();
 });
