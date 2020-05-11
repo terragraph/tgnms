@@ -61,8 +61,17 @@ class PrometheusClientTests(asynctest.TestCase):
         query = ops.avg_over_time(self.client.format_query("metric", labels), "24h")
         expected_query = 'avg_over_time(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
+        query = ops.count_over_time(self.client.format_query("metric", labels), "24h")
+        expected_query = 'count_over_time(metric{foo="bar"} [24h])'
+        self.assertEqual(query, expected_query)
         query = ops.delta(self.client.format_query("metric", labels), "24h")
         expected_query = 'delta(metric{foo="bar"} [24h])'
+        self.assertEqual(query, expected_query)
+        query = ops.max_over_time(self.client.format_query("metric", labels), "24h")
+        expected_query = 'max_over_time(metric{foo="bar"} [24h])'
+        self.assertEqual(query, expected_query)
+        query = ops.rate(self.client.format_query("metric", labels), "24h")
+        expected_query = 'rate(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
         query = ops.resets(self.client.format_query("metric", labels), "24h")
         expected_query = 'resets(metric{foo="bar"} [24h])'

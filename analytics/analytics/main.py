@@ -44,11 +44,11 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict[str, Any]) -> 
         await asyncio.gather(*tasks)
 
         # Sleep until next invocation period
-        sleep_time = start_time + pipeline["period"] - time.time()
+        sleep_time = start_time + pipeline["period_s"] - time.time()
 
         logging.info(
             f"Done enqueuing jobs in the '{name}' pipeline. "
-            f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time}s"
+            f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time:0.2f}s"
         )
 
         await asyncio.sleep(sleep_time)

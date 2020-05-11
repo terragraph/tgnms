@@ -39,7 +39,10 @@ consts.data_interval_s = "intervalSec"
 # Built-in Prometheus query transformation operators/functions
 ops = SimpleNamespace()
 ops.avg_over_time = lambda query, interval: f"avg_over_time({query} [{interval}])"
+ops.count_over_time = lambda query, interval: f"count_over_time({query} [{interval}])"
 ops.delta = lambda query, interval: f"delta({query} [{interval}])"
+ops.max_over_time = lambda query, interval: f"max_over_time({query} [{interval}])"
+ops.rate = lambda query, interval: f"rate({query} [{interval}])"
 ops.resets = lambda query, interval: f"resets({query} [{interval}])"
 
 

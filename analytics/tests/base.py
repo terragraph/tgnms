@@ -4,6 +4,8 @@
 import logging
 import unittest
 
+from tests.cns_powered_off_tests import VisibilityUtilsTest
+
 
 if __name__ == "__main__":
     # Suppress logging statements during tests
