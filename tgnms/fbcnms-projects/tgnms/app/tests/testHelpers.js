@@ -11,6 +11,7 @@ import MaterialTheme from '../MaterialTheme';
 import MomentUtils from '@date-io/moment';
 import NetworkContext from '../contexts/NetworkContext';
 import NmsOptionsContext from '../contexts/NmsOptionsContext';
+import {CancelToken} from 'axios';
 import {EMPTY_SETTINGS_STATE} from '../../shared/dto/Settings';
 import {
   LINK_METRIC_OVERLAYS,
@@ -245,4 +246,16 @@ export function coerceClass<T>(value: {}, t: Class<T>): T {
     return value;
   }
   throw new Error('invalid instance type');
+}
+
+/**
+ * Creates a fake CancelToken
+ */
+export function mockCancelToken(): CancelToken {
+  return (({
+    constructor: () => null,
+    source: () => {},
+    promise: new Promise<null>(() => null),
+    throwIfRequested: () => null,
+  }: any): CancelToken);
 }

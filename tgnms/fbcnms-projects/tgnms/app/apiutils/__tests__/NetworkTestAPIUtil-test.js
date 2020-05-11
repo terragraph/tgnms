@@ -9,11 +9,29 @@ import * as apiUtil from '../NetworkTestAPIUtil';
 import axios from 'axios';
 import {HEALTH_CODES} from '../../constants/HealthConstants';
 import {TEST_STATUS} from '../../../shared/dto/TestResult';
+import {mockCancelToken} from '../../tests/testHelpers';
+import {mockExecutionResults} from '../../tests/data/NetworkTestApi';
 
 jest.mock('axios');
 
 afterEach(() => {
   jest.clearAllMocks();
+});
+
+describe('getExecutionResults', () => {
+  test('makes an axios request', async () => {
+    const getMock = jest.spyOn(axios, 'default').mockResolvedValueOnce({
+      data: mockExecutionResults(),
+    });
+
+    const {results} = await apiUtil.getExecutionResults({
+      executionId: '1',
+      cancelToken: mockCancelToken(),
+    });
+    expect(getMock).toHaveBeenCalled();
+    expect(results[0].id).toBe(1);
+    expect(results[0].status).toBe('FINISHED');
+  });
 });
 
 describe('getTestResults', () => {

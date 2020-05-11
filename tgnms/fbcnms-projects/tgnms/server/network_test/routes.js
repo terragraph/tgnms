@@ -4,125 +4,133 @@
  * @format
  */
 
-const express = require('express');
-import {createErrorHandler, createRequest} from '../helpers/apiHelpers';
+import axios from 'axios';
 
+const express = require('express');
 const {NETWORKTEST_HOST} = require('../config');
-const networkTestService = require('./service');
 
 const router = express.Router();
 
-router.get('/options', (req, res) => {
-  return createRequest(`${NETWORKTEST_HOST}/api/help/`)
-    .then(response => {
-      return res.status(response.statusCode).send(response.body);
-    })
-    .catch(createErrorHandler(res));
-});
-
-router.post('/start', (req, res) => {
-  return createRequest({
-    uri: `${NETWORKTEST_HOST}/api/start_test/`,
-    method: 'POST',
-    json: req.body,
+router.get('/schedule', (req, res) => {
+  return axios({
+    method: 'get',
+    url: `${NETWORKTEST_HOST}/schedule`,
+    params: req.query,
   })
-    .then(response => res.status(response.statusCode).send(response.body))
-    .catch(createErrorHandler(res));
+    .then(result => res.status(200).send(result.data.schedules))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
 });
 
-router.post('/stop', (req, res) => {
-  return createRequest({
-    uri: `${NETWORKTEST_HOST}/api/stop_test/`,
-    method: 'POST',
-    json: req.body,
+router.get('/schedule/:scheduleId', (req, res) => {
+  const {scheduleId} = req.params;
+  return axios({
+    method: 'get',
+    url: `${NETWORKTEST_HOST}/schedule/${scheduleId}`,
   })
-    .then(response => res.status(response.statusCode).send(response.body))
-    .catch(createErrorHandler(res));
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
 });
 
-router.get('/executions', (req, res) => {
-  const {network, afterDate, testType, protocol} = req.query;
-  return networkTestService
-    .getRecentTestExecutions({
-      networkName: network,
-      afterDate,
-      testType,
-      protocol,
-    })
-    .then(executions => res.status(200).send(executions))
-    .catch(createErrorHandler(res));
+router.post('/schedule', (req, res) => {
+  const {cron_expr, test_type, network_name, iperf_options} = req.body;
+  const data = {
+    enabled: true,
+    cron_expr,
+    test_type,
+    network_name,
+    iperf_options,
+  };
+  return axios({
+    method: 'post',
+    url: `${NETWORKTEST_HOST}/schedule`,
+    data,
+  })
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
 });
 
-router.get('/results', (req, res) => {
-  const query = {};
-  if (typeof req.query.executionId === 'string') {
-    query.executionId = req.query.executionId;
-  }
-  if (typeof req.query.metrics === 'string') {
-    query.metrics =
-      req.query.metrics.trim() !== '' ? req.query.metrics.split(',') : [];
-  }
-  if (typeof req.query.results === 'string') {
-    query.results = req.query.results.split(',');
-  }
-  return networkTestService
-    .getTestResults(query)
-    .then(results => res.status(200).send(results))
-    .catch(createErrorHandler(res));
-});
+router.put('/schedule/:scheduleId', (req, res) => {
+  const {scheduleId} = req.params;
+  const data = req.body;
 
-router.get('/executions/:id', (req, res) => {
-  return networkTestService
-    .getTestExecution({
-      executionId: req.params.id,
-      includeTestResults: req.query.includeTestResults,
-    })
-    .then(results => res.status(200).send(results))
-    .catch(createErrorHandler(res));
+  return axios({
+    method: 'put',
+    url: `${NETWORKTEST_HOST}/schedule/${scheduleId}`,
+    data,
+  })
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
 });
-
-router.get('/schedule/:networkName', (req, res) => {
-  const {networkName} = req.params;
-  return networkTestService
-    .getTestSchedule({
-      networkName,
-    })
-    .then(results => res.status(200).send(results))
-    .catch(createErrorHandler(res));
-});
-
-// test schedule api uses op codes for the modify_sched api
-const TEST_SCHEDULE_INSTRUCTIONS = {
-  DELETE: 100,
-  SUSPEND: 200,
-  ENABLE: 300,
-};
 
 router.delete('/schedule/:scheduleId', (req, res) => {
   const {scheduleId} = req.params;
-
-  return createRequest({
-    uri: `${NETWORKTEST_HOST}/api/modify_sched/`,
-    method: 'POST',
-    json: {
-      instruction: {
-        value: TEST_SCHEDULE_INSTRUCTIONS.DELETE,
-      },
-      test_schedule_id: scheduleId,
-    },
+  return axios({
+    method: 'delete',
+    url: `${NETWORKTEST_HOST}/schedule/${scheduleId}`,
   })
-    .then(response => res.status(response.statusCode).send(response.body))
-    .catch(createErrorHandler(res));
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
 });
 
-router.post('/executions/:id/overlay', (req, res) => {
-  return networkTestService
-    .getTestOverlay({
-      executionId: req.params.id,
-      metrics: req.body.metrics,
+router.get('/executions', (req, res) => {
+  return axios({
+    method: 'get',
+    url: `${NETWORKTEST_HOST}/execution`,
+    params: req.query,
+  })
+    .then(result => {
+      res.status(200).send(result.data.executions);
     })
-    .then(results => res.status(200).send(results))
-    .catch(createErrorHandler(res));
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
+});
+
+router.get('/execution_result/:executionId', (req, res) => {
+  const {executionId} = req.params;
+
+  return axios({
+    method: 'get',
+    url: `${NETWORKTEST_HOST}/execution/${executionId}`,
+  })
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
+});
+
+router.post('/start', (req, res) => {
+  return axios({
+    method: 'post',
+    url: `${NETWORKTEST_HOST}/execution`,
+    data: req.body,
+  })
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
+});
+
+router.delete('/execution/:executionId', (req, res) => {
+  const {executionId} = req.params;
+  return axios({
+    method: 'DELETE',
+    url: `${NETWORKTEST_HOST}/execution/${executionId}`,
+  })
+    .then(result => res.status(200).send(result.data))
+    .catch(error =>
+      res.status(error.response.status).send(error.response.statusMessage),
+    );
 });
 
 module.exports = router;
