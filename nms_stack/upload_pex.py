@@ -2,12 +2,12 @@
 # Copyright (c) 2014-present, Facebook, Inc.
 
 import asyncio
-
 from datetime import datetime
-from fbc_sp_client import SPClient
 from json import dumps
 from os import environ
 from pathlib import Path
+
+from fbc_sp_client import SPClient
 
 
 JSONCONF = {
@@ -22,7 +22,7 @@ TAG = "latest"
 
 async def main() -> int:
     if "WORKSPACE" not in environ:
-        print(f"Need WORKSPACE set in the environ as we usually run in Jenkins")
+        print("Need WORKSPACE set in the environ as we usually run in Jenkins")
         return 68
     file_path = Path(f"{environ['WORKSPACE']}/nms")
 

@@ -227,7 +227,7 @@ async def update_overrides_configs(
             )
             logging.info(f"Overrides config response in {network_name} is {response}")
         except ClientRuntimeError:
-            logging.exception(f"Failed to udpate node overrides config")
+            logging.exception("Failed to udpate node overrides config")
             continue
 
         await asyncio.sleep(config_change_interval)
@@ -249,7 +249,7 @@ async def get_current_overrides_configs(
         )
         return response
     except ClientRuntimeError:
-        logging.exception(f"getNodeOverridesConfig call failed")
+        logging.exception("getNodeOverridesConfig call failed")
         return None
 
 

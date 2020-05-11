@@ -140,7 +140,7 @@ def main() -> None:
         with open("./service_config.json") as f:
             config = json.load(f)
     except (json.JSONDecodeError, OSError):
-        logging.exception(f"Failed to parse service configuration file")
+        logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
     init(
