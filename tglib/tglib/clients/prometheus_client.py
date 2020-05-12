@@ -85,7 +85,7 @@ class PrometheusClient(BaseClient):
 
         cls._addr = format_address(prom_params["host"], prom_params["port"])
         cls._metrics_map = {i: {} for i in prom_params["scrape_intervals"]}
-        cls._session = aiohttp.ClientSession()
+        cls._session = aiohttp.ClientSession(trust_env=True)
 
     @classmethod
     async def stop(cls) -> None:
