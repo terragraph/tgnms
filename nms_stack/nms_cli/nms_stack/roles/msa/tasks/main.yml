@@ -39,6 +39,7 @@
   include_tasks:
     file: service.yml
   with_items:
+    - { name: "analytics", has_database: false }
     - { name: "default_routes_service", has_database: true }
     - { name: "topology_service", has_database: true }
   loop_control:

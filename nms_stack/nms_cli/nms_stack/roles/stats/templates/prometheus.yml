@@ -50,6 +50,11 @@ scrape_configs:
     static_configs:
       - targets: ['jupyter:8080']
 
+  - job_name: 'analytics'
+    metrics_path: /metrics/{{ prom_default_scrape_interval }}
+    static_configs:
+      - targets: ['analytics:8080']
+
   - job_name: 'kafka'
     dns_sd_configs:
       - names:
