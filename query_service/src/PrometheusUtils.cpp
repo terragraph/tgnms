@@ -102,30 +102,29 @@ bool PrometheusUtils::writeNodeStats(
             nodeInfo->second.site_name)};
     std::string prometheusKeyName = formatPrometheusKeyName(keyName);
     // extra meta-data for short keys
-    auto nodeKeyCache = metricCacheInstance->getNodeMetricCache(macAddr);
+    auto nodeKeyCache =
+        metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
     if (nodeKeyCache) {
-      auto keyIt = nodeKeyCache->find(keyName);
       // publish metric short names
-      if (keyIt != nodeKeyCache->end() &&
-          keyIt->second.shortName_ref() &&
-	  !keyIt->second.shortName_ref()->empty()) {
-        if (keyIt->second.linkName_ref() &&
-	    !keyIt->second.linkName_ref()->empty()) {
+      if (nodeKeyCache->shortName_ref() &&
+          !nodeKeyCache->shortName_ref()->empty()) {
+        if (nodeKeyCache->linkName_ref() &&
+            !nodeKeyCache->linkName_ref()->empty()) {
           // set initial labels for all node stats
           labelTags.push_back(folly::sformat(
               PrometheusConsts::METRIC_FORMAT,
               PrometheusConsts::LABEL_LINK_NAME,
-              formatPrometheusKeyName(*(keyIt->second.linkName_ref()))));
+              formatPrometheusKeyName(*(nodeKeyCache->linkName_ref()))));
           labelTags.push_back(folly::sformat(
               PrometheusConsts::METRIC_FORMAT,
               PrometheusConsts::LABEL_LINK_DIRECTION,
-              *keyIt->second.linkDirection_ref() == stats::LinkDirection::LINK_A
+              *nodeKeyCache->linkDirection_ref() == stats::LinkDirection::LINK_A
                   ? "A"
                   : "Z"));
         }
         // has short-name, add it after all tagging
         metricList.emplace_back(Metric(
-            formatPrometheusKeyName(*(keyIt->second.shortName_ref())),
+            formatPrometheusKeyName(*(nodeKeyCache->shortName_ref())),
             stat.timestamp * 1000,
             labelTags,
             stat.value));
