@@ -18,14 +18,14 @@
     "test:coverage": "(cd ../../ && yarn run test --all --coverage --collectCoverageFrom='[\"**/fbcnms-projects/tgnms/**/*.js\",\"**/fbcnms-packages/fbcnms-alarms/**/*.js\", \"!**/__tests__/**\", \"!**/__mocks__/**\", \"!**/thrift/gen-nodejs/**\", \"!**/fbcnms-projects/tgnms/shared/types/**/*\", \"!**/fbcnms-projects/tgnms/server/seeders/*\", \"!**/fbcnms-projects/tgnms/server/migrations/*\", \"!**/fbcnms-projects/tgnms/static/*\"]' --coverageReporters=text)"
   },
   "dependencies": {
-    "@date-io/moment": "^1.3.11",
+    "@date-io/moment": "1.x",
     "@fbcnms/alarms": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.0",
     "@fbcnms/mobileapp": "^0.1.0",
     "@fbcnms/ui": "^0.1.0",
     "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "^4.0.0",
-    "@material-ui/pickers": "^3.2.8",
+    "@material-ui/pickers": "^3.2.10",
     "@material-ui/styles": "^4.0.0",
     "@turf/turf": "^5.1.6",
     "axios": "^0.18.0",
