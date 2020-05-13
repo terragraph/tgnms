@@ -43,12 +43,13 @@ services:
   prometheus:
     image: prom/prometheus
     command: ["--config.file=/etc/prometheus/prometheus.yml",
+              "--query.lookback-delta=30s",
               "--storage.tsdb.path=/prometheus",
               "--web.console.libraries=/usr/share/prometheus/console_libraries",
               "--web.console.templates=/usr/share/prometheus/consoles",
               "--web.external-url=https://prometheus/prometheus/",
               "--web.route-prefix=/",
-               "--web.enable-lifecycle"]
+              "--web.enable-lifecycle"]
     user: root
     restart: unless-stopped
     networks:
