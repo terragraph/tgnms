@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-    analytics:
+  analytics:
     image: secure.cxl-terragraph.com:443/analytics:latest
     restart: unless-stopped
     volumes:
