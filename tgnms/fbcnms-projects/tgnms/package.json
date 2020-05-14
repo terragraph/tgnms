@@ -38,6 +38,7 @@
     "cookie-parser": "^1.4.3",
     "copy-to-clipboard": "^3.0.8",
     "css-loader": "^1.0.1",
+    "csv-stringify": "^5.5.0",
     "d3-scale": "^2.1.2",
     "diff": "^3.4.0",
     "dom-helpers": "^3.3.1",

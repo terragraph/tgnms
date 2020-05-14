@@ -5,20 +5,24 @@
  * @flow
  */
 
+import * as React from 'react';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import MenuButton from '../../components/common/MenuButton';
+import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../contexts/NetworkContext.js';
 import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
 import NetworkTestTable from './NetworkTestTable';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
-import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {isEqual} from 'lodash';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {useExport} from '../../apiutils/ExportAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
 
@@ -29,6 +33,9 @@ const styles = theme => ({
     flexGrow: 1,
     flexFlow: 'column',
     overflow: 'hidden',
+  },
+  menuBar: {
+    paddingRight: theme.spacing(1),
   },
   tabsRoot: {
     flex: '0 1 auto',
@@ -165,7 +172,7 @@ class NetworkTables extends React.Component<Props, State> {
     const {selectedTable} = this.state;
     return (
       <div className={classes.root}>
-        <Grid container>
+        <Grid container className={classes.menuBar}>
           <Grid item xs={8}>
             <Tabs
               value={selectedTable}
@@ -205,18 +212,26 @@ class NetworkTables extends React.Component<Props, State> {
               )}
             </Tabs>
           </Grid>
-          <Grid item xs={4}>
-            {isEmbedded && (
-              <IconButton
-                className={classes.expandButton}
-                onClick={this.handleTableResize}>
-                {tableHeight === TABLE_LIMITS.maxHeight ? (
-                  <OpenInBrowserIcon className={classes.rotated} />
-                ) : (
-                  <OpenInBrowserIcon />
-                )}
-              </IconButton>
+          <Grid container item xs={4} justify="flex-end" alignItems="center">
+            {/**export nodes only for now */ selectedTable === 'nodes' && (
+              <Grid item>
+                <ExportMenu selectedTable={selectedTable} />
+              </Grid>
             )}
+            <Grid item>
+              {isEmbedded && (
+                <IconButton
+                  className={classes.expandButton}
+                  onClick={this.handleTableResize}
+                  title={'Expand Table'}>
+                  {tableHeight === TABLE_LIMITS.maxHeight ? (
+                    <OpenInBrowserIcon className={classes.rotated} />
+                  ) : (
+                    <OpenInBrowserIcon />
+                  )}
+                </IconButton>
+              )}
+            </Grid>
           </Grid>
         </Grid>
 
@@ -239,6 +254,22 @@ class NetworkTables extends React.Component<Props, State> {
       </div>
     );
   }
+}
+
+function ExportMenu({selectedTable}: {selectedTable: string}) {
+  const {exportCSV, exportState} = useExport({table: selectedTable});
+  return (
+    <MenuButton
+      label={
+        <>
+          Export {selectedTable}{' '}
+          {exportState === 'LOADING' && <CircularProgress size={15} />}
+        </>
+      }
+      id="export-menu">
+      <MenuItem onClick={exportCSV}>CSV</MenuItem>
+    </MenuButton>
+  );
 }
 
 export default withStyles(styles)(NetworkTables);

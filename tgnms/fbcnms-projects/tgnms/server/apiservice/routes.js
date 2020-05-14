@@ -5,23 +5,9 @@
  */
 
 const express = require('express');
-const {getNetworkState} = require('../topology/model');
-const {HAPeerType} = require('../high_availability/model');
+const {getApiActiveControllerAddress} = require('../topology/model');
 import apiServiceClient from './apiServiceClient';
 const router = express.Router();
-
-function getApiActiveControllerAddress({topology}) {
-  const networkState = getNetworkState(topology);
-  let controllerConfig = networkState.primary;
-  if (
-    networkState.hasOwnProperty('active') &&
-    networkState.active === HAPeerType.BACKUP
-  ) {
-    controllerConfig = networkState.backup;
-  }
-  const {api_ip, api_port} = controllerConfig;
-  return {api_ip, api_port};
-}
 
 router.use('/:topology/api/:apiMethod', (req, res) => {
   const {topology, apiMethod} = req.params;

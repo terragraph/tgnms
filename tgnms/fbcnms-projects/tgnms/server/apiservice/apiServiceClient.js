@@ -13,25 +13,30 @@ const logger = require('../log')(module);
 import axios from 'axios';
 import {PROXY_ENABLED} from '../config';
 import {awaitClient} from '../user/oidc';
-import type {TokenSet} from 'openid-client';
 const isIp = require('is-ip');
+import type {TokenSet} from 'openid-client';
 
-export type BackgroundRequest = {|
+export type BackgroundRequest = {
   isPrimaryController: boolean,
   networkName: string,
-|} & Request;
+  ...Request,
+};
 
 export type Request = {|
   host: string,
   port: string,
   // TODO: rename this
   apiMethod: string,
-  accessToken: string,
   // axios request config
   config: any,
   // json http body
   data: any,
 |};
+
+export type AuthenticatedRequest = {
+  accessToken: string,
+  ...Request,
+};
 
 export class ApiServiceClient {
   serviceCredentials: ?TokenSet;
@@ -40,7 +45,13 @@ export class ApiServiceClient {
    * Makes an api service request on behalf of a user, sending their
    * access token as an authorization header
    */
-  userRequest = async ({host, port, apiMethod, data, accessToken}: Request) => {
+  userRequest = async ({
+    host,
+    port,
+    apiMethod,
+    data,
+    accessToken,
+  }: AuthenticatedRequest) => {
     if (
       LOGIN_ENABLED &&
       (typeof accessToken !== 'string' || accessToken.trim() === '')
@@ -136,7 +147,7 @@ export class ApiServiceClient {
     data,
     accessToken,
     config = {},
-  }: Request) => {
+  }: AuthenticatedRequest) => {
     const baseUrl = formatApiServiceBaseUrl(host, port);
     const apiUrl = `${baseUrl}/api/${apiMethod}`;
     const requestConfig = {

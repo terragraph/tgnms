@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {BackgroundRequest, Request} from '../apiServiceClient';
+import type {
+  AuthenticatedRequest,
+  BackgroundRequest,
+} from '../apiServiceClient';
 
 import {ApiServiceClient} from '../apiServiceClient';
 const TokenSet = jest.genMockFromModule('openid-client/lib/token_set');
@@ -221,7 +224,9 @@ function fakeBackgroundRequest(
   };
 }
 
-function fakeUserRequest(merge?: $Shape<Request>): $Shape<Request> {
+function fakeUserRequest(
+  merge?: $Shape<AuthenticatedRequest>,
+): $Shape<AuthenticatedRequest> {
   return {
     host: 'test',
     port: '8080',

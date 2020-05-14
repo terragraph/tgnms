@@ -510,6 +510,19 @@ function getNetworkState(networkName) {
   return null;
 }
 
+function getApiActiveControllerAddress({topology}) {
+  const networkState = getNetworkState(topology);
+  let controllerConfig = networkState.primary;
+  if (
+    networkState.hasOwnProperty('active') &&
+    networkState.active === HAPeerType.BACKUP
+  ) {
+    controllerConfig = networkState.backup;
+  }
+  const {api_ip, api_port} = controllerConfig;
+  return {api_ip, api_port};
+}
+
 async function refreshNetworkHealth(topologyName) {
   await cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
 }
@@ -823,6 +836,7 @@ module.exports = {
   getNetworkLinkHealth,
   getNetworkNodeHealth,
   getNetworkState,
+  getApiActiveControllerAddress,
   refreshNetworkHealth,
   refreshTopologies,
   reloadInstanceConfig,

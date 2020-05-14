@@ -40,3 +40,22 @@ export function useConfirmationModalState(): ConfirmationModalState {
     cancel,
   };
 }
+
+/**
+ * Use for modals and menus which need to be opened and closed
+ */
+export function useModalState(): {
+  isOpen: boolean,
+  open: () => void,
+  close: () => void,
+} {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const open = React.useCallback(() => setIsOpen(true), [setIsOpen]);
+  const close = React.useCallback(() => setIsOpen(false), [setIsOpen]);
+  return {
+    isOpen,
+    setIsOpen,
+    open,
+    close,
+  };
+}
