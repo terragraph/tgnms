@@ -7,11 +7,13 @@
 
 import BuildingsLayer from './BuildingsLayer';
 import LinksLayer from './LinksLayer';
+import NodesLayer from './NodesLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
+import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
 import {useMapContext} from '../../../contexts/MapContext';
 
 import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
@@ -29,16 +31,6 @@ export type Props = {|
   onPlannedSiteMoved: Object => any,
   hiddenSites: Set<string>,
 |};
-
-const onFeatureMouseEnter = mapEvent => {
-  // Change cursor when hovering over sites/links
-  mapEvent.map.getCanvas().style.cursor = 'pointer';
-};
-
-const onFeatureMouseLeave = mapEvent => {
-  // Reset cursor when leaving sites/links
-  mapEvent.map.getCanvas().style.cursor = '';
-};
 
 function getSelectedLinks(selectedElement, linkMap) {
   return selectedElement && selectedElement.type === TopologyElementType.LINK
@@ -92,6 +84,7 @@ export default function MapLayers(props: Props) {
   const {
     site_icons,
     link_lines,
+    nodes,
     site_name_popups,
     buildings_3d,
     area_polygons,
@@ -129,8 +122,8 @@ export default function MapLayers(props: Props) {
       {link_lines && overlays.link_lines ? (
         <LinksLayer
           key="links-layer"
-          onLinkMouseEnter={onFeatureMouseEnter}
-          onLinkMouseLeave={onFeatureMouseLeave}
+          onLinkMouseEnter={handleFeatureMouseEnter}
+          onLinkMouseLeave={handleFeatureMouseLeave}
           topology={topology}
           topologyConfig={topologyConfig}
           ctrlVersion={controller_version}
@@ -152,8 +145,8 @@ export default function MapLayers(props: Props) {
       {site_icons && overlays.site_icons ? (
         <SitesLayer
           key="sites-layer"
-          onSiteMouseEnter={onFeatureMouseEnter}
-          onSiteMouseLeave={onFeatureMouseLeave}
+          onSiteMouseEnter={handleFeatureMouseEnter}
+          onSiteMouseLeave={handleFeatureMouseLeave}
           topology={topology}
           topologyConfig={topologyConfig}
           ctrlVersion={controller_version}
@@ -173,6 +166,7 @@ export default function MapLayers(props: Props) {
           siteMapOverrides={overlayData.site_icons}
         />
       ) : null}
+      {nodes && <NodesLayer />}
       {site_name_popups ? (
         <SitePopupsLayer key="popups-layer" topology={networkConfig.topology} />
       ) : null}

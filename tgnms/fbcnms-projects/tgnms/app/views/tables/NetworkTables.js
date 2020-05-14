@@ -63,7 +63,6 @@ const styles = theme => ({
       color: '#40a9ff',
     },
   },
-  tabSelected: {},
   expandButton: {
     float: 'right',
     margin: theme.spacing(2),
@@ -182,7 +181,7 @@ class NetworkTables extends React.Component<Props, State> {
                 indicator: classes.tabsIndicator,
               }}>
               <Tab
-                classes={{root: classes.tabRoot, selected: classes.tabSelected}}
+                classes={{root: classes.tabRoot}}
                 disableRipple
                 label="Nodes"
                 component={Link}
@@ -190,7 +189,7 @@ class NetworkTables extends React.Component<Props, State> {
                 value={TABLE_TYPE.nodes}
               />
               <Tab
-                classes={{root: classes.tabRoot, selected: classes.tabSelected}}
+                classes={{root: classes.tabRoot}}
                 disableRipple
                 label="Links"
                 component={Link}
@@ -201,7 +200,6 @@ class NetworkTables extends React.Component<Props, State> {
                 <Tab
                   classes={{
                     root: classes.tabRoot,
-                    selected: classes.tabSelected,
                   }}
                   disableRipple
                   label="Tests"

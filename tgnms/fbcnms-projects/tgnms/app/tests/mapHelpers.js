@@ -12,6 +12,15 @@ export function getLayerById(container: HTMLElement, id: string): ?HTMLElement {
   return container.querySelector(`[data-mapbox-type="layer"][data-id="${id}"]`);
 }
 
+export function getSourceById(
+  container: HTMLElement,
+  id: string,
+): ?HTMLElement {
+  return container.querySelector(
+    `[data-mapbox-type="source"][data-id="${id}"]`,
+  );
+}
+
 /**
  * Queries a line in the links layer by link name
  */

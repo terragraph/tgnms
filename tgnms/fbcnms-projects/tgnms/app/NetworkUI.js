@@ -33,6 +33,7 @@ import type {
   NetworkConfig as NetworkConfigType,
   NetworkHealth,
   NetworkNodeStats,
+  NodeToLinksMap,
   SiteMap,
 } from './contexts/NetworkContext';
 
@@ -68,6 +69,7 @@ type State = {
   invalidTopologyRedirect: boolean,
   isReloading: boolean,
   linkMap: {[string]: LinkType & LinkMeta},
+  nodeToLinksMap: NodeToLinksMap,
   networkConfig: NetworkConfigType,
   networkNodeHealth: NetworkHealth,
   networkNodeHealthPrometheus: NetworkNodeStats,
@@ -96,6 +98,7 @@ class NetworkUI extends React.Component<Props, State> {
     linkMap: {},
     siteMap: {},
     siteToNodesMap: {},
+    nodeToLinksMap: {},
 
     // Topology elements
     // {type: TopologyElementType, name: string, expanded: bool}
@@ -451,6 +454,7 @@ class NetworkUI extends React.Component<Props, State> {
             linkMap: this.state.linkMap,
             siteMap: this.state.siteMap,
             siteToNodesMap: this.state.siteToNodesMap,
+            nodeToLinksMap: this.state.nodeToLinksMap,
 
             // Topology elements
             selectedElement: this.state.selectedElement,

@@ -41,6 +41,7 @@ export type NetworkContextType = {|
   linkMap: LinkMap,
   siteMap: SiteMap,
   siteToNodesMap: SiteToNodesMap,
+  nodeToLinksMap: NodeToLinksMap,
   // Topology elements
   selectedElement: ?Element,
   pinnedElements: Array<Element>,
@@ -197,6 +198,11 @@ export type SiteToNodesMap = {
   [string]: Set<string>,
 };
 
+// Map from node name to links
+export type NodeToLinksMap = {
+  [nodeName: string]: Set<string>, // links the node is part of
+};
+
 export type Site = {|
   location: LocationType,
   name: string,
@@ -222,6 +228,7 @@ const NetworkContext = React.createContext<NetworkContextType>({
   linkMap: {},
   siteMap: {},
   siteToNodesMap: {},
+  nodeToLinksMap: {},
 
   // Topology elements
   selectedElement: null,

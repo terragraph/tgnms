@@ -18,6 +18,7 @@ import type {
   SelectedLayersType,
   SelectedOverlays,
 } from '../views/map/NetworkMapTypes';
+import type {Map} from 'mapbox-gl';
 
 type OverlayMap = LayerData<Overlay>;
 
@@ -49,6 +50,7 @@ export type MapContext = {|
   setOverlayData: (LayerData<{}>) => void,
   isOverlayLoading: boolean,
   setIsOverlayLoading: boolean => void,
+  mapboxRef: ?Map,
 |};
 
 const empty = () => {};
@@ -68,6 +70,7 @@ const defaultValue: MapContext = {
   setOverlayData: empty,
   isOverlayLoading: false,
   setIsOverlayLoading: empty,
+  mapboxRef: null,
 };
 
 const context = React.createContext<MapContext>(defaultValue);
@@ -77,13 +80,19 @@ export type ProviderProps = {|
   children: React.Node,
   defaultMapMode?: string,
   overlayData?: LayerData<{}>,
+  mapboxRef: ?Map,
 |};
 const defaultSelectedLayers: SelectedLayersType = {
   link_lines: true,
   site_icons: true,
   area_polygons: false,
+  nodes: false,
 };
-export function MapContextProvider({children, defaultMapMode}: ProviderProps) {
+export function MapContextProvider({
+  children,
+  defaultMapMode,
+  mapboxRef,
+}: ProviderProps) {
   const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
     NmsOptionsContext,
   );
@@ -203,6 +212,7 @@ export function MapContextProvider({children, defaultMapMode}: ProviderProps) {
         overlays,
         isOverlayLoading,
         setIsOverlayLoading,
+        mapboxRef,
       }}>
       {children}
     </Provider>

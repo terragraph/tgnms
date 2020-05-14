@@ -217,6 +217,11 @@ export const mapLayers: Array<{|
     name: 'Site Icons',
   },
   {
+    layerId: 'nodes',
+    name: 'Nodes',
+    isStatic: true,
+  },
+  {
     layerId: 'area_polygons',
     name: 'Areas',
   },

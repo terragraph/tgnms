@@ -108,8 +108,13 @@ export function renderSnrWithIcon(snr, props = {}) {
  * return all features at a position in the proper order.
  */
 export function mapboxShouldAcceptClick(evt) {
-  const featuresAtPoint = evt.map.queryRenderedFeatures(evt.point);
-  return featuresAtPoint.length && isEqual(evt.feature, featuresAtPoint[0]);
+  const featuresAtPoint = (evt.map || evt.target).queryRenderedFeatures(
+    evt.point,
+  );
+  return (
+    featuresAtPoint.length &&
+    isEqual(evt.feature || evt.features[0], featuresAtPoint[0])
+  );
 }
 
 /**

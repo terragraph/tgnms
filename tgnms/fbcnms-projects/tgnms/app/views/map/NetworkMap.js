@@ -14,7 +14,6 @@ import NetworkTables from '../tables/NetworkTables';
 import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
 import TableControl from './TableControl';
 import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
-import mapboxgl from 'mapbox-gl';
 import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
 import {Route, withRouter} from 'react-router-dom';
@@ -25,6 +24,7 @@ import {
 } from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
+import type {Map} from 'mapbox-gl';
 import type {
   NearbyNodes,
   PlannedSite,
@@ -80,7 +80,7 @@ type Props = {
 };
 
 type State = {
-  mapRef: ?mapboxgl.Map, // reference to Map class
+  mapRef: Map, // reference to Map class
   mapBounds?: [Coordinate, Coordinate],
   showTable: boolean,
   tableHeight: number,
@@ -243,7 +243,9 @@ class NetworkMap extends React.Component<Props, State> {
     return (
       <NetworkContext.Consumer>
         {context => (
-          <MapContextProvider defaultMapMode={MAPMODE.DEFAULT}>
+          <MapContextProvider
+            defaultMapMode={MAPMODE.DEFAULT}
+            mapboxRef={mapRef}>
             <div className={classes.container}>
               <div className={classes.topContainer}>
                 <MapBoxGL

@@ -16,6 +16,7 @@ export type MapLayerConfig = {
 export type LayerData<T> = $Shape<{|
   link_lines: T,
   site_icons: T,
+  nodes: T,
   site_name_popups: T,
   buildings_3d: T,
   area_polygons: T,

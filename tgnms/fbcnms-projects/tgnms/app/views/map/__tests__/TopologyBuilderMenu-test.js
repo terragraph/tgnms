@@ -109,6 +109,10 @@ function TopologyBuilderWrapper({children}: {children: React.Node}) {
       name: 'node1',
       site_name: 'site1',
     })
+    .addNode({
+      name: 'node2',
+      site_name: 'site2',
+    })
     .addLink({
       a_node_name: 'node1',
       z_node_name: 'node2',
