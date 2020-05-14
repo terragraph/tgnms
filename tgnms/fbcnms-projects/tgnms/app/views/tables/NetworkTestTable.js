@@ -7,8 +7,9 @@
  * Customizes NetworkTestExecutionsTable to be used outside of NetworkTestView
  */
 
-import NetworkTestExecutionsTable from '../network_test/NetworkTestExecutionsTable';
+import NetworkTest from '../network_test/NetworkTest';
 import React, {useCallback} from 'react';
+import {SnackbarProvider} from 'notistack';
 import {
   createTestMapLink,
   getTestOverlayId,
@@ -40,12 +41,18 @@ export default function NetworkTestTable({match, location}: Props) {
     [location.search, networkName],
   );
   return (
-    <NetworkTestExecutionsTable
-      createTestUrl={createTestUrl}
-      networkName={networkName}
-      selectedExecutionId={getTestOverlayId(location)}
-      showNotification={() => {}}
-      hideMapLink={true}
-    />
+    <SnackbarProvider
+      maxSnack={3}
+      autoHideDuration={10000}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}>
+      <NetworkTest
+        createTestUrl={createTestUrl}
+        networkName={networkName}
+        selectedExecutionId={getTestOverlayId(location)}
+      />
+    </SnackbarProvider>
   );
 }

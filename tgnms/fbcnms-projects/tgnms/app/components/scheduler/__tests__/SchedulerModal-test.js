@@ -21,7 +21,6 @@ const defaultProps = {
   onSubmit: jest.fn(),
   modalMode: MODAL_MODE.CREATE,
   scheduleParams: {typeSelector: <div />, advancedParams: <div />},
-  updateAfterActionClick: jest.fn(),
 };
 
 test('renders without crashing', () => {

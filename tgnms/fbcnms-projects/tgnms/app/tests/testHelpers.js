@@ -100,6 +100,22 @@ export function MuiPickersWrapper({children}: {children: React.Node}) {
   );
 }
 
+export function ScheduleNetworkTestModalWrapper({
+  children,
+}: {
+  children: React.Node,
+}) {
+  return (
+    <SnackbarWrapper>
+      <MuiPickersWrapper>
+        <NetworkContextWrapper contextValue={{networkName: 'testNetworkName'}}>
+          {children}
+        </NetworkContextWrapper>
+      </MuiPickersWrapper>
+    </SnackbarWrapper>
+  );
+}
+
 export function NetworkContextWrapper({
   children,
   contextValue,

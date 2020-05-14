@@ -6,7 +6,7 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {CreateTestUrl} from './NetworkTest';
+import type {CreateTestUrl} from './NetworkTestTypes';
 import type {TablePage} from '../../../shared/dto/TablePage';
 import type {TestExecution} from '../../../shared/dto/TestExecution';
 import type {UINotification} from '../../components/common/CustomSnackbar';

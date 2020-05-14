@@ -25,8 +25,8 @@ export type IperfOptions = {
   timeSec?: number,
   protocol?: number,
   omitSec?: number,
-  intervalSec?: number,
-  windowSize?: number,
+  intervalSec?: ?number,
+  windowSize?: ?number,
 };
 
 export type InputGetType = {

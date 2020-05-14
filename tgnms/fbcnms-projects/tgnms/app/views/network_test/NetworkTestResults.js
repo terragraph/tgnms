@@ -23,7 +23,7 @@ import {Link, Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
-import type {CreateTestUrl} from './NetworkTest';
+import type {CreateTestUrl} from './NetworkTestTypes';
 import type {LinkTestResult} from './LinkTestResultDetails';
 import type {UINotification} from '../../components/common/CustomSnackbar';
 

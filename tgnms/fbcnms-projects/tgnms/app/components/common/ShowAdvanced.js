@@ -11,7 +11,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 
 type Props = {
-  children: Array<React.Node>,
+  children: React.Node,
 };
 
 export default function ShowAdvanced(props: Props) {

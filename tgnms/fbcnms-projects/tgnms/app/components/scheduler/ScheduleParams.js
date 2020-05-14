@@ -49,7 +49,7 @@ export default function ScheduleParams(props: Props) {
           </Grid>
         </Grid>
         <Grid item>
-          <ShowAdvanced children={[advancedParams]} />
+          <ShowAdvanced children={advancedParams} />
         </Grid>
       </Grid>
     </FormGroup>
