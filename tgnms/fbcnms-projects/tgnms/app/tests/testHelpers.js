@@ -20,6 +20,7 @@ import {
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
 import {Provider as SettingsFormContextProvider} from '../views/nms_config/SettingsFormContext';
+import {SnackbarProvider} from 'notistack';
 import {act, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockNetworkContext} from './data/NetworkContext';
@@ -111,6 +112,10 @@ export function NetworkContextWrapper({
       {children}
     </NetworkContext.Provider>
   );
+}
+
+export function SnackbarWrapper({children}: {children: React.Node}) {
+  return <SnackbarProvider>{children}</SnackbarProvider>;
 }
 
 export function NmsOptionsContextWrapper({
