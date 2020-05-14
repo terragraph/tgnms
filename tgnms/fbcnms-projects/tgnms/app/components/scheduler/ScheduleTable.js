@@ -12,23 +12,22 @@ import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../components/common/LoadingBox';
 import Paper from '@material-ui/core/Paper';
 import TableOptions from './TableOptions';
-import {EXECUTION, NETWORK_TEST_TYPES} from '../../constants/ScheduleConstants';
+import {EXECUTION_STATUS} from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 
 import type {CreateTestUrl} from '../../views/network_test/NetworkTestTypes';
-import type {FilterOptionsType} from '../../../shared/dto/NetworkTestTypes';
 import type {RouterHistory} from 'react-router-dom';
 import type {ScheduleTableRow} from './SchedulerTypes';
+import type {Props as TableOptionsType} from './TableOptions';
 
-type Props = {
+type Props<T> = {
   schedulerModal: React.Node,
   createURL: CreateTestUrl,
   selectedExecutionId?: ?string,
   history: RouterHistory,
   rows: Array<ScheduleTableRow>,
   loading: boolean,
-  filterOptions: FilterOptionsType,
-  handleFilterOptions: FilterOptionsType => void,
+  tableOptions: TableOptionsType<T>,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -57,7 +56,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function ScheduleTable(props: Props) {
+export default function ScheduleTable<T>(props: Props<T>) {
   const classes = useStyles();
   const {
     schedulerModal,
@@ -66,8 +65,7 @@ export default function ScheduleTable(props: Props) {
     createURL,
     rows,
     loading,
-    filterOptions,
-    handleFilterOptions,
+    tableOptions,
   } = props;
 
   const [selectedRow, setSelectedRow] = React.useState(null);
@@ -78,14 +76,14 @@ export default function ScheduleTable(props: Props) {
         rows?.find(
           row =>
             row.id === selectedExecutionId &&
-            row.filterStatus === EXECUTION.COMPLETED,
+            EXECUTION_STATUS[row.filterStatus] === EXECUTION_STATUS.FINISHED,
         ),
       );
     }
     if (
       selectedRow &&
       selectedRow?.id &&
-      selectedRow.filterStatus === EXECUTION.COMPLETED
+      EXECUTION_STATUS[selectedRow.filterStatus] === EXECUTION_STATUS.FINISHED
     ) {
       history.push(
         createURL({
@@ -110,28 +108,12 @@ export default function ScheduleTable(props: Props) {
       scheduleColumn('actions', {width: 150}),
     ];
 
-    const filteredRows = rows?.filter(row => {
-      const correctProtocol =
-        !filterOptions?.protocol || filterOptions?.protocol === row.protocol;
-      const correctDate =
-        row.filterStatus === 'SCHEDULED' ||
-        !filterOptions?.startTime ||
-        new Date(row.start).getTime() >
-          new Date(filterOptions?.startTime || '').getTime();
-      const correctType =
-        !filterOptions?.testType ||
-        NETWORK_TEST_TYPES[filterOptions?.testType] === row.type;
-      const correctStatus =
-        !filterOptions?.status || filterOptions?.status === row.filterStatus;
-      return correctProtocol && correctDate && correctType && correctStatus;
-    });
-
     return {
       ...tableDimensions,
       columns,
-      data: filteredRows,
+      data: rows,
     };
-  }, [rows, filterOptions]);
+  }, [rows]);
 
   const handleRowSelect = React.useCallback(
     row => {
@@ -145,7 +127,7 @@ export default function ScheduleTable(props: Props) {
       <Paper className={classes.schedule} elevation={2}>
         <Grid container item className={classes.header}>
           <Grid item xs={8}>
-            <TableOptions onOptionsUpdate={handleFilterOptions} />
+            <TableOptions {...tableOptions} />
           </Grid>
           <Grid item xs={4}>
             <div className={classes.scheduleModal}>{schedulerModal}</div>

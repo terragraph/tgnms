@@ -13,13 +13,15 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {
-  NETWORK_TEST_TYPES,
-  PROTOCOL,
-  STATUS_ICONS,
-} from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import type {FilterOptionsType} from '../../../shared/dto/NetworkTestTypes';
+import {useForm} from '@fbcnms/ui/hooks';
+
+import type {TableOption} from './SchedulerTypes';
+
+export type Props<T> = {
+  onOptionsUpdate: (options: T) => any,
+  optionsInput: Array<TableOption>,
+};
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -41,11 +43,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function TableOptions({
-  onOptionsUpdate,
-}: {
-  onOptionsUpdate: (options: FilterOptionsType) => any,
-}) {
+export default function TableOptions<T>(props: Props<T>) {
+  const {onOptionsUpdate, optionsInput} = props;
   const classes = useStyles();
   const firstRender = React.useRef(true);
   const dateRanges = React.useMemo(() => {
@@ -59,10 +58,14 @@ export default function TableOptions({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moment().dayOfYear()]); // only recompute when the day changes
 
-  const [options, setOptions] = React.useState<FilterOptionsType>({
-    // default to the last month
-    startTime: dateRanges.month,
-    testType: null,
+  const {formState, handleInputChange} = useForm({
+    initialState: optionsInput.reduce(
+      (res, option) => {
+        res[option.name] = option.initialValue || '';
+        return res;
+      },
+      {startTime: dateRanges.month},
+    ),
   });
 
   React.useEffect(() => {
@@ -71,20 +74,9 @@ export default function TableOptions({
       firstRender.current = false;
       return;
     }
-    onOptionsUpdate(options);
+    onOptionsUpdate(formState);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
-
-  const onUpdate = React.useCallback(
-    e =>
-      setOptions({
-        ...options,
-        ...{
-          [e.target.name]: e.target.value,
-        },
-      }),
-    [options],
-  );
+  }, [formState]);
 
   return (
     <div className={classes.root}>
@@ -93,8 +85,8 @@ export default function TableOptions({
         <FormControl className={classes.formControl}>
           <InputLabel htmlFor="startTime">Since</InputLabel>
           <Select
-            value={options.startTime}
-            onChange={onUpdate}
+            value={formState.startTime}
+            onChange={handleInputChange(val => ({startTime: val}))}
             inputProps={{
               id: 'startTime',
               name: 'startTime',
@@ -105,84 +97,32 @@ export default function TableOptions({
             <MenuItem value={dateRanges.year}>Last Year</MenuItem>
           </Select>
         </FormControl>
-        <FormControl className={classes.formControl}>
-          <InputLabel htmlFor="testType">Type</InputLabel>
-          <Select
-            className={classes.testOptionSelect}
-            value={options.testType || ''}
-            onChange={onUpdate}
-            inputProps={{
-              id: 'testType',
-              name: 'testType',
-              classes: {
-                selectMenu: classes.testOptionSelect,
-              },
-            }}>
-            <MenuItem value={''} selected>
-              Any
-            </MenuItem>
-            {Object.keys(NETWORK_TEST_TYPES).map(type => (
-              <MenuItem
-                key={type}
-                value={type}
-                className={classes.testOptionItem}>
-                {NETWORK_TEST_TYPES[type]}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl className={classes.formControl}>
-          <InputLabel htmlFor="protocol">Protocol</InputLabel>
-          <Select
-            className={classes.testOptionSelect}
-            value={options.protocol || ''}
-            onChange={onUpdate}
-            inputProps={{
-              id: 'protocol',
-              name: 'protocol',
-              classes: {
-                selectMenu: classes.testOptionSelect,
-              },
-            }}>
-            <MenuItem value={''} selected>
-              Any
-            </MenuItem>
-            {Object.keys(PROTOCOL).map(key => (
-              <MenuItem
-                key={PROTOCOL[key]}
-                value={PROTOCOL[key]}
-                className={classes.testOptionItem}>
-                {PROTOCOL[key]}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl className={classes.formControl}>
-          <InputLabel htmlFor="status">Status</InputLabel>
-          <Select
-            className={classes.testOptionSelect}
-            value={options.status || ''}
-            onChange={onUpdate}
-            inputProps={{
-              id: 'status',
-              name: 'status',
-              classes: {
-                selectMenu: classes.testOptionSelect,
-              },
-            }}>
-            <MenuItem value={''} selected>
-              Any
-            </MenuItem>
-            {Object.keys(STATUS_ICONS).map(name => (
-              <MenuItem
-                key={name}
-                value={name}
-                className={classes.testOptionItem}>
-                {name[0] + name.substring(1).toLowerCase()}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {optionsInput.map(option => (
+          <FormControl className={classes.formControl} key={option.name}>
+            <InputLabel htmlFor={option.name}>{option.title}</InputLabel>
+            <Select
+              value={formState[option.name]}
+              onChange={handleInputChange(val => ({[option.name]: val}))}
+              inputProps={{
+                id: option.name,
+                name: option.name,
+              }}>
+              {option.initialValue === null && (
+                <MenuItem value={''} selected>
+                  Any
+                </MenuItem>
+              )}
+              {option.options.map(optionItem => (
+                <MenuItem
+                  key={optionItem.type}
+                  value={optionItem.type}
+                  className={classes.testOptionItem}>
+                  {optionItem.title}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ))}
       </FormGroup>
     </div>
   );

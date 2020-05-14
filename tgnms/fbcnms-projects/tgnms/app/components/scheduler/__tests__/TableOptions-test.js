@@ -15,6 +15,7 @@ afterEach(cleanup);
 
 const defaultProps = {
   onOptionsUpdate: jest.fn(),
+  optionsInput: [],
 };
 
 test('renders without crashing', () => {

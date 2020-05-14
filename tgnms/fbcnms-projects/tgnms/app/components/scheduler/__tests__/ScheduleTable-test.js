@@ -20,8 +20,7 @@ const defaultProps = {
   createURL: jest.fn(),
   rows: [],
   loading: false,
-  filterOptions: {},
-  handleFilterOptions: jest.fn(),
+  tableOptions: {onOptionsUpdate: jest.fn(), optionsInput: []},
 };
 
 test('renders without crashing', () => {
@@ -64,7 +63,7 @@ test('renders custom table with rows', () => {
         rows={[
           {
             id: 1,
-            filterStatus: 'COMPLETED',
+            filterStatus: 'FINISHED',
             type: 'sequential',
             start: new Date().toLocaleString(),
             status: null,

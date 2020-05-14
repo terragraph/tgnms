@@ -25,37 +25,36 @@ export const MODAL_MODE = {
 };
 
 export const EXECUTION_STATUS = {
-  COMPLETED: 'finished',
-  FINISHED: 'finished',
-  ABORTED: 'aborted',
-  FAILED: 'failed',
-  SCHEDULED: 'scheduled',
-  RUNNING: 'running',
+  FINISHED: 'Completed',
+  ABORTED: 'Aborted',
+  FAILED: 'Failed',
+  SCHEDULED: 'Scheduled',
+  RUNNING: 'Running',
 };
 
 export const STATUS_ICONS = {
-  COMPLETED: (
-    <Tooltip title={'Completed'} placement="top">
+  FINISHED: (
+    <Tooltip title={EXECUTION_STATUS.FINISHED} placement="top">
       <CheckIcon />
     </Tooltip>
   ),
   ABORTED: (
-    <Tooltip title={'Aborted'} placement="top">
+    <Tooltip title={EXECUTION_STATUS.ABORTED} placement="top">
       <CancelIcon />
     </Tooltip>
   ),
   FAILED: (
-    <Tooltip title={'Failed'} placement="top">
+    <Tooltip title={EXECUTION_STATUS.FAILED} placement="top">
       <ErrorOutlineIcon color="error" />
     </Tooltip>
   ),
   SCHEDULED: (
-    <Tooltip title={'Scheduled'} placement="top">
+    <Tooltip title={EXECUTION_STATUS.SCHEDULED} placement="top">
       <EventIcon />
     </Tooltip>
   ),
   RUNNING: (
-    <Tooltip title={'Running'} placement="top">
+    <Tooltip title={EXECUTION_STATUS.RUNNING} placement="top">
       <RadioButtonUncheckedIcon />
     </Tooltip>
   ),
@@ -132,12 +131,4 @@ export const API_TYPE = {
 export const PROTOCOL = {
   TCP: 'TCP',
   UDP: 'UDP',
-};
-
-export const EXECUTION = {
-  COMPLETED: 'COMPLETED',
-  ABORTED: 'ABORTED',
-  FAILED: 'FAILED',
-  SCHEDULED: 'SCHEDULED',
-  RUNNING: 'RUNNING',
 };

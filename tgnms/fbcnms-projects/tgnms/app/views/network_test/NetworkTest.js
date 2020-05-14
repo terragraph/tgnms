@@ -68,7 +68,7 @@ export default function NetworkTest(props: Props) {
   const {networkName} = React.useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const handleFilterOptions = React.useCallback(query => {
+  const handleFilterOptions = React.useCallback((query: FilterOptionsType) => {
     setFilterOptions(query);
   }, []);
 
@@ -127,7 +127,7 @@ export default function NetworkTest(props: Props) {
     const inputData = {
       networkName,
       ...filterOptions,
-      status: filterOptions?.status && EXECUTION_STATUS[filterOptions.status],
+      status: filterOptions?.status && filterOptions.status.toLowerCase(),
       protocol:
         filterOptions?.protocol &&
         NETWORK_TEST_PROTOCOLS[filterOptions.protocol],
@@ -137,10 +137,13 @@ export default function NetworkTest(props: Props) {
         inputData,
         cancelToken: cancelSource.token,
       }),
-      testApi.getExecutions({
-        inputData,
-        cancelToken: cancelSource.token,
-      }),
+      !filterOptions?.status ||
+      EXECUTION_STATUS[filterOptions?.status] !== EXECUTION_STATUS.SCHEDULED
+        ? testApi.getExecutions({
+            inputData,
+            cancelToken: cancelSource.token,
+          })
+        : [],
     ]).then(results => {
       const tempRows = {running: [], schedule: [], executions: []};
       results.forEach(result => {
@@ -232,8 +235,7 @@ export default function NetworkTest(props: Props) {
               ),
             });
           } else {
-            const filterStatus =
-              newRow.status === 'FINISHED' ? 'COMPLETED' : newRow.status;
+            const filterStatus = newRow.status;
             tempRows.executions.push({
               id: newRow.id,
               filterStatus,
@@ -272,6 +274,56 @@ export default function NetworkTest(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterOptions, shouldUpdate, networkName]);
 
+  const optionsInput = [
+    {
+      name: 'testType',
+      title: 'Type',
+      initialValue: null,
+      options: Object.keys(NETWORK_TEST_TYPES).map(type => ({
+        type,
+        title: NETWORK_TEST_TYPES[type],
+      })),
+    },
+    {
+      name: 'protocol',
+      title: 'Protocol',
+      initialValue: null,
+      options: Object.keys(PROTOCOL).map(key => ({
+        type: PROTOCOL[key],
+        title: PROTOCOL[key],
+      })),
+    },
+    {
+      name: 'status',
+      title: 'Status',
+      initialValue: null,
+      options: Object.keys(EXECUTION_STATUS).map(status => ({
+        type: status,
+        title: EXECUTION_STATUS[status],
+      })),
+    },
+  ];
+
+  const filteredRows = React.useMemo(
+    () =>
+      rows?.filter(row => {
+        const correctProtocol =
+          !filterOptions?.protocol || filterOptions?.protocol === row.protocol;
+        const correctDate =
+          row.filterStatus === 'SCHEDULED' ||
+          !filterOptions?.startTime ||
+          new Date(row.start).getTime() >
+            new Date(filterOptions?.startTime || '').getTime();
+        const correctType =
+          !filterOptions?.testType ||
+          NETWORK_TEST_TYPES[filterOptions?.testType] === row.type;
+        const correctStatus =
+          !filterOptions?.status || filterOptions?.status === row.filterStatus;
+        return correctProtocol && correctDate && correctType && correctStatus;
+      }),
+    [rows, filterOptions],
+  );
+
   return (
     <ScheduleTable
       schedulerModal={
@@ -280,10 +332,13 @@ export default function NetworkTest(props: Props) {
       createURL={createTestUrl}
       selectedExecutionId={selectedExecutionId}
       history={history}
-      rows={rows}
+      rows={filteredRows}
       loading={loading}
       filterOptions={filterOptions || {}}
-      handleFilterOptions={handleFilterOptions}
+      tableOptions={{
+        optionsInput,
+        onOptionsUpdate: handleFilterOptions,
+      }}
     />
   );
 }
