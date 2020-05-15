@@ -8,7 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ScheduleParams from '../ScheduleParams';
-import {NetworkContextWrapper} from '../../../tests/testHelpers';
+import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
@@ -19,9 +19,11 @@ const defaultProps = {
 
 test('renders without crashing', () => {
   const {getByText} = render(
-    <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
-      <ScheduleParams {...defaultProps} />
-    </NetworkContextWrapper>,
+    <TestApp>
+      <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
+        <ScheduleParams {...defaultProps} />
+      </NetworkContextWrapper>
+    </TestApp>,
   );
   expect(getByText('Type')).toBeInTheDocument();
   expect(getByText('Network')).toBeInTheDocument();

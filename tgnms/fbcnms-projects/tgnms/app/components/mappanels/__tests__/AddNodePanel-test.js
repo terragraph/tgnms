@@ -8,6 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddNodePanel from '../AddNodePanel';
+import {TestApp} from '../../../tests/testHelpers';
 import {
   mockNetworkConfig,
   mockTopology,
@@ -26,5 +27,9 @@ const commonProps = {
 };
 
 test('renders with controller version before m29', () => {
-  render(<AddNodePanel {...commonProps} ctrlVersion="RELEASE_M28_PRE" />);
+  render(
+    <TestApp>
+      <AddNodePanel {...commonProps} ctrlVersion="RELEASE_M28_PRE" />
+    </TestApp>,
+  );
 });

@@ -9,7 +9,7 @@ import 'jest-dom/extend-expect';
 import React from 'react';
 import ShowAdvanced from '../ShowAdvanced';
 import TextField from '@material-ui/core/TextField';
-import {cast, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, cast, renderAsync} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(cleanup);
@@ -30,19 +30,31 @@ const defaultProps = {
 };
 
 test('renders empty without crashing', () => {
-  const {getByText} = render(<ShowAdvanced {...defaultProps} />);
+  const {getByText} = render(
+    <TestApp>
+      <ShowAdvanced {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('Show Advanced')).toBeInTheDocument();
 });
 
 test('clicking button Opens menu', async () => {
-  const {getByText} = await renderAsync(<ShowAdvanced {...defaultProps} />);
+  const {getByText} = await renderAsync(
+    <TestApp>
+      <ShowAdvanced {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('Show Advanced')).toBeInTheDocument();
   fireEvent.click(getByText('Show Advanced'));
   expect(getByText('test advanced input')).toBeInTheDocument();
 });
 
 test('clicking button twice Opens then closes menu', async () => {
-  const {getByText} = await renderAsync(<ShowAdvanced {...defaultProps} />);
+  const {getByText} = await renderAsync(
+    <TestApp>
+      <ShowAdvanced {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('Show Advanced')).toBeInTheDocument();
   fireEvent.click(getByText('Show Advanced'));
   expect(getByText('test advanced input')).toBeInTheDocument();
