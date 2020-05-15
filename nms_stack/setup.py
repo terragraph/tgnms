@@ -44,15 +44,15 @@ class CloneSubmodulesCommand(Command):
 
     description = "Clone git submodules"
     user_options = [
-        ("fbproxy", None, "pass fbproxy configuration parameter to github"),
-        ("fbproxy-url=", None, "fbproxy URL"),
+        ("proxy", None, "pass proxy configuration parameter to github"),
+        ("proxy-url=", None, "proxy URL"),
         ("path=", None, "submodule destination path"),
     ]
 
     def initialize_options(self) -> None:
         """Set default values for options."""
-        self.fbproxy = False
-        self.fbproxy_url = "fwdproxy:8080"
+        self.proxy = False
+        self.proxy_url = "fwdproxy:8080"
         self.path = str(pathlib.Path(__file__).parent / "nms_cli/nms_stack/roles")
 
     def finalize_options(self) -> None:
@@ -62,17 +62,22 @@ class CloneSubmodulesCommand(Command):
     def run(self) -> None:
         """Run command."""
         for name, (url, version) in SUBMODULES.items():
+            dest = self.path / name
+            if dest.exists():
+                self.announce(f"Skipping checkout of {name} due to existing copy")
+                continue
+
             command = ["git", "clone", url, "-b", version]
-            if self.fbproxy:
+            if self.proxy:
                 command += [
                     "-c",
-                    f"http.proxy={self.fbproxy_url}",
+                    f"http.proxy={self.proxy_url}",
                     "-c",
-                    f"https.proxy={self.fbproxy_url}",
+                    f"https.proxy={self.proxy_url}",
                 ]
 
             # Clone the repo to 'self.path/name'
-            command.append(self.path / name)
+            command.append(dest)
             self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
             subprocess.check_call(command)
 
@@ -88,7 +93,7 @@ def package_ansible(directory):
 
 setup(
     name="nms",
-    version="2020.05.11",
+    version="2020.05.15",
     description=("nms cli"),
     packages=[PACKAGE, "{}.tests".format(PACKAGE)],
     package_data={PACKAGE: package_ansible("nms_stack")},
