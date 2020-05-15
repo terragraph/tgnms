@@ -8,4 +8,5 @@ WORKDIR $WORKDIR
 COPY analytics/ .flake8 ./
 
 # Install analytics
-RUN pip install .
+RUN apk add py3-numpy && \
+    pip install .

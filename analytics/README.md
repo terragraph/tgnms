@@ -36,3 +36,26 @@ temporary malfunction events.
 In addition, the algorithm uses 30 second firmware stats for its computation. It
 is possible that the stats miss the event if the link is up for fewer than 30
 seconds.
+
+### `find_link_foliage`
+Foliage or time-varying blockage is characterized by time-varying path loss at
+both ends of a wireless link.
+Path loss is given by: `PL(A->Z) = txPower(A) - RSSI(Z) + G_Tx(A) + G_Rx(Z)`
+where `G_Tx` and `G_Rx` are the antenna gains for the transmitter and receiver
+respectively.
+Path loss is calculated as follows:
+ * TxPower and RSSI reported by a terragraph link over a one hour period is retrieved for both ends of the link.
+ * Forward and reverse path loss of each link is calculated.
+    `PL(A→Z) and PL(Z→A) = txPower(transmitter) - RSSI (receiver)`
+ * The time series is divided into equal length sub-windows (number_of_windows).
+     * The number of samples in the sub-window is should be large enough to compute cross covariance.
+ * For each window, forward and reverse path loss offset variances are calculated.
+ * If the forward or reverse variance is greater than the minimum variance
+     * calculate the sample cross covariance of the forward pathloss and reverse pathloss as:
+        * window_variance_sum = `VAR(PL(A→Z)) + VAR(PL(Z->A))`
+        * min_window_covariance/correlation = `COV(PL(A→Z), PL(Z→A)) / SQRT(VAR(PL(A→Z) * VAR(PL(Z→A)))`
+ * Calculate the Foliage Factor of each link as:
+   `Foliage Factor = sum(window_variance_sum * window_covariance) / sum(window_variance_sum)`
+ * Network wide foliage stats is calculated by defining num_foliage_links and num_foliage_free_links
+    * For each link, if foliage factor of a link is greater than threshold (0.85),
+      increment the number of foliage links else increment the number of foliage free links.

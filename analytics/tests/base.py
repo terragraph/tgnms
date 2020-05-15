@@ -6,6 +6,7 @@ import unittest
 
 from tests.cns_powered_off_tests import VisibilityUtilsTest
 
+from tests.link_insight_tests import LinkInsightTests
 
 if __name__ == "__main__":
     # Suppress logging statements during tests
