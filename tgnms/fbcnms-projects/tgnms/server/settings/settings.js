@@ -231,6 +231,14 @@ export const SETTINGS: Array<SettingDefinition> = [
     dataType: 'INT',
     requiresRestart: true,
   },
+  {
+    key: 'NETWORKTEST_HOST',
+    required: false,
+    dataType: 'STRING',
+    requiresRestart: true,
+    validations: ['URL'],
+    tester: TESTER.NETWORK_TEST,
+  },
 ];
 
 const settings = new SettingsEngine();

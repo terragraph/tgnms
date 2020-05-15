@@ -15,6 +15,7 @@ export const TESTER = {
   KEYCLOAK: 'KEYCLOAK',
   PROMETHEUS: 'PROMETHEUS',
   GRAFANA: 'GRAFANA',
+  NETWORK_TEST: 'NETWORK_TEST',
 };
 
 export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
@@ -146,6 +147,11 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
     if (!response.data || !response.data.meta) {
       return {success: false, message: 'Invalid Grafana response'};
     }
+    return {success: true, message: 'Success!'};
+  },
+  [TESTER.NETWORK_TEST]: async config => {
+    const {NETWORKTEST_HOST} = config;
+    await axios.get(`${NETWORKTEST_HOST}/schedule`);
     return {success: true, message: 'Success!'};
   },
 };

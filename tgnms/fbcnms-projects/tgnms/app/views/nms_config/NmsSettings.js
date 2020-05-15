@@ -196,6 +196,14 @@ export default function NmsSettings() {
                       />
                     </SettingGroup>
                     <SettingGroup
+                      title="Network Test"
+                      tester={<SettingsTester keys={['NETWORKTEST_HOST']} />}>
+                      <SettingInput
+                        label="Network Test URL"
+                        setting="NETWORKTEST_HOST"
+                      />
+                    </SettingGroup>
+                    <SettingGroup
                       title="Authentication"
                       tester={
                         <SettingsTester
