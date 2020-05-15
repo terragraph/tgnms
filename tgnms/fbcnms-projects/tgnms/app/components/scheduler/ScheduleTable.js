@@ -76,14 +76,16 @@ export default function ScheduleTable<T>(props: Props<T>) {
         rows?.find(
           row =>
             row.id === selectedExecutionId &&
-            EXECUTION_STATUS[row.filterStatus] === EXECUTION_STATUS.FINISHED,
+            EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.FAILED &&
+            EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.SCHEDULED,
         ),
       );
     }
     if (
       selectedRow &&
       selectedRow?.id &&
-      EXECUTION_STATUS[selectedRow.filterStatus] === EXECUTION_STATUS.FINISHED
+      EXECUTION_STATUS[selectedRow.filterStatus] !== EXECUTION_STATUS.FAILED &&
+      EXECUTION_STATUS[selectedRow.filterStatus] !== EXECUTION_STATUS.SCHEDULED
     ) {
       history.push(
         createURL({
