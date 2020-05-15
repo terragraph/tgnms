@@ -55,7 +55,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
       .filter(key => formState[key] && formState[key] > 0)
       .reduce((res, key) => {
         if (formState[key]) {
-          res[key] = formState[key];
+          res[key] = Number(formState[key]);
         }
         return res;
       }, {});
