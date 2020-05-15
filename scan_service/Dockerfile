@@ -9,4 +9,4 @@ COPY scan_service/ .flake8 ./
 
 # Install scan_service
 RUN apk add py3-numpy && \
-  pip install .
+    pip install .
