@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as turf from '@turf/turf';
 import ActionsMenu from './ActionsMenu';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -22,7 +23,6 @@ import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
-import geolib from 'geolib';
 import moment from 'moment';
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
@@ -213,15 +213,9 @@ class SiteDetailsPanel extends React.Component<Props, State> {
         sectorLinks.forEach(link => {
           const aSite = siteMap[nodeMap[link.a_node_name].site_name];
           const zSite = siteMap[nodeMap[link.z_node_name].site_name];
-          let angle = geolib.getBearing(
-            {
-              latitude: aSite.location.latitude,
-              longitude: aSite.location.longitude,
-            },
-            {
-              latitude: zSite.location.latitude,
-              longitude: zSite.location.longitude,
-            },
+          let angle = turf.bearing(
+            [aSite.location.longitude, aSite.location.latitude],
+            [zSite.location.longitude, zSite.location.latitude],
           );
           if (aSite.name === node.site_name) {
             angle = angle < 0 ? angle + 360 : angle;
