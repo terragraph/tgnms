@@ -19,8 +19,8 @@ import type {EnvMap, SettingsState} from '../../../../shared/dto/Settings';
 
 jest.mock('axios');
 
-const _getMock = jest.spyOn(axiosMock, 'get');
-_getMock.mockResolvedValue({
+const getMock = jest.spyOn(axiosMock, 'get');
+getMock.mockResolvedValue({
   data: makeSettings({API_REQUEST_TIMEOUT: '5000', LOG_LEVEL: 'DEBUG'}),
   status: 200,
 });
@@ -49,6 +49,19 @@ describe('routing', () => {
     );
     expect(getByTestId('nms-config')).toBeInTheDocument();
   });
+  test('renders networks view when feature is disabled', async () => {
+    initWindowConfig({
+      env: {
+        NMS_SETTINGS_ENABLED: 'false',
+      },
+    });
+    const {getByTestId} = await renderAsync(
+      <TestApp route="/config">
+        <NmsSettings />
+      </TestApp>,
+    );
+    expect(getByTestId('nms-config')).toBeInTheDocument();
+  });
 
   test('renders services view when route is /config/_/services', async () => {
     const {getByText} = await renderAsync(
@@ -62,7 +75,7 @@ describe('routing', () => {
 
 describe('Services', () => {
   test('after loading, service values show in text boxes', async () => {
-    _getMock.mockResolvedValueOnce(makeResponse({API_REQUEST_TIMEOUT: '3000'}));
+    getMock.mockResolvedValueOnce(makeResponse({API_REQUEST_TIMEOUT: '3000'}));
     const {getByLabelText} = await renderAsync(
       <TestApp route="/config/_/services">
         <NmsSettings />
@@ -74,7 +87,7 @@ describe('Services', () => {
     ).toBe('3000');
   });
   test('form requests confirmation before posting', async () => {
-    _getMock.mockResolvedValueOnce(makeResponse({API_REQUEST_TIMEOUT: '3000'}));
+    getMock.mockResolvedValueOnce(makeResponse({API_REQUEST_TIMEOUT: '3000'}));
     const {getByText, getByLabelText, getByTestId} = await renderAsync(
       <TestApp route="/config/_/services">
         <NmsSettings />
