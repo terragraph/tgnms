@@ -41,6 +41,18 @@
     owner: "{{ docker_user }}"
     group: docker
 
+- name: find existing stream configs
+  find:
+    paths: "{{ terragraph_docker_path }}/proxy/conf/conf.d/streams"
+    patterns: "stream-*.conf"
+  register: stream_configs
+
+- name: delete existing stream configs
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{stream_configs.files }}"
+
 - name: copy nginx backend config
   template:
     src: stream-controller.conf
