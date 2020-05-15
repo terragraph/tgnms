@@ -27,7 +27,7 @@ class DictUtilsTests(unittest.TestCase):
         deep_update(dst, src)
         self.assertDictEqual(dst, {"foo": {"bar": "baz", "quux": "quuz"}})
 
-    def test_concat_lists(self) -> None:
+    def test_join_lists(self) -> None:
         src = {"foo": {"bar": ["baz"]}}
         dst = {"foo": {"bar": ["qux"]}}
 

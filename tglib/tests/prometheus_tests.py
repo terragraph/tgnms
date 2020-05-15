@@ -11,7 +11,7 @@ from tglib.exceptions import ClientRestartError
 class PrometheusClientTests(asynctest.TestCase):
     async def setUp(self) -> None:
         self.timeout = 1
-        self.config = {"host": "prometheus", "port": 9090, "scrape_intervals": ["30s"]}
+        self.config = {"host": "prometheus", "port": 9090}
 
         await PrometheusClient.start({"prometheus": self.config})
         self.client = PrometheusClient(self.timeout)
@@ -157,79 +157,39 @@ class PrometheusClientTests(asynctest.TestCase):
             timeout=self.timeout,
         )
 
-    def test_write_metrics(self) -> None:
-        good_interval = self.config["scrape_intervals"][0]
+    def test_write_and_poll_metrics(self) -> None:
         metrics = []
 
         for i in range(10):
             metric = PrometheusMetric(name="foo", labels={"number": i}, value=i, time=1)
             metrics.append(metric)
 
-        self.assertTrue(self.client.write_metrics(good_interval, metrics))
-
-    def test_write_metrics_invalid_interval(self) -> None:
-        bad_interval = "11s"
-        self.assertNotIn(bad_interval, self.config["scrape_intervals"])
-        self.assertFalse(self.client.write_metrics(bad_interval, []))
-
-    def test_poll_metrics(self) -> None:
-        good_interval = self.config["scrape_intervals"][0]
-        metrics = []
-
-        for i in range(10):
-            metric = PrometheusMetric(name="foo", labels={"number": i}, value=i, time=1)
-            metrics.append(metric)
-
-        self.assertTrue(self.client.write_metrics(good_interval, metrics))
-        datapoints = self.client.poll_metrics(good_interval)
+        self.client.write_metrics(metrics)
+        datapoints = self.client.poll_metrics()
         self.assertEqual(len(datapoints), 10)
 
         # This call returns an empty list because no metrics were written in between
-        self.assertEqual(len(self.client.poll_metrics(good_interval)), 0)
+        self.assertEqual(len(self.client.poll_metrics()), 0)
 
     def test_write_metrics_no_timestamp(self) -> None:
-        good_interval = self.config["scrape_intervals"][0]
-
         metric = PrometheusMetric(name="foo", labels={"bar": "baz"}, value=100)
-        self.assertTrue(self.client.write_metrics(good_interval, [metric]))
+        self.client.write_metrics([metric])
 
-        datapoints = self.client.poll_metrics(good_interval)
+        datapoints = self.client.poll_metrics()
         self.assertEqual(len(datapoints), 1)
         self.assertEqual(datapoints[0], 'foo{bar="baz"} 100')
 
     def test_redundant_write_metrics(self) -> None:
-        good_interval = self.config["scrape_intervals"][0]
-
-        self.assertTrue(
-            self.client.write_metrics(
-                good_interval,
-                [
-                    PrometheusMetric(
-                        name="foo", labels={"bar": "baz"}, value=100, time=1
-                    )
-                ],
-            )
+        self.client.write_metrics(
+            [PrometheusMetric(name="foo", labels={"bar": "baz"}, value=100, time=1)]
         )
-        self.assertTrue(
-            self.client.write_metrics(
-                good_interval,
-                [
-                    PrometheusMetric(
-                        name="foo", labels={"bar": "baz"}, value=101, time=1
-                    )
-                ],
-            )
+        self.client.write_metrics(
+            [PrometheusMetric(name="foo", labels={"bar": "baz"}, value=101, time=2)]
         )
 
-        datapoints = self.client.poll_metrics(good_interval)
+        datapoints = self.client.poll_metrics()
         self.assertEqual(len(datapoints), 1)
-        self.assertEqual(datapoints[0], 'foo{bar="baz"} 101 1')
+        self.assertEqual(datapoints[0], 'foo{bar="baz"} 101 2')
 
     def test_poll_metrics_empty_queue(self) -> None:
-        good_interval = self.config["scrape_intervals"][0]
-        self.assertFalse(self.client.poll_metrics(good_interval))
-
-    def test_poll_metrics_invalid_interval(self) -> None:
-        bad_interval = "11s"
-        self.assertNotIn(bad_interval, self.config["scrape_intervals"])
-        self.assertIsNone(self.client.poll_metrics(bad_interval))
+        self.assertFalse(self.client.poll_metrics())

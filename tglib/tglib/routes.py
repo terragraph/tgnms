@@ -17,7 +17,26 @@ routes = web.RouteTableDef()
 
 @routes.get("/status")
 async def handle_get_status(request: web.Request) -> web.Response:
-    """
+    """Check if the webserver is responsive.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        "Alive" text indicating that the webserver is healthy.
+
+    Example:
+        ::
+
+            # curl -i http://localhost:8080/status
+            HTTP/1.1 200 OK
+            Content-Type: text/plain; charset=utf-8
+            Content-Length: 5
+            Date: Tue, 12 May 2020 18:57:45 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            Alive
+
     ---
     description: Check if the webserver is responsive.
     tags:
@@ -31,39 +50,50 @@ async def handle_get_status(request: web.Request) -> web.Response:
     return web.Response(text="Alive")
 
 
-@routes.get("/metrics/{scrape_interval:[0-9]+(ms|[smhdwy])}")
+@routes.get("/metrics")
 async def handle_get_metrics(request: web.Request) -> web.Response:
-    """
+    """Scrape the Prometheus metrics cache.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        Prometheus metrics in PromQL form joined with new line characters.
+
+    Raises:
+        web.HTTPInternalServerError: The PrometheusClient is not running
+
+    Example:
+        ::
+
+            # curl -i http://localhost:8080/metrics
+            HTTP/1.1 200 OK
+            Content-Type: text/plain; charset=utf-8
+            Content-Length: 14161
+            Date: Tue, 12 May 2020 18:58:37 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            topology_link_is_online{network="Fremont F0 A",linkName="link_terra114_f1_terra123_f1",cn="false"} 1 1589483730560
+            topology_link_attempts{network="Fremont F0 A",linkName="link_terra114_f1_terra123_f1",cn="false"} 3 1589483730560
+            topology_link_distance_meters{network="Fremont F0 A",linkName="link_terra114_f1_terra123_f1",cn="false"} 7.009682947243152 1589483730560
+            ...
+
     ---
-    description: Return Prometheus metrics for the specified scrape interval.
+    description: Scrape the Prometheus metrics cache.
     tags:
     - Prometheus
     produces:
     - text/plain
-    parameters:
-    - in: path
-      name: scrape_interval
-      description: Prometheusm metric scrape interval (in seconds).
-      required: true
-      schema:
-        type: integer
     responses:
       "200":
         description: Successful operation.
-      "404":
-        description: No metrics queue available for the specified scrape interval.
       "500":
         description: Prometheus client is not running.
     """
-    scrape_interval = request.match_info["scrape_interval"]
-
     try:
-        metrics = PrometheusClient.poll_metrics(scrape_interval)
-    except ClientStoppedError as e:
-        raise web.HTTPInternalServerError(text=f"{str(e)}")
-
-    if metrics is None:
-        raise web.HTTPNotFound(text=f"No metrics available for {scrape_interval}")
+        metrics = PrometheusClient.poll_metrics()
+    except ClientStoppedError:
+        raise web.HTTPInternalServerError(text="The Prometheus client is not running.")
 
     # Return a string because Prometheus only accepts a text-based exposition format
     metrics_str = "\n".join(metrics)
@@ -72,7 +102,29 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
 
 @routes.get("/config")
 async def handle_get_config(request: web.Request) -> web.Response:
-    """
+    """Return the current service configuration settings.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        The service's current configuration settings.
+
+    Raises:
+        web.HTTPInternalServerError: Failed to load or parse the configuration file.
+
+    Example:
+        ::
+
+            # curl -i http://localhost:8080/config
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=utf-8
+            Content-Length: 56
+            Date: Tue, 12 May 2020 18:59:12 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            {"topics": ["iperf_results"], "execution_timeout_s": 15}
+
     ---
     description: Return the current service configuration settings.
     tags:
@@ -99,13 +151,36 @@ async def handle_get_config(request: web.Request) -> web.Response:
 
 @routes.put("/config")
 async def handle_set_config(request: web.Request) -> web.Response:
-    """
+    """Completely overwrite the service's configuration settings.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        The overwritten configuration settings.
+
+    Raises:
+        web.HTTPBadRequest: Missing or invalid input ``config`` parameter.
+        web.HTTPInternalServerError: Failed to overwrite service configuration.
+
+    Example:
+        ::
+
+            # curl -id '{"config": {"topics": ["iperf_results"], "execution_timeout_s": 30}}' http://localhost:8080/config -X PUT
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=utf-8
+            Content-Length: 56
+            Date: Tue, 12 May 2020 19:00:57 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            {"topics": ["iperf_results"], "execution_timeout_s": 30}
+
     ---
-    description: Completely overwrite the current configuration settings.
+    description: Completely overwrite the service's configuration settings.
     tags:
     - Configuration
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: body
       name: config
@@ -141,20 +216,43 @@ async def handle_set_config(request: web.Request) -> web.Response:
 
         # Trigger the shutdown event
         request.app["shutdown_event"].set()
-        return web.Response(text="Successfully overwrote config")
+        return web.json_response(config)
     except OSError:
         raise web.HTTPInternalServerError(text="Failed to overwrite config")
 
 
 @routes.patch("/config")
 async def handle_update_config(request: web.Request) -> web.Response:
-    """
+    """Partially update the service's configuration settings.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        The updated configuration settings.
+
+    Raises:
+        web.HTTPBadRequest: Missing or invalid ``config`` parameter.
+        web.HTTPInternalServerError: Failed to update service configuration.
+
+    Example:
+        ::
+
+            # curl -id '{"config": {"execution_timeout_s": 30}}' http://localhost:8080/config -X PATCH
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=utf-8
+            Content-Length: 56
+            Date: Tue, 12 May 2020 19:00:57 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            {"topics": ["iperf_results"], "execution_timeout_s": 30}
+
     ---
-    description: Partially update the current configuration settings.
+    description: Partially update the service's configuration settings.
     tags:
     - Configuration
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: body
       name: config
@@ -196,7 +294,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
 
         # Trigger the shutdown event
         request.app["shutdown_event"].set()
-        return web.Response(text="Successfully updated configuration")
+        return web.json_response(config)
     except json.JSONDecodeError:
         raise web.HTTPInternalServerError(
             text="Existing configuration is not valid JSON"
@@ -207,9 +305,31 @@ async def handle_update_config(request: web.Request) -> web.Response:
 
 @routes.put("/log/{level:[A-Z]+}")
 async def handle_set_log_level(request: web.Request) -> web.Response:
-    """
+    """Dynamically set the service's log level.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        Text response indicating that the log level was properly set.
+
+    Raises:
+        web.HTTPBadRequest: Invalid log level.
+
+    Example:
+        ::
+
+            # curl -i http://localhost:8080/log/WARNING -X PUT
+            HTTP/1.1 200 OK
+            Content-Type: text/plain; charset=utf-8
+            Content-Length: 34
+            Date: Tue, 12 May 2020 19:06:34 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            Log level set to WARNING from INFO
+
     ---
-    description: Dynamically set the log level.
+    description: Dynamically set the service's log level.
     tags:
     - Configuration
     produces:
@@ -224,7 +344,7 @@ async def handle_set_log_level(request: web.Request) -> web.Response:
     responses:
       "200":
         description: Successful operation.
-      "404":
+      "400":
         description: Invalid log level.
     """
     level = request.match_info["level"]
@@ -236,6 +356,6 @@ async def handle_set_log_level(request: web.Request) -> web.Response:
     try:
         logging.root.setLevel(level)
     except ValueError as e:
-        raise web.HTTPNotFound(text=str(e))
+        raise web.HTTPBadRequest(text=str(e))
 
     return web.Response(text=f"Log level set to {level} from {prev_level}")

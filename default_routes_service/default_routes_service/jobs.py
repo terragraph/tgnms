@@ -73,7 +73,7 @@ async def process_default_routes(
             curr_routes[network_name][node_name] = (default_routes, max_hop_count)
 
     # Write metrics to memory
-    PrometheusClient.write_metrics(scrape_interval="30s", metrics=metrics)
+    PrometheusClient.write_metrics(metrics)
 
     # Write the latest information to the database
     await save_default_routes(start_time_ms, curr_routes)
@@ -139,7 +139,7 @@ async def process_congested_cn_egress_links(
             )
 
     # Write metrics to memory
-    PrometheusClient.write_metrics(scrape_interval="30s", metrics=metrics)
+    PrometheusClient.write_metrics(metrics)
 
     # Write the latest information to the database
     await save_cn_egress_routes(start_time_ms, curr_routes)

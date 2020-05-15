@@ -60,4 +60,4 @@ async def gauge_cn_power_status(start_time_ms: int, window_s: int) -> None:
     metrics = create_results(
         node_state_write_list=node_state_list, start_time_ms=start_time_ms
     )
-    PrometheusClient.write_metrics(scrape_interval="30s", metrics=metrics)
+    PrometheusClient.write_metrics(metrics)

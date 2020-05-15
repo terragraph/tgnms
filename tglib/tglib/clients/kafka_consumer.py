@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaError
@@ -17,18 +17,22 @@ from .base_client import BaseClient
 
 
 class KafkaConsumer(BaseClient):
+    """A client for consuming records from Kafka."""
+
     _consumer: Optional[AIOKafkaConsumer] = None
 
-    @property
-    def consumer(self) -> AIOKafkaConsumer:
-        """Return the underlying AIOKafkaConsumer instance."""
-        if self._consumer is None:
-            raise ClientStoppedError()
-
-        return self._consumer
-
     @classmethod
-    async def start(cls, config: Dict) -> None:
+    async def start(cls, config: Dict[str, Any]) -> None:
+        """Initialize the Kafka consumer resource.
+
+        Args:
+            config: Params and values for configuring the client.
+
+        Raises:
+            ClientRestartError: The Kafka consumer resource has already been initialized.
+            ClientRuntimeError: The Kafka consumer resource failed to connect to Kafka.
+            ConfigError: The ``config`` argument is incorrect/incomplete.
+        """
         if cls._consumer is not None:
             raise ClientRestartError()
 
@@ -52,7 +56,24 @@ class KafkaConsumer(BaseClient):
 
     @classmethod
     async def stop(cls) -> None:
+        """Cleanly shutdown the Kafka consumer resource.
+
+        Raises:
+            ClientStoppedError: The Kafka consumer resource is not running.
+        """
         if cls._consumer is None:
             raise ClientStoppedError()
 
         await cls._consumer.stop()
+
+    @property
+    def consumer(self) -> AIOKafkaConsumer:
+        """Return the underlying Kafka consumer resource.
+
+        Raises:
+            ClientStoppedError: The Kafka consumer resource is not running.
+        """
+        if self._consumer is None:
+            raise ClientStoppedError()
+
+        return self._consumer

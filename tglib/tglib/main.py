@@ -7,9 +7,9 @@ import json
 import logging
 import os
 import signal
-import uvloop
 from typing import Callable, Optional, Set, cast
 
+import uvloop
 from aiohttp import web
 
 from .clients import (
@@ -25,7 +25,15 @@ from .utils.dict import deep_update
 
 
 class ClientType(enum.Enum):
-    """Enumerate client options."""
+    """Enumerate client options.
+
+    Attributes:
+        API_SERVICE_CLIENT
+        KAFKA_CONSUMER
+        KAFKA_PRODUCER
+        MYSQL_CLIENT
+        PROMETHEUS_CLIENT
+    """
 
     API_SERVICE_CLIENT = 1
     KAFKA_CONSUMER = 2
@@ -39,7 +47,17 @@ def init(
     clients: Set[ClientType],
     extra_routes: Optional[web.RouteTableDef] = None,
 ) -> None:
-    """Start the webserver and queue startup/shutdown jobs."""
+    """Start the webserver and the entrypoint logic passed in as ``main``.
+
+    Args:
+        main: A ``lambda`` function wrapper to the entrypoint for the service's logic.
+        clients: The set of clients needed to run the service logic.
+        extra_routes: An optional list of additional endpoints to add to the HTTP server.
+
+    Raises:
+        ConfigError: The configuration files are invalid or missing on the system.
+        DuplicateRouteError: An extra route conflicts in name and method with the default routes.
+    """
     logging.basicConfig(
         format="%(levelname)s %(asctime)s %(filename)s:%(lineno)d] %(message)s",
         level=logging.INFO,
@@ -68,7 +86,7 @@ def init(
     app["shutdown_event"] = asyncio.Event()
 
     # Initialize routes for the HTTP server
-    add_all_routes(app, routes, extra_routes)
+    _add_all_routes(app, routes, extra_routes)
 
     # Initialize the clients
     app["clients"] = []
@@ -83,8 +101,8 @@ def init(
     if ClientType.PROMETHEUS_CLIENT in clients:
         app["clients"].append(PrometheusClient)
 
-    app.on_startup.append(start_background_tasks)
-    app.on_cleanup.append(stop_background_tasks)
+    app.on_startup.append(_start_background_tasks)
+    app.on_cleanup.append(_stop_background_tasks)
 
     try:
         from aiohttp_swagger import setup_swagger
@@ -96,7 +114,7 @@ def init(
     web.run_app(app)
 
 
-def add_all_routes(
+def _add_all_routes(
     app: web.Application,
     routes: web.RouteTableDef,
     extra_routes: Optional[web.RouteTableDef],
@@ -119,7 +137,7 @@ def add_all_routes(
         app.add_routes(extra_routes)
 
 
-async def start_background_tasks(app: web.Application) -> None:
+async def _start_background_tasks(app: web.Application) -> None:
     """Start the clients and create the main_wrapper and shutdown_listener tasks."""
     start_tasks = [client.start(app["config"]) for client in app["clients"]]
 
@@ -138,11 +156,11 @@ async def start_background_tasks(app: web.Application) -> None:
         await asyncio.gather(*stop_tasks)
         raise bad[0]
 
-    app["main_wrapper_task"] = asyncio.create_task(main_wrapper(app))
-    app["shutdown_listener_task"] = asyncio.create_task(shutdown_listener(app))
+    app["main_wrapper_task"] = asyncio.create_task(_main_wrapper(app))
+    app["shutdown_listener_task"] = asyncio.create_task(_shutdown_listener(app))
 
 
-async def stop_background_tasks(app: web.Application) -> None:
+async def _stop_background_tasks(app: web.Application) -> None:
     """Cancel the shutdown_listener and main_wrapper tasks and stop the clients."""
     try:
         app["shutdown_listener_task"].cancel()
@@ -165,7 +183,7 @@ async def stop_background_tasks(app: web.Application) -> None:
         await app["main_wrapper_task"]
 
 
-async def main_wrapper(app: web.Application) -> None:
+async def _main_wrapper(app: web.Application) -> None:
     """Run the supplied 'main' and set the shutdown event if it fails."""
     try:
         await app["main"]()
@@ -174,7 +192,7 @@ async def main_wrapper(app: web.Application) -> None:
         raise
 
 
-async def shutdown_listener(app: web.Application) -> None:
+async def _shutdown_listener(app: web.Application) -> None:
     """Wait for the shutdown_event notification to kill the process."""
     await app["shutdown_event"].wait()
     logging.info("Shutting down!")

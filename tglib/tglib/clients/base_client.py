@@ -2,13 +2,17 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import abc
-from typing import Dict
+from typing import Any, Dict
 
 
 class BaseClient(abc.ABC):
     @abc.abstractclassmethod
-    async def start(cls, config: Dict) -> None:
-        """Start underlying resources for the client."""
+    async def start(cls, config: Dict[str, Any]) -> None:
+        """Start underlying resources for the client.
+
+        Args:
+            config: Params and values for configuring the client.
+        """
         pass
 
     @abc.abstractclassmethod

@@ -214,4 +214,4 @@ async def count_network_assets(
         ]
 
     # Write the metrics to memory
-    PrometheusClient.write_metrics(scrape_interval="30s", metrics=metrics)
+    PrometheusClient.write_metrics(metrics=metrics)

@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaError
@@ -17,15 +17,27 @@ from ..exceptions import (
     ClientStoppedError,
     ConfigError,
 )
-from ..utils.serialization import thrift2json
+from ..utils.thrift import Thrift, thrift2json
 from .base_client import BaseClient
 
 
 class KafkaProducer(BaseClient):
+    """A client for producing records to Kafka."""
+
     _producer: Optional[AIOKafkaProducer] = None
 
     @classmethod
-    async def start(cls, config: Dict) -> None:
+    async def start(cls, config: Dict[str, Any]) -> None:
+        """Initialize the Kafka producer resource.
+
+        Args:
+            config: Params and values for configuring the client.
+
+        Raises:
+            ClientRestartError: The Kafka producer resource has already been initialized.
+            ClientRuntimeError: The Kafka producer resource failed to connect to Kafka.
+            ConfigError: The ``config`` argument is incorrect/incomplete.
+        """
         if cls._producer is not None:
             raise ClientRestartError()
 
@@ -49,10 +61,38 @@ class KafkaProducer(BaseClient):
 
     @classmethod
     async def stop(cls) -> None:
+        """Cleanly shutdown the Kafka producer resource.
+
+        Raises:
+            ClientStoppedError: The Kafka producer resource is not running.
+        """
         if cls._producer is None:
             raise ClientStoppedError()
 
         await cls._producer.stop()
+
+    async def send_data(self, topic: str, data: bytes) -> bool:
+        """Log a record to the specified ``topic``.
+
+        Args:
+            topic: The topic name.
+            data: The record value.
+
+        Returns:
+            ``True`` if successful, ``False`` otherwise.
+
+        Raises:
+            ClientStoppedError: The Kafka producer resource is not running.
+        """
+        if self._producer is None:
+            raise ClientStoppedError()
+
+        try:
+            await self._producer.send(topic, data)
+            return True
+        except KafkaError:
+            logging.exception("Failed to schedule record")
+            return False
 
     async def log_event(
         self,
@@ -67,10 +107,26 @@ class KafkaProducer(BaseClient):
         topology_name: Optional[str] = None,
         node_name: Optional[str] = None,
     ) -> bool:
-        """Log an event to the Kafka events topic."""
-        if self._producer is None:
-            raise ClientStoppedError()
+        """Log an event to the Kafka events topic.
 
+        Args:
+            source: The source program (ZMQ identity, process name, etc.).
+            reason: The event description, in plain English.
+            category: The event category.
+            level: The event level.
+            event_id: The event ID, for directly associated events.
+            details: Supplemental information, as a JSON string.
+            entity: The entity this event is associated with.
+            node_id: The associated node ID (MAC).
+            topology_name: The topology name.
+            node_name: The associated node name (if applicable).
+
+        Returns:
+            ``True`` if successful, ``False`` otherwise.
+
+        Raises:
+            ClientStoppedError: The Kafka producer resource is not running.
+        """
         if category not in EventCategory._VALUES_TO_NAMES:
             logging.error(f"Invalid EventCategory: {category}")
             return False
@@ -88,7 +144,7 @@ class KafkaProducer(BaseClient):
 
         event = Event()
         event.source = source
-        event.timestamp = int(time.time())
+        event.timestamp = int(round(time.time()))
         event.reason = reason
         event.category = category
         event.level = level
@@ -98,10 +154,7 @@ class KafkaProducer(BaseClient):
         event.nodeId = node_id
         event.topologyName = topology_name
         event.nodeName = node_name
-
-        bytes = thrift2json(event)
-        await self._producer.send("events", bytes)
-        return True
+        return await self.send_data("events", thrift2json(event))
 
     async def log_event_dict(
         self,
@@ -116,7 +169,26 @@ class KafkaProducer(BaseClient):
         topology_name: Optional[str] = None,
         node_name: Optional[str] = None,
     ) -> bool:
-        """Log an event to the Kafka events topic with details in Dict form."""
+        """Log an event to the Kafka events topic with details in Python dictionary form.
+
+        Args:
+            source: The source program (ZMQ identity, process name, etc.).
+            reason: The event description, in plain English.
+            details: Supplemental information, as a Python dictionary.
+            category: The event category.
+            level: The event level.
+            event_id: The event ID, for directly associated events.
+            entity: The entity this event is associated with.
+            node_id: The associated node ID (MAC).
+            topology_name: The topology name.
+            node_name: The associated node name (if applicable).
+
+        Returns:
+            ``True`` if successful, ``False`` otherwise.
+
+        Raises:
+            ClientStoppedError: The Kafka producer resource is not running.
+        """
         return await self.log_event(
             source,
             reason,
@@ -134,7 +206,7 @@ class KafkaProducer(BaseClient):
         self,
         source: str,
         reason: str,
-        details,
+        details: Thrift,
         category: int,
         level: int,
         event_id: int,
@@ -143,7 +215,26 @@ class KafkaProducer(BaseClient):
         topology_name: Optional[str] = None,
         node_name: Optional[str] = None,
     ) -> bool:
-        """Log an event to the Kafka events topic with details in thrift form."""
+        """Log an event to the Kafka events topic with details in Thrift form.
+
+        Args:
+            source: The source program (ZMQ identity, process name, etc.).
+            reason: The event description, in plain English.
+            details: Supplemental information, as a Thrift object.
+            category: The event category.
+            level: The event level.
+            event_id: The event ID, for directly associated events.
+            entity: The entity this event is associated with.
+            node_id: The associated node ID (MAC).
+            topology_name: The topology name.
+            node_name: The associated node name (if applicable).
+
+        Returns:
+            ``True`` if successful, ``False`` otherwise.
+
+        Raises:
+            ClientStoppedError: The Kafka producer resource is not running.
+        """
         return await self.log_event(
             source,
             reason,

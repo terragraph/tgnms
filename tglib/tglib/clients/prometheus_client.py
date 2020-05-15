@@ -21,20 +21,17 @@ from ..utils.ip import format_address
 from .base_client import BaseClient
 
 
-# Tyoe alias: query_str -> (value, time)
-MetricCache = Dict[str, Tuple[Union[int, float], Optional[int]]]
-
 # Common labels
 consts = SimpleNamespace()
+consts.data_interval_s = "intervalSec"
+consts.is_cn = "cn"
+consts.is_pop = "pop"
+consts.link_direction = "linkDirection"
+consts.link_name = "linkName"
+consts.network = "network"
 consts.node_mac = "nodeMac"
 consts.node_name = "nodeName"
-consts.is_pop = "pop"
-consts.is_cn = "cn"
 consts.site_name = "siteName"
-consts.link_name = "linkName"
-consts.link_direction = "linkDirection"
-consts.network = "network"
-consts.data_interval_s = "intervalSec"
 
 # Built-in Prometheus query transformation operators/functions
 ops = SimpleNamespace()
@@ -51,9 +48,16 @@ ops.max_over_time = lambda query, interval: f"max_over_time({query} [{interval}]
 class PrometheusMetric:
     """Representation of a single Prometheus metric.
 
-    If provided, 'time' should be in milliseconds since epoch. To use the
-    scrape timestamp, set 'honor_timestamps' to 'false' in the Prometheus
-    config and omit the 'time' field."""
+    If provided, ``time`` should be in milliseconds since epoch. To use
+    the scrape timestamp, set ``honor_timestamps`` to ``false`` in Prometheus'
+    scrape configuration file and omit the ``time`` field here.
+
+    Args:
+        name: The name of the metric.
+        labels: The labels and values in Python dictionary form.
+        value: The metric value.
+        time: The emission timestamp, in milliseconds.
+    """
 
     name: str
     labels: Dict[str, Any]
@@ -62,20 +66,35 @@ class PrometheusMetric:
 
 
 class PrometheusClient(BaseClient):
+    """A client for reading and writing timeseries metrics to Prometheus.
+
+    Args:
+        timeout: The request timeout, in seconds.
+    """
+
     _addr: Optional[str] = None
-    _metrics_map: Optional[Dict[str, MetricCache]] = None
+    _metrics: Optional[Dict[str, Tuple[Union[int, float], Optional[int]]]] = None
     _session: Optional[aiohttp.ClientSession] = None
 
     def __init__(self, timeout: int) -> None:
         self.timeout = timeout
 
     @classmethod
-    async def start(cls, config: Dict) -> None:
+    async def start(cls, config: Dict[str, Any]) -> None:
+        """Initialize the underlying HTTP client session pool.
+
+        Args:
+            config: Params and values for configuring the client.
+
+        Raises:
+            ClientRestartError: The HTTP client session pool has already been initialized.
+            ConfigError: The ``config`` argument is incorrect/incomplete.
+        """
         if cls._session is not None:
             raise ClientRestartError()
 
         prom_params = config.get("prometheus")
-        required_params = ["host", "port", "scrape_intervals"]
+        required_params = ["host", "port"]
 
         if prom_params is None:
             raise ConfigError("Missing required 'prometheus' key")
@@ -85,11 +104,16 @@ class PrometheusClient(BaseClient):
             raise ConfigError(f"Missing one or more required params: {required_params}")
 
         cls._addr = format_address(prom_params["host"], prom_params["port"])
-        cls._metrics_map = {i: {} for i in prom_params["scrape_intervals"]}
+        cls._metrics = {}
         cls._session = aiohttp.ClientSession(trust_env=True)
 
     @classmethod
     async def stop(cls) -> None:
+        """Cleanly shut down the HTTP client session pool.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+        """
         if cls._session is None:
             raise ClientStoppedError()
 
@@ -97,10 +121,21 @@ class PrometheusClient(BaseClient):
         cls._session = None
 
     @staticmethod
-    def normalize(string: str) -> str:
-        """Remove invalid characters in order to be Prometheus compliant."""
+    def normalize(value: str) -> str:
+        """Remove invalid characters in order to be Prometheus compliant.
+
+        Args:
+            value: The raw string input.
+
+        Returns:
+            A new normalized string with invalid characters replaced with an underscore.
+
+        Example:
+            >>> PrometheusClient.normalize("link-node1-node2")
+            link_node1_node2
+        """
         return (
-            string.replace(".", "_")
+            value.replace(".", "_")
             .replace("-", "_")
             .replace("/", "_")
             .replace("[", "_")
@@ -113,7 +148,26 @@ class PrometheusClient(BaseClient):
         labels: Dict[str, Any] = {},
         negate_labels: Dict[str, Any] = {},
     ) -> str:
-        """Form a Prometheus query from the metric_name and labels."""
+        """Form a PromQL query from the parameters.
+
+        Args:
+            metric_name: The Prometheus metric name.
+            labels: The dictionary of labels to **positive** matching values.
+            negate_labels: The dictionary of labels to **negative** matching values.
+
+        Returns:
+            A PromQL formatted query string.
+
+        Note:
+            If a value is given of type :class:`typing.Pattern`, then the ``~`` character is automatically
+            added to the label assignment.
+
+        Example:
+            >>> PrometheusClient.format_query("foo", labels={"nodeName": "node1"}, negate_labels={"network": re.compile("test*")})
+            foo{nodeName="node1",network!~"test*"}
+            >>> PrometheusClient.format_query("bar", labels={"linkName": re.compile("link1|link2")}, negate_labels={"network":"test_net"})
+            bar{linkName=~"link1|link2",network!="test_net"}
+        """
         label_list = []
         for name, val in labels.items():
             if isinstance(val, Pattern):
@@ -135,15 +189,21 @@ class PrometheusClient(BaseClient):
         return f"{metric_name}{{{label_str}}}" if label_str else metric_name
 
     @classmethod
-    def write_metrics(
-        cls, scrape_interval: str, metrics: List[PrometheusMetric]
-    ) -> bool:
-        """Add/update metrics to the given scrape interval cache."""
-        if cls._metrics_map is None:
+    def write_metrics(cls, metrics: List[PrometheusMetric]) -> None:
+        """Add/update metrics to the metric cache.
+
+        Args:
+            metrics: The list of PrometheusMetric objects to save to the cache.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+
+        Attention:
+            This method will overwrite :class:`PrometheusMetric` values with duplicate
+            ``name`` and ``labels`` values in between Prometheus scrapes.
+        """
+        if cls._metrics is None:
             raise ClientStoppedError()
-        if scrape_interval not in cls._metrics_map:
-            logging.error(f"No metrics queue found for {scrape_interval}")
-            return False
 
         # Format the incoming metrics
         curr_metrics = {}
@@ -151,34 +211,48 @@ class PrometheusClient(BaseClient):
             query_str = cls.format_query(metric.name, metric.labels)
             curr_metrics[query_str] = (metric.value, metric.time)
 
-        prev_metrics = cls._metrics_map[scrape_interval]
-        prev_metrics.update(curr_metrics)
-        return True
+        cls._metrics.update(curr_metrics)
 
     @classmethod
-    def poll_metrics(cls, scrape_interval: str) -> Optional[List[str]]:
-        """Scrape the metrics cache for the given scrape interval."""
-        if cls._metrics_map is None:
+    def poll_metrics(cls) -> List[str]:
+        """Scrape the metrics cache.
+
+        Returns:
+            A list of metrics, in PromQL form.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+        """
+        if cls._metrics is None:
             raise ClientStoppedError()
 
-        if scrape_interval not in cls._metrics_map:
-            logging.error(f"No metrics map available for {scrape_interval}")
-            return None
-
         datapoints = []
-        metrics = cls._metrics_map[scrape_interval]
-        for query_str, (value, ts) in metrics.items():
+        for query_str, (value, ts) in cls._metrics.items():
             datapoints.append(f"{query_str} {value} {ts or ''}".rstrip())
 
-        metrics.clear()
+        cls._metrics.clear()
         return datapoints
 
     async def query_range(
         self, query: str, step: str, start: int, end: Optional[int] = None
     ) -> Dict:
-        """Return the data for the given query and range.
+        """Return the timeseries data for the given PromQL query and time range.
 
-        If not provided, the end time will default to the current unix time.
+        Args:
+            query: The PromQL string query.
+            step: The query step resolution width in duration format.
+            start: The start unix timestamp in seconds.
+            end: The end unix timestamp in seconds.
+
+        Returns:
+            The Prometheus JSON response as a Python dictionary.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: The request failed or timed out.
+
+        Note:
+            If not provided, ``end`` will default to the current unix time.
         """
         if self._addr is None or self._session is None:
             raise ClientStoppedError()
@@ -206,8 +280,19 @@ class PrometheusClient(BaseClient):
     async def query_latest(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest datum for the given query.
 
-        The current Prometheus server time is used as default if no evaluation
-        timestamp is provided.
+        Args:
+            query: The PromQL string query.
+            time: The evaluation unix timestamp in seconds.
+
+        Returns:
+            The Prometheus JSON response as a Python dictionary.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: The request failed or timed out.
+
+        Note:
+            If not provided, ``time`` will default to the Prometheus server time.
         """
         if self._addr is None or self._session is None:
             raise ClientStoppedError()
@@ -230,13 +315,41 @@ class PrometheusClient(BaseClient):
     async def query_range_ts(
         self, query: str, step: str, start: int, end: Optional[int] = None
     ) -> Dict:
-        """Return timestamp emissions corresponding to the query and range."""
+        """Return timestamp emissions corresponding to the query and range.
+
+        Args:
+            query: The PromQL string query.
+            step: The query step resolution width in duration format.
+            start: The start unix timestamp in seconds.
+            end: The end unix timestamp in seconds.
+
+        Returns:
+            The Prometheus JSON response as a Python dictionary.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: The request failed or timed out.
+
+        Note:
+            If not provided, ``end`` will default to the current unix time.
+        """
         return await self.query_range(f"timestamp({query})", step, start, end)
 
     async def query_latest_ts(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest timestamp emission for the given query.
 
-        The current Prometheus server time is used as default if no
-        evaluation timestamp is provided.
+        Args:
+            query: The PromQL string query.
+            time: The evaluation unix timestamp in seconds.
+
+        Returns:
+            The Prometheus JSON response as a Python dictionary.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: The request failed or timed out.
+
+        Note:
+            If not provided, ``time`` will default to the Prometheus server time.
         """
         return await self.query_latest(f"timestamp({query})", time)

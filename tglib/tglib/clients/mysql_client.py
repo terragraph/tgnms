@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import os
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import aiomysql
 from aiomysql.sa import Engine, create_engine
@@ -17,10 +17,22 @@ from .base_client import BaseClient
 
 
 class MySQLClient(BaseClient):
+    """A client for interacting with MySQL using :mod:`sqlalchemy`."""
+
     _engine: Optional[Engine] = None
 
     @classmethod
-    async def start(cls, config: Dict) -> None:
+    async def start(cls, config: Dict[str, Any]) -> None:
+        """Initialize the MySQL connection pool.
+
+        Args:
+            config: Params and values for configuring the client.
+
+        Raises:
+            ClientRestartError: The MySQL connection pool has already been initialized.
+            ClientRuntimeError: The client failed to connect to the database.
+            ConfigError: The ``config`` argument is incorrect/incomplete.
+        """
         if cls._engine is not None:
             raise ClientRestartError()
 
@@ -49,6 +61,7 @@ class MySQLClient(BaseClient):
 
     @classmethod
     async def stop(cls) -> None:
+        """Cleanly shut down the MySQL connection pool."""
         if cls._engine is None:
             raise ClientStoppedError()
 
@@ -59,7 +72,15 @@ class MySQLClient(BaseClient):
     def lease(self):
         """Get a connection from the connection pool.
 
-        Use with async context manager to return an aiomysql.sa.SAConnection.
+        Attention:
+            This function **MUST** be used with an asynchronous context manager.
+
+        Example:
+            >>> from sqlalchemy import insert
+            >>> async with MySQLClient().lease() as sa_conn:
+            ...     query = insert(Table).values(name="test")
+            ...     await sa_conn.execute(query)
+            ...     await sa_conn.connection.commit()
         """
         if self._engine is None:
             raise ClientStoppedError()

@@ -5,7 +5,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import Collection, Dict, Optional, cast
+from typing import Any, Collection, Dict, Optional, cast
 
 import aiohttp
 
@@ -20,6 +20,15 @@ from .base_client import BaseClient
 
 
 class APIServiceClient(BaseClient):
+    """A client for communicating with the Terragraph API service.
+
+    The client automatically handles refreshing the JSON web token if Keycloak
+    is enabled in the network.
+
+    Args:
+        timeout: The request timeout, in seconds.
+    """
+
     _networks: Optional[Dict[str, str]] = None
     _session: Optional[aiohttp.ClientSession] = None
     # Needed for Keycloak
@@ -36,7 +45,17 @@ class APIServiceClient(BaseClient):
         self.timeout = timeout
 
     @classmethod
-    async def start(cls, config: Dict) -> None:
+    async def start(cls, config: Dict[str, Any]) -> None:
+        """Initialize the underlying HTTP client session pool.
+
+        Args:
+            config: Params and values for configuring the client.
+
+        Raises:
+            ClientRestartError: The HTTP client session pool has already been initialized.
+            ClientRuntimeError: Failed to fetch the network information from the NMS.
+            ConfigError: The ``config`` argument is incorrect/incomplete.
+        """
         if cls._session is not None:
             raise ClientRestartError()
 
@@ -54,7 +73,7 @@ class APIServiceClient(BaseClient):
         cls._session = aiohttp.ClientSession(trust_env=True)
 
         headers: Optional[Dict] = None
-        if cls._keycloak_enabled and await cls.refresh_token():
+        if cls._keycloak_enabled and await cls._refresh_token():
             headers = {"Authorization": f"Bearer {cls._jwt['access_token']}"}
 
         try:
@@ -78,6 +97,11 @@ class APIServiceClient(BaseClient):
 
     @classmethod
     async def stop(cls) -> None:
+        """Cleanly shut down the HTTP client session pool.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+        """
         if cls._session is None:
             raise ClientStoppedError()
 
@@ -85,7 +109,152 @@ class APIServiceClient(BaseClient):
         cls._session = None
 
     @classmethod
-    async def refresh_token(cls) -> bool:
+    def network_names(cls) -> Collection[str]:
+        """Return a collection of the network names managed by the NMS.
+
+        Returns:
+            A collection of valid network names managed by the NMS.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+        """
+        if cls._networks is None:
+            raise ClientStoppedError()
+
+        return cls._networks.keys()
+
+    async def request(
+        self, network_name: str, endpoint: str, params: Dict = {}
+    ) -> Dict:
+        """Make an API request to a specific network + endpoint with params.
+
+        Args:
+            network_name: The receiving network of the request.
+            endpoint: The API endpoint to invoke (e.g. ``getTopology``).
+            params: The POST params to use in the request.
+
+        Returns:
+            The JSON response as a Python dictionary.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: The request failed, timed out, or did not return ``200``.
+        """
+        if self._networks is None or self._session is None:
+            raise ClientStoppedError()
+
+        addr = self._networks.get(network_name)
+        if addr is None:
+            raise ClientRuntimeError(msg=f"{network_name} does not exist")
+
+        headers: Optional[Dict] = None
+        if self._keycloak_enabled:
+            async with self._lock:
+                if (
+                    time.time() > (self._refresh_time + self._jwt["expires_in"])
+                    and await self._refresh_token()
+                ):
+                    headers = {"Authorization": f"Bearer {self._jwt['access_token']}"}
+
+        try:
+            url = f"http://{addr}/api/{endpoint}"
+            logging.debug(f"Requesting from {url} with params {params}")
+
+            async with self._session.post(
+                url, json=params, timeout=self.timeout, headers=headers
+            ) as resp:
+                if resp.status == 200:
+                    return cast(Dict, await resp.json())
+
+                raise ClientRuntimeError(
+                    msg=f"API Service request to {url} failed: {resp.reason} ({resp.status})"
+                )
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            raise ClientRuntimeError(msg=f"API Service request to {url} failed") from e
+
+    async def request_all(
+        self,
+        endpoint: str,
+        params_map: Dict[str, Dict] = {},
+        return_exceptions: bool = False,
+    ) -> Dict[str, Dict]:
+        """Make a request to the given endpoint for all networks in the NMS.
+
+        Args:
+            endpoint: The API endpoint to invoke (e.g. ``getTopology``).
+            params_map: Dictionary of network names to request parameters.
+            return_exceptions: Flag to return exceptions as objects instead of raising.
+
+        Returns:
+            A dictionary of network names to JSON responses (as Python dictionaries).
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: One of the requests failed and ``return_exceptions`` is ``False``.
+
+        Note:
+            The default POST param ``{}`` is used for all network names not present in ``params_map``.
+        """
+        if self._networks is None:
+            raise ClientStoppedError()
+
+        tasks = []
+        for network_name in self.network_names():
+            params = params_map.get(network_name)
+            if params is None:
+                tasks.append(self.request(network_name, endpoint))
+            else:
+                tasks.append(self.request(network_name, endpoint, params))
+
+        return dict(
+            zip(
+                self.network_names(),
+                await asyncio.gather(*tasks, return_exceptions=return_exceptions),
+            )
+        )
+
+    async def request_many(
+        self,
+        endpoint: str,
+        params_map: Dict[str, Dict],
+        return_exceptions: bool = False,
+    ) -> Dict[str, Dict]:
+        """Make a request to the given endpoint for the networks in ``params_map``.
+
+        Args:
+            endpoint: The API endpoint to invoke (e.g. ``getTopology``).
+            params_map: Dictionary of network names to request parameters.
+            return_exceptions: Flag to return exceptions as objects instead of raising.
+
+        Returns:
+            A dictionary of network names to JSON responses (as Python dictionaries).
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: One of the requests failed and ``return_exceptions`` is ``False``.
+
+        Note:
+            No request is sent for networks not present in ``params_map``.
+        """
+        if self._networks is None:
+            raise ClientStoppedError()
+
+        tasks = []
+        for network_name, params in params_map.items():
+            if network_name not in self._networks:
+                continue
+
+            tasks.append(self.request(network_name, endpoint, params))
+
+        return dict(
+            zip(
+                params_map.keys(),
+                await asyncio.gather(*tasks, return_exceptions=return_exceptions),
+            )
+        )
+
+    @classmethod
+    async def _refresh_token(cls) -> bool:
         """Update the JWT value from Keycloak."""
         if cls._session is None:
             raise ClientStoppedError()
@@ -118,113 +287,3 @@ class APIServiceClient(BaseClient):
                 return True
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             raise ClientRuntimeError(msg="Failed to refresh JWT") from e
-
-    @classmethod
-    def network_names(cls) -> Collection[str]:
-        """Return a collection of valid network names."""
-        if cls._networks is None:
-            raise ClientStoppedError()
-
-        return cls._networks.keys()
-
-    async def request(
-        self, network_name: str, endpoint: str, params: Dict = {}
-    ) -> Dict:
-        """Make a request to a specific network + endpoint with params.
-
-        The default post param '{}' is used if not provided explicitly.
-        """
-        if self._networks is None or self._session is None:
-            raise ClientStoppedError()
-
-        addr = self._networks.get(network_name)
-        if addr is None:
-            raise ClientRuntimeError(msg=f"{network_name} does not exist")
-
-        headers: Optional[Dict] = None
-        if self._keycloak_enabled:
-            async with self._lock:
-                if (
-                    time.time() > (self._refresh_time + self._jwt["expires_in"])
-                    and await self.refresh_token()
-                ):
-                    headers = {"Authorization": f"Bearer {self._jwt['access_token']}"}
-
-        try:
-            url = f"http://{addr}/api/{endpoint}"
-            logging.debug(f"Requesting from {url} with params {params}")
-
-            async with self._session.post(
-                url, json=params, timeout=self.timeout, headers=headers
-            ) as resp:
-                if resp.status == 200:
-                    return cast(Dict, await resp.json())
-
-                raise ClientRuntimeError(
-                    msg=f"API Service request to {url} failed: {resp.reason} ({resp.status})"
-                )
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            raise ClientRuntimeError(msg=f"API Service request to {url} failed") from e
-
-    async def request_all(
-        self,
-        endpoint: str,
-        params_map: Dict[str, Dict] = {},
-        return_exceptions: bool = False,
-    ) -> Dict[str, Dict]:
-        """Make a request to the given endpoint for all networks.
-
-        params_map is a dictionary of network names to params. The default post
-        param '{}' is used for networks not present in params_map.
-
-        return_exceptions is a boolean flag for returning exceptions as objects
-        instead of raising the first one. It is disabled by default.
-        """
-        if self._networks is None:
-            raise ClientStoppedError()
-
-        tasks = []
-        for network_name in self.network_names():
-            params = params_map.get(network_name)
-            if params is None:
-                tasks.append(self.request(network_name, endpoint))
-            else:
-                tasks.append(self.request(network_name, endpoint, params))
-
-        return dict(
-            zip(
-                self.network_names(),
-                await asyncio.gather(*tasks, return_exceptions=return_exceptions),
-            )
-        )
-
-    async def request_many(
-        self,
-        endpoint: str,
-        params_map: Dict[str, Dict],
-        return_exceptions: bool = False,
-    ) -> Dict[str, Dict]:
-        """Make a request to the given endpoint for the networks in params_map.
-
-        params_map is a dictionary of network names to params. No request is
-        sent for networks not present in params_map.
-
-        return_exceptions is a boolean flag for returning exceptions as objects
-        instead of raising the first one. It is disabled by default.
-        """
-        if self._networks is None:
-            raise ClientStoppedError()
-
-        tasks = []
-        for network_name, params in params_map.items():
-            if network_name not in self._networks:
-                continue
-
-            tasks.append(self.request(network_name, endpoint, params))
-
-        return dict(
-            zip(
-                params_map.keys(),
-                await asyncio.gather(*tasks, return_exceptions=return_exceptions),
-            )
-        )

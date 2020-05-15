@@ -89,12 +89,8 @@ async def async_main(
     logging.info(f"Config: {service_config}")
 
     while True:
-        prometheus_metrics = await fetch_weather_data(
-            api_service_client, weather_client
-        )
-
         PrometheusClient.write_metrics(
-            service_config["scrape_interval"], prometheus_metrics
+            await fetch_weather_data(api_service_client, weather_client)
         )
         logging.info("Updated prometheus cache with new data")
 

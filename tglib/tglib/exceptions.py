@@ -5,7 +5,7 @@ from typing import Optional
 
 
 class TGLibError(Exception):
-    """Base class for all TGLib errors."""
+    """Base class for all :mod:`tglib` errors."""
 
     pass
 
@@ -17,7 +17,13 @@ class ConfigError(TGLibError):
 
 
 class DuplicateRouteError(TGLibError):
-    """Raised if a route has the same method and path as a base route."""
+    """Raised if more than one route has the same method and path.
+
+    Args:
+        method: The ``HTTP`` method used by the route.
+        path: The ``URL`` path used by the route.
+        msg: The exception message.
+    """
 
     def __init__(self, method: str, path: str, msg: Optional[str] = None):
         if msg is None:
@@ -34,7 +40,11 @@ class ClientError(TGLibError):
 
 
 class ClientRestartError(ClientError):
-    """Raised if a client is started while already running."""
+    """Raised if a client is started while already running.
+
+    Args:
+        msg: The exception message.
+    """
 
     def __init__(self, msg: Optional[str] = None):
         if msg is None:
@@ -43,7 +53,11 @@ class ClientRestartError(ClientError):
 
 
 class ClientStoppedError(ClientError):
-    """Raised if the client is consumed when not running."""
+    """Raised if the client is consumed when not running.
+
+    Args:
+        msg: The exception message.
+    """
 
     def __init__(self, msg: Optional[str] = None):
         if msg is None:
@@ -52,7 +66,11 @@ class ClientStoppedError(ClientError):
 
 
 class ClientRuntimeError(ClientError):
-    """Raised if client behavior fails for any other reason after initialization."""
+    """Raised if client behavior fails for any other reason after initialization.
+
+    Args:
+        msg: The exception message.
+    """
 
     def __init__(self, msg: Optional[str] = None):
         if msg is None:
