@@ -209,7 +209,9 @@ export default function NetworkTest(props: Props) {
                 </div>
               ),
             });
-          } else if (newRow.status === 'RUNNING') {
+          } else if (
+            EXECUTION_STATUS[newRow.status] === EXECUTION_STATUS.RUNNING
+          ) {
             tempRows.running.push({
               id: newRow.id,
               type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
@@ -253,7 +255,8 @@ export default function NetworkTest(props: Props) {
               ),
               protocol,
               actions:
-                newRow.status === 'FINISHED' ? (
+                newRow.status &&
+                EXECUTION_STATUS[newRow.status] !== EXECUTION_STATUS.FAILED ? (
                   <div className={classes.executionActionButtonContainer}>
                     {<ResultExport id={String(newRow.id)} />}
                   </div>
