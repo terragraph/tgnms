@@ -8,7 +8,7 @@ import time
 from typing import Dict, Optional
 
 from aiokafka import AIOKafkaProducer
-from kafka.errors import KafkaError
+from aiokafka.errors import KafkaError
 from terragraph_thrift.Event.ttypes import Event, EventCategory, EventId, EventLevel
 
 from ..exceptions import (

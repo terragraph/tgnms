@@ -5,7 +5,7 @@ import asyncio
 from typing import Dict, Optional
 
 from aiokafka import AIOKafkaConsumer
-from kafka.errors import KafkaError
+from aiokafka.errors import KafkaError
 
 from ..exceptions import (
     ClientRestartError,

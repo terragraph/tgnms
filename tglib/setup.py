@@ -93,8 +93,6 @@ setup(
         "aiohttp>=3.5.4,<4.0",
         "aiokafka>=0.5.2,<1.0",
         "aiomysql>=0.0.20,<1.0",
-        "kafka-python==1.4.6",
-        "pymysql==0.9.2",
         "sqlalchemy>=1.3.5,<2.0",
         "uvloop>=0.14.0,<1.0",
     ],

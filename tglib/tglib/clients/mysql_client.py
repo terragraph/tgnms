@@ -4,7 +4,7 @@
 import os
 from typing import Dict, Optional
 
-import pymysql
+import aiomysql
 from aiomysql.sa import Engine, create_engine
 
 from ..exceptions import (
@@ -44,7 +44,7 @@ class MySQLClient(BaseClient):
 
         try:
             cls._engine = await create_engine(**mysql_params)
-        except pymysql.OperationalError as e:
+        except aiomysql.OperationalError as e:
             raise ClientRuntimeError() from e
 
     @classmethod
