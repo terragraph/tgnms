@@ -12,6 +12,11 @@
     - "{{ nms_path }}/docker_volumes"
     - "{{ nms_path }}/docker_volumes/settings"
     - "{{ nms_path }}/env"
+    - "{{ nms_path }}/grafana"
+    - "{{ nms_path }}/grafana/dashboards"
+    - "{{ nms_path }}/grafana/provisioning"
+    - "{{ nms_path }}/grafana/provisioning/dashboards"
+    - "{{ nms_path }}/grafana/provisioning/datasources"
 
 - name: copy nms configs
   template:
@@ -49,6 +54,33 @@
   loop:
     - "nms_custom.env"
     - "nms_auth.env"
+
+- name: template grafana provisioning files
+  template:
+    src: "grafana/{{ item.src }}"
+    dest: "{{ nms_path }}/grafana/{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "provisioning/dashboards/config.yml", dest: "provisioning/dashboards" }
+    - { src: "provisioning/datasources/mysql.yml", dest: "provisioning/datasources" }
+    - { src: "provisioning/datasources/prometheus.yml", dest: "provisioning/datasources" }
+
+- name: copy grafana dashboard files
+  copy:
+    src: "grafana/dashboards"
+    dest: "{{ nms_path }}/grafana"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "dashboards/docker_monitoring.json", dest: "dashboards" }
+    - { src: "dashboards/link_dashboard_prometheus.json", dest: "dashboards" }
+    - { src: "dashboards/network_health.json", dest: "dashboards" }
+    - { src: "dashboards/udp_pinger_dashboard.json", dest: "dashboards" }
 
 - name: run compose
   shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth nms"
