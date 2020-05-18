@@ -94,6 +94,7 @@ setup(
         "aiokafka>=0.5.2,<1.0",
         "aiomysql>=0.0.20,<1.0",
         "sqlalchemy>=1.3.5,<2.0",
+        "typing-extensions>=3.7.4,<4.0",
         "uvloop>=0.14.0,<1.0",
     ],
     extras_require={
