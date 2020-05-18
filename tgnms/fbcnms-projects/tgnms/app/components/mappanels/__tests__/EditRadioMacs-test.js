@@ -15,7 +15,7 @@ import {
   render,
   waitForElement,
 } from '@testing-library/react';
-import {mockNetworkConfig} from '../../../tests/testHelpers';
+import {coerceClass, mockNetworkConfig} from '../../../tests/testHelpers';
 
 afterEach(cleanup);
 
@@ -67,14 +67,15 @@ test('change node', async () => {
       radioMacs="38:3a:21:b0:00:01,38:3a:21:b0:00:01"
     />,
   );
-  const input = nullthrows(document.getElementById('38:3a:21:b0:00:01'));
+  const input = coerceClass(
+    nullthrows(document.getElementById('38:3a:21:b0:00:01')),
+    HTMLInputElement,
+  );
   expect(queryByTestId('38:3a:21:b0:00:01')).toBeInTheDocument();
-  // $FlowFixMe - flow can't detect input value
   expect(input.value).toBe('38:3a:21:b0:00:01');
   fireEvent.change(input, {
     target: {value: '38:3a:21:b0:00:02'},
   });
-  // $FlowFixMe - flow can't detect input value
   expect(input.value).toBe('38:3a:21:b0:00:02');
 });
 

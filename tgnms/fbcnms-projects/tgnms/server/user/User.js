@@ -35,8 +35,7 @@ export default class User implements UserDto {
       tokenSet = new TokenSet(tokenSet);
     }
 
-    // $FlowFixMe - TokenSet needs to be generic to fix this
-    const claims: ApplicationUserClaims = tokenSet.claims;
+    const claims: $Shape<ApplicationUserClaims> = tokenSet.claims;
     const user = new User({
       id: claims.sub,
       name: claims.name,

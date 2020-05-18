@@ -1,0 +1,10 @@
+import type {Topology} from './topology';
+import type {Controller} from './controller';
+import type {LinkMetric} from './linkMetric';
+declare module "index"{
+    declare  module.exports: {
+        topology: Topology,
+        controller:Controller,
+        link_metric: LinkMetric
+    }
+}

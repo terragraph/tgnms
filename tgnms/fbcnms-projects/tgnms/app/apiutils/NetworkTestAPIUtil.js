@@ -342,7 +342,6 @@ function deserializeTestResult(serialized: any): TestResultDto {
      * Modification happens at this layer so that all the callsites which
      * depend on health won't have to change.
      */
-    // $FlowFixMe - getter makes it more apparent that health is overridden
     get health() {
       if (serialized.status !== TEST_STATUS.FINISHED) {
         return HEALTH_CODES.UNKNOWN;

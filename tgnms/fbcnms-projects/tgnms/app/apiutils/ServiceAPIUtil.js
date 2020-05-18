@@ -127,6 +127,15 @@ export function apiServiceRequestWithConfirmation(
   requestWithConfirmation(makeRequest, options, data);
 }
 
+type SwalInputProps = {|
+  input: 'checkbox' | 'radio',
+  inputValue: number,
+  inputPlaceholder: React.Node,
+  inputOptions: React.Node,
+  inputValidator: (
+    val: string | boolean | number | Object,
+  ) => void | string | boolean,
+|};
 /**
  * Make a request with confirmation and response alerts (via swal).
  */
@@ -160,14 +169,14 @@ export function requestWithConfirmation(
     onSuccess, // function() => void
   } = options;
 
-  const checkboxProps = checkbox
+  const checkboxProps: $Shape<SwalInputProps> = checkbox
     ? {
         input: 'checkbox',
         inputValue: 0,
         inputPlaceholder: checkbox,
       }
     : {};
-  const choiceProps = choices
+  const choiceProps: $Shape<SwalInputProps> = choices
     ? {
         input: 'radio',
         inputOptions: choices,
@@ -186,7 +195,6 @@ export function requestWithConfirmation(
     confirmButtonText: 'Confirm',
     showLoaderOnConfirm: true,
     inputClass: 'swal-input',
-    // $FlowFixMe: Multiple spread can lead to performance issues
     ...checkboxProps,
     ...choiceProps,
     preConfirm: value => {

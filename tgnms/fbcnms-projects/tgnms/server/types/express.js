@@ -8,14 +8,16 @@
  * @format
  */
 
+import User from '../user/User';
 import type {ExpressRequest} from 'express';
+import type {User as SharedUser} from '../../shared/auth/User';
 import type {TokenSet} from 'openid-client';
-import type {User} from '../../shared/auth/User';
 
 export type PassportMiddleware = {|
   isAuthenticated: () => boolean,
   user?: ?User,
-  logIn: (user: User, (err: ?Error) => void) => void,
+  logIn: (user: User | SharedUser, (err: ?Error) => mixed) => void,
+  logout: () => void,
 |};
 
 export type SessionMiddleware = {|
@@ -23,6 +25,7 @@ export type SessionMiddleware = {|
     passport?: {
       user?: TokenSet,
     },
+    save: (onSave: () => {}) => mixed,
   },
 |};
 

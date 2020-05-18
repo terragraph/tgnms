@@ -48,7 +48,6 @@ afterEach(() => {
 function Wrapper({children}) {
   return (
     <TestApp>
-      {/* $FlowFixMe: MemoryHistory and react-router are incompatible */}
       <Router history={createMemoryHistory()}>{children}</Router>
     </TestApp>
   );

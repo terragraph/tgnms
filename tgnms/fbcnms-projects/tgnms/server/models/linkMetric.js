@@ -43,7 +43,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   return LinkMetric;
 }
 
-type LinkMetricAttributes = {|
+export type LinkMetricAttributes = {|
   id: number,
   key_name: string,
   key_prefix: string,

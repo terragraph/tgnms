@@ -5,7 +5,8 @@
  * @flow strict-local
  */
 
-import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
+import {Model as _Model} from 'sequelize';
+import type Sequelize, {DataTypes as DataTypesType} from 'sequelize';
 
 export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   const Topology = sequelize.define(
@@ -80,5 +81,3 @@ export type TopologyAttributes = {|
     nodes: {[string]: boolean},
   },
 |};
-
-export type Topology = TopologyAttributes & Model<TopologyAttributes>;

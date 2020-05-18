@@ -6,22 +6,17 @@
  */
 
 import Sequelize from 'sequelize';
+const {link_metric} = require('../models');
 
-import {link_metric} from '../models';
-import type {LinkMetric} from '../models/linkMetric';
-
-export function getLinkMetrics(): Promise<Array<LinkMetric>> {
+export function getLinkMetrics() {
   return link_metric.findAll();
 }
 
-export function getLinkMetricsByName(
-  searchTerm: string,
-): Promise<Array<LinkMetric>> {
+export function getLinkMetricsByName(searchTerm: string) {
   return link_metric.findAll({
     where: {
       name: {
-        // $FlowFixMe flow doesn't like sequelize
-        [Sequelize.Op.like]: `%${searchTerm}%`,
+        [(Sequelize.Op.like: any)]: `%${searchTerm}%`,
       },
     },
   });

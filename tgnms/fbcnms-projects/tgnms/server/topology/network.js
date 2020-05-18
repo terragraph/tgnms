@@ -16,60 +16,23 @@ const {
   topology,
   wireless_controller,
 } = require('../models');
-import type {Controller} from '../models/controller';
-import type {LinkEvent} from '../models/linkEvents';
+import type {ControllerAttributes} from '../models/controller';
 import type {LinkType, NodeType} from '../../shared/types/Topology';
-import type {Topology} from '../models/topology';
+import type {TopologyAttributes} from '../models/topology';
 import type {
-  WirelessController,
+  WirelessControllerAttributes,
   WirelessControllerType,
 } from '../models/wirelessController';
-
-export async function testNetworkDb() {
-  try {
-    console.log('Fetching all controllers');
-    await getNetworkList();
-    console.log('Creating primary controller');
-    const primaryController = await createController(
-      'api-ip-addr',
-      'e2e-ip-addr',
-      8080,
-      17077,
-    );
-    console.log('Creating network');
-    const network = await createNetwork('test network', primaryController);
-    network.primary_controller = primaryController.id;
-    console.log('Assigning primary controller to network');
-    network.save();
-    console.log('Creating backup controller');
-    const backupController: Controller = await createController(
-      'api-ip-addr-backup',
-      'e2e-ip-addr-backup',
-      8080,
-      17077,
-    );
-    console.log('Fetching network by name');
-    const testNetwork = await getNetworkByName('test network');
-    testNetwork.backup_controller = backupController.id;
-    console.log('Assigning backup controller to network');
-    await testNetwork.save();
-  } catch (err) {
-    console.log('error', err);
-  }
-}
 
 export function createController(
   api_ip: string,
   e2e_ip: string,
   api_port: number,
   e2e_port: number,
-): Promise<Controller> {
-  // create controller and return its id
-  return new Promise<Controller>((resolve, _reject) => {
-    return controller
-      .create({api_ip, e2e_ip, api_port, e2e_port})
-      .then(resp => resolve(resp));
-  });
+) {
+  return controller.create(
+    ({api_ip, e2e_ip, api_port, e2e_port}: $Shape<ControllerAttributes>),
+  );
 }
 
 export function createWirelessController(
@@ -78,12 +41,9 @@ export function createWirelessController(
   username: string,
   password: string,
 ) {
-  // create wireless controller and return its id
-  return new Promise<WirelessController>((resolve, _reject) => {
-    return wireless_controller
-      .create({type, url, username, password})
-      .then(resp => resolve(resp));
-  });
+  return wireless_controller.create(
+    ({type, url, username, password}: $Shape<WirelessControllerAttributes>),
+  );
 }
 
 export function getNetworkById(networkId: number) {
@@ -94,64 +54,56 @@ export function getNetworkByName(networkName: string) {
   return getNetworkByClause({name: networkName});
 }
 
-export function getNetworkByClause(clause: {}): Promise<Topology> {
-  return new Promise<Topology>((resolve, _reject) => {
-    return topology
-      .findOne({
-        include: [
-          {
-            model: controller,
-            as: 'primary',
-          },
-          {
-            model: controller,
-            as: 'backup',
-          },
-          {
-            model: wireless_controller,
-            as: 'wac',
-          },
-        ],
-        where: clause,
-      })
-      .then(network => resolve(network));
+export function getNetworkByClause(clause: {}) {
+  return topology.findOne({
+    include: [
+      {
+        model: controller,
+        as: 'primary',
+      },
+      {
+        model: controller,
+        as: 'backup',
+      },
+      {
+        model: wireless_controller,
+        as: 'wac',
+      },
+    ],
+    where: clause,
   });
 }
 
-export function getNetworkList(): Promise<Array<Topology>> {
-  return new Promise<Array<Topology>>((resolve, _reject) => {
-    return topology
-      .findAll({
-        include: [
-          {
-            model: controller,
-            as: 'primary',
-          },
-          {
-            model: controller,
-            as: 'backup',
-          },
-          {
-            model: wireless_controller,
-            as: 'wac',
-          },
-        ],
-      })
-      .then(networks => resolve(networks));
+export function getNetworkList() {
+  return topology.findAll({
+    include: [
+      {
+        model: controller,
+        as: 'primary',
+      },
+      {
+        model: controller,
+        as: 'backup',
+      },
+      {
+        model: wireless_controller,
+        as: 'wac',
+      },
+    ],
   });
 }
 
 export function createNetwork(
   networkName: string,
-  primaryController: Controller,
-): Promise<Topology> {
+  primaryController: ControllerAttributes,
+) {
   // create new network with just the name set
-  return new Promise<Topology>((resolve, reject) => {
-    return topology
-      .create({name: networkName, primary_controller: primaryController.id})
-      .then(network => resolve(network))
-      .catch(_err => reject());
-  });
+  return topology.create(
+    ({
+      name: networkName,
+      primary_controller: primaryController.id,
+    }: $Shape<TopologyAttributes>),
+  );
 }
 
 /**
@@ -167,10 +119,10 @@ export function updateOnlineWhitelist(
     nodes: Array<NodeType>,
     links: Array<LinkType>,
   },
-): {
+): Promise<{
   nodes: {[string]: boolean},
   links: {[string]: boolean},
-} {
+}> {
   const onlineNodes: {[string]: boolean} = nodes.reduce((map, node) => {
     if (
       typeof node.status !== 'undefined' &&
@@ -194,8 +146,8 @@ export function updateOnlineWhitelist(
         name: networkName,
       },
     })
-    .then((network: Topology) => {
-      let offline_whitelist = network.offline_whitelist;
+    .then(network => {
+      let offline_whitelist = network?.offline_whitelist;
 
       // no whitelist is present
       if (!offline_whitelist) {
@@ -203,6 +155,10 @@ export function updateOnlineWhitelist(
           links: {},
           nodes: {},
         };
+      }
+
+      if (!network) {
+        return Promise.resolve(offline_whitelist);
       }
 
       // whitelists are corrupted
@@ -220,7 +176,7 @@ export function updateOnlineWhitelist(
 
       // if there is a change in either list, persist it
       if (
-        !network.offline_whitelist ||
+        !network?.offline_whitelist ||
         difference(
           Object.keys(newWhitelist.nodes),
           Object.keys(offline_whitelist.nodes),
@@ -231,9 +187,11 @@ export function updateOnlineWhitelist(
         ).length > 0
       ) {
         network.offline_whitelist = newWhitelist;
-        // $FlowFixMe flow
         return network.save().then(saved => {
-          return saved.offline_whitelist;
+          if (saved && saved.offline_whitelist) {
+            return saved.offline_whitelist;
+          }
+          throw new Error('Failed saving offline whitelist');
         });
       }
 
@@ -241,43 +199,15 @@ export function updateOnlineWhitelist(
     });
 }
 
-export function getLinkEvents(
-  topologyName: string,
-  intervalHours: number,
-): Promise<Array<LinkEvent>> {
-  return new Promise<Array<LinkEvent>>((resolve, _reject) => {
-    return link_event
-      .findAll({
-        // attributes: [
-        //   'linkName',
-        //   'linkDirection',
-        //   'eventType',
-        //   [
-        //     Sequelize.fn('UNIX_TIMESTAMP', Sequelize.col('startTs')),
-        //     'startTime',
-        //   ],
-        //   [Sequelize.fn(
-        //     'UNIX_TIMESTAMP',
-        //     Sequelize.col('endTs')),
-        //     'endTime'
-        //   ],
-        // ],
-        where: {
-          topologyName,
-          // endTs: {
-          //   // $FlowFixMe flow doesn't like sequelize
-          //   [Sequelize.Op.gte]: Sequelize.literal(
-          //     `DATE_SUB(NOW(), INTERVAL ${intervalHours} HOUR)`,
-          //   ),
-          // },
-          endTs: {
-            // $FlowFixMe flow doesn't like sequelize
-            [Sequelize.Op.gte]: moment()
-              .subtract(intervalHours, 'hours')
-              .toDate(),
-          },
-        },
-      })
-      .then(events => resolve(events));
+export function getLinkEvents(topologyName: string, intervalHours: number) {
+  return link_event.findAll({
+    where: {
+      topologyName,
+      endTs: {
+        [(Sequelize.Op.gte: any)]: moment()
+          .subtract(intervalHours, 'hours')
+          .toDate(),
+      },
+    },
   });
 }

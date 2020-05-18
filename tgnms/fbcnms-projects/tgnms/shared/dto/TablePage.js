@@ -11,11 +11,11 @@ export type TablePage<T> = {
   rows: Array<T>,
 
   // 0-indexed page number
-  offset: number,
+  offset?: number,
 
   // size of each page
-  limit: number,
+  limit?: number,
 
   // total number of rows matching specified query
-  totalCount: number,
+  totalCount?: number,
 };

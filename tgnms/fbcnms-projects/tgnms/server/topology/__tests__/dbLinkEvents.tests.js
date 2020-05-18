@@ -7,7 +7,7 @@
  */
 import moment from 'moment';
 const {fetchNetworkHealthFromDb} = require('../model');
-import {link_event} from '../../models';
+const {link_event} = require('../../models');
 
 jest.mock('request');
 jest.mock('../../models');

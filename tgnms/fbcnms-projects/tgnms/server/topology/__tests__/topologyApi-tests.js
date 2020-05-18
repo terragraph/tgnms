@@ -7,8 +7,9 @@
 import express from 'express';
 import moment from 'moment';
 import request from 'supertest';
-import {link_event} from '../../models';
+const {link_event} = require('../../models');
 const {refreshNetworkHealth} = require('../model');
+import type {LinkEventAttributes} from '../../models/linkEvents';
 
 jest.mock('request');
 jest.mock('../../models');
@@ -70,25 +71,27 @@ async function seedLinkHealth({
   const startTs = moment().subtract(10, 'hours');
   const endTs = moment().subtract(4, 'hours');
   // create link up interval, ensure % availability
-  await link_event.bulkCreate([
-    {
-      id: 1,
-      topologyName: networkName,
-      linkName: linkName,
-      linkDirection: 'A',
-      eventType: 'LINK_UP',
-      startTs: startTs,
-      endTs: endTs,
-    },
-    {
-      id: 2,
-      topologyName: networkName,
-      linkName: linkName,
-      linkDirection: 'Z',
-      eventType: 'LINK_UP',
-      startTs: startTs,
-      endTs: endTs,
-    },
-  ]);
+  await link_event.bulkCreate(
+    ([
+      {
+        id: 1,
+        topologyName: networkName,
+        linkName: linkName,
+        linkDirection: 'A',
+        eventType: 'LINK_UP',
+        startTs: startTs,
+        endTs: endTs,
+      },
+      {
+        id: 2,
+        topologyName: networkName,
+        linkName: linkName,
+        linkDirection: 'Z',
+        eventType: 'LINK_UP',
+        startTs: startTs,
+        endTs: endTs,
+      },
+    ]: Array<$Shape<LinkEventAttributes>>),
+  );
   await refreshNetworkHealth(networkName);
 }

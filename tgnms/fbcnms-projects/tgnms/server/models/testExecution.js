@@ -7,7 +7,7 @@
  * @format
  * @flow
  */
-import type {TestResult} from './testResult';
+import type {TestResultAttributes} from './testResult';
 
 export type TestExecution = {|
   id: number,
@@ -28,7 +28,7 @@ export type TestExecution = {|
   test_push_rate: number,
   traffic_direction: number,
   // associations
-  test_results: ?Array<TestResult>,
+  test_results: ?Array<TestResultAttributes>,
 |};
 
 export default function(sequelize: any, DataTypes: any) {

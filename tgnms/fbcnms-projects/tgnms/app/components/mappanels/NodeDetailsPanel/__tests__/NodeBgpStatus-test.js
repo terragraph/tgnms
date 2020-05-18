@@ -39,10 +39,7 @@ test('renders empty without crashing', () => {
 test('renders with bgpStatus', () => {
   const {getByText} = renderWithRouter(
     <TestApp>
-      {
-        // $FlowFixMe: flow doesnt like mock object, but it is created properly
-        <NodeBgpStatus {...defaultProps} />
-      }
+      <NodeBgpStatus {...defaultProps} />
     </TestApp>,
   );
   expect(getByText(ipAddress)).toBeInTheDocument();

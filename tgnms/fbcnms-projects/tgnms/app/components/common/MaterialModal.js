@@ -11,6 +11,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Paper from '@material-ui/core/Paper';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -66,8 +67,7 @@ class MaterialModal extends React.Component<Props> {
         onEnter={onEnter}
         PaperProps={{
           classes: {root: classNames(classes.paper, className)},
-          // $FlowFixMe: paperProps is inexact
-          ...(paperProps || {}),
+          ...(paperProps || {}: React.ElementConfig<typeof Paper>),
         }}>
         <DialogTitle classes={{root: classes.dialogTitle}}>
           {modalTitle}

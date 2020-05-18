@@ -201,7 +201,7 @@ class NetworkDrawer extends React.Component<
     window.dispatchEvent(new Event('resize'));
   };
 
-  onClosePanel(name, type, stateKey) {
+  onClosePanel(name, type, stateKey: string) {
     // Close a topology element panel
     const {context, searchNearbyProps, routesProps, theme} = this.props;
     const closingMap = this.state[stateKey];
@@ -213,7 +213,6 @@ class NetworkDrawer extends React.Component<
     closingMap[name] = setTimeout(() => {
       const closingMap = this.state[stateKey];
       delete closingMap[name];
-      // $FlowFixMe Set state for each field
       this.setState({[stateKey]: closingMap});
 
       // Perform the real action
@@ -235,7 +234,6 @@ class NetworkDrawer extends React.Component<
         context.removeElement(type, name);
       }
     }, theme.transitions.duration.leavingScreen + 100 /* to be safe */);
-    // $FlowFixMe Set state for each field
     this.setState({[stateKey]: closingMap});
   }
 

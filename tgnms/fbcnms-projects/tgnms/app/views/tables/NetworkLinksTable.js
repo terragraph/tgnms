@@ -400,16 +400,14 @@ class NetworkLinksTable extends React.Component<Props, State> {
     return order === 'ASC' ? sortVal : -sortVal;
   }
 
-  formatAnalyzerValue(obj, propertyName) {
+  formatAnalyzerValue(obj: {[string]: string | number}, propertyName: string) {
     if (
       obj.hasOwnProperty(propertyName) &&
-      // $FlowFixMe Found by upgrading to 0.120.0
       obj[propertyName] !== INVALID_VALUE
     ) {
-      return typeof obj !== 'number'
+      return typeof obj === 'string'
         ? Number.parseFloat(obj[propertyName])
-        : // $FlowFixMe Found by upgrading to 0.120.0
-          obj[propertyName];
+        : obj[propertyName];
     }
     return '-';
   }

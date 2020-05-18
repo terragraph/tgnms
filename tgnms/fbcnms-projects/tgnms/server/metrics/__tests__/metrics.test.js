@@ -8,7 +8,7 @@
 
 jest.mock('../../models');
 import {getLinkMetrics, getLinkMetricsByName} from '../metrics';
-import {link_metric} from '../../models';
+const {link_metric} = require('../../models');
 
 test('getLinkMetricsTest', async () => {
   await link_metric.create({

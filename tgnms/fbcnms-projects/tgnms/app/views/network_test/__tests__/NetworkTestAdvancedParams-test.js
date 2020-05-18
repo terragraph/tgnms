@@ -10,6 +10,7 @@ import * as React from 'react';
 import NetworkTestAdvancedParams from '../NetworkTestAdvancedParams';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {cleanup, fireEvent, render} from '@testing-library/react';
+import {coerceClass} from '../../../tests/testHelpers';
 
 afterEach(cleanup);
 
@@ -40,7 +41,9 @@ test('renders with initial options', () => {
     />,
   );
   expect(getByText('Single iPerf Session Duration')).toBeInTheDocument();
-  const duration = nullthrows(document.getElementById('iperfDuration'));
-  // $FlowFixMe: duration contains value, but test cant see it
+  const duration = coerceClass(
+    document?.getElementById('iperfDuration'),
+    HTMLInputElement,
+  );
   expect(duration.value === 20);
 });

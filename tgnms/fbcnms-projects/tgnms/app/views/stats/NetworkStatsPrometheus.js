@@ -178,9 +178,8 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
     });
   }
 
-  dataValidator(response: string): boolean {
+  dataValidator(response): boolean {
     if (
-      // $FlowFixMe: response is not a string
       !response.data ||
       !response.data.result ||
       response.data.result.length === 0
@@ -222,8 +221,7 @@ class NetworkStatsPrometheus extends React.Component<Props, State> {
                 value={this.state[key]}
                 onChange={evt =>
                   this.setState({
-                    // $FlowFixMe: type me
-                    [key]: evt.target.value,
+                    [key]: (evt.target.value: any),
                   })
                 }
                 input={<Input name={inputLabel} id={'input-' + inputLabel} />}>

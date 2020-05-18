@@ -387,13 +387,12 @@ class AddLinkPanel extends React.Component<Props, State> {
     return null;
   };
 
-  setDefaultWlanMacAddr = (nodeStateKey, macStateKey) => {
+  setDefaultWlanMacAddr = (nodeStateKey, macStateKey: string) => {
     const macAddrs = this.getWlanMacAddrs(nodeStateKey);
     const defaultMacAddr = macAddrs && macAddrs.length > 0 ? macAddrs[0] : '';
     this.setState({
       ...this.state,
       ...{
-        // $FlowFixMe Set state for each field
         [macStateKey]: defaultMacAddr,
       },
     });

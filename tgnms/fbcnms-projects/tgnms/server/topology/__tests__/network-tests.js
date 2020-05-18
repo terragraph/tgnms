@@ -11,7 +11,8 @@ import {
   NodeStatusTypeValueMap,
   NodeTypeValueMap,
 } from '../../../shared/types/Topology';
-import {controller, topology} from '../../models';
+const {controller, topology} = require('../../models');
+import type {ControllerAttributes} from '../../models/controller';
 import type {LinkType, NodeType} from '../../../shared/types/Topology';
 import type {TopologyAttributes} from '../../models/topology';
 
@@ -100,8 +101,8 @@ test('if nodes/links contained in whitelist are down, whitelist should stay the 
 
   // ensure that whitelist is persisted to the DB too
   const dbTopology = await topology.findOne({where: {name: 'test-network'}});
-  expect(dbTopology.offline_whitelist.nodes['node-1']).toBe(true);
-  expect(dbTopology.offline_whitelist.links['link-1']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.nodes['node-1']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.links['link-1']).toBe(true);
 });
 
 test('if whitelist exists, newly online nodes/links should be added', async () => {
@@ -133,11 +134,11 @@ test('if whitelist exists, newly online nodes/links should be added', async () =
   });
 
   const dbTopology = await topology.findOne({where: {name: 'test-network'}});
-  expect(dbTopology.offline_whitelist.nodes['node-a']).toBe(true);
-  expect(dbTopology.offline_whitelist.nodes['node-b']).toBe(true);
-  expect(dbTopology.offline_whitelist.links['link-a']).toBe(true);
-  expect(dbTopology.offline_whitelist.links['link-b']).toBe(true);
-  expect(dbTopology.offline_whitelist.links['link-c']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.nodes['node-a']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.nodes['node-b']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.links['link-a']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.links['link-b']).toBe(true);
+  expect(dbTopology?.offline_whitelist?.links['link-c']).toBe(true);
 });
 
 /*
@@ -158,17 +159,21 @@ function mockFindTopology() {
 }
 
 async function seedTopology(overrides?: $Shape<TopologyAttributes>) {
-  const ctrl = await controller.create({
-    api_ip: '127.0.0.1',
-    e2e_port: 17077,
-    api_port: 8080,
-  });
-  return await topology.create({
-    id: 1,
-    name: 'test-network',
-    primary_controller: ctrl.id,
-    ...(overrides || {}),
-  });
+  const ctrl = await controller.create(
+    ({
+      api_ip: '127.0.0.1',
+      e2e_port: 17077,
+      api_port: 8080,
+    }: $Shape<ControllerAttributes>),
+  );
+  return await topology.create(
+    ({
+      id: 1,
+      name: 'test-network',
+      primary_controller: ctrl.id,
+      ...(overrides || {}),
+    }: $Shape<TopologyAttributes>),
+  );
 }
 
 function mockNode(overrides?: $Shape<NodeType>): NodeType {

@@ -8,6 +8,7 @@
  * @flow
  */
 
+import ApplicationUser from '../user/User';
 import type {ExpressResponse} from 'express';
 import type {OpenidUserInfoClaims, TokenSet} from 'openid-client';
 import type {Request} from '../types/express';
@@ -78,14 +79,13 @@ export function mockResponseFn(fn?: any => void): () => ExpressResponse {
     if (fn) {
       fn(...args);
     }
-    // eslint-disable-next-line
     return (({}: any): ExpressResponse);
   });
 }
 
-export function mockLogin(): (user: User, (err: ?Error) => void) => void {
-  return jest.fn<[User, (e: ?Error) => void], void>(
-    (user: User, callback: (e: ?Error) => void) => {
+export function mockLogin(): (user: User, (err: ?Error) => mixed) => void {
+  return jest.fn<[User | ApplicationUser, (e: ?Error) => mixed], void>(
+    (user: User | ApplicationUser, callback: (e: ?Error) => mixed) => {
       callback();
     },
   );

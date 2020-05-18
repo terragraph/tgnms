@@ -7,9 +7,9 @@
 
 import type {TestExecution} from './testExecution';
 
-import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
+import type Sequelize, {DataTypes as DataTypesType} from 'sequelize';
 
-type TestResultAttributes = {|
+export type TestResultAttributes = {|
   id: number,
   status: number,
   origin_node: string,
@@ -86,8 +86,6 @@ type TestResultAttributes = {|
   route_changed_count: number,
   test_execution: ?TestExecution,
 |};
-
-export type TestResult = TestResultAttributes & Model<TestResultAttributes>;
 
 export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   const TestResult = sequelize.define(

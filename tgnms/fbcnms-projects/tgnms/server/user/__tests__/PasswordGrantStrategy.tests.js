@@ -38,14 +38,16 @@ beforeEach(() => {
 });
 
 test('throws an error if missing params', () => {
-  // $FlowFixMe - breaking flow on purpose here
-  expect(() => new PasswordGrantStrategy()).toThrow();
-  // $FlowFixMe
-  expect(() => new PasswordGrantStrategy({})).toThrow();
-  // $FlowFixMe
-  expect(() => new PasswordGrantStrategy({client: client})).toThrow();
-  // $FlowFixMe
-  expect(() => new PasswordGrantStrategy({}, () => {})).toThrow();
+  expect(
+    () => new PasswordGrantStrategy((undefined: any), (undefined: any)),
+  ).toThrow();
+  expect(
+    () => new PasswordGrantStrategy(({}: any), (undefined: any)),
+  ).toThrow();
+  expect(
+    () => new PasswordGrantStrategy(({client: client}: any), (undefined: any)),
+  ).toThrow();
+  expect(() => new PasswordGrantStrategy(({}: any), () => {})).toThrow();
   expect(
     () => new PasswordGrantStrategy({client: client}, () => {}),
   ).not.toThrow();
@@ -114,8 +116,7 @@ test('fails with an error message if token validation fails', () => {
   client.decryptIdToken.mockReturnValueOnce(Promise.resolve(tokenSet));
   client.validateIdToken.mockReturnValueOnce(
     Promise.reject(
-      // $FlowFixMe breaking flow on purpose
-      Object.assign(new Error(), {
+      Object.assign((new Error(): any), {
         name: 'OpenIdConnectError',
         error: 'invalid_grant',
       }),

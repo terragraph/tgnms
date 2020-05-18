@@ -2,26 +2,23 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import * as ssr from '../ssr';
 import ReactLoginForm from '../../app/views/login/LoginForm';
 import _ from 'lodash';
-import access from '../middleware/access';
-import bcrypt from 'bcryptjs';
 import express from 'express';
 import passport from 'passport';
-import {SALT_GEN_ROUNDS} from '../config';
-import {SUPERUSER, USER} from './accessRoles';
 import {URL} from 'url';
-import {User} from '../models';
 import {awaitClient} from './oidc';
 const logger = require('../log')(module);
 import staticDist from 'fbcnms-webpack-config/staticDist';
+import type {Request} from '../types/express';
 
 const router = express.Router();
 
-router.get('/login', (req, res) => {
+router.get('/login', (req: Request, res) => {
   const errorMessage = req.query.errorMessage;
   const {app, styleSheets} = ssr.render(ReactLoginForm, {
     errorMessage: errorMessage,
@@ -34,7 +31,7 @@ router.get('/login', (req, res) => {
 });
 
 // oauth2 password flow
-router.post('/login', (req, res, next) => {
+router.post('/login', (req: Request, res, next) => {
   passport.authenticate('openid_passwordflow', (err, user, info) => {
     //server error
     if (err) {
@@ -56,14 +53,18 @@ router.post('/login', (req, res, next) => {
        * force session save - express-session's change detection
        * is prone to race conditions
        */
-      req.session.save(() => {
-        if (req.body.returnUrl) {
+      req.session?.save(() => {
+        if (
+          req.body &&
+          req.body.returnUrl &&
+          typeof req.body.returnUrl === 'string'
+        ) {
           try {
             const returnUrl = new URL(
               req.body.returnUrl,
               process.env.CLIENT_ROOT_URL,
             );
-            return res.redirect(returnUrl);
+            return res.redirect(returnUrl.toString());
           } catch (err) {
             logger.error(err);
           }
@@ -84,18 +85,20 @@ router.get(
   }),
 );
 
-router.get('/userinfo', (req, res) => {
+router.get('/userinfo', (req: Request, res) => {
   return awaitClient()
     .then(client => {
       if (!client) {
         return res.status(500).send({message: 'OIDC Client not initialized'});
       }
-      // If login is disabled, there will be no user
-      const accessToken =
-        req.user &&
-        typeof req.user.getAccessToken === 'function' &&
-        req.user.getAccessToken();
-      return client.userinfo(accessToken);
+      if (req.user && typeof req.user.getAccessToken === 'function') {
+        // If login is disabled, there will be no user
+        const accessToken = req.user.getAccessToken();
+        if (!accessToken) {
+          return res.status(400);
+        }
+        return client.userinfo(accessToken);
+      }
     })
     .then(userInfo => {
       res.send(userInfo);
@@ -105,109 +108,11 @@ router.get('/userinfo', (req, res) => {
     });
 });
 
-router.post('/logout', (req, res) => {
+router.post('/logout', (req: Request, res) => {
   if (req.isAuthenticated()) {
     req.logout();
   }
   res.redirect('/user/login');
-});
-
-// User Routes
-router.get('/', access(SUPERUSER), async (req, res) => {
-  try {
-    const users = await User.findAll();
-    res.status(200).send({users});
-  } catch (error) {
-    res.status(400).send({error: error.toString()});
-  }
-});
-
-// TODO: Determine what access level this should have
-router.post('/', async (req, res) => {
-  try {
-    const {email, password, superUser} = req.body;
-    if (!email) {
-      throw new Error('Email not included!');
-    }
-
-    // Check if user exists
-    if (await User.findOne({where: {email}})) {
-      throw new Error(`${email} already exists`);
-    }
-
-    // Create new user
-    const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
-    const passwordHash = await bcrypt.hash(password, salt);
-
-    const user = await User.create({
-      email,
-      password: passwordHash,
-      role: superUser ? SUPERUSER : USER,
-    });
-
-    res.status(201).send({user});
-  } catch (error) {
-    res.status(400).send({error: error.toString()});
-  }
-});
-
-router.put('/:id', access(SUPERUSER), async (req, res) => {
-  try {
-    const {id} = req.params;
-    const {body} = req;
-
-    const user = await User.findByPk(id);
-    // Check if user exists
-    if (!user) {
-      throw new Error('User does not exist!');
-    }
-
-    // Create object to pass into update()
-    const allowedProps = ['password', 'superUser'];
-    const userPropsToUpdate = {};
-
-    for (const prop of allowedProps) {
-      if (body.hasOwnProperty(prop)) {
-        switch (prop) {
-          case 'password':
-            // Hash the password if we are changing the password
-            const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
-            const passwordHash = await bcrypt.hash(body[prop], salt);
-            userPropsToUpdate[prop] = passwordHash;
-            break;
-
-          case 'superUser':
-            userPropsToUpdate.role = body.superUser ? SUPERUSER : USER;
-            break;
-
-          default:
-            userPropsToUpdate[prop] = body[prop];
-            break;
-        }
-      }
-    }
-
-    if (_.isEmpty(userPropsToUpdate)) {
-      throw new Error('No valid properties to edit!');
-    }
-
-    // Update user's password
-    await user.update(userPropsToUpdate);
-    res.status(200).send({user});
-  } catch (error) {
-    res.status(400).send({error: error.toString()});
-  }
-});
-
-router.delete('/:id', access(SUPERUSER), async (req, res) => {
-  const {id} = req.params;
-
-  try {
-    await User.destroy({where: {id}});
-    res.status(200).send();
-  } catch (error) {
-    res.status(400).send({error: error.toString()});
-  }
 });
 
 module.exports = router;

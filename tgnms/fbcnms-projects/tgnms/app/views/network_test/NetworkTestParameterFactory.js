@@ -38,7 +38,7 @@ type Props = {|
   onChange: NetworkTestArgument => void,
 |};
 
-export default class NetworkTestParameterFactory extends React.PureComponent<Props> {
+export default class ParameterFactory extends React.PureComponent<Props> {
   render() {
     const {ui_type} = this.props.parameter.meta;
     const inputProps = {

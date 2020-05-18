@@ -641,9 +641,9 @@ export type StatusReportType = {|
   firmwareVersion?: ?string,
 |};
 
-export type BgpStatusMap = {|
+export type BgpStatusMap = {
   [ipAddress:string]: BgpInfo
-|};
+};
 
 export type BgpInfo = {|
   ipv6Address:string,

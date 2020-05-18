@@ -262,7 +262,7 @@ export function cast<T>(x: any): T {
   return (x: T);
 }
 
-export function coerceClass<T>(value: {}, t: Class<T>): T {
+export function coerceClass<T>(value: {} | void | null, t: Class<T>): T {
   if (value instanceof t) {
     return value;
   }

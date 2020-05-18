@@ -54,7 +54,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
   return Controller;
 }
 
-type ControllerAttributes = {|
+export type ControllerAttributes = {|
   id: number,
   api_ip: string,
   e2e_ip: string,
@@ -62,4 +62,4 @@ type ControllerAttributes = {|
   api_port: number,
 |};
 
-export type Controller = ControllerAttributes & Model<ControllerAttributes>;
+export type Controller = Model<ControllerAttributes>;

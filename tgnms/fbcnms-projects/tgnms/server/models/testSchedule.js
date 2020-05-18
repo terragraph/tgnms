@@ -9,7 +9,7 @@ import type {TestExecution} from './testExecution';
 
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
 
-type TestScheduleAttributes = {|
+export type TestScheduleAttributes = {|
   id: number,
   cron_minute: string,
   cron_hour: string,

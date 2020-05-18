@@ -39,9 +39,8 @@ beforeEach(async () => {
 
 describe('Background Requests', () => {
   test('with no service credentials cached, requests service access token', async () => {
-    // $FlowFixMe uncovered by move to flow 0.102.0
     const oidcMock = await awaitClient();
-    oidcMock.grant.mockReturnValueOnce(new TokenSet());
+    jest.spyOn(oidcMock, 'grant').mockReturnValueOnce(new TokenSet());
 
     const serviceClient = new ApiServiceClient();
     const result = await serviceClient.backgroundRequest(
@@ -61,13 +60,12 @@ describe('Background Requests', () => {
 
   test('with expired service credentials cached, refreshes access token', async () => {
     // setup mocks
-    // $FlowFixMe uncovered by move to flow 0.102.0
     const oidcMock = await awaitClient();
     const expiredTokenMock = new TokenSet();
     const fakeRefreshToken = Symbol();
     expiredTokenMock.refresh_token = fakeRefreshToken;
     expiredTokenMock.expired.mockReturnValueOnce(true);
-    oidcMock.refresh.mockReturnValueOnce(new TokenSet());
+    jest.spyOn(oidcMock, 'refresh').mockReturnValueOnce(new TokenSet());
 
     // setup client
     const serviceClient = new ApiServiceClient();
@@ -82,7 +80,6 @@ describe('Background Requests', () => {
 
   test('with expired refresh token, requests new service credentials', async () => {
     const serviceClient = new ApiServiceClient();
-    // $FlowFixMe uncovered by move to flow 0.102.0
     const oidcMock = await awaitClient();
 
     const mockExpiredToken = new TokenSet();
@@ -96,8 +93,10 @@ describe('Background Requests', () => {
     mockNewToken.refresh_token = '<<test token>>';
 
     // using refresh token should fail
-    oidcMock.refresh.mockRejectedValueOnce(new Error('refresh expired'));
-    oidcMock.grant.mockResolvedValueOnce(mockNewToken);
+    jest
+      .spyOn(oidcMock, 'refresh')
+      .mockRejectedValueOnce(new Error('refresh expired'));
+    jest.spyOn(oidcMock, 'grant').mockResolvedValueOnce(mockNewToken);
 
     serviceClient.serviceCredentials = mockExpiredToken;
 

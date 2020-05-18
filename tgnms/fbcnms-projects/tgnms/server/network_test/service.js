@@ -7,10 +7,11 @@
 
 import Sequelize from 'sequelize';
 import {TEST_STATUS} from '../../shared/dto/TestExecution';
+import type {FindOptions} from 'sequelize';
 import type {TablePage} from '../../shared/dto/TablePage';
 import type {TestExecution} from '../models/testExecution';
 import type {TestExecution as TestExecutionDto} from '../../shared/dto/TestExecution';
-import type {TestResult} from '../models/testResult';
+import type {TestResultAttributes} from '../models/testResult';
 import type {TestResult as TestResultDto} from '../../shared/dto/TestResult';
 import type {TestSchedule} from '../models/testSchedule';
 import type {TestSchedule as TestScheduleDto} from '../../shared/dto/TestSchedule';
@@ -37,7 +38,7 @@ const defaultResultAttributes: Array<$Keys<TestResultDto>> = [
 ];
 
 // testresult columns to exclude
-const defaultResultExcludes: Array<$Keys<TestResultDto>> = [
+const defaultResultExcludes = [
   'iperf_client_blob',
   'iperf_server_blob',
   'ping_output_blob',
@@ -51,7 +52,7 @@ const service = {
     executionId: string,
     includeTestResults?: boolean,
   }) {
-    const queryOptions = {};
+    const queryOptions: $Shape<FindOptions<TestExecution>> = {};
     if (includeTestResults) {
       queryOptions.include = [
         {
@@ -63,11 +64,9 @@ const service = {
         },
       ];
     }
-    return (api_testrunexecution
+    return api_testrunexecution
       .findByPk(executionId, queryOptions)
-      .then(execution =>
-        mapTestExecutionToDto(execution),
-      ): Promise<TestExecutionDto>);
+      .then(execution => (execution ? mapTestExecutionToDto(execution) : null));
   },
   getRecentTestExecutions: function(
     request: RecentTestExecutionsRequest,
@@ -81,16 +80,14 @@ const service = {
     // // do this outside of object literal because flow
     query.where.status = {
       // dont show scheduled executions in the recents table
-      // $FlowFixMe flow doesn't support symbols
-      [Sequelize.Op.ne]: TEST_STATUS.SCHEDULED,
+      [(Sequelize.Op.ne: any)]: TEST_STATUS.SCHEDULED,
     };
     if (typeof request.networkName === 'string' && request.networkName !== '') {
       query.where.topology_name = request.networkName;
     }
     if (typeof request.afterDate === 'string' && request.afterDate !== '') {
       query.where.start_date_utc = {
-        // $FlowFixMe flow doesn't support symbols
-        [Sequelize.Op.gt]: new Date(request.afterDate),
+        [(Sequelize.Op.gt: any)]: new Date(request.afterDate),
       };
       query.limit = 5000;
     }
@@ -102,9 +99,7 @@ const service = {
     }
     return (api_testrunexecution
       .findAll(query)
-      .then((rows: Array<TestExecution>) =>
-        rows.map(testResult => mapTestExecutionToDto(testResult)),
-      )
+      .then(rows => rows.map(testResult => mapTestExecutionToDto(testResult)))
       .then(mapped => ({
         rows: mapped,
         limit,
@@ -146,8 +141,7 @@ const service = {
     }
     if (typeof results !== 'undefined') {
       query.where.id = {
-        // $FlowFixMe symbols dont work in flow
-        [Sequelize.Op.in]: results,
+        [(Sequelize.Op.in: any)]: results,
       };
     }
     if (typeof metrics !== 'undefined') {
@@ -156,9 +150,9 @@ const service = {
     }
     return (api_testresult
       .findAll(query)
-      .then((rows: Array<TestResult>) =>
-        rows.map(result => mapTestResultToDto(result)),
-      ): Promise<Array<TestResultDto>>);
+      .then(rows => rows.map(result => mapTestResultToDto(result))): Promise<
+      Array<TestResultDto>,
+    >);
   },
 
   getTestOverlay: function({
@@ -166,12 +160,12 @@ const service = {
     metrics,
   }: {
     executionId: string,
-    metrics: Array<$Keys<TestResult>>,
+    metrics: Array<$Keys<TestResultAttributes>>,
   }) {
-    const attributes: Array<$Keys<TestResult>> = defaultResultAttributes.concat(
-      metrics,
-    );
-    return (api_testresult
+    const attributes: Array<
+      $Keys<TestResultAttributes>,
+    > = defaultResultAttributes.concat(metrics);
+    return api_testresult
       .findAll({
         attributes: {
           include: attributes,
@@ -181,31 +175,25 @@ const service = {
           test_run_execution_id: executionId,
         },
       })
-      .then((rows: Array<TestResult>) =>
-        rows.reduce(
-          (
-            map: {[linkName: string]: {A: TestResult, Z: TestResult}},
-            row: TestResult,
-          ) => {
-            // get or create a link object
-            let link = map[row.link_name];
-            if (!link) {
-              link = {};
-              map[row.link_name] = link;
-            }
+      .then(rows =>
+        rows.reduce((map, row) => {
+          // get or create a link object
+          let link = map[row.link_name];
+          if (!link) {
+            link = {};
+            map[row.link_name] = link;
+          }
 
-            //link name is alphabetical ordering of node names
-            if (row.origin_node < row.peer_node) {
-              link.A = row;
-            } else {
-              link.Z = row;
-            }
+          //link name is alphabetical ordering of node names
+          if (row.origin_node < row.peer_node) {
+            link.A = row;
+          } else {
+            link.Z = row;
+          }
 
-            return map;
-          },
-          {},
-        ),
-      ): Promise<Array<TestResultDto>>);
+          return map;
+        }, {}),
+      );
   },
   getTestSchedule: async function({networkName}: {networkName: string}) {
     if (!networkName || networkName.trim() === '') {
@@ -317,7 +305,7 @@ function mapTestScheduleToDto(
   };
 }
 
-function mapTestResultToDto(model: TestResult): TestResultDto {
+function mapTestResultToDto(model: TestResultAttributes): TestResultDto {
   return {
     id: model.id,
     status: model.status,
