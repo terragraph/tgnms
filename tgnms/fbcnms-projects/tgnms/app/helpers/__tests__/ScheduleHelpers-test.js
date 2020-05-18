@@ -44,9 +44,9 @@ test('test parsing cron string monthly', () => {
 });
 
 const expectedDate = () => {
-  const day = new Date().getUTCDate();
-  const month = new Date().getUTCMonth();
-  const year = new Date().getUTCFullYear();
+  const day = new Date().getDate();
+  const month = new Date().getMonth();
+  const year = new Date().getFullYear();
 
   return new Date(Date.UTC(year, month, day, 3, 0, 0)).toLocaleString([], {
     year: '2-digit',
