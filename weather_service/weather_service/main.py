@@ -101,6 +101,9 @@ def main():
     with open("./service_config.json") as f:
         service_config = json.load(f)
 
+    if service_config["OpenWeatherMapKey"] == "":
+        raise RuntimeError("OpenWeatherMapKey was empty in service_config.json")
+
     weather_client = OpenWeatherMapClient(service_config["OpenWeatherMapKey"])
     api_service_client = APIServiceClient(timeout=5)
 
