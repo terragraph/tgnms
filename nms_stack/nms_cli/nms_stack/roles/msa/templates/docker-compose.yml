@@ -66,6 +66,21 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  weather_service:
+    image: secure.cxl-terragraph.com:443/weather_service:latest
+    restart: unless-stopped
+    volumes:
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/weather_service/config.json
+      - {{ msa_gfs_path }}/config/weather_service/service_config.json:/usr/local/weather_service/service_config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "weather_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
 networks:
   terragraph_net:
     external: true

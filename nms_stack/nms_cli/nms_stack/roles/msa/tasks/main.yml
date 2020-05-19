@@ -42,11 +42,18 @@
     - { name: "analytics", has_database: false }
     - { name: "default_routes_service", has_database: true }
     - { name: "topology_service", has_database: true }
+    - { name: "weather_service", has_database: false }
   loop_control:
     loop_var: service
 
 - name: run compose
   shell: "docker stack deploy -c {{ msa_gfs_path }}/docker-compose.yml --with-registry-auth msa"
+
+- name: remove weather service (weather_service_openweathermap_api_key not provided)
+  # The weather service should not be started if there is no API key provided,
+  # so if it is missing scale it down to 0
+  shell: "docker service update --replicas=0 msa_weather_service"
+  when: weather_service_openweathermap_api_key is not defined
 
 - name: clean compose
   file:
