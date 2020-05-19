@@ -30,6 +30,15 @@ DEFINE_string(
     "link_stats",
     "Link statistics topic to produce to");
 DEFINE_int32(
+    kafka_poll_batch_msg_size,
+    1000,
+    "Maximum messages to request in one batch from kafka");
+DEFINE_int32(
+    kafka_poll_timeout_ms,
+    1000,
+    "Kafka poll timeout in milliseconds"
+);
+DEFINE_int32(
     prometheus_batch_interval_ms,
     1000,
     "Prometheus data-point batching interval");
@@ -124,47 +133,68 @@ void KafkaStatsService::start(const std::string& topicName) {
   cppkafka::MessageBuilder linkStatsBuilder(FLAGS_kafka_link_stats_topic);
   // Now read lines and write them into kafka
   bool isRunning = true;
-  std::chrono::milliseconds timeoutMs(1000);
+  std::chrono::milliseconds timeoutMs(FLAGS_kafka_poll_timeout_ms);
   // queue stats for Prometheus lookup
   std::vector<terragraph::thrift::AggrStat> statQueue;
   time_t lastRun = StatsUtils::getTimeInMs();
   while (isRunning) {
-    // poll for new messages
     try {
-      cppkafka::Message msg = kafkaConsumer.poll(timeoutMs /* 1 second */);
-      if (msg) {
-        if (msg.get_error()) {
-          // Ignore EOF notifications from rdkafka
-          if (!msg.is_eof()) {
-            LOG(ERROR) << "[" << consumerId_
-                       << "] Received error notification: " << msg.get_error();
-          }
-        } else {
-          const std::string statMsg = msg.get_payload();
-          if (assignedPartitionList.hasValue()) {
-            VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
-                    << ", group: " << *assignedPartitionList
-                    << ", msg: " << statMsg;
+      // poll for a batch of messages from kafka
+      std::vector<cppkafka::Message> msgList = kafkaConsumer.poll_batch(
+          FLAGS_kafka_poll_batch_msg_size, timeoutMs);
+      if (!msgList.empty()) {
+        time_t nowInSec = StatsUtils::getTimeInSeconds();
+        // msgs with invalid time stamps (in the future)
+        size_t invalidTsCount = 0;
+        for (const auto& msg : msgList) {
+          if (msg.get_error()) {
+            // Ignore EOF notifications from rdkafka
+            if (!msg.is_eof()) {
+              LOG(ERROR) << "[" << consumerId_
+                         << "] Received error notification: "
+                         << msg.get_error();
+            }
           } else {
-            VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
-                    << ", msg: " << statMsg;
+            const std::string statMsg = msg.get_payload();
+            if (assignedPartitionList.hasValue()) {
+              VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
+                      << ", group: " << *assignedPartitionList
+                      << ", msg: " << statMsg;
+            } else {
+              VLOG(3) << "[" << consumerId_ << "] Topic: " << topicName
+                      << ", msg: " << statMsg;
+            }
+            // Decode JSON and add to Prometheus queue
+            auto stat =
+                SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
+                    statMsg);
+            // drop message if timestamp is in the future
+            if (stat.timestamp > nowInSec) {
+              VLOG(2) << "Dropping statistic " << (stat.timestamp - nowInSec)
+                      << "s in the future"
+                      << (stat.entity_ref() ? (" from: " + *stat.entity_ref())
+                                            : ".");
+              invalidTsCount++;
+              continue;
+            }
+            statQueue.push_back(stat);
+            // generate a new stat for the link stats pipeline if a
+            // friendly/short name exists for this metric
+            auto friendlyMetric = getFriendlyMetric(stat);
+            if (friendlyMetric) {
+              VLOG(2) << "Forwarding friendly metric name to link stats: "
+                      << friendlyMetric->key << ", key: " << stat.key
+                      << ", ts: " << friendlyMetric->timestamp;
+              // produce message back to link stats topic
+              linkStatsBuilder.payload(statMsg);
+              linkStatsProducer.produce(linkStatsBuilder);
+            }
           }
-          // Decode JSON and add to Prometheus queue
-          auto stat =
-              SimpleJSONSerializer::deserialize<terragraph::thrift::AggrStat>(
-                  statMsg);
-          statQueue.push_back(stat);
-          // generate a new stat for the link stats pipeline if a friendly/short
-          // name exists for this metric
-          auto friendlyMetric = getFriendlyMetric(stat);
-          if (friendlyMetric) {
-            VLOG(2) << "Forwarding friendly metric name to link stats: "
-                    << friendlyMetric->key << ", key: " << stat.key
-                    << ", ts: " << friendlyMetric->timestamp;
-            // produce message back to link stats topic
-            linkStatsBuilder.payload(statMsg);
-            linkStatsProducer.produce(linkStatsBuilder);
-          }
+        }
+        // summarize dropped messages
+        if (invalidTsCount > 0) {
+          LOG(ERROR) << "Dropped " << invalidTsCount << "/" << msgList.size()
+                     << " statistics due to invalid timestamp.";
         }
       }
     } catch (const cppkafka::HandleException& ex) {
