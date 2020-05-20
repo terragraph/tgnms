@@ -55,7 +55,7 @@ class MySQLClient(BaseClient):
         )
 
         try:
-            cls._engine = await create_engine(**mysql_params)
+            cls._engine = await create_engine(**mysql_params, pool_recycle=10)
         except aiomysql.OperationalError as e:
             raise ClientRuntimeError() from e
 
