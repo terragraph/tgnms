@@ -7,7 +7,6 @@
 import AlarmIcon from '@material-ui/icons/Alarm';
 import AppBar from '@material-ui/core/AppBar';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import BarChartIcon from '@material-ui/icons/BarChart';
 import BuildIcon from '@material-ui/icons/Build';
 import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -145,7 +144,6 @@ const styles = theme => ({
 const VIEWS = [
   {name: 'Map', icon: <MapIcon />, viewName: 'map'},
   {name: 'Tables', icon: <TableChartIcon />, viewName: 'tables'},
-  {name: 'Stats', icon: <BarChartIcon />, viewName: 'stats'},
   {
     name: 'Dashboards',
     icon: <DashboardIcon />,

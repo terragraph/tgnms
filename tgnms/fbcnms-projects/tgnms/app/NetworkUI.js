@@ -13,7 +13,6 @@ import NetworkContext from './contexts/NetworkContext';
 import NetworkDashboards from './views/dashboards/NetworkDashboards';
 import NetworkListContext from './contexts/NetworkListContext';
 import NetworkMap from './views/map/NetworkMap';
-import NetworkStatsPrometheus from './views/stats/NetworkStatsPrometheus';
 import NetworkTables from './views/tables/NetworkTables';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NmsAlarms from './views/alarms/NmsAlarms';
@@ -486,14 +485,6 @@ class NetworkUI extends React.Component<Props, State> {
               )}
             />
             )}
-            <Route
-              path={`/stats/:networkName`}
-              render={() => (
-                <NetworkStatsPrometheus
-                  networkConfig={this.state.networkConfig}
-                />
-              )}
-            />
             <Route
               path={`/dashboards/:networkName`}
               render={() => <NetworkDashboards networkName={networkName} />}
