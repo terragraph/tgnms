@@ -8,7 +8,6 @@
     mode: 0755
   loop:
     - "{{ logs_gfs_path }}"
-    - "{{ audit_logs_gfs_path }}"
     - "{{ nms_path }}/docker_volumes"
     - "{{ nms_path }}/docker_volumes/settings"
     - "{{ nms_path }}/env"

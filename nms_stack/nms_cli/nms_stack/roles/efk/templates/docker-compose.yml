@@ -3,7 +3,7 @@ services:
   fluentd:
     image: secure.cxl-terragraph.com:443/fluentd:latest
     volumes:
-      - "{{ fluentd_path }}/etc:/fluentd/etc"
+      - "{{ efk_gfs_path }}/config/fluentd/fluent.conf:/fluentd/etc/fluent.conf"
       - "{{ audit_logs_gfs_path }}:/audit"
     networks:
       - terragraph_net
@@ -61,7 +61,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.4.0
     volumes:
-      - "{{ kibana_path }}/config/kibana.yml:/usr/share/kibana/config/kibana.yml"
+      - "{{ efk_gfs_path }}/config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml"
     networks:
       - terragraph_net
     logging:
