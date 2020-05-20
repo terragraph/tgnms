@@ -16,7 +16,7 @@ import Typography from '@material-ui/core/Typography';
 import {TEST_TYPE} from '../../../shared/dto/TestExecution';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {makeStyles} from '@material-ui/styles';
-import {useLoadTestExecution} from '../../views/network_test/hooks';
+import {useLoadTestExecution} from '../../hooks/NetworkTestHooks';
 import type {Element} from '../../contexts/NetworkContext';
 import type {LinkTestResult as LinkTestResultType} from '../../views/network_test/LinkTestResultDetails';
 import type {TestExecution} from '../../../shared/dto/TestExecution';
@@ -65,7 +65,7 @@ const useSummaryStyles = makeStyles(theme => ({
 function TestExecutionSummary(props: Props) {
   const {testId, selectedElement} = props;
   const classes = useSummaryStyles();
-  const {loading, execution} = useLoadTestExecution({executionId: testId});
+  const {loading, execution} = useLoadTestExecution({testId: testId || ''});
 
   if (loading || !execution) {
     return <LoadingBox fullScreen={false} />;
