@@ -12,6 +12,7 @@ import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import {defaultTemplate} from '../../constants/TemplateConstants';
 import {makeStyles} from '@material-ui/styles';
 
 import type {SiteTemplate} from '../../helpers/templateHelpers';
@@ -85,7 +86,9 @@ export default function PlannedSiteTemplates(props: Props) {
           {templates.map(template => {
             return (
               <MenuItem key={template.name} value={template.name}>
-                {template.name} Template
+                {template.name === defaultTemplate.name
+                  ? template.name
+                  : template.name + ' Template'}
               </MenuItem>
             );
           })}
@@ -105,7 +108,7 @@ export default function PlannedSiteTemplates(props: Props) {
           />
         </Grid>
 
-        {currentTemplate.name === 'blank' ? null : (
+        {currentTemplate.name === defaultTemplate.name ? null : (
           <>
             {currentTemplate.nodes.length > 1 ? (
               <TextField

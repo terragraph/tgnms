@@ -10,7 +10,7 @@ import type {LocationType, PolarityTypeType} from '../../shared/types/Topology';
 import type {SiteTemplate} from '../helpers/templateHelpers';
 
 export const defaultTemplate: SiteTemplate = {
-  name: 'blank',
+  name: 'None',
   site: {},
   nodes: [],
 };

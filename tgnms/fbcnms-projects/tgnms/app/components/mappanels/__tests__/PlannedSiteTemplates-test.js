@@ -27,7 +27,7 @@ const defaultProps = {
   topology: mockTopology(),
 };
 
-test('renders with blank template without crashing', () => {
+test('renders with None without crashing', () => {
   const {getByText} = render(
     <TestApp>
       <PlannedSiteTemplates {...defaultProps} />
@@ -62,7 +62,7 @@ test('multi node template shows node selector', async () => {
   expect(getByText('Select Number of Nodes')).toBeInTheDocument();
 });
 
-test('link selector renders with non blank template', async () => {
+test('link selector renders with None', async () => {
   const {getByText} = await renderAsync(
     <TestApp>
       <PlannedSiteTemplates
@@ -80,8 +80,8 @@ test('changing template calls handleTemplateSelectionChange', async () => {
       <PlannedSiteTemplates {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('blank Template')).toBeInTheDocument();
-  fireEvent.mouseDown(getByText('blank Template'));
+  expect(getByText('None')).toBeInTheDocument();
+  fireEvent.mouseDown(getByText('None'));
   expect(getByText('DN Template')).toBeInTheDocument();
   fireEvent.click(getByText('DN Template'));
   expect(defaultProps.handleTemplateSelectionChange).toHaveBeenCalled();
