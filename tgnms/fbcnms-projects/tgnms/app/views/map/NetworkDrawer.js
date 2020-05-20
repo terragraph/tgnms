@@ -53,6 +53,7 @@ const styles = theme => ({
   content: {
     height: '100%',
     padding: theme.spacing(2),
+    paddingBottom: theme.spacing(8),
     overflowX: 'hidden',
   },
   draggerContainer: {

@@ -157,7 +157,7 @@ export default function TopologyBuilderMenu(props: Props) {
   const handleTopologyChangeSnackbar = (changeMessage: string) => {
     if (changeMessage === 'success') {
       enqueueSnackbar(
-        'Topology successfully changed! This change will take effect next topology pull.',
+        'Topology successfully changed! Please wait a few moments for the topology to update.',
         {variant: 'success'},
       );
     } else {
