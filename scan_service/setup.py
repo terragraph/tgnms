@@ -9,10 +9,7 @@ ptr_params = {
     "entry_point_module": "scan_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {
-        "scan_service/connectivity.py": 84,
-        "TOTAL": 14,
-    },
+    "required_coverage": {"scan_service/connectivity.py": 84, "TOTAL": 14},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,
@@ -20,7 +17,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.04.30",
+    version="2020.05.20",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},

@@ -5,13 +5,13 @@ import json
 import logging
 import os
 import sys
-from typing import Dict
+from typing import Dict, List
 
 from terragraph_thrift.Event.ttypes import EventId
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
 
-from .connectivity import analyze_connectivity
+from .connectivity import HardwareConfig, analyze_connectivity
 from .data_loader import get_im_data
 from .utils.db import (
     get_scan_groups,
@@ -21,18 +21,20 @@ from .utils.db import (
 )
 
 
-async def scan_results_handler(scan_data_dir: str, msg: str) -> None:
+async def scan_results_handler(
+    scan_data_dir: str, msg: str, con: HardwareConfig
+) -> None:
     try:
         scan_msg = json.loads(msg)
         scan_result = scan_msg["result"]
         network_name = scan_msg["topologyName"]
         token = scan_result["token"]
         logging.info(f"Received scan response token '{token}' for {network_name}")
-        await write_scan_data(scan_data_dir, network_name, scan_result)
+        # await write_scan_data(scan_data_dir, network_name, scan_result)
 
         data_im = get_im_data(scan_result["data"])
         if data_im is not None:
-            connectivity_results = analyze_connectivity(data_im, network_name)
+            connectivity_results = analyze_connectivity(data_im, network_name, con)
             await write_connectivity_results(connectivity_results)
 
     except json.JSONDecodeError:
@@ -68,9 +70,15 @@ async def async_main(config: Dict, scan_data_dir: str) -> None:
     consumer = KafkaConsumer().consumer
     consumer.subscribe(config["topics"])
 
+    # Configure connectivity analysis constants
+    beam_order: List[int] = []
+    for start, end, interval in config["hardware_config"]["beam_order_range"]:
+        beam_order += list(range(start, end, interval))
+    con = HardwareConfig(beam_order, **config["hardware_config"]["constants"])
+
     async for msg in consumer:
         if msg.topic == "scan_results":
-            await scan_results_handler(scan_data_dir, msg.value.decode("utf-8"))
+            await scan_results_handler(scan_data_dir, msg.value.decode("utf-8"), con)
         elif msg.topic == "events":
             await events_handler(msg.value.decode("utf-8"))
 
