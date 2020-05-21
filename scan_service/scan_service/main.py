@@ -30,7 +30,7 @@ async def scan_results_handler(
         network_name = scan_msg["topologyName"]
         token = scan_result["token"]
         logging.info(f"Received scan response token '{token}' for {network_name}")
-        # await write_scan_data(scan_data_dir, network_name, scan_result)
+        await write_scan_data(scan_data_dir, network_name, scan_result)
 
         data_im = get_im_data(scan_result["data"])
         if data_im is not None:
