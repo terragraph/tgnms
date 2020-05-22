@@ -7,9 +7,13 @@
 
 const express = require('express');
 import {CLIENT_ROOT_URL, KEYCLOAK_HOST, KEYCLOAK_REALM} from '../config';
+import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCMobileAppConfig} from '@fbcnms/mobileapp/FBCMobileAppConfig';
 const logger = require('../log')(module);
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 /*
  * Warning: This is an open route, only display public information here

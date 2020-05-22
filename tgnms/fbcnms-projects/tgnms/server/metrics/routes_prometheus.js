@@ -8,6 +8,7 @@
 import {DS_INTERVAL_SEC} from '../config';
 import {createErrorHandler} from '../helpers/apiHelpers';
 import {getLinkMetrics, getLinkMetricsByName} from './metrics';
+import type {ExpressRequest, ExpressResponse} from 'express';
 
 const express = require('express');
 const moment = require('moment');
@@ -22,7 +23,10 @@ const {
   processData,
 } = require('./prometheus');
 
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 /** Query raw stats given a "start" and "end" timestamp */
 router.get('/query/raw', (req, res) => {
@@ -35,7 +39,9 @@ router.get('/query/raw', (req, res) => {
 router.get('/query/dataArray', (req, res) => {
   const {queries, start, end, step, topologyName} = req.query;
   Promise.all(
-    queries.map(queryString => {
+    /* $FlowFixMe req.query is user-controlled input, properties and values
+      in this object are untrusted and should be validated before trusting */
+    queries.map((queryString: string) => {
       const data = {
         query: queryString,
         start: start,
@@ -48,6 +54,8 @@ router.get('/query/dataArray', (req, res) => {
     .then(responses => {
       res.status(200).send(
         responses.reduce((final, response) => {
+          /* $FlowFixMe req.query is usercontrolled input, properties and values
+         in this object are untrusted and should be validated before trusting */
           return {...final, ...processData(response, topologyName)};
         }, {}),
       );
@@ -59,6 +67,8 @@ router.get('/query/dataArray', (req, res) => {
 router.get('/query/raw/since', (req, res) => {
   const end = moment().unix();
   const start = moment()
+    /* $FlowFixMe req.query is user-controlled input, properties and values
+       in this object are untrusted and should be validated before trusting */
     .subtract(req.query.value, req.query.units)
     .unix();
 
@@ -123,6 +133,8 @@ router.get('/query/link/latest', (req, res) => {
     .then(result => {
       return groupByLink(
         result,
+        /* $FlowFixMe req.query is user-controlled input, properties and values
+         in this object are untrusted and should be validated before trusting */
         topologyName,
         false /* groupByLinkDirection */,
       );
@@ -132,84 +144,90 @@ router.get('/query/link/latest', (req, res) => {
 });
 
 // raw stats data
-router.get('/link_analyzer/:topologyName', (req, res, _next) => {
-  const topologyName = req.params.topologyName;
-  const timeWindow = '[1h]';
-  // the outer subquery requires slightly different syntax
-  // [<range>:[<resolution>]]
-  const timeWindowSubquery = '[1h:]';
-  const prometheusQueryList = ['snr', 'mcs', 'tx_power'].map(metricName => ({
-    metricName: `avg_${metricName}`,
-    prometheusQuery: `avg_over_time(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
-  }));
-  prometheusQueryList.push({
-    metricName: 'flaps',
-    prometheusQuery: `resets(fw_uptime{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
-  });
-  prometheusQueryList.push({
-    metricName: 'avg_per',
-    prometheusQuery: `avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) / (avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}))`,
-  });
-  prometheusQueryList.push({
-    metricName: 'avg_tput',
-    prometheusQuery: `avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery})`,
-  });
-  prometheusQueryList.push({
-    metricName: 'tx_beam_idx',
-    prometheusQuery: `tx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
-  });
-  prometheusQueryList.push({
-    metricName: 'rx_beam_idx',
-    prometheusQuery: `rx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
-  });
-  // TODO - add availability once published as a stat
-  Promise.all(
-    prometheusQueryList.map(({prometheusQuery}) => {
-      return queryLatest({
-        query: prometheusQuery,
-      });
-    }),
-  )
-    .then(response =>
-      mapMetricName(
-        response,
-        prometheusQueryList.map(({metricName}) => metricName),
-      ),
+router.get(
+  '/link_analyzer/:topologyName',
+  (req: ExpressRequest, res: ExpressResponse, _next) => {
+    const topologyName = req.params.topologyName;
+    const timeWindow = '[1h]';
+    // the outer subquery requires slightly different syntax
+    // [<range>:[<resolution>]]
+    const timeWindowSubquery = '[1h:]';
+    const prometheusQueryList = ['snr', 'mcs', 'tx_power'].map(metricName => ({
+      metricName: `avg_${metricName}`,
+      prometheusQuery: `avg_over_time(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+    }));
+    prometheusQueryList.push({
+      metricName: 'flaps',
+      prometheusQuery: `resets(fw_uptime{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+    });
+    prometheusQueryList.push({
+      metricName: 'avg_per',
+      prometheusQuery: `avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) / (avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}))`,
+    });
+    prometheusQueryList.push({
+      metricName: 'avg_tput',
+      prometheusQuery: `avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery})`,
+    });
+    prometheusQueryList.push({
+      metricName: 'tx_beam_idx',
+      prometheusQuery: `tx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+    });
+    prometheusQueryList.push({
+      metricName: 'rx_beam_idx',
+      prometheusQuery: `rx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+    });
+    // TODO - add availability once published as a stat
+    Promise.all(
+      prometheusQueryList.map(({prometheusQuery}) => {
+        return queryLatest({
+          query: prometheusQuery,
+        });
+      }),
     )
-    .then(flattenPrometheusResponse)
-    .then(result => groupByLink(result, topologyName, true))
-    .then(result => res.json(result))
-    .catch(createErrorHandler(res));
-});
+      .then(response =>
+        mapMetricName(
+          response,
+          prometheusQueryList.map(({metricName}) => metricName),
+        ),
+      )
+      .then(flattenPrometheusResponse)
+      .then(result => groupByLink(result, topologyName, true))
+      .then(result => res.json(result))
+      .catch(createErrorHandler(res));
+  },
+);
 
-router.get('/node_health/:topologyName', (req, res, _next) => {
-  const topologyName = req.params.topologyName;
-  // this is set statically in NetworkNodesTable
-  // TODO - make this configurable
-  const timeWindow = '[24h]';
+router.get(
+  '/node_health/:topologyName',
+  (req: ExpressRequest, res: ExpressResponse, _next) => {
+    const topologyName = req.params.topologyName;
+    // this is set statically in NetworkNodesTable
+    // TODO - make this configurable
+    const timeWindow = '[24h]';
 
-  const prometheusQueryList = ['e2e_minion_uptime'].map(metricName => ({
-    metricName: `resets_${metricName}`,
-    prometheusQuery: `resets(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
-  }));
+    const prometheusQueryList = ['e2e_minion_uptime'].map(metricName => ({
+      metricName: `resets_${metricName}`,
+      prometheusQuery: `resets(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+    }));
 
-  Promise.all(
-    prometheusQueryList.map(({prometheusQuery}) => {
-      return queryLatest({
-        query: prometheusQuery,
-      });
-    }),
-  )
-    .then(response =>
-      mapMetricName(
-        response,
-        prometheusQueryList.map(({metricName}) => metricName),
-      ),
+    Promise.all(
+      prometheusQueryList.map(({prometheusQuery}) => {
+        return queryLatest({
+          query: prometheusQuery,
+        });
+      }),
     )
-    .then(flattenPrometheusResponse)
-    .then(result => groupByNode(result, topologyName))
-    .then(result => res.json(result))
-    .catch(createErrorHandler(res));
-});
+      .then(response =>
+        mapMetricName(
+          response,
+          prometheusQueryList.map(({metricName}) => metricName),
+        ),
+      )
+      .then(flattenPrometheusResponse)
+      .then(result => groupByNode(result, topologyName))
+      .then(result => res.json(result))
+      .catch(createErrorHandler(res));
+  },
+);
 
 module.exports = router;

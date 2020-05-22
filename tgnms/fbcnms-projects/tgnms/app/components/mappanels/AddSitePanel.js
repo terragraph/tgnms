@@ -201,6 +201,7 @@ class AddSitePanel extends React.Component<Props, State> {
     );
     this.setState({
       nodeNumber: selectedTemplate?.nodes.length,
+      // $FlowFixMe: selectedTemplate could be null
       currentTemplate: {...selectedTemplate},
       name:
         selectedTemplate?.name && selectedTemplate?.name !== 'blank'

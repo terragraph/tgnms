@@ -5,6 +5,7 @@
  * @flow
  */
 
+import type {ExpressRequest, ExpressResponse, Middleware} from 'express';
 jest.mock('../../websockets/service');
 import express from 'express';
 import request from 'supertest';
@@ -122,9 +123,9 @@ describe('/downloadimage/:network/:release/:image', () => {
 function setupApp() {
   const app = express();
   app.use(require('body-parser').json());
-  const routes = require('../routes');
+  const routes: Middleware = require('../routes');
   app.use('/nodeupdateservice', routes);
-  app.use((err, _req, _res, _next) => {
+  app.use((err: Error, _req: ExpressRequest, _res: ExpressResponse, _next) => {
     // better error logging during testing
     console.error(err);
     throw err;

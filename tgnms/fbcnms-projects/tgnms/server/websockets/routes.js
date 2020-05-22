@@ -7,6 +7,7 @@
 
 import websocketService from './service';
 const express = require('express');
+// $FlowFixMe: Found when updating to flow 0.125.1
 const router = express.Router();
 import type WebSocket from 'ws';
 

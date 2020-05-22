@@ -40,6 +40,7 @@ test('returns 200 and json if configuration is valid', async () => {
 
 function setupApp() {
   const app = express();
+  // $FlowFixMe: Found when upgrading to 0.125.1, pretty sure flow is wrong.
   app.use('/mobileapp', require('../routes'));
   return app;
 }

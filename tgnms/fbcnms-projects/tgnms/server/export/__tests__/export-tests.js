@@ -180,6 +180,7 @@ function mockGetNetworkState() {
 
 function setupApp() {
   const app = express();
+  // $FlowFixMe found while upgrading to 0.125.1
   app.use('/export', require('../routes'));
   return app;
 }

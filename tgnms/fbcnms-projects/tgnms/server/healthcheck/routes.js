@@ -5,10 +5,12 @@
  * @flow strict-local
  */
 
-const express = require('express');
-const router = express.Router();
-
 import type {ExpressRequest, ExpressResponse} from 'express';
+const express = require('express');
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 const STATUS = {
   UP: 'UP',

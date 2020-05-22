@@ -12,12 +12,16 @@ const {
 
 import {NetworkDto} from '../../../shared/dto/api/v1';
 import type {ChangelogDto} from '../../../shared/dto/api/v1';
+import type {ExpressRequest, ExpressResponse} from 'express';
 import type {VersionDto} from '../../../shared/dto/api/v1';
 
 const express = require('express');
 const fs = require('fs');
 
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 router.get('/networks', (req, res) => {
   const configs = getAllNetworkConfigs();
@@ -50,7 +54,8 @@ router.get('/version', (req, res) => {
 router.get('/changelog', (req, res) => {
   fs.readFile('./changelog.json', 'utf-8', (err, data) => {
     if (err) {
-      return res.status(500).end();
+      res.status(500).end();
+      return;
     }
     const changelog: ChangelogDto = JSON.parse(data);
     res.json(changelog);

@@ -11,12 +11,16 @@ import {
   PROMETHEUS_URL,
   TG_ALARM_URL,
 } from '../config';
+import type {ExpressRequest, ExpressResponse} from 'express';
 
 import {createErrorHandler, createRequest} from '../helpers/apiHelpers';
 const express = require('express');
 const {queryLatest} = require('../metrics/prometheus');
 
-const router = express.Router();
+const router: express.Router<
+  ExpressRequest,
+  ExpressResponse,
+> = express.Router();
 
 router.get('/alerts', (req, res) =>
   createRequest({

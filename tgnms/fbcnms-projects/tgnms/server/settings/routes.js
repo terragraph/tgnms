@@ -5,6 +5,7 @@
  * @flow
  */
 const express = require('express');
+// $FlowFixMe: Found when updating to flow 0.125.1
 const router = express.Router();
 import access from '../middleware/access';
 import {getSettingsState, testSettings, updateSettings} from './settings';
