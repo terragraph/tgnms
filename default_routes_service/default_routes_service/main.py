@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, NoReturn
 
 from tglib import ClientType, init
 from tglib.clients import APIServiceClient
@@ -27,7 +27,9 @@ class Job:
     params: Dict
 
 
-async def produce(queue: asyncio.Queue, name: str, pipeline: Dict[str, Any]) -> None:
+async def produce(
+    queue: asyncio.Queue, name: str, pipeline: Dict[str, Any]
+) -> NoReturn:
     """Add jobs from the pipeline configuration to the shared queue."""
     # Restrict pipeline frequency to reduce load on E2E
     if pipeline["period"] < 60:
@@ -103,7 +105,7 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict[str, Any]) -> 
         await asyncio.sleep(sleep_time)
 
 
-async def consume(queue: asyncio.Queue) -> None:
+async def consume(queue: asyncio.Queue) -> NoReturn:
     """Consume and run a job from the shared queue."""
     while True:
         # Wait for a job from the producers

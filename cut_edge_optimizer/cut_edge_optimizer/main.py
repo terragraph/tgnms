@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import time
-from typing import Dict
+from typing import Dict, NoReturn
 
 from tglib import ClientType, init
 
@@ -25,7 +25,7 @@ class Job:
     params: Dict
 
 
-async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
+async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> NoReturn:
     """Add jobs from the pipeline configuration to the shared queue."""
     while True:
         start_time = time.time()
@@ -56,7 +56,7 @@ async def produce(queue: asyncio.Queue, name: str, pipeline: Dict) -> None:
         await asyncio.sleep(sleep_time)
 
 
-async def consume(queue: asyncio.Queue) -> None:
+async def consume(queue: asyncio.Queue) -> NoReturn:
     """Consume and run a job from the shared queue."""
     while True:
         # Wait for a job from the producers

@@ -5,7 +5,8 @@ import asyncio
 import dataclasses
 import json
 import logging
-from typing import Any, Dict, List
+import sys
+from typing import Any, Dict, List, NoReturn
 
 import tglib
 from aiohttp import web
@@ -18,7 +19,12 @@ from .api_clients import OpenWeatherMapClient, WeatherAPIClient
 from .weather import Coordinates, WeatherState
 
 
-async def get_weather(weather_client, network_name, site_name, coordinates):
+async def get_weather(
+    weather_client: WeatherAPIClient,
+    network_name: str,
+    site_name: str,
+    coordinates: Coordinates,
+) -> WeatherState:
     return WeatherState(
         network_name=network_name,
         site_name=site_name,
@@ -82,7 +88,7 @@ async def async_main(
     service_config: Dict[str, Any],
     api_service_client: APIServiceClient,
     weather_client: WeatherAPIClient,
-) -> None:
+) -> NoReturn:
     logging.info(
         f"Starting weather service with client {type(weather_client).__qualname__}"
     )
@@ -97,9 +103,13 @@ async def async_main(
         await asyncio.sleep(service_config["weather_data_fetch_interval_seconds"])
 
 
-def main():
-    with open("./service_config.json") as f:
-        service_config = json.load(f)
+def main() -> None:
+    try:
+        with open("./service_config.json") as f:
+            service_config = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        logging.exception("Failed to parse service configuration file")
+        sys.exit(1)
 
     if service_config["OpenWeatherMapKey"] == "":
         raise RuntimeError("OpenWeatherMapKey was empty in service_config.json")
@@ -107,7 +117,7 @@ def main():
     weather_client = OpenWeatherMapClient(service_config["OpenWeatherMapKey"])
     api_service_client = APIServiceClient(timeout=5)
 
-    return init(
+    init(
         lambda: async_main(service_config, api_service_client, weather_client),
         {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
         web.RouteTableDef(),
