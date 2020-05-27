@@ -12,6 +12,7 @@ from tglib.clients import MySQLClient
 
 from ..models import (
     ConnectivityResults,
+    InterferenceResults,
     RxScanResponse,
     ScanFwStatus,
     ScanMode,
@@ -178,4 +179,11 @@ async def write_connectivity_results(result: List[Dict]) -> None:
     """Write connectivity results to database"""
     async with MySQLClient().lease() as conn:
         await conn.execute(insert(ConnectivityResults).values(result))
+        await conn.connection.commit()
+
+
+async def write_interference_results(results: List[Dict]) -> None:
+    """Write interference results to database"""
+    async with MySQLClient().lease() as conn:
+        await conn.execute(insert(InterferenceResults).values(results))
         await conn.connection.commit()

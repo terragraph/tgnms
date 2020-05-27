@@ -7,7 +7,7 @@ from typing import Dict, Optional
 from terragraph_thrift.Controller.ttypes import ScanFwStatus, ScanType
 
 
-def aggregate_rx_responses(responses: Dict) -> Dict:
+def aggregate_rx_responses(responses: Dict) -> Dict[str, Dict[str, float]]:
     """Aggregate IM scan response from an RX node."""
 
     aggregated_responses = {}
@@ -59,7 +59,10 @@ def get_im_data(scan: Dict) -> Optional[Dict]:
         return None
     tx_node = scan["txNode"]
 
-    logging.info(f"Analyzing response for tx node {tx_node}, groupId {scan['groupId']}")
+    logging.info(
+        f"Aggregating IM scan response for tx node {tx_node}, "
+        f"groupId {scan['groupId']}, scan mode {scan['mode']}"
+    )
     # skip if response from tx_node is not present
     if tx_node not in scan["responses"]:
         logging.info(f"No txNode in scan responses for groupId {scan['groupId']}")

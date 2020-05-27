@@ -9,7 +9,7 @@ ptr_params = {
     "entry_point_module": "scan_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {"scan_service/connectivity.py": 85, "TOTAL": 10},
+    "required_coverage": {"scan_service/connectivity.py": 80, "TOTAL": 9},
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,

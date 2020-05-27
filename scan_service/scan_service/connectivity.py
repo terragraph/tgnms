@@ -3,9 +3,10 @@
 
 import dataclasses
 import logging
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 import numpy as np
+from terragraph_thrift.Controller.ttypes import ScanMode
 
 
 @dataclasses.dataclass
@@ -133,8 +134,14 @@ def analyze_connectivity(
     con: HardwareConfig,
     target: int = 15,
     use_rssi: bool = False,
-) -> List[Dict]:
+) -> Optional[List[Dict]]:
     """Analyze connectivity for a TX node based on IM scan data."""
+
+    if im_data["mode"] not in {ScanMode.FINE, ScanMode.COARSE}:
+        logging.info(
+            f"Unsupported ScanMode {im_data['mode']} for connectivity analysis"
+        )
+        return None
 
     result: List = []
     tx_node = im_data["tx_node"]
@@ -142,6 +149,7 @@ def analyze_connectivity(
         f"Analyzing connectivity graph for {tx_node} with target SNR = {target}dB"
     )
     for rx_node in im_data["responses"]:
+        logging.info(f"Analyzing connectivity between {tx_node} to {rx_node}")
         routes = find_routes(im_data["responses"][rx_node], target, use_rssi, con)
         logging.info(f"No. of routes between {tx_node} and {rx_node} are {len(routes)}")
         if not routes:

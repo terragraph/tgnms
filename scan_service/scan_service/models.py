@@ -120,3 +120,19 @@ class ConnectivityResults(Base):
     tx_node = Column(String(255), nullable=False)
     rx_node = Column(String(255), nullable=False)
     routes = Column(JSON, nullable=False)
+
+
+class InterferenceResults(Base):
+    __tablename__ = "interference_results"
+
+    id = Column(Integer, primary_key=True)
+    network_name = Column(String(255), nullable=False)
+    group_id = Column(Integer, nullable=True)
+    token = Column(Integer, nullable=False)
+    tx_node = Column(String(255), nullable=False)
+    tx_to_node = Column(String(255), nullable=False)
+    tx_power_idx = Column(Integer, nullable=True)
+    rx_node = Column(String(255), nullable=False)
+    rx_from_node = Column(String(255), nullable=False)
+    inr_curr_power = Column(JSON, nullable=False)
+    inr_max_power = Column(JSON, nullable=False)

@@ -13,12 +13,15 @@ from tglib.clients import KafkaConsumer
 
 from .connectivity import HardwareConfig, analyze_connectivity
 from .data_loader import get_im_data
+from .interference import analyze_interference
 from .utils.db import (
     get_scan_groups,
     write_connectivity_results,
+    write_interference_results,
     write_scan_data,
     write_scan_response_rate_stats,
 )
+from .utils.stats import create_link_mac_map
 
 
 async def scan_results_handler(
@@ -34,8 +37,26 @@ async def scan_results_handler(
 
         data_im = get_im_data(scan_result["data"])
         if data_im is not None:
+            # Analyze connectivity from scan results
             connectivity_results = analyze_connectivity(data_im, network_name, con)
-            await write_connectivity_results(connectivity_results)
+            if connectivity_results:
+                logging.info(
+                    f"Writing connectivity results for network_name: {network_name}, "
+                    f"token: {token}"
+                )
+                await write_connectivity_results(connectivity_results)
+            # analyze interference from scan results
+            link_mac_map = await create_link_mac_map(network_name)
+            if link_mac_map is not None:
+                interference_results = await analyze_interference(
+                    data_im, network_name, link_mac_map
+                )
+                if interference_results:
+                    logging.info(
+                        "Writing interference results for network_name: "
+                        f"{network_name}, token: {token}"
+                    )
+                    await write_interference_results(interference_results)
 
     except json.JSONDecodeError:
         logging.exception("Failed to deserialize scan data")
@@ -67,14 +88,14 @@ async def events_handler(msg: str) -> None:
 async def async_main(config: Dict, scan_data_dir: str) -> None:
     """Consume and store scan data, and perform analysis when scans are complete."""
 
-    consumer = KafkaConsumer().consumer
-    consumer.subscribe(config["topics"])
-
     # Configure connectivity analysis constants
     beam_order: List[int] = []
     for start, end, interval in config["hardware_config"]["beam_order_range"]:
         beam_order += list(range(start, end, interval))
     con = HardwareConfig(beam_order, **config["hardware_config"]["constants"])
+
+    consumer = KafkaConsumer().consumer
+    consumer.subscribe(config["topics"])
 
     async for msg in consumer:
         if msg.topic == "scan_results":
@@ -99,5 +120,10 @@ def main() -> None:
 
     init(
         lambda: async_main(config, scan_data_dir),
-        {ClientType.KAFKA_CONSUMER, ClientType.MYSQL_CLIENT},
+        {
+            ClientType.API_SERVICE_CLIENT,
+            ClientType.KAFKA_CONSUMER,
+            ClientType.MYSQL_CLIENT,
+            ClientType.PROMETHEUS_CLIENT,
+        },
     )
