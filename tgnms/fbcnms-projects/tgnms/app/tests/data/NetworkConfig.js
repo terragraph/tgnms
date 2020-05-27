@@ -411,3 +411,30 @@ export function mockFig0() {
     });
   return topology;
 }
+
+/**
+ * Creates a mock topology like:
+ * (site1)--(site2)--...--(siteN)
+ */
+export function mockMultiHop(hops: number, includesPop: boolean) {
+  const topology = mockTopology();
+  for (let i = 0; i < hops; i++) {
+    topology.__test
+      .addSite({
+        name: 'site' + i,
+        location: {latitude: i, longitude: 0, accuracy: 1, altitude: 1},
+      })
+      .addNode({
+        name: 'node' + i,
+        site_name: 'site' + i,
+        pop_node: i === 0 && includesPop,
+      });
+    if (i > 0) {
+      topology.__test.addLink({
+        a_node_name: 'node' + (i - 1),
+        z_node_name: 'node' + i,
+      });
+    }
+  }
+  return topology;
+}
