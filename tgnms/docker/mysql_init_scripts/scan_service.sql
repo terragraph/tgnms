@@ -140,3 +140,19 @@ CREATE TABLE IF NOT EXISTS connectivity_results (
   routes json NOT NULL,
   PRIMARY KEY (id)
 );
+
+
+CREATE TABLE IF NOT EXISTS interference_results (
+  id INTEGER NOT NULL AUTO_INCREMENT,
+  group_id INTEGER DEFAULT NULL,
+  network_name VARCHAR(255) NOT NULL,
+  token INTEGER NOT NULL,
+  tx_node VARCHAR(255) NOT NULL,
+  tx_to_node VARCHAR(255) NOT NULL,
+  tx_power_idx INTEGER DEFAULT NULL,
+  rx_node VARCHAR(255) NOT NULL,
+  rx_from_node VARCHAR(255) NOT NULL,
+  inr_curr_power json NOT NULL,
+  inr_max_power json NOT NULL,
+  PRIMARY KEY (id)
+);
