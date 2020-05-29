@@ -21,6 +21,10 @@ from ..utils.ip import format_address
 from .base_client import BaseClient
 
 
+_DURATION_RE = re.compile("^[0-9]+[smhdw]$")
+_SECONDS_PER_UNIT = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
+
+
 # Common labels
 consts = SimpleNamespace()
 consts.data_interval_s = "intervalSec"
@@ -121,6 +125,29 @@ class PrometheusClient(BaseClient):
         cls._session = None
 
     @staticmethod
+    def duration2seconds(duration: str) -> int:
+        """Convert a duration string into the equivalent number of seconds.
+
+        Args:
+            duration: The duration string.
+
+        Returns:
+            The number of seconds for the duration.
+
+        Raises:
+            ValueError: The duration string is invalid.
+
+        Example:
+            >>> PrometheusClient.duration2seconds("2m")
+            120
+            >>> PrometheusClient.duration2seconds("30s")
+            30
+        """
+        if not _DURATION_RE.match(duration):
+            raise ValueError(f"Duration string must match: {_DURATION_RE.pattern}")
+        return int(duration[:-1]) * _SECONDS_PER_UNIT[duration[-1]]
+
+    @staticmethod
     def normalize(value: str) -> str:
         """Remove invalid characters in order to be Prometheus compliant.
 
@@ -152,21 +179,21 @@ class PrometheusClient(BaseClient):
 
         Args:
             metric_name: The Prometheus metric name.
-            labels: The dictionary of labels to **positive** matching values.
-            negate_labels: The dictionary of labels to **negative** matching values.
+            labels: The dictionary of labels to *positive* matching values.
+            negate_labels: The dictionary of labels to *negative* matching values.
 
         Returns:
             A PromQL formatted query string.
-
-        Note:
-            If a value is given of type :class:`typing.Pattern`, then the ``~`` character is automatically
-            added to the label assignment.
 
         Example:
             >>> PrometheusClient.format_query("foo", labels={"nodeName": "node1"}, negate_labels={"network": re.compile("test*")})
             foo{nodeName="node1",network!~"test*"}
             >>> PrometheusClient.format_query("bar", labels={"linkName": re.compile("link1|link2")}, negate_labels={"network":"test_net"})
             bar{linkName=~"link1|link2",network!="test_net"}
+
+        Note:
+            The ``~`` character is automatically added to the label assignment if the
+            label value is of type :class:`typing.Pattern`.
         """
         label_list = []
         for name, val in labels.items():
@@ -199,8 +226,9 @@ class PrometheusClient(BaseClient):
             ClientStoppedError: The HTTP client session pool is not running.
 
         Attention:
-            This method will overwrite :class:`PrometheusMetric` values with duplicate
-            ``name`` and ``labels`` values in between Prometheus scrapes.
+            Calling this method multiple times in between Prometheus scrapes will
+            overwrite :class:`PrometheusMetric` data with duplicate ``name`` and
+            ``labels`` values.
         """
         if cls._metrics is None:
             raise ClientStoppedError()
@@ -234,6 +262,70 @@ class PrometheusClient(BaseClient):
         return datapoints
 
     async def query_range(
+        self, query: str, step: str, start: int, end: Optional[int]
+    ) -> Dict:
+        """Return the non-stale timeseries data for the given PromQL query and time range.
+
+        Issues two queries to Prometheus, one for the metric data and a second
+        for the timestamp data. If either request fails, the raw data is simply
+        returned. The timestamp data is used to identify stale or duplicate samples.
+        Duplicate samples are those whose values are held across multiple steps due to
+        missing data.
+
+        Args:
+            query: The PromQL string query.
+            step: The query step resolution width in duration format.
+            start: The start unix timestamp in seconds.
+            end: The end unix timestamp in seconds.
+
+        Returns:
+            The Prometheus JSON response as a Python dictionary.
+
+        Raises:
+            ClientStoppedError: The HTTP client session pool is not running.
+            ClientRuntimeError: The request failed or timed out.
+            RuntimeError: The ordering of the metric and timestamp data is not aligned.
+            ValueError: The value for ``step`` is an invalid duration string.
+            ValueError: The value for ``start`` is greater than the value for ``end``.
+
+        Example:
+            >>> # Assume Prometheus has the following "metric" and timestamp data
+            >>> # data = [[100, 8.5], [150, 8.5], [200, 9.2], [250, 9.0]]
+            >>> # timestamp = [[100, 99], [150, 99], [200, 200], [250, 245]]
+            >>> client = PrometheusClient(timeout=2)
+            >>> response = await client.query_range(query="metric", step="50s", start=100, stop=250)
+            >>> response["data"]["result"][0]["values"]
+            [[100, 8.5], [200, 9.2], [250, 9.0]]
+
+        Note:
+            If not provided, ``end`` will default to the current unix time.
+        """
+        data, timestamps = await asyncio.gather(
+            self.query_range_raw(query, step, start, end),
+            self.query_range_ts(query, step, start, end),
+        )
+        if data["status"] == "error" or timestamps["status"] == "error":
+            return data
+
+        step_s = self.duration2seconds(step)
+        for t_res, d_res in zip(timestamps["data"]["result"], data["data"]["result"]):
+            if not (t_res["metric"].items() <= d_res["metric"].items()):
+                raise RuntimeError("Metric and timestamp data are not aligned!")
+
+            prev = None
+            count = 0
+            d_res_values = d_res["values"].copy()
+            for i, (t_val, d_val) in enumerate(zip(t_res["values"], d_res_values)):
+                # Skip stale and duplicate samples
+                if float(t_val[1]) <= start - step_s or prev == t_val[1]:
+                    del d_res["values"][i - count]
+                    count += 1
+
+                prev = t_val[1]
+
+        return data
+
+    async def query_range_raw(
         self, query: str, step: str, start: int, end: Optional[int] = None
     ) -> Dict:
         """Return the timeseries data for the given PromQL query and time range.
@@ -250,6 +342,8 @@ class PrometheusClient(BaseClient):
         Raises:
             ClientStoppedError: The HTTP client session pool is not running.
             ClientRuntimeError: The request failed or timed out.
+            ValueError: The value for ``step`` is an invalid duration string.
+            ValueError: The value for ``start`` is greater than the value for ``end``.
 
         Note:
             If not provided, ``end`` will default to the current unix time.
@@ -259,9 +353,8 @@ class PrometheusClient(BaseClient):
         if end is None:
             end = int(round(time.time()))
 
-        duration_re = "[0-9]+[smhdwy]"
-        if not re.match(duration_re, step):
-            raise ValueError(f"Step resolution must be a valid duration, {duration_re}")
+        if not _DURATION_RE.match(step):
+            raise ValueError(f"Step resolution must match: {_DURATION_RE.pattern}")
         if start > end:
             raise ValueError(f"Start time cannot be after end time: {start} > {end}")
 
@@ -329,11 +422,13 @@ class PrometheusClient(BaseClient):
         Raises:
             ClientStoppedError: The HTTP client session pool is not running.
             ClientRuntimeError: The request failed or timed out.
+            ValueError: The value for ``step`` is an invalid duration string.
+            ValueError: The value for ``start`` is greater than the value for ``end``.
 
         Note:
             If not provided, ``end`` will default to the current unix time.
         """
-        return await self.query_range(f"timestamp({query})", step, start, end)
+        return await self.query_range_raw(f"timestamp({query})", step, start, end)
 
     async def query_latest_ts(self, query: str, time: Optional[int] = None) -> Dict:
         """Return the latest timestamp emission for the given query.
