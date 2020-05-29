@@ -32,6 +32,14 @@ export const EXECUTION_STATUS = {
   RUNNING: 'Running',
 };
 
+export const EXECUTION_STATUS_SIGNIFICANCE = {
+  RUNNING: 1,
+  FINISHED: 2,
+  ABORTED: 3,
+  FAILED: 4,
+  SCHEDULED: 5,
+};
+
 export const STATUS_ICONS = {
   FINISHED: (
     <Tooltip title={EXECUTION_STATUS.FINISHED} placement="top">

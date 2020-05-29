@@ -1,0 +1,63 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow strict-local
+ */
+import 'jest-dom/extend-expect';
+import LinkTestResult from '../LinkTestResult';
+import MaterialTheme from '../../../../MaterialTheme';
+import React from 'react';
+import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {cleanup, fireEvent, render} from '@testing-library/react';
+
+afterEach(cleanup);
+
+const defaultProps = {
+  linkName: 'testLink',
+  executionResults: [],
+};
+
+test('renders', () => {
+  const {getAllByText} = render(
+    <TestApp>
+      <MaterialTheme>
+        <LinkTestResult {...defaultProps} />
+      </MaterialTheme>
+    </TestApp>,
+  );
+  expect(getAllByText('testLink').length).toBe(2);
+});
+
+test('if no test result, give error message', () => {
+  const {getByText} = render(
+    <TestApp>
+      <MaterialTheme>
+        <LinkTestResult {...defaultProps} />
+      </MaterialTheme>
+    </TestApp>,
+  );
+
+  expect(
+    getByText('Could not find test results', {exact: false}),
+  ).toBeInTheDocument();
+});
+
+test('removes selected element when back button is clicked', () => {
+  const removeElement = jest.fn();
+  const {getByTestId} = render(
+    <TestApp>
+      <NetworkContextWrapper
+        contextValue={{
+          selectedElement: {expanded: true, name: 'testLinkName', type: 'link'},
+          removeElement,
+        }}>
+        <MaterialTheme>
+          <LinkTestResult {...defaultProps} />
+        </MaterialTheme>
+      </NetworkContextWrapper>
+    </TestApp>,
+  );
+  fireEvent.click(getByTestId('back-button'));
+  expect(removeElement).toHaveBeenCalled();
+});

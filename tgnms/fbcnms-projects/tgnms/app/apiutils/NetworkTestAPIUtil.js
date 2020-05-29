@@ -344,7 +344,7 @@ function deserializeTestResult(serialized: any): TestResultDto {
      */
     get health() {
       if (serialized.status !== TEST_STATUS.FINISHED) {
-        return HEALTH_CODES.UNKNOWN;
+        return HEALTH_CODES.MISSING;
       }
       return serialized.health;
     },

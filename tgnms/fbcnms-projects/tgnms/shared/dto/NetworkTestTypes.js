@@ -12,6 +12,8 @@ import {
   TEST_TYPE_CODES,
 } from '../../app/constants/ScheduleConstants';
 
+import {HEALTH_CODES} from '../../app/constants/HealthConstants';
+
 export type InputStartType = {
   cronExpr?: string,
   whitelist?: Array<string>,
@@ -70,7 +72,8 @@ export type ExecutionResultsType = {
 
 export type ExecutionResultDataType = {
   id: number,
-  health: ?string,
+  link_distance: ?number,
+  health: $Keys<typeof HEALTH_CODES>,
   status: $Keys<typeof EXECUTION_STATUS>,
   src_node_mac: string,
   dst_node_mac: string,

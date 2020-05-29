@@ -39,6 +39,47 @@ export function mockExecutionResults(
 }
 
 /**
+ * Creates a fake singular execution result
+ * @param {object} overrides overrides default properties of the results
+ */
+export function mockExecutionResult(
+  overrides?: $Shape<ExecutionResultDataType>,
+): ExecutionResultDataType {
+  // only a few result properties are important so we can just ignore the rest
+  return {
+    id: 1,
+    link_distance: null,
+    health: 'EXCELLENT',
+    status: 'FINISHED',
+    src_node_mac: 'testSrcMac',
+    dst_node_mac: 'testDstMac',
+    asset_name: 'testAssetName',
+    start_dt: 'testStart',
+    end_dt: 'testEnd',
+    mcs_avg: null,
+    rssi_avg: null,
+    snr_avg: null,
+    rx_beam_idx: null,
+    rx_packet_count: null,
+    rx_per: null,
+    tx_beam_idx: null,
+    tx_packet_count: null,
+    tx_per: null,
+    tx_pwr_avg: null,
+    iperf_min_throughput: null,
+    iperf_max_throughput: null,
+    iperf_avg_throughput: null,
+    iperf_min_lost_percent: null,
+    iperf_max_lost_percent: null,
+    iperf_avg_lost_percent: null,
+    iperf_min_retransmits: null,
+    iperf_max_retransmits: null,
+    iperf_avg_retransmits: null,
+    ...overrides,
+  };
+}
+
+/**
  * Creates a fake network test execution list
  * @param {object} overrides overrides default properties of the list
  */

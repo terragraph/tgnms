@@ -86,11 +86,10 @@ export const SUPERFRAME_COLORS = {
 
 export const NETWORK_TEST_HEALTH_COLOR_RANGE = [
   HEALTH_DEFS[HEALTH_CODES.EXCELLENT].color,
-  HEALTH_DEFS[HEALTH_CODES.HEALTHY].color,
+  HEALTH_DEFS[HEALTH_CODES.GOOD].color,
   HEALTH_DEFS[HEALTH_CODES.MARGINAL].color,
-  HEALTH_DEFS[HEALTH_CODES.WARNING].color,
-  HEALTH_DEFS[HEALTH_CODES.UNKNOWN].color,
-  HEALTH_DEFS[HEALTH_CODES.DOWN].color,
+  HEALTH_DEFS[HEALTH_CODES.POOR].color,
+  HEALTH_DEFS[HEALTH_CODES.MISSING].color,
 ];
 
 // === SITES ===
@@ -385,10 +384,10 @@ export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
     range: [12, 9, 7, 0],
     bounds: [0, 12],
   },
-  iperf_throughput_mean: {
+  iperf_avg_throughput: {
     name: 'Iperf Throughput',
     type: 'metric',
-    id: 'iperf_throughput_mean',
+    id: 'iperf_avg_throughput',
     //TODO: make these dynamic based on test execution id
     range: [200, 150, 80, 40],
     bounds: [0, 200],
@@ -396,7 +395,7 @@ export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
       if (!metricData) {
         return 0;
       }
-      return (metricData.iperf_throughput_mean || 0) / MEGABITS;
+      return (metricData.iperf_avg_throughput || 0) / MEGABITS;
     },
     formatText: (_link, value: number) => {
       return formatNumber(value, 1);

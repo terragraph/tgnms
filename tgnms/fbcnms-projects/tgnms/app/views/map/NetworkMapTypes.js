@@ -72,6 +72,7 @@ export type NetworkMapOptions = $Shape<{
   historicalDate: Date,
   selectedTime: Date,
   historicalData: ?{},
+  testExecutionData: ?{},
   overlayData: LayerData<{}>,
   mapMode: string,
 }>;

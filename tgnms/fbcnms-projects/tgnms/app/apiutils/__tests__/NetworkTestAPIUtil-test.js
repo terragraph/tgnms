@@ -66,7 +66,7 @@ describe('getTestResults', () => {
     expect(getMock).toHaveBeenCalledWith(
       'http://localhost/network_test/results',
     );
-    expect(result.health).toBe(HEALTH_CODES.UNKNOWN);
+    expect(result.health).toBe(HEALTH_CODES.MISSING);
   });
   test('appends parameters to the url as query params', async () => {
     const getMock = jest.spyOn(axios, 'get').mockResolvedValueOnce({

@@ -6,13 +6,20 @@
  */
 
 export const HEALTH_CODES = {
+  MISSING: 4,
   EXCELLENT: 0,
-  HEALTHY: 1,
+  GOOD: 1,
   MARGINAL: 2,
-  WARNING: 3,
-  UNKNOWN: 4,
-  DOWN: 5,
+  POOR: 3,
 };
+
+export const HEALTH_EXECUTIONS = [
+  HEALTH_CODES.POOR,
+  HEALTH_CODES.MARGINAL,
+  HEALTH_CODES.GOOD,
+  HEALTH_CODES.EXCELLENT,
+  HEALTH_CODES.MISSING,
+];
 
 export type HealthDef = {
   name: string,
@@ -22,40 +29,35 @@ export type HealthDef = {
 export const HEALTH_DEFS: {[code: number]: HealthDef} = {
   [HEALTH_CODES.EXCELLENT]: {
     code: HEALTH_CODES.EXCELLENT,
-    name: 'excellent',
+    name: 'Excellent',
     color: 'rgb(76, 175, 80)',
   },
-  [HEALTH_CODES.HEALTHY]: {
-    code: HEALTH_CODES.HEALTHY,
-    name: 'healthy',
+  [HEALTH_CODES.GOOD]: {
+    code: HEALTH_CODES.GOOD,
+    name: 'Good',
     color: 'rgb(103, 200, 255)',
   },
   [HEALTH_CODES.MARGINAL]: {
     code: HEALTH_CODES.MARGINAL,
-    name: 'marginal',
+    name: 'Marginal',
     color: 'rgb(255, 193, 7)',
   },
-  [HEALTH_CODES.WARNING]: {
-    code: HEALTH_CODES.WARNING,
-    name: 'warning',
+  [HEALTH_CODES.POOR]: {
+    code: HEALTH_CODES.POOR,
+    name: 'Poor',
     color: 'rgb(244, 137, 54)',
   },
-  [HEALTH_CODES.UNKNOWN]: {
-    code: HEALTH_CODES.UNKNOWN,
-    name: 'unknown',
-    color: 'rgb(33,33,33)',
-  },
-  [HEALTH_CODES.DOWN]: {
-    code: HEALTH_CODES.DOWN,
-    name: 'down',
-    color: 'rgb(244, 67, 54)',
+  [HEALTH_CODES.MISSING]: {
+    code: HEALTH_CODES.MISSING,
+    name: 'Missing',
+    color: 'rgb(158,158,158)',
   },
 };
 
 export function getHealthDef(health: number): HealthDef {
   const def = HEALTH_DEFS[health];
   if (!def) {
-    return HEALTH_DEFS[HEALTH_CODES.UNKNOWN];
+    return HEALTH_DEFS[HEALTH_CODES.MISSING];
   }
   return def;
 }

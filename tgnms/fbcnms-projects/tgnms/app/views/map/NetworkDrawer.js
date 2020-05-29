@@ -14,13 +14,13 @@ import DrawerToggleButton from '../../components/common/DrawerToggleButton';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
+import NetworkTestPanel from '../../components/mappanels/NetworkTestPanel/NetworkTestPanel';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
 import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
-import TestExecutionPanel from '../../components/mappanels/TestExecutionPanel';
 import TopologyBuilderMenu from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
 import mapboxgl from 'mapbox-gl';
@@ -72,7 +72,6 @@ type Props = {
   context: NetworkContextType,
   speedTestId: ?string,
   networkTestId: ?string,
-  onNetworkTestPanelClosed: () => any,
   mapRef: ?mapboxgl.Map,
   plannedSiteProps: PlannedSiteProps,
   routesProps: Routes,
@@ -635,11 +634,9 @@ class NetworkDrawer extends React.Component<
           )}
 
           {this.isTestMode() && (
-            <TestExecutionPanel
+            <NetworkTestPanel
               expanded={true}
               testId={this.props.networkTestId}
-              selectedElement={selectedElement}
-              onClose={this.props.onNetworkTestPanelClosed}
             />
           )}
           {this.isSpeedTestMode() && (

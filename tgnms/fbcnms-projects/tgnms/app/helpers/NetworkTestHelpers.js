@@ -5,8 +5,15 @@
  * @flow
  */
 
+import {
+  EXECUTION_STATUS,
+  EXECUTION_STATUS_SIGNIFICANCE,
+} from '../constants/ScheduleConstants';
+import {HEALTH_CODES} from '../constants/HealthConstants';
 import {generatePath} from 'react-router';
 import {getUrlSearchParam} from './NetworkUrlHelpers';
+
+import type {LinkTestResultType} from '../views/network_test/NetworkTestTypes';
 import type {Location} from 'react-router-dom';
 
 /**
@@ -39,13 +46,6 @@ export function createTestMapLink({
   return `/map/${networkName || ''}/tests?test=${executionId || ''}`;
 }
 
-export function makeTestExecutionLink(params: {
-  networkName: string,
-  executionId: string | number,
-}) {
-  return generatePath('/network_test/:networkName/:executionId', params);
-}
-
 export function makeTestResultLink(params: {
   networkName: string,
   executionId: string | number,
@@ -55,4 +55,32 @@ export function makeTestResultLink(params: {
     '/network_test/:networkName/:executionId/details/:linkName',
     params,
   );
+}
+
+export function getExecutionHealth(
+  execution: LinkTestResultType,
+): $Values<typeof HEALTH_CODES> {
+  const health = execution.results.reduce((finalHealth, result) => {
+    const healthNumber = HEALTH_CODES[result.health];
+    if (healthNumber > finalHealth) {
+      return healthNumber;
+    }
+    return finalHealth;
+  }, -1);
+
+  return health === -1 ? 4 : health;
+}
+
+export function getExecutionStatus(
+  execution: LinkTestResultType,
+): $Values<typeof EXECUTION_STATUS> {
+  const status = execution.results.reduce(
+    (finalStatus, result) =>
+      EXECUTION_STATUS_SIGNIFICANCE[result.status] <
+      EXECUTION_STATUS_SIGNIFICANCE[finalStatus]
+        ? result.status
+        : finalStatus,
+    'FAILED',
+  );
+  return EXECUTION_STATUS[status];
 }

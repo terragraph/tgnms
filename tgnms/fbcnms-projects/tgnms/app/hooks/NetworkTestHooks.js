@@ -9,35 +9,42 @@ import * as api from '../apiutils/NetworkTestAPIUtil';
 import axios from 'axios';
 import type {TestExecution} from '../../shared/dto/TestExecution';
 
-export function useLoadTestResults({links = []}: {links?: Array<string>}) {
-  const [loading, setLoading] = React.useState(true);
-  const [results, setResults] = React.useState(null);
+import type {
+  ExecutionDetailsType,
+  ExecutionResultDataType,
+} from '../../shared/dto/NetworkTestTypes';
 
-  React.useEffect(
-    () => {
-      setLoading(true);
-      if (!links || links.length === 0) {
-        return;
-      }
-      const cancelSource = axios.CancelToken.source();
-      api
-        .getTestResults({
-          results: links,
-          cancelToken: cancelSource.token,
-        })
-        .then(results => {
-          setResults(results);
-          setLoading(false);
-        });
-      return () => cancelSource.cancel();
-    },
-    /*eslint-disable react-hooks/exhaustive-deps*/ [...links],
+export function useLoadTestExecutionResults({testId}: {testId: string}) {
+  const [loading, setLoading] = React.useState(true);
+  const [execution, setExecution] = React.useState<?ExecutionDetailsType>(null);
+  const [results, setResults] = React.useState<?Array<ExecutionResultDataType>>(
+    null,
   );
-  /*eslint-enable react-hooks/exhaustive-deps*/
-  return {
-    loading,
-    results,
-  };
+
+  React.useEffect(() => {
+    if (!testId) {
+      return;
+    }
+    setLoading(true);
+    const cancelSource = axios.CancelToken.source();
+    api
+      .getExecutionResults({
+        executionId: testId,
+        cancelToken: cancelSource.token,
+      })
+      .then(data => {
+        setLoading(false);
+        setExecution(data.execution);
+        setResults(data.results);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+
+    return () => cancelSource.cancel();
+  }, [testId]);
+
+  return {loading, execution, results};
 }
 
 export function useLoadTestExecution({testId}: {testId: string}) {

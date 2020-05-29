@@ -14,6 +14,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import MapHistoryOverlayPanel from './MapHistoryOverlayPanel';
 import MapOverlayLegend from './MapOverlayLegend';
 import MenuItem from '@material-ui/core/MenuItem';
+import NetworkTestOverlayPanel from './NetworkTestOverlayPanel';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
@@ -126,35 +127,38 @@ function OverlaySection() {
     },
     [setMapMode],
   );
+
   return (
     <div className={classes.formContainer}>
-      {isFeatureEnabled('MAP_HISTORY_ENABLED') && (
-        <>
-          <Tabs
-            value={mapMode}
-            onChange={handleTabChange}
-            classes={{
-              root: classes.tabsRoot,
-              indicator: classes.tabsIndicator,
-            }}>
-            <Tab
-              classes={{root: classes.tabRoot}}
-              disableRipple
-              label="Current"
-              value={MAPMODE.DEFAULT}
-            />
-            <Tab
-              classes={{root: classes.tabRoot}}
-              disableRipple
-              label="History"
-              value={MAPMODE.HISTORICAL}
-            />
-          </Tabs>
-        </>
-      )}
+      {isFeatureEnabled('MAP_HISTORY_ENABLED') &&
+        mapMode !== MAPMODE.NETWORK_TEST && (
+          <>
+            <Tabs
+              value={mapMode}
+              onChange={handleTabChange}
+              classes={{
+                root: classes.tabsRoot,
+                indicator: classes.tabsIndicator,
+              }}>
+              <Tab
+                classes={{root: classes.tabRoot}}
+                disableRipple
+                label="Current"
+                value={MAPMODE.DEFAULT}
+              />
+              <Tab
+                classes={{root: classes.tabRoot}}
+                disableRipple
+                label="History"
+                value={MAPMODE.HISTORICAL}
+              />
+            </Tabs>
+          </>
+        )}
       <div>
         {mapMode === MAPMODE.DEFAULT && <DefaultOverlayPanel />}
         {mapMode === MAPMODE.HISTORICAL && <MapHistoryOverlayPanel />}
+        {mapMode === MAPMODE.NETWORK_TEST && <NetworkTestOverlayPanel />}
         <div>
           <OverlaysForm />
         </div>

@@ -9,6 +9,7 @@
 
 import NetworkTest from '../network_test/NetworkTest';
 import React, {useCallback} from 'react';
+import {MAPMODE, useMapContext} from '../../contexts/MapContext';
 import {SnackbarProvider} from 'notistack';
 import {
   createTestMapLink,
@@ -22,6 +23,8 @@ type Props = {
 
 export default function NetworkTestTable({match, location}: Props) {
   const {networkName} = match.params;
+  const {setMapMode} = useMapContext();
+
   const createTestUrl = useCallback(
     ({executionId}) => {
       const url = new URL(
@@ -34,11 +37,13 @@ export default function NetworkTestTable({match, location}: Props) {
       url.search = location.search;
       if (executionId) {
         url.searchParams.set('test', executionId);
+        url.searchParams.set('mapMode', MAPMODE.NETWORK_TEST);
       }
+      setMapMode(MAPMODE.NETWORK_TEST);
       // can't use an absolute url in react-router
       return `${url.pathname}${url.search}`;
     },
-    [location.search, networkName],
+    [location.search, networkName, setMapMode],
   );
   return (
     <SnackbarProvider

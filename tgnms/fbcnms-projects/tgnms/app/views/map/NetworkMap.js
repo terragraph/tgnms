@@ -319,7 +319,6 @@ class NetworkMap extends React.Component<Props, State> {
                   }}
                   networkTestId={getTestOverlayId(location)}
                   speedTestId={getSpeedTestId(location)}
-                  onNetworkTestPanelClosed={this.exitTestOverlayMode}
                   onNetworkDrawerResize={networkDrawerWidth =>
                     this.setState({networkDrawerWidth})
                   }
@@ -358,13 +357,6 @@ class NetworkMap extends React.Component<Props, State> {
       </NetworkContext.Consumer>
     );
   }
-
-  exitTestOverlayMode = () => {
-    const {history} = this.props;
-    const urlWithoutOverlay = new URL(window.location);
-    urlWithoutOverlay.searchParams.delete('test');
-    history.replace(`${urlWithoutOverlay.pathname}${urlWithoutOverlay.search}`);
-  };
 }
 
 export default withStyles(styles, {withTheme: true})(withRouter(NetworkMap));

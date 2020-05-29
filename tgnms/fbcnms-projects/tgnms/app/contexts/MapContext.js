@@ -25,6 +25,7 @@ type OverlayMap = LayerData<Overlay>;
 export const MAPMODE = {
   DEFAULT: 'DEFAULT',
   HISTORICAL: 'HISTORICAL',
+  NETWORK_TEST: 'NETWORK_TEST',
 };
 
 export type MapContext = {|

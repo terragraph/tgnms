@@ -178,6 +178,7 @@ class CustomTable extends React.Component<Props, State> {
 
   render() {
     const {classes, headerHeight, overscanRowCount, rowHeight} = this.props;
+
     const adjustedHeaderHeight = headerHeight;
     const adjustedRowHeight = rowHeight;
 
