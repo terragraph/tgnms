@@ -165,6 +165,7 @@ export default function NetworkTest(props: Props) {
             } = getParsedCronString({cronString: newRow.cron_expr || ''});
             tempRows.schedule.push({
               id: newRow.id,
+              rowId: 'schedule' + newRow.id,
               filterStatus: 'SCHEDULED',
               type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
               start:
@@ -214,6 +215,7 @@ export default function NetworkTest(props: Props) {
           ) {
             tempRows.running.push({
               id: newRow.id,
+              rowId: 'execution' + newRow.id,
               type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
               filterStatus: newRow.status,
               start: getFormattedDateAndTime({date: newRow.start_dt || ''}),
@@ -240,6 +242,7 @@ export default function NetworkTest(props: Props) {
             const filterStatus = newRow.status;
             tempRows.executions.push({
               id: newRow.id,
+              rowId: 'execution' + newRow.id,
               filterStatus,
               type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
               start: getFormattedDateAndTime({date: newRow.start_dt || ''}),

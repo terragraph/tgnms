@@ -63,6 +63,7 @@ test('renders custom table with rows', () => {
         rows={[
           {
             id: 1,
+            rowId: '0',
             filterStatus: 'FINISHED',
             type: 'sequential',
             start: new Date().toLocaleString(),

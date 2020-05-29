@@ -81,12 +81,11 @@ export default function ScheduleTable<T>(props: Props<T>) {
         ),
       );
     }
-    if (
-      selectedRow &&
-      selectedRow?.id &&
-      EXECUTION_STATUS[selectedRow.filterStatus] !== EXECUTION_STATUS.FAILED &&
-      EXECUTION_STATUS[selectedRow.filterStatus] !== EXECUTION_STATUS.SCHEDULED
-    ) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  React.useEffect(() => {
+    if (selectedRow && selectedRow?.id) {
       history.push(
         createURL({
           executionId: selectedRow.id.toString(),
@@ -108,6 +107,12 @@ export default function ScheduleTable<T>(props: Props<T>) {
       scheduleColumn('status', {width: 190}),
       scheduleColumn('protocol', {width: 60}),
       scheduleColumn('actions', {width: 150}),
+      {
+        label: 'rowId',
+        key: 'rowId',
+        isKey: true,
+        hidden: true,
+      },
     ];
 
     return {
@@ -119,7 +124,12 @@ export default function ScheduleTable<T>(props: Props<T>) {
 
   const handleRowSelect = React.useCallback(
     row => {
-      setSelectedRow(row);
+      if (
+        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.FAILED &&
+        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.SCHEDULED
+      ) {
+        setSelectedRow(row);
+      }
     },
     [setSelectedRow],
   );
@@ -145,7 +155,11 @@ export default function ScheduleTable<T>(props: Props<T>) {
           ) : !rows ? (
             'Failed to load, please try again.'
           ) : tableProps.data?.length ? (
-            <CustomTable {...tableProps} onRowSelect={handleRowSelect} />
+            <CustomTable
+              selected={selectedRow ? Object.values(selectedRow) : []}
+              {...tableProps}
+              onRowSelect={handleRowSelect}
+            />
           ) : (
             'No executions or schedules with current filters, try starting a test.'
           )}
