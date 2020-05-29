@@ -1,5 +1,5 @@
 # pull base image.for build
-FROM alpine:edge AS builder
+FROM alpine:3.11 AS builder
 
 # fixed versions where possible
 ARG CPPKAFKA_VERSION=0.3.1
@@ -118,7 +118,7 @@ RUN cmake .. && \
 RUN rm -rf /tmp/*
 
 # dev build
-FROM alpine:edge AS dev
+FROM alpine:3.11 AS dev
 
 ENV WORKDIR /usr/local/nms
 
@@ -162,7 +162,7 @@ COPY --from=builder /usr/local/nms/build/bin/query_service bin/
 COPY --from=builder /usr/local/nms/build/bin/udp_ping_client bin/
 COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test bin/
 
-FROM alpine:edge
+FROM alpine:3.11
 
 # some packages aren't in mainline
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
