@@ -15,6 +15,7 @@ import type {TopologyType} from '../../shared/types/Topology';
 
 export type TopologyMaps = {|
   nodeMap: NodeMap,
+  nodeToLinksMap: NodeToLinksMap,
   siteMap: SiteMap,
   linkMap: LinkMap,
   nodeToLinksMap: NodeToLinksMap,

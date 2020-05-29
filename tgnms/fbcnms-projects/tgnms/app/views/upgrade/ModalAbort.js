@@ -85,7 +85,7 @@ class ModalAbort extends React.Component<Props, State> {
     }
 
     apiServiceRequest(this.props.networkName, 'abortUpgrade', data)
-      .then(
+      .then(_ =>
         swal({
           type: 'info',
           title: 'Abort Upgrade(s) Success',

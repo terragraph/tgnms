@@ -229,7 +229,7 @@ class ModalPrepare extends React.Component<Props, State> {
     };
 
     apiServiceRequest(this.props.networkName, 'sendUpgradeRequest', data)
-      .then(
+      .then(_ =>
         swal({
           type: 'info',
           title: 'Prepare Upgrade Initiated',

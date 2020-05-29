@@ -38,6 +38,7 @@ export type NetworkContextType = {|
 
   // Topology maps
   nodeMap: NodeMap,
+  nodeToLinksMap: NodeToLinksMap,
   linkMap: LinkMap,
   siteMap: SiteMap,
   siteToNodesMap: SiteToNodesMap,
@@ -225,6 +226,7 @@ const NetworkContext = React.createContext<NetworkContextType>({
 
   // Topology maps
   nodeMap: {},
+  nodeToLinksMap: {},
   linkMap: {},
   siteMap: {},
   siteToNodesMap: {},

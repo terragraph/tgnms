@@ -77,6 +77,7 @@ type State = {
   networkLinkIgnitionAttempts: Object,
   networkHealthTimeWindowHrs: number,
   nodeMap: {[string]: Node},
+  nodeToLinksMap: {[string]: Set<string>},
   pinnedElements: Array<Element>,
   siteMap: SiteMap,
   siteToNodesMap: {[string]: Set<string>},
@@ -94,6 +95,7 @@ class NetworkUI extends React.Component<Props, State> {
 
     // Topology maps
     nodeMap: {},
+    nodeToLinksMap: {},
     linkMap: {},
     siteMap: {},
     siteToNodesMap: {},
@@ -450,6 +452,7 @@ class NetworkUI extends React.Component<Props, State> {
 
             // Topology maps
             nodeMap: this.state.nodeMap,
+            nodeToLinksMap: this.state.nodeToLinksMap,
             linkMap: this.state.linkMap,
             siteMap: this.state.siteMap,
             siteToNodesMap: this.state.siteToNodesMap,

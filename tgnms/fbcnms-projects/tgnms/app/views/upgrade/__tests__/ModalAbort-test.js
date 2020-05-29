@@ -10,14 +10,15 @@ import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
 import ModalAbort from '../ModalAbort';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {assertType} from '@fbcnms/util/assert';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   wait,
   waitForElement,
 } from '@testing-library/react';
+import {assertType} from '@fbcnms/util/assert';
 import {mockUpgradeReqData} from '../../../tests/data/Upgrade';
 
 const apiServiceRequestMock = jest
@@ -112,7 +113,9 @@ test('abort success', async () => {
       HTMLElement,
     ),
   );
-  fireEvent.click(getByText('Abort'));
+  await act(async _ => {
+    fireEvent.click(getByText('Abort'));
+  });
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
     'testNetwork',
