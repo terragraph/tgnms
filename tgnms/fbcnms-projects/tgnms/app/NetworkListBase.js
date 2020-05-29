@@ -14,6 +14,7 @@ import NmsSettings from './views/nms_config/NmsSettings';
 import axios from 'axios';
 import {NmsOptionsContextProvider} from './contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {SnackbarProvider} from 'notistack';
 import {generatePath, matchPath} from 'react-router';
 import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {useLocation, withRouter} from 'react-router-dom';
@@ -57,6 +58,9 @@ const styles = theme => ({
     position: 'relative',
     zIndex: 1,
     height: '100%',
+  },
+  snackbar: {
+    paddingRight: theme.spacing(8),
   },
 });
 
@@ -147,23 +151,32 @@ class NetworkListBase extends React.Component<Props, State> {
           getNetworkName: this.getNetworkName,
           changeNetworkName: this.changeNetworkName,
         }}>
-        <NmsOptionsContextProvider>
-          <div className={classes.root}>
-            <MaterialTopBar />
-            <main className={classes.main}>
-              <div className={classes.appBarSpacer} />
-              <Switch>
-                <AuthorizedRoute
-                  path={CONFIG_URL}
-                  component={NmsSettings}
-                  permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
-                />
-                <Route path="/:viewName/:networkName" component={NetworkUI} />
-                <NetworkRedirect defaultNetworkName={defaultNetworkName} />
-              </Switch>
-            </main>
-          </div>
-        </NmsOptionsContextProvider>
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={10000}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          classes={{root: classes.snackbar}}>
+          <NmsOptionsContextProvider>
+            <div className={classes.root}>
+              <MaterialTopBar />
+              <main className={classes.main}>
+                <div className={classes.appBarSpacer} />
+                <Switch>
+                  <AuthorizedRoute
+                    path={CONFIG_URL}
+                    component={NmsSettings}
+                    permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
+                  />
+                  <Route path="/:viewName/:networkName" component={NetworkUI} />
+                  <NetworkRedirect defaultNetworkName={defaultNetworkName} />
+                </Switch>
+              </main>
+            </div>
+          </NmsOptionsContextProvider>
+        </SnackbarProvider>
       </NetworkListContext.Provider>
     );
   }

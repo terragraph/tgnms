@@ -12,7 +12,6 @@ import EventRuleEditor from './eventalarms/EventRuleEditor';
 import {Severity as EventSeverity} from './eventalarms/EventAlarmsTypes';
 import {SEVERITY as GenericSeverity} from '@fbcnms/alarms/components/severity/Severity';
 import {PROMETHEUS_RULE_TYPE} from '@fbcnms/alarms/components/rules/PrometheusEditor/getRuleInterface';
-import {SnackbarProvider} from 'notistack';
 import {TgApiUtil, TgEventAlarmsApiUtil} from './TgAlarmApi.js';
 import {makeStyles} from '@material-ui/styles';
 import type {EventRule} from './eventalarms/EventAlarmsTypes';
@@ -65,26 +64,18 @@ export default function NmsAlarms(_props: Props) {
   );
   return (
     <div className={classes.root}>
-      <SnackbarProvider
-        maxSnack={3}
-        autoHideDuration={10000}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}>
-        <Alarms
-          apiUtil={TgApiUtil}
-          ruleMap={ruleMap}
-          makeTabLink={({match, keyName}) =>
-            `/alarms/${match.params.networkName || ''}/${keyName}`
-          }
-          getAlertType={getAlertType}
-          filterLabels={filterLabels}
-          thresholdEditorEnabled={false}
-          alertManagerGlobalConfigEnabled={true}
-          disabledTabs={['suppressions', 'routes']}
-        />
-      </SnackbarProvider>
+      <Alarms
+        apiUtil={TgApiUtil}
+        ruleMap={ruleMap}
+        makeTabLink={({match, keyName}) =>
+          `/alarms/${match.params.networkName || ''}/${keyName}`
+        }
+        getAlertType={getAlertType}
+        filterLabels={filterLabels}
+        thresholdEditorEnabled={false}
+        alertManagerGlobalConfigEnabled={true}
+        disabledTabs={['suppressions', 'routes']}
+      />
     </div>
   );
 }

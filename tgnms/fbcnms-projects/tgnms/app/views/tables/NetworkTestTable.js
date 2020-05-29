@@ -10,7 +10,6 @@
 import NetworkTest from '../network_test/NetworkTest';
 import React, {useCallback} from 'react';
 import {MAPMODE, useMapContext} from '../../contexts/MapContext';
-import {SnackbarProvider} from 'notistack';
 import {
   createTestMapLink,
   getTestOverlayId,
@@ -46,18 +45,10 @@ export default function NetworkTestTable({match, location}: Props) {
     [location.search, networkName, setMapMode],
   );
   return (
-    <SnackbarProvider
-      maxSnack={3}
-      autoHideDuration={10000}
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'right',
-      }}>
-      <NetworkTest
-        createTestUrl={createTestUrl}
-        networkName={networkName}
-        selectedExecutionId={getTestOverlayId(location)}
-      />
-    </SnackbarProvider>
+    <NetworkTest
+      createTestUrl={createTestUrl}
+      networkName={networkName}
+      selectedExecutionId={getTestOverlayId(location)}
+    />
   );
 }
