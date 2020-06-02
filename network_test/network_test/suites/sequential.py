@@ -11,10 +11,10 @@ from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .base import BaseTest, TestAsset
+from .base import LinkTest, TestAsset
 
 
-class Sequential(BaseTest):
+class Sequential(LinkTest):
     def __init__(
         self, network_name: str, iperf_options: Dict, whitelist: List[str]
     ) -> None:

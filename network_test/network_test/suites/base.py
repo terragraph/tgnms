@@ -91,7 +91,7 @@ class BaseTest(abc.ABC):
     async def save(
         self, requests: List[asyncio.Future], values: List[Dict[str, Any]]
     ) -> bool:
-        """Save the per-link test results in MySQL.
+        """Save the per-asset test results in MySQL.
 
         Kick off the asyncio Futures and save the NetworkTestResult values in the
         database. Return True if any session started successfully, otherwise False.
@@ -115,3 +115,11 @@ class BaseTest(abc.ABC):
             await sa_conn.connection.commit()
 
         return any(value["status"] == NetworkTestStatus.RUNNING for value in values)
+
+
+class NodeTest(BaseTest):
+    pass
+
+
+class LinkTest(BaseTest):
+    pass

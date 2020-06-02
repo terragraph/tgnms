@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import json
 import logging
 import sys
@@ -25,7 +26,7 @@ async def async_main(config: Dict) -> None:
     consumer.subscribe(config["topics"])
 
     async for msg in consumer:
-        await process_msg(msg.value.decode("utf-8"))
+        asyncio.create_task(process_msg(msg.value.decode("utf-8")))
 
 
 def main() -> None:

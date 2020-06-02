@@ -43,7 +43,6 @@ services:
   prometheus:
     image: prom/prometheus
     command: ["--config.file=/etc/prometheus/prometheus.yml",
-              "--query.lookback-delta=30s",
               "--storage.tsdb.path=/prometheus",
               "--web.console.libraries=/usr/share/prometheus/console_libraries",
               "--web.console.templates=/usr/share/prometheus/consoles",

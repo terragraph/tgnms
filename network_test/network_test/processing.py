@@ -9,8 +9,14 @@ from tglib.clients import MySQLClient
 
 from .models import NetworkTestResult, NetworkTestStatus
 from .scheduler import Scheduler
-from .stats import compute_firmware_stats, compute_iperf_stats, parse_msg
-from .suites import Multihop
+from .stats import (
+    compute_iperf_stats,
+    compute_link_health,
+    compute_node_health,
+    fetch_link_stats,
+    parse_msg,
+)
+from .suites import LinkTest, NodeTest
 
 
 async def process_msg(msg: str) -> None:
@@ -18,7 +24,6 @@ async def process_msg(msg: str) -> None:
     parsed = parse_msg(msg)
     if parsed is None:
         return
-
     get_execution_output = Scheduler.get_execution(parsed.session_id)
     if get_execution_output is None:
         logging.warning(f"Session ID '{parsed.session_id}' has no matching execution")
@@ -31,25 +36,28 @@ async def process_msg(msg: str) -> None:
             values["status"] = NetworkTestStatus.FAILED
         else:
             values["status"] = NetworkTestStatus.FINISHED
-            if parsed.is_server:
-                values["iperf_server_blob"] = msg
-            else:
-                values["iperf_client_blob"] = msg
-
             values.update(compute_iperf_stats(parsed))
-            if not isinstance(test, Multihop):
-                get_results_query = select(
-                    [NetworkTestResult.start_dt, NetworkTestResult.asset_name]
-                ).where(
-                    (NetworkTestResult.execution_id == execution_id)
-                    & (NetworkTestResult.src_node_mac == parsed.src_node_id)
-                    & (NetworkTestResult.dst_node_mac == parsed.dst_node_id)
-                )
+            if not parsed.is_server:
+                values["iperf_client_blob"] = msg
+            else:
+                values["iperf_server_blob"] = msg
+                if isinstance(test, NodeTest):
+                    values["health"] = compute_node_health(
+                        expected_bitrate=test.iperf_options["bitrate"],
+                        iperf_avg_throughput=values["iperf_avg_throughput"],
+                    )
+                elif isinstance(test, LinkTest):
+                    get_results_query = select(
+                        [NetworkTestResult.start_dt, NetworkTestResult.asset_name]
+                    ).where(
+                        (NetworkTestResult.execution_id == execution_id)
+                        & (NetworkTestResult.src_node_mac == parsed.src_node_id)
+                        & (NetworkTestResult.dst_node_mac == parsed.dst_node_id)
+                    )
 
-                cursor = await sa_conn.execute(get_results_query)
-                row = await cursor.first()
-                values.update(
-                    await compute_firmware_stats(
+                    cursor = await sa_conn.execute(get_results_query)
+                    row = await cursor.first()
+                    link_stats_output = await fetch_link_stats(
                         start_dt=row.start_dt,
                         session_duration=test.iperf_options["timeSec"],
                         network_name=test.network_name,
@@ -57,9 +65,18 @@ async def process_msg(msg: str) -> None:
                         src_node_mac=parsed.src_node_id,
                         dst_node_mac=parsed.dst_node_id,
                     )
-                )
 
-        query = (
+                    if link_stats_output is not None:
+                        firmware_stats, health_stats = link_stats_output
+                        values.update(firmware_stats)
+                        values["health"] = compute_link_health(
+                            session_duration=test.iperf_options["timeSec"],
+                            expected_bitrate=test.iperf_options["bitrate"],
+                            iperf_avg_throughput=values["iperf_avg_throughput"],
+                            **health_stats,
+                        )
+
+        update_results_query = (
             update(NetworkTestResult)
             .where(
                 (NetworkTestResult.execution_id == execution_id)
@@ -69,5 +86,5 @@ async def process_msg(msg: str) -> None:
             .values(**values)
         )
 
-        await sa_conn.execute(query)
+        await sa_conn.execute(update_results_query)
         await sa_conn.connection.commit()

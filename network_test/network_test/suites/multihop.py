@@ -11,10 +11,10 @@ from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .base import BaseTest, TestAsset
+from .base import NodeTest, TestAsset
 
 
-class Multihop(BaseTest):
+class Multihop(NodeTest):
     def __init__(
         self, network_name: str, iperf_options: Dict, whitelist: List[str]
     ) -> None:

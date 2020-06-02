@@ -41,6 +41,14 @@ class NetworkTestStatus(enum.Enum):
         return any(value == item.value for item in cls)
 
 
+class NetworkTestHealth(enum.Enum):
+    EXCELLENT = 1
+    GOOD = 2
+    MARGINAL = 3
+    POOR = 4
+    MISSING = 5
+
+
 Base: Any = declarative_base()
 
 
@@ -90,6 +98,8 @@ class NetworkTestResult(Base):
     asset_name = Column(String(255), nullable=False)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
     end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
+    # Derived Columns
+    health = Column(Enum(NetworkTestHealth), nullable=True)
     # Firmware Columns
     mcs_avg = Column(Float, nullable=True)
     rssi_avg = Column(Float, nullable=True)
@@ -101,6 +111,7 @@ class NetworkTestResult(Base):
     tx_packet_count = Column(Float, nullable=True)
     tx_per = Column(Float, nullable=True)
     tx_pwr_avg = Column(Float, nullable=True)
+    link_distance = Column(Float, nullable=True)
     # Iperf Columns
     iperf_min_throughput = Column(Float, nullable=True)
     iperf_max_throughput = Column(Float, nullable=True)
