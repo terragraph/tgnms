@@ -22,7 +22,7 @@ const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
-const NETWORKTEST_HOST = process.env.NETWORKTEST_HOST || 'network_test';
+const NETWORKTEST_HOST = process.env.NETWORKTEST_HOST || null;
 
 const PROXY_ENABLED = process.env.http_proxy && process.env.http_proxy.length;
 
