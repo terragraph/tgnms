@@ -64,7 +64,7 @@ export default function EditNetworkTestScheduleModal(props: Props) {
     <SchedulerModal
       buttonTitle="Edit"
       modalTitle="Edit Network Test Schedule"
-      modalScheduleText="Edit Schedule"
+      modalScheduleText="Save Changes"
       onSubmit={handleSubmit}
       initialCronString={initialCronString}
       modalMode={MODAL_MODE.EDIT}

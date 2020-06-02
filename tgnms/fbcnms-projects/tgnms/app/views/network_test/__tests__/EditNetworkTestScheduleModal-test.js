@@ -62,7 +62,7 @@ test('button click opens modal', () => {
   expect(getByText('Edit Network Test Schedule')).toBeInTheDocument();
 });
 
-test('Edit schedule calls edit api', () => {
+test('Save Changes calls edit api', () => {
   const {getByText} = render(
     <TestApp>
       <ScheduleNetworkTestModalWrapper>
@@ -73,7 +73,7 @@ test('Edit schedule calls edit api', () => {
   expect(getByText('Edit')).toBeInTheDocument();
   fireEvent.click(getByText('Edit'));
   expect(getByText('Edit Network Test Schedule')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit Schedule'));
+  fireEvent.click(getByText('Save Changes'));
   expect(editTestScheduleMock).toHaveBeenCalled();
 });
 
