@@ -59,3 +59,9 @@ Path loss is calculated as follows:
  * Network wide foliage stats is calculated by defining num_foliage_links and num_foliage_free_links
     * For each link, if foliage factor of a link is greater than threshold (0.85),
       increment the number of foliage links else increment the number of foliage free links.
+
+### `node_alignment`
+This job analyzes alignment for every link in both directions (A and Z) for a network. Tx and Rx beam index
+is retrieved for both ends of the link. The beam indices are converted to degrees and compared with
+the misalignment threshold. The difference between tx and rx degree is calculated and compared with the
+tx and rx degree difference threshold value.

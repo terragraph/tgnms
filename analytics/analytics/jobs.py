@@ -6,7 +6,7 @@ import logging
 
 from tglib.clients import APIServiceClient, PrometheusClient
 
-from .link_insight import compute_link_foliage, fetch_foliage_metrics
+from .link_insight import analyze_alignment, compute_link_foliage, fetch_foliage_metrics
 from .utils.topology import fetch_network_info
 from .visibility import NodePowerStatus, create_results, get_power_status
 
@@ -61,3 +61,14 @@ async def gauge_cn_power_status(start_time_ms: int, window_s: int) -> None:
         node_state_write_list=node_state_list, start_time_ms=start_time_ms
     )
     PrometheusClient.write_metrics(metrics)
+
+
+async def node_alignment(
+    start_time_ms: int, threshold_misalign_degree: int, threshold_tx_rx_degree_diff: int
+) -> None:
+    await analyze_alignment(
+        APIServiceClient.network_names(),
+        start_time_ms,
+        threshold_misalign_degree,
+        threshold_tx_rx_degree_diff,
+    )
