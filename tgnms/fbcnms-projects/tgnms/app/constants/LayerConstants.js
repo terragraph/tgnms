@@ -369,10 +369,10 @@ export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
     range: [0, 1, 2, 3, 4],
     bounds: [0, 4],
     colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
-    formatText: (_link, health: number) => {
+    formatText: (_link, health: $Values<typeof HEALTH_CODES>) => {
       const healthDef = HEALTH_DEFS[health];
       if (!healthDef) {
-        return 'unknown';
+        return 'Unknown';
       }
       return healthDef.name;
     },

@@ -50,7 +50,7 @@ export const HEALTH_DEFS: {[code: number]: HealthDef} = {
   [HEALTH_CODES.MISSING]: {
     code: HEALTH_CODES.MISSING,
     name: 'Missing',
-    color: 'rgb(158,158,158)',
+    color: 'rgb(117, 117, 117)',
   },
 };
 

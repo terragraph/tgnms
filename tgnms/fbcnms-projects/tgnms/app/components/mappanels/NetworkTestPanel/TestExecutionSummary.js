@@ -18,6 +18,7 @@ import {
   EXECUTION_STATUS,
   NETWORK_TEST_TYPES,
 } from '../../../constants/ScheduleConstants';
+import {HEALTH_CODES} from '../../../constants/HealthConstants';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 import {
   createTestMapLink,
@@ -81,11 +82,15 @@ export default function TestExecutionSummary(props: Props) {
       results.forEach(res => {
         Object.keys(finalResults).forEach((link_overlay: string) => {
           const linkData = finalResults[link_overlay][res?.asset_name];
+          const value =
+            link_overlay === 'health'
+              ? HEALTH_CODES[res[link_overlay]]
+              : res[link_overlay];
           if (linkData) {
-            linkData['Z'] = {[link_overlay]: res[link_overlay]};
+            linkData['Z'] = {[link_overlay]: value};
           } else {
             finalResults[link_overlay][res.asset_name] = {
-              A: {[link_overlay]: res[link_overlay]},
+              A: {[link_overlay]: value},
             };
           }
         });
