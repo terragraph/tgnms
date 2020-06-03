@@ -84,7 +84,8 @@ export default function SchedulerModal(props: Props) {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        variant={editModalMode ? 'text' : 'outlined'}>
+        variant={editModalMode ? 'text' : 'outlined'}
+        style={{backgroundColor: editModalMode ? 'transparent' : null}}>
         {buttonTitle}
       </Button>
       <MaterialModal

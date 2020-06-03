@@ -129,6 +129,8 @@ export const BUTTON_TYPES = {
   abort: 'Abort',
   delete: 'Delete',
   download: 'Download',
+  disable: 'Place on hold',
+  enable: 'Resume',
 };
 
 export const API_TYPE = {

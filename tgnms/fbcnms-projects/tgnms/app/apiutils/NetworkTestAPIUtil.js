@@ -35,7 +35,7 @@ export const editTestSchedule = ({
     url: `/network_test/schedule/${scheduleId}`,
     method: 'PUT',
     data: {
-      enabled: true,
+      enabled: inputData.enabled !== undefined ? inputData.enabled : true,
       cron_expr: inputData.cronExpr,
       network_name: inputData.networkName,
       iperf_options: inputData.iperfOptions,

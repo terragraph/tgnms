@@ -104,9 +104,9 @@ export default function ScheduleTable<T>(props: Props<T>) {
     const columns = [
       scheduleColumn('type', {width: 100}),
       scheduleColumn('start', {width: 190}),
-      scheduleColumn('status', {width: 190}),
+      scheduleColumn('status', {width: 120}),
       scheduleColumn('protocol', {width: 60}),
-      scheduleColumn('actions', {width: 150}),
+      scheduleColumn('actions', {width: 130}),
       {
         label: 'rowId',
         key: 'rowId',

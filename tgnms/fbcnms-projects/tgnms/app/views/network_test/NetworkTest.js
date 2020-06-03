@@ -12,6 +12,7 @@ import EditNetworkTestScheduleModal from './EditNetworkTestScheduleModal';
 import Grid from '@material-ui/core/Grid';
 import NetworkContext from '../../contexts/NetworkContext';
 import ResultExport from '../../components/scheduler/ResultExport';
+import ScheduleActions from '../../components/scheduler/ScheduleActions';
 import ScheduleNetworkTestModal from './ScheduleNetworkTestModal';
 import ScheduleTable from '../../components/scheduler/ScheduleTable';
 import axios from 'axios';
@@ -49,9 +50,10 @@ const useStyles = makeStyles(theme => ({
   executionActionButtonContainer: {
     marginLeft: -theme.spacing(1),
   },
-  scheduleActionButtonContainer: {
-    marginLeft: -theme.spacing(2),
+  strikeThrough: {
+    textDecoration: 'line-through',
   },
+  disabledText: {color: '#616161'},
 }));
 
 export default function NetworkTest(props: Props) {
@@ -103,7 +105,7 @@ export default function NetworkTest(props: Props) {
     if (id == null) {
       return;
     }
-    return testApi
+    testApi
       .deleteSchedule({
         scheduleId: id,
       })
@@ -117,6 +119,40 @@ export default function NetworkTest(props: Props) {
         enqueueSnackbar('Failed to delete test schedule: ' + err, {
           variant: 'error',
         }),
+      );
+  };
+
+  const setDisableSchedule = async input => {
+    if (input.id == null) {
+      return;
+    }
+    await testApi
+      .editTestSchedule({
+        inputData: {
+          enabled: input.enabled,
+          cronExpr: input.cronExpr,
+          networkName,
+          iperfOptions: input.iperfOptions,
+        },
+        scheduleId: input.id,
+      })
+      .then(_ => {
+        handleActionClick();
+        enqueueSnackbar(
+          `Successfully ${input.enabled ? 'resumed' : 'paused'} test schedule!`,
+          {
+            variant: 'success',
+          },
+        );
+      })
+      .catch(err =>
+        enqueueSnackbar(
+          `Failed to ${input.enabled ? 'resume' : 'pause'} test schedule: ` +
+            err,
+          {
+            variant: 'error',
+          },
+        ),
       );
   };
 
@@ -168,7 +204,7 @@ export default function NetworkTest(props: Props) {
               rowId: 'schedule' + newRow.id,
               filterStatus: 'SCHEDULED',
               type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
-              start:
+              start: newRow.enabled ? (
                 'Scheduled ' +
                 (initialFrequency === FREQUENCIES.monthly
                   ? ''
@@ -180,20 +216,43 @@ export default function NetworkTest(props: Props) {
                     ? initialDay
                     : 'monthly on the ' + getDateNth({date: Number(initialDay)})
                   : 'day ') +
-                ' at ' +
-                initialTime,
-              status: (
+                ', ' +
+                initialTime
+              ) : (
+                <div className={classes.disabledText}>
+                  {newRow.enabled ? '' : 'Test is currently on hold'}
+                  <div className={classes.strikeThrough}>
+                    {'Scheduled ' +
+                      (initialFrequency === FREQUENCIES.monthly
+                        ? ''
+                        : initialFrequency === FREQUENCIES.biweekly
+                        ? 'every other '
+                        : 'every ') +
+                      (initialDay
+                        ? initialDay.length > 2
+                          ? initialDay
+                          : 'monthly on the ' +
+                            getDateNth({date: Number(initialDay)})
+                        : 'day ') +
+                      ', ' +
+                      initialTime}
+                  </div>
+                </div>
+              ),
+              status: newRow.enabled ? (
                 <Grid container spacing={1}>
                   <Grid item>{STATUS_ICONS.SCHEDULED}</Grid>
                   <Grid item>
                     <div className={classes.statusText}>{initialFrequency}</div>
                   </Grid>
                 </Grid>
+              ) : (
+                ''
               ),
               protocol,
               actions: (
-                <div className={classes.scheduleActionButtonContainer}>
-                  {
+                <ScheduleActions
+                  editButton={
                     <EditNetworkTestScheduleModal
                       id={newRow.id}
                       onActionClick={handleActionClick}
@@ -202,12 +261,17 @@ export default function NetworkTest(props: Props) {
                       initialCronString={newRow.cron_expr || ''}
                     />
                   }
-                  {
-                    <Button onClick={() => deleteSchedule(newRow.id)}>
-                      {BUTTON_TYPES.delete}
-                    </Button>
+                  onDeleteSchedule={deleteSchedule}
+                  onSetDisableSchedule={id =>
+                    setDisableSchedule({
+                      iperfOptions: newRow.iperf_options || {},
+                      cronExpr: newRow.cron_expr || '',
+                      enabled: !newRow.enabled,
+                      id,
+                    })
                   }
-                </div>
+                  row={newRow}
+                />
               ),
             });
           } else if (
@@ -318,8 +382,9 @@ export default function NetworkTest(props: Props) {
         const correctDate =
           row.filterStatus === 'SCHEDULED' ||
           !filterOptions?.startTime ||
-          new Date(row.start).getTime() >
-            new Date(filterOptions?.startTime || '').getTime();
+          (typeof row.start === 'string' &&
+            new Date(row.start).getTime() >
+              new Date(filterOptions?.startTime || '').getTime());
         const correctType =
           !filterOptions?.testType ||
           NETWORK_TEST_TYPES[filterOptions?.testType] === row.type;

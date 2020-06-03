@@ -22,7 +22,7 @@ export type ScheduleTableRow = {
   rowId: string,
   filterStatus: $Keys<typeof EXECUTION_STATUS>,
   type: $Keys<typeof NETWORK_TEST_TYPES>,
-  start: string,
+  start: React.Node,
   status: React.Node,
   protocol: $Values<typeof PROTOCOL>,
   actions: React.Node,

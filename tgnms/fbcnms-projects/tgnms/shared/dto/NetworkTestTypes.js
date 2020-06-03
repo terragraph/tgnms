@@ -20,6 +20,7 @@ export type InputStartType = {
   testType?: $Keys<typeof NETWORK_TEST_TYPES>,
   networkName: string,
   iperfOptions?: IperfOptions,
+  enabled?: boolean,
 };
 
 export type IperfOptions = {

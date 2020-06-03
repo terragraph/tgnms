@@ -127,6 +127,7 @@ export function mockSchedules(
       : [
           {
             id: 1,
+            enabled: true,
             network_name: 'fbtest',
             cron_expr: '*',
           },
