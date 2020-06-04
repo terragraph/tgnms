@@ -1,6 +1,6 @@
 {
   "topics": ["events", "scan_results"],
-  "scan_data_dir": "/data/scans",
+  "scan_results_dir": "/data/scans",
   "hardware_config": {
     "constants": {
       "BORESIDE_BW_IDX": 10,

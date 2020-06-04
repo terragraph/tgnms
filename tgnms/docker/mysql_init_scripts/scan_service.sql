@@ -26,20 +26,63 @@ call Create_Scan_Service();
 
 SELECT 'Creating scan_service tables.' AS '';
 
-CREATE TABLE IF NOT EXISTS scan_results (
+CREATE TABLE IF NOT EXISTS scan_test_schedule (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    group_id INTEGER,
-    n_responses_waiting INTEGER,
+    enabled BOOL NOT NULL,
+    cron_expr VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id),
+    CHECK (enabled IN (0, 1))
+);
+
+
+CREATE TABLE IF NOT EXISTS scan_test_params (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    schedule_id INTEGER,
     network_name VARCHAR(255) NOT NULL,
-    resp_id INTEGER NOT NULL,
-    scan_mode ENUM(
+    type ENUM(
+      'IM'
+    ) NOT NULL,
+    mode ENUM(
       'COARSE',
       'FINE',
       'SELECTIVE',
       'RELATIVE'
     ) NOT NULL,
-    scan_result_path VARCHAR(255),
-    scan_sub_type ENUM(
+    options JSON NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY(schedule_id) REFERENCES scan_test_schedule (id) ON DELETE SET NULL
+);
+CREATE INDEX ix_scan_test_params_network_name ON scan_test_params (network_name);
+
+
+CREATE TABLE IF NOT EXISTS scan_test_execution (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    params_id INTEGER NOT NULL,
+    start_dt DATETIME NOT NULL DEFAULT now(),
+    end_dt DATETIME,
+    status ENUM(
+      'QUEUED',
+      'RUNNING',
+      'FINISHED',
+      'FAILED'
+    ) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY(params_id) REFERENCES scan_test_params (id)
+);
+CREATE INDEX ix_scan_test_execution_status ON scan_test_execution (status);
+
+
+CREATE TABLE IF NOT EXISTS scan_results (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    execution_id INTEGER NOT NULL,
+    network_name VARCHAR(255) NOT NULL,
+    tx_node VARCHAR(255),
+    group_id INTEGER,
+    type ENUM('IM') NOT NULL,
+    mode ENUM('COARSE','FINE','SELECTIVE','RELATIVE') NOT NULL,
+    results_path VARCHAR(255),
+    resp_id INTEGER,
+    subtype ENUM(
       'NO_CAL',
       'TOP_RX_CAL',
       'TOP_TX_CAL',
@@ -52,17 +95,10 @@ CREATE TABLE IF NOT EXISTS scan_results (
       'TX_CBF_AGGRESSOR',
       'TX_CBF_VICTIM'
     ),
-    scan_type ENUM(
-      'PBF',
-      'IM',
-      'RTCAL',
-      'CBF_TX',
-      'CBF_RX',
-      'TOPO',
-      'TEST_UPD_AWV'
-    ) NOT NULL,
-    start_bwgd BIGINT NOT NULL,
-    status ENUM(
+    start_bwgd BIGINT,
+    token INTEGER NOT NULL,
+    tx_power INTEGER,
+    tx_status ENUM(
       'COMPLETE',
       'INVALID_TYPE',
       'INVALID_START_TSF',
@@ -75,84 +111,38 @@ CREATE TABLE IF NOT EXISTS scan_results (
       'UNEXPECTED_ERROR',
       'EXPIRED_TSF',
       'INCOMPL_RTCAL_BEAMS_FOR_VBS'
-    ) NOT NULL,
-    timestamp DATETIME NOT NULL DEFAULT now(),
-    token INTEGER NOT NULL,
-    tx_node_name VARCHAR(255) NOT NULL,
-    tx_power INTEGER,
-    PRIMARY KEY (id)
+    ),
+    rx_statuses JSON,
+    n_responses_waiting INTEGER,
+    PRIMARY KEY (id),
+    FOREIGN KEY(execution_id) REFERENCES scan_test_execution (id)
 );
-
-CREATE TABLE IF NOT EXISTS `scan_response_rate` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `network_name` varchar(255) DEFAULT NULL,
-  `scan_group_id` int(11) DEFAULT NULL,
-  `scan_type` enum(
-      'PBF',
-      'IM',
-      'RTCAL',
-      'CBF_TX',
-      'CBF_RX',
-      'TOPO',
-      'TEST_UPD_AWV'
-    ) DEFAULT NULL,
-  `scan_mode` enum(
-      'COARSE',
-      'FINE',
-      'SELECTIVE',
-      'RELATIVE'
-    ) DEFAULT NULL,
-  `scan_sub_type` enum(
-      'NO_CAL',
-      'TOP_RX_CAL',
-      'TOP_TX_CAL',
-      'BOT_RX_CAL',
-      'BOT_TX_CAL',
-      'VBS_RX_CAL',
-      'VBS_TX_CAL',
-      'RX_CBF_AGGRESSOR',
-      'RX_CBF_VICTIM',
-      'TX_CBF_AGGRESSOR',
-      'TX_CBF_VICTIM'
-    ) DEFAULT NULL,
-  `start_bwgd` bigint(20) DEFAULT NULL,
-  `end_bwgd` bigint(20) DEFAULT NULL,
-  `n_scans` int(11) DEFAULT NULL,
-  `n_valid_scans` int(11) DEFAULT NULL,
-  `n_invalid_scans` int(11) DEFAULT NULL,
-  `n_incomplete_scans` int(11) DEFAULT NULL,
-  `total_tx_resp` int(11) DEFAULT NULL,
-  `invalid_tx_resp` int(11) DEFAULT NULL,
-  `tx_errors` json DEFAULT NULL,
-  `total_rx_resp` int(11) DEFAULT NULL,
-  `rx_errors` json DEFAULT NULL,
-  PRIMARY KEY (`id`)
-);
+CREATE INDEX ix_scan_results_token ON scan_results (token);
 
 
 CREATE TABLE IF NOT EXISTS connectivity_results (
-  id INTEGER NOT NULL AUTO_INCREMENT,
-  group_id INTEGER DEFAULT NULL,
-  network_name VARCHAR(255) NOT NULL,
-  token INTEGER NOT NULL,
-  tx_node VARCHAR(255) NOT NULL,
-  rx_node VARCHAR(255) NOT NULL,
-  routes json NOT NULL,
-  PRIMARY KEY (id)
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    network_name VARCHAR(255) NOT NULL,
+    group_id INTEGER,
+    token INTEGER NOT NULL,
+    tx_node VARCHAR(255) NOT NULL,
+    rx_node VARCHAR(255) NOT NULL,
+    routes JSON NOT NULL,
+    PRIMARY KEY (id)
 );
 
 
 CREATE TABLE IF NOT EXISTS interference_results (
-  id INTEGER NOT NULL AUTO_INCREMENT,
-  group_id INTEGER DEFAULT NULL,
-  network_name VARCHAR(255) NOT NULL,
-  token INTEGER NOT NULL,
-  tx_node VARCHAR(255) NOT NULL,
-  tx_to_node VARCHAR(255) NOT NULL,
-  tx_power_idx INTEGER DEFAULT NULL,
-  rx_node VARCHAR(255) NOT NULL,
-  rx_from_node VARCHAR(255) NOT NULL,
-  inr_curr_power json NOT NULL,
-  inr_max_power json NOT NULL,
-  PRIMARY KEY (id)
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    group_id INTEGER,
+    network_name VARCHAR(255) NOT NULL,
+    token INTEGER NOT NULL,
+    tx_node VARCHAR(255) NOT NULL,
+    tx_to_node VARCHAR(255) NOT NULL,
+    tx_power_idx INTEGER DEFAULT NULL,
+    rx_node VARCHAR(255) NOT NULL,
+    rx_from_node VARCHAR(255) NOT NULL,
+    inr_curr_power JSON NOT NULL,
+    inr_max_power JSON NOT NULL,
+    PRIMARY KEY (id)
 );
