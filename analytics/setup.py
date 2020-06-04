@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 ptr_params = {
     # Disable auto running if found - Requires --run-disabled to run
-    # "disabled": True,
+    "disabled": True,
     "entry_point_module": "analytics/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 300,
