@@ -17,7 +17,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.05.26",
+    version="2020.05.29",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},

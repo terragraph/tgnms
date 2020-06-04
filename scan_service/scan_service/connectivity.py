@@ -129,13 +129,15 @@ def find_routes(
 
 
 def analyze_connectivity(
-    im_data: Dict,
+    im_data: Optional[Dict],
     network_name: str,
     con: HardwareConfig,
     target: int = 15,
     use_rssi: bool = False,
 ) -> Optional[List[Dict]]:
     """Analyze connectivity for a TX node based on IM scan data."""
+    if im_data is None:
+        return None
 
     if im_data["mode"] not in {ScanMode.FINE, ScanMode.COARSE}:
         logging.info(

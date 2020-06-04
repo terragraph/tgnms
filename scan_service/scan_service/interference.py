@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import logging
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
 
-from .utils.stats import get_latest_stats
+from .utils.stats import create_link_mac_map, get_latest_stats
 
 
 # rule: 1:1 when index from 0 to 22; 1:0.5 when beyond 22
@@ -205,14 +206,18 @@ async def get_interference_from_directional_beams(
     tx_infos = await get_latest_stats(
         network_name, link_mac_map, tx_node, ["tx_beam_idx", "tx_power"]
     )
+    coros = []
+    rx_nodes = []
     for rx_node in im_data["responses"]:
         # skip if they are the same
         if tx_node == rx_node:
             continue
         logging.info(f"Analyzing interference from {tx_node} to {rx_node}")
-        rx_infos = await get_latest_stats(
-            network_name, link_mac_map, rx_node, ["rx_beam_idx"]
+        rx_nodes.append(im_data["responses"][rx_node])
+        coros.append(
+            get_latest_stats(network_name, link_mac_map, rx_node, ["rx_beam_idx"])
         )
+    for rx_node, rx_infos in zip(rx_nodes, await asyncio.gather(*coros)):
         # loop through tx_beam and rx_beam combinations
         for tx_to_node, tx_info in tx_infos.items():
             # skip if it's an actual link
@@ -269,9 +274,16 @@ async def get_interference_from_directional_beams(
 
 
 async def analyze_interference(
-    im_data: Dict, network_name: str, link_mac_map: Dict
+    im_data: Optional[Dict], network_name: str
 ) -> Optional[List[Dict]]:
     """Derive interference based on current topology."""
+    if im_data is None:
+        return None
+
+    link_mac_map = await create_link_mac_map(network_name)
+    if link_mac_map is None:
+        return None
+
     if im_data["mode"] == ScanMode.RELATIVE:
         return await get_interference_from_current_beams(
             im_data, network_name, link_mac_map
@@ -280,8 +292,5 @@ async def analyze_interference(
         return await get_interference_from_directional_beams(
             im_data, network_name, link_mac_map
         )
-    else:
-        logging.info(
-            f"Unsupported ScanMode {im_data['mode']} for interference analysis"
-        )
-        return None
+    logging.info(f"Unsupported ScanMode {im_data['mode']} for interference analysis")
+    return None

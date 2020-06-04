@@ -3,9 +3,9 @@
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from terragraph_thrift.Controller.ttypes import ScanFwStatus
+from .models import ScanFwStatus, ScanMode, ScanSubType, ScanType
 
 
 class Scan:
@@ -119,3 +119,34 @@ class ScanGroup:
         # We don't want scan_group's scan data in response rate results
         del resp_rate["scans"]
         return resp_rate
+
+
+def parse_scan_results(scan_result: Dict) -> Dict:
+    """Parse scan results.
+
+    If there is no tx response in the scan data responses, we mark the response
+    as erroneous.
+    """
+    scan_data = scan_result["data"]
+    tx_node_name = scan_data["txNode"]
+    tx_response = scan_data["responses"].get(tx_node_name, {})
+    status = (
+        ScanFwStatus(tx_response["status"])
+        if tx_response
+        else ScanFwStatus.UNSPECIFIED_ERROR  # type: ignore
+    )
+    return {
+        "group_id": scan_data.get("groupId"),
+        "n_responses_waiting": scan_data.get("nResponsesWaiting"),
+        "resp_id": scan_data["respId"],
+        "scan_mode": ScanMode(scan_data["mode"]),
+        "scan_sub_type": (
+            ScanSubType(scan_data["subType"]) if scan_data.get("subType") else None
+        ),
+        "scan_type": ScanType(scan_data["type"]),
+        "start_bwgd": scan_data["startBwgdIdx"],
+        "status": status,
+        "token": scan_result["token"],
+        "tx_node_name": tx_node_name,
+        "tx_power": tx_response.get("txPwrIndex"),
+    }

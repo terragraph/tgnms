@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import json
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from uuid import uuid4
 
 from sqlalchemy import insert, join, select
 from tglib.clients import MySQLClient
@@ -14,68 +11,13 @@ from ..models import (
     ConnectivityResults,
     InterferenceResults,
     RxScanResponse,
-    ScanFwStatus,
-    ScanMode,
     ScanResponseRate,
     ScanResults,
-    ScanSubType,
     ScanType,
     TxScanResponse,
 )
 from ..scan import Scan, ScanGroup
 from .time import SCAN_TIME_DELTA_BWGD, datetime_to_bwgd
-
-
-async def write_scan_data(
-    scan_data_dir: str, network_name: str, scan_result: Dict
-) -> None:
-    """Write scan data to database and save raw data to disk"""
-    scan_data = scan_result["data"]
-    token = scan_result["token"]
-
-    # Save scan data to file system
-    fname: Any = f"{uuid4()}.json"
-    try:
-        with open(scan_data_dir + fname, "w+") as f:
-            json.dump(scan_result, f)
-    except OSError:
-        logging.exception("Unable to write scan data to disk")
-        fname = None
-
-    # If there is no tx response in the scan data responses, we mark the response
-    # as erroneous.
-    scan_responses = scan_data["responses"]
-    tx_node_name = scan_data["txNode"]
-    tx_response = scan_responses.get(tx_node_name, {})
-    if tx_response:
-        status = ScanFwStatus(tx_response["status"])
-    else:
-        status = ScanFwStatus.UNSPECIFIED_ERROR  # type: ignore
-
-    # Populate scan results entry
-    response = {
-        "group_id": scan_data.get("groupId"),
-        "n_responses_waiting": scan_data.get("nResponsesWaiting"),
-        "network_name": network_name,
-        "resp_id": scan_data["respId"],
-        "scan_mode": ScanMode(scan_data["mode"]),
-        "scan_result_path": fname,
-        "scan_sub_type": (
-            ScanSubType(scan_data["subType"]) if scan_data.get("subType") else None
-        ),
-        "scan_type": ScanType(scan_data["type"]),
-        "start_bwgd": scan_data["startBwgdIdx"],
-        "status": status,
-        "token": token,
-        "tx_node_name": tx_node_name,
-        "tx_power": tx_response.get("txPwrIndex"),
-    }
-
-    # Write scan results into db
-    async with MySQLClient().lease() as conn:
-        query = insert(ScanResults).values(response)
-        await conn.execute(query)
-        await conn.connection.commit()
 
 
 async def get_scans(
@@ -175,15 +117,16 @@ async def write_scan_response_rate_stats(response_stats_list: List[Dict]) -> Non
         await conn.connection.commit()
 
 
-async def write_connectivity_results(result: List[Dict]) -> None:
-    """Write connectivity results to database"""
+async def write_results(
+    scan_results: Dict[str, Any],
+    connectivity_results: Optional[List[Dict]],
+    interference_results: Optional[List[Dict]],
+) -> None:
+    """Write scan results, connectivity and interference results to database"""
     async with MySQLClient().lease() as conn:
-        await conn.execute(insert(ConnectivityResults).values(result))
-        await conn.connection.commit()
-
-
-async def write_interference_results(results: List[Dict]) -> None:
-    """Write interference results to database"""
-    async with MySQLClient().lease() as conn:
-        await conn.execute(insert(InterferenceResults).values(results))
+        await conn.execute(insert(ScanResults).values(scan_results))
+        if connectivity_results:
+            await conn.execute(insert(ConnectivityResults).values(connectivity_results))
+        if interference_results:
+            await conn.execute(insert(InterferenceResults).values(interference_results))
         await conn.connection.commit()

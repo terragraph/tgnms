@@ -50,15 +50,7 @@ def aggregate_rx_responses(responses: Dict) -> Dict[str, Dict[str, float]]:
 
 def get_im_data(scan: Dict) -> Optional[Dict]:
     """Aggregate IM scan data for a TX node."""
-
-    # skip if not IM scan
-    if scan["type"] != ScanType.IM:
-        logging.info(
-            f"Scan type is {scan['type']}, not IM, for groupId {scan['groupId']}"
-        )
-        return None
     tx_node = scan["txNode"]
-
     logging.info(
         f"Aggregating IM scan response for tx node {tx_node}, "
         f"groupId {scan['groupId']}, scan mode {scan['mode']}"
