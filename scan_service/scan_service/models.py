@@ -19,95 +19,98 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from terragraph_thrift.Controller.ttypes import (
     ScanFwStatus as ThriftScanFwStatus,
-    ScanMode as ThriftScanMode,
     ScanSubType as ThriftScanSubType,
-    ScanType as ThriftScanType,
 )
 
 
 # Convert Thrift enums to native Python for SQLAlchemy
 ScanFwStatus = Enum("ScanFwStatus", ThriftScanFwStatus._NAMES_TO_VALUES)  # type: ignore
-ScanMode = Enum("ScanMode", ThriftScanMode._NAMES_TO_VALUES)  # type: ignore
 ScanSubType = Enum("ScanSubType", ThriftScanSubType._NAMES_TO_VALUES)  # type: ignore
-ScanType = Enum("ScanType", ThriftScanType._NAMES_TO_VALUES)  # type: ignore
+
+
+class ScanType(Enum):
+    IM = 2  # Interference measurement
+
+    @classmethod
+    def has_value(cls, value: int) -> bool:
+        return any(value == item.value for item in cls)
+
+
+class ScanMode(Enum):
+    COARSE = 1
+    FINE = 2
+    SELECTIVE = 3
+    RELATIVE = 4
+
+    @classmethod
+    def has_value(cls, value: int) -> bool:
+        return any(value == item.value for item in cls)
+
+
+class ScanTestStatus(Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    FINISHED = "finished"
+    FAILED = "failed"
+
+    @classmethod
+    def has_value(cls, value: str) -> bool:
+        return any(value == item.value for item in cls)
 
 
 Base: Any = declarative_base()
+
+
+class ScanTestSchedule(Base):
+    __tablename__ = "scan_test_schedule"
+
+    id = Column(Integer, primary_key=True)
+    enabled = Column(Boolean, nullable=False)
+    cron_expr = Column(String(255), nullable=False)
+
+
+class ScanTestParams(Base):
+    __tablename__ = "scan_test_params"
+
+    id = Column(Integer, primary_key=True)
+    schedule_id = Column(
+        Integer, ForeignKey("scan_test_schedule.id", ondelete="SET NULL"), nullable=True
+    )
+    network_name = Column(String(255), index=True, nullable=False)
+    type = Column(SQLEnum(ScanType), nullable=False)
+    mode = Column(SQLEnum(ScanMode), nullable=False)
+    options = Column(JSON, nullable=False)
+
+
+class ScanTestExecution(Base):
+    __tablename__ = "scan_test_execution"
+
+    id = Column(Integer, primary_key=True)
+    params_id = Column(Integer, ForeignKey("scan_test_params.id"), nullable=False)
+    start_dt = Column(DateTime, server_default=func.now(), nullable=False)
+    end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
+    status = Column(SQLEnum(ScanTestStatus), index=True, nullable=False)
 
 
 class ScanResults(Base):
     __tablename__ = "scan_results"
 
     id = Column(Integer, primary_key=True)
-    group_id = Column(Integer, nullable=True)
-    n_responses_waiting = Column(Integer, nullable=True)
+    execution_id = Column(Integer, ForeignKey("scan_test_execution.id"), nullable=False)
     network_name = Column(String(255), nullable=False)
-    resp_id = Column(Integer, nullable=False)
-    scan_mode = Column(SQLEnum(ScanMode), nullable=False)
-    scan_result_path = Column(String(255), nullable=True)
-    scan_sub_type = Column(SQLEnum(ScanSubType), nullable=True)
-    scan_type = Column(SQLEnum(ScanType), nullable=False)
-    start_bwgd = Column(BigInteger, nullable=False)
-    status = Column(SQLEnum(ScanFwStatus), nullable=False)
-    timestamp = Column(DateTime, server_default=func.now(), nullable=False)
-    token = Column(Integer, nullable=False)
-    tx_node_name = Column(String(255), nullable=False)
+    tx_node = Column(String(255), nullable=True)
+    group_id = Column(Integer, nullable=True)
+    type = Column(SQLEnum(ScanType), nullable=False)
+    mode = Column(SQLEnum(ScanMode), nullable=False)
+    results_path = Column(String(255), nullable=True)
+    resp_id = Column(Integer, nullable=True)
+    subtype = Column(SQLEnum(ScanSubType), nullable=True)
+    start_bwgd = Column(BigInteger, nullable=True)
+    token = Column(Integer, index=True, nullable=False)
     tx_power = Column(Integer, nullable=True)
-
-
-class TxScanResponse(Base):
-    __tablename__ = "tx_scan_response"
-
-    id = Column(Integer, primary_key=True)
-    scan_resp_path = Column(String(255))
-    timestamp = Column(DateTime, server_default=func.now())
-    network_name = Column(String(255))
-    scan_group_id = Column(Integer)
-    tx_node_name = Column(String(255))
-    token = Column(Integer)
-    resp_id = Column(Integer)
-    start_bwgd = Column(BigInteger)
-    scan_type = Column(SQLEnum(ScanType))
-    scan_sub_type = Column(SQLEnum(ScanSubType))
-    scan_mode = Column(SQLEnum(ScanMode))
-    apply = Column(Boolean)
-    status = Column(SQLEnum(ScanFwStatus))
-    tx_power = Column(Integer)
-    n_responses_waiting = Column(Integer)
-
-
-class RxScanResponse(Base):
-    __tablename__ = "rx_scan_response"
-
-    id = Column(Integer, primary_key=True)
-    scan_resp_path = Column(String(255))
-    timestamp = Column(DateTime, server_default=func.now())
-    rx_node_name = Column(String(255))
-    status = Column(SQLEnum(ScanFwStatus))
-    new_beam_flag = Column(Integer)
-    tx_scan_id = Column(Integer, ForeignKey("tx_scan_response.id"))
-
-
-class ScanResponseRate(Base):
-    __tablename__ = "scan_response_rate"
-
-    id = Column(Integer, primary_key=True)
-    network_name = Column(String(255))
-    scan_group_id = Column(Integer)
-    scan_type = Column(SQLEnum(ScanType))
-    scan_mode = Column(SQLEnum(ScanMode))
-    scan_sub_type = Column(SQLEnum(ScanSubType))
-    start_bwgd = Column(BigInteger)
-    end_bwgd = Column(BigInteger)
-    n_scans = Column(Integer)
-    n_valid_scans = Column(Integer)
-    n_invalid_scans = Column(Integer)
-    n_incomplete_scans = Column(Integer)
-    total_tx_resp = Column(Integer)
-    invalid_tx_resp = Column(Integer)
-    tx_errors = Column(JSON)
-    total_rx_resp = Column(Integer)
-    rx_errors = Column(JSON)
+    tx_status = Column(SQLEnum(ScanFwStatus), nullable=True)
+    rx_statuses = Column(JSON, nullable=True)
+    n_responses_waiting = Column(Integer, nullable=True)
 
 
 class ConnectivityResults(Base):
