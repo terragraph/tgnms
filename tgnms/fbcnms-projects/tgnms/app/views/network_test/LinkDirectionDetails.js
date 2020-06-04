@@ -80,9 +80,13 @@ export default function LinkDirectionDetails({
         header="Summary"
         metrics={[
           {val: result.mcs_avg || 0, label: 'MCS Avg'},
-          {val: result.snr_avg || 0, label: 'SNR Avg'},
-          {val: result.tx_pwr_avg || 0, label: 'Tx Power'},
-          {val: convertToExp(result.tx_per || 0), label: 'PER'},
+          {val: result.snr_avg || 0, label: 'SNR Avg', metricUnit: 'dBm'},
+          {val: result.tx_pwr_avg || 0, label: 'Tx Power', metricUnit: 'dBm'},
+          {
+            val: convertToExp((result.tx_per || 0) * 100),
+            label: 'PER',
+            metricUnit: '%',
+          },
           {
             val:
               (new Date(result.end_dt).getTime() -
@@ -146,12 +150,14 @@ export default function LinkDirectionDetails({
                 {val: result.tx_packet_count || 0, label: 'Tx'},
                 {val: result.rx_packet_count || 0, label: 'Rx'},
                 {
-                  val: convertToExp(result.tx_per || 0),
+                  val: convertToExp((result.tx_per || 0) * 100),
                   label: 'Tx PER',
+                  metricUnit: '%',
                 },
                 {
-                  val: convertToExp(result.rx_per || 0),
+                  val: convertToExp((result.rx_per || 0) * 100),
                   label: 'Rx PER',
+                  metricUnit: '%',
                 },
               ]}
             />
