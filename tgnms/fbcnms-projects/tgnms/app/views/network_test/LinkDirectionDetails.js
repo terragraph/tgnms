@@ -77,12 +77,11 @@ export default function LinkDirectionDetails({
       </Grid>
 
       <MetricGroup
-        header={'Summary'}
+        header="Summary"
         metrics={[
           {val: result.mcs_avg || 0, label: 'MCS Avg'},
           {val: result.snr_avg || 0, label: 'SNR Avg'},
-          {val: result.tx_pwr_avg || 0, label: 'Tx power'},
-          {val: result.iperf_avg_lost_percent || 0, label: 'Path loss'},
+          {val: result.tx_pwr_avg || 0, label: 'Tx Power'},
           {val: convertToExp(result.tx_per || 0), label: 'PER'},
           {
             val:
@@ -101,7 +100,7 @@ export default function LinkDirectionDetails({
       />
       <MetricGroup
         header="Iperf Throughput"
-        groupUnits="Mbgps"
+        groupUnits="Mbps"
         metrics={[
           {val: result.iperf_avg_throughput || 0, label: 'Avg'},
           {val: result.iperf_min_throughput || 0, label: 'Min'},
@@ -115,7 +114,7 @@ export default function LinkDirectionDetails({
           <>
             {result.iperf_avg_lost_percent ? (
               <MetricGroup
-                header="iperf lost datagram"
+                header="Iperf Lost Datagram"
                 groupUnits="%"
                 metrics={[
                   {val: result.iperf_avg_lost_percent || 0, label: 'Avg'},
@@ -125,7 +124,7 @@ export default function LinkDirectionDetails({
               />
             ) : (
               <MetricGroup
-                header="iperf retransmits"
+                header="Iperf Retransmits"
                 groupUnits="%"
                 metrics={[
                   {val: result.iperf_avg_retransmits || 0, label: 'Avg'},
@@ -137,22 +136,22 @@ export default function LinkDirectionDetails({
             <MetricGroup
               header="Beam"
               metrics={[
-                {val: result.rx_beam_idx || 0, label: 'rx_idx'},
-                {val: result.tx_beam_idx || 0, label: 'tx_idx'},
+                {val: result.rx_beam_idx || 0, label: 'Rx Idx'},
+                {val: result.tx_beam_idx || 0, label: 'Tx Idx'},
               ]}
             />
             <MetricGroup
               header="Packets"
               metrics={[
-                {val: result.tx_packet_count || 0, label: 'tx'},
-                {val: result.rx_packet_count || 0, label: 'rx'},
+                {val: result.tx_packet_count || 0, label: 'Tx'},
+                {val: result.rx_packet_count || 0, label: 'Rx'},
                 {
                   val: convertToExp(result.tx_per || 0),
-                  label: 'tx per',
+                  label: 'Tx PER',
                 },
                 {
                   val: convertToExp(result.rx_per || 0),
-                  label: 'rx per',
+                  label: 'Rx PER',
                 },
               ]}
             />
