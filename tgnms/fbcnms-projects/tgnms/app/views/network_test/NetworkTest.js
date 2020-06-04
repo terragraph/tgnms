@@ -16,6 +16,8 @@ import ScheduleActions from '../../components/scheduler/ScheduleActions';
 import ScheduleNetworkTestModal from './ScheduleNetworkTestModal';
 import ScheduleTable from '../../components/scheduler/ScheduleTable';
 import axios from 'axios';
+import useLiveRef from '../../hooks/useLiveRef';
+import useUnmount from '../../hooks/useUnmount';
 import {
   BUTTON_TYPES,
   EXECUTION_STATUS,
@@ -74,11 +76,27 @@ export default function NetworkTest(props: Props) {
     setFilterOptions(query);
   }, []);
 
+  const updateRef = useLiveRef(shouldUpdate);
+  const runningTestTimeoutRef = React.useRef<?TimeoutID>(null);
+  const actionTimeoutRef = React.useRef<?TimeoutID>(null);
+
   const handleActionClick = React.useCallback(() => {
     setTimeout(() => {
-      setShouldUpdate(!shouldUpdate);
-    }, 1000);
-  }, [setShouldUpdate, shouldUpdate]);
+      setLoading(true);
+      actionTimeoutRef.current = setTimeout(() => {
+        setShouldUpdate(!updateRef.current);
+      }, 1000);
+    }, 500);
+  }, [setShouldUpdate, updateRef]);
+
+  useUnmount(() => {
+    if (runningTestTimeoutRef.current != null) {
+      clearTimeout(runningTestTimeoutRef.current);
+    }
+    if (actionTimeoutRef.current != null) {
+      clearTimeout(actionTimeoutRef.current);
+    }
+  });
 
   const abortExecution = id => {
     if (id == null) {
@@ -158,8 +176,8 @@ export default function NetworkTest(props: Props) {
 
   React.useEffect(() => {
     const cancelSource = axios.CancelToken.source();
-
     setLoading(true);
+
     const inputData = {
       networkName,
       ...filterOptions,
@@ -338,6 +356,12 @@ export default function NetworkTest(props: Props) {
         ...tempRows.executions.reverse(),
       ]);
       setLoading(false);
+
+      if (tempRows.running.length > 0) {
+        runningTestTimeoutRef.current = setTimeout(() => {
+          setShouldUpdate(!updateRef.current);
+        }, 10000);
+      }
     });
 
     return () => cancelSource.cancel();
