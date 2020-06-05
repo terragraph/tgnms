@@ -243,4 +243,9 @@ const NetworkContext = React.createContext<NetworkContextType>({
   setAvailabilityWindow: () => {},
 });
 
+export function useNetworkContext() {
+  const ctx = React.useContext(NetworkContext);
+  return ctx;
+}
+
 export default NetworkContext;

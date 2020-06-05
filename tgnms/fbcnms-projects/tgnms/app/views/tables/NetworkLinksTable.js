@@ -45,6 +45,9 @@ const INVALID_VALUE = 255;
 
 const styles = theme => {
   return {
+    root: {
+      minHeight: 600,
+    },
     button: {
       marginLeft: theme.spacing(),
       marginRight: theme.spacing(),

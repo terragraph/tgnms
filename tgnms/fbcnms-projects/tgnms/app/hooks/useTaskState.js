@@ -18,8 +18,10 @@ export const TASK_STATE = {
 };
 
 export type TaskState = $Values<typeof TASK_STATE>;
-export default function useTaskState() {
-  const [state, setState] = React.useState<TaskState>(TASK_STATE.IDLE);
+export default function useTaskState(options?: {initialState?: TaskState}) {
+  const [state, setState] = React.useState<TaskState>(
+    options?.initialState ?? TASK_STATE.IDLE,
+  );
   const [message, setMessage] = React.useState<?string>(null);
   const reset = React.useCallback(() => {
     setState(TASK_STATE.IDLE);

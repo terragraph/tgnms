@@ -232,7 +232,6 @@ class NetworkTables extends React.Component<Props, State> {
             </Grid>
           </Grid>
         </Grid>
-
         <Switch>
           <Route
             path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests})`}
