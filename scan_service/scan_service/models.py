@@ -117,6 +117,7 @@ class ConnectivityResults(Base):
     __tablename__ = "connectivity_results"
 
     id = Column(Integer, primary_key=True)
+    execution_id = Column(Integer, ForeignKey("scan_test_execution.id"), nullable=False)
     network_name = Column(String(255), nullable=False)
     group_id = Column(Integer, nullable=True)
     token = Column(Integer, nullable=False)
@@ -129,6 +130,7 @@ class InterferenceResults(Base):
     __tablename__ = "interference_results"
 
     id = Column(Integer, primary_key=True)
+    execution_id = Column(Integer, ForeignKey("scan_test_execution.id"), nullable=False)
     network_name = Column(String(255), nullable=False)
     group_id = Column(Integer, nullable=True)
     token = Column(Integer, nullable=False)

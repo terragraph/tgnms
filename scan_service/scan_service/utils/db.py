@@ -11,6 +11,7 @@ from ..models import ConnectivityResults, InterferenceResults, ScanResults
 
 async def write_results(
     execution_id: int,
+    network_name: str,
     token: int,
     scan_results: Dict[str, Any],
     connectivity_results: Optional[List[Dict]],
@@ -27,7 +28,29 @@ async def write_results(
             .values(scan_results)
         )
         if connectivity_results:
-            await conn.execute(insert(ConnectivityResults).values(connectivity_results))
+            await conn.execute(
+                insert(ConnectivityResults).values(
+                    [
+                        {
+                            "execution_id": execution_id,
+                            "network_name": network_name,
+                            **results,
+                        }
+                        for results in connectivity_results
+                    ]
+                )
+            )
         if interference_results:
-            await conn.execute(insert(InterferenceResults).values(interference_results))
+            await conn.execute(
+                insert(InterferenceResults).values(
+                    [
+                        {
+                            "execution_id": execution_id,
+                            "network_name": network_name,
+                            **results,
+                        }
+                        for results in interference_results
+                    ]
+                )
+            )
         await conn.connection.commit()

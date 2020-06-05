@@ -175,7 +175,6 @@ async def get_interference_from_current_beams(
                 inr_curr_power, inr_max_power = inr
                 result.append(
                     {
-                        "network_name": network_name,
                         "group_id": im_data["group_id"],
                         "token": token,
                         "tx_node": tx_node,
@@ -256,7 +255,6 @@ async def get_interference_from_directional_beams(
                 inr_curr_power, inr_max_power = inr
                 result.append(
                     {
-                        "network_name": network_name,
                         "group_id": im_data["group_id"],
                         "token": token,
                         "tx_node": tx_node,

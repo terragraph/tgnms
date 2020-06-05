@@ -17,7 +17,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.06.02",
+    version="2020.06.04",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "croniter>=0.3.30,<1.0", "sqlalchemy"],

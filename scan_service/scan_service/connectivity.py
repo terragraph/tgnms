@@ -130,7 +130,6 @@ def find_routes(
 
 def analyze_connectivity(
     im_data: Optional[Dict],
-    network_name: str,
     con: HardwareConfig,
     target: int = 15,
     use_rssi: bool = False,
@@ -159,7 +158,6 @@ def analyze_connectivity(
 
         result.append(
             {
-                "network_name": network_name,
                 "group_id": im_data["group_id"],
                 "token": im_data["token"],
                 "tx_node": tx_node,

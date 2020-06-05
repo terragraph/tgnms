@@ -60,9 +60,10 @@ async def scan_results_handler(
     # Analyze scan results and write all results to the database
     await write_results(
         execution_id,
+        network_name,
         token,
         scan_results={"results_path": str(filepath), **parse_scan_results(scan_result)},
-        connectivity_results=analyze_connectivity(im_data, network_name, con),
+        connectivity_results=analyze_connectivity(im_data, con),
         interference_results=await analyze_interference(im_data, network_name),
     )
 
