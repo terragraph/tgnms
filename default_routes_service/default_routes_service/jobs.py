@@ -30,6 +30,9 @@ async def process_default_routes(
     metrics = []
     curr_routes: Dict[str, Dict[str, Tuple[List[List[str]], int]]] = {}
     for network_name, info in network_info.items():
+        if "defaultRoutes" not in info:
+            continue
+
         # Save wireless links for wireless hop count calculation below
         wireless_link_set = {
             (link["a_node_name"], link["z_node_name"])
@@ -97,6 +100,9 @@ async def process_congested_cn_egress_links(
     metrics = []
     curr_routes: Dict[str, DefaultDict[str, List[List[str]]]] = {}
     for network_name, info in network_info.items():
+        if "defaultRoutes" not in info:
+            continue
+
         # Save wireless links and client nodes
         wireless_link_map: Dict[Tuple, str] = {
             (link["a_node_name"], link["z_node_name"]): link["name"]
