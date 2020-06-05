@@ -122,20 +122,23 @@ CREATE INDEX ix_scan_results_token ON scan_results (token);
 
 CREATE TABLE IF NOT EXISTS connectivity_results (
     id INTEGER NOT NULL AUTO_INCREMENT,
+    execution_id INTEGER NOT NULL,
     network_name VARCHAR(255) NOT NULL,
     group_id INTEGER,
     token INTEGER NOT NULL,
     tx_node VARCHAR(255) NOT NULL,
     rx_node VARCHAR(255) NOT NULL,
     routes JSON NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY(execution_id) REFERENCES scan_test_execution (id)
 );
 
 
 CREATE TABLE IF NOT EXISTS interference_results (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    group_id INTEGER,
+    execution_id INTEGER NOT NULL,
     network_name VARCHAR(255) NOT NULL,
+    group_id INTEGER,
     token INTEGER NOT NULL,
     tx_node VARCHAR(255) NOT NULL,
     tx_to_node VARCHAR(255) NOT NULL,
@@ -144,5 +147,6 @@ CREATE TABLE IF NOT EXISTS interference_results (
     rx_from_node VARCHAR(255) NOT NULL,
     inr_curr_power JSON NOT NULL,
     inr_max_power JSON NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY(execution_id) REFERENCES scan_test_execution (id)
 );
