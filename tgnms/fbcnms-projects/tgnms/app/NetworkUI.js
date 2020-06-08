@@ -29,6 +29,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {
   Element,
   LinkMeta,
+  MacToNodeMap,
   NetworkConfig as NetworkConfigType,
   NetworkHealth,
   NetworkNodeStats,
@@ -68,6 +69,7 @@ type State = {
   invalidTopologyRedirect: boolean,
   isReloading: boolean,
   linkMap: {[string]: LinkType & LinkMeta},
+  macToNodeMap: MacToNodeMap,
   nodeToLinksMap: NodeToLinksMap,
   networkConfig: NetworkConfigType,
   networkNodeHealth: NetworkHealth,
@@ -100,6 +102,7 @@ class NetworkUI extends React.Component<Props, State> {
     siteMap: {},
     siteToNodesMap: {},
     nodeToLinksMap: {},
+    macToNodeMap: {},
 
     // Topology elements
     // {type: TopologyElementType, name: string, expanded: bool}
@@ -457,6 +460,7 @@ class NetworkUI extends React.Component<Props, State> {
             siteMap: this.state.siteMap,
             siteToNodesMap: this.state.siteToNodesMap,
             nodeToLinksMap: this.state.nodeToLinksMap,
+            macToNodeMap: this.state.macToNodeMap,
 
             // Topology elements
             selectedElement: this.state.selectedElement,

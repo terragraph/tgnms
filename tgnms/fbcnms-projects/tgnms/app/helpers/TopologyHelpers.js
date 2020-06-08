@@ -6,6 +6,7 @@
  */
 import type {
   LinkMap,
+  MacToNodeMap,
   NodeMap,
   NodeToLinksMap,
   SiteMap,
@@ -20,6 +21,7 @@ export type TopologyMaps = {|
   linkMap: LinkMap,
   nodeToLinksMap: NodeToLinksMap,
   siteToNodesMap: SiteToNodesMap,
+  macToNodeMap: MacToNodeMap,
 |};
 
 export function buildTopologyMaps(topology: TopologyType): TopologyMaps {
@@ -29,6 +31,7 @@ export function buildTopologyMaps(topology: TopologyType): TopologyMaps {
   const siteMap = {};
   const siteToNodesMap = {};
   const nodeToLinksMap = {};
+  const macToNodeMap = {};
   topology.sites.forEach(site => {
     siteMap[site.name] = site;
     siteToNodesMap[site.name] = new Set();
@@ -37,6 +40,7 @@ export function buildTopologyMaps(topology: TopologyType): TopologyMaps {
     nodeMap[node.name] = node;
     siteToNodesMap[node.site_name].add(node.name);
     nodeToLinksMap[node.name] = new Set();
+    node.wlan_mac_addrs.forEach(mac => (macToNodeMap[mac] = node.name));
   });
   topology.links.forEach(link => {
     // index links by name
@@ -49,5 +53,12 @@ export function buildTopologyMaps(topology: TopologyType): TopologyMaps {
     nodeToLinksMap[z].add(link.name);
   });
 
-  return {nodeMap, linkMap, siteMap, siteToNodesMap, nodeToLinksMap};
+  return {
+    nodeMap,
+    linkMap,
+    siteMap,
+    siteToNodesMap,
+    nodeToLinksMap,
+    macToNodeMap,
+  };
 }

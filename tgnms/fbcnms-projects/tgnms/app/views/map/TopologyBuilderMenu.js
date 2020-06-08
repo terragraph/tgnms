@@ -375,6 +375,7 @@ export default function TopologyBuilderMenu(props: Props) {
           initialParams={linkPanel.panelParams}
           topology={topology}
           networkName={networkName}
+          macToNodeMap={context.macToNodeMap}
           nodeMap={context.nodeMap}
           linkMap={context.linkMap}
           nodeToLinksMap={context.nodeToLinksMap}

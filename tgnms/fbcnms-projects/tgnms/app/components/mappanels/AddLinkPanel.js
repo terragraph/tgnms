@@ -48,6 +48,7 @@ type Props = {
   nodeMap: {[string]: Node},
   nodeToLinksMap: {[string]: Set<string>},
   topology: TopologyType,
+  macToNodeMap: {[string]: string},
 };
 
 type State = {
@@ -97,26 +98,27 @@ class AddLinkPanel extends React.Component<Props, State> {
     this.setState(this.props.initialParams);
   }
 
-  countConnectedNodesByType(nodes: Array<Node>, links: Array<LinkType>) {
-    const {nodeMap} = this.props;
-    const nodeCounter = {};
-    nodes.forEach(node => {
-      nodeCounter[node.name] = {cn: 0, dn: 0};
+  countConnectedNodesByType(macs: Array<string>, links: Array<LinkType>) {
+    const {macToNodeMap, nodeMap} = this.props;
+    const counter = {};
+    macs.forEach(mac => {
+      counter[mac] = {cn: 0, dn: 0};
+      const node = nodeMap[macToNodeMap[mac]];
       if (node.node_type === NodeType.DN) {
         links.forEach(link => {
-          const nodeNames = [link.a_node_name, link.z_node_name];
-          if (nodeNames.includes(node.name)) {
-            const otherNodeName =
-              node.name === nodeNames[0] ? nodeNames[1] : nodeNames[0];
-            const otherNode = nodeMap[otherNodeName];
+          const linkMacs = [link.a_node_mac, link.z_node_mac];
+          if (linkMacs.includes(node.mac_addr)) {
+            const otherNodeMac =
+              node.mac_addr === linkMacs[0] ? linkMacs[1] : linkMacs[0];
+            const otherNode = nodeMap[macToNodeMap[otherNodeMac]];
             otherNode.node_type === NodeType.DN
-              ? nodeCounter[node.name].dn++
-              : nodeCounter[node.name].cn++;
+              ? counter[mac].dn++
+              : counter[mac].cn++;
           }
         });
       }
     });
-    return nodeCounter;
+    return counter;
   }
 
   findPopSites(nodes: Array<string>) {
@@ -166,18 +168,17 @@ class AddLinkPanel extends React.Component<Props, State> {
     return cnCount / popCount;
   }
 
-  validateTopologyChange(linkNode1, linkNode2) {
-    const {nodeMap, topology} = this.props;
-
-    const node1 = nodeMap[linkNode1];
-    const node2 = nodeMap[linkNode2];
-    const nodeCounters = this.countConnectedNodesByType(
-      [node1, node2],
+  validateTopologyChange(linkNode1Mac: string, linkNode2Mac: string) {
+    const {macToNodeMap, nodeMap, topology} = this.props;
+    const node1 = nodeMap[macToNodeMap[linkNode1Mac]];
+    const node2 = nodeMap[macToNodeMap[linkNode2Mac]];
+    const counters = this.countConnectedNodesByType(
+      [linkNode1Mac, linkNode2Mac],
       topology.links,
     );
-    // nodeCounters: {[nodeName]: {cn: number, dn: number}}
-    const count1 = nodeCounters[node1.name];
-    const count2 = nodeCounters[node2.name];
+    // counters: {[nodeMac]: {cn: number, dn: number}}
+    const count1 = counters[linkNode1Mac];
+    const count2 = counters[linkNode2Mac];
     // update counters based on potential new link endpoint's type
     // alert if limits are exceeded
     if (count1.cn + (node2.node_type === NodeType.CN ? 1 : 0) > MAX_CN) {
@@ -236,7 +237,7 @@ class AddLinkPanel extends React.Component<Props, State> {
 
     if (link_type === LinkTypeValueMap.WIRELESS) {
       // max CN and DN distrubtion per DN check
-      if (!this.validateTopologyChange(linkNode1, linkNode2)) {
+      if (!this.validateTopologyChange(linkNode1Mac, linkNode2Mac)) {
         return;
       }
       // check PoP metrics

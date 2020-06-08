@@ -27,6 +27,7 @@ const commonProps = {
   networkName: 'test',
   nodeMap: {},
   nodeToLinksMap: {},
+  macToNodeMap: {},
   onPanelChange: jest.fn(),
   onClose: jest.fn(),
   topology: {},
