@@ -6,8 +6,8 @@
  */
 
 import * as React from 'react';
-import CancelIcon from '@material-ui/icons/Cancel';
-import CheckIcon from '@material-ui/icons/Check';
+import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
+import CheckCircleOutlineOutlinedIcon from '@material-ui/icons/CheckCircleOutlineOutlined';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import EventIcon from '@material-ui/icons/Event';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
@@ -46,12 +46,12 @@ export const EXECUTION_STATUS_SIGNIFICANCE = {
 export const STATUS_ICONS = {
   FINISHED: (
     <Tooltip title={EXECUTION_STATUS.FINISHED} placement="top">
-      <CheckIcon />
+      <CheckCircleOutlineOutlinedIcon />
     </Tooltip>
   ),
   ABORTED: (
     <Tooltip title={EXECUTION_STATUS.ABORTED} placement="top">
-      <CancelIcon />
+      <CancelOutlinedIcon />
     </Tooltip>
   ),
   FAILED: (
