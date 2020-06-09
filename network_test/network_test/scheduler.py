@@ -6,7 +6,7 @@ import logging
 import time
 from contextlib import suppress
 from datetime import datetime, timedelta
-from typing import Any, Dict, Iterable, List, NoReturn, Optional, Tuple
+from typing import Any, Dict, Iterable, List, NoReturn, Optional, Set, Tuple
 
 from croniter import croniter
 from sqlalchemy import delete, exists, func, insert, join, select, update
@@ -403,9 +403,9 @@ class Scheduler:
 
     @staticmethod
     async def list_schedules(
-        test_type: Optional[NetworkTestType] = None,
+        test_type: Optional[Set[NetworkTestType]] = None,
         network_name: Optional[str] = None,
-        protocol: Optional[int] = None,
+        protocol: Optional[Set[int]] = None,
         partial: Optional[bool] = None,
     ) -> Iterable:
         """Fetch all the schedules, or a subset, with optional filtering."""
@@ -439,12 +439,12 @@ class Scheduler:
 
             # Add filter conditions
             if test_type is not None:
-                query = query.where(NetworkTestParams.test_type == test_type)
+                query = query.where(NetworkTestParams.test_type.in_(test_type))
             if network_name is not None:
                 query = query.where(NetworkTestParams.network_name == network_name)
             if protocol is not None:
                 query = query.where(
-                    NetworkTestParams.iperf_options["protocol"] == protocol
+                    NetworkTestParams.iperf_options["protocol"].in_(protocol)
                 )
             if partial is not None:
                 if partial:
@@ -497,11 +497,11 @@ class Scheduler:
 
     @staticmethod
     async def list_executions(
-        test_type: Optional[NetworkTestType] = None,
+        test_type: Optional[Set[NetworkTestType]] = None,
         network_name: Optional[str] = None,
-        protocol: Optional[int] = None,
+        protocol: Optional[Set[int]] = None,
         partial: Optional[bool] = None,
-        status: Optional[NetworkTestStatus] = None,
+        status: Optional[Set[NetworkTestStatus]] = None,
         start_dt: Optional[datetime] = None,
     ) -> Iterable:
         """Fetch all the executions, or a subset, with optional filtering."""
@@ -524,12 +524,12 @@ class Scheduler:
 
             # Add filter conditions
             if test_type is not None:
-                query = query.where(NetworkTestParams.test_type == test_type)
+                query = query.where(NetworkTestParams.test_type.in_(test_type))
             if network_name is not None:
                 query = query.where(NetworkTestParams.network_name == network_name)
             if protocol is not None:
                 query = query.where(
-                    NetworkTestParams.iperf_options["protocol"] == protocol
+                    NetworkTestParams.iperf_options["protocol"].in_(protocol)
                 )
             if partial is not None:
                 if partial:
@@ -537,7 +537,7 @@ class Scheduler:
                 else:
                     query = query.where(NetworkTestParams.whitelist.is_(None))
             if status is not None:
-                query = query.where(NetworkTestExecution.status == status)
+                query = query.where(NetworkTestExecution.status.in_(status))
             if start_dt is not None:
                 query = query.where(NetworkTestExecution.start_dt >= start_dt)
 

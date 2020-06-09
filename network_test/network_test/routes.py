@@ -38,9 +38,11 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     parameters:
     - in: query
       name: test_type
-      description: The type of network test.
+      description: A comma-separated list of network test types.
       schema:
-        type: string
+        type: array
+        items:
+          type: string
     - in: query
       name: network_name
       description: The name of the network.
@@ -48,10 +50,12 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
         type: string
     - in: query
       name: protocol
-      description: The iperf transport protocol (6=TCP, 17=UDP).
+      description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
       schema:
-        type: int
-        enum: [6, 17]
+        type: array
+        items:
+          type: int
+          enum: [6, 17]
     - in: query
       name: partial
       description: If the test is only run on part of the network
@@ -67,20 +71,22 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     """
     test_type = request.rel_url.query.get("test_type")
     if test_type is not None:
-        if NetworkTestType.has_value(test_type):
-            test_type = NetworkTestType(test_type)
-        else:
-            raise web.HTTPBadRequest(text=f"Invalid 'test_type': {test_type}")
+        try:
+            test_type = {NetworkTestType(t) for t in test_type.split(",")}
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text="'test_type' must be a comma-separated list of valid test types"
+            )
 
     network_name = request.rel_url.query.get("network_name")
 
     protocol = request.rel_url.query.get("protocol")
     if protocol is not None:
         try:
-            protocol = int(protocol)
+            protocol = {int(p) for p in protocol.split(",")}
         except ValueError:
             raise web.HTTPBadRequest(
-                text=f"'protocol' must be a valid integer value: {protocol}"
+                text="'protocol' must be a comma-separated list of valid integer values"
             )
 
     partial = request.rel_url.query.get("partial")
@@ -348,9 +354,11 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     parameters:
     - in: query
       name: test_type
-      description: The type of network test.
+      description: A comma-separated list of network test types.
       schema:
-        type: string
+        type: array
+        items:
+          type: string
     - in: query
       name: network_name
       description: The name of the network.
@@ -358,10 +366,12 @@ async def handle_get_executions(request: web.Request) -> web.Response:
         type: string
     - in: query
       name: protocol
-      description: The iperf transport protocol (6=TCP, 17=UDP).
+      description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
       schema:
-        type: int
-        enum: [6, 17]
+        type: array
+        items:
+          type: int
+          enum: [6, 17]
     - in: query
       name: partial
       description: If the test is only run on part of the network
@@ -369,9 +379,11 @@ async def handle_get_executions(request: web.Request) -> web.Response:
         type: boolean
     - in: query
       name: status
-      description: The status of the execution.
+      description: A comma-separated list of execution statuses.
       schema:
-        type: string
+        type: array
+        items:
+          type: string
     - in: query
       name: start_dt
       description: The start UTC offset-naive datetime in ISO 8601 format.
@@ -387,20 +399,22 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     """
     test_type = request.rel_url.query.get("test_type")
     if test_type is not None:
-        if NetworkTestType.has_value(test_type):
-            test_type = NetworkTestType(test_type)
-        else:
-            raise web.HTTPBadRequest(text=f"Invalid 'test_type': {test_type}")
+        try:
+            test_type = {NetworkTestType(t) for t in test_type.split(",")}
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text="'test_type' must be a comma-separated list of valid test types"
+            )
 
     network_name = request.rel_url.query.get("network_name")
 
     protocol = request.rel_url.query.get("protocol")
     if protocol is not None:
         try:
-            protocol = int(protocol)
+            protocol = {int(p) for p in protocol.split(",")}
         except ValueError:
             raise web.HTTPBadRequest(
-                text=f"'protocol' must be a valid integer value: {protocol}"
+                text="'protocol' must be a comma-separated list of valid integer values"
             )
 
     partial = request.rel_url.query.get("partial")
@@ -413,10 +427,12 @@ async def handle_get_executions(request: web.Request) -> web.Response:
 
     status = request.rel_url.query.get("status")
     if status is not None:
-        if NetworkTestStatus.has_value(status):
-            status = NetworkTestStatus(status)
-        else:
-            raise web.HTTPBadRequest(text=f"Invalid 'status': {status}")
+        try:
+            status = {NetworkTestStatus(s) for s in status.split(",")}
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text="'status' must be a comma-separated list of valid test statuses"
+            )
 
     start_dt = request.rel_url.query.get("start_dt")
     if start_dt is not None:
