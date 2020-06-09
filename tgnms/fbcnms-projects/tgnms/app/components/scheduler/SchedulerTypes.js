@@ -31,7 +31,7 @@ export type ScheduleTableRow = {
 export type TableOption = {
   name: string,
   title: string,
-  initialValue: ?string,
+  initialValue: ?Array<string>,
   options: Array<OptionItem>,
 };
 

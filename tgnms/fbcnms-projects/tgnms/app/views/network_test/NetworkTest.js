@@ -72,13 +72,18 @@ export default function NetworkTest(props: Props) {
   const {networkName} = React.useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const handleFilterOptions = React.useCallback((query: FilterOptionsType) => {
-    setFilterOptions(query);
+  const handleFilterOptions = React.useCallback(query => {
+    setFilterOptions({
+      ...query,
+      protocol: query.protocol?.map(key => NETWORK_TEST_PROTOCOLS[key]),
+      status: query.status?.map(status => status.toLowerCase()),
+    });
   }, []);
 
   const updateRef = useLiveRef(shouldUpdate);
   const runningTestTimeoutRef = React.useRef<?TimeoutID>(null);
   const actionTimeoutRef = React.useRef<?TimeoutID>(null);
+  const resultsRef = React.useRef(null);
 
   const handleActionClick = React.useCallback(() => {
     setTimeout(() => {
@@ -175,16 +180,24 @@ export default function NetworkTest(props: Props) {
   };
 
   React.useEffect(() => {
+    if (!filterOptions) {
+      return;
+    }
+
     const cancelSource = axios.CancelToken.source();
     setLoading(true);
 
+    const dataFilterOptions = Object.keys(filterOptions).reduce((res, key) => {
+      if (filterOptions[key]?.length === 1) {
+        res[key] = filterOptions[key][0];
+      }
+      return res;
+    }, {});
+
     const inputData = {
       networkName,
-      ...filterOptions,
-      status: filterOptions?.status && filterOptions.status.toLowerCase(),
-      protocol:
-        filterOptions?.protocol &&
-        NETWORK_TEST_PROTOCOLS[filterOptions.protocol],
+      ...dataFilterOptions,
+      startTime: filterOptions?.startTime,
     };
     Promise.all([
       testApi.getSchedules({
@@ -192,15 +205,23 @@ export default function NetworkTest(props: Props) {
         cancelToken: cancelSource.token,
       }),
       !filterOptions?.status ||
-      EXECUTION_STATUS[filterOptions?.status] !== EXECUTION_STATUS.SCHEDULED
+      filterOptions?.status.find(
+        stat =>
+          EXECUTION_STATUS[stat.toUpperCase()] !== EXECUTION_STATUS.SCHEDULED,
+      )
         ? testApi.getExecutions({
             inputData,
             cancelToken: cancelSource.token,
           })
         : [],
     ]).then(results => {
+      resultsRef.current = results;
+
       const tempRows = {running: [], schedule: [], executions: []};
       results.forEach(result => {
+        if (result.includes('undefined')) {
+          return (resultsRef.current = null);
+        }
         if (typeof result === 'string') {
           return enqueueSnackbar(result, {
             variant: 'error',
@@ -355,12 +376,14 @@ export default function NetworkTest(props: Props) {
         ...tempRows.schedule.reverse(),
         ...tempRows.executions.reverse(),
       ]);
-      setLoading(false);
 
       if (tempRows.running.length > 0) {
         runningTestTimeoutRef.current = setTimeout(() => {
           setShouldUpdate(!updateRef.current);
         }, 10000);
+      }
+      if (resultsRef.current) {
+        setLoading(false);
       }
     });
 
@@ -372,7 +395,7 @@ export default function NetworkTest(props: Props) {
     {
       name: 'testType',
       title: 'Type',
-      initialValue: null,
+      initialValue: Object.keys(NETWORK_TEST_TYPES).map(type => type),
       options: Object.keys(NETWORK_TEST_TYPES).map(type => ({
         type,
         title: NETWORK_TEST_TYPES[type],
@@ -381,7 +404,7 @@ export default function NetworkTest(props: Props) {
     {
       name: 'protocol',
       title: 'Protocol',
-      initialValue: null,
+      initialValue: Object.keys(PROTOCOL).map(key => PROTOCOL[key]),
       options: Object.keys(PROTOCOL).map(key => ({
         type: PROTOCOL[key],
         title: PROTOCOL[key],
@@ -390,7 +413,7 @@ export default function NetworkTest(props: Props) {
     {
       name: 'status',
       title: 'Status',
-      initialValue: null,
+      initialValue: Object.keys(EXECUTION_STATUS).map(status => status),
       options: Object.keys(EXECUTION_STATUS).map(status => ({
         type: status,
         title: EXECUTION_STATUS[status],
@@ -402,7 +425,10 @@ export default function NetworkTest(props: Props) {
     () =>
       rows?.filter(row => {
         const correctProtocol =
-          !filterOptions?.protocol || filterOptions?.protocol === row.protocol;
+          !filterOptions?.protocol ||
+          filterOptions?.protocol.find(
+            protocol => protocol === NETWORK_TEST_PROTOCOLS[row.protocol],
+          );
         const correctDate =
           row.filterStatus === 'SCHEDULED' ||
           !filterOptions?.startTime ||
@@ -411,9 +437,14 @@ export default function NetworkTest(props: Props) {
               new Date(filterOptions?.startTime || '').getTime());
         const correctType =
           !filterOptions?.testType ||
-          NETWORK_TEST_TYPES[filterOptions?.testType] === row.type;
+          filterOptions?.testType.find(
+            type => NETWORK_TEST_TYPES[type] === row.type,
+          );
         const correctStatus =
-          !filterOptions?.status || filterOptions?.status === row.filterStatus;
+          !filterOptions?.status ||
+          filterOptions?.status.find(
+            status => status === row.filterStatus.toLowerCase(),
+          );
         return correctProtocol && correctDate && correctType && correctStatus;
       }),
     [rows, filterOptions],

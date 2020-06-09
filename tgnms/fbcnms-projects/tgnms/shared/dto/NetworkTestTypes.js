@@ -35,16 +35,16 @@ export type IperfOptions = {
 export type InputGetType = {
   networkName: string,
   testType?: ?$Keys<typeof NETWORK_TEST_TYPES>,
-  protocol?: $Values<typeof NETWORK_TEST_PROTOCOLS>,
-  status?: $Values<typeof EXECUTION_STATUS>,
+  protocol?: ?$Values<typeof NETWORK_TEST_PROTOCOLS>,
+  status?: ?$Values<typeof EXECUTION_STATUS>,
   startTime?: string,
   partial?: boolean,
 };
 
 export type FilterOptionsType = {|
-  testType?: ?$Keys<typeof NETWORK_TEST_TYPES>,
-  protocol?: $Values<typeof NETWORK_TEST_PROTOCOLS>,
-  status?: $Keys<typeof EXECUTION_STATUS>,
+  testType?: Array<$Keys<typeof NETWORK_TEST_TYPES>>,
+  protocol?: Array<$Values<typeof NETWORK_TEST_PROTOCOLS>>,
+  status?: Array<$Keys<typeof EXECUTION_STATUS>>,
   startTime?: string,
 |};
 

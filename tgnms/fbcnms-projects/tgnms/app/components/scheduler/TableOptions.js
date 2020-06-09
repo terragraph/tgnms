@@ -6,6 +6,7 @@
  */
 
 import * as React from 'react';
+import CheckBoxDropDown from '../common/CheckBoxDropdown';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -58,15 +59,19 @@ export default function TableOptions<T>(props: Props<T>) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moment().dayOfYear()]); // only recompute when the day changes
 
-  const {formState, handleInputChange} = useForm({
+  const {formState, handleInputChange, updateFormState} = useForm({
     initialState: optionsInput.reduce(
       (res, option) => {
-        res[option.name] = option.initialValue || '';
+        res[option.name] = option.initialValue || [];
         return res;
       },
       {startTime: dateRanges.month},
     ),
   });
+
+  const handleCheckBoxChange = (value, array) => {
+    updateFormState({[value]: array});
+  };
 
   React.useEffect(() => {
     // only run this effect on update
@@ -98,30 +103,20 @@ export default function TableOptions<T>(props: Props<T>) {
           </Select>
         </FormControl>
         {optionsInput.map(option => (
-          <FormControl className={classes.formControl} key={option.name}>
-            <InputLabel htmlFor={option.name}>{option.title}</InputLabel>
-            <Select
-              value={formState[option.name]}
-              onChange={handleInputChange(val => ({[option.name]: val}))}
-              inputProps={{
-                id: option.name,
-                name: option.name,
-              }}>
-              {option.initialValue === null && (
-                <MenuItem value={''} selected>
-                  Any
-                </MenuItem>
-              )}
-              {option.options.map(optionItem => (
-                <MenuItem
-                  key={optionItem.type}
-                  value={optionItem.type}
-                  className={classes.testOptionItem}>
-                  {optionItem.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <CheckBoxDropDown
+            key={option.title}
+            name={option.name}
+            onChange={handleCheckBoxChange}
+            title={option.title}
+            menuItems={option.options.map(optionItem => ({
+              value: optionItem.type,
+              title: optionItem.title,
+              enabled:
+                option?.initialValue?.find(
+                  value => value === optionItem.type,
+                ) !== undefined,
+            }))}
+          />
         ))}
       </FormGroup>
     </div>
