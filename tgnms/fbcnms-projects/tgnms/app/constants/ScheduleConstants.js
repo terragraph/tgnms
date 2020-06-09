@@ -10,6 +10,7 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import CheckIcon from '@material-ui/icons/Check';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import EventIcon from '@material-ui/icons/Event';
+import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
 import RadioButtonUncheckedIcon from '@material-ui/icons/RadioButtonUnchecked';
 import Tooltip from '@material-ui/core/Tooltip';
 
@@ -29,6 +30,7 @@ export const EXECUTION_STATUS = {
   ABORTED: 'Aborted',
   FAILED: 'Failed',
   SCHEDULED: 'Scheduled',
+  PAUSED: 'Paused',
   RUNNING: 'Running',
 };
 
@@ -38,6 +40,7 @@ export const EXECUTION_STATUS_SIGNIFICANCE = {
   ABORTED: 3,
   FAILED: 4,
   SCHEDULED: 5,
+  PAUSED: 6,
 };
 
 export const STATUS_ICONS = {
@@ -59,6 +62,11 @@ export const STATUS_ICONS = {
   SCHEDULED: (
     <Tooltip title={EXECUTION_STATUS.SCHEDULED} placement="top">
       <EventIcon />
+    </Tooltip>
+  ),
+  PAUSED: (
+    <Tooltip title={EXECUTION_STATUS.PAUSED} placement="top">
+      <PauseCircleOutlineIcon />
     </Tooltip>
   ),
   RUNNING: (
@@ -129,7 +137,7 @@ export const BUTTON_TYPES = {
   abort: 'Abort',
   delete: 'Delete',
   download: 'Download',
-  disable: 'Place on hold',
+  disable: 'Pause Schedule',
   enable: 'Resume',
 };
 

@@ -207,7 +207,8 @@ export default function NetworkTest(props: Props) {
       !filterOptions?.status ||
       filterOptions?.status.find(
         stat =>
-          EXECUTION_STATUS[stat.toUpperCase()] !== EXECUTION_STATUS.SCHEDULED,
+          EXECUTION_STATUS[stat.toUpperCase()] !== EXECUTION_STATUS.SCHEDULED &&
+          EXECUTION_STATUS[stat.toUpperCase()] !== EXECUTION_STATUS.PAUSED,
       )
         ? testApi.getExecutions({
             inputData,
@@ -241,7 +242,7 @@ export default function NetworkTest(props: Props) {
             tempRows.schedule.push({
               id: newRow.id,
               rowId: 'schedule' + newRow.id,
-              filterStatus: 'SCHEDULED',
+              filterStatus: newRow.enabled ? 'SCHEDULED' : 'PAUSED',
               type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
               start: newRow.enabled ? (
                 'Scheduled ' +
@@ -259,7 +260,6 @@ export default function NetworkTest(props: Props) {
                 initialTime
               ) : (
                 <div className={classes.disabledText}>
-                  {newRow.enabled ? '' : 'Test is currently on hold'}
                   <div className={classes.strikeThrough}>
                     {'Scheduled ' +
                       (initialFrequency === FREQUENCIES.monthly
@@ -286,7 +286,12 @@ export default function NetworkTest(props: Props) {
                   </Grid>
                 </Grid>
               ) : (
-                ''
+                <Grid container spacing={1}>
+                  <Grid item>{STATUS_ICONS.PAUSED}</Grid>
+                  <Grid item>
+                    <div className={classes.statusText}>Schedule is paused</div>
+                  </Grid>
+                </Grid>
               ),
               protocol,
               actions: (
@@ -377,9 +382,10 @@ export default function NetworkTest(props: Props) {
         ...tempRows.executions.reverse(),
       ]);
 
-      if (tempRows.running.length > 0) {
+      if (tempRows.running.length > 0 && !runningTestTimeoutRef.current) {
         runningTestTimeoutRef.current = setTimeout(() => {
           setShouldUpdate(!updateRef.current);
+          runningTestTimeoutRef.current = null;
         }, 10000);
       }
       if (resultsRef.current) {
@@ -431,6 +437,7 @@ export default function NetworkTest(props: Props) {
           );
         const correctDate =
           row.filterStatus === 'SCHEDULED' ||
+          row.filterStatus === 'PAUSED' ||
           !filterOptions?.startTime ||
           (typeof row.start === 'string' &&
             new Date(row.start).getTime() >
