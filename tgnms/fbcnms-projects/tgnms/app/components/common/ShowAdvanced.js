@@ -13,6 +13,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   children: React.Node,
+  title?: string,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -25,7 +26,7 @@ export default function ShowAdvanced(props: Props) {
   const classes = useStyles();
   const [showAdvanced, setShowAdvanced] = React.useState(false);
 
-  const {children} = props;
+  const {children, title} = props;
 
   const toggleAdvanced = React.useCallback(
     () => setShowAdvanced(!showAdvanced),
@@ -42,7 +43,7 @@ export default function ShowAdvanced(props: Props) {
             onChange={toggleAdvanced}
           />
         }
-        label="Show Advanced"
+        label={title ? title : 'Show Advanced'}
       />
       <Collapse in={showAdvanced}>{children}</Collapse>
     </>
