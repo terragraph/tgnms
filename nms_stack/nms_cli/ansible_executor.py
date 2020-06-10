@@ -7,22 +7,16 @@ import pkg_resources
 import sys
 from collections import namedtuple
 
+from ansible import context
 from ansible.parsing.dataloader import DataLoader
-from ansible.vars.hostvars import HostVars
 from ansible.vars.manager import VariableManager
 from ansible.inventory.host import Host
 from ansible.inventory.manager import InventoryManager
 from ansible.executor.playbook_executor import PlaybookExecutor
+from ansible.module_utils.common.collections import ImmutableDict
 from ansible.release import __version__
 from ansible.utils.display import Display
-from ansible.utils.vars import load_options_vars
 
-try:
-    HAS_ANSIBLE28 = True
-    from ansible import context
-    from ansible.module_utils.common.collections import ImmutableDict
-except ImportError:
-    HAS_ANSIBLE28 = False
 
 display = Display()
 
@@ -120,16 +114,27 @@ class ansible_executor:
     def run(  # noqa: C901
         self, hosts, playbook, config_file=None, generated_config=None, password=None
     ):
-        if HAS_ANSIBLE28:
-            variable_manager = VariableManager(
-                loader=self.loader,
-                inventory=self.inventory,
-                version_info=self.version_info(),
-            )
-        else:
-            variable_manager = VariableManager(
-                loader=self.loader, inventory=self.inventory
-            )
+        extra_vars = {}
+        if config_file:
+            extra_vars = self.loader.load_from_file(config_file)
+            # record the absolute path to the config file
+            extra_vars["install_config_file"] = os.path.abspath(config_file)
+
+        if self.ssl_certs is not None:
+            for k, v in self.ssl_certs.items():
+                extra_vars[k] = v
+
+        if self.uninstall_opts is not None:
+            for k, v in self.uninstall_opts.items():
+                extra_vars[k] = v
+
+        if generated_config:
+            extra_vars.update(generated_config)
+
+        self.options = self.options._asdict()
+
+        variable_manager = VariableManager(loader=self.loader, inventory=self.inventory, version_info=self.version_info())
+        variable_manager._extra_vars = extra_vars
 
         for hostname, hostgroups, hostport in hosts:
             # Add hosts to all the groups they belong to
@@ -142,36 +147,8 @@ class ansible_executor:
             if hostname == "localhost" or hostname == "::1":
                 variable_manager.set_host_variable(host, "ansible_connection", "local")
 
-            if self.ssl_certs is not None:
-                for s in self.ssl_certs:
-                    variable_manager.set_host_variable(host, s, self.ssl_certs[s])
-
-            if self.uninstall_opts is not None:
-                for s in self.uninstall_opts:
-                    variable_manager.set_host_variable(host, s, self.uninstall_opts[s])
-
-            if config_file:
-                variable_manager.set_host_variable(
-                    host, "install_config_file", os.path.abspath(config_file)
-                )
-
-            if not HAS_ANSIBLE28:
-                variable_manager.options_vars = load_options_vars(
-                    self.options, self.version_info()
-                )
-
-        # Necessary to link these variables together
-        HostVars(self.inventory, variable_manager, self.loader)
-
-        # Load Config Overrides
-        extra_vars = {}
-        if config_file:
-            extra_vars = self.loader.load_from_file(config_file)
-
-        # Override config_file extra_vars if needed
-        if generated_config:
-            # Shallow merge, keys from generated_config take precendence
-            extra_vars = {**extra_vars, **generated_config}
+        # initialize context args
+        context.CLIARGS = ImmutableDict(self.options)
 
         playbook_path = pkg_resources.resource_filename(
             "nms_cli", os.path.join("nms_stack", playbook)
@@ -185,30 +162,14 @@ class ansible_executor:
         if password:
             passwords = {"conn_pass": password, "become_pass": password}
 
-        playbook_executor_args = dict(
+        play = PlaybookExecutor(
             playbooks=[playbook_path],
             inventory=self.inventory,
             variable_manager=variable_manager,
             loader=self.loader,
             passwords=passwords,
         )
-
-        if HAS_ANSIBLE28:
-            # Set extra_vars in ansible
-            self.options = self.options._asdict()
-            self.options.update({"extra_vars": extra_vars})
-            context.CLIARGS = ImmutableDict(self.options)
-        else:
-            # Set extra_vars in ansible
-            variable_manager.extra_vars = extra_vars
-            playbook_executor_args.update(dict(options=self.options))
-
-        pbex = PlaybookExecutor(**playbook_executor_args)
-
-        # Assigned variable used for development
-        results = pbex.run()
-        if display.verbose:
-            click.echo(results)
+        play.run()
 
     def version_info(self):
         """ return full ansible version info """

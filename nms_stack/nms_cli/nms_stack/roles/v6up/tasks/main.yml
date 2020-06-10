@@ -22,7 +22,7 @@
     - { src: "time.env", dest: "{{ terragraph_docker_path }}/v6up/env" }
 
 - name: run compose
-  docker_service:
+  docker_compose:
     project_src: "{{ terragraph_docker_path }}/v6up/."
     build: no
     state: present

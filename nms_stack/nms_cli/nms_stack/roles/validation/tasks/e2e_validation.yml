@@ -24,7 +24,7 @@
   assert:
     that:
       - not(controllers_list | map(attribute='name') | list == ['example_first', 'example_second'])
-    msg: controllers_list must be overridden in config.
+    fail_msg: controllers_list must be overridden in config.
 
 - name: Check if Controller name, port and api_port are valid
   assert:

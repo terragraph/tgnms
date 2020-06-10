@@ -39,14 +39,24 @@
   tags:
     - networking
   pre_tasks:
-    - name: check if docker inbound network exists
-      shell: "docker network inspect inbound"
-      register: inbound_network
-      ignore_errors: yes
+    - name: ensure docker network terragraph_net exists
+      docker_network:
+        name: terragraph_net
+        driver: overlay
+        attachable: yes
+        debug: yes
+        state: present
 
-    - name: add docker inbound network if needed
-      shell: "docker network create --attachable --driver=bridge --ipv6 --subnet={{ docker_internal_network }} inbound"
-      when: inbound_network.rc != 0
+    - name: ensure docker network inbound exists
+      docker_network:
+        name: inbound
+        ipam_config:
+         - subnet: "{{ docker_internal_network }}"
+        attachable: yes
+        driver: bridge
+        enable_ipv6: yes
+        debug: yes
+        state: present
   roles:
     - { role: migo, tags: ["migo"] }
     - { role: v6up, tags: ["v6", "v6up"] }
@@ -112,7 +122,7 @@
     - { role: e2e_controller, tags: ["e2e_controller"] }
     - { role: docker_proxy, tags: ["docker_proxy"] }
     - { role: alarms, tags: ["alarms"] }
-    - { role: keycloak, tags: ["keycloak"], when: keycloak_enabled }
+    - { role: keycloak, tags: ["keycloak"], when: keycloak_enabled | bool }
     - { role: msa, tags: ["msa", "tglib"] }
     - { role: monitoring, tags: ["monitoring", "monitor"]}
 

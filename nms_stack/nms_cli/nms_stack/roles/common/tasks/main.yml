@@ -153,17 +153,3 @@
   until: result is success
   retries: 5
   delay: 60
-
-- name: remove swarm
-  docker_swarm:
-    state: absent
-    force: yes
-
-- name: remove existing docker networks
-  docker_network:
-    name: "{{ item }}"
-    state: absent
-    force: yes
-  loop:
-    - inbound
-    - terragraph_net

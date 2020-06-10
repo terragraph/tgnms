@@ -13,7 +13,3 @@
     join_token: "{{ hostvars[groups['managers'][0]]['swarm_manager']['swarm_facts']['JoinTokens']['Manager'] }}"
     remote_addrs: [ "{{ hostvars[groups['managers'][0]]['ansible_default_ipv4']['address'] }}:{{ swarm_manager_port }}" ]
   when: inventory_hostname != groups['managers'][0]
-
-- name: add docker network
-  shell: "docker network create --attachable --driver=overlay terragraph_net"
-  run_once: true

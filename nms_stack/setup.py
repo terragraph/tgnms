@@ -12,7 +12,7 @@ from setuptools import Command, setup
 
 PACKAGE = "nms_cli"
 
-assert version_info >= (3, 6, 0), "nms requires >= Python 3.6"
+assert version_info >= (3, 7, 0), "nms requires >= Python 3.7"
 
 
 # ptr can't handle using PACKAGE variable
@@ -93,7 +93,7 @@ def package_ansible(directory):
 
 setup(
     name="nms",
-    version="2020.05.15",
+    version="2020.06.08",
     description=("nms cli"),
     packages=[PACKAGE, "{}.tests".format(PACKAGE)],
     package_data={PACKAGE: package_ansible("nms_stack")},
@@ -109,7 +109,7 @@ setup(
     entry_points={"console_scripts": ["nms = nms_cli.nms:cli"]},
     python_requires=">=3.7",
     install_requires=[
-        "ansible==2.7.11",
+        "ansible==2.9.9",
         "click",
         "configparser",
         "oyaml",

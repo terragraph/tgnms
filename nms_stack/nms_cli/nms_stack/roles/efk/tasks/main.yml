@@ -4,7 +4,7 @@
     path: "{{ es_path }}/data"
     state: directory
     owner: "{{ docker_user }}"
-    group: 1000  # Must be group 1000 for elasticsearch
+    group: "1000"  # Must be group 1000 for elasticsearch
     mode: 0775
 
 - name: create efk paths
@@ -37,7 +37,7 @@
   file:
     path: "{{ audit_logs_gfs_path }}"
     state: directory
-    owner: 100 # Must be owned by uid 100 (fluentd) in fluentd container
+    owner: "100" # Must be owned by uid 100 (fluentd) in fluentd container
     group: docker
     mode: 0755
 
@@ -56,7 +56,7 @@
 - name: Increase mmap limits for elasticsearch
   sysctl:
     name: vm.max_map_count
-    value: 262144
+    value: "262144"
     state: present
     sysctl_set: yes
 

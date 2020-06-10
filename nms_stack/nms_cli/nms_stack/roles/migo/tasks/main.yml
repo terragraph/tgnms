@@ -33,7 +33,7 @@
     force: yes
 
 - name: run compose
-  docker_service:
+  docker_compose:
     project_src: "{{ terragraph_docker_path }}/network/."
     build: no
     state: present
