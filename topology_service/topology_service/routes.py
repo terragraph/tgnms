@@ -23,7 +23,7 @@ def custom_serializer(obj: Any) -> str:
         return str(obj)
 
 
-@routes.get("/topology/{network_name:.+}")
+@routes.get("/topology")
 async def handle_get_topology(request: web.Request) -> web.Response:
     """
     ---
@@ -33,7 +33,7 @@ async def handle_get_topology(request: web.Request) -> web.Response:
     produces:
     - application/json
     parameters:
-    - in: path
+    - in: query
       name: network_name
       description: The name of the network
       required: true
@@ -56,7 +56,9 @@ async def handle_get_topology(request: web.Request) -> web.Response:
       "400":
         description: Invalid or missing parameters.
     """
-    network_name = request.match_info["network_name"]
+    network_name = request.rel_url.query.get("network_name")
+    if network_name is None:
+        raise web.HTTPBadRequest(text="Missing required 'network_name' param")
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
