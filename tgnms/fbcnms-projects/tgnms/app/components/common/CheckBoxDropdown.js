@@ -87,8 +87,7 @@ export default function CheckBoxDropDown(props: Props) {
   return (
     <div className={classes.dropDownStyle}>
       <Button
-        // $FlowFixMe: anchorEl type is not mixed so button doesn't like it
-        ref={anchorEl}
+        ref={(anchorEl: any)}
         onClick={handleClick}
         className={classes.dropDownButton}>
         {title} <ArrowDropDownIcon className={classes.dropDownIcon} />
