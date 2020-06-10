@@ -26,9 +26,8 @@ const styles = makeStyles(() => ({
 }));
 
 export default function HealthIndicator(props: Props) {
-  const classes = styles();
-
   const {health, className} = props;
+  const classes = styles({health});
 
   return (
     <StatusIndicator

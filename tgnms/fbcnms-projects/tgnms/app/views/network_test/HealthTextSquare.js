@@ -28,9 +28,8 @@ const styles = makeStyles(theme => ({
 }));
 
 export default function HealthTextSquare(props: Props) {
-  const classes = styles();
-
-  const {text, className} = props;
+  const {text, className, health} = props;
+  const classes = styles({health});
 
   return (
     <div className={classNames(className, classes.healthIndicator)}>
