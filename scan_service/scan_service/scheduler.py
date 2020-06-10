@@ -14,6 +14,8 @@ from sqlalchemy import delete, func, insert, join, select, update
 from tglib.clients import MySQLClient
 
 from .models import (
+    ConnectivityResults,
+    InterferenceResults,
     ScanMode,
     ScanResults,
     ScanTestExecution,
@@ -345,7 +347,7 @@ class Scheduler:
     @staticmethod
     async def describe_execution(
         execution_id: int,
-    ) -> Optional[Tuple[Iterable, Iterable]]:
+    ) -> Optional[Tuple[Iterable, Iterable, Iterable, Iterable]]:
         """Fetch a particular execution given the ID."""
         async with MySQLClient().lease() as sa_conn:
             get_execution_query = (
@@ -372,7 +374,15 @@ class Scheduler:
             if not execution:
                 return None
 
-            ignore_cols = {"results_path"}
+            ignore_cols = {
+                "id",
+                "network_name",
+                "execution_id",
+                "type",
+                "mode",
+                "results_path",
+            }
+
             get_results_query = select(
                 filter(
                     lambda col: col.key not in ignore_cols,
@@ -380,7 +390,25 @@ class Scheduler:
                 )
             ).where(ScanResults.execution_id == execution_id)
             cursor = await sa_conn.execute(get_results_query)
-            return execution, await cursor.fetchall()
+            results = await cursor.fetchall()
+
+            get_connectivity_results_query = select(
+                filter(
+                    lambda col: col.key not in ignore_cols,
+                    ConnectivityResults.__table__.columns,
+                )
+            ).where(ConnectivityResults.execution_id == execution_id)
+            cursor = await sa_conn.execute(get_connectivity_results_query)
+            connectivity_results = await cursor.fetchall()
+
+            get_interference_results_query = select(
+                filter(
+                    lambda col: col.key not in ignore_cols,
+                    InterferenceResults.__table__.columns,
+                )
+            ).where(InterferenceResults.execution_id == execution_id)
+            cursor = await sa_conn.execute(get_interference_results_query)
+            return execution, results, connectivity_results, await cursor.fetchall()
 
     @staticmethod
     async def list_executions(

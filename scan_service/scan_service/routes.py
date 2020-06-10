@@ -4,8 +4,9 @@
 import enum
 import functools
 import json
+from collections import defaultdict
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterable
 
 from aiohttp import web
 from croniter import croniter
@@ -438,6 +439,25 @@ async def handle_get_execution(request: web.Request) -> web.Response:
       "404":
         description: Unknown scan test execution ID.
     """
+
+    def update_results(scan_results: defaultdict, results: Iterable) -> None:
+        for row in results:
+            scan_results[row.token].update(
+                {key: val for key, val in row.items() if key != "token"}
+            )
+
+    def update_analysis_results(
+        scan_results: defaultdict, results: Iterable, type: str
+    ) -> None:
+        for row in results:
+            scan_results[row.token][type].append(
+                {
+                    key: val
+                    for key, val in row.items()
+                    if key not in {"token", "group_id"}
+                }
+            )
+
     execution_id = int(request.match_info["execution_id"])
     execution_output = await Scheduler.describe_execution(execution_id)
     if execution_output is None:
@@ -445,9 +465,15 @@ async def handle_get_execution(request: web.Request) -> web.Response:
             text=f"No scan test execution with ID '{execution_id}' was found"
         )
 
-    execution, results = execution_output
+    execution, results, connectivity_results, interference_results = execution_output
+
+    scan_results: defaultdict = defaultdict(lambda: defaultdict(list))
+    update_results(scan_results, results)
+    update_analysis_results(scan_results, connectivity_results, "connectivity")
+    update_analysis_results(scan_results, interference_results, "interference")
+
     return web.json_response(
-        {"execution": dict(execution), "results": [dict(row) for row in results]},
+        {"execution": dict(execution), "results": scan_results},
         dumps=functools.partial(json.dumps, default=custom_serializer),
     )
 

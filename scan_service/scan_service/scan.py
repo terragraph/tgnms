@@ -134,7 +134,7 @@ def parse_scan_results(scan_result: Dict) -> Dict:
         else ScanFwStatus.UNSPECIFIED_ERROR  # type: ignore
     )
     rx_statuses = {
-        node: rx_response["status"]
+        node: ScanFwStatus(rx_response["status"]).name
         for node, rx_response in scan_data["responses"].items()
         if node != tx_node
     }
