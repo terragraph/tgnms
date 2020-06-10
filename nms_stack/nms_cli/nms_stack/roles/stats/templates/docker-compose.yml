@@ -53,6 +53,10 @@ services:
     restart: unless-stopped
     networks:
       - terragraph_net
+    deploy:
+      placement:
+        constraints:
+          - node.labels.prometheus == true
     volumes:
       - {{ stats_gfs_path }}/config:/etc/prometheus
       - {{ prometheus_data_path }}/data:/prometheus
