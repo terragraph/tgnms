@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 import sys
-from typing import Dict
+from typing import Any, Dict
 
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
@@ -15,7 +15,7 @@ from .routes import routes
 from .scheduler import Scheduler
 
 
-async def async_main(config: Dict) -> None:
+async def async_main(config: Dict[str, Any]) -> None:
     # Reschedule any tests found in the schedule upon startup
     if "execution_timeout_s" in config:
         Scheduler.timeout = config["execution_timeout_s"]

@@ -5,7 +5,7 @@ import asyncio
 import logging
 import random
 from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
 from tglib.clients import APIServiceClient
@@ -16,7 +16,7 @@ from .base import NodeTest, TestAsset
 
 class Multihop(NodeTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict, whitelist: List[str]
+        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
     ) -> None:
         # Set default test configurations
         iperf_options["json"] = True
@@ -89,7 +89,7 @@ class Multihop(NodeTest):
             return None
 
     async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
-        logging.info(f"Starting multihop link test on {self.network_name}")
+        logging.info(f"Starting multihop node test on {self.network_name}")
         logging.debug(f"iperf options: {self.iperf_options}")
 
         loop = asyncio.get_event_loop()

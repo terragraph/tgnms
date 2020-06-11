@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
 from terragraph_thrift.Topology.ttypes import LinkType
@@ -16,7 +16,7 @@ from .base import LinkTest, TestAsset
 
 class Sequential(LinkTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict, whitelist: List[str]
+        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
     ) -> None:
         # Set default test configurations
         iperf_options["protocol"] = IperfTransportProtocol.UDP
