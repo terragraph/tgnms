@@ -116,22 +116,22 @@ class Scheduler:
     async def restart(cls) -> None:
         """Clean up any stray sessions and restart the schedules in the DB."""
         # Stop all stale running tests
-        try:
-            client = APIServiceClient(timeout=1)
-            statuses = await client.request_all("statusTraffic")
-            for network_name, sessions in statuses.items():
-                session_ids = sessions.get("sessions")
-                if session_ids is None:
-                    continue
+        coros = []
+        client = APIServiceClient(timeout=1)
+        statuses = await client.request_all("statusTraffic", return_exceptions=True)
+        for network_name, sessions in statuses.items():
+            if isinstance(sessions, ClientRuntimeError):
+                logging.error(f"Failed to get iperf traffic status for {network_name}")
+                continue
+            session_ids = sessions.get("sessions")
+            if session_ids is None:
+                continue
 
-                tasks = [
-                    client.request(network_name, "stopTraffic", params={"id": id})
-                    for id in session_ids
-                ]
-
-                await asyncio.gather(*tasks)
-        except ClientRuntimeError:
-            logging.exception("Failed to stop one or more iperf session(s)")
+            coros += [
+                client.request(network_name, "stopTraffic", params={"id": id})
+                for id in session_ids
+            ]
+        await asyncio.gather(*coros, return_exceptions=True)
 
         # Mark all stale running executions + test results as FAILED in the DB
         async with MySQLClient().lease() as sa_conn:

@@ -79,11 +79,7 @@ class BaseTest(abc.ABC):
             client.request(self.network_name, "stopTraffic", params={"id": session_id})
             for session_id in self.session_ids
         ]
-
-        try:
-            await asyncio.gather(*coros)
-        except ClientRuntimeError:
-            logging.exception("Failed to stop one or more iperf session(s)")
+        asyncio.gather(*coros, return_exceptions=True)
 
         self.session_ids.clear()
         return True
