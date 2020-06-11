@@ -150,7 +150,7 @@ class OverviewPanel extends React.Component<Props, State> {
   }
 
   fetchServiceAvailability = () => {
-    const metricName = 'pinger_lossRatio';
+    const metricName = 'udp_pinger_loss_ratio';
     const topologyName = this.props.networkConfig.topology.name;
     const intervalSec = 1;
 
