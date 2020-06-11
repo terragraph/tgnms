@@ -209,7 +209,8 @@ def compute_link_health(
         or mcs is None
         or tx_per is None
     ):
-        logging.error("Unable to calculate link health due to missing data")
+        params = [param for param, value in locals().items() if value is None]
+        logging.error(f"Unable to calculate link health: Missing '{params}' data")
         return NetworkTestHealth.MISSING
 
     link_unavail_ratio = BWGD_S * (fw_uptime - link_avail) / session_duration
