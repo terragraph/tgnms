@@ -61,7 +61,7 @@ DEFINE_string(src_ip, "", "The IP source address to use in probe");
 DEFINE_string(src_if, "", "The interface to use if src_ip is not defined");
 DEFINE_string(
     prometheus_job_name,
-    "ping_service",
+    "udp_pinger",
     "Prometheus job name for submitting metrics");
 
 struct AggrUdpPingStat {
@@ -236,32 +236,32 @@ void writeResults(const UdpTestResults& results) {
   for (const auto& result : results.hostResults) {
     std::vector<std::string> labels = getMetricLabels(result->metadata.dst, 1);
 
-    metrics.emplace_back(
-        Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
+    metrics.emplace_back(Metric(
+        "udp_pinger_loss_ratio", now, labels, result->metrics.loss_ratio));
 
     if (result->metrics.num_recv > 0) {
       metrics.insert(
           metrics.end(),
-          {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
-           Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
-           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75),
-           Metric("pinger_rtt_max", now, labels, result->metrics.rtt_max)});
+          {Metric("udp_pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
+           Metric("udp_pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
+           Metric("udp_pinger_rtt_p75", now, labels, result->metrics.rtt_p75),
+           Metric("udp_pinger_rtt_max", now, labels, result->metrics.rtt_max)});
     }
   }
 
   for (const auto& result : results.networkResults) {
     std::vector<std::string> labels = getMetricLabels(result->metadata.dst, 1);
 
-    metrics.emplace_back(
-        Metric("pinger_lossRatio", now, labels, result->metrics.loss_ratio));
+    metrics.emplace_back(Metric(
+        "udp_pinger_loss_ratio", now, labels, result->metrics.loss_ratio));
 
     if (result->metrics.num_recv > 0) {
       metrics.insert(
           metrics.end(),
-          {Metric("pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
-           Metric("pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
-           Metric("pinger_rtt_p75", now, labels, result->metrics.rtt_p75),
-           Metric("pinger_rtt_max", now, labels, result->metrics.rtt_max)});
+          {Metric("udp_pinger_rtt_avg", now, labels, result->metrics.rtt_avg),
+           Metric("udp_pinger_rtt_p90", now, labels, result->metrics.rtt_p90),
+           Metric("udp_pinger_rtt_p75", now, labels, result->metrics.rtt_p75),
+           Metric("udp_pinger_rtt_max", now, labels, result->metrics.rtt_max)});
     }
   }
 
@@ -323,7 +323,7 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
         getMetricLabels(aggrUdpPingStat.target, dataInterval);
 
     metrics.emplace_back(Metric(
-        "pinger_lossRatio",
+        "udp_pinger_loss_ratio",
         now,
         labels,
         aggrUdpPingStat.lossRatioSum / aggrUdpPingStat.count));
@@ -332,21 +332,22 @@ void writeAggrResults(const std::vector<UdpTestResults>& aggrResults) {
       metrics.insert(
           metrics.end(),
           {Metric(
-               "pinger_rtt_avg",
+               "udp_pinger_rtt_avg",
                now,
                labels,
                aggrUdpPingStat.rttAvgSum / aggrUdpPingStat.noFullLossCount),
            Metric(
-               "pinger_rtt_p90",
+               "udp_pinger_rtt_p90",
                now,
                labels,
                aggrUdpPingStat.rttP90Sum / aggrUdpPingStat.noFullLossCount),
            Metric(
-               "pinger_rtt_p75",
+               "udp_pinger_rtt_p75",
                now,
                labels,
                aggrUdpPingStat.rttP75Sum / aggrUdpPingStat.noFullLossCount),
-           Metric("pinger_rtt_max", now, labels, aggrUdpPingStat.rttCurrMax)});
+           Metric(
+               "udp_pinger_rtt_max", now, labels, aggrUdpPingStat.rttCurrMax)});
     }
   }
 

@@ -78,7 +78,7 @@
       "pluginVersion": "6.3.5",
       "targets": [
         {
-          "expr": "1 - pinger_lossRatio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"}",
+          "expr": "1 - udp_pinger_loss_ratio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"}",
           "instant": true,
           "refId": "A"
         }
@@ -129,7 +129,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "1 - pinger_lossRatio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"}",
+          "expr": "1 - udp_pinger_loss_ratio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"}",
           "refId": "A"
         }
       ],
@@ -220,7 +220,7 @@
       "pluginVersion": "6.3.5",
       "targets": [
         {
-          "expr": "1 - avg_over_time(pinger_lossRatio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"} [24h])",
+          "expr": "1 - avg_over_time(udp_pinger_loss_ratio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"} [24h])",
           "instant": true,
           "refId": "A"
         }
@@ -272,7 +272,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "1 - avg_over_time(pinger_lossRatio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"} [24h])",
+          "expr": "1 - avg_over_time(udp_pinger_loss_ratio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName=\"\"} [24h])",
           "refId": "A"
         }
       ],
@@ -382,7 +382,7 @@
       ],
       "targets": [
         {
-          "expr": "1 - avg_over_time(pinger_lossRatio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName!=\"\"} [24h])",
+          "expr": "1 - avg_over_time(udp_pinger_loss_ratio{network=\"$networkName\", intervalSec=\"$intervalSec\", nodeName!=\"\"} [24h])",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -446,7 +446,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "1 - pinger_lossRatio{intervalSec=\"$intervalSec\", network=\"$networkName\", nodeName=\"$nodeName\"}",
+          "expr": "1 - udp_pinger_loss_ratio{intervalSec=\"$intervalSec\", network=\"$networkName\", nodeName=\"$nodeName\"}",
           "refId": "A"
         }
       ],
@@ -533,7 +533,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "1 - avg_over_time(pinger_lossRatio{intervalSec=\"$intervalSec\", network=\"$networkName\", nodeName=\"$nodeName\"} [24h])",
+          "expr": "1 - avg_over_time(udp_pinger_loss_ratio{intervalSec=\"$intervalSec\", network=\"$networkName\", nodeName=\"$nodeName\"} [24h])",
           "instant": false,
           "refId": "A"
         }
@@ -643,14 +643,14 @@
           "value": "terra111_f1_ta_a404_if"
         },
         "datasource": "Prometheus",
-        "definition": "label_values(pinger_lossRatio{network=\"$networkName\"}, nodeName)",
+        "definition": "label_values(udp_pinger_loss_ratio{network=\"$networkName\"}, nodeName)",
         "hide": 0,
         "includeAll": false,
         "label": "Node Name",
         "multi": false,
         "name": "nodeName",
         "options": [],
-        "query": "label_values(pinger_lossRatio{network=\"$networkName\"}, nodeName)",
+        "query": "label_values(udp_pinger_loss_ratio{network=\"$networkName\"}, nodeName)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

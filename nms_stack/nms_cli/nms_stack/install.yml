@@ -95,7 +95,7 @@
   roles:
     - { role: stats, tags: ["stats"] }
 
-- name: Setup udp_ping_client
+- name: Setup udp_pinger
   hosts: all
   run_once: true
   become: true
@@ -105,7 +105,7 @@
   tags:
     - services
   roles:
-    - { role: udp_ping_client, tags: ["udp_ping_client", "udp_pinger", "pinger"] }
+    - { role: udp_pinger, tags: ["udp_pinger", "pinger"] }
 
 - name: Setup services on a manager
   hosts: managers

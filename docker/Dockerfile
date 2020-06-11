@@ -16,8 +16,8 @@ COPY docker $WORKDIR/docker/
 COPY CMakeLists.txt $WORKDIR/CMakeLists.txt
 COPY .cmake $WORKDIR/.cmake/
 COPY if $WORKDIR/if/
-COPY ping_service $WORKDIR/ping_service/
 COPY query_service $WORKDIR/query_service/
+COPY udp_pinger $WORKDIR/udp_pinger/
 
 # some packages aren't in mainline
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
@@ -127,8 +127,8 @@ COPY docker $WORKDIR/docker/
 COPY CMakeLists.txt $WORKDIR/CMakeLists.txt
 COPY .cmake $WORKDIR/.cmake/
 COPY if $WORKDIR/if/
-COPY ping_service $WORKDIR/ping_service/
 COPY query_service $WORKDIR/query_service/
+COPY udp_pinger $WORKDIR/udp_pinger/
 
 # some packages aren't in mainline
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories

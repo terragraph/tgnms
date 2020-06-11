@@ -1,0 +1,43 @@
+---
+- name: stop the old service
+  systemd:
+    name: udp_ping_client_monitor
+    state: stopped
+    enabled: no
+
+- name: delete the old service files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ terragraph_docker_path }}/udp_ping_client"
+    - /lib/systemd/system/udp_ping_client_monitor.service
+
+- name: create path
+  file:
+    path: "{{ udp_pinger_path }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: copy docker compose
+  template:
+    src: docker-compose.yml
+    dest: "{{ udp_pinger_path }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+
+- name: copy service file
+  template:
+    src: udp_pinger_monitor.service
+    dest: /lib/systemd/system
+
+- name: start the service
+  systemd:
+    name: udp_pinger_monitor
+    daemon_reload: yes
+    state: started
+    enabled: yes

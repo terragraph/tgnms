@@ -34,5 +34,5 @@ add_definitions("-D_GLIBCXX_USE_CXX11_ABI=1")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(if)
-add_subdirectory(ping_service)
 add_subdirectory(query_service)
+add_subdirectory(udp_pinger)

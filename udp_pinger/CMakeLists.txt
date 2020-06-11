@@ -6,7 +6,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 # package information
-set(PACKAGE_NAME      "ping_service")
+set(PACKAGE_NAME      "udp_pinger")
 set(PACKAGE_VERSION   "1")
 set(PACKAGE_STRING    "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(PACKAGE_TARNAME   "${PACKAGE_NAME}-${PACKAGE_VERSION}")

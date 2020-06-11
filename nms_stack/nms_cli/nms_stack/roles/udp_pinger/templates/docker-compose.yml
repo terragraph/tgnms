@@ -1,17 +1,22 @@
 version: '3.7'
 
 services:
-  udp_ping_client:
+  udp_pinger:
     image: secure.cxl-terragraph.com:443/cpp_backends:latest
     env_file:
       - {{ db_gfs_path }}/env/mysql.env
+    environment:
+      - COOLDOWN_TIME_S=1
+      - NUM_PACKETS=10
+      - PING_INTERVAL_S=10
+      - PINGER_RATE_PPS=5
     restart: unless-stopped
     ports:
       - "31338:31338/udp"
     networks:
       - inbound
       - terragraph_net
-    command: ["/bin/sh", "-c", "until nc -z db 3306; do sleep 1; done && bin/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS}"]
+    command: ["/bin/sh", "-c", "bin/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -cooldown_time_s $${COOLDOWN_TIME_S} -num_packets $${NUM_PACKETS} -ping_interval_s ${{PING_INTERVAL_S} -pinger_rate_pps $${PINGER_RATE_PPS}"]
     logging:
       driver: "json-file"
       options:
