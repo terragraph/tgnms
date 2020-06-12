@@ -103,6 +103,10 @@ export const TgApiUtil: ApiUtil = {
       method: 'POST',
       data: config,
     }),
+
+  // Tenants
+  getTenants: _req =>
+    makeRequest({url: `${AM_BASE_URL}/tenants`, method: 'GET'}),
 };
 
 export const TgEventAlarmsApiUtil = {
