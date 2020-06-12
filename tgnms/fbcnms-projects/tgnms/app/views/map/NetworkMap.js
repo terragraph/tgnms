@@ -52,7 +52,10 @@ const styles = theme => ({
 });
 
 const {MAPBOX_ACCESS_TOKEN} = window.CONFIG.env;
-const MapBoxGL = ReactMapboxGl({accessToken: MAPBOX_ACCESS_TOKEN});
+const MapBoxGL = ReactMapboxGl({
+  accessToken: MAPBOX_ACCESS_TOKEN,
+  attributionControl: false,
+});
 
 // Initial map bounding box:
 // https://www.mapbox.com/mapbox-gl-js/api/#map#fitbounds
