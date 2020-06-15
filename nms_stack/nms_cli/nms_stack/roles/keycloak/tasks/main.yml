@@ -64,7 +64,7 @@
     mysql:5 /scripts/create-keycloak-database.sh
 
 - name: run compose
-  shell: "docker stack deploy -c {{ keycloak_path }}/docker-compose.yml --with-registry-auth keycloak"
+  shell: "docker stack deploy -c {{ keycloak_path }}/docker-compose.yml --with-registry-auth --prune keycloak"
 
 - name: wait for keycloak to come up
   command: docker run --network=terragraph_net alpine nc -zv keycloak_keycloak 8080

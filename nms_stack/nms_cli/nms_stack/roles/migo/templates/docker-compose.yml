@@ -2,8 +2,7 @@ version: '3.4'
 
 services:
   ipv6:
-    image: secure.cxl-terragraph.com:443/migo:latest
-    restart: unless-stopped
+    image: secure.cxl-terragraph.com:443/migo:stable
     network_mode: "host"
     privileged: true
     logging:

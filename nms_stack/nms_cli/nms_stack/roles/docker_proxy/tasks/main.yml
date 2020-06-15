@@ -21,7 +21,7 @@
     - { src: "time.env", dest: "{{ docker_proxy_path }}/env" }
 
 - name: run compose
-  shell: "docker stack deploy -c {{ docker_proxy_path }}/docker-compose.yml --with-registry-auth docker_proxy"
+  shell: "docker stack deploy -c {{ docker_proxy_path }}/docker-compose.yml --with-registry-auth --prune docker_proxy"
 
 - name: clean compose
   file:

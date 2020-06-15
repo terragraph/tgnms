@@ -8,7 +8,6 @@ services:
     environment:
       - MYSQL_HOST=
       - MYSQL_ROOT_PASSWORD={{ db_root_password }}
-    restart: unless-stopped
     volumes:
       - "{{ db_gfs_path }}/volumes/mysql_init_scripts:/docker-entrypoint-initdb.d:ro"
       - "{{ db_data_path }}/mysql:/var/lib/mysql"

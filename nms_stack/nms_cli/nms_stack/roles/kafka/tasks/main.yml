@@ -60,7 +60,7 @@
 
 - name: run compose
   run_once: true
-  shell: "docker stack deploy -c {{ kafka_path }}/docker-compose.yml --with-registry-auth kafka"
+  shell: "docker stack deploy -c {{ kafka_path }}/docker-compose.yml --with-registry-auth --prune kafka"
 
 - name: clean compose
   file:

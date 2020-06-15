@@ -12,7 +12,6 @@ services:
     env_file:
       - "{{ e2e_controller_path }}/env/defaults.env"
       - "{{ e2e_controller_path }}/env/overrides.env"
-    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
@@ -38,7 +37,6 @@ services:
     env_file:
       - "{{ e2e_controller_path }}/env/defaults.env"
       - "{{ e2e_controller_path }}/env/overrides.env"
-    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
@@ -64,7 +62,6 @@ services:
     env_file:
       - "{{ e2e_controller_path }}/env/defaults.env"
       - "{{ e2e_controller_path }}/env/overrides.env"
-    restart: unless-stopped
     networks:
       terragraph_net:
         aliases:
@@ -89,7 +86,6 @@ services:
     env_file:
       - "{{ e2e_controller_path }}/env/defaults.env"
       - "{{ e2e_controller_path }}/env/overrides.env"
-    restart: unless-stopped
     networks:
       terragraph_net:
         aliases:

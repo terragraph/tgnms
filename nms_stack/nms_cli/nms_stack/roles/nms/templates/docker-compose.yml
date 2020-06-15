@@ -9,7 +9,6 @@ services:
       - {{ nms_path }}/env/nms_auth.env
       - {{ nms_path }}/env/time.env
       - {{ nms_path }}/env/nms_custom.env
-    restart: unless-stopped
     volumes:
       - {{ logs_gfs_path }}:/nodelogs
       - {{ nms_path }}/docker_volumes/settings:/app/fbcnms-projects/tgnms/.settings
@@ -39,7 +38,6 @@ services:
       - GF_DATABASE_USER=$${GRAFANA_MYSQL_WRITER}
       - GF_DATABASE_PASSWORD=$${GRAFANA_MYSQL_WRITER_PASS}
       - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Editor
-    restart: unless-stopped
     networks:
       - terragraph_net
     deploy:

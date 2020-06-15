@@ -7,7 +7,6 @@
     group: docker
     mode: 0755
   with_items:
-    - "{{ logs_data_path }}"
     - "{{ stats_gfs_path }}/env"
     - "{{ stats_gfs_path }}/config"
     - "{{ stats_gfs_path }}/config/alert_rules"
@@ -54,7 +53,7 @@
   command: "docker node update --label-add \"prometheus=true\" {{ ansible_nodename }}"
 
 - name: run compose
-  command: "docker stack deploy -c {{ stats_gfs_path }}/docker-compose.yml --with-registry-auth stats"
+  command: "docker stack deploy -c {{ stats_gfs_path }}/docker-compose.yml --with-registry-auth --prune stats"
 
 - name: clean compose
   file:

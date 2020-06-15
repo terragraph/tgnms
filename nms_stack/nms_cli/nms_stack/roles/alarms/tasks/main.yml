@@ -17,7 +17,7 @@
     mode: "0644"
 
 - name: run compose
-  shell: "docker stack deploy -c {{ alarms_path }}/docker-compose.yml --with-registry-auth tg-alarms"
+  shell: "docker stack deploy -c {{ alarms_path }}/docker-compose.yml --with-registry-auth --prune tg-alarms"
 
 - name: clean compose
   file:

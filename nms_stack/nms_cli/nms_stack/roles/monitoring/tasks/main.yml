@@ -23,7 +23,7 @@
     - { src: "gluster-exporter.toml", dest: "{{ monitoring_gfs_path }}/gluster_exporter/config" }
 
 - name: run compose
-  shell: "docker stack deploy -c {{ monitoring_gfs_path }}/docker-compose.yml --with-registry-auth monitoring"
+  shell: "docker stack deploy -c {{ monitoring_gfs_path }}/docker-compose.yml --with-registry-auth --prune monitoring"
 
 - name: clean compose
   file:

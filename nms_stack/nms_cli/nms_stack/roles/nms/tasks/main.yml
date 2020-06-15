@@ -82,7 +82,7 @@
     - { src: "dashboards/udp_pinger_dashboard.json", dest: "dashboards" }
 
 - name: run compose
-  shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth nms"
+  shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth --prune nms"
 
 - name: wait for nms to come up
   command: docker run --network=terragraph_net byrnedo/alpine-curl curl nms_nms/healthcheck:80

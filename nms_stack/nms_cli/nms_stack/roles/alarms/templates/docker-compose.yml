@@ -2,8 +2,7 @@ version: '3.7'
 
 services:
   alarms:
-    image: secure.cxl-terragraph.com:443/tg-alarms:latest
-    restart: unless-stopped
+    image: secure.cxl-terragraph.com:443/tg-alarms:stable
     logging:
       driver: "json-file"
       options:

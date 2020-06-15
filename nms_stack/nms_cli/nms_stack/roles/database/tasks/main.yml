@@ -37,7 +37,7 @@
   shell: "docker node update --label-add \"database=true\" {{ ansible_nodename }}"
 
 - name: run compose
-  shell: "docker stack deploy -c {{ db_gfs_path }}/docker-compose.yml --with-registry-auth database"
+  shell: "docker stack deploy -c {{ db_gfs_path }}/docker-compose.yml --with-registry-auth --prune database"
 
 - name: clean compose
   file:

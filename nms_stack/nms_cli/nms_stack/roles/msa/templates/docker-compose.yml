@@ -2,8 +2,7 @@ version: '3.7'
 
 services:
   analytics:
-    image: secure.cxl-terragraph.com:443/analytics:latest
-    restart: unless-stopped
+    image: secure.cxl-terragraph.com:443/analytics:stable
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/analytics/config.json
       - {{ msa_gfs_path }}/config/analytics/service_config.json:/usr/local/analytics/service_config.json
@@ -17,10 +16,9 @@ services:
         max-file: "10"
 
   default_routes_service:
-    image: secure.cxl-terragraph.com:443/default_routes_service:latest
+    image: secure.cxl-terragraph.com:443/default_routes_service:stable
     env_file:
       - {{ msa_gfs_path }}/env/default_routes_service.env
-    restart: unless-stopped
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/default_routes_service/config.json
       - {{ msa_gfs_path }}/config/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
@@ -35,8 +33,7 @@ services:
         max-file: "10"
 
   jupyter:
-    image: secure.cxl-terragraph.com:443/jupyter:latest
-    restart: unless-stopped
+    image: secure.cxl-terragraph.com:443/jupyter:stable
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/tglib/jupyter/notebooks/config.json
     networks:
@@ -49,10 +46,9 @@ services:
         max-file: "10"
 
   topology_service:
-    image: secure.cxl-terragraph.com:443/topology_service:latest
+    image: secure.cxl-terragraph.com:443/topology_service:stable
     env_file:
       - {{ msa_gfs_path }}/env/topology_service.env
-    restart: unless-stopped
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/topology_service/config.json
       - {{ msa_gfs_path }}/config/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
@@ -68,7 +64,6 @@ services:
 
   weather_service:
     image: secure.cxl-terragraph.com:443/weather_service:latest
-    restart: unless-stopped
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/weather_service/config.json
       - {{ msa_gfs_path }}/config/weather_service/service_config.json:/usr/local/weather_service/service_config.json

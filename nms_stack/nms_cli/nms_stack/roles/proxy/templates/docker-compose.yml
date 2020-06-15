@@ -9,7 +9,6 @@ services:
       - "certbot_args={{ certbot_args }}"
     env_file:
       - env/time.env
-    restart: unless-stopped
     ports:
       - "80:80"             # NMS Non-SSL port
       - "443:443"           # NMS SSL port

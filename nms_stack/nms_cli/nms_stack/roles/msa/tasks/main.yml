@@ -47,7 +47,7 @@
     loop_var: service
 
 - name: run compose
-  shell: "docker stack deploy -c {{ msa_gfs_path }}/docker-compose.yml --with-registry-auth msa"
+  shell: "docker stack deploy -c {{ msa_gfs_path }}/docker-compose.yml --with-registry-auth --prune msa"
 
 - name: remove weather service (weather_service_openweathermap_api_key not provided)
   # The weather service should not be started if there is no API key provided,

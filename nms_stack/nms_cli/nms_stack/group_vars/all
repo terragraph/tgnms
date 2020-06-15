@@ -173,7 +173,6 @@ msa_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/msa"
 monitoring_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/monitoring"
 
 # Non Gluster Paths
-logs_data_path: "{{ terragraph_docker_path }}/logs"
 prometheus_data_path: "{{ terragraph_docker_path }}/prometheus_data"
 db_data_path: "{{ terragraph_docker_path }}/database_data"
 kafka_path: "{{ terragraph_docker_path }}/kafka"

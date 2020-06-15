@@ -2,10 +2,9 @@ version: '3.6'
 
 services:
   docker_proxy:
-    image: secure.cxl-terragraph.com:443/docker_proxy:latest
+    image: secure.cxl-terragraph.com:443/docker_proxy:stable
     env_file:
       - env/time.env
-    restart: unless-stopped
     logging:
       driver: "json-file"
       options:

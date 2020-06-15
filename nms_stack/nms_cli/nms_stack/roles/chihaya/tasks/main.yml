@@ -26,7 +26,7 @@
     mode: "0644"
 
 - name: run compose
-  shell: "docker stack deploy -c {{ chihaya_path }}/docker-compose.yml --with-registry-auth chihaya"
+  shell: "docker stack deploy -c {{ chihaya_path }}/docker-compose.yml --with-registry-auth --prune chihaya"
 
 - name: clean compose
   file:

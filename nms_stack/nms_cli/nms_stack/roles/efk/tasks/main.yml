@@ -62,7 +62,7 @@
 
 - name: run compose
   run_once: true
-  command: "docker stack deploy -c {{ efk_gfs_path }}/docker-compose.yml --with-registry-auth efk"
+  command: "docker stack deploy -c {{ efk_gfs_path }}/docker-compose.yml --with-registry-auth --prune efk"
 
 - name: copy init_file
   copy:
