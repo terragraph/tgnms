@@ -4,6 +4,7 @@
     name: udp_ping_client_monitor
     state: stopped
     enabled: no
+  ignore_errors: yes
 
 - name: delete the old service files
   file:
