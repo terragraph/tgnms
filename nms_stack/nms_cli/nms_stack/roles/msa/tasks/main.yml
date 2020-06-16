@@ -49,11 +49,11 @@
 - name: run compose
   shell: "docker stack deploy -c {{ msa_gfs_path }}/docker-compose.yml --with-registry-auth --prune msa"
 
-- name: remove weather service (weather_service_openweathermap_api_key not provided)
+- name: disable weather service (weather_service 'enabled' was false)
   # The weather service should not be started if there is no API key provided,
   # so if it is missing scale it down to 0
   shell: "docker service update --replicas=0 msa_weather_service"
-  when: weather_service_openweathermap_api_key is not defined
+  when: not weather_service["enabled"]
 
 - name: clean compose
   file:

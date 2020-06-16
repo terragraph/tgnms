@@ -70,7 +70,7 @@ class APIServiceClient(BaseClient):
             raise ConfigError(f"Missing one or more required params: {required_params}")
 
         cls._keycloak_enabled = api_params["keycloak_enabled"]
-        cls._session = aiohttp.ClientSession(trust_env=True)
+        cls._session = aiohttp.ClientSession()
 
         headers: Optional[Dict] = None
         if cls._keycloak_enabled and await cls._refresh_token():

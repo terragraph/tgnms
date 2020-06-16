@@ -2,20 +2,18 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import dataclasses
 import json
 import logging
 import sys
-from typing import Any, Dict, List, NoReturn
+from typing import Any, Awaitable, Dict, List, NoReturn
 
-import tglib
 from aiohttp import web
 from tglib import ClientType, init
 from tglib.clients import APIServiceClient, PrometheusClient
 from tglib.clients.prometheus_client import PrometheusMetric, consts
 from tglib.exceptions import ClientRuntimeError
 
-from .api_clients import OpenWeatherMapClient, WeatherAPIClient
+from .api_clients import ClimaCellClient, OpenWeatherMapClient, WeatherAPIClient
 from .weather import Coordinates, WeatherState
 
 
@@ -43,10 +41,10 @@ async def fetch_weather_data(
     )
 
     # Using the fetched topology, create tasks for each site
-    tasks = []
+    tasks: List[Awaitable[WeatherState]] = []
     for network_name, network in topologies.items():
         if isinstance(network, ClientRuntimeError):
-            logging.info(f"Failed to fetch for {network_name}")
+            logging.info(f"Failed to fetch topology for {network_name}")
             continue
 
         for site in network["sites"]:
@@ -59,48 +57,68 @@ async def fetch_weather_data(
 
     # Launch the tasks to make requests to the weather API
     logging.info(f"Fetching weather for {len(tasks)} sites")
-    weather_states = await asyncio.gather(*tasks)
+    weather_states = await asyncio.gather(*tasks, return_exceptions=True)
 
     # Log data to Prometheus
     prometheus_metrics = []
+    logging.info(f"Done fetching {len(weather_states)} weather states")
     for weather_state in weather_states:
-        metrics_dict = dataclasses.asdict(weather_state.metrics).items()
+        if isinstance(weather_state, Exception):
+            logging.info(f"Failed to fetch weather data: {str(weather_state)}")
+            continue
 
         labels = {
             consts.network: weather_state.network_name,
             consts.site_name: weather_state.site_name,
         }
 
-        for name, metric in metrics_dict:
-            if metric is None:
+        for name, metric in weather_state.metrics.flat_metrics().items():
+            if metric is None or metric.value is None:
                 continue
             prometheus_metrics.append(
                 PrometheusMetric(
-                    name=f"weather_{name}_{metric['unit']}",
+                    name=f"weather_{name}_{metric.unit}",
                     labels=labels,
-                    value=metric["value"],
+                    value=metric.value,
                 )
             )
     return prometheus_metrics
 
 
-async def async_main(
-    service_config: Dict[str, Any],
-    api_service_client: APIServiceClient,
-    weather_client: WeatherAPIClient,
-) -> NoReturn:
-    logging.info(
-        f"Starting weather service with client {type(weather_client).__qualname__}"
-    )
+def get_weather_client(service_config: Dict[str, Any]) -> WeatherAPIClient:
+    valid_keys = {"climacell_api_key", "openweathermap_api_key"}
+    # Find which of the available APIs is selected and use it (error if more
+    # than 1 API key is provided)
+    api_keys_present = [key for key in service_config.keys() if key in valid_keys]
+    if len(api_keys_present) != 1:
+        raise RuntimeError(f"Exactly 1 of {valid_keys} should be provided")
+    client_name = api_keys_present[0]
+    api_key = service_config[client_name]
+
+    if client_name == "climacell_api_key":
+        return ClimaCellClient(api_key)
+    elif client_name == "openweathermap_api_key":
+        return OpenWeatherMapClient(api_key)
+    raise ValueError(f"Unknown client {client_name}")
+
+
+async def async_main(service_config: Dict[str, Any]) -> NoReturn:
     logging.info(f"Config: {service_config}")
 
-    while True:
-        PrometheusClient.write_metrics(
-            await fetch_weather_data(api_service_client, weather_client)
-        )
-        logging.info("Updated prometheus cache with new data")
+    api_service_client = APIServiceClient(timeout=5)
 
-        await asyncio.sleep(service_config["weather_data_fetch_interval_seconds"])
+    async with get_weather_client(service_config) as weather_client:
+        logging.info(
+            f"Starting weather service with client {weather_client.__class__.__name__}"
+        )
+
+        while True:
+            PrometheusClient.write_metrics(
+                await fetch_weather_data(api_service_client, weather_client)
+            )
+            logging.info("Updated prometheus cache with new data")
+
+            await asyncio.sleep(service_config["weather_data_fetch_interval_seconds"])
 
 
 def main() -> None:
@@ -111,14 +129,8 @@ def main() -> None:
         logging.exception("Failed to parse service configuration file")
         sys.exit(1)
 
-    if service_config["OpenWeatherMapKey"] == "":
-        raise RuntimeError("OpenWeatherMapKey was empty in service_config.json")
-
-    weather_client = OpenWeatherMapClient(service_config["OpenWeatherMapKey"])
-    api_service_client = APIServiceClient(timeout=5)
-
     init(
-        lambda: async_main(service_config, api_service_client, weather_client),
+        lambda: async_main(service_config),
         {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
         web.RouteTableDef(),
     )

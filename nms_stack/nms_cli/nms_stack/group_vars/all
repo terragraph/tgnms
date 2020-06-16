@@ -64,11 +64,14 @@ controllers_list:
 # E2E Controller
 e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
 
-# A free-tier key for OpenWeatherMap can be obtained at
-# https://openweathermap.org/api.
-# Set weather_service_openweathermap_api_key to an empty string to disable the
-# service.
-weather_service_openweathermap_api_key:
+# A free-tier key for ClimaCell can be obtained at
+# https://developer.climacell.co/
+# Set enabled and provide an api_key to enable the weather service. Supported
+# providers are (openweathermap, climacell)
+weather_service:
+  enabled: no
+  provider: climacell
+  api_key:
 
 ###############################################################################
 # Detailed Options
