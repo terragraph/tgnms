@@ -18,14 +18,14 @@ class DefaultRoutesHistory(Base):
     node_name = Column(String(255), index=True, nullable=False)
     last_updated = Column(DateTime, index=True, nullable=False)
     routes = Column(JSON, nullable=False)
-    hop_count = Column(Integer, nullable=False)
+    max_hop_count = Column(Integer, nullable=False)
 
 
-class LinkCnRoutes(Base):
-    __tablename__ = "link_cn_routes"
+class CnEgressRoutesHistory(Base):
+    __tablename__ = "cn_egress_routes_history"
 
     id = Column(Integer, primary_key=True)
     network_name = Column(String(100), index=True, nullable=False)
     link_name = Column(String(255), index=True, nullable=False)
     last_updated = Column(DateTime, index=True, nullable=False)
-    cn_routes = Column(JSON, nullable=False)
+    routes = Column(JSON, nullable=False)

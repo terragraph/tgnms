@@ -9,7 +9,7 @@ from typing import DefaultDict, Dict, List, Tuple
 from sqlalchemy import func, insert, select
 from tglib.clients import MySQLClient
 
-from .models import DefaultRoutesHistory, LinkCnRoutes
+from ..models import CnEgressRoutesHistory, DefaultRoutesHistory
 
 
 async def save_default_routes(
@@ -58,7 +58,7 @@ async def save_default_routes(
                             "node_name": row.node_name,
                             "last_updated": last_updated,
                             "routes": routes,
-                            "hop_count": max_hop_count,
+                            "max_hop_count": max_hop_count,
                         }
                     )
 
@@ -74,7 +74,7 @@ async def save_default_routes(
                         "node_name": node_name,
                         "last_updated": last_updated,
                         "routes": sorted(routes),
-                        "hop_count": max_hop_count,
+                        "max_hop_count": max_hop_count,
                     }
                 )
 
@@ -90,16 +90,21 @@ async def save_cn_egress_routes(
     """Save the curr_routes to the database if they have changed."""
     async with MySQLClient().lease() as sa_conn:
         query = select(
-            [LinkCnRoutes.network_name, LinkCnRoutes.link_name, LinkCnRoutes.cn_routes]
+            [
+                CnEgressRoutesHistory.network_name,
+                CnEgressRoutesHistory.link_name,
+                CnEgressRoutesHistory.routes,
+            ]
         ).where(
             (
-                LinkCnRoutes.id.in_(
-                    select([func.max(LinkCnRoutes.id)]).group_by(
-                        LinkCnRoutes.network_name, LinkCnRoutes.link_name
+                CnEgressRoutesHistory.id.in_(
+                    select([func.max(CnEgressRoutesHistory.id)]).group_by(
+                        CnEgressRoutesHistory.network_name,
+                        CnEgressRoutesHistory.link_name,
                     )
                 )
             )
-            & (LinkCnRoutes.network_name).in_(curr_routes.keys())
+            & (CnEgressRoutesHistory.network_name).in_(curr_routes.keys())
         )
 
         cursor = await sa_conn.execute(query)
@@ -112,7 +117,7 @@ async def save_cn_egress_routes(
             else:
                 routes = curr_routes[row.network_name][row.link_name]
                 routes.sort()
-                if routes == row.cn_routes:
+                if routes == row.routes:
                     logging.debug(
                         f"CN egress traffic is unchanged for {row.link_name} on "
                         f"{row.network_name}"
@@ -127,7 +132,7 @@ async def save_cn_egress_routes(
                             "network_name": row.network_name,
                             "link_name": row.link_name,
                             "last_updated": last_updated,
-                            "cn_routes": routes,
+                            "routes": routes,
                         }
                     )
 
@@ -142,11 +147,11 @@ async def save_cn_egress_routes(
                         "network_name": network_name,
                         "link_name": link_name,
                         "last_updated": last_updated,
-                        "cn_routes": sorted(routes),
+                        "routes": sorted(routes),
                     }
                 )
 
         if values:
-            query = insert(LinkCnRoutes).values(values)
+            query = insert(CnEgressRoutesHistory).values(values)
             await sa_conn.execute(query)
             await sa_conn.connection.commit()

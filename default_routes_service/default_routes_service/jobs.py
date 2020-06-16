@@ -7,7 +7,7 @@ from typing import Any, DefaultDict, Dict, List, Tuple
 from terragraph_thrift.Topology.ttypes import LinkType, NodeType
 from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
 
-from .db import save_cn_egress_routes, save_default_routes
+from .utils.db import save_cn_egress_routes, save_default_routes
 
 
 async def process_default_routes(

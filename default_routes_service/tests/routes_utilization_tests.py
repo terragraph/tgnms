@@ -6,7 +6,11 @@ from datetime import datetime
 from typing import List
 from unittest.mock import Mock
 
-from default_routes_service.routes import compute_routes_utilization
+from default_routes_service.utils.utilization import (
+    compute_routes_utilization,
+    to_list,
+    to_tuple,
+)
 
 
 class RoutesUtilizationTests(unittest.TestCase):
@@ -24,10 +28,8 @@ class RoutesUtilizationTests(unittest.TestCase):
 
     def test_no_routes_in_window(self) -> None:
         last_updated = datetime.fromisoformat("2019-12-31T00:00:00")
-        input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated, in_window=False)
-        ]
-        expected_output = {"A": {"[]": 100}}
+        input = [Mock(node_name="A", routes=[], last_updated=last_updated)]
+        expected_output = {"A": [{"routes": [], "percentage": 100}]}
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
         )
@@ -35,10 +37,13 @@ class RoutesUtilizationTests(unittest.TestCase):
 
     def test_one_routes_in_window_no_previous_entry(self) -> None:
         last_updated = datetime.fromisoformat("2020-01-01T14:00:00")
-        input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated, in_window=True)
-        ]
-        expected_output = {"A": {"None": 58.333, "[]": 41.667}}
+        input = [Mock(node_name="A", routes=[], last_updated=last_updated)]
+        expected_output = {
+            "A": [
+                {"routes": None, "percentage": 58.333},
+                {"routes": [], "percentage": 41.667},
+            ]
+        }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
         )
@@ -48,17 +53,15 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_0 = datetime.fromisoformat("2019-12-31T00:00:00")
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
-            Mock(
-                node_name="A",
-                routes=[["X", "Y", "Z"]],
-                last_updated=last_updated_1,
-                in_window=True,
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_1),
         ]
-        expected_output = {"A": {"[]": 58.333, "[['X', 'Y', 'Z']]": 41.667}}
+        expected_output = {
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"]], "percentage": 41.667},
+            ]
+        }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
         )
@@ -68,18 +71,18 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_0 = datetime.fromisoformat("2019-12-31T00:00:00")
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="A",
                 routes=[["X", "Y", "Z"], ["A", "G", "H"]],
                 last_updated=last_updated_1,
-                in_window=True,
             ),
         ]
         expected_output = {
-            "A": {"[['X', 'Y', 'Z'], ['A', 'G', 'H']]": 41.667, "[]": 58.333}
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"], ["A", "G", "H"]], "percentage": 41.667},
+            ]
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -91,24 +94,16 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
-            Mock(
-                node_name="A",
-                routes=[["X", "Y", "Z"]],
-                last_updated=last_updated_1,
-                in_window=True,
-            ),
-            Mock(
-                node_name="A",
-                routes=[["D", "G", "H"]],
-                last_updated=last_updated_2,
-                in_window=True,
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_1),
+            Mock(node_name="A", routes=[["D", "G", "H"]], last_updated=last_updated_2),
         ]
         expected_output = {
-            "A": {"[]": 58.333, "[['X', 'Y', 'Z']]": 16.667, "[['D', 'G', 'H']]": 25.0}
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"]], "percentage": 16.667},
+                {"routes": [["D", "G", "H"]], "percentage": 25.0},
+            ]
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -120,28 +115,24 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="A",
                 routes=[["X", "Y", "Z"], ["X", "V", "Z"]],
                 last_updated=last_updated_1,
-                in_window=True,
             ),
             Mock(
                 node_name="A",
                 routes=[["D", "G", "H"], ["D", "F", "H"]],
                 last_updated=last_updated_2,
-                in_window=True,
             ),
         ]
         expected_output = {
-            "A": {
-                "[]": 58.333,
-                "[['X', 'Y', 'Z'], ['X', 'V', 'Z']]": 16.667,
-                "[['D', 'G', 'H'], ['D', 'F', 'H']]": 25.0,
-            }
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"], ["X", "V", "Z"]], "percentage": 16.667},
+                {"routes": [["D", "G", "H"], ["D", "F", "H"]], "percentage": 25.0},
+            ]
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -154,34 +145,25 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_2 = datetime.fromisoformat("2020-01-01T18:00:00")
         last_updated_3 = datetime.fromisoformat("2020-01-01T19:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="A",
                 routes=[["X", "Y", "Z"], ["X", "V", "Z"]],
                 last_updated=last_updated_1,
-                in_window=True,
             ),
-            Mock(
-                node_name="A",
-                routes=[["X", "Y", "Z"]],
-                last_updated=last_updated_2,
-                in_window=True,
-            ),
+            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_2),
             Mock(
                 node_name="A",
                 routes=[["X", "Y", "Z"], ["X", "V", "Z"]],
                 last_updated=last_updated_3,
-                in_window=True,
             ),
         ]
         expected_output = {
-            "A": {
-                "[]": 8.333,
-                "[['X', 'Y', 'Z'], ['X', 'V', 'Z']]": 87.5,
-                "[['X', 'Y', 'Z']]": 4.167,
-            }
+            "A": [
+                {"routes": [], "percentage": 8.333},
+                {"routes": [["X", "Y", "Z"], ["X", "V", "Z"]], "percentage": 87.5},
+                {"routes": [["X", "Y", "Z"]], "percentage": 4.167},
+            ]
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -191,10 +173,13 @@ class RoutesUtilizationTests(unittest.TestCase):
     def test_multi_node_no_routes_in_window_two_nodes(self) -> None:
         last_updated = datetime.fromisoformat("2019-12-31T00:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated, in_window=False),
-            Mock(node_name="B", routes=[], last_updated=last_updated, in_window=False),
+            Mock(node_name="A", routes=[], last_updated=last_updated),
+            Mock(node_name="B", routes=[], last_updated=last_updated),
         ]
-        expected_output = {"A": {"[]": 100}, "B": {"[]": 100}}
+        expected_output = {
+            "A": [{"routes": [], "percentage": 100}],
+            "B": [{"routes": [], "percentage": 100}],
+        }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
         )
@@ -203,12 +188,18 @@ class RoutesUtilizationTests(unittest.TestCase):
     def test_multi_node_one_routes_in_window_no_previous_entry(self) -> None:
         last_updated = datetime.fromisoformat("2020-01-01T14:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated, in_window=True),
-            Mock(node_name="B", routes=[], last_updated=last_updated, in_window=True),
+            Mock(node_name="A", routes=[], last_updated=last_updated),
+            Mock(node_name="B", routes=[], last_updated=last_updated),
         ]
         expected_output = {
-            "A": {"None": 58.333, "[]": 41.667},
-            "B": {"None": 58.333, "[]": 41.667},
+            "A": [
+                {"routes": None, "percentage": 58.333},
+                {"routes": [], "percentage": 41.667},
+            ],
+            "B": [
+                {"routes": None, "percentage": 58.333},
+                {"routes": [], "percentage": 41.667},
+            ],
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -220,12 +211,15 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_A = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_B = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated, in_window=False),
-            Mock(node_name="A", routes=[], last_updated=last_updated_A, in_window=True),
-            Mock(node_name="B", routes=[], last_updated=last_updated, in_window=False),
-            Mock(node_name="B", routes=[], last_updated=last_updated_B, in_window=True),
+            Mock(node_name="A", routes=[], last_updated=last_updated),
+            Mock(node_name="A", routes=[], last_updated=last_updated_A),
+            Mock(node_name="B", routes=[], last_updated=last_updated),
+            Mock(node_name="B", routes=[], last_updated=last_updated_B),
         ]
-        expected_output = {"A": {"[]": 100}, "B": {"[]": 100}}
+        expected_output = {
+            "A": [{"routes": [], "percentage": 100}],
+            "B": [{"routes": [], "percentage": 100}],
+        }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
         )
@@ -236,28 +230,20 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_A = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_B = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
-            Mock(
-                node_name="A",
-                routes=[["X", "Y", "Z"]],
-                last_updated=last_updated_A,
-                in_window=True,
-            ),
-            Mock(
-                node_name="B", routes=[], last_updated=last_updated_0, in_window=False
-            ),
-            Mock(
-                node_name="B",
-                routes=[["G", "H", "I"]],
-                last_updated=last_updated_B,
-                in_window=True,
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_A),
+            Mock(node_name="B", routes=[], last_updated=last_updated_0),
+            Mock(node_name="B", routes=[["G", "H", "I"]], last_updated=last_updated_B),
         ]
         expected_output = {
-            "A": {"[]": 58.333, "[['X', 'Y', 'Z']]": 41.667},
-            "B": {"[]": 75.0, "[['G', 'H', 'I']]": 25.0},
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"]], "percentage": 41.667},
+            ],
+            "B": [
+                {"routes": [], "percentage": 75.0},
+                {"routes": [["G", "H", "I"]], "percentage": 25.0},
+            ],
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -269,28 +255,28 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_A = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_B = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="A",
                 routes=[["X", "Y", "Z"], ["X", "G", "Z"]],
                 last_updated=last_updated_A,
-                in_window=True,
             ),
-            Mock(
-                node_name="B", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="B", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="B",
                 routes=[["G", "T", "H"], ["G", "U", "H"]],
                 last_updated=last_updated_B,
-                in_window=True,
             ),
         ]
         expected_output = {
-            "A": {"[]": 58.333, "[['X', 'Y', 'Z'], ['X', 'G', 'Z']]": 41.667},
-            "B": {"[]": 75.0, "[['G', 'T', 'H'], ['G', 'U', 'H']]": 25.0},
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"], ["X", "G", "Z"]], "percentage": 41.667},
+            ],
+            "B": [
+                {"routes": [], "percentage": 75.0},
+                {"routes": [["G", "T", "H"], ["G", "U", "H"]], "percentage": 25.0},
+            ],
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -304,40 +290,24 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_B1 = datetime.fromisoformat("2020-01-01T16:00:00")
         last_updated_B2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
-            Mock(
-                node_name="A",
-                routes=[["X", "Y", "Z"]],
-                last_updated=last_updated_A1,
-                in_window=True,
-            ),
-            Mock(
-                node_name="A",
-                routes=[["D", "G", "H"]],
-                last_updated=last_updated_A2,
-                in_window=True,
-            ),
-            Mock(
-                node_name="B", routes=[], last_updated=last_updated_0, in_window=False
-            ),
-            Mock(
-                node_name="B",
-                routes=[["H", "U", "I"]],
-                last_updated=last_updated_B1,
-                in_window=True,
-            ),
-            Mock(
-                node_name="B",
-                routes=[["E", "T", "M"]],
-                last_updated=last_updated_B2,
-                in_window=True,
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_A1),
+            Mock(node_name="A", routes=[["D", "G", "H"]], last_updated=last_updated_A2),
+            Mock(node_name="B", routes=[], last_updated=last_updated_0),
+            Mock(node_name="B", routes=[["H", "U", "I"]], last_updated=last_updated_B1),
+            Mock(node_name="B", routes=[["E", "T", "M"]], last_updated=last_updated_B2),
         ]
         expected_output = {
-            "A": {"[['D', 'G', 'H']]": 29.167, "[['X', 'Y', 'Z']]": 12.5, "[]": 58.333},
-            "B": {"[['E', 'T', 'M']]": 25, "[['H', 'U', 'I']]": 8.333, "[]": 66.667},
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"]], "percentage": 12.5},
+                {"routes": [["D", "G", "H"]], "percentage": 29.167},
+            ],
+            "B": [
+                {"routes": [], "percentage": 66.667},
+                {"routes": [["H", "U", "I"]], "percentage": 8.333},
+                {"routes": [["E", "T", "M"]], "percentage": 25.0},
+            ],
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -351,50 +321,54 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_B1 = datetime.fromisoformat("2020-01-01T16:00:00")
         last_updated_B2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(
-                node_name="A", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="A", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="A",
                 routes=[["X", "Y", "Z"], ["X", "Y", "V"]],
                 last_updated=last_updated_A1,
-                in_window=True,
             ),
             Mock(
                 node_name="A",
                 routes=[["D", "G", "H"], ["D", "G", "F"]],
                 last_updated=last_updated_A2,
-                in_window=True,
             ),
-            Mock(
-                node_name="B", routes=[], last_updated=last_updated_0, in_window=False
-            ),
+            Mock(node_name="B", routes=[], last_updated=last_updated_0),
             Mock(
                 node_name="B",
                 routes=[["H", "U", "I"], ["H", "U", "D"]],
                 last_updated=last_updated_B1,
-                in_window=True,
             ),
             Mock(
                 node_name="B",
                 routes=[["E", "T", "M"], ["E", "T", "R"]],
                 last_updated=last_updated_B2,
-                in_window=True,
             ),
         ]
         expected_output = {
-            "A": {
-                "[['D', 'G', 'H'], ['D', 'G', 'F']]": 29.167,
-                "[['X', 'Y', 'Z'], ['X', 'Y', 'V']]": 12.5,
-                "[]": 58.333,
-            },
-            "B": {
-                "[['E', 'T', 'M'], ['E', 'T', 'R']]": 25,
-                "[['H', 'U', 'I'], ['H', 'U', 'D']]": 8.333,
-                "[]": 66.667,
-            },
+            "A": [
+                {"routes": [], "percentage": 58.333},
+                {"routes": [["X", "Y", "Z"], ["X", "Y", "V"]], "percentage": 12.5},
+                {"routes": [["D", "G", "H"], ["D", "G", "F"]], "percentage": 29.167},
+            ],
+            "B": [
+                {"routes": [], "percentage": 66.667},
+                {"routes": [["H", "U", "I"], ["H", "U", "D"]], "percentage": 8.333},
+                {"routes": [["E", "T", "M"], ["E", "T", "R"]], "percentage": 25.0},
+            ],
         }
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
         )
         self.assertDictEqual(expected_output, actual_output)
+
+    def test_to_tuple(self) -> None:
+        input = [["H", "U", "I"], ["H", "U", "D"]]
+        expected_output = (("H", "U", "I"), ("H", "U", "D"))
+        self.assertTupleEqual(to_tuple(input), expected_output)
+        self.assertIsNone(to_tuple(None))
+
+    def test_to_list(self) -> None:
+        input = (("H", "U", "I"), ("H", "U", "D"))
+        expected_output = [["H", "U", "I"], ["H", "U", "D"]]
+        self.assertListEqual(to_list(input), expected_output)
+        self.assertIsNone(to_list(None))

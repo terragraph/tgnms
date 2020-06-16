@@ -59,8 +59,7 @@ async def prepare(
     if not default_routes:
         logging.error(f"All batch requests failed for {network_name}")
         return None
-    else:
-        return default_routes
+    return default_routes
 
 
 async def produce(
