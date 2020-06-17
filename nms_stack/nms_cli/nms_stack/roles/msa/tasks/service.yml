@@ -16,6 +16,11 @@
     group: docker
     force: yes
 
+- name: generate service db password
+  set_fact:
+    db_service_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits') }}"
+  when: service.has_database
+
 - name: copy db files
   template:
     src: "{{ item.src }}"
@@ -23,7 +28,7 @@
     mode: "0644"
     owner: "{{ docker_user }}"
     group: docker
-    force: yes
+    force: no
   loop:
     - { src: "alembic.ini", dest: "{{ msa_gfs_path }}/config/{{ service.name }}"}
     - { src: "msa_db.env", dest: "{{ msa_gfs_path }}/env/{{ service.name }}.env"}
