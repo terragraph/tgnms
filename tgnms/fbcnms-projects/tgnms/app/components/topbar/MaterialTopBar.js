@@ -16,6 +16,7 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import Grid from '@material-ui/core/Grid';
+import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 import List from '@material-ui/core/List';
@@ -305,7 +306,7 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
     const {drawerOpen} = this.state;
     const {version} = window.CONFIG;
     // TODO - remove, build force
-    const {COMMIT_DATE, COMMIT_HASH} = window.CONFIG.env;
+    const {COMMIT_DATE, COMMIT_HASH, DOC_URL} = window.CONFIG.env;
     const toggleBuildModal = () => {
       this.setState({buildInformationOpen: !this.state.buildInformationOpen});
     };
@@ -358,6 +359,27 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
               </Tooltip>
             );
           })}
+          {DOC_URL ? (
+            <>
+              <Divider />
+              <Tooltip
+                title="Help"
+                placement="right"
+                disableHoverListener={drawerOpen}
+                disableFocusListener={true}
+                disableTouchListener={false}>
+                <ListItem
+                  classes={{root: classes.drawerListItem}}
+                  onClick={() => window.open(DOC_URL, '_blank')}
+                  button>
+                  <ListItemIcon>
+                    <HelpIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Help" />
+                </ListItem>
+              </Tooltip>
+            </>
+          ) : null}
           {COMMIT_DATE && COMMIT_HASH ? (
             <>
               <Divider />
@@ -369,7 +391,6 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                 disableTouchListener={false}>
                 <ListItem
                   classes={{root: classes.drawerListItem}}
-                  disabled={false}
                   data-testid="toggle-about-modal"
                   onClick={toggleBuildModal}
                   button>

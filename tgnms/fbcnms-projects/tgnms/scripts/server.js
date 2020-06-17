@@ -142,6 +142,7 @@ app.get('*', (req, res) => {
     'TILE_STYLE',
     'COMMIT_DATE',
     'COMMIT_HASH',
+    'DOC_URL',
     'NOTIFICATION_MENU_ENABLED',
     'SERVICE_AVAILABILITY_ENABLED',
     'SOFTWARE_PORTAL_ENABLED',
