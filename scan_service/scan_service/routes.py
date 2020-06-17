@@ -61,6 +61,8 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
         description: Invalid filter parameters.
     """
     network_name = request.rel_url.query.get("network_name")
+    if network_name is None:
+        raise web.HTTPBadRequest(text="Missing required 'network_name' param")
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
@@ -376,6 +378,8 @@ async def handle_get_executions(request: web.Request) -> web.Response:
         description: Invalid filter parameters.
     """
     network_name = request.rel_url.query.get("network_name")
+    if network_name is None:
+        raise web.HTTPBadRequest(text="Missing required 'network_name' param")
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
