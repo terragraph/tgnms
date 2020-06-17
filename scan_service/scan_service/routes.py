@@ -46,12 +46,12 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
       name: type
       description: The type of scan.
       schema:
-        type: int
+        type: integer
     - in: query
       name: mode
       description: The mode of scan.
       schema:
-        type: int
+        type: integer
     produces:
     - application/json
     responses:
@@ -66,12 +66,14 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
 
     type = request.rel_url.query.get("type")
     if type is not None:
+        type = int(type)
         if not ScanType.has_value(type):
             raise web.HTTPBadRequest(text=f"Invalid 'type': {type}")
         type = ScanType(type)
 
     mode = request.rel_url.query.get("mode")
     if mode is not None:
+        mode = int(mode)
         if not ScanMode.has_value(mode):
             raise web.HTTPBadRequest(text=f"Invalid 'mode': {mode}")
         mode = ScanMode(mode)
@@ -144,9 +146,9 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
           network_name:
             type: string
           type:
-            type: int
+            type: integer
           mode:
-            type: int
+            type: integer
           options:
             type: object
         required:
@@ -230,9 +232,9 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
           network_name:
             type: string
           type:
-            type: int
+            type: integer
           mode:
-            type: int
+            type: integer
           options:
             type: object
         required:
@@ -349,12 +351,12 @@ async def handle_get_executions(request: web.Request) -> web.Response:
       name: type
       description: The type of scan test.
       schema:
-        type: int
+        type: integer
     - in: query
       name: mode
       description: The mode of scan test.
       schema:
-        type: int
+        type: integer
     - in: query
       name: status
       description: The status of the execution.
@@ -379,12 +381,14 @@ async def handle_get_executions(request: web.Request) -> web.Response:
 
     type = request.rel_url.query.get("type")
     if type is not None:
+        type = int(type)
         if not ScanType.has_value(type):
             raise web.HTTPBadRequest(text=f"Invalid 'type': {type}")
         type = ScanType(type)
 
     mode = request.rel_url.query.get("mode")
     if mode is not None:
+        mode = int(mode)
         if not ScanMode.has_value(mode):
             raise web.HTTPBadRequest(text=f"Invalid 'mode': {mode}")
         mode = ScanMode(mode)
@@ -497,9 +501,9 @@ async def handle_start_execution(request: web.Request) -> web.Response:
           network_name:
             type: string
           type:
-            type: int
+            type: integer
           mode:
-            type: int
+            type: integer
           options:
             type: object
         required:
