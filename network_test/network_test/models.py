@@ -32,6 +32,7 @@ class NetworkTestType(enum.Enum):
 
 class NetworkTestStatus(enum.Enum):
     RUNNING = "running"
+    PROCESSING = "processing"
     FINISHED = "finished"
     ABORTED = "aborted"
     FAILED = "failed"

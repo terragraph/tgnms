@@ -21,7 +21,22 @@ from .models import (
     NetworkTestStatus,
     NetworkTestType,
 )
-from .suites import BaseTest, Multihop, Parallel, Sequential, TestAsset
+from .stats import (
+    compute_iperf_stats,
+    compute_link_health,
+    compute_node_health,
+    fetch_link_stats,
+    parse_msg,
+)
+from .suites import (
+    BaseTest,
+    LinkTest,
+    Multihop,
+    NodeTest,
+    Parallel,
+    Sequential,
+    TestAsset,
+)
 
 
 class Schedule:
@@ -104,13 +119,80 @@ class Scheduler:
         return execution_id in cls._executions
 
     @classmethod
-    def get_execution(cls, session_id: str) -> Optional[Tuple[int, BaseTest]]:
-        """Get the test execution and ID for a particular iperf session_id."""
-        for id, execution in cls._executions.items():
-            if session_id in execution.session_ids:
-                return id, execution
+    async def process_msg(cls, msg: str) -> None:
+        """Process the kafka message and extract relevant network test stats."""
+        parsed = parse_msg(msg)
+        if parsed is None:
+            return
 
-        return None
+        execution_id, test = None, None
+        for _execution_id, _test in cls._executions.items():
+            if parsed.session_id in _test.session_ids:
+                execution_id = _execution_id
+                test = _test
+                break
+        if execution_id is None:
+            logging.warning(f"Session '{parsed.session_id}' has no matching execution")
+            return
+
+        values: Dict[str, Any] = {}
+        async with MySQLClient().lease() as sa_conn:
+            if "error" in parsed.output or not parsed.output["intervals"]:
+                values["status"] = NetworkTestStatus.FAILED
+            else:
+                values["status"] = NetworkTestStatus.FINISHED
+                values.update(compute_iperf_stats(parsed))
+                if not parsed.is_server:
+                    values["iperf_client_blob"] = msg
+                else:
+                    values["iperf_server_blob"] = msg
+                    if isinstance(test, NodeTest):
+                        values["health"] = compute_node_health(
+                            expected_bitrate=test.iperf_options["bitrate"],
+                            iperf_avg_throughput=values["iperf_avg_throughput"],
+                        )
+                    elif isinstance(test, LinkTest):
+                        get_results_query = select(
+                            [NetworkTestResult.start_dt, NetworkTestResult.asset_name]
+                        ).where(
+                            (NetworkTestResult.execution_id == execution_id)
+                            & (NetworkTestResult.src_node_mac == parsed.src_node_id)
+                            & (NetworkTestResult.dst_node_mac == parsed.dst_node_id)
+                        )
+
+                        cursor = await sa_conn.execute(get_results_query)
+                        row = await cursor.first()
+                        link_stats_output = await fetch_link_stats(
+                            start_dt=row.start_dt,
+                            session_duration=test.iperf_options["timeSec"],
+                            network_name=test.network_name,
+                            link_name=row.asset_name,
+                            src_node_mac=parsed.src_node_id,
+                            dst_node_mac=parsed.dst_node_id,
+                        )
+
+                        if link_stats_output is not None:
+                            firmware_stats, health_stats = link_stats_output
+                            values.update(firmware_stats)
+                            values["health"] = compute_link_health(
+                                session_duration=test.iperf_options["timeSec"],
+                                expected_bitrate=test.iperf_options["bitrate"],
+                                iperf_avg_throughput=values["iperf_avg_throughput"],
+                                **health_stats,
+                            )
+
+            update_results_query = (
+                update(NetworkTestResult)
+                .where(
+                    (NetworkTestResult.execution_id == execution_id)
+                    & (NetworkTestResult.src_node_mac == parsed.src_node_id)
+                    & (NetworkTestResult.dst_node_mac == parsed.dst_node_id)
+                )
+                .values(**values)
+            )
+
+            await sa_conn.execute(update_results_query)
+            await sa_conn.connection.commit()
 
     @classmethod
     async def restart(cls) -> None:
@@ -312,7 +394,7 @@ class Scheduler:
         # Schedule the cleanup task
         loop = asyncio.get_event_loop()
         test.cleanup_handle = loop.call_later(
-            estimated_duration.total_seconds() + cls.timeout,
+            estimated_duration.total_seconds(),
             asyncio.create_task,
             cls.stop_execution(execution_id, is_manual=False),
         )
@@ -324,9 +406,37 @@ class Scheduler:
         """Stop the execution and mark it as aborted in the DB.
 
         This logic can be invoked manually via the HTTP API or via the cleanup task.
-        Mark sessions and tests as ABORTED if it is from the API and FAILED if it is
-        from the cleanup task.
+        The method marks sessions and tests as ABORTED if invoked from the API and
+        FAILED/FINISHED if invoked from the cleanup task.
+
+        In addition, tests that are stopped via the cleanup task are temporarily
+        marked as PROCESSING for a duration of 'processing_timeout_s' in order to
+        allow for time to process the results off the Kafka stream and to free the
+        network for future tests.
         """
+        if not is_manual:
+            async with MySQLClient().lease() as sa_conn:
+                update_execution_query = (
+                    update(NetworkTestExecution)
+                    .where(NetworkTestExecution.id == execution_id)
+                    .values(status=NetworkTestStatus.PROCESSING)
+                )
+                await sa_conn.execute(update_execution_query)
+
+                update_result_query = (
+                    update(NetworkTestResult)
+                    .where(
+                        (NetworkTestResult.execution_id == execution_id)
+                        & (NetworkTestResult.status == NetworkTestStatus.RUNNING)
+                    )
+                    .values(status=NetworkTestStatus.PROCESSING)
+                )
+                await sa_conn.execute(update_result_query)
+                await sa_conn.connection.commit()
+
+            # Sleep for the processing timeout duration
+            await asyncio.sleep(cls.timeout)
+
         test = cls._executions[execution_id]
         async with MySQLClient().lease() as sa_conn:
             update_result_query = (

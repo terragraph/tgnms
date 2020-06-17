@@ -10,15 +10,14 @@ from typing import Any, Dict
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
 
-from .processing import process_msg
 from .routes import routes
 from .scheduler import Scheduler
 
 
 async def async_main(config: Dict[str, Any]) -> None:
     # Reschedule any tests found in the schedule upon startup
-    if "execution_timeout_s" in config:
-        Scheduler.timeout = config["execution_timeout_s"]
+    if "processing_timeout_s" in config:
+        Scheduler.timeout = config["processing_timeout_s"]
     await Scheduler.restart()
 
     # Poll test result topics for completed sessions
@@ -26,7 +25,7 @@ async def async_main(config: Dict[str, Any]) -> None:
     consumer.subscribe(config["topics"])
 
     async for msg in consumer:
-        asyncio.create_task(process_msg(msg.value.decode("utf-8")))
+        asyncio.create_task(Scheduler.process_msg(msg.value.decode("utf-8")))
 
 
 def main() -> None:
