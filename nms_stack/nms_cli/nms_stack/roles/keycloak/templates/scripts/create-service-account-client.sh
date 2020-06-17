@@ -84,6 +84,26 @@ EOF
     }]
 EOF
   done
+  echo "> creating mapper"
+  # create mapper role
+  $KCADMIN create "clients/$ID/protocol-mappers/models" -r $REALM -f - <<EOF
+    {
+      "name": "realm_roles",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-realm-role-mapper",
+      "consentRequired": false,
+      "config": {
+       "multivalued": "true",
+       "userinfo.token.claim": "true",
+       "id.token.claim": "true",
+       "access.token.claim": "true",
+       "claim.name": "roles",
+       "jsonType.label": "String"
+      }
+    }
+EOF
+  # ignore errors from re-creating mapper
+  echo "done"
 }
 
 generate_client "$1" "$2" "$3"

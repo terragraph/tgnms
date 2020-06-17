@@ -25,6 +25,7 @@
     - time.env
     - stats.env
     - prometheus.env
+    - qs_keycloak.env
 
 - name: overwrite managed stats configs
   template:
@@ -48,6 +49,19 @@
     force: no
   loop:
     - { src: "alertmanager.yml", dest: "{{ stats_gfs_path }}/config" }
+
+- name: create query service keycloak client
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    --mount type=bind,source={{ stats_gfs_path }}/env/,target=/output
+    --entrypoint=""
+    --network=terragraph_net
+    -u root
+    jboss/keycloak:7.0.0
+    /scripts/create-service-account-client.sh query_service /output/qs_keycloak.env tg_topology_read,tg_management_read
+  when: keycloak_enabled
 
 - name: add prometheus label to docker node
   command: "docker node update --label-add \"prometheus=true\" {{ ansible_nodename }}"

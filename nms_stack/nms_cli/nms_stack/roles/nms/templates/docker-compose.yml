@@ -6,7 +6,9 @@ services:
     env_file:
       - {{ db_gfs_path }}/env/mysql.env
       - {{ nms_path }}/env/nms.env
+{% if keycloak_enabled %}
       - {{ nms_path }}/env/nms_auth.env
+{% endif %}
       - {{ nms_path }}/env/time.env
       - {{ nms_path }}/env/nms_custom.env
     volumes:
