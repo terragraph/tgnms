@@ -221,6 +221,24 @@ router.get('/tenants', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.get('am_tenancy', (req, res) => {
+  return createRequest({
+    uri: `${ALERTMANAGER_CONFIG_URL}/v1/tenancy`,
+    method: req.method,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
+router.get('prom_tenancy', (req, res) => {
+  return createRequest({
+    uri: `${PROMETHEUS_CONFIG_URL}/v1/tenancy`,
+    method: req.method,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res));
+});
+
 router.get('/metric_series', (req, res) => {
   let startTimeString: string;
   if (typeof req.query.start === 'string') {

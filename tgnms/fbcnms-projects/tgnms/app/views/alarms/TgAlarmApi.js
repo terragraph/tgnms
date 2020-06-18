@@ -107,6 +107,10 @@ export const TgApiUtil: ApiUtil = {
   // Tenants
   getTenants: _req =>
     makeRequest({url: `${AM_BASE_URL}/tenants`, method: 'GET'}),
+  getAlertmanagerTenancy: _req =>
+    makeRequest({url: `${AM_BASE_URL}/am_tenancy`, method: 'GET'}),
+  getPrometheusTenancy: _req =>
+    makeRequest({url: `${AM_BASE_URL}/prom_tenancy`, method: 'GET'}),
 };
 
 export const TgEventAlarmsApiUtil = {
