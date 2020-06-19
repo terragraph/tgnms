@@ -84,9 +84,6 @@ class PrometheusClientTests(asynctest.TestCase):
         query = ops.resets(self.client.format_query("metric", labels), "24h")
         expected_query = 'resets(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
-        query = ops.max_over_time(self.client.format_query("metric", labels), "24h")
-        expected_query = 'max_over_time(metric{foo="bar"} [24h])'
-        self.assertEqual(query, expected_query)
 
     @asynctest.patch("time.time", return_value=100)
     async def test_query_range(self, patched_time_time) -> None:

@@ -45,7 +45,6 @@ ops.delta = lambda query, interval: f"delta({query} [{interval}])"
 ops.max_over_time = lambda query, interval: f"max_over_time({query} [{interval}])"
 ops.rate = lambda query, interval: f"rate({query} [{interval}])"
 ops.resets = lambda query, interval: f"resets({query} [{interval}])"
-ops.max_over_time = lambda query, interval: f"max_over_time({query} [{interval}])"
 
 
 @dataclasses.dataclass
