@@ -37,12 +37,12 @@
 - name: create database and user
   command: >
     docker run --rm
-    --mount type=bind,source={{ msa_gfs_path }}/scripts,target=/scripts
+    --mount type=bind,source={{ db_gfs_path }}/scripts,target=/scripts
     --entrypoint=""
     --network=terragraph_net
     --env-file={{ msa_gfs_path }}/env/{{ service.name }}.env
     -e DB_HOST={{ db_host }}
     -e DB_ROOT_USER={{ db_root_user }}
     -e DB_ROOT_PASSWORD={{ db_root_password }}
-    mysql:5 /scripts/create_msa_database.sh
+    mysql:5 /scripts/create_service_database.sh
   when: service.has_database

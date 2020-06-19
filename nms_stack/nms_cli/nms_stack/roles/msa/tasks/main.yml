@@ -8,7 +8,6 @@
     mode: 0755
   loop:
     - "{{ msa_gfs_path }}/config"
-    - "{{ msa_gfs_path }}/scripts"
     - "{{ msa_gfs_path }}/env"
 
 - name: copy msa configs
@@ -22,18 +21,6 @@
   loop:
     - { src: "docker-compose.yml", dest: "{{ msa_gfs_path }}" }
     - { src: "config.json", dest: "{{ msa_gfs_path }}/config" }
-
-- name: copy scripts
-  template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: "{{ docker_user }}"
-    group: docker
-    mode: 0755
-    force: yes
-  loop:
-    - { src: "scripts/create_msa_database.sh", dest: "{{ msa_gfs_path }}/scripts"}
-    - { src: "scripts/msa.sql", dest: "{{ msa_gfs_path }}/scripts"}
 
 - name: establish services
   include_tasks:

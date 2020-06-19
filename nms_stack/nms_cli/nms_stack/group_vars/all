@@ -127,9 +127,6 @@ keycloak_enabled: false
 # Keycloak admin portal credentials
 keycloak_root_user: root
 keycloak_root_password: 7I*xUF9PGpI5W*ig
-# Keycloak database credentials
-keycloak_db_user: keycloak
-keycloak_db_password: 8^ib0L5lvSF9gC5a
 
 # Database Config
 db_host: db
