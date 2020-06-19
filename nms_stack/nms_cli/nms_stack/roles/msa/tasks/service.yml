@@ -46,3 +46,17 @@
     -e DB_ROOT_PASSWORD={{ db_root_password }}
     mysql:5 /scripts/create_service_database.sh
   when: service.has_database
+
+- name: create keycloak client
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --mount type=bind,source={{ msa_gfs_path }}/env,target=/output
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    -u root
+    jboss/keycloak:7.0.0 /scripts/create-service-account-client.sh {{ service.name }} /output/{{ service.name }}_auth.env {{ service.roles }}
+  when:
+    - keycloak_enabled
+    - service.roles is defined

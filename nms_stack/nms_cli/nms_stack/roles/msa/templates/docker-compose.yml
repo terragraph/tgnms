@@ -3,6 +3,10 @@ version: '3.7'
 services:
   analytics:
     image: secure.cxl-terragraph.com:443/analytics:stable
+{% if keycloak_enabled %}
+    env_file:
+      - {{ msa_gfs_path }}/env/analytics_auth.env
+{% endif %}
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/analytics/config.json
       - {{ msa_gfs_path }}/config/analytics/service_config.json:/usr/local/analytics/service_config.json
@@ -19,6 +23,9 @@ services:
     image: secure.cxl-terragraph.com:443/default_routes_service:stable
     env_file:
       - {{ msa_gfs_path }}/env/default_routes_service.env
+{% if keycloak_enabled %}
+      - {{ msa_gfs_path }}/env/default_routes_service_auth.env
+{% endif %}
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/default_routes_service/config.json
       - {{ msa_gfs_path }}/config/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
@@ -49,6 +56,9 @@ services:
     image: secure.cxl-terragraph.com:443/topology_service:stable
     env_file:
       - {{ msa_gfs_path }}/env/topology_service.env
+{% if keycloak_enabled %}
+      - {{ msa_gfs_path }}/env/topology_service_auth.env
+{% endif %}
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/topology_service/config.json
       - {{ msa_gfs_path }}/config/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
@@ -64,6 +74,10 @@ services:
 
   weather_service:
     image: secure.cxl-terragraph.com:443/weather_service:latest
+{% if keycloak_enabled %}
+    env_file:
+      - {{ msa_gfs_path }}/env/weather_service_auth.env
+{% endif %}
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/weather_service/config.json
       - {{ msa_gfs_path }}/config/weather_service/service_config.json:/usr/local/weather_service/service_config.json
