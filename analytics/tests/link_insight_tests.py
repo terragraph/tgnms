@@ -6,22 +6,13 @@ import unittest
 from analytics.link_insight import (
     calculate_path_loss,
     compute_single_link_foliage_factor,
-    get_link_foliage_num,
 )
 
 
 class LinkInsightTests(unittest.TestCase):
     def test_calculate_path_loss(self) -> None:
-        tx_power = {
-            "linkName": "link_puma14",
-            "linkDirection": "A",
-            "values": [20],
-        }
-        rssi = {
-            "linkName": "link_puma14",
-            "linkDirection": "Z",
-            "values": [-62],
-        }
+        tx_power = {"linkName": "link_puma14", "linkDirection": "A", "values": [20]}
+        rssi = {"linkName": "link_puma14", "linkDirection": "Z", "values": [-62]}
         actual_output = calculate_path_loss(tx_power["values"], rssi["values"])
         expected_output = 101
         self.assertEqual(expected_output, actual_output[0])
@@ -83,21 +74,5 @@ class LinkInsightTests(unittest.TestCase):
             min_window_size,
             minimum_var,
         )
-        expected_output = 0.7361
-        self.assertEqual(round(actual_output, 4), expected_output)
-
-    def test_get_link_foliage_num(self) -> None:
-        num_links = 5
-        foliage_factor_stats = {
-            "link_1": 0.5,
-            "link_2": 0.86,
-            "link_3": 0.01,
-            "link_4": 0.9,
-            "link_5": 0.3,
-        }
-        foliage_factor_threshold = 0.85
-        network_foliage_stats = get_link_foliage_num(
-            num_links, foliage_factor_stats, foliage_factor_threshold
-        )
-        self.assertEqual(network_foliage_stats["num_foliage_links"], 2)
-        self.assertEqual(network_foliage_stats["num_foliage_free_links"], 3)
+        expected_output = 0.736
+        self.assertEqual(actual_output, expected_output)

@@ -5,83 +5,95 @@ import asyncio
 import logging
 import typing
 from collections import defaultdict
-from typing import Any, Collection, Dict, List, Optional
+from enum import IntEnum
+from typing import Any, Collection, Dict, Iterable, List, Optional
 
 import numpy as np
-from tglib.clients.prometheus_client import PrometheusClient, consts, ops
+from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
 from tglib.exceptions import ClientRuntimeError
 
 from .math_utils import index2deg
 
 
-async def compute_link_foliage(
-    network_names: Collection[str],
-    network_stats: List,
+class NodeAlignmentStatus(IntEnum):
+    """List of possible status of a node in a network
+    1. the node alignment is accurate
+    2. the tx degree or rx degree is larger than the threshold misaligned degree
+    3. the difference between tx degree and rx degree is larger that the threshold value
+
+    Ordering/values should not be changed for backward compatibility; add
+    new entries to the end of the list.
+    """
+
+    TX_RX_HEALTHY = 1
+    LARGE_ANGLE = 2
+    TX_RX_DIFF = 3
+
+
+def compute_link_foliage(
+    network_stats: Iterable,
     number_of_windows: int,
     min_window_size: int,
     minimum_var: float,
     foliage_factor_threshold: float,
     query_interval: int,
-) -> List[Dict]:
+) -> None:
 
-    results: List[Dict] = []
-    for network_name, metrics in zip(network_names, network_stats):
-        network_tx_power_stats = metrics.get("tx_power")
-        network_rssi_stats = metrics.get("rssi")
-        foliage_factor_stats: Dict = {}
+    foliage_metrics: List = []
+    for network_name, prom_results in network_stats:
+        if prom_results is None:
+            continue
+        stats = process_foliage_metrics(prom_results, network_name)
+        network_tx_power_stats = stats.get("tx_power")
+        network_rssi_stats = stats.get("rssi")
         forward_link_metrics: Dict = {}
         reverse_link_metrics: Dict = {}
-        if network_tx_power_stats and network_rssi_stats:
-            for tx_power_per_link in network_tx_power_stats:
-                rssi_per_link = list(
-                    filter(
-                        lambda x: x["linkName"] == tx_power_per_link["linkName"],
-                        network_rssi_stats,
+        if network_tx_power_stats is None or network_rssi_stats is None:
+            continue
+        for tx_power_per_link in network_tx_power_stats:
+            rssi_per_link = filter(
+                lambda x: x["link_name"] == tx_power_per_link["link_name"],
+                network_rssi_stats,
+            )
+            for rssi in rssi_per_link:
+                if (
+                    rssi["link_direction"] == "Z"
+                    and tx_power_per_link["link_direction"] == "A"
+                ):
+                    path_loss = calculate_path_loss(
+                        tx_power_per_link["values"], rssi["values"]
                     )
-                )
-                for rssi in rssi_per_link:
-                    if (
-                        rssi["linkDirection"] == "Z"
-                        and tx_power_per_link["linkDirection"] == "A"
-                    ):
-                        path_loss = calculate_path_loss(
-                            tx_power_per_link["values"], rssi["values"]
-                        )
-                        forward_link_metrics[tx_power_per_link["linkName"]] = path_loss
-                    if (
-                        rssi["linkDirection"] == "A"
-                        and tx_power_per_link["linkDirection"] == "Z"
-                    ):
-                        path_loss = calculate_path_loss(
-                            tx_power_per_link["values"], rssi["values"]
-                        )
-                        reverse_link_metrics[tx_power_per_link["linkName"]] = path_loss
+                    forward_link_metrics[tx_power_per_link["link_name"]] = path_loss
+                if (
+                    rssi["link_direction"] == "A"
+                    and tx_power_per_link["link_direction"] == "Z"
+                ):
+                    path_loss = calculate_path_loss(
+                        tx_power_per_link["values"], rssi["values"]
+                    )
+                    reverse_link_metrics[tx_power_per_link["link_name"]] = path_loss
 
-            for link_name, forward_link_path_loss in forward_link_metrics.items():
-                reverse_link_path_loss: Optional[List] = reverse_link_metrics.get(
-                    link_name
+        for link_name, forward_link_path_loss in forward_link_metrics.items():
+            reverse_link_path_loss: Optional[List] = reverse_link_metrics.get(link_name)
+            if reverse_link_path_loss is None:
+                continue
+            foliage_factor = compute_single_link_foliage_factor(
+                forward_link_path_loss,
+                reverse_link_path_loss,
+                number_of_windows,
+                min_window_size,
+                minimum_var,
+            )
+            if foliage_factor is None:
+                continue
+
+            labels = {consts.network: network_name, consts.link_name: link_name}
+            foliage_metrics.append(
+                PrometheusMetric(
+                    name="analytics_foliage_factor", value=foliage_factor, labels=labels
                 )
-                if reverse_link_path_loss:
-                    foliage_factor_stats[
-                        link_name
-                    ] = compute_single_link_foliage_factor(
-                        forward_link_path_loss,
-                        reverse_link_path_loss,
-                        number_of_windows,
-                        min_window_size,
-                        minimum_var,
-                    )
-        total_wireless_links = 0
-        if metrics.get("topology_wireless_links_total"):
-            total_wireless_links = metrics.get("topology_wireless_links_total")
-        network_foliage_stats = get_link_foliage_num(
-            total_wireless_links, foliage_factor_stats, foliage_factor_threshold
-        )
-        results.append({network_name: foliage_factor_stats})
-        logging.info(
-            f"Link foliage stats of {network_name} : {dict(network_foliage_stats)}"
-        )
-    return results
+            )
+    PrometheusClient.write_metrics(foliage_metrics)
 
 
 def calculate_path_loss(tx_power: List, rssi: List) -> List:
@@ -140,7 +152,6 @@ def compute_single_link_foliage_factor(
             # Normalize by variance of forward and reverse link pathloss
             cross_covariance /= np.sqrt(forward_var * reverse_var)
             cross_covariances.append((forward_var + reverse_var, cross_covariance))
-
     foliage_factor = 0.0
     total_weight = 0
     for weight, factor in cross_covariances:
@@ -148,101 +159,46 @@ def compute_single_link_foliage_factor(
         total_weight += weight
 
     if total_weight > 0:
-        foliage_factor = foliage_factor / total_weight
+        foliage_factor = round(foliage_factor / total_weight, 3)
     return foliage_factor
 
 
-def get_link_foliage_num(
-    total_num_links: int, foliage_factor_stats: Dict, foliage_factor_threshold: float
-) -> Dict:
-    links_foliage_stats: defaultdict = defaultdict(int)
-    for link, foliage_factor in foliage_factor_stats.items():
-        if foliage_factor and foliage_factor >= foliage_factor_threshold:
-            links_foliage_stats["num_foliage_links"] += 1
-        else:
-            links_foliage_stats["num_foliage_free_links"] += 1
-
-    links_foliage_stats["num_unclassified_foliage_links"] = (
-        total_num_links
-        - links_foliage_stats["num_foliage_links"]
-        - links_foliage_stats["num_foliage_free_links"]
-    )
-    return links_foliage_stats
-
-
-async def fetch_foliage_metrics(
-    network_name: str, start_time: int, end_time: int
-) -> Dict:
-
-    client = PrometheusClient(timeout=2)
-    labels = {consts.network: network_name}
-    step = "1s"
-    window_s = end_time - start_time
-    tx_power_query = client.format_query("tx_power", labels)
-    rssi_query = client.format_query("rssi", labels)
-    total_links_query = ops.max_over_time(
-        client.format_query("topology_wireless_links_total", labels), f"{window_s}s"
-    )
-    coros = [
-        client.query_range(tx_power_query, step, start_time, end_time),
-        client.query_range(rssi_query, step, start_time, end_time),
-        client.query_latest(total_links_query),
-    ]
-
-    try:
-        values: Dict = {}
-        for response in await asyncio.gather(*coros):
-            if response["status"] != "success":
-                logging.error(f"Failed to fetch foliage metrics for {network_name}")
-                continue
-            output = response["data"]["result"]
-            if not output:
-                logging.debug(f"Failed to find foliage metrics for {network_name}")
-                continue
-            result = []
-            if len(output) > 1:
-                for val in output:
-                    result.append(
-                        {
-                            "linkName": val["metric"][consts.link_name],
-                            "linkDirection": val["metric"][consts.link_direction],
-                            "values": [int(element[1]) for element in val["values"]],
-                        }
-                    )
-                values[output[0]["metric"]["__name__"]] = result
-            if len(output) == 1:
-                values["topology_wireless_links_total"] = int(output[0]["value"][1])
-        return values
-    except ClientRuntimeError:
-        logging.exception(
-            f"Failed to fetch foliage metrics from Prometheus for {network_name}."
-        )
-        return {}
+def process_foliage_metrics(prom_results: Dict, network_name: str) -> Dict:
+    foliage_stats: Dict = {}
+    for metric, values in prom_results.items():
+        if not prom_results[metric]:
+            logging.debug(f"Found no {metric} results for {network_name}")
+            continue
+        results: List = []
+        for val in values:
+            results.append(
+                {
+                    "link_name": val["metric"][consts.link_name],
+                    "link_direction": val["metric"][consts.link_direction],
+                    "values": [int(element[1]) for element in val["values"]],
+                }
+            )
+        foliage_stats[metric] = results
+    return foliage_stats
 
 
-async def analyze_alignment(
-    network_names: Collection[str],
-    start_time_ms: int,
+def analyze_alignment(
+    network_stats: Iterable,
     threshold_misalign_degree: int,
     threshold_tx_rx_degree_diff: int,
 ) -> None:
-    coros = []
-    metrics = ["tx_beam_idx", "rx_beam_idx"]
 
-    for network_name in network_names:
-        coros.append(fetch_beam_index(network_name, metrics, int(start_time_ms / 1e3)))
-
-    node_alignment_stats: Dict = {}
-    network_stats = zip(network_names, await asyncio.gather(*coros))
-    for network_name, stats in network_stats:
+    alignment_stats: List = []
+    for network_name, prom_results in network_stats:
+        if prom_results is None:
+            continue
+        stats = process_node_alignment_metrics(prom_results, network_name)
         tx_beam_idx_stats = stats.get("tx_beam_idx")
         rx_beam_idx_stats = stats.get("rx_beam_idx")
 
-        if (tx_beam_idx_stats is None) or (rx_beam_idx_stats is None):
-            node_alignment_stats[network_name] = {}
+        if tx_beam_idx_stats is None or rx_beam_idx_stats is None:
             continue
 
-        values: defaultdict = defaultdict(dict)
         for link in tx_beam_idx_stats:
             tx_stats = tx_beam_idx_stats[link]
             rx_stats = rx_beam_idx_stats.get(link)
@@ -257,36 +213,53 @@ async def analyze_alignment(
                 if not rx_idx or not value:
                     logging.debug(f"Beam index missing for {link}.")
                     continue
-                values[link][key] = {
-                    "tx_beam_idx": value,
-                    "rx_beam_idx": rx_idx,
-                    "tx_degree": index2deg(int(value)),
-                    "rx_degree": index2deg(int(rx_idx)),
-                    "node_alignment_status": "TX_RX_HEALTHY",
+
+                tx_degree = index2deg(value)
+                rx_degree = index2deg(rx_idx)
+                node_alignment_status = NodeAlignmentStatus.TX_RX_HEALTHY
+
+                if (
+                    tx_degree > threshold_misalign_degree
+                    or rx_degree > threshold_misalign_degree
+                ):
+                    node_alignment_status = NodeAlignmentStatus.LARGE_ANGLE
+                if tx_degree - rx_degree > threshold_tx_rx_degree_diff:
+                    node_alignment_status = NodeAlignmentStatus.TX_RX_DIFF
+
+                labels = {
+                    consts.network: network_name,
+                    consts.link_name: link,
+                    consts.link_direction: key[0],
+                    consts.node_name: key[1],
                 }
-
-            if (
-                abs(values[link][key]["tx_degree"]) > threshold_misalign_degree
-                or abs(values[link][key]["rx_degree"]) > threshold_misalign_degree
-            ):
-                values[link][key]["node_alignment_status"] = "LARGE_ANGLE"
-            if (
-                abs(values[link][key]["tx_degree"])
-                - abs(values[link][key]["rx_degree"])
-                > threshold_tx_rx_degree_diff
-            ):
-                values[link][key]["node_alignment_status"] = "TX_RX_DIFF"
-
-        node_alignment_stats[network_name] = values
+                alignment_stats.append(
+                    PrometheusMetric(
+                        name="analytics_alignment_status",
+                        value=node_alignment_status.value,
+                        labels=labels,
+                    )
+                )
+    PrometheusClient.write_metrics(alignment_stats)
 
 
-async def fetch_beam_index(
-    network_name: str,
-    metrics: List[str],
-    start_time_ms: int,
-    sample_period: int = 300,
-    hold_period: int = 30,
-) -> Dict:
+def process_node_alignment_metrics(prom_results: Dict, network_name: str) -> Dict:
+    node_alignment_results: Dict = {}
+    for metric, values in prom_results.items():
+        if not prom_results[metric]:
+            logging.debug(f"Found no {metric} results for {network_name}")
+            continue
+        results: defaultdict = defaultdict(dict)
+        for val in values:
+            results[val["metric"][consts.link_name]][
+                (val["metric"][consts.link_direction], val["metric"][consts.node_name])
+            ] = int(val["values"][-1][1])
+        node_alignment_results[metric] = results
+    return node_alignment_results
+
+
+async def fetch_metrics(
+    network_name: str, metrics: List[str], start_time: int, end_time: int, step: int
+) -> Optional[Dict]:
     """Fetch latest metrics for all links in the network"""
     client = PrometheusClient(timeout=2)
     coros = []
@@ -294,33 +267,19 @@ async def fetch_beam_index(
         coros.append(
             client.query_range(
                 client.format_query(metric, {"network": network_name}),
-                step=f"{hold_period}s",
-                start=start_time_ms - sample_period,
-                end=start_time_ms,
+                step=f"{step}s",
+                start=start_time,
+                end=end_time,
             )
         )
-
     try:
-        values: Dict = {}
+        results: Dict = {}
         for metric, response in zip(metrics, await asyncio.gather(*coros)):
             if response["status"] != "success":
                 logging.error(f"Failed to fetch {metric} data for {network_name}")
                 continue
-            output = response["data"]["result"]
-            if not output:
-                logging.debug(f"Found no {metric} results for {network_name}")
-                continue
-            results: defaultdict = defaultdict(dict)
-            for val in output:
-                results[val["metric"][consts.link_name]][
-                    (
-                        val["metric"][consts.link_direction],
-                        val["metric"][consts.node_name],
-                    )
-                ] = val["values"][-1][1]
-
-            values[metric] = results
-        return values
+            results[metric] = response["data"]["result"]
+        return results
     except ClientRuntimeError:
-        logging.exception("Failed to fetch beam index stats from Prometheus.")
-        return {}
+        logging.exception("Failed to fetch metrics from Prometheus.")
+        return None

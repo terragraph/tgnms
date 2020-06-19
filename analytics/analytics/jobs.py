@@ -6,7 +6,7 @@ import logging
 
 from tglib.clients import APIServiceClient, PrometheusClient
 
-from .link_insight import analyze_alignment, compute_link_foliage, fetch_foliage_metrics
+from .link_insight import analyze_alignment, compute_link_foliage, fetch_metrics
 from .utils.topology import fetch_network_info
 from .visibility import NodePowerStatus, create_results, get_power_status
 
@@ -18,20 +18,25 @@ async def find_link_foliage(
     minimum_var: float,
     foliage_factor_threshold: float,
     query_interval: int,
+    step: int = 1,
 ) -> None:
     query_window_end_time = int(round(start_time_ms / 1e3))
     query_window_start_time = query_window_end_time - query_interval
+    metrics = ["tx_power", "rssi"]
     network_names = APIServiceClient.network_names()
     coros = []
     for network_name in network_names:
         coros.append(
-            fetch_foliage_metrics(
-                network_name, query_window_start_time, query_window_end_time
+            fetch_metrics(
+                network_name,
+                metrics,
+                query_window_start_time,
+                query_window_end_time,
+                step,
             )
         )
-    network_stats = await asyncio.gather(*coros)
-    await compute_link_foliage(
-        network_names,
+    network_stats = zip(network_names, await asyncio.gather(*coros))
+    compute_link_foliage(
         network_stats,
         number_of_windows,
         min_window_size,
@@ -63,12 +68,22 @@ async def gauge_cn_power_status(start_time_ms: int, window_s: int) -> None:
     PrometheusClient.write_metrics(metrics)
 
 
-async def node_alignment(
-    start_time_ms: int, threshold_misalign_degree: int, threshold_tx_rx_degree_diff: int
+async def find_alignment_status(
+    start_time_ms: int,
+    threshold_misalign_degree: int,
+    threshold_tx_rx_degree_diff: int,
+    sample_period: int = 300,
+    step: int = 30,
 ) -> None:
-    await analyze_alignment(
-        APIServiceClient.network_names(),
-        start_time_ms,
-        threshold_misalign_degree,
-        threshold_tx_rx_degree_diff,
+    coros = []
+    metrics = ["tx_beam_idx", "rx_beam_idx"]
+    end_time = int(start_time_ms / 1e3)
+    start_time = end_time - sample_period
+    network_names = APIServiceClient.network_names()
+    for network_name in network_names:
+        coros.append(fetch_metrics(network_name, metrics, start_time, end_time, step))
+
+    network_stats = zip(network_names, await asyncio.gather(*coros))
+    analyze_alignment(
+        network_stats, threshold_misalign_degree, threshold_tx_rx_degree_diff
     )
