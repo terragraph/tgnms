@@ -184,7 +184,7 @@ async def count_network_assets(
             PrometheusMetric(
                 name="topology_online_nodes_ratio",
                 labels=network_labels,
-                value=online_nodes_total / nodes_total,
+                value=online_nodes_total / nodes_total if nodes_total else 0,
                 time=start_time_ms,
             ),
             PrometheusMetric(
@@ -208,7 +208,11 @@ async def count_network_assets(
             PrometheusMetric(
                 name="topology_online_wireless_links_ratio",
                 labels=network_labels,
-                value=online_wireless_links_total / wireless_links_total,
+                value=(
+                    online_wireless_links_total / wireless_links_total
+                    if wireless_links_total
+                    else 0
+                ),
                 time=start_time_ms,
             ),
         ]
