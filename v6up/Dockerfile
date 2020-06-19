@@ -1,13 +1,7 @@
-FROM python:latest
+FROM python:3-alpine
 
 ENV WORKDIR /app
-
-RUN apt-get update
-RUN apt-get -y upgrade
-
-RUN mkdir -p $WORKDIR
 WORKDIR $WORKDIR
-
 COPY . $WORKDIR
 
 RUN pip3 install --upgrade pip
