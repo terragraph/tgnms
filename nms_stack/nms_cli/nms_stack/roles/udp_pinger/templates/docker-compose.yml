@@ -5,6 +5,9 @@ services:
     image: secure.cxl-terragraph.com:443/cpp_backends:stable
     env_file:
       - {{ db_gfs_path }}/env/mysql.env
+{% if keycloak_enabled %}
+      - {{ udp_pinger_path }}/env/auth.env
+{% endif %}
     environment:
       - COOLDOWN_TIME_S=1
       - NUM_PACKETS=10
@@ -16,7 +19,7 @@ services:
     networks:
       - inbound
       - terragraph_net
-    command: ["/bin/sh", "-c", "bin/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -cooldown_time_s $${COOLDOWN_TIME_S} -num_packets $${NUM_PACKETS} -ping_interval_s $${PING_INTERVAL_S} -pinger_rate_pps $${PINGER_RATE_PPS}"]
+    command: ["/bin/sh", "-c", "bin/udp_ping_client -logtostderr -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -cooldown_time_s $${COOLDOWN_TIME_S} -num_packets $${NUM_PACKETS} -ping_interval_s $${PING_INTERVAL_S} -pinger_rate_pps $${PINGER_RATE_PPS} {% if keycloak_enabled %} -keycloak_enabled true -keycloak_host $${KEYCLOAK_HOST} -keycloak_realm $${KEYCLOAK_REALM} -keycloak_client_id $${KEYCLOAK_CLIENT_ID} -keycloak_client_secret $${KEYCLOAK_CLIENT_SECRET} {% endif %}"]
     logging:
       driver: "json-file"
       options:
