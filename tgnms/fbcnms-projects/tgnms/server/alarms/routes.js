@@ -123,9 +123,8 @@ router.put('/receivers/:name', (req, res) =>
 
 router.delete('/receivers/:name', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/receiver`),
+    uri: formatAlertManagerConfigUrl(`/receiver/${req.params.name}`),
     method: req.method,
-    qs: {receiver: req.params.name},
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res)),
