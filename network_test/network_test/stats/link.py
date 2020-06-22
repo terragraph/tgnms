@@ -231,21 +231,21 @@ def compute_link_health(
     if (
         tx_per <= 0.05
         and link_unavail_ratio == 0
-        and iperf_tput_ratio >= 0.99
+        and iperf_tput_ratio == 1.0
         and mcs_p10 >= (11 if link_distance_m <= 100 else 9)
     ):
         return NetworkTestHealth.EXCELLENT
     elif (
         tx_per <= 0.1
         and link_unavail_ratio <= 0.0005
-        and iperf_tput_ratio >= 0.95
+        and iperf_tput_ratio >= 0.75
         and mcs_p10 >= (9 if link_distance_m <= 100 else 7)
     ):
         return NetworkTestHealth.GOOD
     elif (
         tx_per <= 0.2
         and link_unavail_ratio <= 0.005
-        and iperf_tput_ratio >= 0.90
+        and iperf_tput_ratio >= 0.40
         and mcs_p10 >= (9 if link_distance_m <= 100 else 7)
     ):
         return NetworkTestHealth.MARGINAL
