@@ -54,7 +54,7 @@ class ScanTest:
 
         async with MySQLClient().lease() as sa_conn:
             try:
-                start_scan_resp = await APIServiceClient(timeout=1).request(
+                start_scan_resp = await APIServiceClient(timeout=5).request(
                     self.network_name,
                     "startScan",
                     params={
