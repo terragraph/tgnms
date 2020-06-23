@@ -212,7 +212,7 @@ async def get_interference_from_directional_beams(
         if tx_node == rx_node:
             continue
         logging.info(f"Analyzing interference from {tx_node} to {rx_node}")
-        rx_nodes.append(im_data["responses"][rx_node])
+        rx_nodes.append(rx_node)
         coros.append(
             get_latest_stats(network_name, link_mac_map, rx_node, ["rx_beam_idx"])
         )
