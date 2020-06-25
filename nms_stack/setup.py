@@ -93,7 +93,7 @@ def package_ansible(directory):
 
 setup(
     name="nms",
-    version="2020.06.18",
+    version="2020.06.25",
     description=("nms cli"),
     packages=[PACKAGE, "{}.tests".format(PACKAGE)],
     package_data={PACKAGE: package_ansible("nms_stack")},

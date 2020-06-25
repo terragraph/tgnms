@@ -49,26 +49,10 @@ BEGIN
 END; $$
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS Create_Network_Test ;
-DELIMITER $$
-CREATE PROCEDURE Create_Network_Test ()
-BEGIN
-  DECLARE usr VARCHAR(100)  DEFAULT "";
-  SET usr = (SELECT CURRENT_USER);
-  IF usr LIKE 'root%'  then
-     CREATE DATABASE IF NOT EXISTS `network_test`;
-     GRANT SELECT ON network_test.* TO 'grafanaReader'@'%';
-     GRANT ALL PRIVILEGES ON network_test.* TO 'nms'@'%';
-     FLUSH PRIVILEGES;
-  end if ;
-END; $$
-DELIMITER ;
-
 /* create new users only if current user is root */
 call Create_Nms_User();
 call Create_Grafana_Database();
 call Create_Grafana_Reader();
-call Create_Network_Test();
 
 /* procedure to_add a column if it doesn't exist or modify it if it does */
 DROP PROCEDURE IF EXISTS Add_Modify_Column;

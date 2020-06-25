@@ -52,6 +52,26 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  network_test:
+    image: secure.cxl-terragraph.com:443/network_test:stable
+    env_file:
+      - {{ msa_gfs_path }}/env/network_test.env
+{% if keycloak_enabled %}
+      - {{ msa_gfs_path }}/env/network_test_auth.env
+{% endif %}
+    volumes:
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/network_test/config.json
+      - {{ msa_gfs_path }}/config/network_test/alembic.ini:/usr/local/network_test/alembic.ini
+      - {{ msa_gfs_path }}/config/network_test/service_config.json:/usr/local/network_test/service_config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "alembic upgrade head && network_test"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
   topology_service:
     image: secure.cxl-terragraph.com:443/topology_service:stable
     env_file:
