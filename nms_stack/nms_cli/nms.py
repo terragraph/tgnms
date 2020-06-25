@@ -2,14 +2,15 @@
 # Copyright (c) 2014-present, Facebook, Inc.
 
 import os
+
 import click
 import oyaml as yaml
 import pkg_resources
-
 from nms_cli import ansible_executor  # type: ignore
 from pygments import highlight
-from pygments.lexers import YamlLexer
 from pygments.formatters import TerminalFormatter
+from pygments.lexers import YamlLexer
+
 
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
@@ -35,6 +36,48 @@ def generate_host_groups(host):
     prometheus_host[1].append("prometheus")
 
     return hosts
+
+
+common_options = {
+    "config-file": click.option(
+        "-f", "--config-file", default=None, help="YAML file to load as variable set"
+    ),
+    "host": click.option(
+        "-h",
+        "--host",
+        default=None,
+        multiple=True,
+        help="Hostnames to configure Terragraph Cloud Services",
+    ),
+    "ssl-key-file": click.option(
+        "-k",
+        "--ssl-key-file",
+        default=None,
+        help="Private key file for Apache Server (e.g. privkey.pem)",
+    ),
+    "ssl-cert-file": click.option(
+        "-C",
+        "--ssl-cert-file",
+        default=None,
+        help="SSL certificate file for Apache Server (e.g. fullchain.pem)",
+    ),
+    "tags": click.option("-t", "--tags", multiple=True, help="Ansible tags to run"),
+    "password": click.option(
+        "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
+    ),
+    "verbose": click.option("-v", "--verbose", count=True, default=0),
+}
+
+
+def add_common_options(*args):
+    def wrapper(fn):
+        for arg_name in args:
+            if arg_name not in common_options:
+                raise RuntimeError(f"Unknown option {arg_name}")
+            fn = common_options[arg_name](fn)
+        return fn
+
+    return wrapper
 
 
 @click.group(invoke_without_command=True)
@@ -63,23 +106,9 @@ def cli(ctx, version, short):
 
 
 @cli.command()
-@click.option(
-    "-f", "--config-file", default=None, help="YAML file to load as variable set"
-)
-@click.option(
-    "-h",
-    "--host",
-    default=None,
-    multiple=True,
-    help="Hostnames to configure and install Terragraph Cloud Services",
-)
+@add_common_options("config-file", "host", "password", "tags", "verbose")
 @click.option("-c", "--controller", required=True, help="Controller to upgrade")
 @click.option("-i", "--image", required=False, help="Image to upgrade controller to")
-@click.option("-t", "--tags", multiple=True, help="Ansible tags to run")
-@click.option("-v", "--verbose", count=True, default=0)
-@click.option(
-    "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
-)
 @click.pass_context
 def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
     if not host:
@@ -150,33 +179,15 @@ def quoted_presenter(dumper, data):
 
 
 @cli.command()
-@click.option(
-    "-f", "--config-file", default=None, help="YAML file to load as variable set"
+@add_common_options(
+    "config-file",
+    "ssl-key-file",
+    "ssl-cert-file",
+    "host",
+    "tags",
+    "password",
+    "verbose",
 )
-@click.option(
-    "-k",
-    "--ssl-key-file",
-    default=None,
-    help="Private Key file for Apache Server e.g. privkey.pem",
-)
-@click.option(
-    "-C",
-    "--ssl-cert-file",
-    default=None,
-    help="SSL Certificate file for Apache Server e.g. fullchain.pem",
-)
-@click.option(
-    "-h",
-    "--host",
-    default=None,
-    multiple=True,
-    help="Hostnames to configure and install Terragraph Cloud Services",
-)
-@click.option("-t", "--tags", multiple=True, help="Ansible tags to run")
-@click.option(
-    "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
-)
-@click.option("-v", "--verbose", count=True, default=0)
 @click.pass_context
 def install(
     ctx, config_file, ssl_key_file, ssl_cert_file, host, tags, verbose, password
@@ -209,18 +220,7 @@ def install(
 
 
 @cli.command()
-@click.option(
-    "-f", "--config-file", default=None, help="YAML file to load as variable set"
-)
-@click.option(
-    "-h",
-    "--host",
-    default=None,
-    multiple=True,
-    help="Hostnames to uninstall Terragraph Cloud Services",
-)
-@click.option("-v", "--verbose", count=True, default=0)
-@click.option("-t", "--tags", multiple=True, help="Ansible tags to run")
+@add_common_options("config-file", "host", "tags", "password", "verbose")
 @click.option(
     "--remove-docker",
     is_flag=True,
@@ -243,9 +243,6 @@ def install(
 )
 @click.option(
     "--skip-backup", is_flag=True, help="skip backing up data, enabled by default"
-)
-@click.option(
-    "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
 )
 @click.option(
     "--force",

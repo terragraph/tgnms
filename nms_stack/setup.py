@@ -20,7 +20,7 @@ assert version_info >= (3, 7, 0), "nms requires >= Python 3.7"
 ptr_params = {
     "test_suite": "nms_cli.tests.base",
     "test_suite_timeout": 300,
-    "required_coverage": {"nms_cli/ansible_executor.py": 25, "nms_cli/nms.py": 35},
+    "required_coverage": {"nms_cli/ansible_executor.py": 25, "nms_cli/nms.py": 34},
     "run_black": False,  # Need a way to ignore submodule .py's
     "run_flake8": True,
     "run_mypy": False,
