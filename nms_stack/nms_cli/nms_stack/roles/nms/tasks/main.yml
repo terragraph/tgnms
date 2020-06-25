@@ -81,6 +81,22 @@
     - { src: "dashboards/network_health.json", dest: "dashboards" }
     - { src: "dashboards/udp_pinger_dashboard.json", dest: "dashboards" }
 
+- name: configure nms and apiservice to use keycloak
+  command: >
+      docker run --rm
+      --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+      --mount type=bind,source={{ nms_path }}/env/nms_auth.env,target=/nms_auth.env
+      --mount type=bind,source={{ e2e_path }}/keycloak,target=/apiservice
+      --entrypoint=""
+      --network=terragraph_net
+      --env-file={{ keycloak_path }}/env/keycloak.env
+      -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
+      -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
+      -u root
+      jboss/keycloak:7.0.0
+      /scripts/configure-keycloak.sh
+  when: keycloak_enabled
+
 - name: run compose
   shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth --prune nms"
 

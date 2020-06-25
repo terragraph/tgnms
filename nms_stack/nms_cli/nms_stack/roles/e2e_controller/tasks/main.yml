@@ -6,6 +6,7 @@
     owner: "{{ docker_user }}"
     group: docker
     mode: 0755
+
 - name: Make keycloak public key directory
   file:
     path: "{{ e2e_path }}/keycloak"

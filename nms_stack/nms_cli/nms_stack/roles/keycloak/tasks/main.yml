@@ -65,6 +65,11 @@
     -e DB_ROOT_USER={{ db_root_user }}
     -e DB_ROOT_PASSWORD={{ db_root_password }}
     mysql:5 /scripts/create_service_database.sh
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc > 1
+  until: result.rc == 0
 
 - name: run compose
   shell: "docker stack deploy -c {{ keycloak_path }}/docker-compose.yml --with-registry-auth --prune keycloak"
@@ -76,37 +81,6 @@
   delay: "{{ nms_start_delay }}"
   failed_when: result.rc > 1
   until: result.rc == 0
-
-- name: configure nms and apiservice to use keycloak
-  command: >
-      docker run --rm
-      --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
-      --mount type=bind,source={{ nms_path }}/env/nms_auth.env,target=/nms_auth.env
-      --mount type=bind,source={{ e2e_path }}/keycloak,target=/apiservice
-      --entrypoint=""
-      --network=terragraph_net
-      --env-file={{ keycloak_path }}/env/keycloak.env
-      -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
-      -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
-      -u root
-      jboss/keycloak:7.0.0
-      /scripts/configure-keycloak.sh
-
-- name: update nms env vars
-  shell: >
-      . "{{ nms_path }}/env/nms_auth.env" &&
-      docker service update
-      --env-add LOGIN_ENABLED="true"
-      --env-add KEYCLOAK_HOST="${KEYCLOAK_HOST}"
-      --env-add KEYCLOAK_CLIENT_ID="${KEYCLOAK_CLIENT_ID}"
-      --env-add KEYCLOAK_REALM="${KEYCLOAK_REALM}"
-      --env-add KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET}"
-      --env-add CLIENT_ROOT_URL="https://{{ ext_nms_hostname }}"
-      --force nms_nms
-
-- name: restart all apiservices
-  command: docker service update --force e2e-{{item.name | trim | replace(' ', '_') | lower }}_api_service
-  loop: "{{ controllers_list }}"
 
 - name: clean compose
   file:

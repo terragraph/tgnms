@@ -21,11 +21,10 @@
     group: docker
     force: no
   with_items:
-    - cleaner.env
     - time.env
     - stats.env
     - prometheus.env
-    - qs_keycloak.env
+    - qs_auth.env
 
 - name: overwrite managed stats configs
   template:
@@ -60,7 +59,7 @@
     --network=terragraph_net
     -u root
     jboss/keycloak:7.0.0
-    /scripts/create-service-account-client.sh query_service /output/qs_keycloak.env tg_topology_read,tg_management_read
+    /scripts/create-service-account-client.sh query_service /output/qs_auth.env tg_topology_read,tg_management_read
   when: keycloak_enabled
 
 - name: add prometheus label to docker node

@@ -14,6 +14,11 @@
   tags: ["proxy"]
   run_once: true
 
+- name: keycloak_validations
+  include: keycloak_validation.yml
+  tags: ["keycloak"]
+  run_once: true
+
 - name: remote_validations
   include: remote_validation.yml
   tags: ["remote"]

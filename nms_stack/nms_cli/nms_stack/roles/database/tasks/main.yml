@@ -10,7 +10,14 @@
     - "{{ db_gfs_path }}/env"
     - "{{ db_gfs_path }}/scripts"
     - "{{ db_gfs_path }}/volumes/mysql_init_scripts"
-    - "{{ db_data_path }}/mysql"
+
+- name: set permissions on mysql data dir
+  file:
+    path: "{{ db_data_path }}/mysql"
+    state: directory
+    owner: "999" # uid = mysql
+    group: "999" # gid = mysql
+    mode: 0755
 
 - name: copy env files
   template:

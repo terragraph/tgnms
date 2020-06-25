@@ -8,7 +8,7 @@ services:
       - {{ stats_gfs_path }}/env/stats.env
       - {{ stats_gfs_path }}/env/time.env
 {% if keycloak_enabled %}
-      - {{ stats_gfs_path }}/env/qs_keycloak.env
+      - {{ stats_gfs_path }}/env/qs_auth.env
 {% endif %}
       - {{ db_gfs_path }}/env/mysql.env
     volumes:
