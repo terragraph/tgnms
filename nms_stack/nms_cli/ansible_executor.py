@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
-import click
 import os
-import pkg_resources
 import sys
 from collections import namedtuple
 
+import click
+import pkg_resources
 from ansible import context
-from ansible.parsing.dataloader import DataLoader
-from ansible.vars.manager import VariableManager
+from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.inventory.host import Host
 from ansible.inventory.manager import InventoryManager
-from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.module_utils.common.collections import ImmutableDict
+from ansible.parsing.dataloader import DataLoader
 from ansible.release import __version__
 from ansible.utils.display import Display
+from ansible.vars.manager import VariableManager
 
 
 display = Display()
@@ -133,13 +133,19 @@ class ansible_executor:
 
         self.options = self.options._asdict()
 
-        variable_manager = VariableManager(loader=self.loader, inventory=self.inventory, version_info=self.version_info())
+        variable_manager = VariableManager(
+            loader=self.loader,
+            inventory=self.inventory,
+            version_info=self.version_info(),
+        )
         variable_manager._extra_vars = extra_vars
 
-        for hostname, hostgroups, hostport in hosts:
+        for hostname, hostgroups, hostport, variables in hosts:
             # Add hosts to all the groups they belong to
             for hostgroup in hostgroups:
                 self.inventory.add_host(hostname, group=hostgroup, port=hostport)
+                for name, value in variables.items():
+                    self.inventory._inventory.set_variable(hostname, name, value)
             self.inventory.add_host(hostname, group="all")
             host = Host(name=hostname)
 

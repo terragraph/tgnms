@@ -15,12 +15,15 @@ from pygments.lexers import YamlLexer
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
 
+KUBERNETES_INSTALL_PLAYBOOK = "kube_install.yml"
+KUBERNETES_UNINSTALL_PLAYBOOK = "kube_uninstall.yml"
+
 
 def generate_host_groups(host):
     """Generate hostgroup info given a list of hosts.
     """
     # TODO skb For now, all hosts are managers. Later, make this interface nicer.
-    hosts = [(h, ["managers"], None) for h in host]
+    hosts = [(h, ["managers"], None, {}) for h in host]
 
     # MySQL, Prometheus, and BQS do not write their data to glusterfs due to
     # performance issues. This means they can only be run on a specific Docker
@@ -35,6 +38,16 @@ def generate_host_groups(host):
     db_host[1].append("database")
     prometheus_host[1].append("prometheus")
 
+    return hosts
+
+
+def generate_kubernetes_host_groups(masters, workers):
+    # hosts are listed as (hostname, group name, port)
+    hosts = []
+    hosts += [(m, ["managers"], None, {}) for m in masters]
+    # The workers need to know which host the 'kubeadm join' command was generated on,
+    # so assume it's the first one and pass along its hostname
+    hosts += [(w, ["workers"], None, {"master1": masters[0]}) for w in workers]
     return hosts
 
 
@@ -66,6 +79,23 @@ common_options = {
         "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
     ),
     "verbose": click.option("-v", "--verbose", count=True, default=0),
+    "masters": click.option(
+        "-m",
+        "--master",
+        "masters",
+        default=None,
+        multiple=True,
+        required=True,
+        help="Control plane nodes for kubernetes",
+    ),
+    "workers": click.option(
+        "-w",
+        "--worker",
+        "workers",
+        default=None,
+        multiple=True,
+        help="Worker nodes for kubernetes",
+    ),
 }
 
 
@@ -190,10 +220,13 @@ def quoted_presenter(dumper, data):
 )
 @click.pass_context
 def install(
-    ctx, config_file, ssl_key_file, ssl_cert_file, host, tags, verbose, password
+    ctx, config_file, ssl_key_file, ssl_cert_file, hosts, tags, verbose, password
 ):
     """Install the NMS stack of docker images etc."""
-    if not host:
+    if len(hosts) > 0:
+        # TODO For now, all hosts are managers. Later, make this interace nicer.
+        hosts = generate_host_groups(hosts)
+    else:
         click.echo("--host is required")
         ctx.exit(1)
 
@@ -214,8 +247,6 @@ def install(
     if ssl_cert_file is not None:
         a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
 
-    # TODO skb For now, all hosts are managers. Later, make this interace nicer.
-    hosts = generate_host_groups(host)
     a.run(hosts, INSTALL_PLAYBOOK, config_file=config_file, password=password)
 
 
@@ -284,6 +315,38 @@ def uninstall(
 
     hosts = generate_host_groups(host)
     a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
+
+
+@cli.command()
+@add_common_options("config-file", "tags", "password", "verbose", "masters", "workers")
+@click.pass_context
+def kubernetes_install(ctx, config_file, tags, verbose, password, workers, masters):
+    """Bootstrap a kubernetes cluster"""
+    hosts = generate_kubernetes_host_groups(masters, workers)
+
+    if password:
+        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
+
+    a = ansible_executor.ansible_executor(tags, verbose)
+
+    a.run(
+        hosts, KUBERNETES_INSTALL_PLAYBOOK, config_file=config_file, password=password
+    )
+
+
+@cli.command()
+@add_common_options("config-file", "tags", "password", "masters", "workers", "verbose")
+@click.pass_context
+def kubernetes_uninstall(ctx, config_file, verbose, tags, password, masters, workers):
+    hosts = generate_kubernetes_host_groups(masters, workers)
+
+    if password:
+        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
+
+    a = ansible_executor.ansible_executor(tags, verbose)
+    a.run(
+        hosts, KUBERNETES_UNINSTALL_PLAYBOOK, config_file=config_file, password=password
+    )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,71 @@
+- hosts: all
+  tasks:
+  - name: kubeadm reset
+    become: true
+    become_user: root
+    become_method: sudo
+    shell: yes | kubeadm reset
+
+  # Stash this in a fact so we know where the home directory is even during
+  # tasks running as root. There is no built in way to do this apparently:
+  # https://github.com/ansible/ansible/issues/15901
+  - name: find home directory
+    become: yes
+    become_user: "{{ kubernetes_user }}"
+    become_method: sudo
+    shell: "echo $HOME"
+    register: kubernetes_user_home_dir
+
+  - name: clear .kube directory
+    become: true
+    become_user: "{{ kubernetes_user }}"
+    become_method: sudo
+    file:
+      state: absent
+      path: "{{ kubernetes_user_home_dir.stdout }}/.kube"
+
+  - name: clean CNI configuration
+    become: true
+    become_user: root
+    become_method: sudo
+    file:
+      state: absent
+      path: "/etc/cni/net.d"
+
+  - name: Remove hold on Kubernetes packages
+    when: ansible_distribution == 'Ubuntu'
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: install
+    loop:
+      - kubelet
+      - kubeadm
+      - kubectl
+
+  - name: Remove docker, kubeadm, and kubectl packages
+    when: ansible_distribution == 'Ubuntu'
+    apt:
+      name: "{{ packages }}"
+      state: absent
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+  - name: Remove docker, kubeadm, and kubectl packages
+    when: ansible_os_family == 'RedHat'
+    yum:
+      name: "{{ packages }}"
+      state: absent
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+# - name: Install docker, kubectl, and kubeadm for RHEL
+#   include: rhel.yml
+#   when: ansible_os_family == "RedHat"

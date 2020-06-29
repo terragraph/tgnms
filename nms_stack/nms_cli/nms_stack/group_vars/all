@@ -23,6 +23,7 @@ nms_software_portal_api_key:
 # flag to the installer.
 # `docker_user` is the user that has access to docker and its various services.
 ansible_user: ubuntu
+kubernetes_user: ubuntu
 docker_user: ubuntu
 
 # Certbot args to get free SSL Certificate from letsencrypt.org

@@ -1,0 +1,102 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  pre_tasks:
+  # If Python isn't installed on the host ansible won't run at all, so issue a
+  # command first to install Python using the proper package manager
+  - name: Install Python
+    # TODO: there has to be some better way to figure this out, but it doesn't
+    # look like ansible_os_family is set at this point
+    raw: |
+      if [ -x "$(command -v {{ ansible_python_interpreter }})" ]; then
+        # Python is already installed
+        exit 0
+      fi
+      check_os() { if [[ $(awk -F= '/^ID/{print $2}' /etc/os-release | sed 's/\"//g' | head -n 1) == $1 ]]; then echo 1; else echo 0; fi ; }
+      if [[ $(check_os centos) == 1 ]]; then
+        yum -y install {{ ansible_python_interpreter }}
+      elif [[ $(check_os ubuntu) == 1 ]]; then
+        apt -y install {{ ansible_python_interpreter }}
+      else
+        echo "Unsupported OS release"
+        exit 1
+      fi
+
+- name: Install docker, Kubernetes, and kubeadm
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - { role: kubernetes, tags: ["kubernetes"] }
+
+# Start up a cluster on the master nodes (the host group is named 'managers' for
+# consistency with the swarm installer)
+- hosts: managers
+  gather_facts: yes
+  tasks:
+    - name: initialize the cluster
+      shell: kubeadm init --pod-network-cidr=10.244.0.0/16
+      become: true
+      become_user: root
+      become_method: sudo
+
+    # Stash this in a fact so we know where the home directory is even during
+    # tasks running as root. There is no built in way to do this apparently:
+    # https://github.com/ansible/ansible/issues/15901
+    - name: find home directory
+      become: yes
+      become_user: "{{ kubernetes_user }}"
+      become_method: sudo
+      shell: "echo $HOME"
+      register: kubernetes_user_home_dir
+
+    - name: create ~/.kube directory
+      become: yes
+      become_user: "{{ kubernetes_user }}"
+      become_method: sudo
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy admin.conf to user's kube config
+      become: yes
+      become_user: root
+      become_method: sudo
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ kubernetes_user_home_dir.stdout }}/.kube/config"
+        remote_src: yes
+        owner: "{{ kubernetes_user }}"
+
+    - name: install Calico pod network
+      become: yes
+      become_user: "{{ kubernetes_user }}"
+      become_method: sudo
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+
+    - name: get join command
+      shell: kubeadm token create --print-join-command
+      register: join_command_raw
+
+    - name: set join command
+      set_fact:
+        join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+    - name: print join command
+      shell: echo "{{ join_command }}"
+
+
+- hosts: workers
+  gather_facts: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: join cluster
+      shell: "{{ hostvars[master1]['join_command'] }}"
