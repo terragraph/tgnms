@@ -27,7 +27,7 @@ async def main() -> int:
     file_path = Path(f"{environ['WORKSPACE']}/nms")
 
     client = SPClient(JSONCONF, SUITE)
-    release = datetime.utcnow().strftime("%Y%m%d")
+    release = datetime.utcnow().strftime("%Y%m%d%H")
 
     # Get existing releases and check if there was a release today
     existing_releases = await client.list()
