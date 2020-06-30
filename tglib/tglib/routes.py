@@ -12,6 +12,15 @@ from .exceptions import ClientStoppedError
 from .utils.dict import deep_update
 
 
+try:
+    import yaml
+    from importlib import util
+
+    _SWAGGER_ENABLED = bool(util.find_spec("aiohttp_swagger"))
+except ImportError:
+    _SWAGGER_ENABLED = False
+
+
 routes = web.RouteTableDef()
 
 
@@ -48,6 +57,53 @@ async def handle_get_status(request: web.Request) -> web.Response:
         description: Successful operation. Return "Alive" text.
     """
     return web.Response(text="Alive")
+
+
+@routes.get("/docs.yml")
+async def handle_get_swagger_docs(request: web.Request) -> web.Response:
+    """Fetch the raw Swagger YAML documentation.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        Swagger YAML documentation for the service's API endpoints.
+
+    Raises:
+        web.HTTPServiceUnavailable: Documentation dependencies are missing.
+
+    Example:
+        ::
+
+            # curl -i http://localhost:8080/docs.yml
+            HTTP/1.1 200 OK
+            Content-Type: text/plain; charset=utf-8
+            Content-Length: 3729
+            Date: Fri, 26 Jun 2020 21:52:11 GMT
+            Server: Python/3.7 aiohttp/3.6.2
+
+            basePath: /
+            info:
+              description: 'Swagger API definition'
+              title: Swagger API
+              version: 1.0.0
+            ...
+
+    ---
+    description: Fetch the raw Swagger YAML documentation.
+    tags:
+    - Health
+    produces:
+    - text/plain
+    responses:
+      "200":
+        description: Successful operation.
+      "503":
+        description: Documentation dependencies are missing.
+    """
+    if not _SWAGGER_ENABLED or "SWAGGER_DEF_CONTENT" not in request.app:
+        raise web.HTTPServiceUnavailable(text="Documentation dependencies are missing.")
+    return web.Response(text=yaml.dump(json.loads(request.app["SWAGGER_DEF_CONTENT"])))
 
 
 @routes.get("/metrics")

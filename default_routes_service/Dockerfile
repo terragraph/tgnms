@@ -8,4 +8,4 @@ WORKDIR $WORKDIR
 COPY default_routes_service/ .flake8 ./
 
 # Install default_routes_service
-RUN pip install .[ci]
+RUN pip install .

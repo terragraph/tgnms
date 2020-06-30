@@ -114,7 +114,7 @@ RUN apk add --no-cache --virtual build-deps \
         musl-dev \
         openssl-dev \
         python3-dev && \
-    pip install . && \
+    pip install .[docs] && \
     apk del build-deps
 
 # Pull base image. Pin to alpine:3.10 for python3.7
