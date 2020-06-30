@@ -220,12 +220,12 @@ def quoted_presenter(dumper, data):
 )
 @click.pass_context
 def install(
-    ctx, config_file, ssl_key_file, ssl_cert_file, hosts, tags, verbose, password
+    ctx, config_file, ssl_key_file, ssl_cert_file, host, tags, verbose, password
 ):
     """Install the NMS stack of docker images etc."""
-    if len(hosts) > 0:
+    if len(host) > 0:
         # TODO For now, all hosts are managers. Later, make this interace nicer.
-        hosts = generate_host_groups(hosts)
+        hosts = generate_host_groups(host)
     else:
         click.echo("--host is required")
         ctx.exit(1)
