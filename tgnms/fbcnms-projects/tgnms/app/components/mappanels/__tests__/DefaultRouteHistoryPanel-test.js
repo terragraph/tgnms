@@ -59,7 +59,7 @@ const defaultProps = {
   siteNodes: new Set(['test_node_name']),
 };
 
-test('renders loading circle initially without crashing', async () => {
+test('renders loading circle initially without crashing', () => {
   const {getByTestId, getByText} = render(
     <MuiPickersWrapper>
       <DefaultRouteHistoryPanel {...defaultProps} />

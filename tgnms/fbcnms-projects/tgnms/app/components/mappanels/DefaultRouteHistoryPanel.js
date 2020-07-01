@@ -17,8 +17,11 @@ import Select from '@material-ui/core/Select';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import {KeyboardDatePicker} from '@material-ui/pickers';
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
-import {getDefaultRouteHistory} from '../../apiutils/DefaultRouteHistoryAPIUtil';
+import {
+  currentDefaultRouteRequest,
+  getDefaultRouteHistory,
+} from '../../apiutils/DefaultRouteHistoryAPIUtil';
+import {mapDefaultRoutes} from '../../helpers/DefaultRouteHelpers';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -137,16 +140,6 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     });
   }
 
-  findLinkInTopology(node1, node2) {
-    const {topology} = this.props;
-    const link = topology.links.filter(
-      link =>
-        (link.a_node_name === node1 && link.z_node_name === node2) ||
-        (link.a_node_name === node2 && link.z_node_name === node1),
-    );
-    return link.length ? link[0] : null;
-  }
-
   renderLoading() {
     const {classes} = this.props;
     return (
@@ -157,8 +150,17 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
   }
 
   onSelectRoute(route, index) {
-    this.mapDefaultRoutes(route.route);
+    const {links, nodes} = mapDefaultRoutes({
+      mapRoutes: route.route,
+      topology: this.props.topology,
+    });
     this.setState({selectedRoute: index});
+    // update weights (will be used in links rendering)
+    this.props.routes.onUpdateRoutes({
+      node: this.state.selectedNode,
+      links,
+      nodes,
+    });
   }
 
   defaultRouteHistoryRequest() {
@@ -174,23 +176,6 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
       startTime,
       endTime,
     });
-  }
-
-  currentDefaultRouteRequest() {
-    const {networkName} = this.props;
-    const {selectedNode} = this.state;
-    const data = {nodes: [selectedNode]};
-
-    return apiServiceRequest(networkName, 'getDefaultRoutes', data)
-      .then(response => {
-        const defaultRoute = this.cleanRoute(
-          response.data.defaultRoutes[selectedNode],
-        );
-        return defaultRoute;
-      })
-      .catch(_error => {
-        return undefined;
-      });
   }
 
   cleanRoute(routes) {
@@ -213,8 +198,13 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
   }
 
   processRoutes() {
+    const {networkName, topology} = this.props;
+    const {selectedNode} = this.state;
     Promise.all([
-      this.currentDefaultRouteRequest(),
+      currentDefaultRouteRequest({
+        networkName,
+        selectedNode,
+      }),
       this.defaultRouteHistoryRequest(),
     ]).then(([currentDefaultRoute, defaultRouteHistory]) => {
       if (
@@ -225,8 +215,17 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
         return;
       }
       if (currentDefaultRoute !== undefined) {
-        this.mapDefaultRoutes(currentDefaultRoute);
+        const {links, nodes} = mapDefaultRoutes({
+          mapRoutes: currentDefaultRoute,
+          topology,
+        });
+        this.props.routes.onUpdateRoutes({
+          node: selectedNode,
+          links,
+          nodes,
+        });
       }
+
       const {history, util} = defaultRouteHistory;
       const routes = Object.keys(util).map(routeString =>
         JSON.parse(routeString.replace(/'/g, '"')),
@@ -256,53 +255,6 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
         totalChanges: history.length,
         isLoading: false,
       });
-    });
-  }
-
-  mapDefaultRoutes(mapRoutes) {
-    const {routes} = this.props;
-    const {selectedNode} = this.state;
-
-    const weights = {};
-    const nodes = new Set();
-    let max_weight = 0;
-
-    // for each possible route
-    mapRoutes.map(route => {
-      let prev_node = null;
-      // iterate through all nodes
-      route.map(node_name => {
-        if (prev_node) {
-          // find link in topology
-          const link = this.findLinkInTopology(prev_node, node_name);
-          if (link) {
-            // increment weights for this link
-            if (!weights[link.name]) {
-              weights[link.name] = 0;
-            }
-            weights[link.name] += 1;
-            // keep track of maximum weight
-            max_weight = Math.max(weights[link.name], max_weight);
-          }
-        }
-        prev_node = node_name;
-        nodes.add(node_name);
-      });
-    });
-
-    // normalize weights to [0-1] range
-    const normalized_weights = {};
-    if (max_weight > 0) {
-      Object.keys(weights).forEach(key => {
-        normalized_weights[key] = (weights[key] * 1.0) / max_weight;
-      });
-    }
-
-    // update weights (will be used in links rendering)
-    routes.onUpdateRoutes({
-      node: selectedNode,
-      links: normalized_weights,
-      nodes,
     });
   }
 

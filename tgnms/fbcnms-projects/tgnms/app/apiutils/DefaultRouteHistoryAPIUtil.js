@@ -6,6 +6,8 @@
  */
 
 import axios from 'axios';
+import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
+
 /**
  * Gets the default route history
  */
@@ -50,3 +52,22 @@ export const getDefaultRouteHistory = (inputData: DefaultRouteHistoryType) => {
       return undefined;
     });
 };
+
+export function currentDefaultRouteRequest({
+  networkName,
+  selectedNode,
+}: {
+  networkName: string,
+  selectedNode: string,
+}): Promise<Array<Array<string>>> {
+  const data = {nodes: [selectedNode]};
+
+  return apiServiceRequest(networkName, 'getDefaultRoutes', data)
+    .then(response => {
+      const defaultRoute = response.data.defaultRoutes[selectedNode];
+      return defaultRoute;
+    })
+    .catch(_error => {
+      return [];
+    });
+}
