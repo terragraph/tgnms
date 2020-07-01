@@ -14,21 +14,15 @@ import {
   createTestMapLink,
   getTestOverlayId,
 } from '../../helpers/NetworkTestHelpers';
-import {makeStyles} from '@material-ui/styles';
 import type {ContextRouter} from 'react-router-dom';
 
 type Props = {
   ...ContextRouter,
 };
-const useStyles = makeStyles(_theme => ({
-  root: {
-    height: '100vh',
-  },
-}));
+
 export default function NetworkTestTable({match, location}: Props) {
   const {networkName} = match.params;
   const {setMapMode} = useMapContext();
-  const classes = useStyles();
 
   const createTestUrl = useCallback(
     ({executionId}) => {
@@ -51,12 +45,10 @@ export default function NetworkTestTable({match, location}: Props) {
     [location.search, networkName, setMapMode],
   );
   return (
-    <div className={classes.root}>
-      <NetworkTest
-        createTestUrl={createTestUrl}
-        networkName={networkName}
-        selectedExecutionId={getTestOverlayId(location)}
-      />
-    </div>
+    <NetworkTest
+      createTestUrl={createTestUrl}
+      networkName={networkName}
+      selectedExecutionId={getTestOverlayId(location)}
+    />
   );
 }
