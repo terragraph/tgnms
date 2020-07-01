@@ -87,3 +87,9 @@ struct LinkMetric {
   11: string keyPrefix,
   20: string description,
 }
+
+struct LinkEvent {
+  1: i64 startTime,
+  2: i64 endTime,
+  3: map<string /* link name */, EventList> events,
+}

@@ -92,5 +92,20 @@ CurlUtil::writeStringCb(void* ptr, size_t size, size_t nmemb, std::string* s) {
   return newLength;
 }
 
+folly::Optional<std::string>
+CurlUtil::urlDecode(const std::string& encodedUrl) {
+  CURL* curl = curl_easy_init();
+  if (!curl) {
+    LOG(ERROR) << "Failed to initialize CURL object";
+    return folly::none;
+  }
+  int outlen;
+  char* out = curl_easy_unescape(curl, encodedUrl.c_str(), 0, &outlen);
+  auto ret = std::string(out, outlen);
+  curl_free(out);
+  curl_easy_cleanup(curl);
+  return ret;
+}
+
 } // namespace gorilla
 } // namespace facebook

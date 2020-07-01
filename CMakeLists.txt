@@ -20,12 +20,12 @@ find_package(GFlags REQUIRED)
 find_package(Glog REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Wangle REQUIRED)
-find_package(Proxygen REQUIRED)
+find_package(Pistache REQUIRED)
 find_package(RdKafka REQUIRED)
 find_package(CppKafka REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${FOLLY_INCLUDE_DIR} ${FBTHRIFT_INCLUDE_DIR} ${PROXYGEN_INCLUDE_DIR} ${WANGLE_INCLUDE_DIR})
+include_directories(${FOLLY_INCLUDE_DIR} ${FBTHRIFT_INCLUDE_DIR} ${PISTACHE_INCLUDE_DIR} ${WANGLE_INCLUDE_DIR})
 
 set(CMAKE_CXX_STANDARD 14)
 

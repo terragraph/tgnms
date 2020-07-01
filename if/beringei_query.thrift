@@ -79,3 +79,7 @@ struct TopologyConfig {
   // Wireless Access Controller
   400: optional WirelessController wireless_controller,
 }
+
+struct ErrorResponse {
+  1: list<string> errorList,
+}

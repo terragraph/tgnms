@@ -36,6 +36,9 @@ class CurlUtil {
           std::unordered_map<std::string, std::string>(),
       const std::string& cookie = "");
 
+  // decode HTTP string (%XX values)
+  static folly::Optional<std::string> urlDecode(const std::string& encodedUrl);
+
  private:
   // Callback function to write the curl output to a std::string
   static size_t

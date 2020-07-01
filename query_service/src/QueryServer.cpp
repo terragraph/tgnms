@@ -12,25 +12,22 @@
 #include "AggregatorService.h"
 #include "KafkaStatsService.h"
 #include "NetworkHealthService.h"
-#include "QueryServiceFactory.h"
+#include "HttpService.h"
 #include "ScanRespService.h"
 #include "TopologyFetcher.h"
 
 #include <curl/curl.h>
 #include <folly/Memory.h>
 #include <folly/Synchronized.h>
+#include <folly/system/ThreadName.h>
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
-#include <proxygen/httpserver/HTTPServer.h>
-#include <proxygen/httpserver/RequestHandlerFactory.h>
+#include <pistache/endpoint.h>
+#include <pistache/http.h>
+#include <pistache/router.h>
 
 using namespace facebook::gorilla;
-using namespace proxygen;
 
-using folly::EventBase;
-using folly::SocketAddress;
-
-using Protocol = HTTPServer::Protocol;
 DEFINE_int32(http_port, 443, "Port to listen on with HTTP protocol");
 DEFINE_string(ip, "::", "IP/Hostname to bind to");
 DEFINE_int32(
@@ -61,10 +58,6 @@ int main(int argc, char* argv[]) {
 
   LOG(INFO) << "Attemping to bind to port " << FLAGS_http_port;
 
-  std::vector<HTTPServer::IPConfig> IPs = {
-      {SocketAddress(FLAGS_ip, FLAGS_http_port, true), Protocol::HTTP},
-  };
-
   if (FLAGS_threads <= 0) {
     FLAGS_threads = sysconf(_SC_NPROCESSORS_ONLN);
     CHECK_GT(FLAGS_threads, 0);
@@ -73,21 +66,15 @@ int main(int argc, char* argv[]) {
   // initialize curl thread un-safe operations
   curl_global_init(CURL_GLOBAL_ALL);
 
-  HTTPServerOptions options;
-  options.threads = static_cast<size_t>(FLAGS_threads);
-  options.idleTimeout = std::chrono::milliseconds(60000);
-  options.shutdownOn = {SIGINT, SIGTERM};
-  options.enableContentCompression = false;
-  options.handlerFactories =
-      RequestHandlerChain().addThen<QueryServiceFactory>().build();
-
-  LOG(INFO) << "Starting Query Service server on port "
+  Pistache::Port port(static_cast<uint16_t>(FLAGS_http_port));
+  Pistache::Address addr(Pistache::Ipv4::any(), port);
+  HttpService httpService(addr, FLAGS_threads);
+  httpService.initRoutes();
+  LOG(INFO) << "Starting HTTP Service on port "
             << FLAGS_http_port;
-  auto server = std::make_shared<HTTPServer>(std::move(options));
-  server->bind(IPs);
-  std::thread httpThread([server]() {
+  std::thread httpThread([&httpService]() {
     folly::setThreadName("HTTP Server");
-    server->start();
+    httpService.run();
   });
 
   LOG(INFO) << "Starting Topology Update Service";
@@ -126,7 +113,8 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_enable_kafka_hf_stats) {
     LOG(INFO) << "Starting HF Kafka Stats Service";
-    for (int threadCountIdx = 0; threadCountIdx < FLAGS_kafka_hf_consumer_threads;
+    for (int threadCountIdx = 0;
+         threadCountIdx < FLAGS_kafka_hf_consumer_threads;
          threadCountIdx++) {
       const std::string threadName = "HF-" + std::to_string(threadCountIdx);
       KafkaStatsService* kafkaStatsService = new KafkaStatsService(

@@ -100,10 +100,11 @@ RUN wget -O /tmp/fbthrift.tar.gz https://github.com/facebook/fbthrift/archive/v$
     cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/facebook -DCMAKE_PREFIX_PATH=/usr/local/facebook/lib/cmake . && \
     make -j $(nproc) install
 
-RUN wget -O /tmp/proxygen.tar.gz https://github.com/facebook/proxygen/archive/v${FB_VERSION}.tar.gz && \
-    tar xf /tmp/proxygen.tar.gz && \
-    cd /tmp/proxygen-${FB_VERSION} && \
-    cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/facebook -DCMAKE_PREFIX_PATH=/usr/local/facebook/lib/cmake . && \
+# pistache doesn't have versioned releases, this could bite us if they break master
+RUN wget -O /tmp/pistache.tar.gz https://github.com/oktal/pistache/archive/master.tar.gz && \
+    tar xf /tmp/pistache.tar.gz && \
+    cd /tmp/pistache-master && \
+    cmake . && \
     make -j $(nproc) install
 
 WORKDIR /usr/local/nms/build

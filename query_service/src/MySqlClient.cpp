@@ -360,6 +360,95 @@ bool MySqlClient::writeScanResponses(
   return true;
 }
 
+folly::Optional<stats::LinkEvent> MySqlClient::getLinkEvents(
+    const std::string& topologyName,
+    int hoursAgo,
+    int allowedDelaySec) noexcept {
+  try {
+    auto connection = openConnection();
+    if (!connection) {
+      LOG(ERROR) << "Unable to open MySQL connection.";
+      return folly::none;
+    }
+    std::unique_ptr<sql::Statement> stmt((*connection)->createStatement());
+    std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+        "SELECT `id`, `linkName`, `linkDirection`, `eventType`, "
+        "UNIX_TIMESTAMP(`startTs`) AS `startTs`, "
+        "UNIX_TIMESTAMP(`endTs`) AS `endTs` FROM `link_event` "
+        "WHERE `topologyName` = '" +
+        topologyName + "'AND `endTs` > DATE_SUB(NOW(), INTERVAL " +
+        std::to_string(hoursAgo) + " HOUR)"));
+
+    stats::LinkEvent linkEventMap{};
+    while (res->next()) {
+      if (res->getString("linkDirection") != "A") {
+        // TODO(T69343129) - record for Z side as well
+        continue;
+      }
+      int dbId = res->getInt("id");
+      std::string linkName = res->getString("linkName");
+      long startTs = res->getInt("startTs");
+      long endTs = res->getInt("endTs");
+      std::string eventType = res->getString("eventType");
+      // add link metric to temp map
+      stats::EventDescription linkStateDescr;
+      // convert from DB string enum('LINK_UP','LINK_UP_DATADOWN')
+      linkStateDescr.dbId = dbId;
+      linkStateDescr.linkState = eventType == "LINK_UP"
+          ? stats::LinkStateType::LINK_UP
+          : stats::LinkStateType::LINK_UP_DATADOWN;
+      linkStateDescr.startTime = startTs;
+      linkStateDescr.endTime = endTs;
+      linkEventMap.events[linkName].events.push_back(linkStateDescr);
+    }
+    int curTs = StatsUtils::getTimeInSeconds();
+    int windowSeconds = 60 * 60 * hoursAgo;
+    int minStartTs = curTs - windowSeconds;
+    linkEventMap.startTime = minStartTs;
+    linkEventMap.endTime = curTs;
+    // calculate link health
+    for (auto& linkNameToEvents : linkEventMap.events) {
+      // extend most recent event up until the end of the interval
+      // if it's within the allowed delay window
+      if (!linkNameToEvents.second.events.empty()) {
+        auto& mostRecentEvent = linkNameToEvents.second.events.front();
+        if (mostRecentEvent.linkState == stats::LinkStateType::LINK_UP &&
+            mostRecentEvent.endTime >= curTs - allowedDelaySec) {
+          // extend event to cover to the end of the interval
+          mostRecentEvent.endTime = curTs;
+        }
+      }
+      int onlineSeconds = 0;
+      int dataDownSeconds = 0;
+      // loop over all events for this link to determine availability
+      for (auto& linkEvent : linkNameToEvents.second.events) {
+        // ensure time window boundaries
+        if (linkEvent.startTime < minStartTs) {
+          linkEvent.startTime = minStartTs;
+        }
+        if (linkEvent.endTime > curTs) {
+          linkEvent.endTime = curTs;
+        }
+        int eventSeconds = linkEvent.endTime - linkEvent.startTime;
+        onlineSeconds += eventSeconds;
+        if (linkEvent.linkState == stats::LinkStateType::LINK_UP_DATADOWN) {
+          dataDownSeconds += eventSeconds;
+        }
+        linkEvent.description = StatsUtils::getDurationString(eventSeconds);
+      }
+      linkNameToEvents.second.linkAlive =
+          onlineSeconds / (double)windowSeconds * 100.0;
+      linkNameToEvents.second.linkAvailForData =
+          (onlineSeconds - dataDownSeconds) / (double)windowSeconds * 100.0;
+    }
+    return linkEventMap;
+  } catch (sql::SQLException& e) {
+    LOG(ERROR) << "getLinkEvents ERR: " << e.what();
+    LOG(ERROR) << "\tMySQL error code: " << e.getErrorCode();
+  }
+  return folly::none;
+}
+
 folly::Optional<LinkStateMap> MySqlClient::refreshLatestLinkState() noexcept {
   try {
     auto connection = openConnection();

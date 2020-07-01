@@ -9,27 +9,18 @@
 
 #pragma once
 
-#include <folly/Memory.h>
-#include <proxygen/httpserver/RequestHandler.h>
+#include <pistache/router.h>
 
 namespace facebook {
 namespace gorilla {
 
-// Handler that returns 404 for apis that are not implemented
-class NotFoundHandler : public proxygen::RequestHandler {
+// handler that replies with HTTP 200 OK. Used by grafana to test if datasource
+// connection is working.
+class NotFoundHandler {
  public:
-  void onRequest(
-      std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
-
-  void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
-
-  void onEOM() noexcept override;
-
-  void onUpgrade(proxygen::UpgradeProtocol proto) noexcept override;
-
-  void requestComplete() noexcept override;
-
-  void onError(proxygen::ProxygenError err) noexcept override;
+  void static handleRequest(
+      const Pistache::Rest::Request& request,
+      Pistache::Http::ResponseWriter response);
 };
 } // namespace gorilla
 } // namespace facebook

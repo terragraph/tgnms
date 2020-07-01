@@ -75,6 +75,10 @@ class MySqlClient {
   int64_t getLastBwgd(const std::string& network) noexcept;
 
   // link health state
+  folly::Optional<stats::LinkEvent> getLinkEvents(
+      const std::string& topologyName,
+      int hoursAgo,
+      int allowedDelaySec) noexcept;
   folly::Optional<LinkStateMap> refreshLatestLinkState() noexcept;
   void updateLinkState(const long keyId, const time_t endTs) noexcept;
   void addLinkState(

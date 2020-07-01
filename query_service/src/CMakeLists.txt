@@ -24,6 +24,8 @@ set(QUERY_SRCS
     ApiServiceClient.h
     CurlUtil.cpp
     CurlUtil.h
+    HttpService.cpp
+    HttpService.h
     KafkaStatsService.cpp
     KafkaStatsService.h
     MetricCache.cpp
@@ -36,8 +38,6 @@ set(QUERY_SRCS
     NetworkHealthUtils.h
     PrometheusUtils.cpp
     PrometheusUtils.h
-    QueryServiceFactory.cpp
-    QueryServiceFactory.h
     ScanRespService.cpp
     ScanRespService.h
     StatsUtils.cpp
@@ -53,14 +53,12 @@ set(QUERY_SRCS
 )
 
 set(QUERY_HANDLER_SRCS
-    handlers/LogsWriteHandler.cpp
-    handlers/LogsWriteHandler.h
+    handlers/LinkHealthHandler.cpp
+    handlers/LinkHealthHandler.h
     handlers/NotFoundHandler.cpp
     handlers/NotFoundHandler.h
     handlers/TestConnectionHandler.cpp
     handlers/TestConnectionHandler.h
-    handlers/WirelessControllerStatsHandler.cpp
-    handlers/WirelessControllerStatsHandler.h
 )
 
 set(QUERY_SERVICE_SRCS
@@ -78,7 +76,7 @@ target_link_libraries(
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${LIBGLOG_LIBRARIES}
-    ${PROXYGEN_LIBRARIES}
+    ${PISTACHE_LIBRARY}
     Threads::Threads
     ${MYSQL_CLIENT_LIB}
     ${RDKAFKA_LIBRARIES}
@@ -98,7 +96,7 @@ target_link_libraries(
     ${FOLLY_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${LIBGLOG_LIBRARIES}
-    ${PROXYGEN_LIBRARIES}
+    ${PISTACHE_LIBRARY}
     ${RDKAFKA_LIBRARIES}
     ${CPPKAFKA_LIBRARIES}
     Threads::Threads

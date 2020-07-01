@@ -9,42 +9,14 @@
 
 #include "NotFoundHandler.h"
 
-#include <proxygen/httpserver/ResponseBuilder.h>
-
-using namespace proxygen;
-
 namespace facebook {
 namespace gorilla {
 
-void NotFoundHandler::onRequest(
-    std::unique_ptr<HTTPMessage> /* unused */) noexcept {
-  // nothing to do
+void NotFoundHandler::handleRequest(
+    const Pistache::Rest::Request& request,
+    Pistache::Http::ResponseWriter response) {
+  response.send(Pistache::Http::Code::Not_Found);
 }
 
-void NotFoundHandler::onBody(
-    std::unique_ptr<folly::IOBuf> /* unused */) noexcept {
-  // nothing to do
-}
-
-void NotFoundHandler::onEOM() noexcept {
-  // return not found
-  ResponseBuilder(downstream_).status(404, "NOT FOUND").sendWithEOM();
-}
-
-void NotFoundHandler::onUpgrade(UpgradeProtocol /* unused */) noexcept {
-  // handler doesn't support upgrades
-}
-
-void NotFoundHandler::requestComplete() noexcept {
-  // In QueryServiceFactory, we created this handler using new.
-  // Proxygen does not delete the handler.
-  delete this;
-}
-
-void NotFoundHandler::onError(ProxygenError /* unused */) noexcept {
-  // In QueryServiceFactory, we created this handler using new.
-  // Proxygen does not delete the handler.
-  delete this;
-}
 } // namespace gorilla
 } // namespace facebook

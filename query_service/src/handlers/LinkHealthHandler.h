@@ -16,11 +16,12 @@ namespace gorilla {
 
 // handler that replies with HTTP 200 OK. Used by grafana to test if datasource
 // connection is working.
-class TestConnectionHandler {
+class LinkHealthHandler {
  public:
   void static handleRequest(
       const Pistache::Rest::Request& request,
       Pistache::Http::ResponseWriter response);
 };
+
 } // namespace gorilla
 } // namespace facebook
