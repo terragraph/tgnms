@@ -64,11 +64,12 @@ services:
     restart: always
     volumes:
       - ./docker_volumes/tglib/config.json:/usr/local/scan_service/config.json
+      - ./docker_volumes/scan_service/alembic.ini:/usr/local/scan_service/alembic.ini
       - ./docker_volumes/scan_service/service_config.json:/usr/local/scan_service/service_config.json
       - ./mysql_init_scripts/scan_service.sql:/usr/local/scan_service/scan_service.sql
     networks:
       - terragraph_net
-    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < scan_service.sql && scan_service"]
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < scan_service.sql && alembic upgrade head && scan_service"]
     logging:
       driver: "json-file"
       options:
