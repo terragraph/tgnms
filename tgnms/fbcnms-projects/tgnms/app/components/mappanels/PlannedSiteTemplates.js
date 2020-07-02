@@ -35,6 +35,7 @@ export type Props = {
     value: string | SiteTemplate,
   }) => any,
   topology: TopologyType,
+  newSite: boolean,
 };
 
 export default function PlannedSiteTemplates(props: Props) {
@@ -46,6 +47,7 @@ export default function PlannedSiteTemplates(props: Props) {
     handleTemplateSelectionChange,
     updateTemplateDetails,
     topology,
+    newSite,
   } = props;
 
   const classes = useStyles();
@@ -74,25 +76,29 @@ export default function PlannedSiteTemplates(props: Props) {
   return (
     <FormGroup row={false}>
       <Grid container direction="column" spacing={2}>
-        <Grid item>
-          <FormLabel component="legend">
-            <span>Select Site Template</span>
-          </FormLabel>
-        </Grid>
-        <Select
-          value={currentTemplate.name}
-          className={classes.select}
-          onChange={onTemplateChange}>
-          {templates.map(template => {
-            return (
-              <MenuItem key={template.name} value={template.name}>
-                {template.name === defaultTemplate.name
-                  ? template.name
-                  : template.name + ' Template'}
-              </MenuItem>
-            );
-          })}
-        </Select>
+        {newSite && (
+          <>
+            <Grid item>
+              <FormLabel component="legend">
+                <span>Select Site Template</span>
+              </FormLabel>
+            </Grid>
+            <Select
+              value={currentTemplate.name}
+              className={classes.select}
+              onChange={onTemplateChange}>
+              {templates.map(template => {
+                return (
+                  <MenuItem key={template.name} value={template.name}>
+                    {template.name === defaultTemplate.name
+                      ? template.name
+                      : template.name + ' Template'}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </>
+        )}
         <Grid item>
           <TextField
             id="name"

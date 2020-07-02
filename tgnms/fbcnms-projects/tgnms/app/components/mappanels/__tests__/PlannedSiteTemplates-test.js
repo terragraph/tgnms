@@ -25,6 +25,7 @@ const defaultProps = {
   siteName: 'testSite',
   updateTemplateDetails: jest.fn(),
   topology: mockTopology(),
+  newSite: true,
 };
 
 test('renders with None without crashing', () => {
@@ -85,4 +86,14 @@ test('changing template calls handleTemplateSelectionChange', async () => {
   expect(getByText('DN Template')).toBeInTheDocument();
   fireEvent.click(getByText('DN Template'));
   expect(defaultProps.handleTemplateSelectionChange).toHaveBeenCalled();
+});
+
+test('new site set to false cuases no tempaltes to show up', () => {
+  const {getByText, queryByText} = render(
+    <TestApp>
+      <PlannedSiteTemplates {...defaultProps} newSite={false} />
+    </TestApp>,
+  );
+  expect(queryByText('None')).not.toBeInTheDocument();
+  expect(getByText('Site Name')).toBeInTheDocument();
 });

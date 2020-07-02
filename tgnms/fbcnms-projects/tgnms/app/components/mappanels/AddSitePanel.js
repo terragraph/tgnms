@@ -211,7 +211,7 @@ class AddSitePanel extends React.Component<Props, State> {
   };
 
   renderForm() {
-    const {classes, formType, onClose, topology} = this.props;
+    const {classes, formType, onClose, topology, initialParams} = this.props;
     const {currentTemplate, templates, nodeNumber, name} = this.state;
 
     // Change form based on form type
@@ -270,6 +270,7 @@ class AddSitePanel extends React.Component<Props, State> {
             templates={templates}
             nodeNumber={nodeNumber}
             siteName={name}
+            newSite={!initialParams.name}
             handleTemplateSelectionChange={this.handleTemplateSelectionChange}
             updateTemplateDetails={this.updateTemplateDetails}
             topology={topology}
