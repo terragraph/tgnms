@@ -105,7 +105,7 @@ class Scheduler:
                     (ScanTestExecution.status == ScanTestStatus.QUEUED)
                     | (ScanTestExecution.status == ScanTestStatus.RUNNING)
                 )
-                .values(status=ScanTestStatus.FAILED)
+                .values(status=ScanTestStatus.FAILED, end_dt=datetime.utcnow())
             )
             await sa_conn.execute(update_execution_query)
             await sa_conn.connection.commit()
@@ -249,14 +249,16 @@ class Scheduler:
         return execution_id
 
     @classmethod
-    async def update_execution_status(cls, execution_id: int, status: Enum) -> None:
+    async def update_execution_status(
+        cls, execution_id: int, status: Enum, end_dt: Optional[datetime] = None
+    ) -> None:
         """Update status of scan execution."""
         logging.info(f"Updating execution status for id {execution_id } to {status}")
         async with MySQLClient().lease() as sa_conn:
             update_execution_query = (
                 update(ScanTestExecution)
                 .where(ScanTestExecution.id == execution_id)
-                .values(status=status)
+                .values(status=status, end_dt=end_dt)
             )
             await sa_conn.execute(update_execution_query)
             await sa_conn.connection.commit()

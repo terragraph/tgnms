@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 from uuid import uuid4
-
+from datetime import datetime
 from terragraph_thrift.Event.ttypes import EventId
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
@@ -97,7 +97,9 @@ async def events_handler(value: str) -> None:
     if execution.token_range:
         return None
 
-    await Scheduler.update_execution_status(execution_id, ScanTestStatus.FINISHED)
+    await Scheduler.update_execution_status(
+        execution_id, ScanTestStatus.FINISHED, datetime.utcnow()
+    )
     await asyncio.sleep(Scheduler.CLEAN_UP_DELAY_S)
     del Scheduler.executions[execution_id]
 

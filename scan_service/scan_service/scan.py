@@ -3,6 +3,7 @@
 
 import logging
 import time
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy import insert, update
@@ -88,7 +89,7 @@ class ScanTest:
                 query = (
                     update(ScanTestExecution)
                     .where(ScanTestExecution.id == execution_id)
-                    .values(status=ScanTestStatus.FAILED)
+                    .values(status=ScanTestStatus.FAILED, end_dt=datetime.utcnow())
                 )
                 await sa_conn.execute(query)
                 await sa_conn.connection.commit()

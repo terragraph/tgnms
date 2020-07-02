@@ -88,7 +88,7 @@ class ScanTestExecution(Base):
     id = Column(Integer, primary_key=True)
     params_id = Column(Integer, ForeignKey("scan_test_params.id"), nullable=False)
     start_dt = Column(DateTime, server_default=func.now(), nullable=False)
-    end_dt = Column(DateTime, onupdate=func.now(), nullable=True)
+    end_dt = Column(DateTime, nullable=True)
     status = Column(SQLEnum(ScanTestStatus), index=True, nullable=False)
 
 
