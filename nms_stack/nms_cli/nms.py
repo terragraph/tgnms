@@ -18,6 +18,8 @@ UNINSTALL_PLAYBOOK = "uninstall.yml"
 KUBERNETES_INSTALL_PLAYBOOK = "kube_install.yml"
 KUBERNETES_UNINSTALL_PLAYBOOK = "kube_uninstall.yml"
 
+executor = ansible_executor.ansible_executor
+
 
 def generate_host_groups(host):
     """Generate hostgroup info given a list of hosts.
@@ -157,7 +159,7 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
 
     tags += ("e2e_controller",)
-    a = ansible_executor.ansible_executor(tags, verbose)
+    a = executor(tags, verbose)
 
     generated_config = {}
     if loaded_config:
@@ -189,7 +191,7 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
 @click.pass_context
 def show_defaults(ctx):
     """Dump YAML config to use for option setting"""
-    a = ansible_executor.ansible_executor(None, False)
+    a = executor(None, False)
     group_vars_file = a.get_defaults_file()
 
     with open(group_vars_file, "r") as fd:
@@ -242,7 +244,7 @@ def install(
     if password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
 
-    a = ansible_executor.ansible_executor(tags, verbose)
+    a = executor(tags, verbose)
 
     if ssl_cert_file is not None:
         a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
@@ -303,7 +305,7 @@ def uninstall(
     if password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
 
-    a = ansible_executor.ansible_executor(tags, verbose)
+    a = executor(tags, verbose)
     a.uninstall_options(
         skip_backup,
         delete_data,
@@ -327,7 +329,7 @@ def kubernetes_install(ctx, config_file, tags, verbose, password, workers, maste
     if password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
 
-    a = ansible_executor.ansible_executor(tags, verbose)
+    a = executor(tags, verbose)
 
     a.run(
         hosts, KUBERNETES_INSTALL_PLAYBOOK, config_file=config_file, password=password
@@ -343,7 +345,7 @@ def kubernetes_uninstall(ctx, config_file, verbose, tags, password, masters, wor
     if password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
 
-    a = ansible_executor.ansible_executor(tags, verbose)
+    a = executor(tags, verbose)
     a.run(
         hosts, KUBERNETES_UNINSTALL_PLAYBOOK, config_file=config_file, password=password
     )
