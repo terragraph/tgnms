@@ -1,36 +1,13 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import dataclasses
 import logging
 from typing import Dict, List, Optional, Set
 
 import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
 
-
-@dataclasses.dataclass
-class HardwareConfig:
-    # beam order
-    BEAM_ORDER: List[int]
-    # beamwidth of the broadside beam (in terms of index)
-    BORESIDE_BW_IDX: int
-    # minimum reporeted RSSI in dBm
-    MINIMUM_RSSI_DBM: int
-    # minimum reporeted SNR in dB
-    MINIMUM_SNR_DB: int
-    # threshold to judge if RSSI is saturated
-    RSSI_SATURATE_THRESH_DBM: int
-    # threshold to judge if SNR is saturated
-    SNR_SATURATE_THRESH_DB: int
-    # how far two identified routes should be (in idx)
-    BEAM_SEPERATE_IDX: int
-    # maximum expected sidelobe level
-    MAX_SIDELOBE_LEVEL_DB: int
-    # max beam index
-    MAX_BEAM_INDEX: int
-    # min beam index
-    MIN_BEAM_INDEX: int
+from ..utils.hardware_config import HardwareConfig
 
 
 def find_routes_compute(

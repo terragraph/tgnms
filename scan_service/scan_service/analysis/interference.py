@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
 
-from .utils.stats import create_link_mac_map, get_latest_stats
+from ..utils.stats import create_link_mac_map, get_latest_stats
 
 
 # rule: 1:1 when index from 0 to 22; 1:0.5 when beyond 22

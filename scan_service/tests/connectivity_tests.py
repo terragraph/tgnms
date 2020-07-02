@@ -5,12 +5,12 @@ import unittest
 from typing import List
 
 import numpy as np
-from scan_service.connectivity import (
-    HardwareConfig,
+from scan_service.analysis.connectivity import (
     find_routes,
     find_routes_compute,
     separate_beams,
 )
+from scan_service.utils.hardware_config import HardwareConfig
 
 
 class ConnectivityTests(unittest.TestCase):

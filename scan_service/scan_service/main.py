@@ -13,14 +13,15 @@ from terragraph_thrift.Event.ttypes import EventId
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
 
-from .connectivity import HardwareConfig, analyze_connectivity
-from .data_loader import get_im_data
-from .interference import analyze_interference
+from .analysis.connectivity import analyze_connectivity
+from .analysis.interference import analyze_interference
 from .models import ScanTestStatus
 from .routes import routes
 from .scan import parse_scan_results
 from .scheduler import Scheduler
+from .utils.data_loader import get_im_data
 from .utils.db import write_results
+from .utils.hardware_config import HardwareConfig
 
 
 async def scan_results_handler(

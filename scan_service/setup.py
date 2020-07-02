@@ -8,7 +8,11 @@ ptr_params = {
     "entry_point_module": "scan_service/main",
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
-    "required_coverage": {"scan_service/connectivity.py": 78, "TOTAL": 6},
+    "required_coverage": {
+        "scan_service/analysis/connectivity.py": 75,
+        "scan_service/utils/hardware_config.py": 100,
+        "TOTAL": 7,
+    },
     "run_flake8": True,
     "run_black": True,
     "run_mypy": True,
@@ -16,7 +20,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.06.10",
+    version="2020.07.02",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     install_requires=[
