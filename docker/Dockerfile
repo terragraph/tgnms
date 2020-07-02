@@ -153,6 +153,7 @@ COPY --from=builder /usr/local/lib64/libzstd.a /usr/local/lib64/libzstd.a
 
 # copy the fb libraries we just built
 COPY --from=builder /usr/local/lib64/librdkafka.so* /usr/local/lib64/
+COPY --from=builder /usr/local/lib64/libpistache.so* /usr/local/lib64/
 COPY --from=builder /usr/local/lib/libsodium.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/libcppkafka.so* /usr/local/lib/
 COPY --from=builder /usr/local/lib/libmysqlcppconn.so* /usr/local/lib/
@@ -172,6 +173,7 @@ RUN apk add --no-cache boost-context gflags libcrypto1.1 libcurl libevent libgcc
 
 # copy the libraries we just built
 COPY --from=builder /usr/local/lib64/librdkafka.so.1 /usr/local/lib64/
+COPY --from=builder /usr/local/lib64/libpistache.so.0 /usr/local/lib64/
 COPY --from=builder /usr/local/lib/libsodium.so.23 /usr/local/lib/
 COPY --from=builder /usr/local/lib/libcppkafka.so.0.3.1 /usr/local/lib/
 COPY --from=builder /usr/local/lib/libmysqlcppconn.so.6 /usr/local/lib/
