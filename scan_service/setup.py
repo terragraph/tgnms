@@ -25,6 +25,7 @@ setup(
     packages=find_packages(exclude=["tests"]),
     install_requires=[
         "aiohttp",
+        "alembic>=1.3.3,<2.0",
         "croniter>=0.3.30,<1.0",
         "numpy>=1.16.4,<2.0",
         "sqlalchemy",
