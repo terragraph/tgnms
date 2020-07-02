@@ -10,7 +10,8 @@
 #include "TopologyStore.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 static folly::Singleton<TopologyStore> storeInstance_;
 
@@ -18,7 +19,7 @@ std::shared_ptr<TopologyStore> TopologyStore::getInstance() {
   return storeInstance_.try_get();
 }
 
-std::shared_ptr<query::TopologyConfig> TopologyStore::getTopology(
+std::shared_ptr<thrift::TopologyConfig> TopologyStore::getTopology(
     const std::string& name) {
   auto locked = topologyConfigs_.rlock();
   auto it = locked->find(name);
@@ -28,14 +29,14 @@ std::shared_ptr<query::TopologyConfig> TopologyStore::getTopology(
   throw std::invalid_argument("No topology named: " + name);
 }
 
-std::unordered_map<std::string, std::shared_ptr<query::TopologyConfig>>
+std::unordered_map<std::string, std::shared_ptr<thrift::TopologyConfig>>
 TopologyStore::getTopologyList() {
   auto locked = topologyConfigs_.rlock();
   return *locked;
 }
 
 void TopologyStore::addTopology(
-    std::shared_ptr<query::TopologyConfig> topologyConfig) {
+    std::shared_ptr<thrift::TopologyConfig> topologyConfig) {
   auto locked = topologyConfigs_.wlock();
   (*locked)[topologyConfig->name] = topologyConfig;
 }
@@ -45,5 +46,6 @@ void TopologyStore::delTopology(const std::string& name) {
   locked->erase(name);
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

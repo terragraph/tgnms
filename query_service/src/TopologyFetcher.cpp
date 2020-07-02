@@ -27,7 +27,8 @@ using namespace facebook::terragraph;
 using apache::thrift::SimpleJSONSerializer;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 TopologyFetcher::TopologyFetcher() {
   // initial timer for periodic refresh
@@ -82,5 +83,6 @@ void TopologyFetcher::refreshTopologyCache() {
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

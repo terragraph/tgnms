@@ -18,7 +18,8 @@
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class NetworkHealthService {
  public:
@@ -34,7 +35,7 @@ class NetworkHealthService {
           linkHealthStats_;
 
   // keep track of latest DB state so we know when we need to update
-  std::unordered_map<std::string /* link name */, stats::LinkStateType>
+  std::unordered_map<std::string /* link name */, thrift::LinkStateType>
       linkHealthState_;
   std::unordered_set<std::string> healthKeys_;
 
@@ -42,5 +43,7 @@ class NetworkHealthService {
   void consume(const std::string& topicName);
   void linkHealthUpdater();
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

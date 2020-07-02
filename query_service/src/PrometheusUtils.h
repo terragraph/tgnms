@@ -13,7 +13,8 @@
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 struct Metric {
   std::string name;
@@ -49,5 +50,6 @@ class PrometheusUtils {
   static std::string formatPrometheusKeyName(const std::string& keyName);
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

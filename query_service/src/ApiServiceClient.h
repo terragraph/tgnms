@@ -29,7 +29,8 @@ DECLARE_int32(api_service_request_timeout_s);
 DECLARE_bool(keycloak_enabled);
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class ApiServiceClient {
  public:
@@ -103,5 +104,6 @@ class ApiServiceClient {
   static folly::Optional<folly::dynamic> refreshToken();
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

@@ -19,7 +19,8 @@ using std::chrono::seconds;
 using std::chrono::system_clock;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 time_t StatsUtils::getTimeInMs() {
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch())
@@ -47,5 +48,6 @@ std::string StatsUtils::toLowerCase(const std::string& str) {
   return newStr;
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

@@ -16,12 +16,12 @@
 
 using namespace ::testing;
 
-using facebook::gorilla::LinkStatsByTime;
-using facebook::gorilla::NetworkHealthUtils;
-using facebook::stats::_LinkStateType_VALUES_TO_NAMES;
-using facebook::stats::EventDescription;
-using facebook::stats::LinkDirection;
-using facebook::stats::LinkStateType;
+using facebook::terragraph::stats::LinkStatsByTime;
+using facebook::terragraph::stats::NetworkHealthUtils;
+using facebook::terragraph::thrift::_LinkStateType_VALUES_TO_NAMES;
+using facebook::terragraph::thrift::EventDescription;
+using facebook::terragraph::thrift::LinkDirection;
+using facebook::terragraph::thrift::LinkStateType;
 
 const double INTERVAL_SEC = 30;
 // must match NetworkHealthUtils FLAGS_fw_uptime_slope

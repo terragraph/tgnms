@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-namespace cpp2 facebook.gorilla.thrift
+namespace cpp2 facebook.terragraph.thrift
 namespace py terragraph_thrift.Pinger
 
 struct Target {
@@ -20,7 +20,7 @@ struct Target {
   7: bool is_cn;
 }
 
-struct Config {
+struct PingerConfig {
   1: i32 pinger_cooldown_time;
   2: i32 pinger_rate;
   3: i32 target_port;

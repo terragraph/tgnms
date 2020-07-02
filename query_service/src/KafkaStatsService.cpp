@@ -58,7 +58,8 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 KafkaStatsService::KafkaStatsService(
     const std::string& brokerEndpointList,
@@ -235,5 +236,6 @@ void KafkaStatsService::start(const std::string& topicName) {
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

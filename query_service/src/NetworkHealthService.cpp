@@ -35,7 +35,8 @@ using std::chrono::seconds;
 using std::chrono::system_clock;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 NetworkHealthService::NetworkHealthService(
     const std::string& brokerEndpointList)
@@ -139,7 +140,7 @@ void NetworkHealthService::consume(const std::string& topicName) {
             &linkHealthStats_[*nodeKeyInfo->topologyName_ref()]
                              [*nodeKeyInfo->linkName_ref()];
         LinkStatsByTime* linkStats;
-        if (*nodeKeyInfo->linkDirection_ref() == stats::LinkDirection::LINK_A) {
+        if (*nodeKeyInfo->linkDirection_ref() == thrift::LinkDirection::LINK_A) {
           linkStats = &linkStatsByDirection->linkA;
         } else {
           linkStats = &linkStatsByDirection->linkZ;
@@ -177,12 +178,12 @@ void NetworkHealthService::linkHealthUpdater() {
       LinkStatsByDirection& linkStats = linkPair.second;
       // TODO - use both sides of the link for health
       if (!linkStats.linkA.empty()) {
-        folly::Optional<stats::EventDescription> lastEvent;
+        folly::Optional<thrift::EventDescription> lastEvent;
         // find the last event from DB
         auto linkNameIt = linkState->find(linkName);
         if (linkNameIt != linkState->end()) {
           auto linkDirIt =
-              linkNameIt->second.find(stats::LinkDirection::LINK_A);
+              linkNameIt->second.find(thrift::LinkDirection::LINK_A);
           if (linkDirIt != linkNameIt->second.end()) {
             lastEvent = linkDirIt->second;
           }
@@ -198,14 +199,15 @@ void NetworkHealthService::linkHealthUpdater() {
         for (const auto& linkEvent : eventList) {
           LOG(INFO) << "\tEvent: " << linkEvent.startTime << " <-> "
                     << linkEvent.endTime << " | "
-                    << _LinkStateType_VALUES_TO_NAMES.at(linkEvent.linkState);
+                    << thrift::_LinkStateType_VALUES_TO_NAMES.at(linkEvent.linkState);
         }
         NetworkHealthUtils::updateLinkEventRecords(
-            topologyName, linkName, stats::LinkDirection::LINK_A, eventList);
+            topologyName, linkName, thrift::LinkDirection::LINK_A, eventList);
       }
     }
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

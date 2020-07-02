@@ -21,7 +21,8 @@
 #include <memory>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 /**
  * UDP socket
@@ -172,5 +173,6 @@ class AsyncUdpSocket : public folly::EventHandler {
   bool reusePort_{false};
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

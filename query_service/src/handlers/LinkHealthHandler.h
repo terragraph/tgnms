@@ -12,7 +12,8 @@
 #include <pistache/router.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 // handler that replies with HTTP 200 OK. Used by grafana to test if datasource
 // connection is working.
@@ -23,5 +24,6 @@ class LinkHealthHandler {
       Pistache::Http::ResponseWriter response);
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

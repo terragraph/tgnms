@@ -11,14 +11,15 @@
 
 #include "ApiServiceClient.h"
 
+#include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 #include "if/gen-cpp2/Topology_types_custom_protocol.h"
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBaseManager.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class TopologyFetcher {
  public:
@@ -32,5 +33,7 @@ class TopologyFetcher {
   std::unique_ptr<folly::AsyncTimeout> timer_{nullptr};
   std::unique_ptr<folly::AsyncTimeout> ruckusTimer_{nullptr};
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

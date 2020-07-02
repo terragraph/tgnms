@@ -32,12 +32,13 @@
 #include "../query_service/src/consts/PrometheusConsts.h"
 #include "UdpPinger.h"
 #include "if/gen-cpp2/Controller_types.h"
+#include "if/gen-cpp2/QueryService_types.h"
 #include "if/gen-cpp2/Topology_types.h"
-#include "if/gen-cpp2/beringei_query_types.h"
 
-using namespace facebook::gorilla;
+using namespace facebook::terragraph::stats;
 using facebook::terragraph::thrift::NodeType;
 using facebook::terragraph::thrift::StatusDump;
+using facebook::terragraph::thrift::Target;
 using facebook::terragraph::thrift::Topology;
 
 DEFINE_int32(topology_refresh_interval_s, 60, "Topology refresh interval");
@@ -65,7 +66,7 @@ DEFINE_string(
     "Prometheus job name for submitting metrics");
 
 struct AggrUdpPingStat {
-  thrift::Target target;
+  Target target;
   int count{0};
   int noFullLossCount{0};
   double rttAvgSum{0};
@@ -174,7 +175,7 @@ std::vector<UdpTestPlan> getTestPlans() {
 }
 
 std::vector<std::string> getMetricLabels(
-    const thrift::Target& target,
+    const Target& target,
     int dataInterval) {
   std::vector<std::string> labels = {folly::sformat(
                                          PrometheusConsts::METRIC_FORMAT,
@@ -375,7 +376,7 @@ int main(int argc, char* argv[]) {
   VLOG(2) << "Using source addr: " << srcIp;
 
   // Build a config object for the UdpPinger
-  thrift::Config config;
+  facebook::terragraph::thrift::PingerConfig config;
   config.target_port = FLAGS_target_port;
   config.num_sender_threads = FLAGS_num_sender_threads;
   config.num_receiver_threads = FLAGS_num_receiver_threads;

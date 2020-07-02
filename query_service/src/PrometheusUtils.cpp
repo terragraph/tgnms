@@ -39,7 +39,8 @@ DEFINE_string(
     "Prometheus cache queue (push gateway equivalent)");
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 std::string PrometheusUtils::formatPrometheusKeyName(
     const std::string& keyName) {
@@ -118,7 +119,7 @@ bool PrometheusUtils::writeNodeStats(
           labelTags.push_back(folly::sformat(
               PrometheusConsts::METRIC_FORMAT,
               PrometheusConsts::LABEL_LINK_DIRECTION,
-              *nodeKeyCache->linkDirection_ref() == stats::LinkDirection::LINK_A
+              *nodeKeyCache->linkDirection_ref() == thrift::LinkDirection::LINK_A
                   ? "A"
                   : "Z"));
         }
@@ -177,5 +178,6 @@ bool PrometheusUtils::enqueueMetrics(
   return true;
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

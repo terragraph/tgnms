@@ -30,7 +30,8 @@ DEFINE_string(
     "Client secret to authenticate to the token endpoint");
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 time_t ApiServiceClient::refreshTime_ = 0;
 folly::Synchronized<folly::dynamic> ApiServiceClient::jwt_;
@@ -81,5 +82,6 @@ folly::Optional<folly::dynamic> ApiServiceClient::refreshToken() {
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

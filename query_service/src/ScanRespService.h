@@ -19,7 +19,8 @@
 #include "if/gen-cpp2/scans_types_custom_protocol.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class ScanRespService {
  public:
@@ -61,5 +62,7 @@ class ScanRespService {
   folly::Optional<std::string> serializeAndCompress(
       const terragraph::thrift::ScanResp& str);
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

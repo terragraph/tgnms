@@ -10,7 +10,8 @@
 #include "TestConnectionHandler.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 void TestConnectionHandler::handleRequest(
     const Pistache::Rest::Request& request,
@@ -18,5 +19,6 @@ void TestConnectionHandler::handleRequest(
   response.send(Pistache::Http::Code::Ok);
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

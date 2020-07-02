@@ -10,7 +10,8 @@
 #include "NotFoundHandler.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 void NotFoundHandler::handleRequest(
     const Pistache::Rest::Request& request,
@@ -18,5 +19,6 @@ void NotFoundHandler::handleRequest(
   response.send(Pistache::Http::Code::Not_Found);
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

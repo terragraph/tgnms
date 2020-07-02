@@ -12,7 +12,8 @@
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 struct FirmwareStats {
   double fwUptime{-1};
@@ -34,16 +35,18 @@ class NetworkHealthUtils {
   // generate events from link stats
   // we could pass in the last event from the DB
   // if no ID set on event, new, otherwise update. bulk?
-  static std::vector<stats::EventDescription> processLinkStats(
-      folly::Optional<stats::EventDescription> lastEvent,
+  static std::vector<thrift::EventDescription> processLinkStats(
+      folly::Optional<thrift::EventDescription> lastEvent,
       LinkStatsByTime& linkStats);
 
   // update link events for a single link/direction
   static void updateLinkEventRecords(
       const std::string& topologyName,
       const std::string& linkName,
-      const stats::LinkDirection& linkDirection,
-      const std::vector<stats::EventDescription>& eventList);
+      const thrift::LinkDirection& linkDirection,
+      const std::vector<thrift::EventDescription>& eventList);
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

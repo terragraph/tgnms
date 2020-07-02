@@ -9,8 +9,8 @@
 
 include "Topology.thrift"
 
-namespace cpp2 facebook.stats
-namespace py facebook.stats
+namespace cpp2 facebook.terragraph.thrift
+namespace py facebook.terragraph.thrift
 
 enum KeyUnit {
   // no scaling

@@ -31,13 +31,14 @@ DEFINE_int32(
     "Maximum data-points to hold waiting for new records");
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
-std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
-    folly::Optional<stats::EventDescription> lastEvent,
+std::vector<thrift::EventDescription> NetworkHealthUtils::processLinkStats(
+    folly::Optional<thrift::EventDescription> lastEvent,
     LinkStatsByTime& linkStats) {
   VLOG(1) << "======== processLinkStats() BEGIN ========";
-  std::vector<stats::EventDescription> eventList;
+  std::vector<thrift::EventDescription> eventList;
   // use last known event from DB
   if (lastEvent) {
     eventList.push_back(*lastEvent);
@@ -97,19 +98,19 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
     if (fwUptime == 0) {
       continue;
     }
-    stats::EventDescription* lastEvent =
+    thrift::EventDescription* lastEvent =
         eventList.empty() ? nullptr : &eventList.back();
     if (lastEvent != nullptr) {
       VLOG(1) << "Last link event: " << lastEvent->startTime << " <-> "
               << lastEvent->endTime << " | "
-              << stats::_LinkStateType_VALUES_TO_NAMES.at(lastEvent->linkState);
+              << thrift::_LinkStateType_VALUES_TO_NAMES.at(lastEvent->linkState);
     }
     ASSERT(fwUptime >= 0);
     const time_t startTs = ts - (fwUptime / FLAGS_fw_uptime_slope);
     if (fwUptimeDelta == linkAvailDelta) {
       // single event for link_up
       if (lastEvent != nullptr && startTs <= lastEvent->endTime &&
-          lastEvent->linkState == stats::LinkStateType::LINK_UP) {
+          lastEvent->linkState == thrift::LinkStateType::LINK_UP) {
         // covers last interval
         VLOG(1) << "\t[a] Updated endTime of lastEvent from "
                 << lastEvent->endTime << " -> " << ts;
@@ -118,12 +119,12 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
         VLOG(1) << "\t[b] Added new LINK_UP event from " << startTs << " <-> "
                 << ts;
         // new event, don't update old event
-        stats::EventDescription eventLinkUp;
+        thrift::EventDescription eventLinkUp;
         eventLinkUp.startTime = lastEvent != nullptr
             ? std::max(startTs, lastEvent->endTime)
             : startTs;
         eventLinkUp.endTime = ts;
-        eventLinkUp.linkState = stats::LinkStateType::LINK_UP;
+        eventLinkUp.linkState = thrift::LinkStateType::LINK_UP;
         eventList.emplace_back(eventLinkUp);
       }
     } else {
@@ -138,7 +139,7 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
           lastEvent != nullptr ? lastEvent->endTime : 0;
       // last event is link_up_datadown and whole interval was datadown
       if (lastEvent != nullptr && startTs <= lastEvent->endTime &&
-          lastEvent->linkState == stats::LinkStateType::LINK_UP) {
+          lastEvent->linkState == thrift::LinkStateType::LINK_UP) {
         // extend last event if link_up, then add link_up_datadown
         VLOG(1) << "\t[c] Updated endTime of lastEvent from "
                 << lastEvent->endTime << " -> " << eventTransitionTime;
@@ -146,7 +147,7 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
       } else if (linkAvailDelta > 0) {
         // add link_up correlating with fwUptime start or end of last event
         // assuming part of the interval was up
-        stats::EventDescription eventLinkUp;
+        thrift::EventDescription eventLinkUp;
         eventLinkUp.startTime = std::max(startTs, lastEventEndTime);
         // ensure window is at least one second, padding if we rounded to 0
         if (eventLinkUp.startTime == eventTransitionTime) {
@@ -158,12 +159,12 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
         VLOG(1) << "\t[d] Added new LINK_UP event from "
                 << eventLinkUp.startTime << " <-> " << eventTransitionTime;
         ASSERT(eventLinkUp.startTime < eventLinkUp.endTime);
-        eventLinkUp.linkState = stats::LinkStateType::LINK_UP;
+        eventLinkUp.linkState = thrift::LinkStateType::LINK_UP;
         eventList.emplace_back(eventLinkUp);
       } else if (
           linkAvailDelta == 0 && lastEvent != nullptr &&
           startTs <= lastEvent->endTime &&
-          lastEvent->linkState == stats::LinkStateType::LINK_UP_DATADOWN) {
+          lastEvent->linkState == thrift::LinkStateType::LINK_UP_DATADOWN) {
         // we dont need a link_up event, extend last one
         VLOG(1) << "\t[e] Updated endTime of lastEvent from "
                 << lastEvent->endTime << " -> " << ts;
@@ -173,12 +174,12 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
       }
       if (needsNewLinkUpDataDown) {
         // add link_up_datadown to the end of the interval
-        stats::EventDescription eventLinkUpDataDown;
+        thrift::EventDescription eventLinkUpDataDown;
         eventLinkUpDataDown.startTime = eventTransitionTime;
         eventLinkUpDataDown.endTime = ts;
         VLOG(1) << "\t[f] Added new LINK_UP_DATADOWN event from "
                 << eventTransitionTime << " <-> " << ts;
-        eventLinkUpDataDown.linkState = stats::LinkStateType::LINK_UP_DATADOWN;
+        eventLinkUpDataDown.linkState = thrift::LinkStateType::LINK_UP_DATADOWN;
         eventList.emplace_back(eventLinkUpDataDown);
       }
     }
@@ -214,8 +215,8 @@ std::vector<stats::EventDescription> NetworkHealthUtils::processLinkStats(
 void NetworkHealthUtils::updateLinkEventRecords(
     const std::string& topologyName,
     const std::string& linkName,
-    const stats::LinkDirection& linkDirection,
-    const std::vector<stats::EventDescription>& eventList) {
+    const thrift::LinkDirection& linkDirection,
+    const std::vector<thrift::EventDescription>& eventList) {
   // update events
   VLOG(1) << "updateLinkEventRecords(" << topologyName << ", " << linkName
           << ", A, size(" << eventList.size() << "))";
@@ -240,5 +241,6 @@ void NetworkHealthUtils::updateLinkEventRecords(
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

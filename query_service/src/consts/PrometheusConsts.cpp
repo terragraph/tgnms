@@ -10,7 +10,8 @@
 #include "PrometheusConsts.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 // node labels
 const std::string PrometheusConsts::LABEL_NODE_MAC{"nodeMac"};
@@ -29,5 +30,6 @@ const std::string PrometheusConsts::LABEL_DATA_INTERVAL{"intervalSec"};
 // metric format
 const std::string PrometheusConsts::METRIC_FORMAT{"{}=\"{}\""};
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

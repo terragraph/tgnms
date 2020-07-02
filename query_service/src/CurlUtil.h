@@ -17,7 +17,8 @@
 #include <folly/Optional.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class CurlUtil {
  public:
@@ -45,5 +46,6 @@ class CurlUtil {
   writeStringCb(void* ptr, size_t size, size_t nmemb, std::string* s);
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

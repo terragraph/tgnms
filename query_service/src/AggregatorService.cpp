@@ -46,7 +46,8 @@ using std::chrono::seconds;
 using std::chrono::system_clock;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 AggregatorService::AggregatorService() {
   ebThread_ = std::thread([this]() {
@@ -198,7 +199,7 @@ void AggregatorService::fetchAndLogTopologyMetrics(
 
 void AggregatorService::fetchAndLogWirelessControllerMetrics(
     std::vector<Metric>& aggValues,
-    const query::TopologyConfig& topologyConfig) {
+    const thrift::TopologyConfig& topologyConfig) {
   if (topologyConfig.wireless_controller_ref() &&
       topologyConfig.wireless_controller_ref()->type == "ruckus") {
     fetchAndLogRuckusControllerMetrics(aggValues, topologyConfig);
@@ -207,7 +208,7 @@ void AggregatorService::fetchAndLogWirelessControllerMetrics(
 
 void AggregatorService::fetchAndLogRuckusControllerMetrics(
     std::vector<Metric>& aggValues,
-    const query::TopologyConfig& topologyConfig) {
+    const thrift::TopologyConfig& topologyConfig) {
   const auto& wac = *topologyConfig.wireless_controller_ref();
   VLOG(1) << "Fetching metrics from ruckus controller: " << wac.url;
   folly::dynamic WirelessControllerStats =
@@ -249,5 +250,6 @@ void AggregatorService::fetchAndLogRuckusControllerMetrics(
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

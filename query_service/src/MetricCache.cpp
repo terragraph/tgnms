@@ -27,7 +27,8 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 /**
  * Hold the type-ahead meta-data for a topology
@@ -39,7 +40,7 @@ std::shared_ptr<MetricCache> MetricCache::getInstance() {
   return storeInstance_.try_get();
 }
 
-folly::Optional<stats::KeyMetaData> MetricCache::getKeyDataByNodeKey(
+folly::Optional<thrift::KeyMetaData> MetricCache::getKeyDataByNodeKey(
     const std::string& nodeMac,
     const std::string& keyName) const {
   auto nodeKeyLookupLock = nodeMacToKeyList_.rlock();
@@ -64,7 +65,7 @@ MetricCache::getNodeByMacAddr(const std::string& macAddr) {
 }
 
 folly::Optional<
-    std::unordered_map<std::string /* key name */, stats::KeyMetaData>>
+    std::unordered_map<std::string /* key name */, thrift::KeyMetaData>>
 MetricCache::getNodeMetricCache(const std::string& macAddr) {
   auto nodeKeyLookupLock = nodeMacToKeyList_.rlock();
   auto nodeIt = nodeKeyLookupLock->find(macAddr);
@@ -135,7 +136,7 @@ void MetricCache::updateMetricNames(const thrift::Topology& request) {
           // short name should already be tagged
           VLOG(2) << "Adding key mapping " << keyName << " -> "
                   << linkMetric.first << " for radio mac: " << radioMac;
-          stats::KeyMetaData& keyData = (*nodeKeyLookupLock)[radioMac][keyName];
+          thrift::KeyMetaData& keyData = (*nodeKeyLookupLock)[radioMac][keyName];
           // push key data for link metric
           keyData.set_topologyName(request.name);
           keyData.set_linkName(link.name);
@@ -154,7 +155,7 @@ void MetricCache::updateMetricNames(const thrift::Topology& request) {
 // TODO - convert this to thrift struct
 folly::Optional<NodeLinkMetrics> MetricCache::createLinkMetric(
     const thrift::Link& link,
-    const stats::LinkMetric& linkMetric) {
+    const thrift::LinkMetric& linkMetric) {
   // link should always have a_node_mac + z_node_mac
   if (link.a_node_mac.empty() || link.z_node_mac.empty()) {
     VLOG(1) << "Empty MAC for link " << link.name;
@@ -165,16 +166,17 @@ folly::Optional<NodeLinkMetrics> MetricCache::createLinkMetric(
   std::string keyNameLinkA = folly::sformat(
       "{}.{}.{}", linkMetric.keyPrefix, link.z_node_mac, linkMetric.keyName);
   NodeLinkMetricKey keyLinkA(
-      link.a_node_mac, keyNameLinkA, stats::LinkDirection::LINK_A);
+      link.a_node_mac, keyNameLinkA, thrift::LinkDirection::LINK_A);
 
   // z-side
   std::string keyNameLinkZ = folly::sformat(
       "{}.{}.{}", linkMetric.keyPrefix, link.a_node_mac, linkMetric.keyName);
   NodeLinkMetricKey keyLinkZ(
-      link.z_node_mac, keyNameLinkZ, stats::LinkDirection::LINK_Z);
+      link.z_node_mac, keyNameLinkZ, thrift::LinkDirection::LINK_Z);
   nodeLinkMetrics.keys = {keyLinkA, keyLinkZ};
   return nodeLinkMetrics;
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

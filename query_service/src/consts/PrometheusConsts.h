@@ -12,7 +12,8 @@
 #include <string>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class PrometheusConsts {
  public:
@@ -34,5 +35,6 @@ class PrometheusConsts {
   const static std::string METRIC_FORMAT;
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

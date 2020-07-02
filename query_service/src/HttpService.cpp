@@ -13,12 +13,13 @@
 #include "handlers/NotFoundHandler.h"
 #include "handlers/TestConnectionHandler.h"
 
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
+#include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 using namespace Pistache::Http;
 using namespace Pistache::Rest;
@@ -53,12 +54,13 @@ void HttpService::sendErrorResponse(
     Pistache::Http::ResponseWriter& response,
     const std::string& errorMsg) {
   apache::thrift::SimpleJSONSerializer serializer{};
-  query::ErrorResponse errorResp{};
+  thrift::ErrorResponse errorResp{};
   errorResp.errorList.push_back(errorMsg);
   response.send(
       Pistache::Http::Code::Internal_Server_Error,
       serializer.serialize<std::string>(errorResp));
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

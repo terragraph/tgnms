@@ -7,8 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-namespace cpp2 facebook.gorilla.scans
-namespace py facebook.gorilla.scans
+namespace cpp2 facebook.terragraph.thrift
 
 include "Controller.thrift"
 

@@ -15,27 +15,25 @@
 #include <folly/futures/Future.h>
 #include <folly/Optional.h>
 
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
+#include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "if/gen-cpp2/Topology_types_custom_protocol.h"
 
 #define MAC_ADDR_LEN 17
 
-using namespace facebook::stats;
-using namespace facebook::terragraph;
-
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 struct NodeLinkMetricKey {
   explicit NodeLinkMetricKey(
       const std::string& radioMac,
       const std::string& keyName,
-      const stats::LinkDirection& linkDirection)
+      const thrift::LinkDirection& linkDirection)
       : radioMac(radioMac), keyName(keyName), linkDirection(linkDirection){};
   std::string radioMac;
   std::string keyName;
-  stats::LinkDirection linkDirection;
+  thrift::LinkDirection linkDirection;
 };
 
 struct NodeLinkMetrics {
@@ -50,7 +48,7 @@ struct NodeLinkMetrics {
 
 using MetricCacheMap = folly::Synchronized<std::unordered_map<
     std::string, /* MAC addr */
-    std::unordered_map<std::string /* key name */, stats::KeyMetaData>>>;
+    std::unordered_map<std::string /* key name */, thrift::KeyMetaData>>>;
 /**
  * Hold the type-ahead meta-data for a topology
  */
@@ -65,9 +63,9 @@ class MetricCache {
   // generate link metric meta-data for quick stream processing lookups
   folly::Optional<NodeLinkMetrics> createLinkMetric(
       const thrift::Link& link,
-      const stats::LinkMetric& linkMetric);
+      const thrift::LinkMetric& linkMetric);
 
-  folly::Optional<stats::KeyMetaData> getKeyDataByNodeKey(
+  folly::Optional<thrift::KeyMetaData> getKeyDataByNodeKey(
       const std::string& nodeMac,
       const std::string& keyName) const;
 
@@ -75,7 +73,7 @@ class MetricCache {
       const std::string& macAddr);
 
   folly::Optional<
-      std::unordered_map<std::string /* key name */, stats::KeyMetaData>>
+      std::unordered_map<std::string /* key name */, thrift::KeyMetaData>>
   getNodeMetricCache(const std::string& macAddr);
 
  private:
@@ -89,5 +87,6 @@ class MetricCache {
   MetricCacheMap nodeMacToKeyList_{};
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

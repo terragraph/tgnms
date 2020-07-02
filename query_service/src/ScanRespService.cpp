@@ -47,7 +47,8 @@ using apache::thrift::SimpleJSONSerializer;
 using namespace facebook::terragraph::thrift;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 ScanRespService::ScanRespService() {
   ebThread_ = std::thread([this]() {
@@ -190,7 +191,7 @@ folly::Optional<std::string> ScanRespService::serializeAndCompress(
 int ScanRespService::writeData(
     const ScanStatus& scanStatus,
     const std::string& topologyName) {
-  std::vector<scans::MySqlScanResp> mySqlScanResponses;
+  std::vector<thrift::MySqlScanResp> mySqlScanResponses;
   // loop over scans: {token: ScanData}
   for (const std::pair<int, ScanData>& scan : scanStatus.scans) {
     int respId = scan.second.respId;
@@ -205,8 +206,8 @@ int ScanRespService::writeData(
                 << " has no responses";
     }
 
-    scans::MySqlScanResp mySqlScanResponse{};
-    scans::MySqlScanTxResp mySqlScanTxResponse{};
+    thrift::MySqlScanResp mySqlScanResponse{};
+    thrift::MySqlScanTxResp mySqlScanTxResponse{};
     bool hasTxResponse = false;
 
     // these fields apply to all scan responses with the same scan ID
@@ -227,7 +228,7 @@ int ScanRespService::writeData(
     mySqlScanTxResponse.token = scan.first;
     mySqlScanTxResponse.set_groupId(*scan.second.groupId_ref());
 
-    std::vector<scans::MySqlScanRxResp> mySqlScanRxResponses;
+    std::vector<thrift::MySqlScanRxResp> mySqlScanRxResponses;
     bool duplicateScanResp = false;
     // loop over scan responses within a scan {nodeName:: ScanResp}
     for (const std::pair<std::string, ScanResp>& responses :
@@ -267,7 +268,7 @@ int ScanRespService::writeData(
           }
         }
       } else { // rx node
-        scans::MySqlScanRxResp mySqlScanRxResponse;
+        thrift::MySqlScanRxResp mySqlScanRxResponse;
 
         // if the route info list is empty, write an empty response
         if (responses.second.routeInfoList.empty() &&
@@ -372,5 +373,6 @@ int ScanRespService::writeData(
   return success ? 0 : -1;
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

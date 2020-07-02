@@ -21,9 +21,9 @@
 #include <thread>
 
 #include <folly/Format.h>
+#include <folly/GLog.h>
 #include <folly/gen/Base.h>
 #include <folly/gen/Core.h>
-#include <folly/GLog.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/Logger.h>
 #include <folly/system/ThreadName.h>
@@ -41,7 +41,7 @@ DEFINE_int32(bucket_size, 5e3, "Bucket size for histograms");
 
 namespace {
 
-using facebook::gorilla::AsyncUdpSocket;
+using facebook::terragraph::stats::AsyncUdpSocket;
 
 std::default_random_engine generator;
 std::uniform_int_distribution<uint32_t> distribution(0, INT_MAX);
@@ -58,15 +58,15 @@ void addToHistograms(
     const uint32_t rtt,
     const folly::IPAddress& address,
     const std::string& network,
+    std::shared_ptr<std::unordered_map<
+        folly::IPAddress,
+        facebook::terragraph::stats::Histogram>> hostHistograms,
     std::shared_ptr<
-        std::unordered_map<folly::IPAddress, facebook::gorilla::Histogram>>
-        hostHistograms,
-    std::shared_ptr<
-        std::unordered_map<std::string, facebook::gorilla::Histogram>>
+        std::unordered_map<std::string, facebook::terragraph::stats::Histogram>>
         networkHistograms) {
   auto hostIt = hostHistograms->find(address);
   if (hostIt == hostHistograms->end()) {
-    facebook::gorilla::Histogram histogram(
+    facebook::terragraph::stats::Histogram histogram(
         FLAGS_bucket_size, FLAGS_bucket_min, FLAGS_bucket_max);
     auto result = hostHistograms->emplace(address, std::move(histogram));
     hostIt = result.first;
@@ -75,7 +75,7 @@ void addToHistograms(
 
   auto networkIt = networkHistograms->find(network);
   if (networkIt == networkHistograms->end()) {
-    facebook::gorilla::Histogram histogram(
+    facebook::terragraph::stats::Histogram histogram(
         FLAGS_bucket_size, FLAGS_bucket_min, FLAGS_bucket_max);
     auto result = networkHistograms->emplace(network, std::move(histogram));
     networkIt = result.first;
@@ -274,10 +274,11 @@ createUdpSockets(
 } // namespace
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 UdpSender::UdpSender(
-    const thrift::Config& config,
+    const thrift::PingerConfig& config,
     int qos,
     int senderId,
     int numSenders,
@@ -476,7 +477,7 @@ void UdpReceiver::waitForSocketsToBind() {
 }
 
 UdpReceiver::UdpReceiver(
-    const thrift::Config& config,
+    const thrift::PingerConfig& config,
     uint32_t signature,
     int receiverId,
     std::vector<std::shared_ptr<folly::NotificationQueue<ReceiveProbe>>>
@@ -745,7 +746,7 @@ void UdpReceiver::onMessageAvailable(size_t len) noexcept {
   }
 }
 
-UdpPinger::UdpPinger(const thrift::Config& config, folly::IPAddress srcIp)
+UdpPinger::UdpPinger(const thrift::PingerConfig& config, folly::IPAddress srcIp)
     : config_(config), srcIp_(srcIp) {}
 
 UdpTestResults UdpPinger::run(
@@ -969,5 +970,6 @@ UdpTestResults UdpPinger::run(
   return results;
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

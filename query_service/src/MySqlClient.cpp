@@ -28,7 +28,8 @@ DEFINE_string(mysql_database, "cxl", "mysql database");
 using namespace facebook::terragraph::thrift;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 static folly::Singleton<MySqlClient> mysqlClientInstance_;
 static std::unordered_map<int, std::string> ScanTypeMap = {
@@ -70,7 +71,7 @@ void MySqlClient::refreshAll() noexcept {
   refreshLinkMetrics();
 }
 
-std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
+std::map<int64_t, std::shared_ptr<thrift::TopologyConfig>>
 MySqlClient::getTopologyConfigs() {
   return topologyIdMap_.copy();
 }
@@ -104,23 +105,23 @@ void MySqlClient::refreshTopologies() noexcept {
         "JOIN (controller cp) ON (t.primary_controller=cp.id) "
         "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id) "
         "LEFT JOIN (wireless_controller wc) ON (t.wireless_controller=wc.id)"));
-    std::map<int64_t, std::shared_ptr<query::TopologyConfig>> topologyIdTmp;
+    std::map<int64_t, std::shared_ptr<thrift::TopologyConfig>> topologyIdTmp;
     while (res->next()) {
-      auto config = std::make_shared<query::TopologyConfig>();
+      auto config = std::make_shared<thrift::TopologyConfig>();
       config->id = res->getInt("id");
       config->name = res->getString("name");
       config->primary_controller.ip = res->getString("pip");
       config->primary_controller.api_port = res->getInt("papi_port");
       const std::string backupIp = res->getString("bip");
       if (!backupIp.empty()) {
-        query::ControllerConfig backupController;
+        thrift::ControllerEndpoint backupController;
         backupController.ip = backupIp;
         backupController.api_port = res->getInt("bapi_port");
         config->set_backup_controller(backupController);
       }
       const std::string wacType = res->getString("wac_type");
       if (!wacType.empty()) {
-        query::WirelessController wirelessController;
+        thrift::WirelessController wirelessController;
         wirelessController.type = wacType;
         wirelessController.url = res->getString("wac_url");
         wirelessController.username = res->getString("wac_username");
@@ -164,7 +165,7 @@ void MySqlClient::refreshLinkMetrics() noexcept {
       std::string description = res->getString("description");
 
       // add link metric to temp map
-      stats::LinkMetric linkMetric;
+      thrift::LinkMetric linkMetric;
       linkMetric.shortName = name;
       linkMetric.keyName = keyName;
       linkMetric.keyPrefix = keyPrefix;
@@ -238,7 +239,7 @@ int64_t MySqlClient::getLastId(
 // each row of the table is a single scan response from a node
 // to retrieve scan results, the tables are JOINed by token/network/bwgd
 int MySqlClient::writeTxScanResponse(
-    const scans::MySqlScanTxResp& scanResponse,
+    const thrift::MySqlScanTxResp& scanResponse,
     sql::Connection* connection) noexcept {
   try {
     std::string query =
@@ -284,7 +285,7 @@ int MySqlClient::writeTxScanResponse(
 }
 
 bool MySqlClient::writeRxScanResponse(
-    const scans::MySqlScanRxResp& scanResponse,
+    const thrift::MySqlScanRxResp& scanResponse,
     const int64_t txId,
     sql::Connection* connection) noexcept {
   try {
@@ -316,7 +317,7 @@ bool MySqlClient::writeRxScanResponse(
 }
 
 bool MySqlClient::writeScanResponses(
-    const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept {
+    const std::vector<thrift::MySqlScanResp>& mySqlScanResponses) noexcept {
   int numScansWritten = 0;
   auto connection = openConnection();
   if (!connection) {
@@ -360,7 +361,7 @@ bool MySqlClient::writeScanResponses(
   return true;
 }
 
-folly::Optional<stats::LinkEvent> MySqlClient::getLinkEvents(
+folly::Optional<thrift::LinkEvent> MySqlClient::getLinkEvents(
     const std::string& topologyName,
     int hoursAgo,
     int allowedDelaySec) noexcept {
@@ -379,7 +380,7 @@ folly::Optional<stats::LinkEvent> MySqlClient::getLinkEvents(
         topologyName + "'AND `endTs` > DATE_SUB(NOW(), INTERVAL " +
         std::to_string(hoursAgo) + " HOUR)"));
 
-    stats::LinkEvent linkEventMap{};
+    thrift::LinkEvent linkEventMap{};
     while (res->next()) {
       if (res->getString("linkDirection") != "A") {
         // TODO(T69343129) - record for Z side as well
@@ -391,12 +392,12 @@ folly::Optional<stats::LinkEvent> MySqlClient::getLinkEvents(
       long endTs = res->getInt("endTs");
       std::string eventType = res->getString("eventType");
       // add link metric to temp map
-      stats::EventDescription linkStateDescr;
+      thrift::EventDescription linkStateDescr;
       // convert from DB string enum('LINK_UP','LINK_UP_DATADOWN')
       linkStateDescr.dbId = dbId;
       linkStateDescr.linkState = eventType == "LINK_UP"
-          ? stats::LinkStateType::LINK_UP
-          : stats::LinkStateType::LINK_UP_DATADOWN;
+          ? thrift::LinkStateType::LINK_UP
+          : thrift::LinkStateType::LINK_UP_DATADOWN;
       linkStateDescr.startTime = startTs;
       linkStateDescr.endTime = endTs;
       linkEventMap.events[linkName].events.push_back(linkStateDescr);
@@ -412,7 +413,7 @@ folly::Optional<stats::LinkEvent> MySqlClient::getLinkEvents(
       // if it's within the allowed delay window
       if (!linkNameToEvents.second.events.empty()) {
         auto& mostRecentEvent = linkNameToEvents.second.events.front();
-        if (mostRecentEvent.linkState == stats::LinkStateType::LINK_UP &&
+        if (mostRecentEvent.linkState == thrift::LinkStateType::LINK_UP &&
             mostRecentEvent.endTime >= curTs - allowedDelaySec) {
           // extend event to cover to the end of the interval
           mostRecentEvent.endTime = curTs;
@@ -431,7 +432,7 @@ folly::Optional<stats::LinkEvent> MySqlClient::getLinkEvents(
         }
         int eventSeconds = linkEvent.endTime - linkEvent.startTime;
         onlineSeconds += eventSeconds;
-        if (linkEvent.linkState == stats::LinkStateType::LINK_UP_DATADOWN) {
+        if (linkEvent.linkState == thrift::LinkStateType::LINK_UP_DATADOWN) {
           dataDownSeconds += eventSeconds;
         }
         linkEvent.description = StatsUtils::getDurationString(eventSeconds);
@@ -479,19 +480,19 @@ folly::Optional<LinkStateMap> MySqlClient::refreshLatestLinkState() noexcept {
     while (res->next()) {
       int64_t keyId = res->getInt("id");
       std::string linkName = res->getString("linkName");
-      stats::LinkDirection linkDir = res->getString("linkDirection") == "A"
-          ? stats::LinkDirection::LINK_A
-          : stats::LinkDirection::LINK_Z;
+      thrift::LinkDirection linkDir = res->getString("linkDirection") == "A"
+          ? thrift::LinkDirection::LINK_A
+          : thrift::LinkDirection::LINK_Z;
       long startTs = res->getInt("startTs");
       long endTs = res->getInt("endTs");
       std::string eventType = res->getString("eventType");
       // add link metric to temp map
-      stats::EventDescription linkStateDescr;
+      thrift::EventDescription linkStateDescr;
       linkStateDescr.dbId = keyId;
       // convert from DB string enum('LINK_UP','LINK_UP_DATADOWN')
       linkStateDescr.linkState = eventType == "LINK_UP"
-          ? stats::LinkStateType::LINK_UP
-          : stats::LinkStateType::LINK_UP_DATADOWN;
+          ? thrift::LinkStateType::LINK_UP
+          : thrift::LinkStateType::LINK_UP_DATADOWN;
       linkStateDescr.startTime = startTs;
       linkStateDescr.endTime = endTs;
       linkStateMap[linkName][linkDir] = linkStateDescr;
@@ -530,8 +531,8 @@ void MySqlClient::updateLinkState(
 void MySqlClient::addLinkState(
     const std::string& topologyName,
     const std::string& linkName,
-    const stats::LinkDirection& linkDir,
-    const stats::LinkStateType& linkState,
+    const thrift::LinkDirection& linkDir,
+    const thrift::LinkStateType& linkState,
     const time_t startTs,
     const time_t endTs) noexcept {
   auto stmt =
@@ -539,9 +540,9 @@ void MySqlClient::addLinkState(
       "(`topologyName`, `linkName`, `linkDirection`, `eventType`, `startTs`, "
       "`endTs`) VALUES (?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?))";
   VLOG(2) << "addLinkState(" << topologyName << ", " << linkName << ", "
-          << (linkDir == stats::LinkDirection::LINK_A ? "A" : "Z") << ", "
+          << (linkDir == thrift::LinkDirection::LINK_A ? "A" : "Z") << ", "
           << folly::get_default(
-                 stats::_LinkStateType_VALUES_TO_NAMES, linkState, "UNKNOWN")
+                 thrift::_LinkStateType_VALUES_TO_NAMES, linkState, "UNKNOWN")
           << ", " << startTs << ", " << endTs << ")";
   auto connection = openConnection();
   if (!connection) {
@@ -554,10 +555,10 @@ void MySqlClient::addLinkState(
     prep_stmt->setString(1, topologyName);
     prep_stmt->setString(2, linkName);
     prep_stmt->setString(
-        3, (linkDir == stats::LinkDirection::LINK_A ? "A" : "Z"));
+        3, (linkDir == thrift::LinkDirection::LINK_A ? "A" : "Z"));
     // get string name for link state
     prep_stmt->setString(
-        4, stats::_LinkStateType_VALUES_TO_NAMES.at(linkState));
+        4, thrift::_LinkStateType_VALUES_TO_NAMES.at(linkState));
     prep_stmt->setInt(5, startTs);
     prep_stmt->setInt(6, endTs);
     prep_stmt->execute();
@@ -567,5 +568,6 @@ void MySqlClient::addLinkState(
   }
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

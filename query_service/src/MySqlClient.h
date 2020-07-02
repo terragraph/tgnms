@@ -16,9 +16,9 @@
 #include <folly/futures/Future.h>
 
 #include "if/gen-cpp2/Controller_types_custom_protocol.h"
+#include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "if/gen-cpp2/Topology_types_custom_protocol.h"
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
 #include "if/gen-cpp2/scans_types_custom_protocol.h"
 
 #include "mysql_connection.h"
@@ -31,17 +31,18 @@
 #include <cppconn/statement.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
     NodeKeyMap;
 typedef std::unordered_map<int64_t, std::unordered_map<std::string, int64_t>>
     NodeCategoryMap;
-typedef std::unordered_map<std::string /* metric name */, stats::LinkMetric>
+typedef std::unordered_map<std::string /* metric name */, thrift::LinkMetric>
     LinkMetricMap;
 typedef std::unordered_map<
     std::string /* link name */,
-    std::unordered_map<stats::LinkDirection, stats::EventDescription>>
+    std::unordered_map<thrift::LinkDirection, thrift::EventDescription>>
     LinkStateMap;
 
 class MySqlClient {
@@ -59,7 +60,7 @@ class MySqlClient {
 
   void refreshAll() noexcept;
 
-  std::map<int64_t, std::shared_ptr<query::TopologyConfig>>
+  std::map<int64_t, std::shared_ptr<thrift::TopologyConfig>>
   getTopologyConfigs();
 
   LinkMetricMap getLinkMetrics();
@@ -69,13 +70,13 @@ class MySqlClient {
   void refreshLinkMetrics() noexcept;
 
   bool writeScanResponses(
-      const std::vector<scans::MySqlScanResp>& mySqlScanResponses) noexcept;
+      const std::vector<thrift::MySqlScanResp>& mySqlScanResponses) noexcept;
   int64_t refreshScanResponse(std::string& network) noexcept;
 
   int64_t getLastBwgd(const std::string& network) noexcept;
 
   // link health state
-  folly::Optional<stats::LinkEvent> getLinkEvents(
+  folly::Optional<thrift::LinkEvent> getLinkEvents(
       const std::string& topologyName,
       int hoursAgo,
       int allowedDelaySec) noexcept;
@@ -84,27 +85,29 @@ class MySqlClient {
   void addLinkState(
       const std::string& topologyName,
       const std::string& linkName,
-      const stats::LinkDirection& linkDir,
-      const stats::LinkStateType& linkState,
+      const thrift::LinkDirection& linkDir,
+      const thrift::LinkStateType& linkState,
       const time_t startTs,
       const time_t endTs) noexcept;
 
  private:
-  folly::Synchronized<std::map<int64_t, std::shared_ptr<query::TopologyConfig>>>
+  folly::Synchronized<std::map<int64_t, std::shared_ptr<thrift::TopologyConfig>>>
       topologyIdMap_{};
   folly::Synchronized<LinkMetricMap> linkMetrics_{};
 
   bool writeRxScanResponse(
-      const scans::MySqlScanRxResp& scanResponse,
+      const thrift::MySqlScanRxResp& scanResponse,
       const int64_t txId,
       sql::Connection* connection) noexcept;
   int writeTxScanResponse(
-      const scans::MySqlScanTxResp& scanResponse,
+      const thrift::MySqlScanTxResp& scanResponse,
       sql::Connection* connection) noexcept;
   int64_t getLastId(
       const int token,
       const int64_t startBwgd,
       const std::string& network) noexcept;
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

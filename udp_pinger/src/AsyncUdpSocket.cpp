@@ -22,7 +22,8 @@
 using namespace folly;
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 AsyncUdpSocket::AsyncUdpSocket(EventBase* evb)
     : EventHandler(CHECK_NOTNULL(evb)),
@@ -270,5 +271,6 @@ bool AsyncUdpSocket::updateRegistration() noexcept {
   return registerHandler(flags | PERSIST);
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

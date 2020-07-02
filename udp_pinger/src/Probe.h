@@ -10,7 +10,8 @@
 #pragma once
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 // The size of the probe body, to embed the id (signature) and timestamps
 const int kProbeDataLen = 32;
@@ -36,5 +37,6 @@ struct ProbeBody {
   char padding[kProbeDataLen - 4 * sizeof(uint32_t) - sizeof(uint8_t)];
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

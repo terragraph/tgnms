@@ -26,7 +26,8 @@
 #include "if/gen-cpp2/Pinger_types.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 struct UdpHeader {
   uint16_t srcPort{0};
@@ -92,7 +93,7 @@ class Histogram : public folly::Histogram<uint32_t> {
 class UdpSender {
  public:
   UdpSender(
-      const thrift::Config& config,
+      const thrift::PingerConfig& config,
       int qos,
       int senderId,
       int numSenders,
@@ -108,7 +109,7 @@ class UdpSender {
   UdpSender& operator=(const UdpSender&) = delete;
 
   // Global UDP pinger config object
-  const thrift::Config config_;
+  const thrift::PingerConfig config_;
 
   // The QoS value to use in probes
   const int qos_;
@@ -178,7 +179,7 @@ class UdpSender {
 class UdpReceiver final : public AsyncUdpSocket::ReadCallback {
  public:
   UdpReceiver(
-      const thrift::Config& config,
+      const thrift::PingerConfig& config,
       uint32_t signature,
       int receiverId,
       std::vector<std::shared_ptr<folly::NotificationQueue<ReceiveProbe>>>
@@ -211,7 +212,7 @@ class UdpReceiver final : public AsyncUdpSocket::ReadCallback {
   UdpReceiver& operator=(const UdpReceiver&) = delete;
 
   // The global pinger config
-  const thrift::Config& config_;
+  const thrift::PingerConfig& config_;
 
   // The expected signature in the received probes
   const uint32_t signature_;
@@ -283,16 +284,17 @@ class UdpReceiver final : public AsyncUdpSocket::ReadCallback {
 
 class UdpPinger {
  public:
-  UdpPinger(const thrift::Config& config, folly::IPAddress srcIp);
+  UdpPinger(const thrift::PingerConfig& config, folly::IPAddress srcIp);
   UdpTestResults run(const std::vector<UdpTestPlan>& testPlans, int qos) const;
 
  private:
   // The global configuration object
-  thrift::Config config_;
+  thrift::PingerConfig config_;
 
   // Source IP address used for pinging
   folly::IPAddress srcIp_;
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

@@ -11,12 +11,14 @@
 #include <folly/dynamic.h>
 
 #include "CurlUtil.h"
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
+
+#include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 
 #pragma once
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class WirelessController {
  public:
@@ -24,7 +26,7 @@ class WirelessController {
 
   // fetch ruckus ap stats
   static folly::dynamic ruckusControllerStats(
-      const query::WirelessController& controller);
+      const thrift::WirelessController& controller);
 
   static folly::Optional<struct CurlUtil::Response> ruckusControllerRequest(
       const std::string& ctrlUrl,
@@ -32,5 +34,7 @@ class WirelessController {
       const std::string& sessionCookie,
       const std::string& postData);
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

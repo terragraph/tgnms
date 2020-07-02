@@ -15,7 +15,8 @@
 #include <pistache/router.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 // setup http service + routes using pistache.io
 class HttpService {
@@ -38,5 +39,6 @@ class HttpService {
   int threadCount_;
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

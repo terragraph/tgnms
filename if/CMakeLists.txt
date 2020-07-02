@@ -14,7 +14,7 @@ set(THRIFT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp2 PARENT)
 set(
     THRIFT_FILES
     Event.thrift
-    beringei_query.thrift
+    QueryService.thrift
     Aggregator.thrift
     BWAllocation.thrift
     Controller.thrift

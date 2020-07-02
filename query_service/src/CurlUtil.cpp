@@ -14,7 +14,8 @@
 #include <glog/logging.h>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 folly::Optional<struct CurlUtil::Response> CurlUtil::makeHttpRequest(
     int timeoutSeconds,
@@ -107,5 +108,6 @@ CurlUtil::urlDecode(const std::string& encodedUrl) {
   return ret;
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

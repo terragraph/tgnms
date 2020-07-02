@@ -25,7 +25,8 @@ DEFINE_int32(
     "Link event maximum delay allowed in seconds");
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 void LinkHealthHandler::handleRequest(
     const Pistache::Rest::Request& request,
@@ -59,5 +60,6 @@ void LinkHealthHandler::handleRequest(
   response.send(Pistache::Http::Code::Ok, resp);
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

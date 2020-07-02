@@ -10,8 +10,7 @@
 include "Topology.thrift"
 include "Event.thrift"
 
-namespace cpp2 facebook.gorilla.query
-namespace py facebook.gorilla.beringei_query
+namespace cpp2 facebook.terragraph.thrift
 
 // used by WirelessControllerStatsHandler
 struct WirelessControllerStatsRequest {
@@ -64,7 +63,7 @@ struct EventsQueryRequest {
 }
 
 // used everywhere
-struct ControllerConfig {
+struct ControllerEndpoint {
   1: string ip,
   2: i32 api_port,
 }
@@ -72,8 +71,8 @@ struct TopologyConfig {
   1: i32 id,
   10: string name,
 
-  100: ControllerConfig primary_controller,
-  110: optional ControllerConfig backup_controller,
+  100: ControllerEndpoint primary_controller,
+  110: optional ControllerEndpoint backup_controller,
 
   200: optional Topology.Topology topology,
   // Wireless Access Controller

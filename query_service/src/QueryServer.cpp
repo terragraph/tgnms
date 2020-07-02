@@ -26,7 +26,7 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 
-using namespace facebook::gorilla;
+using namespace facebook::terragraph::stats;
 
 DEFINE_int32(http_port, 443, "Port to listen on with HTTP protocol");
 DEFINE_string(ip, "::", "IP/Hostname to bind to");

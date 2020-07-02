@@ -13,7 +13,8 @@
 #include <string>
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class StatsUtils {
  public:
@@ -24,5 +25,6 @@ class StatsUtils {
 
 };
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

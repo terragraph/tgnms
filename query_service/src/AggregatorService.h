@@ -15,11 +15,12 @@
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBaseManager.h>
 
+#include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 #include "if/gen-cpp2/Topology_types_custom_protocol.h"
-#include "if/gen-cpp2/beringei_query_types_custom_protocol.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 class AggregatorService {
  public:
@@ -42,10 +43,12 @@ class AggregatorService {
   // query and log wireless controller metrics
   void fetchAndLogWirelessControllerMetrics(
       std::vector<Metric>& aggValues,
-      const query::TopologyConfig& topologyConfig);
+      const thrift::TopologyConfig& topologyConfig);
   void fetchAndLogRuckusControllerMetrics(
       std::vector<Metric>& aggValues,
-      const query::TopologyConfig& topologyConfig);
+      const thrift::TopologyConfig& topologyConfig);
 };
-} // namespace gorilla
+
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook

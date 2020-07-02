@@ -19,10 +19,11 @@
 #include "StatsUtils.h"
 
 namespace facebook {
-namespace gorilla {
+namespace terragraph {
+namespace stats {
 
 folly::dynamic WirelessController::ruckusControllerStats(
-    const query::WirelessController& controller) {
+    const thrift::WirelessController& controller) {
   // return
   folly::dynamic apStats = folly::dynamic::object;
   // login and get a new session id
@@ -141,5 +142,6 @@ WirelessController::ruckusControllerRequest(
       15 /* timeoutSeconds */ , addr, postData, headersMap, sessionCookie);
 }
 
-} // namespace gorilla
+} // namespace stats
+} // namespace terragraph
 } // namespace facebook
