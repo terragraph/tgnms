@@ -22,12 +22,7 @@ import {isEqual} from 'lodash';
 import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {LinkMeta} from '../../contexts/NetworkContext';
-import type {
-  LinkType,
-  NodeType as Node,
-  TopologyType,
-} from '../../../shared/types/Topology';
+import type {LinkType, TopologyType} from '../../../shared/types/Topology';
 
 const styles = {
   button: {
@@ -45,8 +40,6 @@ type Props = {
   initialParams: {},
   linkMap: {[string]: LinkType & LinkMeta},
   networkName: string,
-  nodeMap: {[string]: Node},
-  nodeToLinksMap: {[string]: Set<string>},
   topology: TopologyType,
   macToNodeMap: {[string]: string},
 };
@@ -60,11 +53,6 @@ type State = {
   is_backup_cn_link?: boolean,
   initialParams: {},
 };
-
-const MAX_DN = 2;
-const MAX_CN = 15;
-const MAX_HOP_COUNT = 10;
-const MAX_CN_TO_POP = 100;
 
 class AddLinkPanel extends React.Component<Props, State> {
   constructor(props) {
@@ -98,124 +86,6 @@ class AddLinkPanel extends React.Component<Props, State> {
     this.setState(this.props.initialParams);
   }
 
-  countConnectedNodesByType(macs: Array<string>, links: Array<LinkType>) {
-    const {macToNodeMap, nodeMap} = this.props;
-    const counter = {};
-    macs.forEach(mac => {
-      counter[mac] = {cn: 0, dn: 0};
-      const node = nodeMap[macToNodeMap[mac]];
-      if (node.node_type === NodeType.DN) {
-        links.forEach(link => {
-          const linkMacs = [link.a_node_mac, link.z_node_mac];
-          if (linkMacs.includes(node.mac_addr)) {
-            const otherNodeMac =
-              node.mac_addr === linkMacs[0] ? linkMacs[1] : linkMacs[0];
-            const otherNode = nodeMap[macToNodeMap[otherNodeMac]];
-            otherNode.node_type === NodeType.DN
-              ? counter[mac].dn++
-              : counter[mac].cn++;
-          }
-        });
-      }
-    });
-    return counter;
-  }
-
-  findPopSites(nodes: Array<string>) {
-    const {linkMap, nodeMap, nodeToLinksMap} = this.props;
-    const stack = nodes;
-    const exploredLinks = new Set();
-    const pop_sites = new Set();
-    let min_hop_count = 0;
-
-    while (stack.length > 0) {
-      [...nodeToLinksMap[stack.pop()]]
-        .filter(linkName => !exploredLinks.has(linkName))
-        .forEach(linkName => {
-          exploredLinks.add(linkName);
-          const link = linkMap[linkName];
-          const aNode = nodeMap[link.a_node_name];
-          const zNode = nodeMap[link.z_node_name];
-          stack.push(aNode.name);
-          stack.push(zNode.name);
-          if (aNode.pop_node || zNode.pop_node) {
-            if (min_hop_count === 0) {
-              min_hop_count = exploredLinks.size;
-            }
-            aNode.pop_node
-              ? pop_sites.add(aNode.site_name)
-              : pop_sites.add(zNode.site_name);
-          }
-        });
-    }
-    return {
-      connectedPopSites: pop_sites,
-      min_hop_count,
-    };
-  }
-
-  measureCNDensity() {
-    let cnCount = 0;
-    let popCount = 0;
-    this.props.topology.nodes.forEach(node => {
-      cnCount += node.node_type === NodeType.CN ? 1 : 0;
-      popCount += node.pop_node ? 1 : 0;
-    });
-    if (popCount === 0) {
-      // avoid divide by zero issue
-      return 0;
-    }
-    return cnCount / popCount;
-  }
-
-  validateTopologyChange(linkNode1Mac: string, linkNode2Mac: string) {
-    const {macToNodeMap, nodeMap, topology} = this.props;
-    const node1 = nodeMap[macToNodeMap[linkNode1Mac]];
-    const node2 = nodeMap[macToNodeMap[linkNode2Mac]];
-    const counters = this.countConnectedNodesByType(
-      [linkNode1Mac, linkNode2Mac],
-      topology.links,
-    );
-    // counters: {[nodeMac]: {cn: number, dn: number}}
-    const count1 = counters[linkNode1Mac];
-    const count2 = counters[linkNode2Mac];
-    // update counters based on potential new link endpoint's type
-    // alert if limits are exceeded
-    if (count1.cn + (node2.node_type === NodeType.CN ? 1 : 0) > MAX_CN) {
-      swal({
-        title: 'Distribution Limit Exceeded',
-        text: `${node1.name} has already met the limit for CN distribution`,
-        type: 'error',
-      });
-      return false;
-    }
-    if (count1.dn + (node2.node_type === NodeType.DN ? 1 : 0) > MAX_DN) {
-      swal({
-        title: 'Distribution Limit Exceeded',
-        text: `${node1.name} has already met the limit for DN distribution`,
-        type: 'error',
-      });
-      return false;
-    }
-    if (count2.cn + (node1.node_type === NodeType.CN ? 1 : 0) > MAX_CN) {
-      swal({
-        title: 'Distribution Limit Exceeded',
-        text: `${node2.name} has already met the limit for CN distribution`,
-        type: 'error',
-      });
-      return false;
-    }
-    if (count2.dn + (node1.node_type === NodeType.DN ? 1 : 0) > MAX_DN) {
-      swal({
-        title: 'Distribution Limit Exceeded',
-        text: `${node2.name} has already met the limit for DN distribution`,
-        type: 'error',
-      });
-      return false;
-    }
-    return true;
-  }
-
   onSubmit() {
     const {networkName, onClose} = this.props;
     const {
@@ -233,54 +103,6 @@ class AddLinkPanel extends React.Component<Props, State> {
         type: 'error',
       });
       return;
-    }
-
-    if (link_type === LinkTypeValueMap.WIRELESS) {
-      // max CN and DN distrubtion per DN check
-      if (!this.validateTopologyChange(linkNode1Mac, linkNode2Mac)) {
-        return;
-      }
-      // check PoP metrics
-      // This will only display warnings and not block link creation
-      const {connectedPopSites, min_hop_count} = this.findPopSites([
-        linkNode1,
-        linkNode2,
-      ]);
-      // availability check
-      if (connectedPopSites.size === 0) {
-        swal({
-          title: 'PoP Access Unavailable',
-          text: 'Create links that connect to a PoP to remove this warning.',
-          type: 'warning',
-        });
-      }
-      // route redundancy check
-      if (connectedPopSites.size < 2) {
-        swal({
-          title: 'PoP Access Limited',
-          text:
-            'Create links with multiple routes to a PoP to remove this warning.',
-          type: 'warning',
-        });
-      }
-      // density check
-      if (this.measureCNDensity() > MAX_CN_TO_POP) {
-        swal({
-          title: 'PoP/CN Density',
-          text:
-            'Create more PoPs to stop traffic from slowing down and to remove this warning.',
-          type: 'warning',
-        });
-      }
-      // radius check
-      if (min_hop_count > MAX_HOP_COUNT) {
-        swal({
-          title: 'PoP Hop Count Exceeded',
-          text:
-            'Create links with a shorter route to a PoP to remove this warning.',
-          type: 'warning',
-        });
-      }
     }
 
     let a_node_name, z_node_name, a_node_mac, z_node_mac;
