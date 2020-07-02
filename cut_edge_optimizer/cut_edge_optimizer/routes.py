@@ -8,18 +8,18 @@ from typing import Dict
 from aiohttp import web
 from tglib.clients import APIServiceClient
 
-from .config_operations import (
+from .optimizations.config_operations import (
     get_cn_cut_edges,
     get_current_overrides_configs,
     prepare_changes,
     update_overrides_configs,
 )
-from .db import (
+from .optimizations.graph import build_topology_graph
+from .utils.db import (
     delete_node_entries,
     get_previous_overrides_configs,
     insert_overrides_configs,
 )
-from .graph_analysis import build_topology_graph
 
 
 routes = web.RouteTableDef()

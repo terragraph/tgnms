@@ -9,10 +9,10 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
     "required_coverage": {
-        "cut_edge_optimizer/config_operations.py": 49,
-        "cut_edge_optimizer/graph_analysis.py": 98,
-        "cut_edge_optimizer/utils.py": 48,
-        "TOTAL": 41,
+        "cut_edge_optimizer/optimizations/config_operations.py": 50,
+        "cut_edge_optimizer/optimizations/graph.py": 98,
+        "cut_edge_optimizer/utils/dict.py": 100,
+        "TOTAL": 43,
     },
     "run_flake8": True,
     "run_black": True,
@@ -21,7 +21,7 @@ ptr_params = {
 
 setup(
     name="cut_edge_optimizer",
-    version="2020.05.11",
+    version="2020.07.02",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "networkx>=2.4,<3.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},

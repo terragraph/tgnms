@@ -12,17 +12,14 @@ import networkx as nx
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .db import (
+from ..utils.db import (
     delete_node_entries,
     get_previous_overrides_configs,
     insert_overrides_configs,
 )
-from .graph_analysis import (
-    build_topology_graph,
-    find_cn_cut_edges,
-    remove_low_uptime_links,
-)
-from .utils import deep_update, get_link_status
+from ..utils.dict import deep_update
+from ..utils.stats import get_link_status
+from .graph import build_topology_graph, find_cn_cut_edges, remove_low_uptime_links
 
 
 def prepare_changes(

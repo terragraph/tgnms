@@ -5,7 +5,7 @@ import json
 import unittest
 from collections import defaultdict
 
-from cut_edge_optimizer.config_operations import (
+from cut_edge_optimizer.optimizations.config_operations import (
     prepare_changes,
     prepare_overrides_config_reverts,
     prepare_overrides_config_updates,

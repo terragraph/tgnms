@@ -7,7 +7,7 @@ from typing import Dict, Iterable, List
 from sqlalchemy import func, insert, select
 from tglib.clients import MySQLClient
 
-from .models import CutEdgeOverridesConfig
+from ..models import CutEdgeOverridesConfig
 
 
 async def get_previous_overrides_configs(networks: Iterable) -> defaultdict:

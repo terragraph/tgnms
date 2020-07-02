@@ -6,7 +6,7 @@ import unittest
 from copy import deepcopy
 
 import networkx as nx
-from cut_edge_optimizer.graph_analysis import (
+from cut_edge_optimizer.optimizations.graph import (
     build_topology_graph,
     find_cn_cut_edges,
     is_cn_cut_edge,

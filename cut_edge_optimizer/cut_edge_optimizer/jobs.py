@@ -8,7 +8,7 @@ from typing import List, Optional
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .config_operations import process_cut_edges
+from .optimizations.config_operations import process_cut_edges
 
 
 async def cut_edge_finder(
