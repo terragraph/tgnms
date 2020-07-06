@@ -38,10 +38,8 @@ type Props = {
   onPanelChange: () => any,
   onClose: () => any,
   initialParams: {},
-  linkMap: {[string]: LinkType & LinkMeta},
   networkName: string,
   topology: TopologyType,
-  macToNodeMap: {[string]: string},
 };
 
 type State = {
