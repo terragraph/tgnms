@@ -39,28 +39,24 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     - in: query
       name: test_type
       description: A comma-separated list of network test types.
-      schema:
-        type: array
-        items:
-          type: string
+      type: array
+      items:
+        type: string
     - in: query
       name: network_name
       description: The name of the network.
-      schema:
-        type: string
+      type: string
     - in: query
       name: protocol
       description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
-      schema:
-        type: array
-        items:
-          type: int
-          enum: [6, 17]
+      type: array
+      items:
+        type: integer
+        enum: [6, 17]
     - in: query
       name: partial
       description: If the test is only run on part of the network
-      schema:
-        type: boolean
+      type: boolean
     produces:
     - application/json
     responses:
@@ -124,8 +120,7 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
       name: schedule_id
       description: The database ID of a network test schedule.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
@@ -172,6 +167,8 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
             type: object
           whitelist:
             type: array
+            items:
+              type: string
         required:
         - enabled
         - cron_expr
@@ -241,8 +238,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
       name: schedule_id
       description: The database ID of the network test schedule.
       required: true
-      schema:
-        type: integer
+      type: integer
     - in: body
       name: schedule
       description: The updated network test schedule and params
@@ -259,6 +255,8 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
             type: object
           whitelist:
             type: array
+            items:
+              type: string
         required:
         - enabled
         - cron_expr
@@ -322,8 +320,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
       name: schedule_id
       description: The database ID of the network test schedule.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
@@ -355,40 +352,34 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     - in: query
       name: test_type
       description: A comma-separated list of network test types.
-      schema:
-        type: array
-        items:
-          type: string
+      type: array
+      items:
+        type: string
     - in: query
       name: network_name
       description: The name of the network.
-      schema:
-        type: string
+      type: string
     - in: query
       name: protocol
       description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
-      schema:
-        type: array
-        items:
-          type: int
-          enum: [6, 17]
+      type: array
+      items:
+        type: integer
+        enum: [6, 17]
     - in: query
       name: partial
       description: If the test is only run on part of the network
-      schema:
-        type: boolean
+      type: boolean
     - in: query
       name: status
       description: A comma-separated list of execution statuses.
-      schema:
-        type: array
-        items:
-          type: string
+      type: array
+      items:
+        type: string
     - in: query
       name: start_dt
       description: The start UTC offset-naive datetime in ISO 8601 format.
-      schema:
-        type: string
+      type: string
     produces:
     - application/json
     responses:
@@ -470,8 +461,7 @@ async def handle_get_execution(request: web.Request) -> web.Response:
       name: execution_id
       description: The database ID of the network test execution.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
@@ -516,6 +506,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             type: object
           whitelist:
             type: array
+            items:
+              type: string
         required:
         - test_type
         - network_name
@@ -586,8 +578,7 @@ async def handle_stop_execution(request: web.Request) -> web.Response:
       name: execution_id
       description: The database ID of the network test execution.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
