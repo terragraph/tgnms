@@ -40,18 +40,15 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     - in: query
       name: network_name
       description: The name of the network.
-      schema:
-        type: string
+      type: string
     - in: query
       name: type
       description: The type of scan.
-      schema:
-        type: integer
+      type: integer
     - in: query
       name: mode
       description: The mode of scan.
-      schema:
-        type: integer
+      type: integer
     produces:
     - application/json
     responses:
@@ -105,8 +102,7 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
       name: schedule_id
       description: The database ID of a scan test schedule.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
@@ -219,8 +215,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
       name: schedule_id
       description: The database ID of the scan test schedule.
       required: true
-      schema:
-        type: integer
+      type: integer
     - in: body
       name: schedule
       description: The updated scan test schedule and params
@@ -314,8 +309,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
       name: schedule_id
       description: The database ID of the scan test schedule.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
@@ -347,28 +341,23 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     - in: query
       name: network_name
       description: The name of the network.
-      schema:
-        type: string
+      type: string
     - in: query
       name: type
       description: The type of scan test.
-      schema:
-        type: integer
+      type: integer
     - in: query
       name: mode
       description: The mode of scan test.
-      schema:
-        type: integer
+      type: integer
     - in: query
       name: status
       description: The status of the execution.
-      schema:
-        type: string
+      type: string
     - in: query
       name: start_dt
       description: The start UTC offset-naive datetime in ISO 8601 format.
-      schema:
-        type: string
+      type: string
     produces:
     - application/json
     responses:
@@ -431,7 +420,7 @@ async def handle_get_execution(request: web.Request) -> web.Response:
     ---
     description: Return the scan test execution, params, results and response rate for a particular scan test execution ID.
     tags:
-    - Scan Services
+    - Scan Service
     produces:
     - application/json
     parameters:
@@ -439,8 +428,7 @@ async def handle_get_execution(request: web.Request) -> web.Response:
       name: execution_id
       description: The database ID of the scan test execution.
       required: true
-      schema:
-        type: integer
+      type: integer
     responses:
       "200":
         description: Successful operation.
