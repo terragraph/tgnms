@@ -21,7 +21,7 @@ ptr_params = {
 
 setup(
     name="cut_edge_optimizer",
-    version="2020.07.02",
+    version="2020.07.09",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "networkx>=2.4,<3.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},

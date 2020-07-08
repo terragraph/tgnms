@@ -46,19 +46,20 @@ async def start(request: web.Request) -> web.Response:
             type: string
             description: Name of the network.
           window_s:
-            type: int
+            type: integer
             description: The interval between link status checks for a network.
           link_flap_backoff_ms:
             type: string
             description: Set the max value for link flap backoff.
           link_impairment_detection:
-            type: int
+            type: integer
             description: Enable/Disable link impairment detection.
           config_change_delay_s:
             type: integer
             description: Time delay used before updating the next node's configuration (default=60).
           link_uptime_threshold:
-            type: float
+            type: number
+            format: float
             description: Disregard links with uptime values below this threshold if provided. Values must be in the range [0,1).
           dry_run:
             type: boolean
