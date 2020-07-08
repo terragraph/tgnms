@@ -25,7 +25,7 @@ export type TestScheduleAttributes = {|
 export type TestSchedule = TestScheduleAttributes &
   Model<TestScheduleAttributes>;
 
-export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
+export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   const TestSchedule = sequelize.define(
     'api_testschedule',
     {
@@ -73,7 +73,7 @@ export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
     },
   );
 
-  TestSchedule.associate = function(models) {
+  TestSchedule.associate = function (models) {
     models.api_testschedule.belongsTo(models.api_testrunexecution, {
       as: 'test_schedule',
       foreignKey: 'test_run_execution_id',

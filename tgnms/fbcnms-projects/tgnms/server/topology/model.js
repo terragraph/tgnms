@@ -709,7 +709,7 @@ function runNowAndWatchForTopologyUpdate() {
 
     // when an event is received, something is changed, just query
     // for the new truth
-    const eventHandler = function(event) {
+    const eventHandler = function (event) {
       logger.debug(
         'received event type: ' + event.type + ' data: ' + event.data,
       );

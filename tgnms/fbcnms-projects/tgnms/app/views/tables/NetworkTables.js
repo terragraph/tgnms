@@ -211,11 +211,13 @@ class NetworkTables extends React.Component<Props, State> {
             </Tabs>
           </Grid>
           <Grid container item xs={4} justify="flex-end" alignItems="center">
-            {/**export nodes only for now */ selectedTable === 'nodes' && (
-              <Grid item>
-                <ExportMenu selectedTable={selectedTable} />
-              </Grid>
-            )}
+            {
+              /**export nodes only for now */ selectedTable === 'nodes' && (
+                <Grid item>
+                  <ExportMenu selectedTable={selectedTable} />
+                </Grid>
+              )
+            }
             <Grid item>
               {isEmbedded && (
                 <IconButton

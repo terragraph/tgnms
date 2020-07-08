@@ -94,7 +94,7 @@ router.get(
           let lastPct = 0;
 
           // use function so we can bind to the _this_ of the request
-          return function(chunk) {
+          return function (chunk) {
             // the in-progress http response from the server
             const {response} = this;
             if (response.statusCode !== 200) {

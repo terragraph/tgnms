@@ -64,8 +64,9 @@ export function useRestartWatcher(conf: ?{timeout: number}): RestartWatcher {
       }
       if (new Date().getTime() - startTimeMS > RESTART_DETECTED_TIMEOUT) {
         console.warn(
-          `NMS restart not detected after ${RESTART_DETECTED_TIMEOUT /
-            1000} seconds`,
+          `NMS restart not detected after ${
+            RESTART_DETECTED_TIMEOUT / 1000
+          } seconds`,
         );
         break;
       }

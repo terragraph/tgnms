@@ -35,9 +35,9 @@ const styles = theme => ({
     // TODO - HACK! - Figure out how to actually set the height to 100% screen
     height: `calc(100vh - ${
       /* pad */ theme.spacing() +
-        /* appbar */ 64 +
-        /* toolbar */ 48 +
-        /* search bar */ 72
+      /* appbar */ 64 +
+      /* toolbar */ 48 +
+      /* search bar */ 72
     }px)`,
   },
   header: {

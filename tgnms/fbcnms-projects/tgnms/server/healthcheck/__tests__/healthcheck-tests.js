@@ -9,9 +9,7 @@ import express from 'express';
 import request from 'supertest';
 
 test('should return UP status', async () => {
-  const response = await request(setupApp())
-    .get('/healthcheck')
-    .expect(200);
+  const response = await request(setupApp()).get('/healthcheck').expect(200);
   expect(response.body.status).toBe('UP');
 });
 

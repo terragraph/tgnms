@@ -45,7 +45,7 @@ const defaultResultExcludes = [
 ];
 
 const service = {
-  getTestExecution: function({
+  getTestExecution: function ({
     executionId,
     includeTestResults,
   }: {
@@ -68,7 +68,7 @@ const service = {
       .findByPk(executionId, queryOptions)
       .then(execution => (execution ? mapTestExecutionToDto(execution) : null));
   },
-  getRecentTestExecutions: function(
+  getRecentTestExecutions: function (
     request: RecentTestExecutionsRequest,
   ): Promise<TablePage<TestExecutionDto>> {
     const limit = 10;
@@ -120,7 +120,7 @@ const service = {
    * are returned in the result.If metrics is not passed, all columns are
    * returned. This can create huge responses on large networks.
    */
-  getTestResults: function({
+  getTestResults: function ({
     executionId,
     results,
     metrics,
@@ -155,7 +155,7 @@ const service = {
     >);
   },
 
-  getTestOverlay: function({
+  getTestOverlay: function ({
     executionId,
     metrics,
   }: {
@@ -195,7 +195,7 @@ const service = {
         }, {}),
       );
   },
-  getTestSchedule: async function({networkName}: {networkName: string}) {
+  getTestSchedule: async function ({networkName}: {networkName: string}) {
     if (!networkName || networkName.trim() === '') {
       throw new Error('invalid network name');
     }

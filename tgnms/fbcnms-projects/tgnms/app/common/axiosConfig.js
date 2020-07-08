@@ -17,7 +17,7 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  */
 axios.interceptors.response.use(
   response => response,
-  function(error) {
+  function (error) {
     if (
       error.response &&
       error.response.status === 401 &&

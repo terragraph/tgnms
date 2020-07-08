@@ -172,9 +172,7 @@ export function useNetworkPrefixTable() {
   React.useEffect(() => {
     const polygons = [];
     const prefixes = Object.keys(prefixTable);
-    const colorFunc = scaleOrdinal()
-      .domain(prefixes)
-      .range(INDEX_COLORS);
+    const colorFunc = scaleOrdinal().domain(prefixes).range(INDEX_COLORS);
 
     for (const prefix of prefixes) {
       const sites = Array.from(prefixTable[prefix]);

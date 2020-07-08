@@ -14,9 +14,7 @@ test.skip('throws a 500 error if configuration is missing', async () => {
     error: errorLogMock,
   }));
   const app = setupApp();
-  await request(app)
-    .get('/mobileapp/clientconfig')
-    .expect(500);
+  await request(app).get('/mobileapp/clientconfig').expect(500);
   expect(errorLogMock).toHaveBeenCalled();
 });
 

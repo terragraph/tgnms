@@ -60,7 +60,7 @@ function initConsumerGroup() {
 
   consumerGroup = new ConsumerGroup(options, ['events']);
   // set the env var DEBUG=kafka-node:* to show kafka client debug logs
-  consumerGroup.on('error', function(message) {
+  consumerGroup.on('error', function (message) {
     logger.error(message);
   });
 }

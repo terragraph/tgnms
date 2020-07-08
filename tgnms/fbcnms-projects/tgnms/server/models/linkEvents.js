@@ -8,7 +8,7 @@
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
 import type moment from 'moment';
 
-export default function(sequelize: Sequelize, DataTypes: DataTypesType) {
+export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   const LinkEvent = sequelize.define(
     'link_event',
     {

@@ -121,7 +121,7 @@ class LinksLayer extends React.Component<Props> {
       const clr = this.getMetricLinkColor(link, values);
       if (overlay.id === 'link_health') {
         if (values && clr) {
-          values.forEach(function(value, index) {
+          values.forEach(function (value, index) {
             if (value === HEALTH_CODES.MISSING) {
               clr[index] = LinkOverlayColors.metric.missing.color;
             }

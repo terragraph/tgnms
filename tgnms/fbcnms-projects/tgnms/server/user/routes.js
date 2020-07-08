@@ -45,7 +45,7 @@ router.post('/login', (req: Request, res, next) => {
     }
 
     // success
-    return req.logIn(user, function(err) {
+    return req.logIn(user, function (err) {
       if (err) {
         return next(err);
       }

@@ -1,7 +1,7 @@
 /*
-* If an environment variable is provided, treats it as a boolean flag. If the
-* var is not passed, undefined is returned.
-*/
+ * If an environment variable is provided, treats it as a boolean flag. If the
+ * var is not passed, undefined is returned.
+ */
 export function optionalBool(envVar: ?string): boolean | void {
   if (typeof envVar === 'string') {
     return envBool(envVar);
@@ -9,9 +9,9 @@ export function optionalBool(envVar: ?string): boolean | void {
 }
 
 /*
-* If an environment variable is provided, treats it as a boolean flag. If the
-* var is not passed, default value is returned.
-*/
+ * If an environment variable is provided, treats it as a boolean flag. If the
+ * var is not passed, default value is returned.
+ */
 export function requiredBool(envVar: ?string, defaultValue: boolean): boolean {
   if (typeof envVar === 'string') {
     return envBool(envVar);
@@ -20,9 +20,9 @@ export function requiredBool(envVar: ?string, defaultValue: boolean): boolean {
 }
 
 /*
-* If an environment variable is provided, parses it as an integer. If the
-* var is not passed, undefined is returned.
-*/
+ * If an environment variable is provided, parses it as an integer. If the
+ * var is not passed, undefined is returned.
+ */
 export function optionalInt(envVar: ?string): number | void {
   if (typeof envVar === 'string') {
     return envInt(envVar);
@@ -30,9 +30,9 @@ export function optionalInt(envVar: ?string): number | void {
 }
 
 /*
-* If an environment variable is provided, parses it as an integer. If the
-* var is not passed, default value is returned.
-*/
+ * If an environment variable is provided, parses it as an integer. If the
+ * var is not passed, default value is returned.
+ */
 export function requiredInt(envVar: ?string, defaultValue: number): number {
   if (typeof envVar === 'string') {
     return envInt(envVar, defaultValue);
@@ -44,8 +44,9 @@ export function envInt(val: string, defaultValue: number): number {
   const parsed = parseInt(val);
   if (isNaN(parsed)) {
     console.error(
-      `Invalid environment variable. Expected: integer, Actual: ${val ||
-        'undefined'}`,
+      `Invalid environment variable. Expected: integer, Actual: ${
+        val || 'undefined'
+      }`,
     );
     return defaultValue;
   }
@@ -61,8 +62,9 @@ export function envBool(val: string): boolean {
     return false;
   }
   console.error(
-    `Invalid environment variable. Expected: boolean string, Actual: ${val ||
-      'undefined'}`,
+    `Invalid environment variable. Expected: boolean string, Actual: ${
+      val || 'undefined'
+    }`,
   );
   return false;
 }

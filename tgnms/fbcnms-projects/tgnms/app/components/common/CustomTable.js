@@ -531,11 +531,7 @@ class CustomTable extends React.Component<Props, State> {
 
   static _applyFilterHelper(data, key, filter) {
     return data.filter(d => {
-      return (
-        String(d[key])
-          .toLowerCase()
-          .search(filter) !== -1
-      );
+      return String(d[key]).toLowerCase().search(filter) !== -1;
     });
   }
 }
