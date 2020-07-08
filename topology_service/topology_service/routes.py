@@ -37,19 +37,16 @@ async def handle_get_topology(request: web.Request) -> web.Response:
       name: network_name
       description: The name of the network
       required: true
-      schema:
-        type: string
+      type: string
     - in: query
       name: start_dt
       description: The start UTC offset-naive datetime of the query in ISO 8601 format
       required: true
-      schema:
-        type: string
+      type: string
     - in: query
       name: end_dt
       description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
-      schema:
-        type: string
+      type: string
     responses:
       "200":
         description: Return a list of topologies belonging to the given network in the given datetime range.
