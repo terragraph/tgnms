@@ -81,26 +81,22 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
       name: network_name
       description: Name of the network.
       required: true
-      schema:
-        type: string
+      type: string
     - in: query
       name: node_name
       description: Name of the node. Will fetch info for all nodes if not specified.
       required: false
-      schema:
-        type: string
+      type: string
     - in: query
       name: start_dt
       description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
       required: true
-      schema:
-        type: string
+      type: string
     - in: query
       name: end_dt
       description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
       required: true
-      schema:
-        type: string
+      type: string
     responses:
       "200":
         description: Successful operation.
@@ -196,26 +192,22 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
       name: network_name
       description: Name of the network.
       required: true
-      schema:
-        type: string
+      type: string
     - in: query
       name: link_name
       description: Name of the link. Will fetch info for all links if not specified.
       required: false
-      schema:
-        type: string
+      type: string
     - in: query
       name: start_dt
       description: The start UTC offset-naive datetime of time window, in ISO 8601 format.
       required: true
-      schema:
-        type: string
+      type: string
     - in: query
       name: end_dt
       description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
       required: true
-      schema:
-        type: string
+      type: string
     responses:
       "200":
         description: Successful operation.
