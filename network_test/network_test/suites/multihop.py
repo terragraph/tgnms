@@ -30,7 +30,9 @@ class Multihop(NodeTest):
 
         super().__init__(network_name, iperf_options, whitelist)
 
-    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
+    async def prepare(  # noqa: C901
+        self,
+    ) -> Optional[Tuple[List[TestAsset], timedelta]]:
         """Prepare the network test assets.
 
         The duration is the number of assets, post whitelist filtering, multiplied
@@ -74,6 +76,10 @@ class Multihop(NodeTest):
 
             test_assets = []
             for node_name, routes in default_routes.items():
+                if not routes:
+                    logging.error(f"{node_name} has no default routes available")
+                    continue
+
                 # Pick a random PoP node from the default routes if ECMP
                 pop_name = routes[random.randint(0, len(routes) - 1)][-1]
                 test_assets.append(
