@@ -7,25 +7,35 @@
 
 import * as turf from '@turf/turf';
 import ActionsMenu from './ActionsMenu';
+import AddLocationIcon from '@material-ui/icons/AddLocation';
+import Button from '@material-ui/core/Button';
 import CustomExpansionPanel from '../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import EditIcon from '@material-ui/icons/Edit';
+
+import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
+import MaterialModal from '../../components/common/MaterialModal';
 import React from 'react';
+import RouterIcon from '@material-ui/icons/Router';
 import SiteDetailsNodeIcon from '../mappanels/SiteDetailsNodeIcon';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import moment from 'moment';
+import swal from 'sweetalert2';
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
+import {
+  apiRequest,
+  apiServiceRequestWithConfirmation,
+} from '../../apiutils/ServiceAPIUtil';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {
@@ -85,6 +95,14 @@ const styles = theme => ({
     fill: theme.palette.primary.dark,
     strokeWidth: 10,
   },
+  root: {
+    width: '40%',
+    minWidth: 400,
+  },
+  button: {
+    margin: theme.spacing(1),
+    float: 'right',
+  },
 });
 
 type Props = {
@@ -113,11 +131,13 @@ type Props = {
 
 type State = {
   highlightedSiteNode: ?string,
+  openConfirmationModal: boolean,
 };
 
 class SiteDetailsPanel extends React.Component<Props, State> {
   state = {
     highlightedSiteNode: null,
+    openConfirmationModal: false,
   };
 
   getSiteLinks(siteNodes, links) {
@@ -234,16 +254,51 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     return angleMap;
   }
 
-  onDeleteSite() {
-    // Delete this site
-    const {site, networkName} = this.props;
-
-    const data = {siteName: site.name};
-    apiServiceRequestWithConfirmation(networkName, 'delSite', data, {
-      desc: `Do you want to permanently delete site
-      <strong>${site.name}</strong>?`,
-      descType: 'html',
+  showSwal(success, msg) {
+    swal({
+      title: success ? 'Success!' : 'Failure!',
+      html: `Response:<p><tt>${msg}</tt></p>`,
+      type: success ? 'success' : 'error',
     });
+  }
+
+  async onDeleteSite() {
+    // Delete this site
+    const {site, siteNodes, networkName} = this.props;
+    const siteName = site.name;
+    const nodeNames = [...siteNodes];
+    if (siteNodes.size > 0) {
+      try {
+        await Promise.all(
+          nodeNames.map(nodeName =>
+            apiRequest<{nodeName: string}, any>({
+              networkName,
+              endpoint: 'delNode',
+              data: {nodeName},
+            }),
+          ),
+        );
+        const {message, success} = await apiRequest<{siteName: string}, any>({
+          networkName,
+          endpoint: 'delSite',
+          data: {siteName},
+        });
+        this.showSwal(success, message);
+      } catch (err) {
+        this.showSwal(false, err);
+        return;
+      }
+    } else {
+      apiServiceRequestWithConfirmation(
+        networkName,
+        'delSite',
+        {siteName},
+        {
+          desc: `Do you want to permanently delete site <strong>${siteName}</strong>?`,
+          descType: 'html',
+        },
+      );
+    }
   }
 
   onEditSite() {
@@ -278,7 +333,10 @@ class SiteDetailsPanel extends React.Component<Props, State> {
           {
             label: 'Delete Site',
             icon: <DeleteIcon />,
-            func: () => this.onDeleteSite(),
+            func: () =>
+              this.props.siteNodes.size === 0
+                ? this.onDeleteSite()
+                : this.setState({openConfirmationModal: true}),
           },
         ],
       },
@@ -539,26 +597,76 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     const {
       classes,
       expanded,
+      networkName,
       onPanelChange,
       onClose,
       onPin,
       pinned,
       site,
+      siteNodes,
     } = this.props;
 
     return (
-      <CustomExpansionPanel
-        title={site.name}
-        titleIcon={<LocationOnIcon classes={{root: classes.iconCentered}} />}
-        details={this.renderPanel()}
-        expanded={expanded}
-        onChange={onPanelChange}
-        onClose={onClose}
-        onPin={onPin}
-        pinned={pinned}
-        showLoadingBar={true}
-        showTitleCopyTooltip={true}
-      />
+      <>
+        <CustomExpansionPanel
+          title={site.name}
+          titleIcon={<LocationOnIcon classes={{root: classes.iconCentered}} />}
+          details={this.renderPanel()}
+          expanded={expanded}
+          onChange={onPanelChange}
+          onClose={onClose}
+          onPin={onPin}
+          pinned={pinned}
+          showLoadingBar={true}
+          showTitleCopyTooltip={true}
+        />
+        <MaterialModal
+          className={classes.root}
+          open={this.state.openConfirmationModal}
+          onClose={() => this.setState({openConfirmationModal: false})}
+          modalContent={
+            <Grid container direction="column" spacing={2}>
+              <Grid item container spacing={1}>
+                <Grid item>
+                  <AddLocationIcon />
+                </Grid>
+                <Grid item>
+                  <Typography>Remove 1 site</Typography>
+                </Grid>
+              </Grid>
+              <Grid item container spacing={1}>
+                <Grid item>
+                  <RouterIcon />
+                </Grid>
+                <Grid item>
+                  <Typography>Remove {siteNodes.size} nodes</Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+          }
+          modalTitle={`The following items will be removed from ${networkName}`}
+          modalActions={
+            <>
+              <Button
+                className={classes.button}
+                onClick={() => this.setState({openConfirmationModal: false})}
+                variant="outlined">
+                Cancel
+              </Button>
+              <Button
+                className={classes.button}
+                color="primary"
+                onClick={() => {
+                  this.setState({openConfirmationModal: false});
+                  this.onDeleteSite();
+                }}
+                variant="contained">
+                Remove {1 + siteNodes.size} topology elements
+              </Button>
+            </>
+          }
+        />
+      </>
     );
   }
 }
