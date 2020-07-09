@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow strict-local
  */
 
 const {LOG_LEVEL} = require('./config');
@@ -17,8 +18,8 @@ const myFormat = printf(info => {
   return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`;
 });
 
-module.exports = callingModule => {
-  return winston.createLogger({
+module.exports = (callingModule: {filename: string}) => {
+  return winston.createLogger<*>({
     level: LOG_LEVEL,
     format: combine(
       colorize(),

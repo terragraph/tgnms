@@ -81,9 +81,7 @@ function authRedirect(
   errorMessage?: string = '',
 ) {
   logger.debug(
-    'Client has no permission to view route: [%s], redirecting to [%s]',
-    req.originalUrl,
-    redirectPath,
+    `Client has no permission to view route: [${req.originalUrl}], redirecting to [${redirectPath}]`,
   );
 
   const baseUrl = CLIENT_ROOT_URL || '';
@@ -103,9 +101,7 @@ function authRedirect(
     return res.redirect(redirectUrl);
   } catch (err) {
     logger.error(
-      'Could not construct redirect url, falling back [%s] [%s]',
-      baseUrl,
-      redirectPath,
+      `Could not construct redirect url, falling back [${baseUrl}] [${redirectPath}]`,
     );
   }
 

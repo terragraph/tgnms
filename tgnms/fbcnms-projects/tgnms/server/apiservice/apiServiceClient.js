@@ -163,9 +163,7 @@ export class ApiServiceClient {
     } catch (error) {
       if (error.response) {
         logger.debug(
-          'received status %s for url %s',
-          error.response.status,
-          apiUrl,
+          `received status ${error.response.status} for url ${apiUrl}`,
         );
       }
       throw error;
