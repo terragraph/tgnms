@@ -13,6 +13,7 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
+import fbt from 'fbt';
 import {debounce} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -110,7 +111,7 @@ class SearchBar extends React.Component<Props> {
           onChange={this.handleInput}
           onBlur={this.handleBlur}
           value={value ? value : ''}
-          placeholder="Search"
+          placeholder={fbt('Search', 'Search bar placeholder').toString()}
           fullWidth
           disableUnderline
           autoFocus={autoFocus}
