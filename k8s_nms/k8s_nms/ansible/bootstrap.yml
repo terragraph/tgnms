@@ -1,0 +1,26 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  pre_tasks:
+  # If Python isn't installed on the host ansible won't run at all, so issue a
+  # command first to install Python using the proper package manager
+  - name: Install Python
+    # TODO: there has to be some better way to figure this out, but it doesn't
+    # look like ansible_os_family is set at this point
+    raw: |
+      if [ -x "$(command -v {{ ansible_python_interpreter }})" ]; then
+        # Python is already installed
+        exit 0
+      fi
+      check_os() { if [[ $(awk -F= '/^ID/{print $2}' /etc/os-release | sed 's/\"//g' | head -n 1) == $1 ]]; then echo 1; else echo 0; fi ; }
+      if [[ $(check_os centos) == 1 ]]; then
+        yum -y install {{ ansible_python_interpreter }}
+      elif [[ $(check_os ubuntu) == 1 ]]; then
+        apt -y install {{ ansible_python_interpreter }}
+      else
+        echo "Unsupported OS release"
+        exit 1
+      fi

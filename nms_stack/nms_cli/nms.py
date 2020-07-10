@@ -15,9 +15,6 @@ from pygments.lexers import YamlLexer
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
 
-KUBERNETES_INSTALL_PLAYBOOK = "kube_install.yml"
-KUBERNETES_UNINSTALL_PLAYBOOK = "kube_uninstall.yml"
-
 executor = ansible_executor.ansible_executor
 
 
@@ -40,16 +37,6 @@ def generate_host_groups(host):
     db_host[1].append("database")
     prometheus_host[1].append("prometheus")
 
-    return hosts
-
-
-def generate_kubernetes_host_groups(masters, workers):
-    # hosts are listed as (hostname, group name, port)
-    hosts = []
-    hosts += [(m, ["managers"], None, {}) for m in masters]
-    # The workers need to know which host the 'kubeadm join' command was generated on,
-    # so assume it's the first one and pass along its hostname
-    hosts += [(w, ["workers"], None, {"master1": masters[0]}) for w in workers]
     return hosts
 
 
@@ -317,38 +304,6 @@ def uninstall(
 
     hosts = generate_host_groups(host)
     a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
-
-
-@cli.command()
-@add_common_options("config-file", "tags", "password", "verbose", "masters", "workers")
-@click.pass_context
-def kubernetes_install(ctx, config_file, tags, verbose, password, workers, masters):
-    """Bootstrap a kubernetes cluster"""
-    hosts = generate_kubernetes_host_groups(masters, workers)
-
-    if password:
-        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
-
-    a = executor(tags, verbose)
-
-    a.run(
-        hosts, KUBERNETES_INSTALL_PLAYBOOK, config_file=config_file, password=password
-    )
-
-
-@cli.command()
-@add_common_options("config-file", "tags", "password", "masters", "workers", "verbose")
-@click.pass_context
-def kubernetes_uninstall(ctx, config_file, verbose, tags, password, masters, workers):
-    hosts = generate_kubernetes_host_groups(masters, workers)
-
-    if password:
-        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
-
-    a = executor(tags, verbose)
-    a.run(
-        hosts, KUBERNETES_UNINSTALL_PLAYBOOK, config_file=config_file, password=password
-    )
 
 
 if __name__ == "__main__":
