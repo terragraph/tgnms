@@ -16,13 +16,13 @@ import classNames from 'classnames';
 import {HEALTH_CODES} from '../../constants/HealthConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {LinkHealthType, LinkTestResultType} from './NetworkTestTypes';
+import type {AssetTestResultType, LinkHealthType} from './NetworkTestTypes';
 
 const rowHeight = 50;
 
 type Props = {
-  executions: Array<LinkTestResultType>,
-  onRowSelect: ({link_name: string}) => void,
+  executions: Array<AssetTestResultType>,
+  onRowSelect: ({asset_name: string}) => void,
   dropDownText: string,
   health: $Values<typeof HEALTH_CODES>,
 };
@@ -43,7 +43,14 @@ const useStyles = makeStyles(theme => ({
   healthDropDown: {
     zIndex: 10,
     marginBottom: theme.spacing(0.5),
+    marginRight: -theme.spacing(1),
   },
+  assetName: {
+    margin: `0px -${theme.spacing(2)}px`,
+    textAlign: 'center',
+    width: theme.spacing(22.75),
+  },
+
   rotateIcon: {
     transform: 'rotate(90deg)',
   },
@@ -66,9 +73,9 @@ export default function HealthGroupDropDown(props: Props) {
     };
 
     const rows = executions
-      ? executions.map(linkResult => ({
-          link_name: linkResult.linkName,
-          health: linkResult.results.map(result => ({
+      ? executions.map(assetResult => ({
+          asset_name: assetResult.assetName,
+          health: assetResult.results.map(result => ({
             id: result.id,
             health: HEALTH_CODES[result.health],
           })),
@@ -78,9 +85,12 @@ export default function HealthGroupDropDown(props: Props) {
     const columns = [
       {
         label: '',
-        key: 'link_name',
-        width: 225,
+        key: 'asset_name',
+        width: 200,
         filter: true,
+        render: (assetName: string) => (
+          <div className={classes.assetName}>{assetName}</div>
+        ),
       },
       {
         key: 'health',

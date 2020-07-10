@@ -116,6 +116,7 @@ export default function MapLayers(props: Props) {
     nodeMap,
     linkMap,
   );
+
   return (
     <>
       {buildings_3d ? <BuildingsLayer key="3d-buildings-layer" /> : null}

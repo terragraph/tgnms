@@ -10,6 +10,7 @@ import MaterialTheme from '../../../MaterialTheme';
 import NetworkTestResults from '../NetworkTestResults';
 import React from 'react';
 import {NetworkContextWrapper} from '../../../tests/testHelpers';
+import {TopologyElementType} from '../../../constants/NetworkConstants';
 import {mockExecutionResult} from '../../../tests/data/NetworkTestApi';
 import {mockLinkMapValue} from '../../../tests/data/NetworkContext';
 import {render} from '@testing-library/react';
@@ -17,6 +18,7 @@ import {render} from '@testing-library/react';
 const defaultProps = {
   createTestUrl: jest.fn(),
   executionResults: [],
+  assetType: TopologyElementType.LINK,
 };
 
 test('renders with with no executions', () => {
@@ -27,8 +29,8 @@ test('renders with with no executions', () => {
       </MaterialTheme>
     </NetworkContextWrapper>,
   );
-  expect(getByText('0 links successfully tested')).toBeInTheDocument();
-  expect(getByText('0 links unsuccessfully tested')).toBeInTheDocument();
+  expect(getByText(/0 links successfully tested/i)).toBeInTheDocument();
+  expect(getByText(/0 links unsuccessfully tested/i)).toBeInTheDocument();
 });
 
 test('renders with with executions', () => {
@@ -44,11 +46,11 @@ test('renders with with executions', () => {
           {...defaultProps}
           executionResults={[
             {
-              linkName: 'testLink',
+              assetName: 'testLink',
               results: [mockExecutionResult(), mockExecutionResult()],
             },
             {
-              linkName: 'testLink2',
+              assetName: 'testLink2',
               results: [mockExecutionResult(), mockExecutionResult()],
             },
           ]}
@@ -56,6 +58,6 @@ test('renders with with executions', () => {
       </MaterialTheme>
     </NetworkContextWrapper>,
   );
-  expect(getByText('2 links successfully tested')).toBeInTheDocument();
-  expect(getByText('2 Excellent health links')).toBeInTheDocument();
+  expect(getByText(/2 links successfully tested/i)).toBeInTheDocument();
+  expect(getByText(/2 links with excellent health/i)).toBeInTheDocument();
 });

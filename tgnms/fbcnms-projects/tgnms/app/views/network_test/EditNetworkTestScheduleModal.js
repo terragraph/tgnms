@@ -14,7 +14,7 @@ import SchedulerModal from '../../components/scheduler/SchedulerModal';
 import TextField from '@material-ui/core/TextField';
 import {
   MODAL_MODE,
-  NETWORK_TEST_IPERF_DEFAULTS,
+  NETWORK_TEST_DEFS,
   NETWORK_TEST_TYPES,
 } from '../../constants/ScheduleConstants';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -23,7 +23,7 @@ import type {IperfOptions as IperfOptionsType} from '../../../shared/dto/Network
 
 type Props = {
   id: number,
-  type: $Keys<typeof NETWORK_TEST_IPERF_DEFAULTS>,
+  type: $Keys<typeof NETWORK_TEST_DEFS>,
   onActionClick: () => void,
   initialOptions: IperfOptionsType,
   initialCronString: string,

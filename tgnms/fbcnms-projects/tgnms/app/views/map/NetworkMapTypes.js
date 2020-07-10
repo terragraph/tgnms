@@ -5,6 +5,8 @@
  * @flow
  */
 import * as React from 'react';
+import {TopologyElementType} from '../../constants/NetworkConstants';
+
 import type {NetworkContextType} from '../../contexts/NetworkContext';
 
 export type MapLayerConfig = {
@@ -72,7 +74,7 @@ export type NetworkMapOptions = $Shape<{
   historicalDate: Date,
   selectedTime: Date,
   historicalData: ?{},
-  testExecutionData: ?{},
+  testExecutionData: ?{results: {}, type: $Values<typeof TopologyElementType>},
   overlayData: LayerData<{}>,
   mapMode: string,
 }>;

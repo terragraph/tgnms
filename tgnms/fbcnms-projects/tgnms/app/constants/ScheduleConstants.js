@@ -18,11 +18,58 @@ export const NETWORK_TEST_TYPES = {
   sequential: 'Sequential Link Test',
   parallel: 'Parallel Link Test',
   multihop: 'Multihop Node Test',
+  partial: 'Partial Throughput Test',
 };
 
-export const MODAL_MODE = {
-  EDIT: 'edit',
-  CREATE: 'create',
+export const NETWORK_TEST_DEFS = {
+  sequential: {
+    title: 'Sequential Link Health Test',
+    iperf_defaults: {
+      bitrate: 200000000,
+      timeSec: 60,
+      protocol: 17,
+      omitSec: 0,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  parallel: {
+    title: 'Parallel Link Health Test',
+    iperf_defaults: {
+      bitrate: 200000000,
+      timeSec: 300,
+      protocol: 17,
+      omitSec: 0,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  multihop: {
+    title: 'Multihop Node Health Test',
+    iperf_defaults: {
+      bitrate: 300000000,
+      timeSec: 60,
+      protocol: 6,
+      omitSec: 2,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  partial: {
+    title: 'Partial Node Throughput Test',
+    iperf_defaults: {
+      bitrate: 300000000,
+      timeSec: 60,
+      protocol: 6,
+      omitSec: 2,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
 };
 
 export const EXECUTION_STATUS = {
@@ -32,48 +79,71 @@ export const EXECUTION_STATUS = {
   SCHEDULED: 'Scheduled',
   PAUSED: 'Paused',
   RUNNING: 'Running',
+  PROCESSING: 'Processing',
 };
 
-export const EXECUTION_STATUS_SIGNIFICANCE = {
-  RUNNING: 1,
-  FINISHED: 2,
-  ABORTED: 3,
-  FAILED: 4,
-  SCHEDULED: 5,
-  PAUSED: 6,
+export const EXECUTION_DEFS = {
+  FINISHED: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.FINISHED} placement="top">
+        <CheckCircleOutlineOutlinedIcon />
+      </Tooltip>
+    ),
+    order: 2,
+  },
+  ABORTED: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.ABORTED} placement="top">
+        <CancelOutlinedIcon />
+      </Tooltip>
+    ),
+    order: 3,
+  },
+  FAILED: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.FAILED} placement="top">
+        <ErrorOutlineIcon color="error" />
+      </Tooltip>
+    ),
+    order: 4,
+  },
+  SCHEDULED: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.SCHEDULED} placement="top">
+        <EventIcon />
+      </Tooltip>
+    ),
+    order: 5,
+  },
+  PAUSED: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.PAUSED} placement="top">
+        <PauseCircleOutlineIcon />
+      </Tooltip>
+    ),
+    order: 6,
+  },
+  RUNNING: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.RUNNING} placement="top">
+        <RadioButtonUncheckedIcon />
+      </Tooltip>
+    ),
+    order: 1,
+  },
+  PROCESSING: {
+    icon: (
+      <Tooltip title={EXECUTION_STATUS.RUNNING} placement="top">
+        <RadioButtonUncheckedIcon />
+      </Tooltip>
+    ),
+    order: 1,
+  },
 };
 
-export const STATUS_ICONS = {
-  FINISHED: (
-    <Tooltip title={EXECUTION_STATUS.FINISHED} placement="top">
-      <CheckCircleOutlineOutlinedIcon />
-    </Tooltip>
-  ),
-  ABORTED: (
-    <Tooltip title={EXECUTION_STATUS.ABORTED} placement="top">
-      <CancelOutlinedIcon />
-    </Tooltip>
-  ),
-  FAILED: (
-    <Tooltip title={EXECUTION_STATUS.FAILED} placement="top">
-      <ErrorOutlineIcon color="error" />
-    </Tooltip>
-  ),
-  SCHEDULED: (
-    <Tooltip title={EXECUTION_STATUS.SCHEDULED} placement="top">
-      <EventIcon />
-    </Tooltip>
-  ),
-  PAUSED: (
-    <Tooltip title={EXECUTION_STATUS.PAUSED} placement="top">
-      <PauseCircleOutlineIcon />
-    </Tooltip>
-  ),
-  RUNNING: (
-    <Tooltip title={EXECUTION_STATUS.RUNNING} placement="top">
-      <RadioButtonUncheckedIcon />
-    </Tooltip>
-  ),
+export const MODAL_MODE = {
+  EDIT: 'edit',
+  CREATE: 'create',
 };
 
 export const NETWORK_TEST_PROTOCOLS = {
@@ -85,33 +155,6 @@ export const TEST_TYPE_CODES = {
   SEQUENTIAL: 'sequential',
   PARALLEL: 'parallel',
   MULTIHOP: 'multihop',
-};
-
-export const NETWORK_TEST_IPERF_DEFAULTS = {
-  sequential: {
-    bitrate: 200000000,
-    timeSec: 60,
-    protocol: 17,
-    omitSec: 0,
-    intervalSec: null,
-    windowSize: null,
-  },
-  parallel: {
-    bitrate: 200000000,
-    timeSec: 300,
-    protocol: 17,
-    omitSec: 0,
-    intervalSec: null,
-    windowSize: null,
-  },
-  multihop: {
-    bitrate: 300000000,
-    timeSec: 60,
-    protocol: 6,
-    omitSec: 2,
-    intervalSec: null,
-    windowSize: null,
-  },
 };
 
 export const FREQUENCIES = {

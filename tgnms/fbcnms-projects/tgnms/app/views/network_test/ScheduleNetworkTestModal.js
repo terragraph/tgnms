@@ -96,11 +96,14 @@ export default function ScheduleNetworkTestModal(props: Props) {
             margin="dense"
             fullWidth
             onChange={handleInputChange(val => ({type: val}))}>
-            {scheduleTypes.map(name => (
-              <MenuItem key={name} value={name}>
-                {NETWORK_TEST_TYPES[name]}
-              </MenuItem>
-            ))}
+            {scheduleTypes.map(
+              name =>
+                NETWORK_TEST_TYPES[name] !== NETWORK_TEST_TYPES.partial && (
+                  <MenuItem key={name} value={name}>
+                    {NETWORK_TEST_TYPES[name]}
+                  </MenuItem>
+                ),
+            )}
           </TextField>
         ),
         advancedParams: (

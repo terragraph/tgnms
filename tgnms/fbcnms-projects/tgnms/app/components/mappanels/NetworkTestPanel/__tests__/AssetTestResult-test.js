@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 import 'jest-dom/extend-expect';
-import LinkTestResult from '../LinkTestResult';
+import AssetTestResult from '../AssetTestResult';
 import MaterialTheme from '../../../../MaterialTheme';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
@@ -14,7 +14,7 @@ import {cleanup, fireEvent, render} from '@testing-library/react';
 afterEach(cleanup);
 
 const defaultProps = {
-  linkName: 'testLink',
+  assetName: 'testLink',
   executionResults: [],
 };
 
@@ -22,7 +22,7 @@ test('renders', () => {
   const {getAllByText} = render(
     <TestApp>
       <MaterialTheme>
-        <LinkTestResult {...defaultProps} />
+        <AssetTestResult {...defaultProps} />
       </MaterialTheme>
     </TestApp>,
   );
@@ -33,7 +33,7 @@ test('if no test result, give error message', () => {
   const {getByText} = render(
     <TestApp>
       <MaterialTheme>
-        <LinkTestResult {...defaultProps} />
+        <AssetTestResult {...defaultProps} />
       </MaterialTheme>
     </TestApp>,
   );
@@ -53,7 +53,7 @@ test('removes selected element when back button is clicked', () => {
           removeElement,
         }}>
         <MaterialTheme>
-          <LinkTestResult {...defaultProps} />
+          <AssetTestResult {...defaultProps} />
         </MaterialTheme>
       </NetworkContextWrapper>
     </TestApp>,

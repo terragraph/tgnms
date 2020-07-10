@@ -18,7 +18,7 @@ import {MCS_DATARATE_TABLE} from './NetworkConstants';
 import {formatNumber} from '../helpers/StringHelpers';
 //TODO don't import from views
 import PrefixZoneOverlay from '../views/map/overlays/PrefixZoneOverlay';
-const MEGABITS = Math.pow(1000, 2);
+import {numToMegabits} from '../helpers/ScheduleHelpers';
 
 import type {LayerData, Overlay} from '../views/map/NetworkMapTypes';
 
@@ -52,6 +52,23 @@ export const SiteOverlayColors = {
     hybrid_even: {color: purple[500]},
     hw_hybrid: {color: orange[500]},
     unknown: {color: red[600]},
+  },
+};
+
+export const TestOverlayColors = {
+  health: {
+    excellent: {color: HEALTH_DEFS[HEALTH_CODES.EXCELLENT].color},
+    good: {color: HEALTH_DEFS[HEALTH_CODES.GOOD].color},
+    marginal: {color: HEALTH_DEFS[HEALTH_CODES.MARGINAL].color},
+    poor: {color: HEALTH_DEFS[HEALTH_CODES.POOR].color},
+    missing: {color: HEALTH_DEFS[HEALTH_CODES.MISSING].color},
+  },
+  metric: {
+    excellent: {color: green[800]},
+    good: {color: lightGreen[500]},
+    marginal: {color: orange[500]},
+    poor: {color: red[600]},
+    missing: {color: grey[500]},
   },
 };
 
@@ -243,6 +260,41 @@ export const SITE_METRIC_OVERLAYS: Overlays = {
   polarity: {name: 'Polarity', type: 'polarity', id: 'polarity'},
 };
 
+export const SITE_TEST_OVERLAYS: Overlays = {
+  health: {
+    name: 'Health',
+    type: 'health',
+    id: 'health',
+    range: [0, 1, 2, 3, 4],
+    bounds: [0, 4],
+    colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
+    formatText: (_link, health: $Values<typeof HEALTH_CODES>) => {
+      const healthDef = HEALTH_DEFS[health];
+      if (!healthDef) {
+        return 'Unknown';
+      }
+      return healthDef.name;
+    },
+  },
+  iperf_avg_throughput: {
+    name: 'Iperf Throughput',
+    type: 'metric',
+    id: 'iperf_avg_throughput',
+    //TODO: make these dynamic based on test execution id
+    range: [300, 225, 120, 0],
+    bounds: [0, 300],
+    aggregate: (metricData: any) => {
+      if (!metricData) {
+        return 0;
+      }
+      return numToMegabits(metricData.iperf_avg_throughput || 0);
+    },
+    formatText: (_link, value: number) => {
+      return formatNumber(value, 1);
+    },
+  },
+};
+
 export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
   node_online: {
     name: 'Node Online',
@@ -364,7 +416,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
 export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
   health: {
     name: 'Health',
-    type: 'metric',
+    type: 'health',
     id: 'health',
     range: [0, 1, 2, 3, 4],
     bounds: [0, 4],
@@ -395,7 +447,7 @@ export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
       if (!metricData) {
         return 0;
       }
-      return (metricData.iperf_avg_throughput || 0) / MEGABITS;
+      return numToMegabits(metricData.iperf_avg_throughput || 0);
     },
     formatText: (_link, value: number) => {
       return formatNumber(value, 1);

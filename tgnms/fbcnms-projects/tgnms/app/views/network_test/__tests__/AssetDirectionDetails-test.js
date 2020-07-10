@@ -2,11 +2,11 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
 
 import 'jest-dom/extend-expect';
-import LinkDirectionDetails from '../LinkDirectionDetails';
+import AssetDirectionDetails from '../AssetDirectionDetails';
 import MaterialTheme from '../../../MaterialTheme';
 import React from 'react';
 import {NetworkContextWrapper} from '../../../tests/testHelpers';
@@ -27,7 +27,7 @@ test('renders with with valid selected link', () => {
         },
       }}>
       <MaterialTheme>
-        <LinkDirectionDetails {...defaultProps} />
+        <AssetDirectionDetails {...defaultProps} />
       </MaterialTheme>
     </NetworkContextWrapper>,
   );

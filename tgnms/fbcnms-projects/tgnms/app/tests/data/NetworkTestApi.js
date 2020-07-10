@@ -67,7 +67,7 @@ export function mockExecutionResult(
     tx_per: null,
     tx_pwr_avg: null,
     iperf_min_throughput: null,
-    iperf_max_throughput: null,
+    iperf_max_throughput: 10,
     iperf_avg_throughput: null,
     iperf_min_lost_percent: null,
     iperf_max_lost_percent: null,

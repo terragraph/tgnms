@@ -92,7 +92,7 @@ export default function ScheduleTable<T>(props: Props<T>) {
         }),
       );
     }
-  }, [createURL, history, rows, selectedExecutionId, selectedRow]);
+  }, [createURL, history, selectedExecutionId, selectedRow]);
 
   const tableProps = React.useMemo(() => {
     const tableDimensions = {
@@ -126,7 +126,8 @@ export default function ScheduleTable<T>(props: Props<T>) {
     row => {
       if (
         EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.FAILED &&
-        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.SCHEDULED
+        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.SCHEDULED &&
+        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.PAUSED
       ) {
         setSelectedRow(row);
       }

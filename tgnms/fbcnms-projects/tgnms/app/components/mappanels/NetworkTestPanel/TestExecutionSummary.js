@@ -5,18 +5,19 @@
  * @flow
  */
 
+import AssetTestResult from './AssetTestResult';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
-import LinkTestResult from './LinkTestResult';
 import LoadingBox from '../../common/LoadingBox';
 import NetworkContext from '../../../contexts/NetworkContext';
 import NetworkTestResults from '../../../views/network_test/NetworkTestResults';
 import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import React, {useMemo} from 'react';
+import ThroughputTestResult from './ThroughputTestResult';
 import Typography from '@material-ui/core/Typography';
 import {
   EXECUTION_STATUS,
-  NETWORK_TEST_TYPES,
+  NETWORK_TEST_DEFS,
 } from '../../../constants/ScheduleConstants';
 import {HEALTH_CODES} from '../../../constants/HealthConstants';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
@@ -27,11 +28,14 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {useLoadTestExecutionResults} from '../../../hooks/NetworkTestHooks';
 
+import type {AssetTestResultType} from '../../../views/network_test/NetworkTestTypes';
 import type {Element} from '../../../contexts/NetworkContext';
-import type {LinkTestResultType} from '../../../views/network_test/NetworkTestTypes';
+import type {ExecutionDetailsType} from '../../../../shared/dto/NetworkTestTypes';
+import type {Routes} from '../MapPanelTypes';
 
 type Props = {
   testId: string,
+  routes: Routes,
 };
 
 const useSummaryStyles = makeStyles(theme => ({
@@ -49,12 +53,17 @@ const useSummaryStyles = makeStyles(theme => ({
 }));
 
 export default function TestExecutionSummary(props: Props) {
-  const {testId} = props;
+  const {testId, routes} = props;
   const classes = useSummaryStyles();
-  const {selectedElement} = React.useContext(NetworkContext);
+  const {linkMap, selectedElement} = React.useContext(NetworkContext);
   const {loading, execution, results} = useLoadTestExecutionResults({testId});
   const {updateNetworkMapOptions} = React.useContext(NmsOptionsContext);
   const {networkName} = React.useContext(NetworkContext);
+
+  const assetType =
+    results && linkMap[results[0].asset_name]
+      ? TopologyElementType.LINK
+      : TopologyElementType.NODE;
 
   const createTestUrl = React.useCallback(
     ({executionId}) => {
@@ -77,36 +86,42 @@ export default function TestExecutionSummary(props: Props) {
   );
 
   const mapTestResults = useMemo(() => {
-    const finalResults = {health: {}, mcs_avg: {}, iperf_avg_throughput: {}};
-    results &&
-      results.forEach(res => {
-        Object.keys(finalResults).forEach((link_overlay: string) => {
-          const linkData = finalResults[link_overlay][res?.asset_name];
-          const value =
-            link_overlay === 'health'
-              ? HEALTH_CODES[res[link_overlay]]
-              : res[link_overlay];
-          if (linkData) {
-            linkData['Z'] = {[link_overlay]: value};
-          } else {
-            finalResults[link_overlay][res.asset_name] = {
-              A: {[link_overlay]: value},
-            };
-          }
-        });
-      });
-    return finalResults;
-  }, [results]);
+    if (!results) {
+      return;
+    }
 
-  const executionResults: Array<LinkTestResultType> = useMemo(() => {
+    const finalResults = {health: {}, mcs_avg: {}, iperf_avg_throughput: {}};
+    results.forEach(res => {
+      Object.keys(finalResults).forEach((link_overlay: string) => {
+        const linkData = finalResults[link_overlay][res?.asset_name];
+        const value =
+          link_overlay === 'health'
+            ? HEALTH_CODES[res[link_overlay]]
+            : res[link_overlay];
+        if (linkData) {
+          linkData['Z'] = {[link_overlay]: value};
+        } else {
+          finalResults[link_overlay][res.asset_name] = {
+            A: {[link_overlay]: value},
+          };
+        }
+      });
+    });
+    return {
+      results: finalResults,
+      type: assetType,
+    };
+  }, [results, assetType]);
+
+  const executionResults: Array<AssetTestResultType> = useMemo(() => {
     if (!results) {
       return [];
     }
-    const finalResults: Array<LinkTestResultType> = [];
+    const finalResults: Array<AssetTestResultType> = [];
     results.forEach(result => {
-      if (!finalResults.find(final => final.linkName === result.asset_name)) {
+      if (!finalResults.find(final => final.assetName === result.asset_name)) {
         finalResults.push({
-          linkName: result.asset_name,
+          assetName: result.asset_name,
           results: results.filter(res => res.asset_name === result.asset_name),
         });
       }
@@ -123,11 +138,17 @@ export default function TestExecutionSummary(props: Props) {
     });
   }, [results, mapTestResults, updateNetworkMapOptions]);
 
-  if (loading || !execution) {
+  const throughputTestMode = isThroughputTestMode(execution);
+
+  if ((loading && !throughputTestMode) || !execution) {
     return <LoadingBox fullScreen={false} />;
   }
 
   const startDate = new Date(execution.start_dt);
+  const assetTestResultMode =
+    selectedElement &&
+    isValidAssetSelected(selectedElement, executionResults) &&
+    !throughputTestMode;
 
   return (
     <Grid container direction="column">
@@ -143,38 +164,46 @@ export default function TestExecutionSummary(props: Props) {
         className={classes.networkTestType}
         variant="body1"
         gutterBottom>
-        {NETWORK_TEST_TYPES[execution.test_type.toLowerCase()] ||
-          execution.test_type}
+        {throughputTestMode
+          ? NETWORK_TEST_DEFS.partial.title
+          : NETWORK_TEST_DEFS[execution.test_type.toLowerCase()].title ||
+            execution.test_type}
       </Typography>
       <Divider className={classes.resultDivider} />
-      {selectedElement &&
-      isValidLinkSelected(selectedElement, executionResults) ? (
-        <LinkTestResult
-          linkName={selectedElement.name}
+      {throughputTestMode && (
+        <ThroughputTestResult
+          executionResult={executionResults[0]}
+          execution={execution}
+          routes={routes}
+        />
+      )}
+      {assetTestResultMode && (
+        <AssetTestResult
+          assetName={selectedElement?.name || ''}
           executionResults={executionResults}
         />
-      ) : (
-        <>
-          <NetworkTestResults
-            createTestUrl={createTestUrl}
-            executionResults={executionResults}
-          />
-        </>
+      )}
+      {!throughputTestMode && !assetTestResultMode && (
+        <NetworkTestResults
+          createTestUrl={createTestUrl}
+          executionResults={executionResults}
+          assetType={assetType}
+        />
       )}
     </Grid>
   );
 }
 
-function isValidLinkSelected(
+function isValidAssetSelected(
   element: Element,
-  executionResults: Array<LinkTestResultType>,
+  executionResults: Array<AssetTestResultType>,
 ) {
   const result = executionResults.find(
-    result => result.linkName === element.name,
+    result => result.assetName === element.name,
   );
-  return (
-    element.type === TopologyElementType.LINK &&
-    result &&
-    getExecutionStatus(result) === EXECUTION_STATUS.FINISHED
-  );
+  return result && getExecutionStatus(result) === EXECUTION_STATUS.FINISHED;
+}
+
+function isThroughputTestMode(execution: ?ExecutionDetailsType) {
+  return execution?.whitelist?.length === 1;
 }

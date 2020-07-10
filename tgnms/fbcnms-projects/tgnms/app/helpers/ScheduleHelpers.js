@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as StringHelpers from './StringHelpers';
 import {DAYS, FREQUENCIES} from '../constants/ScheduleConstants';
 import {objectValuesTypesafe} from './ObjectHelpers';
 
@@ -66,4 +67,9 @@ function adjustDateFromUTCTime(date: Date): Date {
   const tempDate = new Date(date);
   const msOffset = tempDate.getTimezoneOffset() * 60000;
   return new Date(tempDate.getTime() - msOffset);
+}
+
+export function numToMegabits(number: number) {
+  const MEGABITS = Math.pow(1000, 2);
+  return StringHelpers.formatNumber(number / MEGABITS, 2);
 }

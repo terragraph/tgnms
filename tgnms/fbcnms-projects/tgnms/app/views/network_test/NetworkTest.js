@@ -15,17 +15,16 @@ import ResultExport from '../../components/scheduler/ResultExport';
 import ScheduleActions from '../../components/scheduler/ScheduleActions';
 import ScheduleNetworkTestModal from './ScheduleNetworkTestModal';
 import ScheduleTable from '../../components/scheduler/ScheduleTable';
-import axios from 'axios';
 import useLiveRef from '../../hooks/useLiveRef';
 import useUnmount from '../../hooks/useUnmount';
 import {
   BUTTON_TYPES,
+  EXECUTION_DEFS,
   EXECUTION_STATUS,
   FREQUENCIES,
   NETWORK_TEST_PROTOCOLS,
   NETWORK_TEST_TYPES,
   PROTOCOL,
-  STATUS_ICONS,
   TEST_TYPE_CODES,
 } from '../../constants/ScheduleConstants';
 import {
@@ -33,12 +32,17 @@ import {
   getFormattedDateAndTime,
   getParsedCronString,
 } from '../../helpers/ScheduleHelpers';
+import {isTestRunning} from '../../helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory} from 'react-router';
+import {useLoadTestTableData} from '../../hooks/NetworkTestHooks';
 
 import type {CreateTestUrl} from './NetworkTestTypes';
-import type {FilterOptionsType} from '../../../shared/dto/NetworkTestTypes';
+import type {
+  FilterOptionsType,
+  InputGetType,
+} from '../../../shared/dto/NetworkTestTypes';
 
 type Props = {
   createTestUrl: CreateTestUrl,
@@ -63,12 +67,10 @@ export default function NetworkTest(props: Props) {
   const history = useHistory();
 
   const {createTestUrl, selectedExecutionId} = props;
-  const [loading, setLoading] = React.useState(true);
   const [shouldUpdate, setShouldUpdate] = React.useState(false);
   const [filterOptions, setFilterOptions] = React.useState<?FilterOptionsType>(
     null,
   );
-  const [rows, setRows] = React.useState([]);
   const {networkName} = React.useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -83,11 +85,9 @@ export default function NetworkTest(props: Props) {
   const updateRef = useLiveRef(shouldUpdate);
   const runningTestTimeoutRef = React.useRef<?TimeoutID>(null);
   const actionTimeoutRef = React.useRef<?TimeoutID>(null);
-  const resultsRef = React.useRef(null);
 
   const handleActionClick = React.useCallback(() => {
     setTimeout(() => {
-      setLoading(true);
       actionTimeoutRef.current = setTimeout(() => {
         setShouldUpdate(!updateRef.current);
       }, 1000);
@@ -179,223 +179,192 @@ export default function NetworkTest(props: Props) {
       );
   };
 
-  React.useEffect(() => {
-    if (!filterOptions) {
-      return;
-    }
-
-    const cancelSource = axios.CancelToken.source();
-    setLoading(true);
-
-    const dataFilterOptions = Object.keys(filterOptions).reduce((res, key) => {
-      if (filterOptions[key]?.length === 1) {
-        res[key] = filterOptions[key][0];
-      }
-      return res;
-    }, {});
-
-    const inputData = {
-      networkName,
-      ...dataFilterOptions,
-      startTime: filterOptions?.startTime,
-    };
-    Promise.all([
-      testApi.getSchedules({
-        inputData,
-        cancelToken: cancelSource.token,
-      }),
-      !filterOptions?.status ||
-      filterOptions?.status.find(
-        stat =>
-          EXECUTION_STATUS[stat.toUpperCase()] !== EXECUTION_STATUS.SCHEDULED &&
-          EXECUTION_STATUS[stat.toUpperCase()] !== EXECUTION_STATUS.PAUSED,
-      )
-        ? testApi.getExecutions({
-            inputData,
-            cancelToken: cancelSource.token,
-          })
-        : [],
-    ]).then(results => {
-      resultsRef.current = results;
-
-      const tempRows = {running: [], schedule: [], executions: []};
-      results.forEach(result => {
-        if (result.includes('undefined')) {
-          return (resultsRef.current = null);
+  const dataFilterOptions: $Shape<InputGetType> =
+    (filterOptions &&
+      Object.keys(filterOptions).reduce((res, key) => {
+        if (filterOptions[key]?.length === 1) {
+          res[key] = filterOptions[key][0];
         }
-        if (typeof result === 'string') {
-          return enqueueSnackbar(result, {
-            variant: 'error',
-          });
-        }
-        result.forEach(newRow => {
-          const protocol =
-            newRow.iperf_options.protocol === NETWORK_TEST_PROTOCOLS.UDP
-              ? PROTOCOL.UDP
-              : PROTOCOL.TCP;
-          if (newRow.status === undefined) {
-            const {
-              initialFrequency,
-              initialTime,
-              initialDay,
-            } = getParsedCronString({cronString: newRow.cron_expr || ''});
-            tempRows.schedule.push({
-              id: newRow.id,
-              rowId: 'schedule' + newRow.id,
-              filterStatus: newRow.enabled ? 'SCHEDULED' : 'PAUSED',
-              type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
-              start: newRow.enabled ? (
-                'Scheduled ' +
-                (initialFrequency === FREQUENCIES.monthly
-                  ? ''
-                  : initialFrequency === FREQUENCIES.biweekly
-                  ? 'every other '
-                  : 'every ') +
-                (initialDay
-                  ? initialDay.length > 2
-                    ? initialDay
-                    : 'monthly on the ' + getDateNth({date: Number(initialDay)})
-                  : 'day ') +
-                ', ' +
-                initialTime
-              ) : (
-                <div className={classes.disabledText}>
-                  <div className={classes.strikeThrough}>
-                    {'Scheduled ' +
-                      (initialFrequency === FREQUENCIES.monthly
-                        ? ''
-                        : initialFrequency === FREQUENCIES.biweekly
-                        ? 'every other '
-                        : 'every ') +
-                      (initialDay
-                        ? initialDay.length > 2
-                          ? initialDay
-                          : 'monthly on the ' +
-                            getDateNth({date: Number(initialDay)})
-                        : 'day ') +
-                      ', ' +
-                      initialTime}
-                  </div>
-                </div>
-              ),
-              status: newRow.enabled ? (
-                <Grid container spacing={1}>
-                  <Grid item>{STATUS_ICONS.SCHEDULED}</Grid>
-                  <Grid item>
-                    <div className={classes.statusText}>{initialFrequency}</div>
-                  </Grid>
-                </Grid>
-              ) : (
-                <Grid container spacing={1}>
-                  <Grid item>{STATUS_ICONS.PAUSED}</Grid>
-                  <Grid item>
-                    <div className={classes.statusText}>Schedule is paused</div>
-                  </Grid>
-                </Grid>
-              ),
-              protocol,
-              actions: (
-                <ScheduleActions
-                  editButton={
-                    <EditNetworkTestScheduleModal
-                      id={newRow.id}
-                      onActionClick={handleActionClick}
-                      initialOptions={newRow.iperf_options || {}}
-                      type={TEST_TYPE_CODES[newRow.test_type] || ''}
-                      initialCronString={newRow.cron_expr || ''}
-                    />
-                  }
-                  onDeleteSchedule={deleteSchedule}
-                  onSetDisableSchedule={id =>
-                    setDisableSchedule({
-                      iperfOptions: newRow.iperf_options || {},
-                      cronExpr: newRow.cron_expr || '',
-                      enabled: !newRow.enabled,
-                      id,
-                    })
-                  }
-                  row={newRow}
+        return res;
+      }, {})) ||
+    {};
+
+  const inputData: InputGetType = {
+    networkName,
+    ...dataFilterOptions,
+    startTime: filterOptions?.startTime,
+  };
+
+  if (
+    inputData.testType &&
+    NETWORK_TEST_TYPES[inputData.testType] === NETWORK_TEST_TYPES.partial
+  ) {
+    inputData.testType = 'multihop';
+  }
+
+  const {loading, data} = useLoadTestTableData({
+    filterOptions: filterOptions || {},
+    inputData,
+    actionUpdate: shouldUpdate,
+  });
+
+  const rows = filterData(data, filterOptions).map(row => {
+    {
+      const throughputTestMode = row.whitelist?.length === 1;
+      const protocol =
+        row.iperf_options.protocol === NETWORK_TEST_PROTOCOLS.UDP
+          ? PROTOCOL.UDP
+          : PROTOCOL.TCP;
+      if (row.status === undefined) {
+        const {
+          initialFrequency,
+          initialTime,
+          initialDay,
+        } = getParsedCronString({cronString: row.cron_expr || ''});
+        return {
+          id: row.id,
+          rowId: 'schedule' + row.id,
+          filterStatus: row.enabled ? 'SCHEDULED' : 'PAUSED',
+          type: NETWORK_TEST_TYPES[row.test_type.toLowerCase()],
+          start: row.enabled ? (
+            'Scheduled ' +
+            (initialFrequency === FREQUENCIES.monthly
+              ? ''
+              : initialFrequency === FREQUENCIES.biweekly
+              ? 'every other '
+              : 'every ') +
+            (initialDay
+              ? initialDay.length > 2
+                ? initialDay
+                : 'monthly on the ' + getDateNth({date: Number(initialDay)})
+              : 'day ') +
+            ', ' +
+            initialTime
+          ) : (
+            <div className={classes.disabledText}>
+              <div className={classes.strikeThrough}>
+                {'Scheduled ' +
+                  (initialFrequency === FREQUENCIES.monthly
+                    ? ''
+                    : initialFrequency === FREQUENCIES.biweekly
+                    ? 'every other '
+                    : 'every ') +
+                  (initialDay
+                    ? initialDay.length > 2
+                      ? initialDay
+                      : 'monthly on the ' +
+                        getDateNth({date: Number(initialDay)})
+                    : 'day ') +
+                  ', ' +
+                  initialTime}
+              </div>
+            </div>
+          ),
+          status: row.enabled ? (
+            <Grid container spacing={1}>
+              <Grid item>{EXECUTION_DEFS.SCHEDULED.icon}</Grid>
+              <Grid item>
+                <div className={classes.statusText}>{initialFrequency}</div>
+              </Grid>
+            </Grid>
+          ) : (
+            <Grid container spacing={1}>
+              <Grid item>{EXECUTION_DEFS.PAUSED.icon}</Grid>
+              <Grid item>
+                <div className={classes.statusText}>Schedule is paused</div>
+              </Grid>
+            </Grid>
+          ),
+          protocol,
+          actions: (
+            <ScheduleActions
+              editButton={
+                <EditNetworkTestScheduleModal
+                  id={row.id}
+                  onActionClick={handleActionClick}
+                  initialOptions={row.iperf_options || {}}
+                  type={TEST_TYPE_CODES[row.test_type] || ''}
+                  initialCronString={row.cron_expr || ''}
                 />
-              ),
-            });
-          } else if (
-            EXECUTION_STATUS[newRow.status] === EXECUTION_STATUS.RUNNING
-          ) {
-            tempRows.running.push({
-              id: newRow.id,
-              rowId: 'execution' + newRow.id,
-              type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
-              filterStatus: newRow.status,
-              start: getFormattedDateAndTime({date: newRow.start_dt || ''}),
-              status: (
-                <Grid container spacing={1}>
-                  <Grid item>{STATUS_ICONS.RUNNING}</Grid>
-                  <Grid item>
-                    <div className={classes.statusText}>In progress</div>
-                  </Grid>
-                </Grid>
-              ),
-              protocol,
-              actions: (
-                <div className={classes.executionActionButtonContainer}>
-                  {
-                    <Button onClick={() => abortExecution(newRow.id)}>
-                      {BUTTON_TYPES.abort}
-                    </Button>
-                  }
+              }
+              onDeleteSchedule={deleteSchedule}
+              onSetDisableSchedule={id =>
+                setDisableSchedule({
+                  iperfOptions: row.iperf_options || {},
+                  cronExpr: row.cron_expr || '',
+                  enabled: !row.enabled,
+                  id,
+                })
+              }
+              row={row}
+            />
+          ),
+        };
+      } else if (isTestRunning(row.status)) {
+        const runningExecution =
+          row.status &&
+          EXECUTION_STATUS[row.status] === EXECUTION_STATUS.RUNNING;
+        return {
+          id: row.id,
+          rowId: 'execution' + row.id,
+          type: throughputTestMode
+            ? NETWORK_TEST_TYPES.partial
+            : NETWORK_TEST_TYPES[row.test_type.toLowerCase()],
+          filterStatus: row.status,
+          start: getFormattedDateAndTime({date: row.start_dt || ''}),
+          status: (
+            <Grid container spacing={1}>
+              <Grid item>{EXECUTION_DEFS.RUNNING.icon}</Grid>
+              <Grid item>
+                <div className={classes.statusText}>
+                  {runningExecution ? 'In progress' : 'Processing'}
                 </div>
-              ),
-            });
-          } else {
-            const filterStatus = newRow.status;
-            tempRows.executions.push({
-              id: newRow.id,
-              rowId: 'execution' + newRow.id,
-              filterStatus,
-              type: NETWORK_TEST_TYPES[newRow.test_type.toLowerCase()],
-              start: getFormattedDateAndTime({date: newRow.start_dt || ''}),
-              status: (
-                <Grid container spacing={1}>
-                  <Grid item>{STATUS_ICONS[filterStatus]}</Grid>
-                  <Grid item>
-                    <div className={classes.statusText}>
-                      {getFormattedDateAndTime({date: newRow.end_dt || ''})}
-                    </div>
-                  </Grid>
-                </Grid>
-              ),
-              protocol,
-              actions:
-                newRow.status &&
-                EXECUTION_STATUS[newRow.status] !== EXECUTION_STATUS.FAILED ? (
-                  <div className={classes.executionActionButtonContainer}>
-                    {<ResultExport id={String(newRow.id)} />}
-                  </div>
-                ) : null,
-            });
-          }
-        });
-      });
-      setRows([
-        ...tempRows.running,
-        ...tempRows.schedule.reverse(),
-        ...tempRows.executions.reverse(),
-      ]);
-
-      if (tempRows.running.length > 0 && !runningTestTimeoutRef.current) {
-        runningTestTimeoutRef.current = setTimeout(() => {
-          setShouldUpdate(!updateRef.current);
-          runningTestTimeoutRef.current = null;
-        }, 10000);
+              </Grid>
+            </Grid>
+          ),
+          protocol,
+          actions: runningExecution && (
+            <div className={classes.executionActionButtonContainer}>
+              {
+                <Button onClick={() => abortExecution(row.id)}>
+                  {BUTTON_TYPES.abort}
+                </Button>
+              }
+            </div>
+          ),
+        };
+      } else {
+        const filterStatus = row.status;
+        return {
+          id: row.id,
+          rowId: 'execution' + row.id,
+          filterStatus,
+          type: throughputTestMode
+            ? NETWORK_TEST_TYPES.partial
+            : NETWORK_TEST_TYPES[row.test_type.toLowerCase()],
+          start: getFormattedDateAndTime({date: row.start_dt || ''}),
+          status: (
+            <Grid container spacing={1}>
+              <Grid item>{EXECUTION_DEFS[filterStatus].icon}</Grid>
+              <Grid item>
+                <div className={classes.statusText}>
+                  {getFormattedDateAndTime({date: row.end_dt || ''})}
+                </div>
+              </Grid>
+            </Grid>
+          ),
+          protocol,
+          actions:
+            row.status &&
+            EXECUTION_STATUS[row.status] !== EXECUTION_STATUS.FAILED ? (
+              <div className={classes.executionActionButtonContainer}>
+                {<ResultExport id={String(row.id)} />}
+              </div>
+            ) : null,
+        };
       }
-      if (resultsRef.current) {
-        setLoading(false);
-      }
-    });
-
-    return () => cancelSource.cancel();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterOptions, shouldUpdate, networkName]);
+    }
+  });
 
   const optionsInput = [
     {
@@ -427,36 +396,6 @@ export default function NetworkTest(props: Props) {
     },
   ];
 
-  const filteredRows = React.useMemo(
-    () =>
-      rows?.filter(row => {
-        const correctProtocol =
-          !filterOptions?.protocol ||
-          filterOptions?.protocol.find(
-            protocol => protocol === NETWORK_TEST_PROTOCOLS[row.protocol],
-          );
-        const correctDate =
-          row.filterStatus === 'SCHEDULED' ||
-          row.filterStatus === 'PAUSED' ||
-          !filterOptions?.startTime ||
-          (typeof row.start === 'string' &&
-            new Date(row.start).getTime() >
-              new Date(filterOptions?.startTime || '').getTime());
-        const correctType =
-          !filterOptions?.testType ||
-          filterOptions?.testType.find(
-            type => NETWORK_TEST_TYPES[type] === row.type,
-          );
-        const correctStatus =
-          !filterOptions?.status ||
-          filterOptions?.status.find(
-            status => status === row.filterStatus.toLowerCase(),
-          );
-        return correctProtocol && correctDate && correctType && correctStatus;
-      }),
-    [rows, filterOptions],
-  );
-
   return (
     <ScheduleTable
       schedulerModal={
@@ -465,7 +404,7 @@ export default function NetworkTest(props: Props) {
       createURL={createTestUrl}
       selectedExecutionId={selectedExecutionId}
       history={history}
-      rows={filteredRows}
+      rows={rows}
       loading={loading}
       filterOptions={filterOptions || {}}
       tableOptions={{
@@ -474,4 +413,39 @@ export default function NetworkTest(props: Props) {
       }}
     />
   );
+}
+
+function filterData(data, filterOptions) {
+  const taco = data?.filter(row => {
+    const correctProtocol =
+      !filterOptions?.protocol ||
+      filterOptions?.protocol.find(
+        protocol => protocol === row.iperf_options.protocol,
+      );
+    const correctDate =
+      row.cron_expr ||
+      !filterOptions?.startTime ||
+      (typeof row.start_dt === 'string' &&
+        new Date(row.start_dt).getTime() >
+          new Date(filterOptions?.startTime || '').getTime());
+
+    const rowTestType = row.whitelist
+      ? 'partial'
+      : TEST_TYPE_CODES[row.test_type];
+
+    const correctType =
+      !filterOptions?.testType ||
+      filterOptions?.testType.find(type => type === rowTestType);
+
+    const scheduleStatus = row.enabled ? 'SCHEDULED' : 'PAUSED';
+    const rowStatus = row.status ?? scheduleStatus;
+
+    const correctStatus =
+      !filterOptions?.status ||
+      filterOptions?.status.find(status => status === rowStatus?.toLowerCase());
+
+    return correctProtocol && correctDate && correctType && correctStatus;
+  });
+
+  return taco || [];
 }

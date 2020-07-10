@@ -14,7 +14,7 @@ import {cleanup, fireEvent, render} from '@testing-library/react';
 afterEach(cleanup);
 
 const defaultProps = {
-  executions: [{linkName: 'testLink', results: []}],
+  executions: [{assetName: 'testLink', results: []}],
   onRowSelect: jest.fn(),
   dropDownText: 'testText',
   health: 0,

@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as testApi from '../../../apiutils/NetworkTestAPIUtil';
 import ActionsMenu from '../ActionsMenu';
 import CustomExpansionPanel from '../../common/CustomExpansionPanel';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -18,10 +19,11 @@ import RouterIcon from '@material-ui/icons/Router';
 import SyncIcon from '@material-ui/icons/Sync';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
+import {MAPMODE} from '../../../contexts/MapContext';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../../apiutils/ServiceAPIUtil';
+import {createTestMapLink} from '../../../helpers/NetworkTestHelpers';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
-import {setUrlSearchParam} from '../../../helpers/NetworkUrlHelpers';
 import {supportsTopologyScan} from '../../../helpers/TgFeatures';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
@@ -131,18 +133,51 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             },
           ]
         : []),
-      {
-        heading: 'Tests',
-        actions: [
-          {
-            label: 'Speed Test',
-            icon: <TimerIcon />,
-            func: () => setUrlSearchParam(this.props.history, 'speedTest', ''),
-          },
-        ],
-      },
+      ...(isFeatureEnabled('NETWORK_TEST_ENABLED')
+        ? [
+            {
+              heading: 'Tests',
+              actions: [
+                {
+                  label: 'Start Throughput Test',
+                  icon: <TimerIcon />,
+                  func: this.onStartThroughputTest,
+                },
+              ],
+            },
+          ]
+        : []),
     ];
   }
+
+  onStartThroughputTest = () => {
+    const {networkName, node, history} = this.props;
+    testApi
+      .startThroughputTest({
+        networkName: networkName,
+        whitelist: [node.name],
+      })
+      .then(response => {
+        if (!response) {
+          throw new Error(response.data.msg);
+        }
+        const id = response.data.split(' ').pop();
+        const url = new URL(
+          createTestMapLink({
+            executionId: id,
+            networkName,
+          }),
+          window.location.origin,
+        );
+        url.search = location.search;
+        if (id) {
+          url.searchParams.set('test', id);
+          url.searchParams.set('mapMode', MAPMODE.NETWORK_TEST);
+        }
+        // can't use an absolute url in react-router
+        history.push(`${url.pathname}${url.search}`);
+      });
+  };
 
   onRebootNode = () => {
     // Reboot this node

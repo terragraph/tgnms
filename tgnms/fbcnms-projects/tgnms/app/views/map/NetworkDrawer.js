@@ -20,7 +20,6 @@ import OverviewPanel from '../../components/mappanels/OverviewPanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
-import SpeedTestPanel from '../../components/mappanels/SpeedTestPanel';
 import TopologyBuilderMenu from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
 import mapboxgl from 'mapbox-gl';
@@ -69,7 +68,6 @@ const styles = theme => ({
 
 type Props = {
   context: NetworkContextType,
-  speedTestId: ?string,
   networkTestId: ?string,
   mapRef: ?mapboxgl.Map,
   plannedSiteProps: PlannedSiteProps,
@@ -180,7 +178,6 @@ class NetworkDrawer extends React.Component<
           upgradeProgressPanelExpanded ||
           topologyPanelExpanded;
 
-        this.isSpeedTestMode();
         if (!isAnyPanelExpanded) {
           this.handleoverViewPanelExpand();
         }
@@ -241,10 +238,6 @@ class NetworkDrawer extends React.Component<
       typeof this.props.networkTestId === 'string' &&
       this.props.networkTestId.trim() !== ''
     );
-  };
-
-  isSpeedTestMode = () => {
-    return typeof this.props.speedTestId === 'string';
   };
 
   getUnexpandPanelsState() {
@@ -519,6 +512,7 @@ class NetworkDrawer extends React.Component<
       routesProps,
       mapRef,
       networkDrawerWidth,
+      networkTestId,
     } = this.props;
     const {
       networkName,
@@ -634,15 +628,9 @@ class NetworkDrawer extends React.Component<
 
           {this.isTestMode() && (
             <NetworkTestPanel
+              routes={routesProps}
               expanded={true}
               testId={this.props.networkTestId}
-            />
-          )}
-          {this.isSpeedTestMode() && (
-            <SpeedTestPanel
-              selectedElement={selectedElement}
-              expanded={this.isSpeedTestMode()}
-              testId={this.props.speedTestId}
             />
           )}
 
@@ -696,7 +684,7 @@ class NetworkDrawer extends React.Component<
             this.renderSearchNearby(txNode, SlideProps),
           )}
 
-          {routesProps.node
+          {routesProps.node && !networkTestId
             ? this.renderDefaultRouteHistoryPanel(routesProps.node, SlideProps)
             : null}
 

@@ -5,33 +5,39 @@
  * @flow strict-local
  */
 import 'jest-dom/extend-expect';
-import * as networkTestAPIUtil from '../../../../apiutils/NetworkTestAPIUtil';
+import * as networkTestHooks from '../../../../hooks/NetworkTestHooks';
 import MaterialTheme from '../../../../MaterialTheme';
 import React from 'react';
 import TestExecutionSummary from '../TestExecutionSummary';
 import {
   NetworkContextWrapper,
   TestApp,
+  mockRoutes,
   renderAsync,
 } from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
-const getTestExecutionMock = jest
-  .spyOn(networkTestAPIUtil, 'getExecutionResults')
-  .mockImplementation(() =>
-    Promise.resolve({
-      execution: {id: '1', test_type: 'PARALLEL'},
-      results: [{asset_name: 'testLinkName', status: 'FINISHED'}],
-    }),
-  );
+const useLoadTestExecutionResultsMock = jest
+  .spyOn(networkTestHooks, 'useLoadTestExecutionResults')
+  .mockImplementation(() => ({
+    loading: false,
+    execution: {id: '1', test_type: 'PARALLEL'},
+    results: [{asset_name: 'testLinkName', status: 'FINISHED'}],
+  }));
 
 afterEach(cleanup);
 
 const defaultProps = {
   testId: '1',
+  routes: mockRoutes(),
 };
 
 test('renders loading', () => {
+  useLoadTestExecutionResultsMock.mockImplementationOnce(() => ({
+    loading: true,
+    execution: null,
+    results: null,
+  }));
   const {getByTestId} = render(
     <MaterialTheme>
       <TestExecutionSummary {...defaultProps} />
@@ -48,8 +54,8 @@ test('renders network test results if no selected element', async () => {
       </MaterialTheme>
     </TestApp>,
   );
-  expect(getTestExecutionMock).toHaveBeenCalled();
-  expect(getByText('Parallel Link Test')).toBeInTheDocument();
+  expect(useLoadTestExecutionResultsMock).toHaveBeenCalled();
+  expect(getByText('Parallel Link Health Test')).toBeInTheDocument();
 });
 
 test('renders link details if selected element', async () => {
@@ -65,6 +71,6 @@ test('renders link details if selected element', async () => {
       </NetworkContextWrapper>
     </TestApp>,
   );
-  expect(getTestExecutionMock).toHaveBeenCalled();
+  expect(useLoadTestExecutionResultsMock).toHaveBeenCalled();
   expect(getAllByText('testLinkName').length).toBe(2);
 });

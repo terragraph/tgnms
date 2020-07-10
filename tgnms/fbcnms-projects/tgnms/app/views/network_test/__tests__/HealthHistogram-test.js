@@ -18,11 +18,11 @@ const defaultProps = {
     {
       health: 0,
       executions: [
-        {linkName: 'link1', results: []},
-        {linkName: 'link2', results: []},
+        {assetName: 'link1', results: []},
+        {assetName: 'link2', results: []},
       ],
     },
-    {health: 2, executions: [{linkName: 'link3', results: []}]},
+    {health: 2, executions: [{assetName: 'link3', results: []}]},
   ],
 };
 

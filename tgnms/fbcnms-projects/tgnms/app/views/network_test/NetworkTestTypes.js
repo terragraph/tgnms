@@ -33,8 +33,8 @@ export type TableResultType = {
   whitelist: Array<string>,
 };
 
-export type LinkTestResultType = {|
-  linkName: string,
+export type AssetTestResultType = {|
+  assetName: string,
   results: Array<ExecutionResultDataType>,
 |};
 
@@ -45,7 +45,7 @@ export type LinkHealthType = {
 
 export type HealthExecutionType = {
   health: $Values<typeof HEALTH_CODES>,
-  executions: Array<LinkTestResultType>,
+  executions: Array<AssetTestResultType>,
 };
 
 export type MetricType = {

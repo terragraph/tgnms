@@ -5,15 +5,12 @@
  * @flow
  */
 
-import {
-  EXECUTION_STATUS,
-  EXECUTION_STATUS_SIGNIFICANCE,
-} from '../constants/ScheduleConstants';
+import {EXECUTION_DEFS, EXECUTION_STATUS} from '../constants/ScheduleConstants';
 import {HEALTH_CODES} from '../constants/HealthConstants';
 import {generatePath} from 'react-router';
 import {getUrlSearchParam} from './NetworkUrlHelpers';
 
-import type {LinkTestResultType} from '../views/network_test/NetworkTestTypes';
+import type {AssetTestResultType} from '../views/network_test/NetworkTestTypes';
 import type {Location} from 'react-router-dom';
 
 /**
@@ -23,10 +20,6 @@ import type {Location} from 'react-router-dom';
  **/
 export function getTestOverlayId(location: Location): ?string {
   return getUrlSearchParam('test', location);
-}
-
-export function getSpeedTestId(location: Location): ?string {
-  return getUrlSearchParam('speedTest', location);
 }
 
 export function createTestMapLink({
@@ -58,7 +51,7 @@ export function makeTestResultLink(params: {
 }
 
 export function getExecutionHealth(
-  execution: LinkTestResultType,
+  execution: AssetTestResultType,
 ): $Values<typeof HEALTH_CODES> {
   const health = execution.results.reduce((finalHealth, result) => {
     const healthNumber = HEALTH_CODES[result.health];
@@ -72,15 +65,21 @@ export function getExecutionHealth(
 }
 
 export function getExecutionStatus(
-  execution: LinkTestResultType,
+  execution: AssetTestResultType,
 ): $Values<typeof EXECUTION_STATUS> {
   const status = execution.results.reduce(
     (finalStatus, result) =>
-      EXECUTION_STATUS_SIGNIFICANCE[result.status] <
-      EXECUTION_STATUS_SIGNIFICANCE[finalStatus]
+      EXECUTION_DEFS[result.status].order < EXECUTION_DEFS[finalStatus].order
         ? result.status
         : finalStatus,
     'FAILED',
   );
   return EXECUTION_STATUS[status];
+}
+
+export function isTestRunning(status: $Keys<typeof EXECUTION_STATUS>) {
+  return (
+    EXECUTION_STATUS[status] === EXECUTION_STATUS.RUNNING ||
+    EXECUTION_STATUS[status] === EXECUTION_STATUS.PROCESSING
+  );
 }

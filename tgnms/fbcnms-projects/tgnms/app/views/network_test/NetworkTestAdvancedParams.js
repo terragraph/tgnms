@@ -13,7 +13,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useEffect} from 'react';
 import TextField from '@material-ui/core/TextField';
 import {
-  NETWORK_TEST_IPERF_DEFAULTS,
+  NETWORK_TEST_DEFS,
   NETWORK_TEST_PROTOCOLS,
   PROTOCOL,
   TEST_TYPE_CODES,
@@ -25,7 +25,7 @@ import type {IperfOptions} from '../../../shared/dto/NetworkTestTypes';
 type Props = {
   onIperfOptionsUpdate: IperfOptions => void,
   initialOptions?: IperfOptions,
-  type: $Keys<typeof NETWORK_TEST_IPERF_DEFAULTS>,
+  type: $Keys<typeof NETWORK_TEST_DEFS>,
 };
 
 export default function NetworkTestAdvancedParams(props: Props) {
@@ -33,7 +33,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
 
   const {formState, handleInputChange, updateFormState} = useForm({
     initialState: {
-      ...NETWORK_TEST_IPERF_DEFAULTS[type],
+      ...NETWORK_TEST_DEFS[type].iperf_defaults,
       ...initialOptions,
     },
   });
@@ -42,10 +42,10 @@ export default function NetworkTestAdvancedParams(props: Props) {
     updateFormState(
       initialOptions
         ? {
-            ...NETWORK_TEST_IPERF_DEFAULTS[type],
+            ...NETWORK_TEST_DEFS[type].iperf_defaults,
             ...initialOptions,
           }
-        : NETWORK_TEST_IPERF_DEFAULTS[type],
+        : NETWORK_TEST_DEFS[type].iperf_defaults,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, initialOptions]);
@@ -174,8 +174,6 @@ export default function NetworkTestAdvancedParams(props: Props) {
               />
             </Grid>
           </Grid>
-        </Grid>
-        <Grid item container spacing={1}>
           <Grid item container direction="column" xs={6} spacing={1}>
             <Grid item>
               <FormLabel component="legend">
@@ -200,6 +198,8 @@ export default function NetworkTestAdvancedParams(props: Props) {
               />
             </Grid>
           </Grid>
+        </Grid>
+        <Grid item container spacing={1}>
           <Grid item container direction="column" xs={6} spacing={1}>
             <Grid item>
               <FormLabel component="legend">
@@ -219,6 +219,27 @@ export default function NetworkTestAdvancedParams(props: Props) {
               />
             </Grid>
           </Grid>
+          {NETWORK_TEST_DEFS[type] === NETWORK_TEST_DEFS.multihop && (
+            <Grid item container direction="column" xs={6} spacing={1}>
+              <Grid item>
+                <FormLabel component="legend">
+                  <span>Parallel Streams</span>
+                </FormLabel>
+              </Grid>
+              <Grid item>
+                <TextField
+                  type="number"
+                  inputProps={{min: 1, max: 500}}
+                  variant="outlined"
+                  value={formState.parallelStreams || ''}
+                  InputLabelProps={{shrink: true}}
+                  margin="dense"
+                  fullWidth
+                  onChange={handleInputChange(val => ({parallelStreams: val}))}
+                />
+              </Grid>
+            </Grid>
+          )}
         </Grid>
       </Grid>
     </FormGroup>

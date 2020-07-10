@@ -20,11 +20,12 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
-import type {CreateTestUrl, LinkTestResultType} from './NetworkTestTypes';
+import type {AssetTestResultType, CreateTestUrl} from './NetworkTestTypes';
 
 type Props = {|
   createTestUrl: CreateTestUrl,
-  executionResults: Array<LinkTestResultType>,
+  executionResults: Array<AssetTestResultType>,
+  assetType: $Values<typeof TopologyElementType>,
 |};
 
 const useStyles = makeStyles(theme => ({
@@ -40,12 +41,16 @@ const useStyles = makeStyles(theme => ({
 
 export default function NetworkTestResults(props: Props) {
   const classes = useStyles();
-  const {executionResults} = props;
+  const {executionResults, assetType} = props;
   const {setSelected} = React.useContext(NetworkContext);
+  const executionResultsRef = React.useRef(executionResults);
+
+  const asset = assetType === TopologyElementType.LINK ? 'Link' : 'Site';
 
   const handleRowSelect = row => {
-    setSelected(TopologyElementType.LINK, row.link_name);
+    setSelected(assetType, row.asset_name);
   };
+
   const {healthExecutions, statusCount} = React.useMemo(() => {
     const healthExecutions = HEALTH_EXECUTIONS.map(health => ({
       health,
@@ -60,7 +65,7 @@ export default function NetworkTestResults(props: Props) {
       {},
     );
 
-    executionResults.forEach(execution => {
+    executionResultsRef.current.forEach(execution => {
       const status = getExecutionStatus(execution);
       statusCount[status] += 1;
       if (status === EXECUTION_STATUS.FINISHED) {
@@ -71,7 +76,11 @@ export default function NetworkTestResults(props: Props) {
       }
     });
     return {healthExecutions, statusCount};
-  }, [executionResults]);
+  }, [executionResultsRef]);
+
+  const unsuccessfulTestCount =
+    statusCount[EXECUTION_STATUS.FAILED] +
+    statusCount[EXECUTION_STATUS.ABORTED];
 
   return (
     executionResults && (
@@ -82,32 +91,33 @@ export default function NetworkTestResults(props: Props) {
         />
         {statusCount[EXECUTION_STATUS.RUNNING] !== 0 ? (
           <Typography variant="body1">
-            {statusCount[EXECUTION_STATUS.RUNNING]} links currently being tested
+            {`${
+              statusCount[EXECUTION_STATUS.RUNNING]
+            } ${asset}s currently being`}
+            tested
           </Typography>
         ) : null}
         <Typography variant="body1">
-          {statusCount[EXECUTION_STATUS.FINISHED]} links successfully tested
+          {`${
+            statusCount[EXECUTION_STATUS.FINISHED]
+          } ${asset}s successfully tested`}
         </Typography>
-
         <Typography variant="body1" className={classes.header}>
-          {statusCount[EXECUTION_STATUS.FAILED] +
-            statusCount[EXECUTION_STATUS.ABORTED]}{' '}
-          links unsuccessfully tested
+          {`${unsuccessfulTestCount} ${asset}s unsuccessfully tested`}
         </Typography>
 
-        {healthExecutions.map(linkHealth =>
-          linkHealth.executions.length ? (
+        {healthExecutions.map(assetHealth =>
+          assetHealth.executions.length ? (
             <HealthGroupDropDown
-              key={HEALTH_DEFS[linkHealth.health].name}
-              executions={linkHealth.executions}
+              key={HEALTH_DEFS[assetHealth.health].name}
+              executions={assetHealth.executions}
               onRowSelect={handleRowSelect}
-              dropDownText={
-                linkHealth.executions.length +
-                ' ' +
-                HEALTH_DEFS[linkHealth.health].name +
-                ' health links'
-              }
-              health={linkHealth.health}
+              dropDownText={`${
+                assetHealth.executions.length
+              } ${asset}s with ${HEALTH_DEFS[
+                assetHealth.health
+              ].name.toLowerCase()} health`}
+              health={assetHealth.health}
             />
           ) : null,
         )}

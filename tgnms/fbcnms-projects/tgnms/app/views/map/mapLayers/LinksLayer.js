@@ -117,11 +117,18 @@ class LinksLayer extends React.Component<Props> {
     const {overlay, ignitionState, routes, offlineWhitelist} = this.props;
     const {igCandidates} = ignitionState;
 
-    if (overlay.type === 'metric') {
+    if (routes.links && Object.keys(routes.links).length !== 0) {
+      if (routes.links.hasOwnProperty(link.name)) {
+        return LinkOverlayColors.metric.excellent.color;
+      } else {
+        return LinkOverlayColors.metric.missing.color;
+      }
+    }
+    if (overlay.type === 'metric' || overlay.type === 'health') {
       const clr = this.getMetricLinkColor(link, values);
       if (overlay.id === 'link_health') {
         if (values && clr) {
-          values.forEach(function (value, index) {
+          values.forEach((value, index) => {
             if (value === HEALTH_CODES.MISSING) {
               clr[index] = LinkOverlayColors.metric.missing.color;
             }
@@ -147,13 +154,6 @@ class LinksLayer extends React.Component<Props> {
         return SUPERFRAME_COLORS[values];
       }
       return LinkOverlayColors.metric.missing.color;
-    }
-    if (routes.links && Object.keys(routes.links).length !== 0) {
-      if (routes.links.hasOwnProperty(link.name)) {
-        return LinkOverlayColors.metric.excellent.color;
-      } else {
-        return LinkOverlayColors.metric.missing.color;
-      }
     }
     // Link lines not based on metrics (i.e. health)
     if (link.is_alive) {

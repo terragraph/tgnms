@@ -30,6 +30,7 @@ export type IperfOptions = {
   omitSec?: number,
   intervalSec?: ?number,
   windowSize?: ?number,
+  parallelStreams?: ?number,
 };
 
 export type InputGetType = {

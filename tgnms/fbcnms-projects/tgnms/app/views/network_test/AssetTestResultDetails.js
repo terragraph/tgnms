@@ -6,9 +6,9 @@
  */
 
 import * as React from 'react';
+import AssetDirectionDetails from './AssetDirectionDetails';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
-import LinkDirectionDetails from './LinkDirectionDetails';
 import Loading from '@material-ui/core/CircularProgress';
 import {makeStyles} from '@material-ui/styles';
 
@@ -26,7 +26,7 @@ const useLinkStyles = makeStyles(theme => ({
   },
 }));
 
-export default function LinkTestResultDetails({
+export default function AssetTestResultDetails({
   results,
 }: {
   results: Array<ExecutionResultDataType>,
@@ -46,13 +46,13 @@ export default function LinkTestResultDetails({
       spacing={1}>
       {resultA && (
         <Grid container item direction="column" justify="flex-start" xs={12}>
-          <LinkDirectionDetails result={resultA} />
+          <AssetDirectionDetails result={resultA} />
         </Grid>
       )}
       <Divider className={classes.resultDivider} />
       {resultZ && (
         <Grid container item direction="column" justify="flex-start" xs={12}>
-          <LinkDirectionDetails result={resultZ} />
+          <AssetDirectionDetails result={resultZ} />
         </Grid>
       )}
     </Grid>

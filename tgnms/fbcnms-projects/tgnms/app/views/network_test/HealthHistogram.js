@@ -65,13 +65,6 @@ export default function HealthHistogram({
       useResizeHandler={true}
       layout={{
         autosize: true,
-        title: {
-          text: 'Link Health',
-          x: 0,
-          font: {
-            color: 'black',
-          },
-        },
         margin: {
           l: 25,
           r: 25,

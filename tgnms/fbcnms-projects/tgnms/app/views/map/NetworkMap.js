@@ -18,10 +18,7 @@ import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
 import {Route, withRouter} from 'react-router-dom';
 
-import {
-  getSpeedTestId,
-  getTestOverlayId,
-} from '../../helpers/NetworkTestHelpers';
+import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
 import type {Map} from 'mapbox-gl';
@@ -321,7 +318,6 @@ class NetworkMap extends React.Component<Props, State> {
                     },
                   }}
                   networkTestId={getTestOverlayId(location)}
-                  speedTestId={getSpeedTestId(location)}
                   onNetworkDrawerResize={networkDrawerWidth =>
                     this.setState({networkDrawerWidth})
                   }

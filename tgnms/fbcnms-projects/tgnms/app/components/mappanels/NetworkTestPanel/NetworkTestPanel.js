@@ -12,14 +12,16 @@ import {MAPMODE, useMapContext} from '../../../contexts/MapContext';
 import {withRouter} from 'react-router-dom';
 
 import type {ContextRouter} from 'react-router-dom';
+import type {Routes} from '../MapPanelTypes';
 
 type Props = {
   testId: ?string,
+  routes: Routes,
   expanded: boolean,
 } & ContextRouter;
 
 export default withRouter(function NetworkTestPanel(props: Props) {
-  const {expanded, history, testId} = props;
+  const {expanded, testId, history, routes} = props;
   const {setMapMode} = useMapContext();
 
   const onClose = React.useCallback(() => {
@@ -45,7 +47,7 @@ export default withRouter(function NetworkTestPanel(props: Props) {
       title="Network Test"
       expanded={expanded}
       onClose={handleNetworkTestClose}
-      details={<TestExecutionSummary testId={testId} />}
+      details={<TestExecutionSummary testId={testId} routes={routes} />}
     />
   );
 });
