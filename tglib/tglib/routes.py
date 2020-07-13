@@ -102,7 +102,7 @@ async def handle_get_swagger_docs(request: web.Request) -> web.Response:
         description: Documentation dependencies are missing.
     """
     if not _SWAGGER_ENABLED or "SWAGGER_DEF_CONTENT" not in request.app:
-        raise web.HTTPServiceUnavailable(text="Documentation dependencies are missing.")
+        raise web.HTTPServiceUnavailable(text="Documentation dependencies are missing")
     return web.Response(text=yaml.dump(json.loads(request.app["SWAGGER_DEF_CONTENT"])))
 
 
@@ -149,7 +149,7 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
     try:
         metrics = PrometheusClient.poll_metrics()
     except ClientStoppedError:
-        raise web.HTTPInternalServerError(text="The Prometheus client is not running.")
+        raise web.HTTPInternalServerError(text="The Prometheus client is not running")
 
     # Return a string because Prometheus only accepts a text-based exposition format
     metrics_str = "\n".join(metrics)

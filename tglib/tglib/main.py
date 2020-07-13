@@ -42,6 +42,21 @@ class ClientType(enum.Enum):
     PROMETHEUS_CLIENT = 5
 
 
+@web.middleware
+async def error_middleware(request: web.Request, handler: Callable) -> web.Response:
+    try:
+        return cast(web.Response, await handler(request))
+    except web.HTTPError as e:
+        return web.json_response(
+            {"status": "error", "message": e.text}, status=e.status
+        )
+    except Exception:
+        logging.exception("Error handling request")
+        return web.json_response(
+            {"status": "error", "message": "Server got itself in trouble"}, status=500
+        )
+
+
 def init(
     main: Callable,
     clients: Set[ClientType],
@@ -80,7 +95,7 @@ def init(
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
     # Create web application object and shutdown event
-    app = web.Application()
+    app = web.Application(middlewares=[error_middleware])
     app["main"] = main
     app["config"] = config
     app["shutdown_event"] = asyncio.Event()
