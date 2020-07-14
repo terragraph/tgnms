@@ -6,6 +6,7 @@
  */
 
 import * as React from 'react';
+import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -273,6 +274,20 @@ export default function NmsSettings() {
                       <SettingInput
                         label="API Request Timeout"
                         setting="API_REQUEST_TIMEOUT"
+                      />
+                    </SettingGroup>
+
+                    <SettingGroup title="Experimental Features">
+                      <Box color="warning.main" m={2}>
+                        <Typography>
+                          Warning: Experimental features are incomplete and can
+                          result in crashes or data loss.
+                        </Typography>
+                      </Box>
+                      <SettingInput
+                        isFeatureToggle
+                        label="Map Annotations"
+                        setting="MAP_ANNOTATIONS_ENABLED"
                       />
                     </SettingGroup>
                   </SettingsForm>

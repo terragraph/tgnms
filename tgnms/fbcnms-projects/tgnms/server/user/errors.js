@@ -24,7 +24,7 @@ export const ERROR_MESSAGES = {
   [ERROR_KEYS.invalidConfig]:
     'Invalid configuration. Please contact support if this issue persists.',
   [ERROR_KEYS.generic]:
-    'An unknown error has occurred. Please contact support if this issue perists.',
+    'An unknown error has occurred. Please contact support if this issue persists.',
 };
 
 /**

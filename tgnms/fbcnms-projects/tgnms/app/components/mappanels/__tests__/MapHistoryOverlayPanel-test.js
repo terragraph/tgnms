@@ -18,9 +18,9 @@ import {
   TestApp,
   renderAsync,
 } from '../../../tests/testHelpers';
+import {NmsOptionsContextProvider} from '../../../contexts/NmsOptionsContext';
 import {act, cleanup, fireEvent} from '@testing-library/react';
 import {mockNetworkMapOptions} from '../../../tests/data/NmsOptionsContext';
-
 import type {MapContext} from '../../../contexts/MapContext';
 import type {NmsOptionsContextType} from '../../../contexts/NmsOptionsContext';
 
@@ -92,6 +92,22 @@ test('invalid date change does not trigger new api call', async () => {
     fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
   });
   expect(axiosMock).toHaveBeenCalledTimes(1);
+});
+
+test('render with default provider succeeds', async () => {
+  const _axiosMock = jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
+  const {getByTestId} = await renderAsync(
+    <TestApp>
+      <MuiPickersWrapper>
+        <NmsOptionsContextProvider>
+          <MapHistoryOverlayPanel />
+        </NmsOptionsContextProvider>
+      </MuiPickersWrapper>
+    </TestApp>,
+  );
+  expect(getByTestId('map-history-overlay-panel')).toBeInTheDocument();
 });
 
 function Wrapper({

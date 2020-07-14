@@ -11,6 +11,7 @@ import useUnmount from '../hooks/useUnmount';
 import {getUrlSearchParam} from '../helpers/NetworkUrlHelpers';
 import {useLocation} from 'react-router-dom';
 
+import type Map from 'mapbox-gl';
 import type {
   LayerData,
   Overlay,
@@ -18,7 +19,6 @@ import type {
   SelectedLayersType,
   SelectedOverlays,
 } from '../views/map/NetworkMapTypes';
-import type {Map} from 'mapbox-gl';
 
 type OverlayMap = LayerData<Overlay>;
 

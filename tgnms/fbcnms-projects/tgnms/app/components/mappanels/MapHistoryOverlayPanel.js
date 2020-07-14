@@ -261,7 +261,9 @@ export default function MapHistoryOverlayPanel({}: Props) {
   });
 
   return (
-    <div className={classes.formContainer}>
+    <div
+      className={classes.formContainer}
+      data-testid="map-history-overlay-panel">
       <div>
         <Typography variant="subtitle2">Selected Date</Typography>
         <KeyboardDatePicker

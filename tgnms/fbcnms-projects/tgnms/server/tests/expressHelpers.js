@@ -9,7 +9,9 @@
  */
 
 import ApplicationUser from '../user/User';
-import type {ExpressResponse} from 'express';
+const express = require('express');
+import {json} from 'body-parser';
+import type {ExpressRequest, ExpressResponse} from 'express';
 import type {OpenidUserInfoClaims, TokenSet} from 'openid-client';
 import type {Request} from '../types/express';
 import type {User} from '../../shared/auth/User';
@@ -89,4 +91,15 @@ export function mockLogin(): (user: User, (err: ?Error) => mixed) => void {
       callback();
     },
   );
+}
+
+export function setupTestApp(urlPath: string, routes: any) {
+  const app = express<ExpressRequest, ExpressResponse>();
+  app.use(json());
+  app.use(urlPath, routes);
+  app.use(function (err, req: ExpressRequest, res: ExpressResponse, _next) {
+    console.error(err.stack);
+    res.status(500).send(err.stack);
+  });
+  return app;
 }

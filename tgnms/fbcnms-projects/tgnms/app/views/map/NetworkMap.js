@@ -5,13 +5,16 @@
  * @flow
  */
 
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as React from 'react';
+import * as mapboxgl from 'mapbox-gl';
 import Dragger from '../../components/common/Dragger';
+import DrawLayer from './mapLayers/DrawLayer';
 import MapLayers from './mapLayers/MapLayers';
 import NetworkContext from '../../contexts/NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
-import ReactMapboxGl, {RotationControl, ZoomControl} from 'react-mapbox-gl';
+import ReactMapboxGl from 'react-mapbox-gl';
 import TableControl from './TableControl';
 import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
 import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
@@ -225,6 +228,11 @@ class NetworkMap extends React.Component<Props, State> {
     this.setState({hiddenSites});
   };
 
+  handleStyleLoad = map => {
+    map.addControl(new mapboxgl.NavigationControl());
+    this.setState({mapRef: map});
+  };
+
   render() {
     const {classes, match, history, location} = this.props;
     const {
@@ -239,7 +247,6 @@ class NetworkMap extends React.Component<Props, State> {
       hiddenSites,
       networkDrawerWidth,
     } = this.state;
-
     return (
       <NetworkContext.Consumer>
         {context => (
@@ -252,7 +259,7 @@ class NetworkMap extends React.Component<Props, State> {
                   fitBounds={mapBounds}
                   fitBoundsOptions={FIT_BOUND_OPTIONS}
                   style={selectedMapStyle}
-                  onStyleLoad={map => this.setState({mapRef: map})}
+                  onStyleLoad={this.handleStyleLoad}
                   containerStyle={{width: '100%', height: 'inherit'}}>
                   <TgMapboxGeocoder
                     accessToken={MAPBOX_ACCESS_TOKEN}
@@ -266,8 +273,6 @@ class NetworkMap extends React.Component<Props, State> {
                       context.networkConfig?.status_dump?.statusReports
                     }
                   />
-                  <ZoomControl />
-                  <RotationControl style={{top: 80}} />
                   <Route
                     path={`${match.url}/:tableName?`}
                     render={routerProps => (
@@ -287,6 +292,7 @@ class NetworkMap extends React.Component<Props, State> {
                     routes={routes}
                     hiddenSites={hiddenSites}
                   />
+                  <DrawLayer />
                 </MapBoxGL>
                 <NetworkDrawer
                   context={context}

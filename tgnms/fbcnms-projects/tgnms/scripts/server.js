@@ -152,6 +152,7 @@ app.get('*', (req, res) => {
     'JSON_CONFIG_ENABLED',
     'MAP_HISTORY_ENABLED',
     'NMS_SETTINGS_ENABLED',
+    'MAP_ANNOTATIONS_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

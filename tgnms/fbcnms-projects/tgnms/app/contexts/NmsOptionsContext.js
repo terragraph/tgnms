@@ -35,14 +35,6 @@ export function defaultNetworkMapOptions() {
     : new Date();
 
   return {
-    selectedLayers: {
-      site_icons: true,
-      link_lines: true,
-      nodes: false,
-      area_polygons: false,
-      site_name_popups: false,
-      buildings_3d: false,
-    },
     historicalDate: defaultDate,
     selectedTime: defaultTime,
   };

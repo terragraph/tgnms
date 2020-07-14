@@ -9,6 +9,7 @@ import SettingsEngine from './SettingsEngine';
 import {TESTER} from './settingsTesters';
 import type {EnvMap, SettingDefinition} from '../../shared/dto/Settings';
 
+const settings = new SettingsEngine();
 export const SETTINGS: Array<SettingDefinition> = [
   {
     key: 'PORT',
@@ -239,10 +240,15 @@ export const SETTINGS: Array<SettingDefinition> = [
     validations: ['URL'],
     tester: TESTER.NETWORK_TEST,
   },
+  {
+    key: 'MAP_ANNOTATIONS_ENABLED',
+    required: false,
+    dataType: 'BOOL',
+    requiresRestart: true,
+    validations: [],
+  },
 ];
 
-const settings = new SettingsEngine();
-export default settings;
 /**
  * Read the settings files and load the data into the environment.
  */
@@ -267,3 +273,5 @@ export function updateSettings(newSettings: EnvMap) {
 export function testSettings(testValues: EnvMap) {
   return settings.test(testValues);
 }
+
+export default settings;

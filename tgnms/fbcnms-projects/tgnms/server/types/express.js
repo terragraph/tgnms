@@ -9,7 +9,6 @@
  */
 
 import User from '../user/User';
-import type {ExpressRequest} from 'express';
 import type {User as SharedUser} from '../../shared/auth/User';
 import type {TokenSet} from 'openid-client';
 
@@ -30,3 +29,4 @@ export type SessionMiddleware = {|
 |};
 
 export type Request = ExpressRequest & PassportMiddleware & SessionMiddleware;
+export type Response = ExpressResponse;

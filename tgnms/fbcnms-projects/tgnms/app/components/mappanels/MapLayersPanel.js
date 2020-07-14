@@ -197,7 +197,7 @@ function LayersForm() {
             control={
               <Switch
                 color="primary"
-                checked={selectedLayers[layerId]}
+                checked={selectedLayers[layerId] || false}
                 onChange={_evt =>
                   setIsLayerSelected(layerId, !selectedLayers[layerId])
                 }

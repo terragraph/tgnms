@@ -32,6 +32,9 @@ export const FeatureFlags: {[string]: () => boolean} = {
   NMS_SETTINGS_ENABLED: () =>
     typeof window.CONFIG.env['NMS_SETTINGS_ENABLED'] === 'string' &&
     window.CONFIG.env['NMS_SETTINGS_ENABLED'] !== 'false',
+  MAP_ANNOTATIONS_ENABLED: () =>
+    typeof window.CONFIG.env['MAP_ANNOTATIONS_ENABLED'] === 'string' &&
+    window.CONFIG.env['MAP_ANNOTATIONS_ENABLED'] === 'true',
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {
