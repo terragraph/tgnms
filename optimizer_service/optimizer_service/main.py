@@ -12,7 +12,7 @@ from typing import Dict, NoReturn
 from tglib import ClientType, init
 
 from . import jobs
-from .routes import routes
+from .routes.base import routes
 
 
 @dataclasses.dataclass

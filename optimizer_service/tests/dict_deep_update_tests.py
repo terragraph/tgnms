@@ -3,7 +3,7 @@
 
 import unittest
 
-from cut_edge_optimizer.utils.dict import deep_update
+from optimizer_service.utils.dict import deep_update
 
 
 class DictDeepUpdateTests(unittest.TestCase):

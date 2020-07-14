@@ -8,6 +8,7 @@ from typing import Dict
 from aiohttp import web
 from tglib.clients import APIServiceClient
 
+from .base import routes
 from .optimizations.config_operations import (
     get_cn_cut_edges,
     get_current_overrides_configs,
@@ -22,10 +23,7 @@ from .utils.db import (
 )
 
 
-routes = web.RouteTableDef()
-
-
-@routes.post("/start")
+@routes.post("/optimize_cut_edges")
 async def start(request: web.Request) -> web.Response:
     """
     ---
