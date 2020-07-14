@@ -1,7 +1,7 @@
 {
   "num_consumers": 5,
   "pipelines": {
-    "cut_edge_optimization": {
+    "pipeline 1": {
       "period": 86400,
       "jobs": [
         {
@@ -9,7 +9,7 @@
           "window_s": 86400,
           "enabled": true,
           "params": {
-            "config_change_delay_s" : 60,
+            "config_change_delay_s": 60,
             "link_flap_backoff_ms": "1050",
             "link_impairment_detection": 0,
             "link_uptime_threshold": 0.5
