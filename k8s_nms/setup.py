@@ -104,8 +104,10 @@ class BuildTarball(Command):
         tar_name = "k8s_resources"
         full_tar_name = f"{tar_name}.tar.gz"
 
+        resources_dir = "resources"
+
         with tarfile.open(f"{full_tar_name}", "w:gz") as tar_file:
-            for file_name in glob.glob("**/templates/**/*.yml", recursive=True):
+            for file_name in glob.glob(f"**/{resources_dir}/**/*.yml", recursive=True):
 
                 def lookup(type, lookup_file):
                     path_parts = [os.path.dirname(file_name)]
@@ -122,8 +124,7 @@ class BuildTarball(Command):
                 template = jinja2.Template(open(file_name, "r").read())
                 templated = template.render({"lookup": lookup})
 
-                archive_name = file_name.replace("k8s_nms/ansible/roles/", "")
-                archive_name = archive_name.replace("templates/", "")
+                archive_name = file_name.replace(f"{resources_dir}/", "")
                 self.announce(
                     f"Wrote {archive_name} to {full_tar_name}", level=distutils.log.INFO
                 )
