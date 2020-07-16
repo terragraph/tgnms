@@ -3,10 +3,11 @@
 
 import distutils
 import glob
+import io
 import os
 import pathlib
 import subprocess
-import zipfile
+import tarfile
 
 import jinja2
 from setuptools import Command, setup
@@ -70,8 +71,19 @@ class CloneSubmodulesCommand(Command):
             subprocess.check_call(command)
 
 
-class BuildZip(Command):
-    """Build zip of all Kubernetes resources"""
+def tarfile_writestr(tar_file, name, string):
+    """
+    Python's tarfile only supportes writes from files (unlike zipfile.writestr),
+    so this utility adds that functionality to tarfile.
+    """
+    encoded = string.encode("utf-8")
+    tarinfo = tarfile.TarInfo(name)
+    tarinfo.size = len(encoded)
+    tar_file.addfile(tarinfo, io.BytesIO(encoded))
+
+
+class BuildTarball(Command):
+    """Build tar.gz of all Kubernetes resources"""
 
     description = "Template Kubernetes resources"
     user_options = []
@@ -88,9 +100,11 @@ class BuildZip(Command):
 
     def run(self) -> None:
         """Find any ``.yml`` files in a ``templates`` folder and add them to a
-        zip archive."""
-        zip_name = "k8s_resources"
-        with zipfile.ZipFile(f"{zip_name}.zip", "w") as zip_file:
+        tarball."""
+        tar_name = "k8s_resources"
+        full_tar_name = f"{tar_name}.tar.gz"
+
+        with tarfile.open(f"{full_tar_name}", "w:gz") as tar_file:
             for file_name in glob.glob("**/templates/**/*.yml", recursive=True):
 
                 def lookup(type, lookup_file):
@@ -111,16 +125,17 @@ class BuildZip(Command):
                 archive_name = file_name.replace("k8s_nms/ansible/roles/", "")
                 archive_name = archive_name.replace("templates/", "")
                 self.announce(
-                    f"Wrote {archive_name} to {zip_name}.zip", level=distutils.log.INFO
+                    f"Wrote {archive_name} to {full_tar_name}", level=distutils.log.INFO
                 )
-                zip_file.writestr(f"{zip_name}/{archive_name}", templated)
+
+                tarfile_writestr(tar_file, f"{tar_name}/{archive_name}", templated)
 
         self.announce(
-            f"Finished writing {zip_name}.zip, copy it to the master node and run:",
+            f"Finished writing {full_tar_name}, copy it to the master node and run:",
             level=distutils.log.INFO,
         )
         self.announce(
-            f"unzip {zip_name}.zip && find {zip_name} -type f | sed 's/^/-f /g' | xargs kubectl apply",
+            f"tar -xzvf {full_tar_name} && find {tar_name} -type f | sed 's/^/-f /g' | xargs kubectl apply",
             level=distutils.log.INFO,
         )
 
@@ -141,7 +156,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Development Status :: 3 - Alpha",
     ],
-    cmdclass={"clone_submodules": CloneSubmodulesCommand, "build_zip": BuildZip},
+    cmdclass={"clone_submodules": CloneSubmodulesCommand, "build_tar": BuildTarball},
     entry_points={"console_scripts": ["k8s_nms = k8s_nms.nms:cli"]},
     python_requires=">=3.7",
     install_requires=["ansible==2.9.9", "click", "setuptools"],
