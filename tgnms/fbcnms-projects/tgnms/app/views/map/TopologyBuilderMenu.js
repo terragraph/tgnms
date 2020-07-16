@@ -22,16 +22,13 @@ import PublishIcon from '@material-ui/icons/Publish';
 import RouterIcon from '@material-ui/icons/Router';
 import Slide from '@material-ui/core/Slide';
 import mapboxgl from 'mapbox-gl';
-import {
-  FormType,
-  SlideProps,
-  TopologyElement,
-} from '../../constants/MapPanelConstants';
+import useLiveRef from '../../hooks/useLiveRef';
+import {FormType, SlideProps} from '../../constants/MapPanelConstants';
+import {PANELS, PANEL_STATE} from './usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UploadTopologyPanel} from '../../components/mappanels/UploadTopologyPanel';
-import {convertType} from '../../helpers/ObjectHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 import type {
@@ -39,7 +36,8 @@ import type {
   EditNodeParams,
   PlannedSiteProps,
 } from '../../components/mappanels/MapPanelTypes';
-import type {SiteType} from '../../../shared/types/Topology';
+import type {LocationType, SiteType} from '../../../shared/types/Topology';
+import type {PanelStateControl} from './usePanelControl';
 
 const useStyles = makeStyles(theme => ({
   addButton: {
@@ -50,126 +48,100 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
+export type EditTopologyElementParams =
+  | $Shape<EditNodeParams>
+  | EditLinkParams
+  | $Shape<SiteType>;
+type Props = {|
   plannedSiteProps: PlannedSiteProps,
-  editTopologyElement: ?boolean,
-  addTopologyElementType: ?$Values<typeof TopologyElement>,
-  params: ?$Shape<EditNodeParams> | EditLinkParams | $Shape<SiteType>,
   mapRef: ?mapboxgl.Map,
-  updateTopologyPanelExpanded: boolean => void,
+  panelControl: PanelStateControl,
+  panelForm: TopologyBuilderState<EditTopologyElementParams>,
+|};
+
+export type PanelForm<T> = {|
+  params: ?T,
+  formType: $Values<typeof FormType>,
+|};
+export type TopologyBuilderState<T> = {
+  ...PanelForm<T>,
+  updateForm: (x: $Shape<PanelForm<T>>) => void,
 };
 
-type PanelProps<T> = {
-  panelExpanded: boolean,
-  showPanel: boolean,
-  panelParams: T,
-  formType?: $Values<typeof FormType>,
-};
+export function useTopologyBuilderForm<T>(): TopologyBuilderState<T> {
+  const [{params, formType}, setFormState] = React.useState<
+    $Shape<PanelForm<T>>,
+  >({
+    params: null,
+    formType: FormType.CREATE,
+  });
+  const updateform = React.useCallback(
+    (update: $Shape<PanelForm<T>>) => {
+      setFormState(curr => ({
+        ...curr,
+        ...update,
+      }));
+    },
+    [setFormState],
+  );
+
+  return {
+    params: params,
+    formType: formType,
+    updateForm: updateform,
+  };
+}
 
 export default function TopologyBuilderMenu(props: Props) {
   // Render the FAB with topology builder actions (add node/link/site)
-  const {
-    plannedSiteProps,
-    updateTopologyPanelExpanded,
-    editTopologyElement,
-  } = props;
+  const {panelControl, panelForm, plannedSiteProps, mapRef} = props;
+  const {params, formType, updateForm} = panelForm;
+  const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const plannedSitePropsRef = useLiveRef(plannedSiteProps);
+  const panelControlRef = useLiveRef(props.panelControl);
   const context = useContext(NetworkContext);
-
   const {networkConfig, networkName, selectedElement, setSelected} = context;
   const {controller_version, topology} = networkConfig;
-  const classes = useStyles();
-
   const menuAnchorEl = React.useRef<?HTMLElement>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [siteName, setSiteName] = useState(null);
-  const [uploadTopologyPanel, setUploadTopologyPanel] = useState<
-    PanelProps<{}>,
-  >({});
-  const [sitePanel, setSitePanel] = useState<PanelProps<$Shape<SiteType>>>({});
-  const [linkPanel, setLinkPanel] = useState<PanelProps<EditLinkParams>>({});
-  const [nodePanel, setNodePanel] = useState<
-    PanelProps<$Shape<EditNodeParams>>,
-  >({});
 
-  const showPanelProps = {
-    panelExpanded: true,
-    showPanel: true,
-    panelParams: {},
-    formType: editTopologyElement ? FormType.EDIT : FormType.CREATE,
-  };
+  const hidePanel = React.useCallback(
+    (panelKey: string) => {
+      panelControlRef.current.setPanelState(panelKey, PANEL_STATE.HIDDEN);
+    },
+    [panelControlRef],
+  );
 
-  const editPanel = useCallback(editPanelCallback, [editPanelCallback]);
-
-  const onRemovePlannedSite = useCallback(onRemovePlannedSiteCallback, [
-    onRemovePlannedSiteCallback,
-  ]);
-
-  function editPanelCallback(
-    name: $Values<typeof TopologyElement>,
-    overrides?: $Shape<PanelProps<*>>,
-  ) {
-    if (name === TopologyElement.link) {
-      setLinkPanel({
-        ...linkPanel,
-        ...overrides,
-        panelParams: convertType<EditLinkParams>(overrides?.panelParams),
-      });
-    } else if (name === TopologyElement.site) {
-      setSitePanel({
-        ...sitePanel,
-        ...overrides,
-        panelParams: convertType<$Shape<SiteType>>(overrides?.panelParams),
-      });
-    } else if (name === TopologyElement.node) {
-      setNodePanel({
-        ...nodePanel,
-        ...overrides,
-        panelParams:
-          convertType<$Shape<EditNodeParams>>(overrides?.panelParams) || {},
-      });
-    } else if (name === TopologyElement.upload) {
-      setUploadTopologyPanel({
-        ...uploadTopologyPanel,
-        ...overrides,
-        panelParams: {},
-      });
+  const onRemovePlannedSite = useCallback(() => {
+    const {unhideSite, onUpdatePlannedSite} = plannedSitePropsRef.current;
+    // Stop editing the previous site
+    if (siteName) {
+      unhideSite(siteName);
+      setSiteName(null);
     }
-  }
+    onUpdatePlannedSite(null);
+  }, [plannedSitePropsRef, siteName]);
 
-  useEffect(() => {
-    const {params, addTopologyElementType, updateTopologyPanelExpanded} = props;
-
-    if (addTopologyElementType === TopologyElement.site) {
-      editPanel(TopologyElement.site, {...showPanelProps, panelParams: params});
-      updateTopologyPanelExpanded(true);
-      onAddPlannedSite(convertType<$Shape<SiteType>>(params)?.location);
-    } else if (addTopologyElementType === TopologyElement.node) {
-      editPanel(TopologyElement.node, {...showPanelProps, panelParams: params});
-      updateTopologyPanelExpanded(true);
-    } else if (addTopologyElementType === TopologyElement.link) {
-      editPanel(TopologyElement.link, {...showPanelProps, panelParams: params});
-      updateTopologyPanelExpanded(true);
-    }
-  });
-
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  const handleTopologyChangeSnackbar = (changeMessage: string) => {
-    if (changeMessage === 'success') {
-      enqueueSnackbar(
-        'Topology successfully changed! Please wait a few moments for the topology to update.',
-        {variant: 'success'},
-      );
-    } else {
-      enqueueSnackbar('Topology change failed: ' + changeMessage, {
-        variant: 'error',
-      });
-    }
-  };
-
-  const onCloseTopologyPanel = useCallback(onCloseTopologyPanelCallback, [
-    onCloseTopologyPanelCallback,
-  ]);
+  const handleTopologyChangeSnackbar = useCallback(
+    (changeMessage: ?string) => {
+      if (changeMessage === 'success') {
+        enqueueSnackbar(
+          'Topology successfully changed! Please wait a few moments for the topology to update.',
+          {variant: 'success'},
+        );
+      } else {
+        enqueueSnackbar(
+          `Topology change failed${changeMessage ? ':' + changeMessage : ''} `,
+          {
+            variant: 'error',
+          },
+        );
+      }
+    },
+    [enqueueSnackbar],
+  );
 
   const handleActionsMenuOpen = useCallback(
     ev => {
@@ -179,213 +151,215 @@ export default function TopologyBuilderMenu(props: Props) {
     [menuAnchorEl, setShowMenu],
   );
 
-  const handleNodePanelChange = useCallback(
-    () =>
-      editPanel(TopologyElement.node, {
-        panelExpanded: !nodePanel.panelExpanded,
-      }),
-    [editPanel, nodePanel.panelExpanded],
-  );
-
   const handleNodePanelClose = useCallback(
     (changeMessage?: string) => {
       // If editing a node and nothing else is selected,
       // re-select the node onClose
-      const {formType, panelParams} = nodePanel;
-      if (formType === FormType.EDIT && !selectedElement) {
-        setSelected(TopologyElementType.NODE, panelParams?.name);
+      if (
+        formType === FormType.EDIT &&
+        !selectedElement &&
+        params &&
+        typeof params.name === 'string' //coerce to EditNodeParams
+      ) {
+        setSelected(TopologyElementType.NODE, params.name);
       }
-      onCloseTopologyPanel(TopologyElement.node, changeMessage);
+      hidePanel(PANELS.TOPOLOGY_NODE);
+      if (changeMessage) {
+        handleTopologyChangeSnackbar(changeMessage);
+      }
     },
-    [setSelected, onCloseTopologyPanel, nodePanel, selectedElement],
-  );
-
-  const handleLinkPanelChange = useCallback(
-    () =>
-      editPanel(TopologyElement.link, {
-        panelExpanded: !linkPanel.panelExpanded,
-      }),
-    [editPanel, linkPanel.panelExpanded],
-  );
-
-  const handleLinkPanelClose = useCallback(
-    (changeMessage?: string) => {
-      onCloseTopologyPanel(TopologyElement.link, changeMessage);
-    },
-    [onCloseTopologyPanel],
-  );
-
-  const handleSitePanelChange = useCallback(
-    () =>
-      editPanel(TopologyElement.site, {
-        panelExpanded: !sitePanel.panelExpanded,
-      }),
-    [editPanel, sitePanel.panelExpanded],
+    [
+      setSelected,
+      formType,
+      params,
+      selectedElement,
+      handleTopologyChangeSnackbar,
+      hidePanel,
+    ],
   );
 
   const handleSitePanelClose = useCallback(
-    (changeMessage?: string) => {
+    (changeMessage?: ?string) => {
+      hidePanel(PANELS.TOPOLOGY_SITE);
       // Hide the planned state feature on the map
       onRemovePlannedSite();
       // If editing a site and nothing else is selected,
       // re-select the site onClose
-      const {formType, panelParams} = sitePanel;
-      if (formType === FormType.EDIT && !selectedElement) {
-        setSelected(TopologyElementType.SITE, panelParams?.name || '');
+      if (
+        formType === FormType.EDIT &&
+        !selectedElement &&
+        params &&
+        typeof params.name === 'string' //coerce to EditSiteParams
+      ) {
+        setSelected(TopologyElementType.SITE, params?.name ?? '');
       }
-      onCloseTopologyPanel(TopologyElement.site, changeMessage);
+
+      if (changeMessage) {
+        handleTopologyChangeSnackbar(changeMessage);
+      }
     },
     [
       setSelected,
       onRemovePlannedSite,
       selectedElement,
-      sitePanel,
-      onCloseTopologyPanel,
+      formType,
+      params,
+      handleTopologyChangeSnackbar,
+      hidePanel,
     ],
   );
 
-  const onAddTopology = useCallback(onAddTopologyCallback, [
-    onAddTopologyCallback,
-  ]);
+  const onAddPlannedSite = React.useCallback(
+    (location?: LocationType) => {
+      // Add a planned site to the map
+      const {
+        plannedSite,
+        onUpdatePlannedSite,
+        unhideSite,
+      } = plannedSitePropsRef.current;
 
-  const onAddPlannedSite = useCallback(onAddPlannedSiteCallback, [
-    onAddPlannedSiteCallback,
-  ]);
+      // If there's already a planned site...
+      if (plannedSite && formType === FormType.EDIT && siteName) {
+        // Stop editing the previous site
+        unhideSite(siteName);
+        setSiteName(null);
+      }
 
-  const onAddNode = useCallback(
-    () => onAddTopology<EditNodeParams>(TopologyElement.node),
-    [onAddTopology],
-  );
-
-  const onAddSite = useCallback(() => {
-    onAddPlannedSite();
-    onAddTopology<SiteType>(TopologyElement.site);
-  }, [onAddPlannedSite, onAddTopology]);
-
-  const onAddLink = useCallback(
-    () => onAddTopology<EditLinkParams>(TopologyElement.link),
-    [onAddTopology],
-  );
-
-  const onUploadTopology = useCallback(
-    () => onAddTopology<{}>(TopologyElement.upload),
-    [onAddTopology],
-  );
-
-  const handleUploadTopologyPanelChange = useCallback(
-    () =>
-      editPanel(TopologyElement.upload, {
-        panelExpanded: !uploadTopologyPanel.panelExpanded,
-      }),
-    [editPanel, uploadTopologyPanel.panelExpanded],
-  );
-
-  const handleUploadTopologyPanelClose = useCallback(
-    (changeMessage?: string) => {
-      onCloseTopologyPanel(TopologyElement.upload, changeMessage);
+      // Set initial position to the center of the map, or the provided location
+      let initialPosition = {latitude: 0, longitude: 0};
+      if (location) {
+        const {latitude, longitude} = location;
+        initialPosition = {latitude, longitude};
+      } else if (mapRef) {
+        const {lat, lng} = mapRef.getCenter();
+        initialPosition = {latitude: lat, longitude: lng};
+      } else if (networkConfig.bounds) {
+        // Use networkConfig if map reference isn't set (shouldn't happen...)
+        const [[minLng, minLat], [maxLng, maxLat]] = networkConfig.bounds;
+        const latitude = minLat + (maxLat - minLat) / 2;
+        const longitude = minLng + (maxLng - minLng) / 2;
+        initialPosition = {latitude, longitude};
+      }
+      onUpdatePlannedSite(initialPosition);
     },
-    [onCloseTopologyPanel],
+    [mapRef, plannedSitePropsRef, formType, siteName, networkConfig.bounds],
   );
 
-  function onCloseTopologyPanelCallback(
-    type: $Values<typeof TopologyElement>,
-    changeMessage?: string,
-  ) {
-    editPanel(type, {
-      showPanel: false,
-      panelParams: {},
+  const handleUploadTopologyPanelClose = React.useCallback(
+    status => {
+      hidePanel(PANELS.TOPOLOGY_UPLOAD);
+      if (status) {
+        handleTopologyChangeSnackbar(status);
+      }
+    },
+    [handleTopologyChangeSnackbar, hidePanel],
+  );
+
+  const handleAddNodeClick = useCallback(() => {
+    panelControlRef.current.collapseAll();
+    panelControlRef.current.setPanelState(
+      PANELS.TOPOLOGY_NODE,
+      PANEL_STATE.OPEN,
+    );
+    updateForm({
+      formType: FormType.CREATE,
+      params: {},
     });
-    updateTopologyPanelExpanded(false);
-    if (changeMessage !== undefined) {
-      handleTopologyChangeSnackbar(changeMessage);
-    }
-  }
-
-  function onAddTopologyCallback<T>(
-    type: $Values<typeof TopologyElement>,
-    params?: $Shape<T>,
-  ) {
-    editPanel(type, {...showPanelProps, panelParams: params});
     setShowMenu(false);
-    updateTopologyPanelExpanded(true);
-  }
+  }, [panelControlRef, updateForm, setShowMenu]);
 
-  function onRemovePlannedSiteCallback() {
-    // Remove the planned site from the map
-    const {onUpdatePlannedSite, unhideSite} = plannedSiteProps;
+  const handleAddSiteClick = useCallback(() => {
+    onAddPlannedSite();
+    panelControlRef.current.collapseAll();
+    panelControlRef.current.setPanelState(
+      PANELS.TOPOLOGY_SITE,
+      PANEL_STATE.OPEN,
+    );
+    updateForm({
+      formType: FormType.CREATE,
+      params: {},
+    });
+    setShowMenu(false);
+  }, [onAddPlannedSite, panelControlRef, updateForm, setShowMenu]);
 
-    // Stop editing the previous site
-    if (siteName) {
-      unhideSite(siteName);
-      setSiteName(null);
-    }
-    onUpdatePlannedSite(null);
-  }
+  const handleAddLinkClick = useCallback(() => {
+    panelControlRef.current.collapseAll();
+    panelControlRef.current.setPanelState(
+      PANELS.TOPOLOGY_LINK,
+      PANEL_STATE.OPEN,
+    );
+    updateForm({
+      formType: FormType.CREATE,
+      params: {},
+    });
+    setShowMenu(false);
+  }, [panelControlRef, updateForm]);
 
-  function onAddPlannedSiteCallback(location) {
-    // Add a planned site to the map
-    const {mapRef, plannedSiteProps} = props;
-    const {plannedSite, onUpdatePlannedSite, unhideSite} = plannedSiteProps;
-
-    // If there's already a planned site...
-    if (plannedSite && sitePanel.formType === FormType.EDIT && siteName) {
-      // Stop editing the previous site
-      unhideSite(siteName);
-      setSiteName(null);
-    }
-
-    // Set initial position to the center of the map, or the provided location
-    let initialPosition = {latitude: 0, longitude: 0};
-    if (location) {
-      const {latitude, longitude} = location;
-      initialPosition = {latitude, longitude};
-    } else if (mapRef?.current) {
-      const {lat, lng} = mapRef.getCenter();
-      initialPosition = {latitude: lat, longitude: lng};
-    } else if (networkConfig.bounds) {
-      // Use networkConfig if map reference isn't set (shouldn't happen...)
-      const [[minLng, minLat], [maxLng, maxLat]] = networkConfig.bounds;
-      const latitude = minLat + (maxLat - minLat) / 2;
-      const longitude = minLng + (maxLng - minLng) / 2;
-      initialPosition = {latitude, longitude};
-    }
-    onUpdatePlannedSite(initialPosition);
-  }
+  const handleUploadTopologyClick = useCallback(() => {
+    panelControlRef.current.collapseAll();
+    panelControlRef.current.setPanelState(
+      PANELS.TOPOLOGY_UPLOAD,
+      PANEL_STATE.OPEN,
+    );
+    updateForm({
+      formType: FormType.CREATE,
+      params: {},
+    });
+    setShowMenu(false);
+  }, [updateForm, panelControlRef, setShowMenu]);
+  const siteParams: ?$Shape<SiteType> = (params: any);
 
   return (
     <>
-      <Slide {...SlideProps} unmountOnExit in={nodePanel.showPanel}>
+      <Slide
+        {...SlideProps}
+        unmountOnExit
+        in={!panelControl.getIsHidden(PANELS.TOPOLOGY_NODE)}>
         <AddNodePanel
-          expanded={nodePanel.panelExpanded}
-          onPanelChange={handleNodePanelChange}
+          expanded={panelControl.getIsOpen(PANELS.TOPOLOGY_NODE)}
+          onPanelChange={() => panelControl.toggleOpen(PANELS.TOPOLOGY_NODE)}
           onClose={handleNodePanelClose}
-          formType={nodePanel.formType || FormType.CREATE}
-          initialParams={nodePanel.panelParams}
+          formType={formType}
+          initialParams={params || {}}
           ctrlVersion={controller_version}
           networkConfig={networkConfig}
           networkName={networkName}
           topology={topology}
         />
       </Slide>
-      <Slide {...SlideProps} unmountOnExit in={linkPanel.showPanel}>
+      <Slide
+        {...SlideProps}
+        unmountOnExit
+        in={!panelControl.getIsHidden(PANELS.TOPOLOGY_LINK)}>
         <AddLinkPanel
-          expanded={linkPanel.panelExpanded}
-          onPanelChange={handleLinkPanelChange}
-          onClose={handleLinkPanelClose}
-          initialParams={linkPanel.panelParams}
+          expanded={panelControl.getIsOpen(PANELS.TOPOLOGY_LINK)}
+          onPanelChange={() => panelControl.toggleOpen(PANELS.TOPOLOGY_LINK)}
+          onClose={status => {
+            panelControl.setPanelState(
+              PANELS.TOPOLOGY_LINK,
+              PANEL_STATE.HIDDEN,
+            );
+            if (status) {
+              handleTopologyChangeSnackbar(status);
+            }
+          }}
+          initialParams={params ?? {}}
           topology={topology}
           networkName={networkName}
         />
       </Slide>
-      <Slide {...SlideProps} unmountOnExit in={sitePanel.showPanel}>
+      <Slide
+        {...SlideProps}
+        unmountOnExit
+        in={!panelControl.getIsHidden(PANELS.TOPOLOGY_SITE)}>
         <AddSitePanel
-          expanded={sitePanel.panelExpanded}
-          onPanelChange={handleSitePanelChange}
+          expanded={panelControl.getIsOpen(PANELS.TOPOLOGY_SITE)}
+          onPanelChange={() => panelControl.toggleOpen(PANELS.TOPOLOGY_SITE)}
           onClose={handleSitePanelClose}
-          formType={sitePanel.formType || FormType.CREATE}
+          formType={formType}
           initialParams={{
-            ...sitePanel?.panelParams?.location,
-            name: sitePanel?.panelParams?.name,
+            ...(siteParams?.location ?? {}),
+            name: siteParams?.name ?? '',
           }}
           networkName={networkName}
           plannedSite={plannedSiteProps.plannedSite}
@@ -393,11 +367,14 @@ export default function TopologyBuilderMenu(props: Props) {
           topology={topology}
         />
       </Slide>
-      <Slide {...SlideProps} unmountOnExit in={uploadTopologyPanel.showPanel}>
+      <Slide
+        {...SlideProps}
+        unmountOnExit
+        in={!panelControl.getIsHidden(PANELS.TOPOLOGY_UPLOAD)}>
         <UploadTopologyPanel
-          expanded={uploadTopologyPanel.panelExpanded}
+          expanded={panelControl.getIsOpen(PANELS.TOPOLOGY_UPLOAD)}
+          onPanelChange={() => panelControl.toggleOpen(PANELS.TOPOLOGY_UPLOAD)}
           onClose={handleUploadTopologyPanelClose}
-          onPanelChange={handleUploadTopologyPanelChange}
           networkName={networkName}
         />
       </Slide>
@@ -414,19 +391,19 @@ export default function TopologyBuilderMenu(props: Props) {
         id="topology-builder-menu"
         open={showMenu}
         onClose={() => setShowMenu(false)}>
-        <MenuItem onClick={onAddNode}>
+        <MenuItem onClick={handleAddNodeClick} data-testid="add-node">
           <ListItemIcon>{<RouterIcon />}</ListItemIcon>
           <ListItemText primary="Add Node" />
         </MenuItem>
-        <MenuItem onClick={onAddLink}>
+        <MenuItem onClick={handleAddLinkClick} data-testid="add-link">
           <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
           <ListItemText primary="Add Link" />
         </MenuItem>
-        <MenuItem onClick={onAddSite}>
+        <MenuItem onClick={handleAddSiteClick} data-testid="add-planned-site">
           <ListItemIcon>{<AddLocationIcon />}</ListItemIcon>
           <ListItemText primary="Add Planned Site" />
         </MenuItem>
-        <MenuItem onClick={onUploadTopology}>
+        <MenuItem onClick={handleUploadTopologyClick}>
           <ListItemIcon>{<PublishIcon />}</ListItemIcon>
           <ListItemText primary="Upload Topology File" />
         </MenuItem>

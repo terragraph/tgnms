@@ -33,6 +33,7 @@ import type {
 import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
+import type {PanelStateControl} from '../views/map/usePanelControl';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
@@ -279,4 +280,39 @@ export function mockCancelToken(): CancelToken {
     promise: new Promise<null>(() => null),
     throwIfRequested: () => null,
   }: any): CancelToken);
+}
+
+export function mockPanelControl(
+  overrides?: $Shape<PanelStateControl> = {},
+): PanelStateControl {
+  return {
+    getAll: jest.fn(),
+    getIsHidden: jest.fn(),
+    getIsCollapsed: jest.fn(),
+    getIsOpen: jest.fn(),
+    getPanelState: jest.fn(),
+    toggleOpen: jest.fn(),
+    setPanelState: jest.fn(),
+    removePanel: jest.fn(),
+    collapseAll: jest.fn(),
+    ...overrides,
+  };
+}
+
+/**
+ * CustomExpansionPanel has the data-test-expanded attr to aid in testing.
+ * This reads that attr and converts it to a bool.
+ */
+export function getIsExpanded(el: HTMLElement): boolean {
+  const attr = el.getAttribute('data-test-expanded');
+  if (!attr || attr.trim() === '') {
+    return false;
+  }
+  if (attr === 'true') {
+    return true;
+  }
+  if (attr === 'false') {
+    return false;
+  }
+  return !!attr;
 }

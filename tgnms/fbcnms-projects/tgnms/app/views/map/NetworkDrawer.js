@@ -10,7 +10,9 @@ import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
-import DrawerToggleButton from '../../components/common/DrawerToggleButton';
+import DrawerToggleButton, {
+  useDrawerToggle,
+} from '../../components/common/DrawerToggleButton';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
@@ -20,26 +22,35 @@ import OverviewPanel from '../../components/mappanels/OverviewPanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
-import TopologyBuilderMenu from './TopologyBuilderMenu';
+import TopologyBuilderMenu, {
+  useTopologyBuilderForm,
+} from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
-import mapboxgl from 'mapbox-gl';
-import {SlideProps, TopologyElement} from '../../constants/MapPanelConstants';
+import useLiveRef from '../../hooks/useLiveRef';
+import useUnmount from '../../hooks/useUnmount';
+import {
+  FormType,
+  SlideProps,
+  TopologyElement,
+} from '../../constants/MapPanelConstants';
+import {MAPMODE, useMapContext} from '../../contexts/MapContext';
+import {PANELS, PANEL_STATE, usePanelControl} from './usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
-import {withStyles, withTheme} from '@material-ui/core/styles';
+import {makeStyles, useTheme} from '@material-ui/styles';
+import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {useNetworkContext} from '../../contexts/NetworkContext';
 
+import type {EditTopologyElementParams} from './TopologyBuilderMenu';
+import type {Element} from '../../contexts/NetworkContext';
+import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
 import type {
-  EditLinkParams,
-  EditNodeParams,
   NearbyNodes,
   PlannedSiteProps,
   Routes,
 } from '../../components/mappanels/MapPanelTypes';
-import type {Element, NetworkContextType} from '../../contexts/NetworkContext';
-import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
-import type {SiteType} from '../../../shared/types/Topology';
-import type {Theme, WithStyles} from '@material-ui/core';
+import type {PanelStateControl} from './usePanelControl';
 
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
@@ -66,649 +77,539 @@ const styles = theme => ({
   },
 });
 
-type Props = {
-  context: NetworkContextType,
-  networkTestId: ?string,
-  mapRef: ?mapboxgl.Map,
-  plannedSiteProps: PlannedSiteProps,
-  routesProps: Routes,
-  searchNearbyProps: {|
-    nearbyNodes: NearbyNodes,
-    onUpdateNearbyNodes: NearbyNodes => any,
-  |},
-  mapLayersProps: MapLayersProps,
-  onNetworkDrawerResize: number => any,
+const useStyles = makeStyles(styles);
+type SearchNearbyProps = {|
+  nearbyNodes: NearbyNodes,
+  onUpdateNearbyNodes: NearbyNodes => *,
+|};
+
+type Props = {|
   networkDrawerWidth: number,
-};
+  onNetworkDrawerResize: number => *,
+  mapLayersProps: MapLayersProps,
+  searchNearbyProps: SearchNearbyProps,
+  routesProps: Routes,
+  plannedSiteProps: PlannedSiteProps,
+  networkTestId?: ?string,
+|};
 
-type State = {
-  // Panels
-  // -> expanded?
-  overviewPanelExpanded: boolean,
-  mapLayersPanelExpanded: boolean,
-  ignitionStatePanelExpanded: boolean,
-  accessPointsPanelExpanded: boolean,
-  upgradeProgressPanelExpanded: boolean,
-  // -> visible?
-  showIgnitionStatePanel: boolean,
-  showAccessPointsPanel: boolean,
-  // -> closing?
-  closingNodes: {},
-  closingLinks: {},
-  closingSites: {},
-  closingSearchNearby: {},
-  closingDefaultRoute: {},
+export default function NetworkDrawerFn({
+  networkDrawerWidth,
+  mapLayersProps,
+  searchNearbyProps,
+  routesProps,
+  plannedSiteProps,
+  networkTestId,
+  ...props
+}: Props) {
+  const classes = useStyles();
+  const drawerDimensions = {
+    width: networkDrawerWidth,
+    height: '100%',
+  };
+  const context = useNetworkContext();
+  const {mapMode, mapboxRef} = useMapContext();
+  const {
+    networkName,
+    networkLinkHealth,
+    nodeMap,
+    selectedElement,
+    pinnedElements,
+  } = context;
+  const {
+    topology,
+    ignition_state,
+    status_dump,
+    upgrade_state,
+    wireless_controller,
+    wireless_controller_stats,
+  } = context.networkConfig;
+  const plannedSitePropsRef = useLiveRef(plannedSiteProps);
 
-  // Topology details
-  topologyParams: ?$Shape<EditNodeParams> | EditLinkParams | $Shape<SiteType>,
-  editTopologyElement: ?boolean,
-  addTopologyElementType: ?$Values<typeof TopologyElement>,
-  topologyPanelExpanded: boolean,
-  //show or hide drawer
-  drawerOpen: boolean,
-};
-
-class NetworkDrawer extends React.Component<
-  Props & WithStyles<typeof styles> & {theme: Theme},
-  State,
-> {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      // Panels
-      // -> expanded?
-      overviewPanelExpanded: !(
-        props.context.selectedElement || props.context.pinnedElements.length
-      ),
-      mapLayersPanelExpanded: false,
-      ignitionStatePanelExpanded: false,
-      accessPointsPanelExpanded: false,
-      upgradeProgressPanelExpanded: true,
-      // -> visible?
-      showIgnitionStatePanel: false,
-      showAccessPointsPanel: false,
-      // -> closing?
-      closingNodes: {},
-      closingLinks: {},
-      closingSites: {},
-      closingSearchNearby: {},
-      closingDefaultRoute: {},
-
-      // Topology details
-      topologyParams: null,
-      editTopologyElement: null,
-      addTopologyElementType: null,
-      topologyPanelExpanded: false,
-      drawerOpen: true,
-    };
+  const topologyElements: Array<Element> = [];
+  if (selectedElement) {
+    topologyElements.push(selectedElement);
   }
+  pinnedElements
+    .filter(
+      el =>
+        !(
+          selectedElement &&
+          el.type === selectedElement.type &&
+          el.name === selectedElement.name
+        ),
+    )
+    .forEach(el => topologyElements.push(el));
 
-  componentDidUpdate(prevProps: Props) {
-    const {selectedElement, pinnedElements} = this.props.context;
-    const {
-      overviewPanelExpanded,
-      mapLayersPanelExpanded,
-      ignitionStatePanelExpanded,
-      accessPointsPanelExpanded,
-      upgradeProgressPanelExpanded,
-      topologyPanelExpanded,
-    } = this.state;
-
-    // Expand or unexpand panels based on changes to context
-    if (
-      this.props.context.selectedElement &&
-      this.props.context.selectedElement != prevProps.context.selectedElement
-    ) {
-      // If the selected element changed, unexpand all other panels
-      this.setUnexpandPanelsState();
-    } else {
-      // If there are no more selected/pinned elements and nothing is expanded,
-      // expand the "Overview" panel
-      const hasTopologyElements = selectedElement || pinnedElements.length;
-      const prevHadTopologyElements =
-        prevProps.context.selectedElement ||
-        prevProps.context.pinnedElements.length;
-      if (!hasTopologyElements && prevHadTopologyElements) {
-        const isAnyPanelExpanded =
-          overviewPanelExpanded ||
-          mapLayersPanelExpanded ||
-          ignitionStatePanelExpanded ||
-          accessPointsPanelExpanded ||
-          upgradeProgressPanelExpanded ||
-          topologyPanelExpanded;
-
-        if (!isAnyPanelExpanded) {
-          this.handleoverViewPanelExpand();
-        }
-      }
-    }
-  }
-
-  handleoverViewPanelExpand() {
-    this.setState({
-      overviewPanelExpanded: true,
-    });
-  }
-
-  handleHorizontalResize = width => {
-    this.props.onNetworkDrawerResize(width);
+  const handleHorizontalResize = width => {
+    props.onNetworkDrawerResize(width);
     // Force map to resize
     window.dispatchEvent(new Event('resize'));
   };
 
-  onClosePanel(name, type, stateKey: string) {
-    // Close a topology element panel
-    const {context, searchNearbyProps, routesProps, theme} = this.props;
-    const closingMap = this.state[stateKey];
-    if (closingMap.hasOwnProperty(name)) {
-      return;
-    }
+  const panelControl = usePanelControl({
+    initialState: {
+      OVERVIEW: PANEL_STATE.OPEN,
+      MAP_LAYERS: PANEL_STATE.COLLAPSED,
+      IGNITION_STATE: PANEL_STATE.HIDDEN,
+      ACCESS_POINTS: PANEL_STATE.HIDDEN,
+      UPGRADE_PROGRESS: PANEL_STATE.HIDDEN,
+      TOPOLOGY: PANEL_STATE.HIDDEN,
+    },
+  });
+  const {
+    setPanelState,
+    getIsOpen,
+    getIsHidden,
+    toggleOpen,
+    collapseAll,
+    getAll,
+  } = panelControl;
 
-    // Actually close after a delay (to show the sliding-out animation)
-    closingMap[name] = setTimeout(() => {
-      const closingMap = this.state[stateKey];
-      delete closingMap[name];
-      this.setState({[stateKey]: closingMap});
+  // this state is for the TopologyBuilderMenu forms
+  const topologyBuilderForm = useTopologyBuilderForm();
+  const {updateForm} = topologyBuilderForm;
 
-      // Perform the real action
-      if (type === 'search_nearby') {
-        // Remove the "Search Nearby" panel
-        const {nearbyNodes, onUpdateNearbyNodes} = searchNearbyProps;
-        delete nearbyNodes[name];
-        onUpdateNearbyNodes(nearbyNodes);
-      } else if (type === 'show_route') {
-        // Remove the "Show route" panel
-        const {onUpdateRoutes} = routesProps;
-        onUpdateRoutes({
-          node: null,
-          links: {},
-          nodes: new Set(),
-        });
-      } else {
-        // Close the element in the context
-        context.removeElement(type, name);
-      }
-    }, theme.transitions.duration.leavingScreen + 100 /* to be safe */);
-    this.setState({[stateKey]: closingMap});
-  }
-
-  isTestMode = () => {
-    return (
-      typeof this.props.networkTestId === 'string' &&
-      this.props.networkTestId.trim() !== ''
-    );
-  };
-
-  getUnexpandPanelsState() {
-    return {
-      overviewPanelExpanded: false,
-      mapLayersPanelExpanded: false,
-      ignitionStatePanelExpanded: false,
-      accessPointsPanelExpanded: false,
-      upgradeProgressPanelExpanded: false,
-      topologyParams: null,
-      editTopologyElement: null,
-      addTopologyElementType: null,
-      topologyPanelExpanded: false,
-    };
-  }
-
-  setUnexpandPanelsState() {
-    this.setState(this.getUnexpandPanelsState());
-  }
-
-  onEditTopology = (params, topologyElement) => {
-    this.setState({
-      ...this.getUnexpandPanelsState(),
-      topologyParams: params,
-      editTopologyElement: true,
-      addTopologyElementType: topologyElement,
-    });
-  };
-
-  onAddTopology = (params, topologyElement) => {
-    this.setState({
-      ...this.getUnexpandPanelsState(),
-      topologyParams: params,
-      addTopologyElementType: topologyElement,
-    });
-  };
-
-  renderTopologyElement({type, name, expanded}, SlideProps) {
-    // Render a topology element panel
-    const {context, searchNearbyProps, routesProps} = this.props;
-    const {networkConfig, pinnedElements} = context;
-    const {
-      controller_version,
-      ignition_state,
-      status_dump,
-      topology,
-      wireless_controller_stats,
-    } = networkConfig;
-    const {
-      networkName,
-      networkNodeHealth,
-      networkLinkHealth,
-      networkLinkMetrics,
-      nodeMap,
-      linkMap,
-      siteMap,
-      siteToNodesMap,
-    } = context;
-    const pinned = !!pinnedElements.find(
-      el => el.type === type && el.name === name,
-    );
-
-    if (type === TopologyElementType.NODE) {
-      const node = nodeMap[name];
-      // hack to get around issues with flow
-      const {node: _, ...routesPropsWithoutNode} = routesProps;
-      return (
-        <Slide
-          {...SlideProps}
-          key={name}
-          in={!this.state.closingNodes.hasOwnProperty(name)}>
-          <NodeDetailsPanel
-            expanded={expanded}
-            onPanelChange={() => context.toggleExpanded(type, name, !expanded)}
-            networkName={networkName}
-            nodeDetailsProps={{
-              ctrlVersion: controller_version,
-              node: node,
-              statusReport: node
-                ? status_dump.statusReports[node.mac_addr]
-                : null,
-              networkNodeHealth: networkNodeHealth,
-              networkConfig: networkConfig,
-              onSelectLink: linkName =>
-                context.setSelected(TopologyElementType.LINK, linkName),
-              onSelectSite: siteName =>
-                context.setSelected(TopologyElementType.SITE, siteName),
-              topology: topology,
-            }}
-            onClose={() => this.onClosePanel(name, type, 'closingNodes')}
-            pinned={pinned}
-            onPin={() => context.togglePin(type, name, !pinned)}
-            onEdit={params => this.onEditTopology(params, TopologyElement.node)}
-            {...searchNearbyProps}
-            {...routesPropsWithoutNode}
-            node={node}
-          />
-        </Slide>
-      );
-    } else if (type === TopologyElementType.LINK) {
-      const link = linkMap[name];
-      return (
-        <Slide
-          {...SlideProps}
-          key={name}
-          in={!this.state.closingLinks.hasOwnProperty(name)}>
-          <LinkDetailsPanel
-            expanded={expanded}
-            onPanelChange={() => context.toggleExpanded(type, name, !expanded)}
-            networkName={networkName}
-            link={link}
-            nodeMap={nodeMap}
-            networkLinkHealth={networkLinkHealth}
-            networkLinkMetrics={networkLinkMetrics}
-            networkConfig={networkConfig}
-            ignitionEnabled={
-              !(
-                ignition_state &&
-                ignition_state.igParams.linkAutoIgnite[name] === false
-              )
-            }
-            onClose={() => {
-              this.onClosePanel(name, type, 'closingLinks');
-            }}
-            onSelectNode={nodeName =>
-              context.setSelected(TopologyElementType.NODE, nodeName)
-            }
-            pinned={pinned}
-            onPin={() => context.togglePin(type, name, !pinned)}
-          />
-        </Slide>
-      );
-    } else if (type === TopologyElementType.SITE) {
-      const site = siteMap[name];
-      const wapStats = get(
-        wireless_controller_stats,
-        [name.toLowerCase()],
-        null,
-      );
-      return (
-        <Slide
-          {...SlideProps}
-          key={name}
-          in={!this.state.closingSites.hasOwnProperty(name)}>
-          <SiteDetailsPanel
-            expanded={expanded}
-            onPanelChange={() => context.toggleExpanded(type, name, !expanded)}
-            networkName={networkName}
-            topology={topology}
-            site={site}
-            siteMap={siteMap}
-            siteNodes={siteToNodesMap[name] || new Set()}
-            nodeMap={nodeMap}
-            networkLinkHealth={networkLinkHealth}
-            wapStats={wapStats}
-            onClose={() => this.onClosePanel(name, type, 'closingSites')}
-            onSelectNode={nodeName =>
-              context.setSelected(TopologyElementType.NODE, nodeName)
-            }
-            pinned={pinned}
-            onPin={() => context.togglePin(type, name, !pinned)}
-            onEdit={params =>
-              this.onEditTopology(
-                {name: params.name, location: {...params}},
-                TopologyElement.site,
-              )
-            }
-            onUpdateRoutes={routesProps.onUpdateRoutes}
-          />
-        </Slide>
-      );
-    }
-    return null;
-  }
-
-  renderDefaultRouteHistoryPanel(nodeName, SlideProps) {
-    const {context, routesProps} = this.props;
-    const {topology} = context.networkConfig;
-    const {networkName, nodeMap, siteMap, siteToNodesMap} = context;
-    const node = nodeMap[nodeName];
-    return (
-      <Slide
-        {...SlideProps}
-        key={node.site_name}
-        in={!this.state.closingDefaultRoute.hasOwnProperty(node.site_name)}>
-        <DefaultRouteHistoryPanel
-          networkName={networkName}
-          topology={topology}
-          node={node}
-          nodeMap={nodeMap}
-          site={siteMap[node.site_name]}
-          onClose={() =>
-            this.onClosePanel(
-              node.site_name,
-              'show_route',
-              'closingDefaultRoute',
-            )
-          }
-          routes={routesProps}
-          siteNodes={siteToNodesMap[node.site_name]}
-        />
-      </Slide>
-    );
-  }
-
-  renderSearchNearby(nodeName, SlideProps) {
-    // Render a "Search Nearby" panel
-    const {context, searchNearbyProps} = this.props;
-    const {topology} = context.networkConfig;
-    const {networkName, nodeMap, siteMap} = context;
-    const node = nodeMap[nodeName];
-
-    return (
-      <Slide
-        {...SlideProps}
-        key={nodeName}
-        in={!this.state.closingSearchNearby.hasOwnProperty(nodeName)}>
-        <SearchNearbyPanel
-          networkName={networkName}
-          topology={topology}
-          node={node}
-          site={siteMap[node.site_name]}
-          onClose={() =>
-            this.onClosePanel(nodeName, 'search_nearby', 'closingSearchNearby')
-          }
-          onAddNode={params => this.onAddTopology(params, TopologyElement.node)}
-          onAddLink={params => this.onAddTopology(params, TopologyElement.link)}
-          onAddSite={params => this.onAddTopology(params, TopologyElement.site)}
-          {...searchNearbyProps}
-        />
-      </Slide>
-    );
-  }
-
-  updateTopologyPanelExpanded = topologyPanelExpanded => {
-    this.setState({...this.getUnexpandPanelsState(), topologyPanelExpanded});
-  };
-
-  onDrawerToggle = () => {
-    const {drawerOpen} = this.state;
-    const {theme, onNetworkDrawerResize} = this.props;
-    const newWidth = drawerOpen ? 0 : NetworkDrawerConstants.DRAWER_MIN_WIDTH;
-    onNetworkDrawerResize(newWidth);
-    this.setState({drawerOpen: !drawerOpen}, () => {
-      // Figure out duration of animation
-      let duration = theme.transitions.duration.enteringScreen;
-      if (drawerOpen) {
-        duration = theme.transitions.duration.leavingScreen;
-      }
-
-      // Add a some buffer to the duration in case it misses an edge
-      duration += 20;
-      const startTime = new Date().getTime();
-      const interval = setInterval(() => {
-        // Clear the interval after
-        if (new Date().getTime() - startTime > duration) {
-          clearInterval(interval);
-          return;
-        }
-        window.dispatchEvent(new Event('resize'));
-      }, 10 /* 100 fps, should be good */);
-    });
-  };
-
-  render() {
-    const {
-      classes,
-      context,
-      mapLayersProps,
-      plannedSiteProps,
-      searchNearbyProps,
-      routesProps,
-      mapRef,
-      networkDrawerWidth,
-      networkTestId,
-    } = this.props;
-    const {
-      networkName,
-      nodeMap,
-      networkLinkHealth,
-      selectedElement,
-      pinnedElements,
-    } = context;
-    const {
-      topology,
-      ignition_state,
-      status_dump,
-      upgrade_state,
-      wireless_controller,
-      wireless_controller_stats,
-    } = context.networkConfig;
-    const {
-      overviewPanelExpanded,
-      mapLayersPanelExpanded,
-      ignitionStatePanelExpanded,
-      accessPointsPanelExpanded,
-      upgradeProgressPanelExpanded,
-      topologyParams,
-      editTopologyElement,
-      addTopologyElementType,
-      drawerOpen,
-    } = this.state;
-
-    const drawerDimensions = {
-      width: networkDrawerWidth,
-      height: '100%',
-    };
-
-    // Build list of topology elements
-    const topologyElements: Array<Element> = [];
+  React.useEffect(() => {
     if (selectedElement) {
-      topologyElements.push(selectedElement);
+      return collapseAll();
     }
-    pinnedElements
-      .filter(
-        el =>
-          !(
-            selectedElement &&
-            el.type === selectedElement.type &&
-            el.name === selectedElement.name
-          ),
-      )
-      .forEach(el => topologyElements.push(el));
+    const isAnyPanelOpen = objectValuesTypesafe<$Values<typeof PANEL_STATE>>(
+      getAll(),
+    ).includes(PANEL_STATE.OPEN);
+    if (!isAnyPanelOpen) {
+      return setPanelState(PANELS.OVERVIEW, PANEL_STATE.OPEN);
+    }
+  }, [selectedElement, getAll, collapseAll, setPanelState]);
 
-    // Is an upgrade ongoing?
-    // TODO - Support FULL_UPGRADE
-    const upgradeReq = upgrade_state.curReq.urReq;
-    const showUpgradeProgressPanel =
-      upgradeReq.upgradeReqId &&
-      (upgradeReq.urType === UpgradeReqType.PREPARE_UPGRADE ||
-        upgradeReq.urType === UpgradeReqType.COMMIT_UPGRADE);
+  const upgradeReq = upgrade_state.curReq.urReq;
+  const showUpgradeProgressPanel =
+    upgradeReq.upgradeReqId &&
+    (upgradeReq.urType === UpgradeReqType.PREPARE_UPGRADE ||
+      upgradeReq.urType === UpgradeReqType.COMMIT_UPGRADE);
+  React.useEffect(() => {
+    // open the panel once, if an upgrade is in progress and the panel is hidden
+    if (showUpgradeProgressPanel && getIsHidden(PANELS.UPGRADE_PROGRESS)) {
+      setPanelState(PANELS.UPGRADE_PROGRESS, PANEL_STATE.OPEN);
+    } else {
+      setPanelState(PANELS.UPGRADE_PROGRESS, PANEL_STATE.HIDDEN);
+    }
+  }, [showUpgradeProgressPanel, getIsHidden, setPanelState]);
 
-    return (
-      <Drawer
-        variant="permanent"
-        classes={{paper: classes.drawerPaper}}
-        style={drawerDimensions}
-        anchor="right">
-        <div className={classes.appBarSpacer} />
-        <div className={classes.draggerContainer}>
-          <Dragger
-            direction="horizontal"
-            minSize={NetworkDrawerConstants.DRAWER_MIN_WIDTH}
-            maxSize={NetworkDrawerConstants.DRAWER_MAX_WIDTH}
-            onResize={this.handleHorizontalResize}
+  const handleEditTopology = React.useCallback(
+    (
+      params: EditTopologyElementParams,
+      type: $Values<typeof TopologyElementType>,
+    ) => {
+      collapseAll();
+      updateForm({
+        params,
+        formType: FormType.EDIT,
+      });
+      if (type === TopologyElement.site) {
+        if (
+          typeof params?.location !== 'undefined' &&
+          params?.location != null
+        ) {
+          plannedSitePropsRef.current.onUpdatePlannedSite({
+            ...params.location,
+          });
+        }
+        setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
+      } else if (type === TopologyElement.link) {
+        setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
+      } else if (type === TopologyElement.link) {
+        setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
+      }
+    },
+    [collapseAll, updateForm, setPanelState, plannedSitePropsRef],
+  );
+  const handleAddTopology = React.useCallback(
+    (
+      params: EditTopologyElementParams,
+      _type: $Values<typeof TopologyElementType>,
+    ) => {
+      collapseAll();
+      updateForm({
+        params,
+        formType: FormType.CREATE,
+      });
+    },
+    [collapseAll, updateForm],
+  );
+
+  const {isOpen: isDrawerOpen, toggle: drawerToggle} = useDrawerToggle();
+  return (
+    <Drawer
+      variant="permanent"
+      classes={{paper: classes.drawerPaper}}
+      style={drawerDimensions}
+      anchor="right">
+      <div className={classes.appBarSpacer} />
+      <div className={classes.draggerContainer}>
+        <Dragger
+          direction="horizontal"
+          minSize={NetworkDrawerConstants.DRAWER_MIN_WIDTH}
+          maxSize={NetworkDrawerConstants.DRAWER_MAX_WIDTH}
+          onResize={handleHorizontalResize}
+        />
+      </div>
+      <div className={classes.content}>
+        {showUpgradeProgressPanel ? (
+          <UpgradeProgressPanel
+            expanded={getIsOpen(PANELS.UPGRADE_PROGRESS)}
+            onPanelChange={() => toggleOpen(PANELS.UPGRADE_PROGRESS)}
+            topology={topology}
+            nodeMap={nodeMap}
+            upgradeStateDump={upgrade_state}
+            statusReports={status_dump.statusReports}
           />
-        </div>
+        ) : null}
 
-        <div className={classes.content}>
-          {showUpgradeProgressPanel ? (
-            <UpgradeProgressPanel
-              expanded={upgradeProgressPanelExpanded}
-              onPanelChange={() =>
-                this.setState({
-                  upgradeProgressPanelExpanded: !upgradeProgressPanelExpanded,
-                })
-              }
-              topology={topology}
-              nodeMap={nodeMap}
-              upgradeStateDump={upgrade_state}
-              statusReports={status_dump.statusReports}
-            />
-          ) : null}
-          {!this.isTestMode() && (
-            <OverviewPanel
-              expanded={overviewPanelExpanded}
-              onPanelChange={() =>
-                this.setState({overviewPanelExpanded: !overviewPanelExpanded})
-              }
-              networkConfig={context.networkConfig}
-              networkLinkHealth={networkLinkHealth}
-              onViewIgnitionState={() =>
-                this.setState({
-                  overviewPanelExpanded: false,
-                  showIgnitionStatePanel: true,
-                  ignitionStatePanelExpanded: true,
-                })
-              }
-              onViewAccessPointList={() =>
-                this.setState({
-                  overviewPanelExpanded: false,
-                  showAccessPointsPanel: true,
-                  accessPointsPanelExpanded: true,
-                })
-              }
-            />
-          )}
+        {mapMode !== MAPMODE.NETWORK_TEST && (
+          <OverviewPanel
+            expanded={getIsOpen(PANELS.OVERVIEW)}
+            onPanelChange={() => {
+              toggleOpen(PANELS.OVERVIEW);
+            }}
+            networkConfig={context.networkConfig}
+            networkLinkHealth={networkLinkHealth}
+            onViewIgnitionState={() => {
+              setPanelState(PANELS.IGNITION_STATE, PANEL_STATE.OPEN);
+              setPanelState(PANELS.OVERVIEW, PANEL_STATE.COLLAPSED);
+            }}
+            onViewAccessPointList={() => {
+              setPanelState(PANELS.ACCESS_POINTS, PANEL_STATE.OPEN);
+              setPanelState(PANELS.OVERVIEW, PANEL_STATE.COLLAPSED);
+            }}
+          />
+        )}
+        {mapMode === MAPMODE.NETWORK_TEST && (
+          <NetworkTestPanel
+            expanded={true}
+            testId={networkTestId}
+            routes={routesProps}
+          />
+        )}
+        <MapLayersPanel
+          {...mapLayersProps}
+          networkName={networkName}
+          expanded={getIsOpen(PANELS.MAP_LAYERS)}
+          onPanelChange={() => toggleOpen(PANELS.MAP_LAYERS)}
+        />
 
-          {this.isTestMode() && (
-            <NetworkTestPanel
-              routes={routesProps}
-              expanded={true}
-              testId={this.props.networkTestId}
-            />
-          )}
-
-          <MapLayersPanel
-            {...mapLayersProps}
-            networkName={networkName}
-            expanded={mapLayersPanelExpanded}
-            onPanelChange={() =>
-              this.setState({mapLayersPanelExpanded: !mapLayersPanelExpanded})
+        <Slide
+          {...SlideProps}
+          unmountOnExit
+          in={!getIsHidden(PANELS.IGNITION_STATE)}>
+          <IgnitionStatePanel
+            expanded={getIsOpen(PANELS.IGNITION_STATE)}
+            onPanelChange={() => toggleOpen(PANELS.IGNITION_STATE)}
+            onClose={() =>
+              setPanelState(PANELS.IGNITION_STATE, PANEL_STATE.HIDDEN)
             }
+            networkName={networkName}
+            ignitionState={ignition_state}
+            refreshNetworkConfig={context.refreshNetworkConfig}
           />
-          <Slide
-            {...SlideProps}
-            unmountOnExit
-            in={this.state.showIgnitionStatePanel}>
-            <IgnitionStatePanel
-              expanded={ignitionStatePanelExpanded}
-              onPanelChange={() =>
-                this.setState({
-                  ignitionStatePanelExpanded: !ignitionStatePanelExpanded,
-                })
-              }
-              onClose={() => this.setState({showIgnitionStatePanel: false})}
-              networkName={networkName}
-              ignitionState={ignition_state}
-              refreshNetworkConfig={context.refreshNetworkConfig}
+        </Slide>
+
+        <Slide
+          {...SlideProps}
+          unmountOnExit
+          in={!getIsHidden(PANELS.ACCESS_POINTS)}>
+          <AccessPointsPanel
+            expanded={getIsOpen(PANELS.ACCESS_POINTS)}
+            onPanelChange={() => toggleOpen(PANELS.OVERVIEW)}
+            onClose={() =>
+              setPanelState(PANELS.IGNITION_STATE, PANEL_STATE.HIDDEN)
+            }
+            onSelectSite={siteName =>
+              context.setSelected(TopologyElementType.SITE, siteName)
+            }
+            topology={topology}
+            wirelessController={wireless_controller}
+            wirelessControllerStats={wireless_controller_stats}
+          />
+        </Slide>
+
+        {Object.keys(searchNearbyProps.nearbyNodes).map(txNode => (
+          <SearchNearby
+            nodeName={txNode}
+            searchNearbyProps={searchNearbyProps}
+            panelControl={panelControl}
+            onAddTopology={handleAddTopology}
+          />
+        ))}
+
+        {routesProps.node && (
+          <Slide {...SlideProps} in={!getIsHidden(PANELS.DEFAULT_ROUTES)}>
+            <RenderDefaultRoutesHistoryPanel
+              nodeName={routesProps?.node ?? ''}
+              panelControl={panelControl}
+              routesProps={routesProps}
             />
           </Slide>
-          <Slide
-            {...SlideProps}
-            unmountOnExit
-            in={this.state.showAccessPointsPanel}>
-            <AccessPointsPanel
-              expanded={accessPointsPanelExpanded}
-              onPanelChange={() =>
-                this.setState({
-                  accessPointsPanelExpanded: !accessPointsPanelExpanded,
-                })
-              }
-              onClose={() => this.setState({showAccessPointsPanel: false})}
-              onSelectSite={siteName =>
-                context.setSelected(TopologyElementType.SITE, siteName)
-              }
-              topology={topology}
-              wirelessController={wireless_controller}
-              wirelessControllerStats={wireless_controller_stats}
-            />
-          </Slide>
+        )}
 
-          {Object.keys(searchNearbyProps.nearbyNodes).map(txNode =>
-            this.renderSearchNearby(txNode, SlideProps),
-          )}
-
-          {routesProps.node && !networkTestId
-            ? this.renderDefaultRouteHistoryPanel(routesProps.node, SlideProps)
-            : null}
-
-          {topologyElements.map(el =>
-            this.renderTopologyElement(el, SlideProps),
-          )}
-
-          <TopologyBuilderMenu
-            plannedSiteProps={plannedSiteProps}
-            editTopologyElement={editTopologyElement}
-            addTopologyElementType={addTopologyElementType}
-            params={topologyParams}
-            mapRef={mapRef}
-            updateTopologyPanelExpanded={this.updateTopologyPanelExpanded}
+        {topologyElements.map(el => (
+          <RenderTopologyElement
+            key={el.name}
+            element={el}
+            panelControl={panelControl}
+            searchNearbyProps={searchNearbyProps}
+            routesProps={routesProps}
+            onEditTopology={handleEditTopology}
           />
-          <DrawerToggleButton
-            drawerWidth={networkDrawerWidth}
-            drawerOpen={drawerOpen}
-            onDrawerToggle={this.onDrawerToggle}
-          />
-        </div>
-      </Drawer>
-    );
-  }
+        ))}
+
+        <TopologyBuilderMenu
+          panelControl={panelControl}
+          panelForm={topologyBuilderForm}
+          plannedSiteProps={plannedSiteProps}
+          mapRef={mapboxRef}
+        />
+        <DrawerToggleButton
+          drawerWidth={networkDrawerWidth}
+          isOpen={isDrawerOpen}
+          onDrawerToggle={drawerToggle}
+        />
+      </div>
+    </Drawer>
+  );
 }
 
-export default withTheme(withStyles(styles, {withTheme: true})(NetworkDrawer));
+function RenderTopologyElement({
+  element,
+  panelControl,
+  searchNearbyProps,
+  routesProps,
+  onEditTopology,
+}: {
+  element: Element,
+  panelControl: PanelStateControl,
+  searchNearbyProps: SearchNearbyProps,
+  routesProps: Routes,
+  onEditTopology: (
+    params: EditTopologyElementParams,
+    type: $Values<typeof TopologyElement>,
+  ) => *,
+}) {
+  const {setPanelState, getIsHidden, removePanel} = panelControl;
+  const theme = useTheme();
+
+  const {type, name, expanded} = element;
+  const {
+    networkConfig,
+    pinnedElements,
+    networkName,
+    networkNodeHealth,
+    networkLinkHealth,
+    networkLinkMetrics,
+    nodeMap,
+    linkMap,
+    siteMap,
+    siteToNodesMap,
+    toggleExpanded,
+    setSelected,
+    togglePin,
+    removeElement,
+  } = useNetworkContext();
+  const {
+    controller_version,
+    ignition_state,
+    status_dump,
+    topology,
+    wireless_controller_stats,
+  } = networkConfig;
+
+  const pinned = !!pinnedElements.find(
+    el => el.type === type && el.name === name,
+  );
+
+  const panelKey = React.useMemo(() => `${type}-${name}`, [name, type]);
+
+  // When this component first mounts, open it
+  React.useEffect(() => {
+    setPanelState(panelKey, PANEL_STATE.OPEN);
+  }, [setPanelState, panelKey]);
+  useUnmount(() => {
+    removePanel(panelKey);
+  });
+
+  const isVisible = !getIsHidden(panelKey);
+  const handleClosePanel = () => {
+    removePanel(panelKey);
+    setTimeout(() => {
+      removeElement(type, name);
+    }, theme.transitions.duration.leavingScreen + 100 /* to be safe */);
+  };
+
+  if (type === TopologyElementType.NODE) {
+    const node = nodeMap[name];
+    // hack to get around issues with flow
+    const {node: _, ...routesPropsWithoutNode} = routesProps;
+    return (
+      <Slide {...SlideProps} key={name} in={isVisible}>
+        <NodeDetailsPanel
+          expanded={expanded}
+          onPanelChange={() => toggleExpanded(type, name, !expanded)}
+          networkName={networkName}
+          nodeDetailsProps={{
+            ctrlVersion: controller_version,
+            node: node,
+            statusReport: node
+              ? status_dump.statusReports[node.mac_addr]
+              : null,
+            networkNodeHealth: networkNodeHealth,
+            networkConfig: networkConfig,
+            onSelectLink: linkName =>
+              setSelected(TopologyElementType.LINK, linkName),
+            onSelectSite: siteName =>
+              setSelected(TopologyElementType.SITE, siteName),
+            topology: topology,
+          }}
+          pinned={pinned}
+          onPin={() => togglePin(type, name, !pinned)}
+          onClose={() => handleClosePanel()}
+          onEdit={params => onEditTopology(params, TopologyElement.node)}
+          {...searchNearbyProps}
+          {...routesPropsWithoutNode}
+          node={node}
+        />
+      </Slide>
+    );
+  } else if (type === TopologyElementType.LINK) {
+    const link = linkMap[name];
+    return (
+      <Slide {...SlideProps} key={name} in={isVisible}>
+        <LinkDetailsPanel
+          expanded={expanded}
+          onPanelChange={() => toggleExpanded(type, name, !expanded)}
+          networkName={networkName}
+          link={link}
+          nodeMap={nodeMap}
+          networkLinkHealth={networkLinkHealth}
+          networkLinkMetrics={networkLinkMetrics}
+          networkConfig={networkConfig}
+          ignitionEnabled={
+            !(
+              ignition_state &&
+              ignition_state.igParams.linkAutoIgnite[name] === false
+            )
+          }
+          onClose={handleClosePanel}
+          onSelectNode={nodeName =>
+            setSelected(TopologyElementType.NODE, nodeName)
+          }
+          pinned={pinned}
+          onPin={() => togglePin(type, name, !pinned)}
+        />
+      </Slide>
+    );
+  } else if (type === TopologyElementType.SITE) {
+    const site = siteMap[name];
+    const wapStats = get(wireless_controller_stats, [name.toLowerCase()], null);
+    return (
+      <Slide {...SlideProps} key={name} in={isVisible}>
+        <SiteDetailsPanel
+          expanded={expanded}
+          onPanelChange={() => toggleExpanded(type, name, !expanded)}
+          networkName={networkName}
+          topology={topology}
+          site={site}
+          siteMap={siteMap}
+          siteNodes={siteToNodesMap[name] || new Set()}
+          nodeMap={nodeMap}
+          networkLinkHealth={networkLinkHealth}
+          wapStats={wapStats}
+          onClose={handleClosePanel}
+          onSelectNode={nodeName =>
+            setSelected(TopologyElementType.NODE, nodeName)
+          }
+          pinned={pinned}
+          onPin={() => togglePin(type, name, !pinned)}
+          onEdit={params => onEditTopology(params, TopologyElement.site)}
+          onUpdateRoutes={routesProps.onUpdateRoutes}
+        />
+      </Slide>
+    );
+  }
+  return null;
+}
+
+function SearchNearby({
+  onAddTopology,
+  nodeName,
+  searchNearbyProps,
+}: {
+  nodeName: string,
+  searchNearbyProps: {|
+    nearbyNodes: NearbyNodes,
+    onUpdateNearbyNodes: NearbyNodes => *,
+  |},
+  onAddTopology: (
+    x: EditTopologyElementParams,
+    t: $Values<typeof TopologyElement>,
+  ) => *,
+}) {
+  const {networkName, networkConfig, nodeMap, siteMap} = useNetworkContext();
+  const {topology} = networkConfig;
+  const node = nodeMap[nodeName];
+
+  return (
+    <Slide {...SlideProps} in={true}>
+      <SearchNearbyPanel
+        networkName={networkName}
+        topology={topology}
+        node={node}
+        site={siteMap[node.site_name]}
+        onClose={() => {}}
+        onAddNode={params => onAddTopology(params, TopologyElement.node)}
+        onAddLink={params => onAddTopology(params, TopologyElement.link)}
+        onAddSite={params => onAddTopology(params, TopologyElement.site)}
+        {...searchNearbyProps}
+      />
+    </Slide>
+  );
+}
+
+// export type PanelForm<T> = {
+//   params: T,
+//   formType: $Values<typeof FormType>,
+//   updateForm: (form: PanelForm<T>) => *,
+// };
+
+function RenderDefaultRoutesHistoryPanel({
+  nodeName,
+  panelControl,
+  routesProps,
+}: {
+  nodeName: string,
+  panelControl: PanelStateControl,
+  routesProps: Routes,
+}) {
+  const {
+    networkConfig,
+    networkName,
+    nodeMap,
+    siteMap,
+    siteToNodesMap,
+  } = useNetworkContext();
+  const {topology} = networkConfig;
+  const node = nodeMap[nodeName];
+  return (
+    <DefaultRouteHistoryPanel
+      networkName={networkName}
+      topology={topology}
+      node={node}
+      nodeMap={nodeMap}
+      site={siteMap[node.site_name]}
+      siteNodes={siteToNodesMap[node.site_name]}
+      onClose={() => {
+        panelControl.setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN);
+      }}
+      routes={routesProps}
+    />
+  );
+}

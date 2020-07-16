@@ -13,9 +13,19 @@ import {makeStyles} from '@material-ui/styles';
 
 export type Props = {
   drawerWidth: number,
-  drawerOpen: boolean,
+  isOpen: boolean,
   onDrawerToggle: () => any,
 };
+
+export function useDrawerToggle() {
+  const [isOpen, setIsOpen] = React.useState<boolean>(true);
+  const toggle = React.useCallback(() => setIsOpen(x => !x), [setIsOpen]);
+  return {
+    isOpen,
+    setIsOpen,
+    toggle,
+  };
+}
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -35,8 +45,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function DrawerToggleButton(props: Props) {
   const classes = useStyles();
-  const {drawerOpen, drawerWidth, onDrawerToggle} = props;
-  const toggleStyle = {right: drawerWidth - (drawerOpen ? 8 : 4)};
+  const {isOpen, drawerWidth, onDrawerToggle} = props;
+  const toggleStyle = {right: drawerWidth - (isOpen ? 8 : 4)};
 
   return (
     <IconButton
@@ -45,7 +55,7 @@ export default function DrawerToggleButton(props: Props) {
       onClick={onDrawerToggle}
       size="small"
       data-testid="drawer-toggle-button">
-      {drawerOpen ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+      {isOpen ? <ChevronRightIcon /> : <ChevronLeftIcon />}
     </IconButton>
   );
 }

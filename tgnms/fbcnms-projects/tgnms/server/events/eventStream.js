@@ -54,7 +54,7 @@ function initConsumerGroup() {
   };
 
   if (typeof KAFKA_HOSTS !== 'string') {
-    logger.error('Cannot connect to kafka broker. KAFKA_HOSTS is undefined.');
+    logger.debug('Cannot connect to kafka broker. KAFKA_HOSTS is undefined.');
     return;
   }
 

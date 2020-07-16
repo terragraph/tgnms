@@ -8,16 +8,19 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TopologyBuilderMenu from '../TopologyBuilderMenu';
+import {FormType} from '../../../constants/MapPanelConstants';
 import {
   NetworkContextWrapper,
   TestApp,
   mockNetworkConfig,
+  mockPanelControl,
   mockTopology,
   renderAsync,
 } from '../../../tests/testHelpers';
 import {SnackbarProvider} from 'notistack';
+import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import type {TopologyBuilderState} from '../TopologyBuilderMenu';
 
 afterEach(cleanup);
 
@@ -26,18 +29,15 @@ jest.mock('mapbox-gl/dist/mapbox-gl', () => ({
 }));
 
 const defaultProps = {
-  bottomOffset: 0,
   plannedSiteProps: {
     plannedSite: null,
     onUpdatePlannedSite: jest.fn(),
     hideSite: jest.fn(),
     unhideSite: jest.fn(),
   },
-  editTopologyElement: null,
-  addTopologyElementType: null,
-  params: null,
   mapRef: null,
-  updateTopologyPanelExpanded: jest.fn(),
+  panelControl: mockPanelControl(),
+  panelForm: mockPanelForm(),
 };
 
 test('renders empty without crashing', () => {
@@ -50,14 +50,16 @@ test('renders empty without crashing', () => {
 });
 
 test('clicking button Opens menu', async () => {
-  const {getByTestId, getByText} = await renderAsync(
+  const {getByTestId} = await renderAsync(
     <TopologyBuilderWrapper>
       <TopologyBuilderMenu {...defaultProps} />
     </TopologyBuilderWrapper>,
   );
   expect(getByTestId('addTopologyIcon')).toBeInTheDocument();
-  fireEvent.click(getByTestId('addTopologyIcon'));
-  expect(getByText('Add Node')).toBeInTheDocument();
+  act(() => {
+    fireEvent.click(getByTestId('addTopologyIcon'));
+  });
+  expect(getByTestId('add-node')).toBeInTheDocument();
 });
 
 test('clicking AddNode opens add Node panel', async () => {
@@ -67,9 +69,11 @@ test('clicking AddNode opens add Node panel', async () => {
     </TopologyBuilderWrapper>,
   );
   expect(getByTestId('addTopologyIcon')).toBeInTheDocument();
-  fireEvent.click(getByTestId('addTopologyIcon'));
-  expect(getByText('Add Node')).toBeInTheDocument();
-  fireEvent.click(getByText('Add Node'));
+  act(() => {
+    fireEvent.click(getByTestId('addTopologyIcon'));
+  });
+  expect(getByTestId('add-node')).toBeInTheDocument();
+  fireEvent.click(getByTestId('add-node'));
   expect(getByText('Node MAC Address')).toBeInTheDocument();
   expect(getByText('Node Name')).toBeInTheDocument();
 });
@@ -81,9 +85,12 @@ test('clicking AddLink opens add Link panel', async () => {
     </TopologyBuilderWrapper>,
   );
   expect(getByTestId('addTopologyIcon')).toBeInTheDocument();
-  fireEvent.click(getByTestId('addTopologyIcon'));
-  expect(getByText('Add Link')).toBeInTheDocument();
-  fireEvent.click(getByText('Add Link'));
+  act(() => {
+    fireEvent.click(getByTestId('addTopologyIcon'));
+  });
+  const btn = getByTestId('add-link');
+  expect(btn).toBeInTheDocument();
+  fireEvent.click(btn);
   expect(getByText('Node 1 *')).toBeInTheDocument();
   expect(getByText('Node 2 *')).toBeInTheDocument();
 });
@@ -95,9 +102,12 @@ test('clicking AddSite opens add Site panel', async () => {
     </TopologyBuilderWrapper>,
   );
   expect(getByTestId('addTopologyIcon')).toBeInTheDocument();
-  fireEvent.click(getByTestId('addTopologyIcon'));
-  expect(getByText('Add Planned Site')).toBeInTheDocument();
-  fireEvent.click(getByText('Add Planned Site'));
+  act(() => {
+    fireEvent.click(getByTestId('addTopologyIcon'));
+  });
+  const addSite = getByTestId('add-planned-site');
+  expect(addSite).toBeInTheDocument();
+  fireEvent.click(addSite);
   expect(getByText('Latitude')).toBeInTheDocument();
   expect(getByText('Site Name')).toBeInTheDocument();
 });
@@ -138,4 +148,12 @@ function TopologyBuilderWrapper({children}: {children: React.Node}) {
       </SnackbarProvider>
     </TestApp>
   );
+}
+
+function mockPanelForm(): TopologyBuilderState<any> {
+  return {
+    params: {},
+    formType: FormType.CREATE,
+    updateForm: jest.fn(),
+  };
 }

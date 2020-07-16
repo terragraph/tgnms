@@ -112,6 +112,7 @@ export type Props = {
   pinned?: boolean,
   showLoadingBar?: boolean,
   showTitleCopyTooltip?: boolean,
+  'data-testid'?: string,
 } & ForwardRef;
 
 class CustomExpansionPanel extends React.Component<Props> {
@@ -130,6 +131,7 @@ class CustomExpansionPanel extends React.Component<Props> {
       title = '',
       titleIcon,
     } = this.props;
+    const testId = this.props['data-testid'];
 
     // A 'close' button can take the place of the chevron
     const closeButtonProps = onClose
@@ -182,7 +184,9 @@ class CustomExpansionPanel extends React.Component<Props> {
         classes={className ? {root: className} : {}}
         expanded={expanded}
         onChange={onChange}
-        ref={this.props.fwdRef}>
+        ref={this.props.fwdRef}
+        data-testid={testId}
+        data-test-expanded={expanded}>
         <ExpansionPanelSummary
           classes={{root: classes.panelSummary}}
           {...closeButtonProps}>

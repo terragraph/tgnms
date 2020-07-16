@@ -774,6 +774,7 @@ class OverviewPanel extends React.Component<Props, State> {
         details={this.renderOverview(context)}
         expanded={expanded}
         onChange={onPanelChange}
+        data-testid="overview-panel"
       />
     );
   };

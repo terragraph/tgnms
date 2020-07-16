@@ -15,7 +15,7 @@ afterEach(cleanup);
 
 const defaultProps = {
   drawerWidth: 0,
-  drawerOpen: true,
+  isOpen: true,
   onDrawerToggle: jest.fn(),
 };
 

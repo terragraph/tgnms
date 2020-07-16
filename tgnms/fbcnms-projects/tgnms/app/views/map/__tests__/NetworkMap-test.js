@@ -14,12 +14,17 @@ import {
   NmsOptionsContextWrapper,
   SnackbarWrapper,
   TestApp,
+  getIsExpanded,
   initWindowConfig,
   mockNetworkConfig,
   mockTopology,
   renderWithRouter,
 } from '../../../tests/testHelpers';
+import {Router} from 'react-router-dom';
+import {TopologyElementType} from '../../../constants/NetworkConstants';
+import {act, fireEvent, render} from '@testing-library/react';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {createMemoryHistory} from 'history';
 import {defaultNetworkMapOptions} from '../../../contexts/NmsOptionsContext';
 import {mockNetworkMapOptions} from '../../../tests/data/NmsOptionsContext';
 
@@ -27,6 +32,13 @@ beforeEach(() => {
   initWindowConfig();
 });
 
+jest.mock('axios', () => {
+  const ax = () => ({data: null});
+  ax.get = ax;
+  ax.post = ax;
+
+  return ax;
+});
 jest.mock('mapbox-gl', () => ({
   Map: () => ({}),
 }));
@@ -44,7 +56,11 @@ const commonProps = {
 };
 
 test('renders without crashing with minimal props ', () => {
-  renderWithRouter(<NetworkMap {...commonProps} />, {wrapper: MapWrapper});
+  render(
+    <MapWrapper>
+      <NetworkMap {...commonProps} />
+    </MapWrapper>,
+  );
   // assert that layers were rendered
   expect(Layer).toHaveBeenCalled();
 });
@@ -64,17 +80,156 @@ test('renders with some sites and links', () => {
   );
 });
 
+describe('NetworkDrawer', () => {
+  test('overview panel should be open by default', async () => {
+    const {getByTestId} = render(
+      <MapWrapper>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+    );
+    const panel = getByTestId('overview-panel');
+    expect(getIsExpanded(panel)).toBe(true);
+  });
+  test('overview panel should toggle', async () => {
+    const {getByTestId} = render(
+      <MapWrapper>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+    );
+    const panel = getByTestId('overview-panel');
+    expect(getIsExpanded(panel)).toBe(true);
+    clickPanel(panel);
+    expect(getIsExpanded(panel)).toBe(false);
+    clickPanel(panel);
+    expect(getIsExpanded(panel)).toBe(true);
+  });
+  test('map layers should toggle', async () => {
+    const {getByTestId} = render(
+      <MapWrapper>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+    );
+    const panel = getByTestId('map-layers-panel');
+    expect(getIsExpanded(panel)).toBe(false);
+    clickPanel(panel);
+    expect(getIsExpanded(panel)).toBe(true);
+    clickPanel(panel);
+    expect(getIsExpanded(panel)).toBe(false);
+  });
+
+  test('all panels close if an element is selected', async () => {
+    const topology = basicTopology();
+    const topologyMaps = buildTopologyMaps(topology);
+    const selectedElement = {
+      name: 'site1',
+      type: TopologyElementType.SITE,
+      expanded: true,
+    };
+    const {getByTestId, rerender} = render(
+      <MapWrapper
+        contextValue={{
+          networkConfig: mockNetworkConfig({topology: topology}),
+          ...topologyMaps,
+        }}>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+    );
+    // open both panels
+    const ovPanel = getByTestId('overview-panel');
+    const mapPanel = getByTestId('map-layers-panel');
+    clickPanel(mapPanel);
+    expect(getIsExpanded(ovPanel)).toBe(true);
+    expect(getIsExpanded(mapPanel)).toBe(true);
+    // render with selected topology element
+    await rerender(
+      <MapWrapper
+        contextValue={{
+          networkConfig: mockNetworkConfig({topology: topology}),
+          ...topologyMaps,
+          selectedElement,
+        }}>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+    );
+    // both panels should be closed
+    expect(getIsExpanded(ovPanel)).toBe(false);
+    expect(getIsExpanded(mapPanel)).toBe(false);
+  });
+});
+
+describe('TopologyBuilderMenu', () => {
+  test('clicking Add Node opens the AddNodePanel', () => {
+    const {getByText, getByTestId} = render(
+      <MapWrapper>
+        <NetworkMap {...commonProps} />
+      </MapWrapper>,
+    );
+    const fab = getByTestId('addTopologyIcon');
+    act(() => {
+      fireEvent.click(fab);
+    });
+    const btn = getByText(/add node/i);
+    act(() => {
+      fireEvent.click(btn);
+    });
+    const panel = getByTestId('add-node-panel');
+    expect(getIsExpanded(panel)).toBe(true);
+    // overview-panel should collapse automatically
+    expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
+  });
+  test('clicking Add Link opens the AddLinkPanel', () => {
+    const {getByText, getByTestId} = render(
+      <MapWrapper>
+        <NetworkMap {...commonProps} />
+      </MapWrapper>,
+    );
+    const fab = getByTestId('addTopologyIcon');
+    act(() => {
+      fireEvent.click(fab);
+    });
+    const btn = getByText(/add link/i);
+    act(() => {
+      fireEvent.click(btn);
+    });
+    const panel = getByTestId('add-link-panel');
+    expect(getIsExpanded(panel)).toBe(true);
+    // overview-panel should collapse automatically
+    expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
+  });
+  test('clicking Add Site opens the AddSitePanel', () => {
+    const {getByText, getByTestId} = render(
+      <MapWrapper>
+        <NetworkMap {...commonProps} />
+      </MapWrapper>,
+    );
+    const fab = getByTestId('addTopologyIcon');
+    act(() => {
+      fireEvent.click(fab);
+    });
+    const btn = getByText(/add planned site/i);
+    act(() => {
+      fireEvent.click(btn);
+    });
+    const panel = getByTestId('add-site-panel');
+    expect(getIsExpanded(panel)).toBe(true);
+    // overview-panel should collapse automatically
+    expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
+  });
+});
+
 function MapWrapper({children, ...contextProps}: {children: React.Node}) {
   return (
     <TestApp>
-      <SnackbarWrapper>
-        <NmsOptionsContextWrapper
-          contextValue={{networkMapOptions: mockNetworkMapOptions()}}>
-          <NetworkContextWrapper {...contextProps}>
-            {children}
-          </NetworkContextWrapper>
-        </NmsOptionsContextWrapper>
-      </SnackbarWrapper>
+      <Router history={createMemoryHistory()}>
+        <SnackbarWrapper>
+          <NmsOptionsContextWrapper
+            contextValue={{networkMapOptions: mockNetworkMapOptions()}}>
+            <NetworkContextWrapper {...contextProps}>
+              {children}
+            </NetworkContextWrapper>
+          </NmsOptionsContextWrapper>
+        </SnackbarWrapper>
+      </Router>
     </TestApp>
   );
 }
@@ -95,4 +250,14 @@ function basicTopology() {
       z_node_name: 'node2',
     });
   return topology;
+}
+
+async function clickPanel(panel: HTMLElement) {
+  act(() => {
+    const btn = panel.querySelector('[role="button"]');
+    if (!btn) {
+      throw new Error('element not found');
+    }
+    fireEvent.click(btn);
+  });
 }

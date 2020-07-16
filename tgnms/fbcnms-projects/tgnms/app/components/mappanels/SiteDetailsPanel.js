@@ -115,7 +115,7 @@ type Props = {
   networkLinkHealth: NetworkHealth,
   wapStats?: Object,
   onSelectNode: string => any,
-  onEdit: any => any,
+  onEdit: (s: SiteType) => *,
   expanded: boolean,
   onPanelChange: () => any,
   onClose: () => any,
@@ -304,8 +304,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
   onEditSite() {
     // Edit this site
     const {site, onClose, onEdit} = this.props;
-
-    onEdit({name: site.name, ...site.location});
+    onEdit(site);
     onClose();
   }
 

@@ -490,6 +490,7 @@ class AddNodePanel extends React.Component<Props, State> {
         details={this.renderForm()}
         expanded={expanded}
         onChange={onPanelChange}
+        data-testid="add-node-panel"
       />
     );
   }

@@ -280,6 +280,7 @@ class AddLinkPanel extends React.Component<Props, State> {
         details={this.renderForm()}
         expanded={expanded}
         onChange={onPanelChange}
+        data-testid="add-link-panel"
       />
     );
   }

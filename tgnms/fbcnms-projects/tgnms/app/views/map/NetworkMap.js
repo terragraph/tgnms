@@ -20,11 +20,10 @@ import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
 import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
 import {Route, withRouter} from 'react-router-dom';
-
 import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
+import type Map from 'mapbox-gl';
 import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
-import type {Map} from 'mapbox-gl';
 import type {
   NearbyNodes,
   PlannedSite,
@@ -295,8 +294,6 @@ class NetworkMap extends React.Component<Props, State> {
                   <DrawLayer />
                 </MapBoxGL>
                 <NetworkDrawer
-                  context={context}
-                  mapRef={mapRef}
                   mapLayersProps={{
                     mapStylesConfig: this._mapBoxStyles,
                     selectedMapStyle,

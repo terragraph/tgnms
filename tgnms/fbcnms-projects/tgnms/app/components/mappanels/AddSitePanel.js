@@ -60,7 +60,7 @@ type Props = {
   className?: string,
   expanded: boolean,
   onPanelChange: () => any,
-  onClose: () => any,
+  onClose: (x?: ?string) => *,
   formType: $Values<typeof FormType>,
   initialParams: $Shape<LocationType & {name: string}>,
   networkName: string,
@@ -330,6 +330,7 @@ class AddSitePanel extends React.Component<Props, State> {
         details={this.renderForm()}
         expanded={expanded}
         onChange={onPanelChange}
+        data-testid="add-site-panel"
       />
     );
   }

@@ -40,11 +40,11 @@ export type EditNodeParams = {
   wlan_mac_addrs?: ?string,
 };
 
-export type EditLinkParams = {
+export type EditLinkParams = {|
   linkNode1: string,
   linkNode2: string,
   link_type: $Values<typeof LinkTypeValueMap>,
-};
+|};
 
 export type NearbyNodes = {
   [string]: Array<TopologyScanInfo>,
