@@ -5,6 +5,8 @@
 
 [master]
 # Kubernetes control node group
+u2aws1
 
 [node]
 # Kubernetes worker node group
+u2aws2

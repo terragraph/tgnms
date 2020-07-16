@@ -1,11 +1,8 @@
+- name: remove kubernetes cluster
+  import_playbook: plays/kubeadm-ansible/reset-site.yaml
+
 - hosts: all
   tasks:
-  - name: kubeadm reset
-    become: true
-    become_user: root
-    become_method: sudo
-    shell: yes | kubeadm reset
-
   # Stash this in a fact so we know where the home directory is even during
   # tasks running as root. There is no built in way to do this apparently:
   # https://github.com/ansible/ansible/issues/15901
@@ -18,7 +15,7 @@
 
   - name: clear .kube directory
     become: true
-    become_user: "{{ kubernetes_user }}"
+    become_user: root
     become_method: sudo
     file:
       state: absent
@@ -41,6 +38,8 @@
       - kubelet
       - kubeadm
       - kubectl
+      - docker
+      - docker-ce
 
   - name: Remove docker, kubeadm, and kubectl packages
     when: ansible_distribution == 'Ubuntu'
@@ -53,6 +52,8 @@
         - kubelet
         - kubeadm
         - kubectl
+        - docker
+        - docker-ce
 
   - name: Remove docker, kubeadm, and kubectl packages
     when: ansible_os_family == 'RedHat'
@@ -65,7 +66,3 @@
         - kubelet
         - kubeadm
         - kubectl
-
-# - name: Install docker, kubectl, and kubeadm for RHEL
-#   include: rhel.yml
-#   when: ansible_os_family == "RedHat"

@@ -2,14 +2,12 @@
 # Copyright (c) 2014-present, Facebook, Inc.
 
 import os
+import subprocess
+import tempfile
 
 import click
 import pkg_resources
-from k8s_nms import ansible_executor  # type: ignore
-
-
-INSTALL_PLAYBOOK = "install.yml"
-UNINSTALL_PLAYBOOK = "uninstall.yml"
+import yaml
 
 
 common_options = {
@@ -64,14 +62,35 @@ common_options = {
 }
 
 
-def generate_host_groups(masters, workers):
-    # hosts are listed as (hostname, group name, port)
-    hosts = []
-    hosts += [(m, ["masters"], None, {}) for m in masters]
-    # The workers need to know which host the 'kubeadm join' command was generated on,
-    # so assume it's the first one and pass along its hostname
-    hosts += [(w, ["workers"], None, {"master1": masters[0]}) for w in workers]
-    return hosts
+def run_ansible(playbook, extra_vars_file, inventory, verbose):
+    """
+    Call the ansible-playbook binary, passing in a generated inventory and
+    extra variables to set
+    """
+    with tempfile.NamedTemporaryFile() as temp:
+        temp.write(yaml.safe_dump(inventory).encode("utf-8"))
+        temp.flush()
+
+        command = f"ansible-playbook --extra-vars @{extra_vars_file} --inventory {temp.name} {playbook}"
+        command = command.split(" ")
+        if verbose > 0:
+            command.append(f"-{'v' * verbose}")
+        subprocess.check_call(command)
+
+
+def generate_inventory(masters, workers):
+    return {
+        "all": {
+            "children": {
+                "kube-cluster": {
+                    "children": {
+                        "master": {"hosts": {m: "" for m in masters}},
+                        "node": {"hosts": {w: "" for w in workers}},
+                    }
+                }
+            }
+        }
+    }
 
 
 def add_common_options(*args):
@@ -115,14 +134,12 @@ def cli(ctx, version, short):
 @click.pass_context
 def install(ctx, config_file, tags, verbose, password, workers, masters):
     """Bootstrap a kubernetes cluster"""
-    hosts = generate_host_groups(masters, workers)
-
-    if password:
-        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
-
-    a = ansible_executor.AnsibleExecutor(tags, verbose, base_dir="ansible")
-
-    a.run(hosts, INSTALL_PLAYBOOK, config_file=config_file, password=password)
+    run_ansible(
+        "ansible/install.yml",
+        config_file,
+        generate_inventory(masters, workers),
+        verbose=verbose,
+    )
 
 
 @cli.command()
@@ -132,13 +149,12 @@ def uninstall(ctx, config_file, verbose, tags, password, masters, workers):
     """
     Remove a kubernetes cluster and associated packages
     """
-    hosts = generate_host_groups(masters, workers)
-
-    if password:
-        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
-
-    a = ansible_executor.AnsibleExecutor(tags, verbose, base_dir="ansible")
-    a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
+    run_ansible(
+        "ansible/uninstall.yml",
+        config_file,
+        generate_inventory(masters, workers),
+        verbose=verbose,
+    )
 
 
 if __name__ == "__main__":
