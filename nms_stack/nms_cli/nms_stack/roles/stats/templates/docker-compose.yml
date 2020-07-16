@@ -79,7 +79,7 @@ services:
         - prometheus
 
   prometheus_configurer:
-    image: secure.cxl-terragraph.com:443/prometheus_configurer:stable
+    image: facebookincubator/prometheus-configurer:1.0.0
     command: ['-port=9100' ,
               '-rules-dir=/etc/configs/alert_rules',
               '-prometheusURL=stats_prometheus:9090',
@@ -95,7 +95,7 @@ services:
         max-file: "10"
 
   alertmanager_configurer:
-    image: secure.cxl-terragraph.com:443/alertmanager_configurer:stable
+    image: facebookincubator/alertmanager-configurer:1.0.0
     command: ['-port=9101',
               '-alertmanager-conf=/etc/configs/alertmanager.yml',
               '-alertmanagerURL=stats_alertmanager:9093',
