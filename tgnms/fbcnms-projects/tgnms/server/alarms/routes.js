@@ -194,7 +194,7 @@ router.get('/matching_alerts/:alertExpr', (req, res) => {
 
 router.post('/globalconfig', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl('/global'),
+    uri: `${ALERTMANAGER_CONFIG_URL}/v1/global`,
     method: req.method,
     json: req.body,
   })
