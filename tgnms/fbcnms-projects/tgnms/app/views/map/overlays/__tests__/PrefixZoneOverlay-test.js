@@ -36,14 +36,14 @@ test('creates a feature collection', async () => {
   });
 });
 
-async function asyncTestHook(
-  hook,
+async function asyncTestHook<P, T>(
+  hook: P => T,
   options?: {wrapper: React.ComponentType<{children: React.Node}>},
-): Promise<RenderResult> {
+): Promise<RenderResult<T>> {
   const {wrapper} = options || {wrapper: Wrapper};
-  let response: RenderResult = {};
+  let response: RenderResult<T> = {};
   await hooksAct(async () => {
-    response = renderHook(hook, {wrapper});
+    response = renderHook<P, T>(hook, {wrapper});
   });
   return response;
 }
