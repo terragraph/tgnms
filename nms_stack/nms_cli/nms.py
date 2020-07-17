@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
-import logging
 import os
 
 import click
 import oyaml as yaml
 import pkg_resources
-from nms_cli import ansible_executor, rage  # type: ignore
+from nms_cli import ansible_executor  # type: ignore
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
@@ -16,17 +15,7 @@ from pygments.lexers import YamlLexer
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
 
-RAGE_DIR = os.path.join(os.path.expanduser("~"), ".nms_logs")
-
 executor = ansible_executor.ansible_executor
-
-
-def record_version(logger):
-    try:
-        version = pkg_resources.get_distribution("nms").version
-    except Exception as e:
-        version = f"[nms not packged, version unknown]\n{e}"
-    logger.log(logging.DEBUG, f"nms version: {version}")
 
 
 def generate_host_groups(host):
@@ -115,7 +104,6 @@ def add_common_options(*args):
 @click.option("--short", is_flag=True, default=False, help="Short version")
 @click.pass_context
 def cli(ctx, version, short):
-    rage.register_invocation_hook(record_version)
     if version or short:
         longver = "Terragraph NMS cli utility version: {}"
         try:
@@ -141,7 +129,6 @@ def cli(ctx, version, short):
 @click.option("-c", "--controller", required=True, help="Controller to upgrade")
 @click.option("-i", "--image", required=False, help="Image to upgrade controller to")
 @click.pass_context
-@rage.log_command(RAGE_DIR)
 def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
     if not host:
         click.echo("--host is required")
@@ -189,7 +176,6 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
 
 @cli.command()
 @click.pass_context
-@rage.log_command(RAGE_DIR)
 def show_defaults(ctx):
     """Dump YAML config to use for option setting"""
     a = executor(None, False)
@@ -198,7 +184,7 @@ def show_defaults(ctx):
     with open(group_vars_file, "r") as fd:
         content = fd.read()
     yaml.add_representer(str, quoted_presenter)
-    click.echo(highlight(content, YamlLexer(), TerminalFormatter()), color=True)
+    click.echo(highlight(content, YamlLexer(), TerminalFormatter()))
 
     if content is None:
         click.echo("error: cannot read defaults", err=True)
@@ -222,7 +208,6 @@ def quoted_presenter(dumper, data):
     "verbose",
 )
 @click.pass_context
-@rage.log_command(RAGE_DIR)
 def install(
     ctx, config_file, ssl_key_file, ssl_cert_file, host, tags, verbose, password
 ):
@@ -285,7 +270,6 @@ def install(
     help="[Dangerous] Ignore any errors and continue uninstalling",
 )
 @click.pass_context
-@rage.log_command(RAGE_DIR)
 def uninstall(
     ctx,
     config_file,
@@ -320,26 +304,6 @@ def uninstall(
 
     hosts = generate_host_groups(host)
     a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
-
-
-@cli.command(name="rage")
-@click.pass_context
-@click.option("--clean", is_flag=True, help="Remove all rage files")
-@click.option('--number', required=False, help="Number of most recent log files to include", default=10, type=int)
-def _rage(ctx, clean, number):
-    """
-    Print the logs of recent nms installer runs for debugging purposes
-    """
-    if number <= 0:
-        raise RuntimeError("--number must be a positive integer")
-    if clean:
-        rage.clean(RAGE_DIR)
-    else:
-        files = rage.gather_files(RAGE_DIR, limit=number)
-        for filename in files:
-            with open(filename, "r") as f:
-                print(filename)
-                print(rage.remove_ansi(f.read()))
 
 
 if __name__ == "__main__":
