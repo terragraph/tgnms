@@ -396,14 +396,14 @@ class Scheduler:
         test.cleanup_handle = loop.call_later(
             estimated_duration.total_seconds(),
             asyncio.create_task,
-            cls.stop_execution(execution_id, is_manual=False),
+            cls.stop_execution(execution_id, manual=False),
         )
 
         return execution_id
 
     @classmethod
-    async def stop_execution(cls, execution_id: int, is_manual: bool = True) -> bool:
-        """Stop the execution and mark it as aborted in the DB.
+    async def stop_execution(cls, execution_id: int, manual: bool = True) -> bool:
+        """Stop the execution and update the DB accordingly.
 
         This logic can be invoked manually via the HTTP API or via the cleanup task.
         The method marks sessions and tests as ABORTED if invoked from the API and
@@ -414,59 +414,57 @@ class Scheduler:
         allow for time to process the results off the Kafka stream and to free the
         network for future tests.
         """
-        if not is_manual:
-            async with MySQLClient().lease() as sa_conn:
-                update_execution_query = (
-                    update(NetworkTestExecution)
-                    .where(NetworkTestExecution.id == execution_id)
-                    .values(status=NetworkTestStatus.PROCESSING)
-                )
-                await sa_conn.execute(update_execution_query)
-
-                update_result_query = (
-                    update(NetworkTestResult)
-                    .where(
-                        (NetworkTestResult.execution_id == execution_id)
-                        & (NetworkTestResult.status == NetworkTestStatus.RUNNING)
-                    )
-                    .values(status=NetworkTestStatus.PROCESSING)
-                )
-                await sa_conn.execute(update_result_query)
-                await sa_conn.connection.commit()
-
-            # Sleep for the processing timeout duration
-            await asyncio.sleep(cls.timeout)
-
-        test = cls._executions[execution_id]
+        status = NetworkTestStatus.ABORTED if manual else NetworkTestStatus.PROCESSING
         async with MySQLClient().lease() as sa_conn:
+            update_execution_query = (
+                update(NetworkTestExecution)
+                .where(NetworkTestExecution.id == execution_id)
+                .values(status=status)
+            )
+            await sa_conn.execute(update_execution_query)
+
             update_result_query = (
                 update(NetworkTestResult)
                 .where(
                     (NetworkTestResult.execution_id == execution_id)
                     & (NetworkTestResult.status == NetworkTestStatus.RUNNING)
                 )
-                .values(
-                    status=NetworkTestStatus.ABORTED
-                    if is_manual
-                    else NetworkTestStatus.FAILED
-                )
+                .values(status=status)
             )
-
-            # Mark the entire execution as FINISHED if at least one session completed
-            result = await sa_conn.execute(update_result_query)
-            update_execution_query = (
-                update(NetworkTestExecution)
-                .where(NetworkTestExecution.id == execution_id)
-                .values(
-                    status=NetworkTestStatus.ABORTED
-                    if is_manual
-                    else NetworkTestStatus.FAILED
-                    if not test.session_ids or result.rowcount == len(test.session_ids)
-                    else NetworkTestStatus.FINISHED
-                )
-            )
-            await sa_conn.execute(update_execution_query)
+            await sa_conn.execute(update_result_query)
             await sa_conn.connection.commit()
+
+        if not manual:
+            # Sleep for the processing timeout duration
+            await asyncio.sleep(cls.timeout)
+
+            test = cls._executions[execution_id]
+            async with MySQLClient().lease() as sa_conn:
+                update_result_query = (
+                    update(NetworkTestResult)
+                    .where(
+                        (NetworkTestResult.execution_id == execution_id)
+                        & (NetworkTestResult.status == NetworkTestStatus.PROCESSING)
+                    )
+                    .values(status=NetworkTestStatus.FAILED)
+                )
+                result = await sa_conn.execute(update_result_query)
+
+                # Mark the entire execution as FINISHED if at least one session completed
+                update_execution_query = (
+                    update(NetworkTestExecution)
+                    .where(NetworkTestExecution.id == execution_id)
+                    .values(
+                        status=(
+                            NetworkTestStatus.FAILED
+                            if not test.session_ids
+                            or result.rowcount == len(test.session_ids)
+                            else NetworkTestStatus.FINISHED
+                        )
+                    )
+                )
+                await sa_conn.execute(update_execution_query)
+                await sa_conn.connection.commit()
 
         # Stop the test
         if not await test.stop():
