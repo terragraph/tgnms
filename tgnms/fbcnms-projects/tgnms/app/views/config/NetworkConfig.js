@@ -42,6 +42,7 @@ import {
   setNetworkOverridesConfig,
   setNodeOverridesConfig,
 } from '../../apiutils/ConfigAPIUtil';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -528,7 +529,11 @@ class NetworkConfig extends React.Component<Props, State> {
         networkConfig={networkConfig}
         editModes={NetworkConfigMode}
         initialEditMode={
-          selectedNodeInfo ? NetworkConfigMode.NODE : NetworkConfigMode.NETWORK
+          isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
+            ? NetworkConfigMode.FORM
+            : selectedNodeInfo
+            ? NetworkConfigMode.NODE
+            : NetworkConfigMode.NETWORK
         }
         setParentState={this.setState.bind(this)}
         getSidebarProps={this.getSidebarProps}

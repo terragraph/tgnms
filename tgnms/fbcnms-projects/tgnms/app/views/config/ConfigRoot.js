@@ -19,6 +19,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import TaskBasedConfig from './TaskBasedConfig';
 import {ConfigLayer, NetworkConfigMode} from '../../constants/ConfigConstants';
 import {
   cleanupObject,
@@ -26,6 +27,7 @@ import {
   stringifyConfig,
 } from '../../helpers/ConfigHelpers';
 import {cloneDeep, isEqual, set, unset} from 'lodash';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {isPunctuation} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -57,10 +59,8 @@ const styles = theme => ({
 
     // TODO - HACK! - Figure out how to actually set the height to 100% screen
     height: `calc(100vh - ${
-      /* pad */ theme.spacing() +
-      /* appbar */ 64 +
-      /* toolbar */ 48 +
-      /* search bar */ 72
+      //pad + appbar + toolbar + search bar
+      theme.spacing() + 64 + 48 + 72
     }px)`,
   },
   configOptions: {
@@ -305,6 +305,10 @@ class ConfigRoot extends React.Component<Props, State> {
     }
   };
 
+  handleConfigUpdate = draftConfig => {
+    this.setState({draftConfig}, this.updateConfigData);
+  };
+
   handleDraftChange = (field, value) => {
     // Set the draft value for a config field
     const {draftConfig} = this.state;
@@ -489,6 +493,13 @@ class ConfigRoot extends React.Component<Props, State> {
     } = this.state;
     const sidebarProps = getSidebarProps(editMode);
 
+    if (
+      editMode === NetworkConfigMode.FORM &&
+      isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
+    ) {
+      return <TaskBasedConfig />;
+    }
+
     return (
       <div className={classes.tabContent}>
         <Paper className={classes.configOptions} elevation={2}>
@@ -564,25 +575,36 @@ class ConfigRoot extends React.Component<Props, State> {
                 indicatorColor="primary"
                 textColor="primary"
                 onChange={this.handleChangeEditMode}>
-                {Object.keys(editModes).map(key => (
-                  <Tab key={key} label={key} value={key} />
-                ))}
+                {Object.keys(editModes).map(key => {
+                  if (key === NetworkConfigMode.FORM) {
+                    return (
+                      isFeatureEnabled('TASK_BASED_CONFIG_ENABLED') && (
+                        <Tab key={key} label={key} value={key} />
+                      )
+                    );
+                  }
+                  return <Tab key={key} label={key} value={key} />;
+                })}
               </Tabs>
-              <div className={classes.buttonContainer}>
-                <Button
-                  onClick={this.resetDraftConfig}
-                  disabled={!pendingChanges}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={this.handleOpenSubmitModal}
-                  disabled={!pendingChanges}>
-                  Submit
-                </Button>
-              </div>
+              {editMode !== NetworkConfigMode.FORM && (
+                <div className={classes.buttonContainer}>
+                  <Button
+                    onClick={this.resetDraftConfig}
+                    disabled={!pendingChanges}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={this.handleOpenSubmitModal}
+                    disabled={!pendingChanges}>
+                    Submit
+                  </Button>
+                </div>
+              )}
             </AppBar>
             {this.renderTabContent()}
-            {!useRawJsonEditor ? this.renderAddFieldButton() : null}
+            {!useRawJsonEditor && editMode !== NetworkConfigMode.FORM
+              ? this.renderAddFieldButton()
+              : null}
 
             <ModalConfigSubmit
               isOpen={showSubmitModal}

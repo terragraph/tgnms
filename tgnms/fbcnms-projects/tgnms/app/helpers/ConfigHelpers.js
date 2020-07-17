@@ -34,6 +34,7 @@ export type NodeConfigStatusType = {
   hardwareBoardId: ?string,
   hasOverride: boolean,
   isCn: boolean,
+  isPop: boolean,
 };
 
 /**
@@ -157,6 +158,7 @@ export const getTopologyNodeList = (
         nodeOverridesConfig.hasOwnProperty(node.name) &&
         !isEmpty(nodeOverridesConfig[node.name]),
       isCn: node.node_type === NodeTypeValueMap.CN,
+      isPop: node.pop_node && node.is_primary,
     };
   });
   nodeList.sort((a, b) => a.name.localeCompare(b.name));

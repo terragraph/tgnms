@@ -247,6 +247,13 @@ export const SETTINGS: Array<SettingDefinition> = [
     requiresRestart: true,
     validations: [],
   },
+  {
+    key: 'TASK_BASED_CONFIG_ENABLED',
+    required: false,
+    dataType: 'BOOL',
+    requiresRestart: true,
+    validations: [],
+  },
 ];
 
 /**

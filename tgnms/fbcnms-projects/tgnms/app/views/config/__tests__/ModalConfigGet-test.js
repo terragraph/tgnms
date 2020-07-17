@@ -27,6 +27,7 @@ const defaultProps = {
     hardwareBoardId: null,
     hasOverride: false,
     isCn: false,
+    isPop: false,
   },
 };
 

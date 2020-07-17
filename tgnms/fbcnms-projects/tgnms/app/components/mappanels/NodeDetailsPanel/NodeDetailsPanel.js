@@ -17,6 +17,7 @@ import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import RouterIcon from '@material-ui/icons/Router';
 import SyncIcon from '@material-ui/icons/Sync';
+import TaskBasedConfigModal from '../../../views/config/TaskBasedConfigModal';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
 import {MAPMODE} from '../../../contexts/MapContext';
@@ -60,10 +61,10 @@ type Props = {
 } & WithStyles<typeof styles> &
   ForwardRef;
 
-type State = {};
+type State = {configModalOpen: boolean};
 
 class NodeDetailsPanel extends React.Component<Props, State> {
-  state = {};
+  state = {configModalOpen: false};
 
   actionItems;
   constructor(props) {
@@ -101,11 +102,13 @@ class NodeDetailsPanel extends React.Component<Props, State> {
           {
             label: 'Node Configuration',
             icon: <RouterIcon />,
-            func: () =>
-              history.push({
-                pathname: '/network_config/' + networkName,
-                search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
-              }),
+            func: isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
+              ? this.onEditNodeConfig
+              : () =>
+                  history.push({
+                    pathname: '/network_config/' + networkName,
+                    search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
+                  }),
           },
           {
             label: 'Edit Node',
@@ -193,6 +196,14 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     });
   };
 
+  onEditNodeConfig = () => {
+    this.setState({configModalOpen: true});
+  };
+
+  handleConfigModalClose = () => {
+    this.setState({configModalOpen: false});
+  };
+
   onRestartMinion = () => {
     // Reboot this node
     const {node, networkName} = this.props;
@@ -263,28 +274,37 @@ class NodeDetailsPanel extends React.Component<Props, State> {
       node,
       nodeDetailsProps,
     } = this.props;
+    const {configModalOpen} = this.state;
+
     const actionItems = this.actionItems;
 
     return (
-      <CustomExpansionPanel
-        title={node.name}
-        titleIcon={<RouterIcon classes={{root: classes.iconCentered}} />}
-        details={
-          <div style={{width: '100%'}}>
-            <NodeDetails {...nodeDetailsProps} node={node} />
-            <Divider />
-            <ActionsMenu options={{actionItems}} />
-          </div>
-        }
-        expanded={expanded}
-        onChange={onPanelChange}
-        onClose={onClose}
-        onPin={onPin}
-        pinned={this.props.pinned}
-        showLoadingBar={true}
-        showTitleCopyTooltip={true}
-        fwdRef={this.props.fwdRef}
-      />
+      <>
+        <CustomExpansionPanel
+          title={node.name}
+          titleIcon={<RouterIcon classes={{root: classes.iconCentered}} />}
+          details={
+            <div style={{width: '100%'}}>
+              <NodeDetails {...nodeDetailsProps} node={node} />
+              <Divider />
+              <ActionsMenu options={{actionItems}} />
+            </div>
+          }
+          expanded={expanded}
+          onChange={onPanelChange}
+          onClose={onClose}
+          onPin={onPin}
+          pinned={this.props.pinned}
+          showLoadingBar={true}
+          showTitleCopyTooltip={true}
+          fwdRef={this.props.fwdRef}
+        />
+        <TaskBasedConfigModal
+          open={configModalOpen}
+          modalTitle="Node Config"
+          onClose={this.handleConfigModalClose}
+        />
+      </>
     );
   }
 }

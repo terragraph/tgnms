@@ -12,7 +12,11 @@ import {
   ConfigLayer,
   NetworkConfigMode,
 } from '../../../constants/ConfigConstants';
-import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
+import {
+  SnackbarWrapper,
+  TestApp,
+  initWindowConfig,
+} from '../../../tests/testHelpers';
 import {assertType} from '@fbcnms/util/assert';
 import {cleanup, fireEvent, waitForElement} from '@testing-library/react';
 import {getControllerConfig} from '../../../apiutils/ConfigAPIUtil';
@@ -54,12 +58,14 @@ const defaultProps = {
 test('renders spinner initially without crashing', () => {
   const {getByTestId} = renderWithRouter(
     <TestApp>
-      <ConfigRoot
-        {...defaultProps}
-        getRequests={() => [
-          {func: getControllerConfig, key: 'controllerConfig'},
-        ]}
-      />
+      <SnackbarWrapper>
+        <ConfigRoot
+          {...defaultProps}
+          getRequests={() => [
+            {func: getControllerConfig, key: 'controllerConfig'},
+          ]}
+        />
+      </SnackbarWrapper>
     </TestApp>,
   );
   expect(getByTestId('loading-box')).toBeInTheDocument();
@@ -68,7 +74,9 @@ test('renders spinner initially without crashing', () => {
 test('renders table after spinner', async () => {
   const {queryByTestId, getByText} = renderWithRouter(
     <TestApp>
-      <ConfigRoot {...defaultProps} />
+      <SnackbarWrapper>
+        <ConfigRoot {...defaultProps} />
+      </SnackbarWrapper>
     </TestApp>,
   );
   await waitForElement(() => getByText('Cancel'));
@@ -80,7 +88,9 @@ test('renders table after spinner', async () => {
 test('renders multiple tabs based on edit mode', async () => {
   const {queryByTestId, getByText} = renderWithRouter(
     <TestApp>
-      <ConfigRoot {...defaultProps} />
+      <SnackbarWrapper>
+        <ConfigRoot {...defaultProps} />
+      </SnackbarWrapper>
     </TestApp>,
   );
   await waitForElement(() => getByText('Cancel'));
@@ -92,7 +102,9 @@ test('renders multiple tabs based on edit mode', async () => {
 test('change table without crashing', async () => {
   const {queryByTestId, getByText} = renderWithRouter(
     <TestApp>
-      <ConfigRoot {...defaultProps} />
+      <SnackbarWrapper>
+        <ConfigRoot {...defaultProps} />
+      </SnackbarWrapper>
     </TestApp>,
   );
   await waitForElement(() => getByText('Cancel'));

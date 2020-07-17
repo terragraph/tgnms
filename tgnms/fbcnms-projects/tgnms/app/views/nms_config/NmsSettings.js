@@ -289,6 +289,11 @@ export default function NmsSettings() {
                         label="Map Annotations"
                         setting="MAP_ANNOTATIONS_ENABLED"
                       />
+                      <SettingInput
+                        isFeatureToggle
+                        label="Task Based Config"
+                        setting="TASK_BASED_CONFIG_ENABLED"
+                      />
                     </SettingGroup>
                   </SettingsForm>
                 )}
