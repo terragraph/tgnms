@@ -5,6 +5,3 @@ __version__ = "2020.07.10"
 __all__ = ["ClientType, init"]
 
 from .main import ClientType, init
-
-
-# Testing
