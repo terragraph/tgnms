@@ -113,6 +113,8 @@ export default function NetworkDrawerFn({
     networkName,
     networkLinkHealth,
     nodeMap,
+    siteMap,
+    siteToNodesMap,
     selectedElement,
     pinnedElements,
   } = context;
@@ -155,6 +157,7 @@ export default function NetworkDrawerFn({
       ACCESS_POINTS: PANEL_STATE.HIDDEN,
       UPGRADE_PROGRESS: PANEL_STATE.HIDDEN,
       TOPOLOGY: PANEL_STATE.HIDDEN,
+      DEFAULT_ROUTES: PANEL_STATE.HIDDEN,
     },
   });
   const {
@@ -342,16 +345,6 @@ export default function NetworkDrawerFn({
           />
         ))}
 
-        {routesProps.node && (
-          <Slide {...SlideProps} in={!getIsHidden(PANELS.DEFAULT_ROUTES)}>
-            <RenderDefaultRoutesHistoryPanel
-              nodeName={routesProps?.node ?? ''}
-              panelControl={panelControl}
-              routesProps={routesProps}
-            />
-          </Slide>
-        )}
-
         {topologyElements.map(el => (
           <RenderTopologyElement
             key={el.name}
@@ -362,6 +355,25 @@ export default function NetworkDrawerFn({
             onEditTopology={handleEditTopology}
           />
         ))}
+
+        {routesProps.node && (
+          <Slide {...SlideProps} in={!getIsHidden(PANELS.DEFAULT_ROUTES)}>
+            <DefaultRouteHistoryPanel
+              networkName={networkName}
+              topology={topology}
+              node={nodeMap[routesProps?.node ?? '']}
+              nodeMap={nodeMap}
+              site={siteMap[nodeMap[routesProps?.node ?? ''].site_name]}
+              siteNodes={
+                siteToNodesMap[nodeMap[routesProps?.node ?? ''].site_name]
+              }
+              onClose={() =>
+                setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN)
+              }
+              routes={routesProps}
+            />
+          </Slide>
+        )}
 
         <TopologyBuilderMenu
           panelControl={panelControl}
@@ -445,10 +457,33 @@ function RenderTopologyElement({
     }, theme.transitions.duration.leavingScreen + 100 /* to be safe */);
   };
 
+  const onUpdateRoutes = React.useCallback(
+    ({
+      node,
+      links,
+      nodes,
+    }: {
+      node: ?string,
+      links: {[string]: number},
+      nodes: Set<string>,
+    }) => {
+      routesProps.onUpdateRoutes({
+        node,
+        links,
+        nodes,
+      });
+      setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.OPEN);
+    },
+    [routesProps, setPanelState],
+  );
+
   if (type === TopologyElementType.NODE) {
     const node = nodeMap[name];
     // hack to get around issues with flow
-    const {node: _, ...routesPropsWithoutNode} = routesProps;
+    const {node: _, ...routesPropsWithoutNode} = {
+      ...routesProps,
+      onUpdateRoutes,
+    };
     return (
       <Slide {...SlideProps} key={name} in={isVisible}>
         <NodeDetailsPanel
@@ -530,7 +565,7 @@ function RenderTopologyElement({
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
           onEdit={params => onEditTopology(params, TopologyElement.site)}
-          onUpdateRoutes={routesProps.onUpdateRoutes}
+          onUpdateRoutes={onUpdateRoutes}
         />
       </Slide>
     );
@@ -579,37 +614,3 @@ function SearchNearby({
 //   formType: $Values<typeof FormType>,
 //   updateForm: (form: PanelForm<T>) => *,
 // };
-
-function RenderDefaultRoutesHistoryPanel({
-  nodeName,
-  panelControl,
-  routesProps,
-}: {
-  nodeName: string,
-  panelControl: PanelStateControl,
-  routesProps: Routes,
-}) {
-  const {
-    networkConfig,
-    networkName,
-    nodeMap,
-    siteMap,
-    siteToNodesMap,
-  } = useNetworkContext();
-  const {topology} = networkConfig;
-  const node = nodeMap[nodeName];
-  return (
-    <DefaultRouteHistoryPanel
-      networkName={networkName}
-      topology={topology}
-      node={node}
-      nodeMap={nodeMap}
-      site={siteMap[node.site_name]}
-      siteNodes={siteToNodesMap[node.site_name]}
-      onClose={() => {
-        panelControl.setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN);
-      }}
-      routes={routesProps}
-    />
-  );
-}
