@@ -7,7 +7,7 @@
 
 import Button from '@material-ui/core/Button';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import FriendlyText from '../common/FriendlyText';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
@@ -769,7 +769,7 @@ class OverviewPanel extends React.Component<Props, State> {
     const {expanded, onPanelChange} = this.props;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title="Overview"
         details={this.renderOverview(context)}
         expanded={expanded}

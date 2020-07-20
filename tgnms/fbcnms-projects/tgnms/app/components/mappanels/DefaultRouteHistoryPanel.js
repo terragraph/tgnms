@@ -6,7 +6,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import FormControl from '@material-ui/core/FormControl';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -373,7 +373,7 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     const {expanded} = this.state;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title="Default Routes"
         titleIcon={<TimelineIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}

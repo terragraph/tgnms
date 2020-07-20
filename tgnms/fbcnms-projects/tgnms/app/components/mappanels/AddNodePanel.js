@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import EditIcon from '@material-ui/icons/Edit';
 import EditRadioMacs from './EditRadioMacs';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -483,7 +483,7 @@ class AddNodePanel extends React.Component<Props, State> {
       ) : null;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         className={className}
         title={title}
         titleIcon={titleIcon}

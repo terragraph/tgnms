@@ -9,7 +9,7 @@ import * as React from 'react';
 import ActionsMenu from './ActionsMenu';
 import BuildIcon from '@material-ui/icons/Build';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import GrafanaIcon from '../common/GrafanaIcon';
@@ -408,7 +408,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
       link,
     } = this.props;
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title={link.name}
         titleIcon={<CompareArrowsIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}

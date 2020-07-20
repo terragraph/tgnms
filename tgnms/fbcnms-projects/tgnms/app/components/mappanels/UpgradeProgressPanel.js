@@ -6,7 +6,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import InfoIcon from '@material-ui/icons/Info';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
@@ -252,7 +252,7 @@ class UpgradeProgressPanel extends React.Component<Props> {
     const {expanded, onPanelChange} = this.props;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title="Upgrade Progress"
         details={this.renderPanel()}
         expanded={expanded}

@@ -115,7 +115,7 @@ export type Props = {
   'data-testid'?: string,
 } & ForwardRef;
 
-class CustomExpansionPanel extends React.Component<Props> {
+class CustomAccordion extends React.Component<Props> {
   render() {
     const {
       classes,
@@ -211,7 +211,7 @@ class CustomExpansionPanel extends React.Component<Props> {
   }
 }
 
-CustomExpansionPanel.propTypes = {
+CustomAccordion.propTypes = {
   classes: PropTypes.object.isRequired,
   className: PropTypes.string,
   title: PropTypes.string,
@@ -305,4 +305,4 @@ const AccordionSummaryTooltip = withStyles({
   },
 );
 
-export default withStyles(styles, {withTheme: true})(CustomExpansionPanel);
+export default withStyles(styles, {withTheme: true})(CustomAccordion);

@@ -6,7 +6,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import DefaultOverlayPanel from './DefaultOverlayPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -95,7 +95,7 @@ export default function MapLayersPanel({
 }: Props) {
   const classes = useStyles();
   return (
-    <CustomExpansionPanel
+    <CustomAccordion
       title="Map Layers"
       data-testid="map-layers-panel"
       details={

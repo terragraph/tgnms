@@ -9,7 +9,7 @@ import AddLocationIcon from '@material-ui/icons/AddLocation';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Collapse from '@material-ui/core/Collapse';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
@@ -552,7 +552,7 @@ class SearchNearbyPanel extends React.Component<Props, State> {
     const {expanded} = this.state;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title={node.name}
         titleIcon={<NearMeIcon classes={{root: classes.iconCentered}} />}
         details={this.renderPanel()}

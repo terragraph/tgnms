@@ -7,7 +7,7 @@
 
 import * as testApi from '../../../apiutils/NetworkTestAPIUtil';
 import ActionsMenu from '../ActionsMenu';
-import CustomExpansionPanel from '../../common/CustomExpansionPanel';
+import CustomAccordion from '../../common/CustomAccordion';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import EditIcon from '@material-ui/icons/Edit';
@@ -280,7 +280,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
 
     return (
       <>
-        <CustomExpansionPanel
+        <CustomAccordion
           title={node.name}
           titleIcon={<RouterIcon classes={{root: classes.iconCentered}} />}
           details={

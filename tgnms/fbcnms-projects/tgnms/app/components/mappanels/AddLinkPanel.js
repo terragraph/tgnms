@@ -6,7 +6,7 @@
  */
 
 import Button from '@material-ui/core/Button';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import swal from 'sweetalert2';
@@ -274,7 +274,7 @@ class AddLinkPanel extends React.Component<Props, State> {
     const {className, expanded, onPanelChange} = this.props;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         className={className}
         title="Add Link"
         details={this.renderForm()}

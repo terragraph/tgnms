@@ -9,7 +9,7 @@ import * as turf from '@turf/turf';
 import ActionsMenu from './ActionsMenu';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import Button from '@material-ui/core/Button';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import EditIcon from '@material-ui/icons/Edit';
@@ -607,7 +607,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
 
     return (
       <>
-        <CustomExpansionPanel
+        <CustomAccordion
           title={site.name}
           titleIcon={<LocationOnIcon classes={{root: classes.iconCentered}} />}
           details={this.renderPanel()}

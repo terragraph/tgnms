@@ -11,7 +11,7 @@ import BuildIcon from '@material-ui/icons/Build';
 import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
@@ -181,7 +181,7 @@ const VIEWS = [
 export function VersionModal({title, diffs}) {
   const [expanded, setExpanded] = React.useState(false);
   return (
-    <CustomExpansionPanel
+    <CustomAccordion
       title={title}
       details={diffs}
       expanded={expanded}

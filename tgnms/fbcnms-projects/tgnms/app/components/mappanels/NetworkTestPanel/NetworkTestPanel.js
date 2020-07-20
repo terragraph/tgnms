@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import CustomExpansionPanel from '../../common/CustomExpansionPanel';
+import CustomAccordion from '../../common/CustomAccordion';
 import TestExecutionSummary from './TestExecutionSummary';
 import {MAPMODE, useMapContext} from '../../../contexts/MapContext';
 import {withRouter} from 'react-router-dom';
@@ -43,7 +43,7 @@ export default withRouter(function NetworkTestPanel(props: Props) {
   }
 
   return (
-    <CustomExpansionPanel
+    <CustomAccordion
       title="Network Test"
       expanded={expanded}
       onClose={handleNetworkTestClose}

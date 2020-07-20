@@ -7,7 +7,7 @@
 
 import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
@@ -149,7 +149,7 @@ class IgnitionStatePanel extends React.Component<Props> {
     const {expanded, onPanelChange, onClose} = this.props;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title="Ignition State"
         details={this.renderPanel()}
         expanded={expanded}

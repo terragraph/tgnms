@@ -5,7 +5,7 @@
  * @flow
  */
 
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -164,7 +164,7 @@ class AccessPointsPanel extends React.Component<Props> {
     const {expanded, onPanelChange, onClose} = this.props;
 
     return (
-      <CustomExpansionPanel
+      <CustomAccordion
         title="Access Points"
         details={this.renderPanel()}
         expanded={expanded}

@@ -300,7 +300,7 @@ export function mockPanelControl(
 }
 
 /**
- * CustomExpansionPanel has the data-test-expanded attr to aid in testing.
+ * CustomAccordion has the data-test-expanded attr to aid in testing.
  * This reads that attr and converts it to a bool.
  */
 export function getIsExpanded(el: HTMLElement): boolean {

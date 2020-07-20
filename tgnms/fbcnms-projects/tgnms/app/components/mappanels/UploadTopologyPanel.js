@@ -6,7 +6,7 @@
  */
 
 import Button from '@material-ui/core/Button';
-import CustomExpansionPanel from '../common/CustomExpansionPanel';
+import CustomAccordion from '../common/CustomAccordion';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
@@ -223,7 +223,7 @@ export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
     );
   }
   return (
-    <CustomExpansionPanel
+    <CustomAccordion
       ref={ref}
       title="Upload Topology"
       details={renderDetails()}
