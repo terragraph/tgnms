@@ -86,8 +86,10 @@ const ALERTMANAGER_CONFIG_URL =
 // TG-specific service for generating alerts from events
 const TG_ALARM_URL = process.env.TG_ALARM_URL || 'http://alarms:40000';
 
+// service that tracks the default route changes over time
 const DEFAULT_ROUTES_HISTORY_HOST =
-  process.env.DEFAULT_ROUTES_HISTORY_HOST || null;
+  process.env.DEFAULT_ROUTES_HISTORY_HOST ||
+  'http://default_routes_service:8080';
 
 // allowed delay (in seconds) when generating link health windowing
 // from stats data

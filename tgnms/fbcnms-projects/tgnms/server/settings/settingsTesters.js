@@ -16,6 +16,7 @@ export const TESTER = {
   PROMETHEUS: 'PROMETHEUS',
   GRAFANA: 'GRAFANA',
   NETWORK_TEST: 'NETWORK_TEST',
+  DEFAULT_ROUTES_HISTORY: 'DEFAULT_ROUTES_HISTORY',
 };
 
 export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
@@ -152,6 +153,11 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
   [TESTER.NETWORK_TEST]: async config => {
     const {NETWORKTEST_HOST} = config;
     await axios.get(`${NETWORKTEST_HOST}/schedule`);
+    return {success: true, message: 'Success!'};
+  },
+  [TESTER.DEFAULT_ROUTES_HISTORY]: async config => {
+    const {DEFAULT_ROUTES_HISTORY_HOST} = config;
+    await axios.get(`${DEFAULT_ROUTES_HISTORY_HOST}/status`);
     return {success: true, message: 'Success!'};
   },
 };

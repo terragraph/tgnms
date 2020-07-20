@@ -241,6 +241,21 @@ export const SETTINGS: Array<SettingDefinition> = [
     tester: TESTER.NETWORK_TEST,
   },
   {
+    key: 'DEFAULT_ROUTES_HISTORY_HOST',
+    required: false,
+    dataType: 'STRING',
+    requiresRestart: true,
+    validations: ['URL'],
+    tester: TESTER.DEFAULT_ROUTES_HISTORY,
+  },
+  {
+    key: 'DEFAULT_ROUTES_HISTORY_ENABLED',
+    required: false,
+    dataType: 'BOOL',
+    requiresRestart: true,
+    validations: [],
+  },
+  {
     key: 'MAP_ANNOTATIONS_ENABLED',
     required: false,
     dataType: 'BOOL',

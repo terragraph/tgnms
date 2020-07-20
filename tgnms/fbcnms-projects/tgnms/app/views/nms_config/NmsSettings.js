@@ -202,6 +202,22 @@ export default function NmsSettings() {
                       <SettingInput
                         label="Network Test URL"
                         setting="NETWORKTEST_HOST"
+                      />{' '}
+                    </SettingGroup>
+                    <SettingGroup
+                      title="Default Routes History"
+                      tester={
+                        <SettingsTester
+                          keys={['DEFAULT_ROUTES_HISTORY_HOST']}
+                        />
+                      }>
+                      <SettingInput
+                        label="Enable Default Routes History"
+                        setting="DEFAULT_ROUTES_HISTORY_ENABLED"
+                      />
+                      <SettingInput
+                        label="Default Routes History Host"
+                        setting="DEFAULT_ROUTES_HISTORY_HOST"
                       />
                     </SettingGroup>
                     <SettingGroup
