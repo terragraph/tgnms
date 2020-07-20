@@ -21,7 +21,7 @@ import {
 import {createNumericInput, formParseFloat} from '../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
 import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
-import {templateTopologyBuilderRequest} from '../../helpers/templateHelpers';
+import {templateTopologyBuilderRequest} from '../../helpers/TopologyTemplateHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
@@ -30,7 +30,7 @@ import type {
   TopologyType,
 } from '../../../shared/types/Topology';
 import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
-import type {SiteTemplate} from '../../helpers/templateHelpers';
+import type {SiteTemplate} from '../../constants/TemplateConstants';
 
 const styles = theme => ({
   button: {

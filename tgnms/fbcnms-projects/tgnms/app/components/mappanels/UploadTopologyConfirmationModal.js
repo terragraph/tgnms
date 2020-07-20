@@ -15,7 +15,7 @@ import React, {useContext, useState} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
-import type {UploadTopologyType} from '../../helpers/templateHelpers';
+import type {UploadTopologyType} from '../../constants/TemplateConstants';
 
 const useModalStyles = makeStyles(theme => ({
   root: {

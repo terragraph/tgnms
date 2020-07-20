@@ -15,7 +15,7 @@ import TextField from '@material-ui/core/TextField';
 import {defaultTemplate} from '../../constants/TemplateConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {SiteTemplate} from '../../helpers/templateHelpers';
+import type {SiteTemplate} from '../../constants/TemplateConstants';
 import type {TopologyType} from '../../../shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
