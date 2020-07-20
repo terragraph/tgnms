@@ -6,11 +6,11 @@
  */
 
 import * as React from 'react';
+import Accordion from '@material-ui/core/Accordion';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
 import CloseIcon from '@material-ui/icons/Close';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import LockIcon from '@material-ui/icons/Lock';
@@ -180,33 +180,33 @@ class CustomExpansionPanel extends React.Component<Props> {
     ) : null;
 
     return (
-      <ExpansionPanel
+      <Accordion
         classes={className ? {root: className} : {}}
         expanded={expanded}
         onChange={onChange}
         ref={this.props.fwdRef}
         data-testid={testId}
         data-test-expanded={expanded}>
-        <ExpansionPanelSummary
+        <AccordionSummary
           classes={{root: classes.panelSummary}}
           {...closeButtonProps}>
           {loadingBar}
           <div className={classes.spaceBetween}>
-            <ExpansionPanelSummaryTooltip
+            <AccordionSummaryTooltip
               title={title}
               enabled={showTitleCopyTooltip === true}>
               <Typography className={classes.panelHeading} variant="h6">
                 {titleIcon || null}
                 {title}
               </Typography>
-            </ExpansionPanelSummaryTooltip>
+            </AccordionSummaryTooltip>
             {pinButton}
           </div>
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails className={classes.panelDetails}>
+        </AccordionSummary>
+        <AccordionDetails className={classes.panelDetails}>
           {details}
-        </ExpansionPanelDetails>
-      </ExpansionPanel>
+        </AccordionDetails>
+      </Accordion>
     );
   }
 }
@@ -237,7 +237,7 @@ type SummaryState = {
   copySuccessful: boolean,
 };
 
-const ExpansionPanelSummaryTooltip = withStyles({
+const AccordionSummaryTooltip = withStyles({
   copyButton: {
     cursor: 'pointer',
     textDecoration: 'underline',
@@ -249,7 +249,7 @@ const ExpansionPanelSummaryTooltip = withStyles({
     width: 0,
   },
 })(
-  class ExpansionPanelSummaryTooltip extends React.Component<
+  class AccordionSummaryTooltip extends React.Component<
     SummaryProps,
     SummaryState,
   > {
