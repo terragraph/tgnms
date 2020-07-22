@@ -82,18 +82,15 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     # Remove build dependencies
     apk del build-deps
 
-# Pull base image. Pin to alpine:3.10 for python3.7
-FROM alpine:3.10 AS builder
+# Pull base image
+FROM alpine:edge AS builder
 
 COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/thrift
 COPY --from=thrift /usr/local/bin/thrift1 /usr/local/bin/thrift
 
-RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
-
 # Install thrift python library
-RUN apk update && apk add --no-cache python3 && \
+RUN apk update && apk add --no-cache python3 py3-pip py3-setuptools && \
     ln -s python3 /usr/bin/python && \
-    python -m pip install --upgrade pip setuptools && \
     pip install /usr/local/thrift && \
     rm -rf /usr/local/thrift
 
@@ -103,8 +100,8 @@ COPY tglib/ .flake8 ./
 COPY if/*.thrift ./if/
 
 # Compile thrift files
-RUN apk add --no-cache boost-filesystem@edge libstdc++@edge && \
-    python setup.py build_thrift --out-path=/usr/lib/python3.7/site-packages
+RUN apk add --no-cache boost-filesystem libstdc++ && \
+    python setup.py build_thrift --out-path=/usr/lib/python3.8/site-packages
 
 # Install tglib
 RUN apk add --no-cache --virtual build-deps \
@@ -117,13 +114,13 @@ RUN apk add --no-cache --virtual build-deps \
     pip install .[docs] && \
     apk del build-deps
 
-# Pull base image. Pin to alpine:3.10 for python3.7
-FROM alpine:3.10
+# Pull base image
+FROM alpine:edge
 
 # Install python3
 RUN apk update && apk add --no-cache python3 && \
     ln -s python3 /usr/bin/python
 
 # Copy python dependencies
-COPY --from=builder /usr/bin/easy_install /usr/bin/pip /usr/bin/
-COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+COPY --from=builder /usr/bin/pip /usr/bin/pip
+COPY --from=builder /usr/lib/python3.8/site-packages /usr/lib/python3.8/site-packages

@@ -341,8 +341,8 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     return web.Response(text="Successfully deleted network test schedule")
 
 
-@routes.get("/execution")  # noqa: C901
-async def handle_get_executions(request: web.Request) -> web.Response:
+@routes.get("/execution")
+async def handle_get_executions(request: web.Request) -> web.Response:  # noqa: C901
     """
     ---
     description: Return all of the network test executions and their params.

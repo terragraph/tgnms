@@ -7,7 +7,7 @@
 Welcome to tglib's documentation!
 =================================
 
-:mod:`tglib` is a Python 3.7 framework built using :mod:`asyncio`. At its core,
+:mod:`tglib` is a Python 3.8 framework built using :mod:`asyncio`. At its core,
 :mod:`tglib` provides a simple and standardized way to write applications that
 can be safely deployed as microservices in the Terragraph Docker Swarm. Out of
 the box, :mod:`tglib` provides :doc:`clients<./clients>` to access all first-class

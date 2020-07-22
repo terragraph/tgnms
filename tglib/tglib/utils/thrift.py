@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from typing import Callable
+from typing import Callable, Protocol
 
 from thrift.protocol import TBinaryProtocol, TJSONProtocol, TProtocol
 from thrift.transport import TTransport
-from typing_extensions import Protocol
 
 
 class Thrift(Protocol):

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-import distutils
 import pathlib
 import re
 import subprocess
 import sys
 
-from setuptools import Command, find_packages, setup
+from setuptools import Command, distutils, find_packages, setup
 
 
-assert sys.version_info >= (3, 7, 0), "tglib requires >= Python 3.7"
+assert sys.version_info >= (3, 8, 0), "tglib requires >= Python 3.8"
 
 
 HERE = pathlib.Path(__file__).parent
@@ -94,7 +93,6 @@ setup(
         "aiokafka>=0.5.2,<1.0",
         "aiomysql>=0.0.20,<1.0",
         "sqlalchemy>=1.3.5,<2.0",
-        "typing-extensions>=3.7.4,<4.0",
         "uvloop>=0.14.0,<1.0",
     ],
     extras_require={
