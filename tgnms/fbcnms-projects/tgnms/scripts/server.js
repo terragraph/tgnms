@@ -20,9 +20,9 @@ const cookieParser = require('cookie-parser');
 const express = require('express');
 const passport = require('passport');
 const path = require('path');
-const paths = require('fbcnms-webpack-config/paths');
+const paths = require('@fbcnms/webpack-config/paths');
 const session = require('express-session');
-const staticDist = require('fbcnms-webpack-config/staticDist').default;
+const staticDist = require('@fbcnms/webpack-config/staticDist').default;
 
 const webpackSmartMiddleware = configureWebpackSmartMiddleware();
 const {otpMiddleware} = require('../server/middleware/otp');

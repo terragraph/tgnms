@@ -13,7 +13,7 @@ import passport from 'passport';
 import {URL} from 'url';
 import {awaitClient} from './oidc';
 const logger = require('../log')(module);
-import staticDist from 'fbcnms-webpack-config/staticDist';
+import staticDist from '@fbcnms/webpack-config/staticDist';
 import type {Request} from '../types/express';
 
 const router = express.Router();

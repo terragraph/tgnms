@@ -7,8 +7,8 @@
  * @flow strict-local
  * @format
  */
-const webpackConfig = require('fbcnms-webpack-config/production-webpack');
-const paths = require('fbcnms-webpack-config/paths');
+const webpackConfig = require('@fbcnms/webpack-config/production-webpack');
+const paths = require('@fbcnms/webpack-config/paths');
 
 const config = webpackConfig.createProductionWebpackConfig({
   extraPaths: [paths.resolveApp('shared')],
