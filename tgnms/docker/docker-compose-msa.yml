@@ -65,6 +65,7 @@ services:
     volumes:
       - ./docker_volumes/tglib/config.json:/usr/local/scan_service/config.json
       - ./docker_volumes/scan_service/alembic.ini:/usr/local/scan_service/alembic.ini
+      - ./docker_volumes/hardware_config/hardware_config.json:/usr/local/scan_service/hardware_config.json
       - ./docker_volumes/scan_service/service_config.json:/usr/local/scan_service/service_config.json
       - ./mysql_init_scripts/scan_service.sql:/usr/local/scan_service/scan_service.sql
     networks:
