@@ -18,15 +18,20 @@ export type DefaultRouteHistoryType = {
   endTime: string,
 };
 
+export type DefaultRouteUtilType = {
+  routes: Array<Array<string>>,
+  percentage: number,
+};
+
 type DefaultRouteHistory = {
   history: {[string]: Array<DefaultRouteHistoryData>},
-  util: {[string]: {[string]: number}},
+  util: {[string]: Array<DefaultRouteUtilType>},
 };
 
 export type DefaultRouteHistoryData = {
   last_updated: string,
   routes: Array<Array<string>>,
-  hop_count: number,
+  max_hop_count: number,
 };
 
 export const getDefaultRouteHistory = (inputData: DefaultRouteHistoryType) => {
@@ -45,7 +50,7 @@ export const getDefaultRouteHistory = (inputData: DefaultRouteHistoryType) => {
     .then(response => {
       return {
         history: response.data.history[inputData.nodeName],
-        util: response.data.util[inputData.nodeName],
+        utils: response.data.util[inputData.nodeName],
       };
     })
     .catch(_err => {

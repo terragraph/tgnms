@@ -5,41 +5,53 @@
  * @flow strict-local
  */
 
-import type {DefaultRouteHistoryData} from '../../apiutils/DefaultRouteHistoryAPIUtil';
+import type {
+  DefaultRouteHistoryData,
+  DefaultRouteUtilType,
+} from '../../apiutils/DefaultRouteHistoryAPIUtil';
 import type {NodeMap} from '../../contexts/NetworkContext';
 
 export function testDefaultRouteHistory(): {
   history: Array<DefaultRouteHistoryData>,
-  util: {[string]: number},
+  utils: Array<DefaultRouteUtilType>,
 } {
   return {
     history: [
       {
         last_updated: '2020-02-20T16:16:32',
         routes: [['11M96.1', '11M870.2', '11M870.1']],
-        hop_count: 3,
+        max_hop_count: 3,
       },
       {
         last_updated: '2020-02-20T16:17:32',
         routes: [['11M96.1', '11M870.2', '11M870.1', '11M867.2']],
-        hop_count: 4,
+        max_hop_count: 4,
       },
       {
         last_updated: '2020-02-20T16:17:52',
         routes: [['11M96.1', '11M870.2', '11M870.1']],
-        hop_count: 3,
+        max_hop_count: 3,
       },
       {
         last_updated: '2020-02-20T16:18:32',
         routes: [['11M96.1', '11M870.2', '11M870.1', '11M867.2', '11M867.1']],
-        hop_count: 5,
+        max_hop_count: 5,
       },
     ],
-    util: {
-      "[['11M96.1', '11M870.2', '11M870.1']]": 90.271,
-      "[['11M96.1', '11M870.2', '11M870.1', '11M867.2']]": 0.139,
-      "[['11M96.1', '11M870.2', '11M870.1', '11M867.2', '11M867.1']]": 9.59,
-    },
+    utils: [
+      {
+        routes: [['11M96.1', '11M870.2', '11M870.1']],
+        percentage: 90.271,
+      },
+      {
+        routes: [['11M96.1', '11M870.2', '11M870.1', '11M867.2']],
+        percentage: 0.139,
+      },
+      {
+        routes: [['11M96.1', '11M870.2', '11M870.1', '11M867.2', '11M867.1']],
+        percentage: 9.59,
+      },
+    ],
   };
 }
 

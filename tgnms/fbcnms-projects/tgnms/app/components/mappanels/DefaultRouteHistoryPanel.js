@@ -22,7 +22,6 @@ import {
   getDefaultRouteHistory,
 } from '../../apiutils/DefaultRouteHistoryAPIUtil';
 import {mapDefaultRoutes} from '../../helpers/DefaultRouteHelpers';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {NodeMap, Site} from '../../contexts/NetworkContext';
@@ -115,6 +114,16 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     this.getInitialSetup();
   }
 
+  componentDidUpdate(prevProps) {
+    const {node} = this.props;
+    if (
+      prevProps.node.name !== node.name &&
+      node.name !== this.state.selectedNode
+    ) {
+      this.handleNodeChange(node.name);
+    }
+  }
+
   handleDateChange(date) {
     if (date.toString() === 'Invalid Date') {
       return;
@@ -163,14 +172,14 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     });
   }
 
-  defaultRouteHistoryRequest() {
+  async defaultRouteHistoryRequest() {
     const {networkName} = this.props;
     const {selectedDate, selectedNode} = this.state;
     const startTime = selectedDate.toISOString().split('.')[0];
     const endTime = new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000)
       .toISOString()
       .split('.')[0];
-    return getDefaultRouteHistory({
+    return await getDefaultRouteHistory({
       networkName,
       nodeName: selectedNode,
       startTime,
@@ -197,64 +206,66 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     ];
   }
 
-  processRoutes() {
+  async processRoutes() {
     const {networkName, topology} = this.props;
     const {selectedNode} = this.state;
-    Promise.all([
+    const [currentDefaultRoute, defaultRouteHistory] = await Promise.all([
       currentDefaultRouteRequest({
         networkName,
         selectedNode,
       }),
       this.defaultRouteHistoryRequest(),
-    ]).then(([currentDefaultRoute, defaultRouteHistory]) => {
-      if (
-        defaultRouteHistory === undefined ||
-        Object.keys(defaultRouteHistory.util).length === 0
-      ) {
-        this.setState({defaultRoutes: null, isLoading: false});
-        return;
-      }
-      if (currentDefaultRoute !== undefined) {
-        const {links, nodes} = mapDefaultRoutes({
-          mapRoutes: currentDefaultRoute,
-          topology,
-        });
-        this.props.routes.onUpdateRoutes({
-          node: selectedNode,
-          links,
-          nodes,
-        });
-      }
+    ]);
 
-      const {history, util} = defaultRouteHistory;
-      const routes = Object.keys(util).map(routeString =>
-        JSON.parse(routeString.replace(/'/g, '"')),
-      );
-      const percents = objectValuesTypesafe<number>(util);
-      const currentRouteString = JSON.stringify(currentDefaultRoute);
-
-      const finalDefaultRoutes: Array<DefaultRouteType> = routes.map(
-        (route, index) => {
-          const routeString = JSON.stringify(route);
-          const hops =
-            [...new Set(history)].find(
-              change => JSON.stringify(change.routes) === routeString,
-            )?.hop_count || 0;
-
-          return {
-            route,
-            hops,
-            percent: percents[index],
-            isCurrent: routeString === currentRouteString,
-          };
-        },
-      );
-
-      this.setState({
-        defaultRoutes: finalDefaultRoutes.sort((a, b) => b.percent - a.percent),
-        totalChanges: history.length,
-        isLoading: false,
+    if (
+      defaultRouteHistory === undefined ||
+      defaultRouteHistory.utils.length === 0
+    ) {
+      this.setState({defaultRoutes: null, isLoading: false});
+      return;
+    }
+    if (currentDefaultRoute !== undefined) {
+      const {links, nodes} = mapDefaultRoutes({
+        mapRoutes: currentDefaultRoute,
+        topology,
       });
+      this.props.routes.onUpdateRoutes({
+        node: selectedNode,
+        links,
+        nodes,
+      });
+    }
+
+    const {history, utils} = defaultRouteHistory;
+
+    const routes = utils.map(util => util.routes);
+
+    const percents = utils.map(routeUtil => routeUtil.percentage);
+    const currentRouteString = JSON.stringify(currentDefaultRoute);
+
+    const finalDefaultRoutes: Array<DefaultRouteType> = routes.map(
+      (route, index) => {
+        const routeString = JSON.stringify(route);
+        const routeInstances = [...new Set(history)].filter(
+          change => JSON.stringify(change.routes) === routeString,
+        );
+        const hops =
+          routeInstances.find(route => route.max_hop_count !== 0)
+            ?.max_hop_count || 0;
+
+        return {
+          route,
+          hops,
+          percent: percents[index],
+          isCurrent: routeString === currentRouteString,
+        };
+      },
+    );
+
+    this.setState({
+      defaultRoutes: finalDefaultRoutes.sort((a, b) => b.percent - a.percent),
+      totalChanges: history.length,
+      isLoading: false,
     });
   }
 
@@ -304,8 +315,10 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
                     </ListItem>
                     <ListItem>
                       <Typography variant="body2">
-                        {route.percent}% of the time - {route.hops} wireless
-                        hops
+                        {route.percent + '% of the time - '}
+                        {route.route.length === 0
+                          ? 'no route'
+                          : route.hops + ' wireless hop(s)'}
                       </Typography>
                     </ListItem>
                   </List>
