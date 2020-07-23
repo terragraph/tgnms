@@ -7,13 +7,14 @@ import enum
 import logging
 from datetime import datetime
 from math import inf
+from statistics import quantiles
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from tglib.clients.prometheus_client import PrometheusClient, consts, ops
 from tglib.exceptions import ClientRuntimeError
 
 from ..models import NetworkTestHealth
-from .utils import apply_traffic_mask, percentile
+from .utils import apply_traffic_mask
 
 
 BWGD_S = 25.6 / 1e3
@@ -219,7 +220,7 @@ def compute_link_health(
     if len(mcs_with_traffic) / len(mcs) < 0.8:
         logging.warning("Insufficient amount of 'mcs' samples with traffic")
         return NetworkTestHealth.POOR
-    mcs_p10 = percentile(sorted(mcs_with_traffic), perc=0.1)
+    mcs_p10 = quantiles(mcs_with_traffic, n=10)[0]
 
     iperf_tput_ratio = iperf_avg_throughput / expected_bitrate
 

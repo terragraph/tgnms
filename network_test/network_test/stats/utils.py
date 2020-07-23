@@ -20,14 +20,3 @@ def apply_traffic_mask(
             metric_with_traffic.append(metric[index])
 
     return metric_with_traffic
-
-
-def percentile(lst: List[Union[int, float]], perc: float) -> float:
-    """Compute the percentile of a sorted list where 0.0 < 'perc' < 1.0."""
-    k = (len(lst) - 1) * perc
-    floor = math.floor(k)
-    ceil = math.ceil(k)
-    if floor == ceil:
-        return lst[int(k)]
-
-    return (lst[int(floor)] * (ceil - k)) + (lst[int(ceil)] * (k - floor))
