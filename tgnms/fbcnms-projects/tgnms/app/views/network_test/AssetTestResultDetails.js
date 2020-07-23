@@ -39,11 +39,7 @@ export default function AssetTestResultDetails({
   }
 
   return (
-    <Grid
-      className={classes.linkResultsContainer}
-      container
-      direction="column"
-      spacing={1}>
+    <Grid className={classes.linkResultsContainer} container spacing={1}>
       {resultA && (
         <Grid container item direction="column" justify="flex-start" xs={12}>
           <AssetDirectionDetails result={resultA} />
