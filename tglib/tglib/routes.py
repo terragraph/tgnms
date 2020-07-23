@@ -42,7 +42,7 @@ async def handle_get_status(request: web.Request) -> web.Response:
             Content-Type: text/plain; charset=utf-8
             Content-Length: 5
             Date: Tue, 12 May 2020 18:57:45 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             Alive
 
@@ -80,7 +80,7 @@ async def handle_get_swagger_docs(request: web.Request) -> web.Response:
             Content-Type: text/plain; charset=utf-8
             Content-Length: 3729
             Date: Fri, 26 Jun 2020 21:52:11 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             basePath: /
             info:
@@ -127,7 +127,7 @@ async def handle_get_metrics(request: web.Request) -> web.Response:
             Content-Type: text/plain; charset=utf-8
             Content-Length: 14161
             Date: Tue, 12 May 2020 18:58:37 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             topology_link_is_online{network="Fremont F0 A",linkName="link_terra114_f1_terra123_f1",cn="false"} 1 1589483730560
             topology_link_attempts{network="Fremont F0 A",linkName="link_terra114_f1_terra123_f1",cn="false"} 3 1589483730560
@@ -177,7 +177,7 @@ async def handle_get_config(request: web.Request) -> web.Response:
             Content-Type: application/json; charset=utf-8
             Content-Length: 56
             Date: Tue, 12 May 2020 18:59:12 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             {"topics": ["iperf_results"], "execution_timeout_s": 15}
 
@@ -227,7 +227,7 @@ async def handle_set_config(request: web.Request) -> web.Response:
             Content-Type: application/json; charset=utf-8
             Content-Length: 56
             Date: Tue, 12 May 2020 19:00:57 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             {"topics": ["iperf_results"], "execution_timeout_s": 30}
 
@@ -299,7 +299,7 @@ async def handle_update_config(request: web.Request) -> web.Response:
             Content-Type: application/json; charset=utf-8
             Content-Length: 56
             Date: Tue, 12 May 2020 19:00:57 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             {"topics": ["iperf_results"], "execution_timeout_s": 30}
 
@@ -380,7 +380,7 @@ async def handle_set_log_level(request: web.Request) -> web.Response:
             Content-Type: text/plain; charset=utf-8
             Content-Length: 34
             Date: Tue, 12 May 2020 19:06:34 GMT
-            Server: Python/3.7 aiohttp/3.6.2
+            Server: Python/3.8 aiohttp/3.6.2
 
             Log level set to WARNING from INFO
 

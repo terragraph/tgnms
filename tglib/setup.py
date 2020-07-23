@@ -87,7 +87,7 @@ setup(
     name="tglib",
     version=version,
     packages=find_packages(exclude=["tests"]),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         "aiohttp>=3.5.4,<4.0",
         "aiokafka>=0.5.2,<1.0",
