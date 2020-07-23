@@ -42,6 +42,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
       type: array
       items:
         type: string
+        enum: [multihop, parallel, sequential]
     - in: query
       name: network_name
       description: The name of the network.
@@ -161,6 +162,7 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
             type: string
           test_type:
             type: string
+            enum: [multihop, parallel, sequential]
           network_name:
             type: string
           iperf_options:
@@ -355,6 +357,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:  # noqa: 
       type: array
       items:
         type: string
+        enum: [multihop, parallel, sequential]
     - in: query
       name: network_name
       description: The name of the network.
@@ -500,6 +503,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         properties:
           test_type:
             type: string
+            enum: [multihop, parallel, sequential]
           network_name:
             type: string
           iperf_options:
