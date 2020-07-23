@@ -7,13 +7,11 @@ WORKDIR /usr/local/tglib
 RUN apk add --no-cache --virtual build-deps \
         gcc \
         g++ \
+        jpeg-dev \
         libffi-dev \
-        linux-headers \
-        musl-dev \
-        openssl-dev \
-        python3-dev && \
-    apk add --no-cache freetype-dev && \
-    pip install wheel && \
+        python3-dev \
+        zlib-dev && \
+    apk add py3-matplotlib py3-numpy py3-pandas && \
     pip install .[jupyter] && \
     apk del build-deps
 
