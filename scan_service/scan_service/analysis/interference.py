@@ -5,55 +5,26 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
 
+from ..utils.hardware_config import HardwareConfig
 from ..utils.stats import create_link_mac_map, get_latest_stats
 
 
-# rule: 1:1 when index from 0 to 22; 1:0.5 when beyond 22
-CUT_OFF_IDX = 22
-MAX_PWR_IDX = 21
-# minimum reporeted RSSI in dBm
-MINIMUM_RSSI_DBM = -80
-BEAM_GRAN_DEG = 1.5
-
-
-def index2deg(idx: int, round_digit: int = 2) -> float:
-    """Convert index to angle w.r.t. broadside."""
-    return (
-        round(-idx * 45.0 / 31, round_digit)
-        if (idx < 32)
-        else round((idx - 31) * 45.0 / 32, round_digit)
-    )
-
-
-def deg2index(angle: float) -> int:
-    """Convert angle to index w.r.t. broadside."""
-    return (
-        int(round(angle * 32.0 / 45)) + 31
-        if angle > 0
-        else int(round(-angle * 31.0 / 45))
-    )
-
-
 def estimate_interference(
-    data: Dict, target_pwr_idx: int = MAX_PWR_IDX, ref_pwr_idx: int = MAX_PWR_IDX
+    data: Dict, target_pwr_idx: Optional[int] = None, ref_pwr_idx: Optional[int] = None
 ) -> Dict:
     """Estimate inr on target power index, given inr at reference power index."""
+    if target_pwr_idx is None:
+        target_pwr_idx = HardwareConfig.MAX_PWR_IDX
+    if ref_pwr_idx is None:
+        ref_pwr_idx = HardwareConfig.MAX_PWR_IDX
     estimate: Dict = {}
-    if target_pwr_idx == ref_pwr_idx:
-        offset = 0
-    else:
-        # rule: 1:1 when index from 0 to 22; 1:0.5 when beyond 22
-        target_diff = float(target_pwr_idx - CUT_OFF_IDX)
-        if target_diff > 0:
-            target_diff /= 2
-        ref_diff = float(ref_pwr_idx - CUT_OFF_IDX)
-        if ref_diff > 0:
-            ref_diff /= 2
-        offset = round(target_diff - ref_diff)
-    if data["rssi"] + offset > MINIMUM_RSSI_DBM:
+    offset = round(
+        HardwareConfig.TXPOWERIDX_TO_TXPOWER[target_pwr_idx]
+        - HardwareConfig.TXPOWERIDX_TO_TXPOWER[ref_pwr_idx]
+    )
+    if data["rssi"] + offset > HardwareConfig.MINIMUM_RSSI_DBM:
         estimate = {
             "rssi": data["rssi"] + offset,
             "snr_est": data["snr_est"] + offset,
@@ -66,15 +37,17 @@ def get_interference_data(
     response: Dict[str, Dict], tx_beam: int, rx_beam: int, use_exact_beam: bool = False
 ) -> Optional[Dict]:
     """Get the INR measurement given a particular tx and rx beam index."""
-    tx_idx_left = deg2index(index2deg(tx_beam) - BEAM_GRAN_DEG)
-    tx_idx_right = deg2index(index2deg(tx_beam) + BEAM_GRAN_DEG)
-    rx_idx_left = deg2index(index2deg(rx_beam) - BEAM_GRAN_DEG)
-    rx_idx_right = deg2index(index2deg(rx_beam) + BEAM_GRAN_DEG)
+    tx_idx_left = HardwareConfig.get_adjacent_beam_index(tx_beam, add=False)
+    tx_idx_right = HardwareConfig.get_adjacent_beam_index(tx_beam, add=True)
+    rx_idx_left = HardwareConfig.get_adjacent_beam_index(rx_beam, add=False)
+    rx_idx_right = HardwareConfig.get_adjacent_beam_index(rx_beam, add=True)
+
     key = f"{tx_beam}_{rx_beam}"
     key_up = f"{tx_beam}_{rx_idx_left}"
     key_down = f"{tx_beam}_{rx_idx_right}"
     key_left = f"{tx_idx_left}_{rx_beam}"
     key_right = f"{tx_idx_right}_{rx_beam}"
+
     if key in response:
         return response[key]
     if not use_exact_beam:
@@ -93,15 +66,14 @@ def get_inr(
     curr_power_idx: Optional[int],
 ) -> Optional[Tuple[Dict, Dict]]:
     """Get INR at tx and rx beam pair with max and current power."""
-    # get the interference measurement of the tx-rx pair
+    # Get the interference measurement of the tx-rx pair
     inr = get_interference_data(rx_response, int(tx_beam), int(rx_beam))
     if inr is None:
         return None
 
-    # if not using max power for scans, we will
-    # adjust the results to estimate what it looks like when
-    # using max txPowerIdx (for APPROXIMATION only)
-    if scan_power_idx == MAX_PWR_IDX:
+    # If not using max power for scans, we will adjust the results to estimate what
+    # it looks like when using max txPowerIdx (for APPROXIMATION only)
+    if scan_power_idx == HardwareConfig.MAX_PWR_IDX:
         inr_max = inr
     else:
         logging.debug(
@@ -109,10 +81,10 @@ def get_inr(
             f"mapping from power index {scan_power_idx} to max power"
         )
         inr_max = estimate_interference(
-            inr, target_pwr_idx=MAX_PWR_IDX, ref_pwr_idx=scan_power_idx
+            inr, target_pwr_idx=HardwareConfig.MAX_PWR_IDX, ref_pwr_idx=scan_power_idx
         )
 
-    # estimate inr with current power
+    # Estimate inr with current power
     inr_curr = (
         estimate_interference(
             inr, target_pwr_idx=curr_power_idx, ref_pwr_idx=scan_power_idx
@@ -141,9 +113,9 @@ async def get_interference_from_current_beams(
             continue
         logging.info(f"Analyzing interference from {tx_node} to {rx_node}")
 
-        # loop through tx_beam and rx_beam combinations
+        # Loop through tx_beam and rx_beam combinations
         for tx_to_node, tx_beam in im_data["relative_im_beams"].items():
-            # skip if it's an actual link
+            # Skip if it's an actual link
             if rx_node == tx_to_node:
                 continue
             curr_power_idx = tx_infos.get(tx_to_node, {}).get("tx_power")
@@ -152,7 +124,7 @@ async def get_interference_from_current_beams(
             for rx_from_node, rx_beam in im_data["responses"][rx_node][
                 "relative_im_beams"
             ].items():
-                # skip if it's an actual link
+                # Skip if it's an actual link
                 if rx_from_node == tx_node:
                     continue
                 logging.debug(
@@ -208,7 +180,7 @@ async def get_interference_from_directional_beams(
     coros = []
     rx_nodes = []
     for rx_node in im_data["responses"]:
-        # skip if they are the same
+        # Skip if they are the same
         if tx_node == rx_node:
             continue
         logging.info(f"Analyzing interference from {tx_node} to {rx_node}")
@@ -217,9 +189,9 @@ async def get_interference_from_directional_beams(
             get_latest_stats(network_name, link_mac_map, rx_node, ["rx_beam_idx"])
         )
     for rx_node, rx_infos in zip(rx_nodes, await asyncio.gather(*coros)):
-        # loop through tx_beam and rx_beam combinations
+        # Loop through tx_beam and rx_beam combinations
         for tx_to_node, tx_info in tx_infos.items():
-            # skip if it's an actual link
+            # Skip if it's an actual link
             if rx_node == tx_to_node:
                 continue
             tx_beam = tx_info.get("tx_beam_idx")
@@ -229,7 +201,7 @@ async def get_interference_from_directional_beams(
             if curr_power_idx is not None:
                 curr_power_idx = int(curr_power_idx)
             for rx_from_node, rx_info in rx_infos.items():
-                # skip if it's an actual link
+                # Skip if it's an actual link
                 if rx_from_node == tx_node:
                     continue
                 rx_beam = rx_info.get("rx_beam_idx")

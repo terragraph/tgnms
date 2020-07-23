@@ -4,6 +4,7 @@
 import logging
 import unittest
 
+from tests.adjacent_beam_index_tests import AdjacentBeamIndexTests
 from tests.connectivity_tests import ConnectivityTests
 
 

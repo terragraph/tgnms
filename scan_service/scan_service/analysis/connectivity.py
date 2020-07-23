@@ -11,7 +11,7 @@ from ..utils.hardware_config import HardwareConfig
 
 
 def find_routes_compute(
-    beam_map: np.array, saturation_threshhold: int, target: int, con: HardwareConfig
+    beam_map: np.array, saturation_threshhold: int, target: int
 ) -> List:
     """Find a list of beam index pairs above target between the TX and RX node."""
 
@@ -20,37 +20,67 @@ def find_routes_compute(
     while current_max >= target:
         idx_max = np.unravel_index(beam_map.argmax(), beam_map.shape)
         routes.append(
-            (con.BEAM_ORDER[idx_max[0]], con.BEAM_ORDER[idx_max[1]], current_max)
+            (
+                HardwareConfig.BEAM_ORDER[idx_max[0]],
+                HardwareConfig.BEAM_ORDER[idx_max[1]],
+                current_max,
+            )
         )
-        # clear up map for finished cross
-        tx_left = max([idx_max[0] - int(con.BORESIDE_BW_IDX / 2), con.MIN_BEAM_INDEX])
+        # Clear up map for finished cross
+        tx_left = max(
+            [
+                idx_max[0] - int(HardwareConfig.BORESIDE_BW_IDX / 2),
+                HardwareConfig.MIN_BEAM_INDEX,
+            ]
+        )
         tx_right = min(
-            [idx_max[0] + int(con.BORESIDE_BW_IDX / 2), con.MAX_BEAM_INDEX - 1]
+            [
+                idx_max[0] + int(HardwareConfig.BORESIDE_BW_IDX / 2),
+                HardwareConfig.MAX_BEAM_INDEX - 1,
+            ]
         )
-        rx_left = max([idx_max[1] - int(con.BORESIDE_BW_IDX / 2), con.MIN_BEAM_INDEX])
+        rx_left = max(
+            [
+                idx_max[1] - int(HardwareConfig.BORESIDE_BW_IDX / 2),
+                HardwareConfig.MIN_BEAM_INDEX,
+            ]
+        )
         rx_right = min(
-            [idx_max[1] + int(con.BORESIDE_BW_IDX / 2), con.MAX_BEAM_INDEX - 1]
+            [
+                idx_max[1] + int(HardwareConfig.BORESIDE_BW_IDX / 2),
+                HardwareConfig.MAX_BEAM_INDEX - 1,
+            ]
         )
 
-        # check if saturated
+        # Check if saturated
         is_saturated = current_max > saturation_threshhold
         for i in range(tx_left, tx_right + 1):
-            for j in range(con.MIN_BEAM_INDEX, con.MAX_BEAM_INDEX):
-                # check if sidelobe less than 12dB (+-1dB variation),
+            for j in range(
+                HardwareConfig.MIN_BEAM_INDEX, HardwareConfig.MAX_BEAM_INDEX
+            ):
+                # Check if sidelobe less than 12dB (+-1dB variation),
                 # or is saturated, or map idx for rx is on the left/right
                 if (
                     is_saturated
-                    or (beam_map[i, j] < current_max - con.MAX_SIDELOBE_LEVEL_DB)
+                    or (
+                        beam_map[i, j]
+                        < current_max - HardwareConfig.MAX_SIDELOBE_LEVEL_DB
+                    )
                     or (rx_left <= j <= rx_right)
                 ):
                     beam_map[i, j] = target - 1
         for j in range(rx_left, rx_right + 1):
-            for i in range(con.MIN_BEAM_INDEX, con.MAX_BEAM_INDEX):
-                # check if sidelobe less than 12dB (+-1dB variation),
+            for i in range(
+                HardwareConfig.MIN_BEAM_INDEX, HardwareConfig.MAX_BEAM_INDEX
+            ):
+                # Check if sidelobe less than 12dB (+-1dB variation),
                 # or is saturated, or map idx for rx is on the left/right
                 if (
                     is_saturated
-                    or (beam_map[i, j] < current_max - con.MAX_SIDELOBE_LEVEL_DB)
+                    or (
+                        beam_map[i, j]
+                        < current_max - HardwareConfig.MAX_SIDELOBE_LEVEL_DB
+                    )
                     or (rx_left <= j <= rx_right)
                 ):
                     beam_map[i, j] = target - 1
@@ -58,16 +88,25 @@ def find_routes_compute(
     return routes
 
 
-def separate_beams(routes: List, con: HardwareConfig) -> None:
+def separate_beams(routes: List) -> None:
     """Keep one route if multiple routes have similar beam indices and
     remove the rest."""
 
     idx_remove: Set = set()
     for i in range(len(routes) - 1, -1, -1):
         for j in range(len(routes) - 1, i, -1):
-            diff_tx = abs(con.BEAM_ORDER[routes[i][0]] - con.BEAM_ORDER[routes[j][0]])
-            diff_rx = abs(con.BEAM_ORDER[routes[i][1]] - con.BEAM_ORDER[routes[j][1]])
-            if diff_tx < con.BEAM_SEPERATE_IDX or diff_rx < con.BEAM_SEPERATE_IDX:
+            diff_tx = abs(
+                HardwareConfig.BEAM_ORDER[routes[i][0]]
+                - HardwareConfig.BEAM_ORDER[routes[j][0]]
+            )
+            diff_rx = abs(
+                HardwareConfig.BEAM_ORDER[routes[i][1]]
+                - HardwareConfig.BEAM_ORDER[routes[j][1]]
+            )
+            if (
+                diff_tx < HardwareConfig.BEAM_SEPERATE_IDX
+                or diff_rx < HardwareConfig.BEAM_SEPERATE_IDX
+            ):
                 idx_remove.add(j if routes[i][2] > routes[j][2] else i)
 
     for i in range(len(routes) - 1, -1, -1):
@@ -75,41 +114,42 @@ def separate_beams(routes: List, con: HardwareConfig) -> None:
             del routes[i]
 
 
-def find_routes(
-    im_data: Dict, target: int, use_rssi: bool, con: HardwareConfig
-) -> List:
+def find_routes(im_data: Dict, target: int, use_rssi: bool) -> List:
     """Find a list of beam index pairs above target RSSI/SNR between the TX and RX node."""
 
-    beam_map = np.array([[0] * con.MAX_BEAM_INDEX] * con.MAX_BEAM_INDEX)
-    saturation_threshhold = (
-        con.RSSI_SATURATE_THRESH_DBM if use_rssi else con.SNR_SATURATE_THRESH_DB
+    beam_map = np.array(
+        [[0] * HardwareConfig.MAX_BEAM_INDEX] * HardwareConfig.MAX_BEAM_INDEX
     )
-    for i in range(con.MIN_BEAM_INDEX, con.MAX_BEAM_INDEX):
-        for j in range(con.MIN_BEAM_INDEX, con.MAX_BEAM_INDEX):
-            tx_rx = f"{con.BEAM_ORDER[i]}_{con.BEAM_ORDER[j]}"
+    saturation_threshhold = (
+        HardwareConfig.RSSI_SATURATE_THRESH_DBM
+        if use_rssi
+        else HardwareConfig.SNR_SATURATE_THRESH_DB
+    )
+    for i in range(HardwareConfig.MIN_BEAM_INDEX, HardwareConfig.MAX_BEAM_INDEX):
+        for j in range(HardwareConfig.MIN_BEAM_INDEX, HardwareConfig.MAX_BEAM_INDEX):
+            tx_rx = f"{HardwareConfig.BEAM_ORDER[i]}_{HardwareConfig.BEAM_ORDER[j]}"
 
             if use_rssi:
                 beam_map[i][j] = (
-                    im_data[tx_rx]["rssi"] if tx_rx in im_data else con.MINIMUM_RSSI_DBM
+                    im_data[tx_rx]["rssi"]
+                    if tx_rx in im_data
+                    else HardwareConfig.MINIMUM_RSSI_DBM
                 )
             else:
                 beam_map[i][j] = (
                     im_data[tx_rx]["snr_est"]
                     if tx_rx in im_data
-                    else con.MINIMUM_SNR_DB
+                    else HardwareConfig.MINIMUM_SNR_DB
                 )
 
-    routes = find_routes_compute(beam_map, saturation_threshhold, target, con)
-    # keep one route if multiple routes have similar beam indices
-    separate_beams(routes, con)
+    routes = find_routes_compute(beam_map, saturation_threshhold, target)
+    # Keep one route if multiple routes have similar beam indices
+    separate_beams(routes)
     return routes
 
 
 def analyze_connectivity(
-    im_data: Optional[Dict],
-    con: HardwareConfig,
-    target: int = 15,
-    use_rssi: bool = False,
+    im_data: Optional[Dict], target: int = 15, use_rssi: bool = False
 ) -> Optional[List[Dict]]:
     """Analyze connectivity for a TX node based on IM scan data."""
     if im_data is None:
@@ -128,7 +168,7 @@ def analyze_connectivity(
     )
     for rx_node in im_data["responses"]:
         logging.info(f"Analyzing connectivity between {tx_node} to {rx_node}")
-        routes = find_routes(im_data["responses"][rx_node], target, use_rssi, con)
+        routes = find_routes(im_data["responses"][rx_node], target, use_rssi)
         logging.info(f"No. of routes between {tx_node} and {rx_node} are {len(routes)}")
         if not routes:
             continue
