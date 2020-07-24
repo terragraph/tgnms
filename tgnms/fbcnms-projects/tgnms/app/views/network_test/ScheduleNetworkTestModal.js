@@ -12,13 +12,12 @@ import NetworkContext from '../../contexts/NetworkContext';
 import NetworkTestAdvancedParams from './NetworkTestAdvancedParams';
 import SchedulerModal from '../../components/scheduler/SchedulerModal';
 import TextField from '@material-ui/core/TextField';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-
+import useForm from '../../hooks/useForm';
 import {
   MODAL_MODE,
   NETWORK_TEST_TYPES,
 } from '../../constants/ScheduleConstants';
-import {useForm} from '@fbcnms/ui/hooks';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {onActionClick: () => void};
 

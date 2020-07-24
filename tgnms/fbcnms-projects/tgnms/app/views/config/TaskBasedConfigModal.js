@@ -14,10 +14,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../contexts/NetworkContext';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
+import useForm from '../../hooks/useForm';
 import {NodeTypeValueMap} from '../../../shared/types/Topology';
 import {configGroups} from '../../constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useForm} from '@fbcnms/ui/hooks';
 
 const useModalStyles = makeStyles(theme => ({
   root: {

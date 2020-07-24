@@ -14,8 +14,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
+import useForm from '../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
-import {useForm} from '@fbcnms/ui/hooks';
 
 import type {TableOption} from './SchedulerTypes';
 

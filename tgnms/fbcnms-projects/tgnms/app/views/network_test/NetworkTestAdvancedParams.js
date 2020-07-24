@@ -12,13 +12,13 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useEffect} from 'react';
 import TextField from '@material-ui/core/TextField';
+import useForm from '../../hooks/useForm';
 import {
   NETWORK_TEST_DEFS,
   NETWORK_TEST_PROTOCOLS,
   PROTOCOL,
   TEST_TYPE_CODES,
 } from '../../constants/ScheduleConstants';
-import {useForm} from '@fbcnms/ui/hooks';
 
 import type {IperfOptions} from '../../../shared/dto/NetworkTestTypes';
 

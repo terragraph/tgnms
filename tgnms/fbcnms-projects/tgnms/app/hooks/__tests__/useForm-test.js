@@ -9,9 +9,9 @@
  */
 
 import 'jest-dom/extend-expect';
+import useForm from '../useForm';
 import {cleanup} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
-import {useForm} from '../../hooks';
 
 jest.useFakeTimers();
 afterEach(() => {

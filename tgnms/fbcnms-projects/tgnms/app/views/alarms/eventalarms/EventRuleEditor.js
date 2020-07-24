@@ -17,6 +17,7 @@ import RuleEditorBase from '@fbcnms/alarms/components/rules/RuleEditorBase';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import useForm from '../../../hooks/useForm';
 import yellow from '@material-ui/core/colors/yellow';
 import {
   EventIdValueMap,
@@ -28,7 +29,6 @@ import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
 import {useAlarmContext} from '@fbcnms/alarms/components/AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useForm} from '@fbcnms/ui/hooks';
 
 import type {EventRule} from './EventAlarmsTypes';
 import type {
