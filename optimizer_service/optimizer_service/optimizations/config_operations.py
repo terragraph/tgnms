@@ -19,7 +19,14 @@ from ..utils.db import (
 )
 from ..utils.dict import deep_update
 from ..utils.stats import get_link_status
-from .graph import build_topology_graph, find_cn_cut_edges, remove_low_uptime_links
+from .flow_graph import FlowGraph
+from .graph import (
+    build_topology_graph,
+    estimate_capacity,
+    find_all_p2mp,
+    find_cn_cut_edges,
+    remove_low_uptime_links,
+)
 
 
 def prepare_changes(
@@ -379,3 +386,82 @@ async def process_cut_edges(
         insert_overrides_configs(total_insert_entries),
         delete_node_entries(total_delete_entries),
     )
+
+
+def create_tideal_configs(p2mp_nodes: Dict, flow_graph: FlowGraph) -> defaultdict:
+    """Create config overrides for txIdeal and rxIdeal on P2MP nodes."""
+    overrides: defaultdict = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    for node, wl_links in p2mp_nodes.items():
+        sum_tideal = 0
+        for link in wl_links:
+            if link["name"] in flow_graph.edges:
+                sum_tideal += flow_graph.edges[link["name"]].time.value
+        for link in wl_links:
+            peer_mac = (
+                link["z_node_mac"]
+                if link["a_node_name"] == node
+                else link["a_node_mac"]
+            )
+            if not peer_mac:
+                logging.warning(
+                    f"Could not find mac address for node in {link['name']}"
+                )
+                continue
+
+            if not sum_tideal or link["name"] not in flow_graph.edges:
+                tideal = 0
+                logging.warning(
+                    f"{link['name']}  not assigned any time or does not "
+                    "have a flow_edge element"
+                )
+            else:
+                tideal = int(
+                    flow_graph.edges[link["name"]].time.value * 10000 / sum_tideal
+                )
+            overrides[node]["linkParamsOverride"][peer_mac] = {
+                "airtimeConfig": {"txIdeal": tideal, "rxIdeal": tideal}
+            }
+    return overrides
+
+
+def run_tideal_optimization(
+    topology: Dict, wireless_capacity_mbps: int, wired_capacity_mbps: int
+) -> Optional[Dict]:
+    """ Run optimization and create configs.
+
+    Estimate the maximum simultaneous throughput to all CNs in the topology
+    and create correspondibg tx_ideal and rx_ideal config overrides.
+    """
+
+    network_name = topology["name"]
+    logging.info(f"Analyzing topology {network_name}")
+    topology_graph, cns = build_topology_graph(topology)
+
+    if not cns:
+        logging.info(f"{network_name} has no CNs")
+        return None
+
+    p2mp_nodes = find_all_p2mp(topology_graph)
+    if not p2mp_nodes:
+        logging.info(f"{network_name} has no wireless links that share airtime")
+        return None
+
+    flow_graph = estimate_capacity(
+        topology_graph, cns, wireless_capacity_mbps, wired_capacity_mbps
+    )
+    if not flow_graph.result:
+        logging.info(f"Could not solve tideal optimization problem for {network_name}")
+        return None
+
+    logging.info(
+        f"The maximum achievable simultaneous throughput to all CNs in {network_name} "
+        f"is {flow_graph.result} Mbps"
+    )
+    overrides = create_tideal_configs(p2mp_nodes, flow_graph)
+    if not overrides:
+        logging.info(f"No tideal config needed for {network_name}")
+        return None
+
+    overrides_all = {"overrides": json.dumps(overrides)}
+    logging.debug(f"The optimized tideal configs are: {overrides_all}")
+    return overrides_all

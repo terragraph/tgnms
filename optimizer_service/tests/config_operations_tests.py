@@ -9,6 +9,7 @@ from optimizer_service.optimizations.config_operations import (
     prepare_changes,
     prepare_overrides_config_reverts,
     prepare_overrides_config_updates,
+    run_tideal_optimization,
 )
 
 
@@ -269,3 +270,57 @@ class ConfigOperationsTests(unittest.TestCase):
         )
         self.assertListEqual(overrides, expected_overrides)
         self.assertDictEqual(entries_to_delete, expected_entries_to_delete)
+
+    def test_create_tideal_configs(self) -> None:
+        topology = {
+            "name": "test",
+            "nodes": [
+                {
+                    "name": "TEST.18-60.P2",
+                    "node_type": 2,
+                    "is_primary": True,
+                    "pop_node": False,
+                },
+                {
+                    "name": "TEST.Roof-16-North.P1",
+                    "node_type": 2,
+                    "is_primary": True,
+                    "pop_node": True,
+                },
+                {
+                    "name": "TEST.18-61.P1",
+                    "node_type": 1,
+                    "is_primary": True,
+                    "pop_node": False,
+                },
+            ],
+            "links": [
+                {
+                    "name": "link-TEST.18-60.P2-TEST.18-61.P1",
+                    "a_node_name": "TEST.18-60.P2",
+                    "z_node_name": "TEST.18-61.P1",
+                    "a_node_mac": "00:P2",
+                    "z_node_mac": "00:P1",
+                    "link_type": 1,
+                },
+                {
+                    "name": "link-TEST.18-60.P2-TEST.Roof-16-North.P1",
+                    "a_node_name": "TEST.18-60.P2",
+                    "z_node_name": "TEST.Roof-16-North.P1",
+                    "a_node_mac": "00:P2",
+                    "z_node_mac": "00:PP",
+                    "link_type": 1,
+                },
+            ],
+        }
+        overrides = run_tideal_optimization(topology, 1000, 20000)
+        overrides_expected = {
+            "TEST.18-60.P2": {
+                "linkParamsOverride": {
+                    "00:P1": {"airtimeConfig": {"txIdeal": 4999, "rxIdeal": 4999}},
+                    "00:PP": {"airtimeConfig": {"txIdeal": 5000, "rxIdeal": 5000}},
+                }
+            }
+        }
+        expected_output = {"overrides": json.dumps(overrides_expected)}
+        self.assertDictEqual(overrides, expected_output)

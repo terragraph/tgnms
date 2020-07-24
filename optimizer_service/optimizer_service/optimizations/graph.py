@@ -8,6 +8,8 @@ import networkx as nx
 from terragraph_thrift.Topology.ttypes import LinkType, NodeType
 from tglib.clients import PrometheusClient
 
+from .flow_graph import FlowGraph
+
 
 def build_topology_graph(topology: Dict) -> Tuple[nx.Graph, Set[str]]:
     graph = nx.Graph()
@@ -104,3 +106,70 @@ def remove_low_uptime_links(
                 f"Removing {link_name}: Uptime ({uptime}) is less than {link_uptime_threshold}."
             )
             graph.remove_edge(*edge)
+
+
+def find_all_p2mp(graph: nx.Graph) -> Dict:
+    """Find all nodes that have more than one wireless links."""
+    p2mp_nodes = {}
+    for node in graph.nodes:
+        wl_links = []
+        links = graph.edges(node)
+        for link in links:
+            link_data = graph.get_edge_data(*link)
+            if link_data.get("link_type") == LinkType.WIRELESS:
+                wl_links.append(link_data)
+        if len(wl_links) > 1:
+            p2mp_nodes[node] = wl_links
+            logging.debug(f"node name: {node}, num wireless links: {len(wl_links)}")
+    return p2mp_nodes
+
+
+def estimate_capacity(
+    graph: nx.Graph,
+    cns: Set[str],
+    wireless_capacity_mbps: int,
+    wired_capacity_mbps: int,
+) -> FlowGraph:
+    """Estimate the maximum simultaneous throughput to all CNs."""
+    flow_graph = FlowGraph()
+    sources: Set[str] = set(["source"])
+    sinks: Set[str] = set()
+
+    paths = nx.shortest_path(graph, "source")
+
+    # "source" is the source of all flow and has a non-zero net_flow
+    flow_graph.add_node("source", net_flow=True)
+
+    # Create flow-graph objects for all nodes and edges on path to a CN
+    for cn in cns:
+        if cn not in paths:
+            continue
+
+        sinks.add(cn)
+        flow_graph.add_node(cn, net_flow=True)
+        path = paths[cn]
+        for i in range(len(path) - 1):
+            tx_node = path[i]
+            rx_node = path[i + 1]
+            flow_graph.add_node(tx_node)
+            flow_graph.add_node(rx_node)
+            link_attr = graph.get_edge_data(tx_node, rx_node)
+            # Only wireless links share time with each other
+            link_capacity = (
+                wireless_capacity_mbps
+                if link_attr.get("link_type") == LinkType.WIRELESS
+                else wired_capacity_mbps
+            )
+            flow_graph.add_edge(
+                link_capacity,
+                tx_node,
+                rx_node,
+                share_time=(link_attr.get("link_type") == LinkType.WIRELESS),
+                name=link_attr.get("name"),
+            )
+
+    # Add node constraints
+    flow_graph.add_constraints()
+    # Find the maximum simultaneously achievable throughput to all CNs
+    flow_graph.solve_maximize_min_problem(sources, sinks)
+    return flow_graph

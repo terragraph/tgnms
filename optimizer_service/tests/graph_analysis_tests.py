@@ -8,6 +8,8 @@ from copy import deepcopy
 import networkx as nx
 from optimizer_service.optimizations.graph import (
     build_topology_graph,
+    estimate_capacity,
+    find_all_p2mp,
     find_cn_cut_edges,
     is_cn_cut_edge,
     remove_low_uptime_links,
@@ -41,7 +43,6 @@ class GraphAnalysisTests(unittest.TestCase):
         self.assertEqual(expected_output, actual_output)
 
     def test_remove_low_uptime_links(self) -> None:
-        self.graph, self.cns = build_topology_graph(self.topology)
         uptime = [
             0.9578,
             0.9999,
@@ -88,3 +89,13 @@ class GraphAnalysisTests(unittest.TestCase):
         self.assertEqual(len(graph.nodes), len(self.graph.nodes))
         self.assertEqual(len(graph.edges), len(self.graph.edges))
         self.assertEqual(len(graph["source"]), len(self.graph["source"]))
+
+    def test_find_all_p2mp(self) -> None:
+        p2mp_nodes = find_all_p2mp(self.graph)
+        self.assertEqual(3, len(p2mp_nodes))
+        expected_output = ["TEST.18-41.s1", "TEST.18-60.P2", "TEST.18-36.p2"]
+        self.assertListEqual(expected_output, list(p2mp_nodes.keys()))
+
+    def test_estimate_capacity(self) -> None:
+        flow_graph = estimate_capacity(self.graph, self.cns, 1000, 20000)
+        self.assertAlmostEqual(250, flow_graph.result, 0)
