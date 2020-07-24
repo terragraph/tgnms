@@ -507,7 +507,8 @@ class CustomTable extends React.Component<Props, State> {
   _filterFunction(event, key) {
     const {filters} = this.state;
 
-    filters[key] = String(event.target.value).toLowerCase();
+    const value = event.target.value.replace(/[\W_]/g, '');
+    filters[key] = String(value).toLowerCase();
 
     // Set new filter in state to trigger rerender
     this.setState({
