@@ -13,6 +13,12 @@
             "link_flap_backoff_ms": "1050",
             "link_impairment_detection": 0,
             "link_uptime_threshold": 0.5
+          },
+          "name": "configure_tideals",
+          "enabled": true,
+          "params": {
+            "wireless_capacity_mbps": 1000,
+            "wired_capacity_mbps": 100000
           }
         }
       ]
