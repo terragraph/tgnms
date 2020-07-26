@@ -13,3 +13,7 @@ for each project individually for setup
 # Testing Coverage
 
 Run `yarn test --coverage`
+
+## License
+
+fbc-js-core is BSD License licensed, as found in the LICENSE file.
