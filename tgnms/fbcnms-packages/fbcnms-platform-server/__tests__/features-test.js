@@ -10,7 +10,7 @@
 
 jest.mock('@fbcnms/sequelize-models');
 
-import type {ExpressRequest} from 'express';
+import type {RequestInfo} from '../features';
 
 import featureConfigs, {isFeatureEnabled} from '../features';
 import {FeatureFlag} from '@fbcnms/sequelize-models';
@@ -20,8 +20,8 @@ const ORG2 = 'org2';
 const FEATURE1 = featureConfigs[Object.keys(featureConfigs)[0]];
 const FEATURE2 = featureConfigs[Object.keys(featureConfigs)[1]];
 
-const mockRequest: ExpressRequest = (jest.fn(): any);
-mockRequest.hostname = 'localhost';
+const mockRequestInfo: RequestInfo = (jest.fn(): any);
+mockRequestInfo.isDev = true;
 
 describe('feature tests', () => {
   beforeAll(async () => {
@@ -39,22 +39,22 @@ describe('feature tests', () => {
   });
 
   it('should be enabled', async () => {
-    const enabled = await isFeatureEnabled(mockRequest, FEATURE1.id, ORG1);
+    const enabled = await isFeatureEnabled(mockRequestInfo, FEATURE1.id, ORG1);
     expect(enabled).toBe(true);
   });
 
   it('should be disabled by default', async () => {
-    const enabled = await isFeatureEnabled(mockRequest, FEATURE1.id, ORG2);
+    const enabled = await isFeatureEnabled(mockRequestInfo, FEATURE1.id, ORG2);
     expect(enabled).toBe(false);
   });
 
   it('should be disabled', async () => {
-    const enabled = await isFeatureEnabled(mockRequest, FEATURE2.id, ORG2);
+    const enabled = await isFeatureEnabled(mockRequestInfo, FEATURE2.id, ORG2);
     expect(enabled).toBe(false);
   });
 
   it('should be enabled', async () => {
-    const enabled = await isFeatureEnabled(mockRequest, FEATURE2.id, ORG1);
+    const enabled = await isFeatureEnabled(mockRequestInfo, FEATURE2.id, ORG1);
     expect(enabled).toBe(true);
   });
 });

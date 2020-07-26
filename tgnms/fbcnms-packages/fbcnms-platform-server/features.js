@@ -12,20 +12,34 @@ import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {FeatureID} from '@fbcnms/types/features';
 
+export type RequestInfo = {
+  isDev: boolean,
+  organization: string,
+};
+
 // A rule that gets evaluated when the featureflag is checked
 // true means it passes the check
 // false means it fails the check
 // null means continue to the next check
-type FeatureFlagRule = (req: ExpressRequest) => ?boolean;
+type FeatureFlagRule = (req: RequestInfo) => ?boolean;
 
-const AlwaysEnabledInTestEnvRule: FeatureFlagRule = (req: ExpressRequest) => {
-  const hostname = req.hostname || 'UNKNOWN_HOST';
-  if (hostname.includes('-test.') || hostname.includes('localhost')) {
+const AlwaysEnabledInTestEnvRule: FeatureFlagRule = (reqInfo: RequestInfo) => {
+  if (reqInfo.isDev) {
     return true;
   }
-
-  return null;
+  return reqInfo.organization.endsWith('-test');
 };
+
+function extractRequestInfo(
+  req: ExpressRequest,
+  organization: ?string,
+): RequestInfo {
+  const hostname = req.hostname || 'UNKNOWN_HOST';
+  return {
+    isDev: hostname.includes('localhost') || hostname.includes('localtest.me'),
+    organization: organization ?? '',
+  };
+}
 
 export type FeatureConfig = {
   id: FeatureID,
@@ -37,7 +51,7 @@ export type FeatureConfig = {
 
 const {FeatureFlag} = require('@fbcnms/sequelize-models');
 
-const arrayConfigs = [
+export const arrayConfigs = [
   {
     id: 'sso_example_feature',
     title: 'SSO Example Feature',
@@ -214,16 +228,16 @@ export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
 arrayConfigs.map(config => (featureConfigs[config.id] = config));
 
 export async function isFeatureEnabled(
-  req: ExpressRequest,
+  reqInfo: RequestInfo,
   featureId: FeatureID,
   organization: ?string,
-) {
+): Promise<boolean> {
   const config = featureConfigs[featureId];
 
   if (config.rules) {
     for (const rule of config.rules) {
-      const enabled = rule(req);
-      if (enabled !== null) {
+      const enabled = rule(reqInfo);
+      if (enabled !== null && enabled !== undefined) {
         return enabled;
       }
     }
@@ -244,12 +258,13 @@ export async function getEnabledFeatures(
   organization: ?string,
   publicAccess: ?boolean,
 ): Promise<FeatureID[]> {
+  const reqInfo = extractRequestInfo(req, organization);
   const results = await Promise.all(
     arrayConfigs.map(async (config): Promise<?FeatureID> => {
       if (publicAccess && !config.publicAccess) {
         return null;
       }
-      const enabled = await isFeatureEnabled(req, config.id, organization);
+      const enabled = await isFeatureEnabled(reqInfo, config.id, organization);
       return enabled ? config.id : null;
     }),
   );
