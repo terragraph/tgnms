@@ -10,9 +10,7 @@ import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
-import DrawerToggleButton, {
-  useDrawerToggle,
-} from '../../components/common/DrawerToggleButton';
+import DrawerToggleButton from '../../components/common/DrawerToggleButton';
 import IgnitionStatePanel from '../../components/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '../../components/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
@@ -100,7 +98,7 @@ export default function NetworkDrawerFn({
   routesProps,
   plannedSiteProps,
   networkTestId,
-  ...props
+  onNetworkDrawerResize,
 }: Props) {
   const classes = useStyles();
   const drawerDimensions = {
@@ -143,11 +141,23 @@ export default function NetworkDrawerFn({
     )
     .forEach(el => topologyElements.push(el));
 
-  const handleHorizontalResize = width => {
-    props.onNetworkDrawerResize(width);
-    // Force map to resize
-    window.dispatchEvent(new Event('resize'));
-  };
+  const handleHorizontalResize = React.useCallback(
+    width => {
+      onNetworkDrawerResize(width);
+      // Force map to resize
+      window.dispatchEvent(new Event('resize'));
+    },
+    [onNetworkDrawerResize],
+  );
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(true);
+  const handleDrawerToggle = React.useCallback(() => {
+    setIsDrawerOpen(curr => {
+      const next = !curr;
+      onNetworkDrawerResize(next ? NetworkDrawerConstants.DRAWER_MIN_WIDTH : 0);
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
+      return next;
+    });
+  }, [setIsDrawerOpen, onNetworkDrawerResize]);
 
   const panelControl = usePanelControl({
     initialState: {
@@ -241,7 +251,6 @@ export default function NetworkDrawerFn({
     [collapseAll, updateForm],
   );
 
-  const {isOpen: isDrawerOpen, toggle: drawerToggle} = useDrawerToggle();
   return (
     <Drawer
       variant="permanent"
@@ -384,7 +393,7 @@ export default function NetworkDrawerFn({
         <DrawerToggleButton
           drawerWidth={networkDrawerWidth}
           isOpen={isDrawerOpen}
-          onDrawerToggle={drawerToggle}
+          onDrawerToggle={handleDrawerToggle}
         />
       </div>
     </Drawer>

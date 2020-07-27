@@ -17,16 +17,6 @@ export type Props = {
   onDrawerToggle: () => any,
 };
 
-export function useDrawerToggle() {
-  const [isOpen, setIsOpen] = React.useState<boolean>(true);
-  const toggle = React.useCallback(() => setIsOpen(x => !x), [setIsOpen]);
-  return {
-    isOpen,
-    setIsOpen,
-    toggle,
-  };
-}
-
 const useStyles = makeStyles(theme => ({
   root: {
     position: 'fixed',
