@@ -93,8 +93,7 @@ export default function NetworkTestResults(props: Props) {
           <Typography variant="body1">
             {`${
               statusCount[EXECUTION_STATUS.RUNNING]
-            } ${asset}s currently being`}
-            tested
+            } ${asset}s currently being tested`}
           </Typography>
         ) : null}
         <Typography variant="body1">
