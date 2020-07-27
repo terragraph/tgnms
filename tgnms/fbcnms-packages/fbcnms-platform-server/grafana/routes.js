@@ -28,6 +28,7 @@ import type {Task} from './handlers';
 
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {GrafanaClient} from './GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';
 const GRAFANA_ADDRESS = process.env.USER_GRAFANA_ADDRESS ?? 'user-grafana:3000';
@@ -41,40 +42,58 @@ const grafanaAdminClient = Client(GRAFANA_URL, {
   [AUTH_PROXY_HEADER]: 'admin',
 });
 
-const syncGrafana = () => {
-  return async function (req: FBCNMSRequest, res, next) {
-    const tasksCompleted = [];
-    // Sync User/Organization
-    const userRes = await syncGrafanaUser(grafanaAdminClient, req);
-    tasksCompleted.push(...userRes.completedTasks);
-    if (userRes.errorTask) {
-      return await displayErrorMessage(res, tasksCompleted, userRes.errorTask);
-    }
-    // Sync Datasource
-    const dsRes = await syncDatasource(grafanaAdminClient, req);
-    tasksCompleted.push(...dsRes.completedTasks);
-    if (dsRes.errorTask) {
-      return await displayErrorMessage(res, tasksCompleted, dsRes.errorTask);
-    }
-    // Sync Tenants
-    const tenantsRes = await syncTenants();
-    tasksCompleted.push(...tenantsRes.completedTasks);
-    if (tenantsRes.errorTask) {
-      return await displayErrorMessage(
-        res,
-        tasksCompleted,
-        tenantsRes.errorTask,
-      );
-    }
-    // Create Dashboards
-    const dbRes = await syncDashboards(grafanaAdminClient, req);
-    tasksCompleted.push(...dbRes.completedTasks);
-    if (dbRes.errorTask) {
-      return await displayErrorMessage(res, tasksCompleted, dbRes.errorTask);
-    }
-    return next();
-  };
-};
+async function syncGrafana(
+  req: FBCNMSRequest,
+  res: ExpressResponse,
+  next: express$NextFunction,
+) {
+  const [tenantsRes, grafanaSyncRes] = await Promise.all([
+    syncTenants(),
+    syncGrafanaMeta(grafanaAdminClient, req),
+  ]);
+
+  const completedTasks = [
+    ...tenantsRes.completedTasks,
+    ...grafanaSyncRes.completedTasks,
+  ];
+
+  if (tenantsRes.errorTask) {
+    displayErrorMessage(res, completedTasks, tenantsRes.errorTask);
+  }
+  if (grafanaSyncRes.errorTask) {
+    displayErrorMessage(res, completedTasks, grafanaSyncRes.errorTask);
+  }
+  return next();
+}
+
+async function syncGrafanaMeta(
+  grafanaClient: GrafanaClient,
+  req: FBCNMSRequest,
+): Promise<{completedTasks: Array<Task>, errorTask?: Task}> {
+  const completedTasks = [];
+
+  // Sync User/Organization
+  const userRes = await syncGrafanaUser(grafanaClient, req);
+  completedTasks.push(...userRes.completedTasks);
+  if (userRes.errorTask) {
+    return {completedTasks, errorTask: userRes.errorTask};
+  }
+
+  // Sync Datasource
+  const dsRes = await syncDatasource(grafanaClient, req);
+  completedTasks.push(...dsRes.completedTasks);
+  if (dsRes.errorTask) {
+    return {completedTasks, errorTask: dsRes.errorTask};
+  }
+
+  // Create Dashboards
+  const dbRes = await syncDashboards(grafanaClient, req);
+  completedTasks.push(...dbRes.completedTasks);
+  if (dbRes.errorTask) {
+    return {completedTasks, errorTask: dbRes.errorTask};
+  }
+  return {completedTasks};
+}
 
 async function displayErrorMessage(
   res: ExpressResponse,
@@ -111,7 +130,7 @@ const proxyMiddleware = () => {
 };
 
 // Only the root path should perform the sync operations
-router.all('/', syncGrafana());
+router.all('/', syncGrafana);
 // Use proxy on all paths
 router.use('/', proxyMiddleware());
 
