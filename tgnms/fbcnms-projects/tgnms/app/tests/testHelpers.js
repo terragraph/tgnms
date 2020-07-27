@@ -88,7 +88,9 @@ export function TestApp({
 }) {
   return (
     <Router history={createMemoryHistory({initialEntries: [route || '/']})}>
-      <MaterialTheme>{children}</MaterialTheme>
+      <SnackbarWrapper>
+        <MaterialTheme>{children}</MaterialTheme>
+      </SnackbarWrapper>
     </Router>
   );
 }
@@ -125,9 +127,11 @@ export function NetworkContextWrapper({
   contextValue?: $Shape<NetworkContextType>,
 }) {
   return (
-    <NetworkContext.Provider value={mockNetworkContext(contextValue)}>
-      {children}
-    </NetworkContext.Provider>
+    <SnackbarWrapper>
+      <NetworkContext.Provider value={mockNetworkContext(contextValue)}>
+        {children}
+      </NetworkContext.Provider>
+    </SnackbarWrapper>
   );
 }
 

@@ -8,7 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ConfigTaskForm from '../ConfigTaskForm';
-import {SnackbarWrapper, TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {configModes} from '../../../constants/ConfigConstants';
 
@@ -40,9 +40,7 @@ test('renders loading initially', () => {
     });
   const {getByTestId} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <ConfigTaskForm>test</ConfigTaskForm>
-      </SnackbarWrapper>
+      <ConfigTaskForm>test</ConfigTaskForm>
     </TestApp>,
   );
   expect(getByTestId('loading')).toBeInTheDocument();
@@ -51,9 +49,7 @@ test('renders loading initially', () => {
 test('renders without props without crashing', () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <ConfigTaskForm>test</ConfigTaskForm>
-      </SnackbarWrapper>
+      <ConfigTaskForm>test</ConfigTaskForm>
     </TestApp>,
   );
   expect(getByText('test')).toBeInTheDocument();
@@ -62,9 +58,7 @@ test('renders without props without crashing', () => {
 test('renders with network props', () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
-      </SnackbarWrapper>
+      <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
     </TestApp>,
   );
   expect(getByText('test')).toBeInTheDocument();
@@ -73,14 +67,12 @@ test('renders with network props', () => {
 test('renders with node props', () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <ConfigTaskForm
-          {...defaultProps}
-          mode={configModes.Node}
-          nodeName="testNodeName">
-          test
-        </ConfigTaskForm>
-      </SnackbarWrapper>
+      <ConfigTaskForm
+        {...defaultProps}
+        mode={configModes.Node}
+        nodeName="testNodeName">
+        test
+      </ConfigTaskForm>
     </TestApp>,
   );
   expect(getByText('test')).toBeInTheDocument();
@@ -89,9 +81,7 @@ test('renders with node props', () => {
 test('cancel calls onClose if its a modal', () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
-      </SnackbarWrapper>
+      <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
     </TestApp>,
   );
   expect(getByText('Cancel')).toBeInTheDocument();

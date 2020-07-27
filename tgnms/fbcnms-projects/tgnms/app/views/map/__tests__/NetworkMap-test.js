@@ -12,7 +12,6 @@ import {Layer} from 'react-mapbox-gl';
 import {
   NetworkContextWrapper,
   NmsOptionsContextWrapper,
-  SnackbarWrapper,
   TestApp,
   getIsExpanded,
   initWindowConfig,
@@ -251,14 +250,12 @@ function MapWrapper({children, ...contextProps}: {children: React.Node}) {
   return (
     <TestApp>
       <Router history={createMemoryHistory()}>
-        <SnackbarWrapper>
-          <NmsOptionsContextWrapper
-            contextValue={{networkMapOptions: mockNetworkMapOptions()}}>
-            <NetworkContextWrapper {...contextProps}>
-              {children}
-            </NetworkContextWrapper>
-          </NmsOptionsContextWrapper>
-        </SnackbarWrapper>
+        <NmsOptionsContextWrapper
+          contextValue={{networkMapOptions: mockNetworkMapOptions()}}>
+          <NetworkContextWrapper {...contextProps}>
+            {children}
+          </NetworkContextWrapper>
+        </NmsOptionsContextWrapper>
       </Router>
     </TestApp>
   );

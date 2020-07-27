@@ -9,7 +9,6 @@ import * as React from 'react';
 import NetworkNodesTable from '../NetworkNodesTable';
 import {
   NetworkContextWrapper,
-  SnackbarWrapper,
   TestApp,
   mockNetworkConfig,
 } from '../../../tests/testHelpers';
@@ -22,9 +21,7 @@ test('renders table with no data', () => {
   const {getByTestId} = render(
     <TestApp route="/nodes">
       <NetworkContextWrapper contextValue={{}}>
-        <SnackbarWrapper>
-          <Route path="/" render={r => <NetworkNodesTable {...r} />} />
-        </SnackbarWrapper>
+        <Route path="/" render={r => <NetworkNodesTable {...r} />} />
       </NetworkContextWrapper>
     </TestApp>,
   );

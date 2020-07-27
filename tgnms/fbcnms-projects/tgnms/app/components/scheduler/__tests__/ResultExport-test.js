@@ -9,10 +9,7 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
 import ResultExport from '../ResultExport';
-import {
-  NetworkContextWrapper,
-  SnackbarWrapper,
-} from '../../../tests/testHelpers';
+import {NetworkContextWrapper} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 const getTestExecutionMock = jest
@@ -34,22 +31,18 @@ const defaultProps = {
 
 test('renders without crashing', () => {
   const {getByText} = render(
-    <SnackbarWrapper>
-      <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
-        <ResultExport {...defaultProps} />
-      </NetworkContextWrapper>
-    </SnackbarWrapper>,
+    <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
+      <ResultExport {...defaultProps} />
+    </NetworkContextWrapper>,
   );
   expect(getByText('Download')).toBeInTheDocument();
 });
 
 test('download triggers api call', () => {
   const {getByText} = render(
-    <SnackbarWrapper>
-      <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
-        <ResultExport {...defaultProps} />
-      </NetworkContextWrapper>
-    </SnackbarWrapper>,
+    <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
+      <ResultExport {...defaultProps} />
+    </NetworkContextWrapper>,
   );
   expect(getByText('Download')).toBeInTheDocument();
   fireEvent.click(getByText('JSON'));

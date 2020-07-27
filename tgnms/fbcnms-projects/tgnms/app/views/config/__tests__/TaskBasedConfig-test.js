@@ -8,7 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TaskBasedConfig from '../TaskBasedConfig';
-import {SnackbarWrapper, TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '../../../tests/testHelpers';
 import {
   act,
   cleanup,
@@ -41,9 +41,7 @@ jest
 test('renders', () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <TaskBasedConfig />
-      </SnackbarWrapper>
+      <TaskBasedConfig />
     </TestApp>,
   );
   expect(getByText('Env Params')).toBeInTheDocument();
@@ -52,9 +50,7 @@ test('renders', () => {
 test('clicking tab renders new config form for that tab', async () => {
   const {getByText, queryByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <TaskBasedConfig />
-      </SnackbarWrapper>
+      <TaskBasedConfig />
     </TestApp>,
   );
   expect(getByText('Env Params')).toBeInTheDocument();

@@ -8,11 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TaskBasedConfigModal from '../TaskBasedConfigModal';
-import {
-  NetworkContextWrapper,
-  SnackbarWrapper,
-  TestApp,
-} from '../../../tests/testHelpers';
+import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(() => {
@@ -45,11 +41,9 @@ const defaultProps = {
 test('renders', () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <NetworkContextWrapper>
-          <TaskBasedConfigModal {...defaultProps} />
-        </NetworkContextWrapper>
-      </SnackbarWrapper>
+      <NetworkContextWrapper>
+        <TaskBasedConfigModal {...defaultProps} />
+      </NetworkContextWrapper>
     </TestApp>,
   );
   expect(getByText('Test Title')).toBeInTheDocument();
@@ -58,11 +52,9 @@ test('renders', () => {
 test('clicking close closes modal', async () => {
   const {getByText} = render(
     <TestApp>
-      <SnackbarWrapper>
-        <NetworkContextWrapper>
-          <TaskBasedConfigModal {...defaultProps} />
-        </NetworkContextWrapper>
-      </SnackbarWrapper>
+      <NetworkContextWrapper>
+        <TaskBasedConfigModal {...defaultProps} />
+      </NetworkContextWrapper>
     </TestApp>,
   );
   expect(getByText('Cancel')).toBeInTheDocument();
