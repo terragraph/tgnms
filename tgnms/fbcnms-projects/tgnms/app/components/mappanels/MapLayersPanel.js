@@ -146,7 +146,7 @@ function OverlaySection() {
               <Tab
                 classes={{root: classes.tabRoot}}
                 disableRipple
-                label="History"
+                label="Historical"
                 value={MAPMODE.HISTORICAL}
               />
             </Tabs>
