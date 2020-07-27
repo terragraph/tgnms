@@ -219,8 +219,8 @@ export default function NetworkDrawerFn({
           });
         }
         setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
-      } else if (type === TopologyElement.link) {
-        setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
+      } else if (type === TopologyElement.node) {
+        setPanelState(PANELS.TOPOLOGY_NODE, PANEL_STATE.OPEN);
       } else if (type === TopologyElement.link) {
         setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
       }
@@ -506,7 +506,7 @@ function RenderTopologyElement({
           }}
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
-          onClose={() => handleClosePanel()}
+          onClose={handleClosePanel}
           onEdit={params => onEditTopology(params, TopologyElement.node)}
           {...searchNearbyProps}
           {...routesPropsWithoutNode}
@@ -608,9 +608,3 @@ function SearchNearby({
     </Slide>
   );
 }
-
-// export type PanelForm<T> = {
-//   params: T,
-//   formType: $Values<typeof FormType>,
-//   updateForm: (form: PanelForm<T>) => *,
-// };

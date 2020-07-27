@@ -215,6 +215,36 @@ describe('TopologyBuilderMenu', () => {
     // overview-panel should collapse automatically
     expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
   });
+  test('clicking edit node opens the panel', async () => {
+    const topology = basicTopology();
+    const topologyMaps = buildTopologyMaps(topology);
+    const selectedElement = {
+      name: 'node1',
+      type: TopologyElementType.NODE,
+      expanded: true,
+    };
+    const {getByText, getByTestId} = render(
+      <MapWrapper
+        contextValue={{
+          networkConfig: mockNetworkConfig({topology: topology}),
+          ...topologyMaps,
+          selectedElement,
+        }}>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+      {baseElement: document.body ?? undefined},
+    );
+
+    await act(async () => {
+      fireEvent.click(getByText(/view actions/i));
+    });
+
+    await act(async () => {
+      fireEvent.click(getByText(/edit node/i));
+    });
+
+    expect(getByTestId('add-node-panel')).toBeInTheDocument();
+  });
 });
 
 function MapWrapper({children, ...contextProps}: {children: React.Node}) {
