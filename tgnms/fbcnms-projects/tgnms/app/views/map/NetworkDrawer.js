@@ -372,6 +372,7 @@ export default function NetworkDrawerFn({
               }
               onClose={() => {
                 setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN);
+                routesProps.resetRoutes();
               }}
               routes={routesProps}
             />
