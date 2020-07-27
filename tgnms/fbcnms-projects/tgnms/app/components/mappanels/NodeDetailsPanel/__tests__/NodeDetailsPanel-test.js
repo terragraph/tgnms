@@ -45,6 +45,7 @@ const commonProps = {
   onClose: () => {},
   onUpdateNearbyNodes: () => {},
   onUpdateRoutes: _ => {},
+  resetRoutes: jest.fn(),
   pinned: true,
 };
 

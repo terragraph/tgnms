@@ -31,10 +31,11 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {ContextRouter} from 'react-router-dom';
-import type {EditNodeParams, NearbyNodes, Routes} from '../MapPanelTypes';
+import type {EditNodeParams, NearbyNodes} from '../MapPanelTypes';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {Props as NodeDetailsProps} from './NodeDetails';
 import type {NodeType} from '../../../../shared/types/Topology';
+import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
 import type {Theme, WithStyles} from '@material-ui/core/styles';
 
 const styles = (theme: Theme) => ({

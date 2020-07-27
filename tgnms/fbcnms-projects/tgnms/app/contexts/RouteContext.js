@@ -3,40 +3,58 @@
  *
  * @format
  * @flow
+ *
  */
-import React from 'react';
+import * as React from 'react';
 
-type RouteContextType = {
-  /*
-   * use routeData to show generic routing visualization. This is useful for
-   * showing the routes between any two nodes
-   */
-  routeData: RouteData,
-  /*
-   * By default, routes are overlayed for the currently
-   * selected node (network context selection), this is an override
-   * for that selection that's specific to the routing layer. Since
-   * you must select the destination node for network speed test, we need to
-   * keep a reference to the origin node in order to properly overlay
-   * the route path.
-   */
-  selectedNode: ?string,
-  setNodeRoutes: (nodeName: ?string, routes?: Array<Route>) => any,
+export type RoutesContext = {|
+  node: ?string,
+  links: {[string]: number},
+  nodes: Set<string>,
+  onUpdateRoutes: ({
+    node: ?string,
+    links: {[string]: number},
+    nodes: Set<string>,
+  }) => void,
+  resetRoutes: () => void,
+|};
+
+export type Routes = {|
+  node: ?string,
+  links: {[string]: number},
+  nodes: Set<string>,
+|};
+
+const defaultValue: $Shape<RoutesContext> = {
+  node: null,
+  links: {},
+  nodes: new Set(),
+  onUpdateRoutes: () => {},
+  resetRoutes: () => {},
 };
 
-// maps from node to its routes
-export type RouteData = {
-  [nodeName: string]: Array<Route>,
-};
+const context = React.createContext<RoutesContext>(defaultValue);
 
-export type Route = {
-  path: Array<string>,
-};
+export function useRouteContext() {
+  return React.useContext(context);
+}
 
-const RouteContext = React.createContext<RouteContextType>({
-  routeData: {},
-  setNodeRoutes: () => {},
-  selectedNode: null,
-});
+export type ProviderProps = {|
+  children: React.Node,
+  ...RoutesContext,
+|};
 
-export default RouteContext;
+export function Provider({
+  children,
+  node,
+  links,
+  nodes,
+  onUpdateRoutes,
+  resetRoutes,
+}: ProviderProps) {
+  return (
+    <context.Provider value={{node, links, nodes, onUpdateRoutes, resetRoutes}}>
+      {children}
+    </context.Provider>
+  );
+}

@@ -19,17 +19,6 @@ export type TopologyScanInfo = {
   bestRxAngle?: number,
 };
 
-export type Routes = {|
-  node: ?string,
-  links: {[string]: number},
-  nodes: Set<string>,
-  onUpdateRoutes: ({
-    node: ?string,
-    links: {[string]: number},
-    nodes: Set<string>,
-  }) => void,
-|};
-
 /*
  * Parameters passed to AddNodePanel. Used for creating/editing nodes.
  */

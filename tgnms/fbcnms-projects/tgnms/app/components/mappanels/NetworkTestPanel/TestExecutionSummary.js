@@ -31,11 +31,9 @@ import {useLoadTestExecutionResults} from '../../../hooks/NetworkTestHooks';
 import type {AssetTestResultType} from '../../../views/network_test/NetworkTestTypes';
 import type {Element} from '../../../contexts/NetworkContext';
 import type {ExecutionDetailsType} from '../../../../shared/dto/NetworkTestTypes';
-import type {Routes} from '../MapPanelTypes';
 
 type Props = {
   testId: string,
-  routes: Routes,
 };
 
 const useSummaryStyles = makeStyles(theme => ({
@@ -53,7 +51,7 @@ const useSummaryStyles = makeStyles(theme => ({
 }));
 
 export default function TestExecutionSummary(props: Props) {
-  const {testId, routes} = props;
+  const {testId} = props;
   const classes = useSummaryStyles();
   const {linkMap, selectedElement} = React.useContext(NetworkContext);
   const {loading, execution, results} = useLoadTestExecutionResults({testId});
@@ -174,7 +172,6 @@ export default function TestExecutionSummary(props: Props) {
         <ThroughputTestResult
           executionResult={executionResults[0]}
           execution={execution}
-          routes={routes}
         />
       )}
       {assetTestResultMode && (

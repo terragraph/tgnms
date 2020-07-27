@@ -21,7 +21,7 @@ import type {
 import type {NetworkConfig, NetworkHealth} from '../../contexts/NetworkContext';
 import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
 import type {Overlay} from '../../views/map/NetworkMapTypes';
-import type {Routes} from '../../components/mappanels/MapPanelTypes';
+import type {RoutesContext as Routes} from '../../contexts/RouteContext';
 
 /**
  * Creates a fake network config which passes flow validation
@@ -308,6 +308,7 @@ export function mockRoutes(overrides?: $Shape<Routes>): Routes {
     links: {},
     nodes: new Set(),
     onUpdateRoutes: () => {},
+    resetRoutes: () => {},
     ...overrides,
   };
 }

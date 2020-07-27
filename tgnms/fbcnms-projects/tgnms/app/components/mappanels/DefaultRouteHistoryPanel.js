@@ -26,7 +26,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import type {NodeMap, Site} from '../../contexts/NetworkContext';
 import type {NodeType, TopologyType} from '../../../shared/types/Topology';
-import type {Routes} from './MapPanelTypes';
+import type {RoutesContext as Routes} from '../../contexts/RouteContext';
 
 type DefaultRouteType = {
   route: Array<Array<string>>,

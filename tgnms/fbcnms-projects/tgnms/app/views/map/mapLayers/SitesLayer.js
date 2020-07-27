@@ -32,10 +32,8 @@ import type {
   SiteToNodesMap,
   TopologyConfig,
 } from '../../../contexts/NetworkContext';
-import type {
-  PlannedSite,
-  Routes,
-} from '../../../components/mappanels/MapPanelTypes';
+import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
+import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
 import type {TopologyType} from '../../../../shared/types/Topology';
 
 const styles = {
@@ -92,8 +90,8 @@ export type Props = {
   overlay: string,
   nearbyNodes: NearbyNodes,
   hiddenSites: Set<string>,
-  routes: Routes,
   siteMapOverrides: ?{[string]: string},
+  routes: Routes,
 };
 
 class SitesLayer extends React.Component<Props> {
@@ -171,9 +169,9 @@ class SitesLayer extends React.Component<Props> {
       overlay,
       nodeMap,
       siteToNodesMap,
-      routes,
       topology,
       siteMapOverrides,
+      routes,
     } = this.props;
 
     if (siteMapOverrides) {

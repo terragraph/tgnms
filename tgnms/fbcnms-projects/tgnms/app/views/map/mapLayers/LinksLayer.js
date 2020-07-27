@@ -64,17 +64,16 @@ import type {
 } from '../../../../shared/types/Topology';
 import type {
   NearbyNodes,
-  Routes,
   TopologyScanInfo,
 } from '../../../components/mappanels/MapPanelTypes';
 import type {Overlay} from '../NetworkMapTypes';
+import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
 
 const styles = _theme => ({});
 
 export type Props = {
   overlay: Overlay,
   ignitionState: IgnitionState,
-  routes: Routes,
   siteMap: SiteMap,
   topology: TopologyType,
   topologyConfig: TopologyConfig,
@@ -90,6 +89,7 @@ export type Props = {
   onLinkMouseLeave: Object => void,
   offlineWhitelist: OfflineWhiteListType,
   metricData: ?{[string]: {}},
+  routes: Routes,
 };
 
 type CnLinkInfoMap = {

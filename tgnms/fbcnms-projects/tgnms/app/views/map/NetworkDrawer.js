@@ -39,6 +39,7 @@ import {get} from 'lodash';
 import {makeStyles, useTheme} from '@material-ui/styles';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useRouteContext} from '../../contexts/RouteContext';
 
 import type {EditTopologyElementParams} from './TopologyBuilderMenu';
 import type {Element} from '../../contexts/NetworkContext';
@@ -46,7 +47,6 @@ import type {Props as MapLayersProps} from '../../components/mappanels/MapLayers
 import type {
   NearbyNodes,
   PlannedSiteProps,
-  Routes,
 } from '../../components/mappanels/MapPanelTypes';
 import type {PanelStateControl} from './usePanelControl';
 
@@ -86,7 +86,6 @@ type Props = {|
   onNetworkDrawerResize: number => *,
   mapLayersProps: MapLayersProps,
   searchNearbyProps: SearchNearbyProps,
-  routesProps: Routes,
   plannedSiteProps: PlannedSiteProps,
   networkTestId?: ?string,
 |};
@@ -95,7 +94,6 @@ export default function NetworkDrawerFn({
   networkDrawerWidth,
   mapLayersProps,
   searchNearbyProps,
-  routesProps,
   plannedSiteProps,
   networkTestId,
   onNetworkDrawerResize,
@@ -125,6 +123,7 @@ export default function NetworkDrawerFn({
     wireless_controller_stats,
   } = context.networkConfig;
   const plannedSitePropsRef = useLiveRef(plannedSiteProps);
+  const routesProps = useRouteContext();
 
   const topologyElements: Array<Element> = [];
   if (selectedElement) {
@@ -297,11 +296,7 @@ export default function NetworkDrawerFn({
           />
         )}
         {mapMode === MAPMODE.NETWORK_TEST && (
-          <NetworkTestPanel
-            expanded={true}
-            testId={networkTestId}
-            routes={routesProps}
-          />
+          <NetworkTestPanel expanded={true} testId={networkTestId} />
         )}
         <MapLayersPanel
           {...mapLayersProps}
@@ -360,7 +355,6 @@ export default function NetworkDrawerFn({
             element={el}
             panelControl={panelControl}
             searchNearbyProps={searchNearbyProps}
-            routesProps={routesProps}
             onEditTopology={handleEditTopology}
           />
         ))}
@@ -376,9 +370,9 @@ export default function NetworkDrawerFn({
               siteNodes={
                 siteToNodesMap[nodeMap[routesProps?.node ?? ''].site_name]
               }
-              onClose={() =>
-                setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN)
-              }
+              onClose={() => {
+                setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN);
+              }}
               routes={routesProps}
             />
           </Slide>
@@ -404,13 +398,11 @@ function RenderTopologyElement({
   element,
   panelControl,
   searchNearbyProps,
-  routesProps,
   onEditTopology,
 }: {
   element: Element,
   panelControl: PanelStateControl,
   searchNearbyProps: SearchNearbyProps,
-  routesProps: Routes,
   onEditTopology: (
     params: EditTopologyElementParams,
     type: $Values<typeof TopologyElement>,
@@ -465,6 +457,7 @@ function RenderTopologyElement({
       removeElement(type, name);
     }, theme.transitions.duration.leavingScreen + 100 /* to be safe */);
   };
+  const routesProps = useRouteContext();
 
   const onUpdateRoutes = React.useCallback(
     ({

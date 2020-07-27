@@ -19,15 +19,14 @@ import {isTestRunning} from '../../../helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {mapDefaultRoutes} from '../../../helpers/DefaultRouteHelpers';
 import {numToMegabits} from '../../../helpers/ScheduleHelpers';
+import {useRouteContext} from '../../../contexts/RouteContext';
 
 import type {AssetTestResultType} from '../../../views/network_test/NetworkTestTypes';
 import type {ExecutionDetailsType} from '../../../../shared/dto/NetworkTestTypes';
-import type {Routes} from '../MapPanelTypes';
 
 export type Props = {
   executionResult: AssetTestResultType,
   execution: ExecutionDetailsType,
-  routes: Routes,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -41,7 +40,8 @@ const useStyles = makeStyles(theme => ({
 }));
 export default function ThroughputTestResult(props: Props) {
   const classes = useStyles();
-  const {executionResult, execution, routes} = props;
+  const {executionResult, execution} = props;
+  const routes = useRouteContext();
   const {networkName, networkConfig} = React.useContext(NetworkContext);
   const [defaultRoute, setDefaultRoute] = React.useState(null);
   const {assetName} = executionResult ?? {assetName: null};
@@ -76,14 +76,7 @@ export default function ThroughputTestResult(props: Props) {
     }
   }, [defaultRoute, assetName, topology, routesRef]);
 
-  useUnmount(() => {
-    const {onUpdateRoutes} = routes;
-    onUpdateRoutes({
-      node: null,
-      links: {},
-      nodes: new Set(),
-    });
-  });
+  useUnmount(() => routes.resetRoutes());
 
   return (
     <Grid container spacing={2}>

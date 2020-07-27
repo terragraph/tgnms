@@ -15,19 +15,16 @@ import SitesLayer from './SitesLayer';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
 import {useMapContext} from '../../../contexts/MapContext';
+import {useRouteContext} from '../../../contexts/RouteContext';
 
 import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
 import type {NetworkContextType} from '../../../contexts/NetworkContext';
-import type {
-  PlannedSite,
-  Routes,
-} from '../../../components/mappanels/MapPanelTypes';
+import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
 
 export type Props = {|
   context: NetworkContextType,
   plannedSite: ?PlannedSite,
   nearbyNodes: NearbyNodes,
-  routes: Routes,
   onPlannedSiteMoved: Object => any,
   hiddenSites: Set<string>,
 |};
@@ -72,11 +69,12 @@ export default function MapLayers(props: Props) {
     overlays,
     overlayData,
   } = useMapContext();
+  const routes = useRouteContext();
+
   const {
     context,
     plannedSite,
     nearbyNodes,
-    routes,
     onPlannedSiteMoved,
     hiddenSites,
   } = props;
@@ -138,9 +136,9 @@ export default function MapLayers(props: Props) {
           overlay={overlays.link_lines}
           ignitionState={ignition_state}
           nearbyNodes={nearbyNodes}
-          routes={routes}
           offlineWhitelist={offline_whitelist}
           metricData={overlayData.link_lines}
+          routes={routes}
         />
       ) : null}
       {site_icons && overlays.site_icons ? (
@@ -162,9 +160,9 @@ export default function MapLayers(props: Props) {
           overlay={selectedOverlays['site_icons']}
           nearbyNodes={nearbyNodes}
           hiddenSites={hiddenSites}
-          routes={routes}
           offlineWhitelist={offline_whitelist}
           siteMapOverrides={overlayData.site_icons}
+          routes={routes}
         />
       ) : null}
       {nodes && <NodesLayer />}

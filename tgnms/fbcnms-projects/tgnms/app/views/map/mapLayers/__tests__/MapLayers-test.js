@@ -13,11 +13,7 @@ import MapLayers from '../MapLayers';
 import SitePopupsLayer from '../SitePopupsLayer';
 import SitesLayer from '../SitesLayer';
 import {Layer} from 'react-mapbox-gl';
-import {
-  MapContextWrapper,
-  TestApp,
-  mockRoutes,
-} from '../../../../tests/testHelpers';
+import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 import {mockNetworkContext} from '../../../../tests/data/NetworkContext';
 
@@ -35,7 +31,6 @@ const commonProps: Props = {
   context: mockNetworkContext(),
   plannedSite: null,
   nearbyNodes: {},
-  routes: mockRoutes(),
   onPlannedSiteMoved: jest.fn(),
   hiddenSites: new Set(),
 };

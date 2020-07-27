@@ -7,16 +7,11 @@
 import 'jest-dom/extend-expect';
 import NetworkTestPanel from '../NetworkTestPanel';
 import React from 'react';
-import {
-  TestApp,
-  mockRoutes,
-  renderWithRouter,
-} from '../../../../tests/testHelpers';
+import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
 
 const defaultProps = {
   expanded: true,
   testId: null,
-  routes: mockRoutes(),
 };
 
 test('doest not render table if there is no test ID', () => {
