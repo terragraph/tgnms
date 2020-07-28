@@ -159,6 +159,15 @@ router.use(
 );
 
 router.use(
+  '/magma/v1/events/:networkID',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: networkIdFilter,
+    proxyErrorHandler,
+  }),
+);
+
+router.use(
   '/magma/v1/events/:networkID/:streamName',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
