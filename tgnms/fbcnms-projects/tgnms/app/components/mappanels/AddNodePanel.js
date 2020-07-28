@@ -152,7 +152,7 @@ class AddNodePanel extends React.Component<Props, State> {
         required={required}
         networkConfig={networkConfig}
         name={state.name}
-        networkName={networkName ? networkName : ''}
+        networkName={networkName || ''}
         onRadioMacChange={radioMacChanges =>
           setState({wlanMacEdits: radioMacChanges})
         }
@@ -190,37 +190,26 @@ class AddNodePanel extends React.Component<Props, State> {
       sendTopologyBuilderRequest(networkName, 'addNode', {node}, onClose);
     } else if (formType === FormType.EDIT) {
       const apiRequestAttempts = [];
+
+      // Update the node's MAC address
       if (node.mac_addr !== initialParams.mac_addr) {
-        // Set MAC address first via a separate API call
-        const setMac = {
-          nodeName: initialParams.name,
-          nodeMac: node.mac_addr,
-          force: false,
-        };
         apiRequestAttempts.push({
           networkName: networkName,
           apiMethod: 'setNodeMacAddress',
-          data: setMac,
-        });
-      }
-      if (wlanMacEdits.length > 0) {
-        // Set Radio MAC address second via separate API calls
-        apiRequestAttempts.push(...wlanMacEdits);
-      }
-      if (this.nodeFormChanged()) {
-        // send /editNode request thrid
-        const data = {
-          nodeName: initialParams.name,
-          newNode: node,
-        };
-        apiRequestAttempts.push({
-          networkName: networkName,
-          apiMethod: 'editNode',
-          data: data,
+          data: {
+            nodeName: node.name,
+            nodeMac: node.mac_addr,
+            force: false,
+          },
         });
       }
 
-      if (apiRequestAttempts.length > 0) {
+      // Update the radio MAC addresses
+      if (wlanMacEdits.length > 0) {
+        apiRequestAttempts.push(...wlanMacEdits);
+      }
+
+      if (this.nodeFormChanged() || apiRequestAttempts.length > 0) {
         swal({
           title: 'Are You Sure?',
           text: 'You are making changes to a node in this topology.',
@@ -231,34 +220,39 @@ class AddNodePanel extends React.Component<Props, State> {
           showLoaderOnConfirm: true,
           inputClass: 'swal-input',
           preConfirm: () =>
-            Promise.all(
-              apiRequestAttempts.map(
-                apiRequestAttempt =>
-                  new Promise((resolve, reject) => {
-                    const {networkName, apiMethod, data} = apiRequestAttempt;
-                    apiServiceRequest(networkName, apiMethod, data)
-                      .then(_response =>
-                        resolve({
-                          success: true,
-                        }),
-                      )
-                      .catch(er =>
-                        reject({
-                          success: false,
-                          msg: getErrorTextFromE2EAck(er),
-                        }),
-                      );
+            Promise.resolve()
+              .then(
+                _ =>
+                  this.nodeFormChanged() &&
+                  apiServiceRequest(networkName, 'editNode', {
+                    nodeName: initialParams.name,
+                    newNode: node,
                   }),
-              ),
-            )
-              .then(_response => ({success: true}))
+              )
+              .then(
+                _ =>
+                  apiRequestAttempts.length > 0 &&
+                  Promise.all(
+                    apiRequestAttempts.map(req =>
+                      apiServiceRequest(
+                        req.networkName,
+                        req.apiMethod,
+                        req.data,
+                      )
+                        .then(_ => ({success: true}))
+                        .catch(err => ({
+                          success: false,
+                          msg: getErrorTextFromE2EAck(err),
+                        })),
+                    ),
+                  ),
+              )
+              .then(_ => ({success: true}))
               .catch(err => err),
         }).then(result => {
           if (result.dismiss) {
             return;
-          }
-
-          if (result.value.success) {
+          } else if (result.value.success) {
             swal({
               title: 'Success!',
               type: 'success',
