@@ -18,9 +18,6 @@ def average_rx_responses(stats: defaultdict) -> defaultdict:
     )
     for rx_node, data in stats.items():
         for key in data:
-            averaged_stats[rx_node][key]["rssi_avg"] = (
-                stats[rx_node][key]["rssi_sum"] / stats[rx_node][key]["count"]
-            )
             averaged_stats[rx_node][key]["snr_avg"] = (
                 stats[rx_node][key]["snr_sum"] / stats[rx_node][key]["count"]
             )
@@ -38,13 +35,11 @@ def aggregate_all_responses(
     for row in previous_rx_responses:
         for key, stat in row.stats.items():
             aggregated_stats[row.rx_node][key]["count"] += stat["count"]
-            aggregated_stats[row.rx_node][key]["rssi_sum"] += stat["rssi_sum"]
             aggregated_stats[row.rx_node][key]["snr_sum"] += stat["snr_sum"]
 
     for rx_node, data in current_stats.items():
         for key, stat in data.items():
             aggregated_stats[rx_node][key]["count"] += stat["count"]
-            aggregated_stats[rx_node][key]["rssi_sum"] += stat["rssi_sum"]
             aggregated_stats[rx_node][key]["snr_sum"] += stat["snr_sum"]
 
     return aggregated_stats
@@ -73,7 +68,6 @@ def aggregate_current_responses(
         for measurement in rx_response["routeInfoList"]:
             key = f"{measurement['route']['tx']}_{measurement['route']['rx']}"
             current_stats[rx_node][key]["count"] += 1
-            current_stats[rx_node][key]["rssi_sum"] += measurement["rssi"] + offset
             current_stats[rx_node][key]["snr_sum"] += measurement["snrEst"] + offset
 
         if current_stats[rx_node]:

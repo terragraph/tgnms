@@ -18,12 +18,8 @@ class HardwareConfig:
     MIN_BEAM_INDEX: int
     # Beamwidth of the broadside beam (in terms of index)
     BORESIDE_BW_IDX: int
-    # Minimum reporeted RSSI in dBm
-    MINIMUM_RSSI_DBM: int
     # Minimum reporeted SNR in dB
     MINIMUM_SNR_DB: int
-    # Threshold to judge if RSSI is saturated
-    RSSI_SATURATE_THRESH_DBM: int
     # Threshold to judge if SNR is saturated
     SNR_SATURATE_THRESH_DB: int
     # How far two identified routes should be (in idx)
@@ -58,9 +54,7 @@ class HardwareConfig:
         cls.MAX_BEAM_INDEX = max(beam_idx_to_beam_angle)
         cls.MIN_BEAM_INDEX = min(beam_idx_to_beam_angle)
         cls.BORESIDE_BW_IDX = constants["BORESIDE_BW_IDX"]
-        cls.MINIMUM_RSSI_DBM = constants["MINIMUM_RSSI_DBM"]
         cls.MINIMUM_SNR_DB = constants["MINIMUM_SNR_DB"]
-        cls.RSSI_SATURATE_THRESH_DBM = constants["RSSI_SATURATE_THRESH_DBM"]
         cls.SNR_SATURATE_THRESH_DB = constants["SNR_SATURATE_THRESH_DB"]
         cls.BEAM_SEPERATE_IDX = constants["BEAM_SEPERATE_IDX"]
         cls.MAX_SIDELOBE_LEVEL_DB = constants["MAX_SIDELOBE_LEVEL_DB"]

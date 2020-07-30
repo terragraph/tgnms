@@ -25,41 +25,43 @@ class DataLoaderTests(unittest.TestCase):
                 "status": ScanFwStatus.COMPLETE,
                 "txPwrIndex": 21,
                 "routeInfoList": [
-                    {"route": {"tx": 0, "rx": 0}, "rssi": -3, "snrEst": 30},
-                    {"route": {"tx": 0, "rx": 2}, "rssi": -5, "snrEst": 20},
+                    {"route": {"tx": 0, "rx": 0}, "snrEst": 30},
+                    {"route": {"tx": 0, "rx": 2}, "snrEst": 20},
                 ],
             },
             "node_B": {
                 "status": ScanFwStatus.COMPLETE,
                 "routeInfoList": [
-                    {"route": {"tx": 0, "rx": 0}, "rssi": -5, "snrEst": 40},
-                    {"route": {"tx": 0, "rx": 2}, "rssi": -2, "snrEst": 10},
+                    {"route": {"tx": 0, "rx": 0}, "snrEst": 40},
+                    {"route": {"tx": 0, "rx": 2}, "snrEst": 10},
                 ],
             },
         }
         expected_curr_stats = {
             "node_A": {
-                "0_0": {"count": 1, "rssi_sum": -3, "snr_sum": 30},
-                "0_2": {"count": 1, "rssi_sum": -5, "snr_sum": 20},
+                "0_0": {"count": 1, "snr_sum": 30},
+                "0_2": {"count": 1, "snr_sum": 20},
             },
             "node_B": {
-                "0_0": {"count": 1, "rssi_sum": -5, "snr_sum": 40},
-                "0_2": {"count": 1, "rssi_sum": -2, "snr_sum": 10},
+                "0_0": {"count": 1, "snr_sum": 40},
+                "0_2": {"count": 1, "snr_sum": 10},
             },
         }
         expected_to_db = [
             {
+                "tx_node": "node_A",
                 "rx_node": "node_A",
                 "stats": {
-                    "0_0": {"count": 1, "rssi_sum": -3, "snr_sum": 30},
-                    "0_2": {"count": 1, "rssi_sum": -5, "snr_sum": 20},
+                    "0_0": {"count": 1, "snr_sum": 30},
+                    "0_2": {"count": 1, "snr_sum": 20},
                 },
             },
             {
+                "tx_node": "node_A",
                 "rx_node": "node_B",
                 "stats": {
-                    "0_0": {"count": 1, "rssi_sum": -5, "snr_sum": 40},
-                    "0_2": {"count": 1, "rssi_sum": -2, "snr_sum": 10},
+                    "0_0": {"count": 1, "snr_sum": 40},
+                    "0_2": {"count": 1, "snr_sum": 10},
                 },
             },
         ]
@@ -71,12 +73,12 @@ class DataLoaderTests(unittest.TestCase):
         previous_rx_responses = []
         curr_stats = {
             "node_A": {
-                "0_0": {"count": 1, "rssi_sum": -3, "snr_sum": 30},
-                "0_2": {"count": 1, "rssi_sum": -5, "snr_sum": 20},
+                "0_0": {"count": 1, "snr_sum": 30},
+                "0_2": {"count": 1, "snr_sum": 20},
             },
             "node_B": {
-                "0_0": {"count": 1, "rssi_sum": -5, "snr_sum": 40},
-                "0_2": {"count": 1, "rssi_sum": -2, "snr_sum": 10},
+                "0_0": {"count": 1, "snr_sum": 40},
+                "0_2": {"count": 1, "snr_sum": 10},
             },
         }
         aggregated_stats = aggregate_all_responses(previous_rx_responses, curr_stats)
@@ -87,36 +89,36 @@ class DataLoaderTests(unittest.TestCase):
             Mock(
                 rx_node="node_A",
                 stats={
-                    "0_0": {"count": 1, "rssi_sum": -3, "snr_sum": 30},
-                    "0_2": {"count": 1, "rssi_sum": -5, "snr_sum": 20},
+                    "0_0": {"count": 1, "snr_sum": 30},
+                    "0_2": {"count": 1, "snr_sum": 20},
                 },
             ),
             Mock(
                 rx_node="node_B",
                 stats={
-                    "0_0": {"count": 1, "rssi_sum": -5, "snr_sum": 40},
-                    "0_2": {"count": 1, "rssi_sum": -2, "snr_sum": 10},
+                    "0_0": {"count": 1, "snr_sum": 40},
+                    "0_2": {"count": 1, "snr_sum": 10},
                 },
             ),
         ]
         curr_stats = {
             "node_A": {
-                "0_0": {"count": 1, "rssi_sum": -3, "snr_sum": 30},
-                "0_2": {"count": 1, "rssi_sum": -5, "snr_sum": 20},
+                "0_0": {"count": 1, "snr_sum": 30},
+                "0_2": {"count": 1, "snr_sum": 20},
             },
             "node_B": {
-                "0_0": {"count": 1, "rssi_sum": -5, "snr_sum": 40},
-                "0_2": {"count": 1, "rssi_sum": -2, "snr_sum": 10},
+                "0_0": {"count": 1, "snr_sum": 40},
+                "0_2": {"count": 1, "snr_sum": 10},
             },
         }
         expected_aggregated_stats = {
             "node_A": {
-                "0_0": {"count": 2, "rssi_sum": -6, "snr_sum": 60},
-                "0_2": {"count": 2, "rssi_sum": -10, "snr_sum": 40},
+                "0_0": {"count": 2, "snr_sum": 60},
+                "0_2": {"count": 2, "snr_sum": 40},
             },
             "node_B": {
-                "0_0": {"count": 2, "rssi_sum": -10, "snr_sum": 80},
-                "0_2": {"count": 2, "rssi_sum": -4, "snr_sum": 20},
+                "0_0": {"count": 2, "snr_sum": 80},
+                "0_2": {"count": 2, "snr_sum": 20},
             },
         }
         aggregated_stats = aggregate_all_responses(previous_rx_responses, curr_stats)
@@ -130,23 +132,17 @@ class DataLoaderTests(unittest.TestCase):
     def test_average_rx_responses(self) -> None:
         stats = {
             "node_A": {
-                "0_0": {"count": 2, "rssi_sum": -6, "snr_sum": 60},
-                "0_2": {"count": 2, "rssi_sum": -10, "snr_sum": 40},
+                "0_0": {"count": 2, "snr_sum": 60},
+                "0_2": {"count": 2, "snr_sum": 40},
             },
             "node_B": {
-                "0_0": {"count": 2, "rssi_sum": -10, "snr_sum": 80},
-                "0_2": {"count": 2, "rssi_sum": -4, "snr_sum": 20},
+                "0_0": {"count": 2, "snr_sum": 80},
+                "0_2": {"count": 2, "snr_sum": 20},
             },
         }
         expected_averaged_stats = {
-            "node_A": {
-                "0_0": {"rssi_avg": -3, "snr_avg": 30},
-                "0_2": {"rssi_avg": -5, "snr_avg": 20},
-            },
-            "node_B": {
-                "0_0": {"rssi_avg": -5, "snr_avg": 40},
-                "0_2": {"rssi_avg": -2, "snr_avg": 10},
-            },
+            "node_A": {"0_0": {"snr_avg": 30}, "0_2": {"snr_avg": 20}},
+            "node_B": {"0_0": {"snr_avg": 40}, "0_2": {"snr_avg": 10}},
         }
         averaged_stats = average_rx_responses(stats)
         self.assertDictEqual(averaged_stats, expected_averaged_stats)

@@ -14,7 +14,6 @@ def find_routes_compute(
     beam_map: np.array, saturation_threshhold: int, target: int
 ) -> List:
     """Find a list of beam index pairs above target between the TX and RX node."""
-
     routes = []
     current_max = np.int(beam_map.max())
     while current_max >= target:
@@ -89,9 +88,7 @@ def find_routes_compute(
 
 
 def separate_beams(routes: List) -> None:
-    """Keep one route if multiple routes have similar beam indices and
-    remove the rest."""
-
+    """Filter one route for multiple routes with similar beam indices."""
     idx_remove: Set = set()
     for i in range(len(routes) - 1, -1, -1):
         for j in range(len(routes) - 1, i, -1):
@@ -114,43 +111,29 @@ def separate_beams(routes: List) -> None:
             del routes[i]
 
 
-def find_routes(im_data: Dict, target: int, use_rssi: bool) -> List:
-    """Find a list of beam index pairs above target RSSI/SNR between the TX and RX node."""
-
+def find_routes(im_data: Dict, target: int) -> List:
+    """Get list of beam index pairs above target SNR between TX and RX node."""
     beam_map = np.array(
         [[0] * HardwareConfig.MAX_BEAM_INDEX] * HardwareConfig.MAX_BEAM_INDEX
-    )
-    saturation_threshhold = (
-        HardwareConfig.RSSI_SATURATE_THRESH_DBM
-        if use_rssi
-        else HardwareConfig.SNR_SATURATE_THRESH_DB
     )
     for i in range(HardwareConfig.MIN_BEAM_INDEX, HardwareConfig.MAX_BEAM_INDEX):
         for j in range(HardwareConfig.MIN_BEAM_INDEX, HardwareConfig.MAX_BEAM_INDEX):
             tx_rx = f"{HardwareConfig.BEAM_ORDER[i]}_{HardwareConfig.BEAM_ORDER[j]}"
+            beam_map[i][j] = (
+                im_data[tx_rx]["snr_avg"]
+                if tx_rx in im_data
+                else HardwareConfig.MINIMUM_SNR_DB
+            )
 
-            if use_rssi:
-                beam_map[i][j] = (
-                    im_data[tx_rx]["rssi_avg"]
-                    if tx_rx in im_data
-                    else HardwareConfig.MINIMUM_RSSI_DBM
-                )
-            else:
-                beam_map[i][j] = (
-                    im_data[tx_rx]["snr_avg"]
-                    if tx_rx in im_data
-                    else HardwareConfig.MINIMUM_SNR_DB
-                )
-
-    routes = find_routes_compute(beam_map, saturation_threshhold, target)
+    routes = find_routes_compute(
+        beam_map, HardwareConfig.SNR_SATURATE_THRESH_DB, target
+    )
     # Keep one route if multiple routes have similar beam indices
     separate_beams(routes)
     return routes
 
 
-def get_connectivity_data(
-    im_data: Dict, target: int, use_rssi: bool, is_n_day_avg: bool
-) -> List[Dict]:
+def get_connectivity_data(im_data: Dict, target: int, is_n_day_avg: bool) -> List[Dict]:
     tx_node = im_data["tx_node"]
     result: List = []
     rx_responses = (
@@ -161,7 +144,7 @@ def get_connectivity_data(
 
     for rx_node in rx_responses:
         logging.info(f"Analyzing connectivity between {tx_node} to {rx_node}")
-        routes = find_routes(rx_responses[rx_node], target, use_rssi)
+        routes = find_routes(rx_responses[rx_node], target)
         logging.info(f"No. of routes between {tx_node} and {rx_node} are {len(routes)}")
         if not routes:
             continue
@@ -180,7 +163,7 @@ def get_connectivity_data(
 
 
 def analyze_connectivity(
-    im_data: Optional[Dict], n_days: int, target: int = 15, use_rssi: bool = False
+    im_data: Optional[Dict], n_days: int, target: int = 15
 ) -> Optional[List[Dict]]:
     """Analyze connectivity for a TX node based on IM scan data."""
     if im_data is None:
@@ -196,14 +179,14 @@ def analyze_connectivity(
     logging.info(
         f"Analyzing connectivity graph for {tx_node} with target SNR = {target}dB"
     )
-    current_connectivity_data = get_connectivity_data(im_data, target, use_rssi, False)
-    n_days_connectivity_data = get_connectivity_data(im_data, target, use_rssi, True)
+    current_connectivity_data = get_connectivity_data(im_data, target, False)
+    n_days_connectivity_data = get_connectivity_data(im_data, target, True)
     logging.info(
         f"{tx_node} has routes to {len(current_connectivity_data)} "
-        + "other nodes in the current scan."
+        "other nodes in the current scan."
     )
     logging.info(
         f"{tx_node} has routes to {len(n_days_connectivity_data)} "
-        + f"other nodes over scans from last {n_days} days."
+        f"other nodes over scans from last {n_days} days."
     )
     return current_connectivity_data + n_days_connectivity_data

@@ -1,9 +1,7 @@
 {
     "constants": {
       "BORESIDE_BW_IDX": 10,
-      "MINIMUM_RSSI_DBM": -80,
       "MINIMUM_SNR_DB": -10,
-      "RSSI_SATURATE_THRESH_DBM": -40,
       "SNR_SATURATE_THRESH_DB": 25,
       "BEAM_SEPERATE_IDX": 6,
       "MAX_SIDELOBE_LEVEL_DB": 12,

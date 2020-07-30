@@ -9,8 +9,8 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
     "required_coverage": {
-        "scan_service/analysis/connectivity.py": 69,
-        "scan_service/utils/data_loader.py": 65,
+        "scan_service/analysis/connectivity.py": 68,
+        "scan_service/utils/data_loader.py": 63,
         "scan_service/utils/hardware_config.py": 100,
         "TOTAL": 21,
     },

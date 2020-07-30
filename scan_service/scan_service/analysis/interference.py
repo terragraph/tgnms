@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from terragraph_thrift.Controller.ttypes import ScanMode
 
@@ -51,39 +51,6 @@ def get_interference_data(
     return None
 
 
-def get_inr(
-    rx_response: Dict, tx_beam: str, rx_beam: str, curr_power_idx: Optional[int]
-) -> Optional[Tuple[Dict, Dict]]:
-    """Get INR at tx and rx beam pair with max and current power."""
-    # Get the interference measurement of the tx-rx pair
-    inr = get_interference_data(rx_response, int(tx_beam), int(rx_beam))
-    if inr is None:
-        return None
-
-    max_inr = (
-        {"rssi_avg": inr["rssi_avg"], "snr_avg": inr["snr_avg"]}
-        if inr["rssi_avg"] > HardwareConfig.MINIMUM_RSSI_DBM
-        else {}
-    )
-
-    # Estimate inr with current power
-    if curr_power_idx is None:
-        return {}, max_inr
-
-    curr_inr_offset = get_inr_offset(target_pwr_idx=curr_power_idx)
-    return (
-        (
-            {
-                "rssi_avg": inr["rssi_avg"] + curr_inr_offset,
-                "snr_est": inr["snr_avg"] + curr_inr_offset,
-            }
-            if inr["rssi_avg"] + curr_inr_offset > HardwareConfig.MINIMUM_RSSI_DBM
-            else {}
-        ),
-        max_inr,
-    )
-
-
 async def get_interference_from_current_beams(
     im_data: Dict, network_name: str, link_mac_map: Dict
 ) -> List[Dict]:
@@ -122,15 +89,18 @@ async def get_interference_from_current_beams(
                     f"RX for {rx_node} from {rx_from_node} uses rx_beam {rx_beam}"
                 )
 
-                inr = get_inr(
+                inr = get_interference_data(
                     im_data["current_avg_rx_responses"][rx_node],
-                    tx_beam,
-                    rx_beam,
-                    curr_power_idx,
+                    int(tx_beam),
+                    int(rx_beam),
                 )
                 if inr is None:
                     continue
-                inr_curr_power, inr_max_power = inr
+
+                inr_curr_power = {}
+                if curr_power_idx is not None:
+                    curr_inr_offset = get_inr_offset(target_pwr_idx=curr_power_idx)
+                    inr_curr_power = {"snr_est": inr["snr_avg"] + curr_inr_offset}
 
                 result.append(
                     {
@@ -142,7 +112,7 @@ async def get_interference_from_current_beams(
                         "rx_node": rx_node,
                         "rx_from_node": rx_from_node,
                         "inr_curr_power": inr_curr_power,
-                        "inr_max_power": inr_max_power,
+                        "inr_max_power": {"snr_avg": inr["snr_avg"]},
                         "is_n_day_avg": False,
                     }
                 )
@@ -154,14 +124,14 @@ async def get_interference_from_current_beams(
     return result
 
 
-async def get_interference_from_directional_beams(
+async def get_interference_from_directional_beams(  # noqa: C901
     im_data: Dict,
     network_name: str,
     link_mac_map: Dict,
     n_days: int,
     is_n_day_avg: bool,
 ) -> List[Dict]:
-    """Process fine/coarse IM scan data and compute interference for directional beams."""
+    """Process fine/coarse IM scan data & compute interference for directional beams."""
     result: List = []
     tx_node = im_data["tx_node"]
     logging.info(f"Analyzing interference for {tx_node}")
@@ -213,10 +183,16 @@ async def get_interference_from_directional_beams(
                     f"RX for {rx_node} from {rx_from_node} uses rx_beam {rx_beam}"
                 )
 
-                inr = get_inr(rx_responses[rx_node], tx_beam, rx_beam, curr_power_idx)
+                inr = get_interference_data(
+                    rx_responses[rx_node], int(tx_beam), int(rx_beam)
+                )
                 if inr is None:
                     continue
-                inr_curr_power, inr_max_power = inr
+
+                inr_curr_power = {}
+                if curr_power_idx is not None:
+                    curr_inr_offset = get_inr_offset(target_pwr_idx=curr_power_idx)
+                    inr_curr_power = {"snr_est": inr["snr_avg"] + curr_inr_offset}
 
                 result.append(
                     {
@@ -228,7 +204,7 @@ async def get_interference_from_directional_beams(
                         "rx_node": rx_node,
                         "rx_from_node": rx_from_node,
                         "inr_curr_power": inr_curr_power,
-                        "inr_max_power": inr_max_power,
+                        "inr_max_power": {"snr_avg": inr["snr_avg"]},
                         "is_n_day_avg": is_n_day_avg,
                     }
                 )
