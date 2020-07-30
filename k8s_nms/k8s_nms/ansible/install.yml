@@ -36,3 +36,7 @@
         dest: "{{ kubernetes_user_home_dir.stdout }}/.kube/config"
         remote_src: yes
         owner: "{{ kubernetes_user }}"
+
+    - name: enable scheduling on master node
+      shell: "kubectl taint nodes --all node-role.kubernetes.io/master-"
+      when: single_node
