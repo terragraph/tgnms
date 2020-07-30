@@ -18,6 +18,8 @@ _logger = None
 
 _invocation_hooks = []
 
+ansi_escape_ = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+
 
 def register_invocation_hook(fn):
     _invocation_hooks.append(fn)
@@ -77,6 +79,8 @@ class TtyLogger(object):
         self.logger = logger
 
     def write(self, message):
+        if not self.terminal.isatty():
+            message = ansi_escape_.sub('', message)
         self.terminal.write(message)
 
         # Some libraries issue 2 calls to write() for a print, with the second
