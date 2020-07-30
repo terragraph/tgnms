@@ -131,13 +131,13 @@ def find_routes(im_data: Dict, target: int, use_rssi: bool) -> List:
 
             if use_rssi:
                 beam_map[i][j] = (
-                    im_data[tx_rx]["rssi"]
+                    im_data[tx_rx]["rssi_avg"]
                     if tx_rx in im_data
                     else HardwareConfig.MINIMUM_RSSI_DBM
                 )
             else:
                 beam_map[i][j] = (
-                    im_data[tx_rx]["snr_est"]
+                    im_data[tx_rx]["snr_avg"]
                     if tx_rx in im_data
                     else HardwareConfig.MINIMUM_SNR_DB
                 )
@@ -148,27 +148,20 @@ def find_routes(im_data: Dict, target: int, use_rssi: bool) -> List:
     return routes
 
 
-def analyze_connectivity(
-    im_data: Optional[Dict], target: int = 15, use_rssi: bool = False
-) -> Optional[List[Dict]]:
-    """Analyze connectivity for a TX node based on IM scan data."""
-    if im_data is None:
-        return None
-
-    if im_data["mode"] not in {ScanMode.FINE, ScanMode.COARSE}:
-        logging.info(
-            f"Unsupported ScanMode {im_data['mode']} for connectivity analysis"
-        )
-        return None
-
-    result: List = []
+def get_connectivity_data(
+    im_data: Dict, target: int, use_rssi: bool, is_n_day_avg: bool
+) -> List[Dict]:
     tx_node = im_data["tx_node"]
-    logging.info(
-        f"Analyzing connectivity graph for {tx_node} with target SNR = {target}dB"
+    result: List = []
+    rx_responses = (
+        im_data["n_day_avg_rx_responses"]
+        if is_n_day_avg
+        else im_data["current_avg_rx_responses"]
     )
-    for rx_node in im_data["responses"]:
+
+    for rx_node in rx_responses:
         logging.info(f"Analyzing connectivity between {tx_node} to {rx_node}")
-        routes = find_routes(im_data["responses"][rx_node], target, use_rssi)
+        routes = find_routes(rx_responses[rx_node], target, use_rssi)
         logging.info(f"No. of routes between {tx_node} and {rx_node} are {len(routes)}")
         if not routes:
             continue
@@ -180,7 +173,37 @@ def analyze_connectivity(
                 "tx_node": tx_node,
                 "rx_node": rx_node,
                 "routes": routes,
+                "is_n_day_avg": is_n_day_avg,
             }
         )
-    logging.info(f"{tx_node} has routes to {len(result)} other nodes")
     return result
+
+
+def analyze_connectivity(
+    im_data: Optional[Dict], n_days: int, target: int = 15, use_rssi: bool = False
+) -> Optional[List[Dict]]:
+    """Analyze connectivity for a TX node based on IM scan data."""
+    if im_data is None:
+        return None
+
+    if im_data["mode"] not in {ScanMode.FINE, ScanMode.COARSE}:
+        logging.info(
+            f"Unsupported ScanMode {im_data['mode']} for connectivity analysis"
+        )
+        return None
+
+    tx_node = im_data["tx_node"]
+    logging.info(
+        f"Analyzing connectivity graph for {tx_node} with target SNR = {target}dB"
+    )
+    current_connectivity_data = get_connectivity_data(im_data, target, use_rssi, False)
+    n_days_connectivity_data = get_connectivity_data(im_data, target, use_rssi, True)
+    logging.info(
+        f"{tx_node} has routes to {len(current_connectivity_data)} "
+        + "other nodes in the current scan."
+    )
+    logging.info(
+        f"{tx_node} has routes to {len(n_days_connectivity_data)} "
+        + f"other nodes over scans from last {n_days} days."
+    )
+    return current_connectivity_data + n_days_connectivity_data

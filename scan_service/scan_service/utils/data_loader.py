@@ -2,64 +2,104 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-from typing import Dict, Optional
+from collections import defaultdict
+from typing import Dict, Iterable, List, Optional, Tuple
 
-from terragraph_thrift.Controller.ttypes import ScanFwStatus, ScanType
+from terragraph_thrift.Controller.ttypes import ScanFwStatus, ScanMode
+
+from ..analysis.interference import get_inr_offset
+from .db import fetch_aggregated_responses
 
 
-def aggregate_rx_responses(responses: Dict) -> Dict[str, Dict[str, float]]:
-    """Aggregate IM scan response from an RX node."""
+def average_rx_responses(stats: defaultdict) -> defaultdict:
+    """Average IM scan response from all RX nodes."""
+    averaged_stats: defaultdict = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(float))
+    )
+    for rx_node, data in stats.items():
+        for key in data:
+            averaged_stats[rx_node][key]["rssi_avg"] = (
+                stats[rx_node][key]["rssi_sum"] / stats[rx_node][key]["count"]
+            )
+            averaged_stats[rx_node][key]["snr_avg"] = (
+                stats[rx_node][key]["snr_sum"] / stats[rx_node][key]["count"]
+            )
+    return averaged_stats
 
-    aggregated_responses = {}
+
+def aggregate_all_responses(
+    previous_rx_responses: Iterable, current_stats: Dict
+) -> defaultdict:
+    """Aggregate all current and previous IM scan responses from all RX nodes."""
+    aggregated_stats: defaultdict = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(float))
+    )
+
+    for row in previous_rx_responses:
+        for key, stat in row.stats.items():
+            aggregated_stats[row.rx_node][key]["count"] += stat["count"]
+            aggregated_stats[row.rx_node][key]["rssi_sum"] += stat["rssi_sum"]
+            aggregated_stats[row.rx_node][key]["snr_sum"] += stat["snr_sum"]
+
+    for rx_node, data in current_stats.items():
+        for key, stat in data.items():
+            aggregated_stats[rx_node][key]["count"] += stat["count"]
+            aggregated_stats[rx_node][key]["rssi_sum"] += stat["rssi_sum"]
+            aggregated_stats[rx_node][key]["snr_sum"] += stat["snr_sum"]
+
+    return aggregated_stats
+
+
+def aggregate_current_responses(
+    responses: Dict, tx_node: str
+) -> Tuple[defaultdict, List]:
+    """Aggregate IM scan response from all RX nodes."""
+    to_db = []
+    current_stats: defaultdict = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(float))
+    )
+
+    tx_pwr_index = responses.get(tx_node, {}).get("txPwrIndex")
     for rx_node, rx_response in responses.items():
-        aggregate: Dict = {}
-        counts: Dict = {}
-        # compatible with the 2018 tg scan status json format
+        # Compatible with the 2018 tg scan status json format
         if rx_response["status"] != ScanFwStatus.COMPLETE:
             continue
 
+        if tx_pwr_index is None:
+            continue
+
+        # Scale all measurements to max tx power index
+        offset = get_inr_offset(ref_pwr_idx=tx_pwr_index)
         for measurement in rx_response["routeInfoList"]:
             key = f"{measurement['route']['tx']}_{measurement['route']['rx']}"
-            if key in aggregate:
-                counts[key] += 1
-                aggregate[key]["rssi"] += measurement["rssi"]
-                aggregate[key]["snr_est"] += measurement["snrEst"]
-                aggregate[key]["post_snr"] += measurement["postSnr"]
-            else:
-                counts[key] = 1
-                aggregate[key] = {
-                    "rssi": measurement["rssi"],
-                    "snr_est": measurement["snrEst"],
-                    "post_snr": measurement["postSnr"],
+            current_stats[rx_node][key]["count"] += 1
+            current_stats[rx_node][key]["rssi_sum"] += measurement["rssi"] + offset
+            current_stats[rx_node][key]["snr_sum"] += measurement["snrEst"] + offset
+
+        if current_stats[rx_node]:
+            to_db.append(
+                {
+                    "tx_node": tx_node,
+                    "rx_node": rx_node,
+                    "stats": current_stats[rx_node],
                 }
+            )
 
-        # Average routes
-        for key in aggregate:
-            aggregate[key]["rssi"] /= counts[key]
-            aggregate[key]["snr_est"] /= counts[key]
-            aggregate[key]["post_snr"] /= counts[key]
-        logging.debug(f"Response length for rx node {rx_node} is {len(aggregate)}")
-        if len(aggregate) > 0:
-            aggregate["relative_im_beams"] = {
-                beam["addr"]: beam["beam"]
-                for beam in rx_response.get("beamInfoList", {})
-            }
-            aggregated_responses[rx_node] = aggregate
-    return aggregated_responses
+    return current_stats, to_db
 
 
-def get_im_data(scan: Dict) -> Optional[Dict]:
+async def get_im_data(scan: Dict, network_name: str, n_days: int) -> Optional[Dict]:
     """Aggregate IM scan data for a TX node."""
     tx_node = scan["txNode"]
     logging.info(
         f"Aggregating IM scan response for tx node {tx_node}, "
         f"groupId {scan['groupId']}, scan mode {scan['mode']}"
     )
-    # skip if response from tx_node is not present
+    # Skip if response from tx_node is not present
     if tx_node not in scan["responses"]:
         logging.info(f"No txNode in scan responses for groupId {scan['groupId']}")
         return None
-    # skip if response from tx_node is not complete
+    # Skip if response from tx_node is not complete
     tx_res = scan["responses"][tx_node]
     if tx_res["status"] != ScanFwStatus.COMPLETE:
         logging.error(
@@ -67,7 +107,24 @@ def get_im_data(scan: Dict) -> Optional[Dict]:
         )
         return None
 
-    # aggregating data (for repeated measurements)
+    # Aggregate rx responses over repeated measurements
+    current_stats, to_db = aggregate_current_responses(scan["responses"], tx_node)
+
+    # Average rx responses
+    current_avg_rx_responses = average_rx_responses(current_stats)
+    n_day_avg_rx_responses: defaultdict = defaultdict()
+    if scan["mode"] == ScanMode.RELATIVE:
+        to_db.clear()
+        for rx_node, data in current_avg_rx_responses.items():
+            data["relative_im_beams"] = {
+                beam["addr"]: beam["beam"]
+                for beam in scan["responses"][rx_node].get("beamInfoList", {})
+            }
+    elif scan["mode"] == ScanMode.FINE or scan["mode"] == ScanMode.COARSE:
+        prev_responses = await fetch_aggregated_responses(network_name, tx_node, n_days)
+        aggregated_stats = aggregate_all_responses(prev_responses, current_stats)
+        n_day_avg_rx_responses = average_rx_responses(aggregated_stats)
+
     return {
         "tx_node": tx_node,
         "group_id": scan.get("groupId"),
@@ -80,6 +137,8 @@ def get_im_data(scan: Dict) -> Optional[Dict]:
         "relative_im_beams": {
             beam["addr"]: beam["beam"] for beam in tx_res.get("beamInfoList", {})
         },
-        "responses": aggregate_rx_responses(scan["responses"]),
+        "current_avg_rx_responses": current_avg_rx_responses,
+        "n_day_avg_rx_responses": n_day_avg_rx_responses,
         "rx_nodes": scan.get("rxNodes"),
+        "curr_aggregated_responses": to_db,
     }

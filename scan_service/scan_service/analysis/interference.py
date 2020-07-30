@@ -11,26 +11,19 @@ from ..utils.hardware_config import HardwareConfig
 from ..utils.stats import create_link_mac_map, get_latest_stats
 
 
-def estimate_interference(
-    data: Dict, target_pwr_idx: Optional[int] = None, ref_pwr_idx: Optional[int] = None
-) -> Dict:
-    """Estimate inr on target power index, given inr at reference power index."""
+def get_inr_offset(
+    target_pwr_idx: Optional[int] = None, ref_pwr_idx: Optional[int] = None
+) -> int:
+    """Estimate inr offset on target power idx, given inr at reference power idx."""
     if target_pwr_idx is None:
         target_pwr_idx = HardwareConfig.MAX_PWR_IDX
     if ref_pwr_idx is None:
         ref_pwr_idx = HardwareConfig.MAX_PWR_IDX
-    estimate: Dict = {}
-    offset = round(
+
+    return round(
         HardwareConfig.TXPOWERIDX_TO_TXPOWER[target_pwr_idx]
         - HardwareConfig.TXPOWERIDX_TO_TXPOWER[ref_pwr_idx]
     )
-    if data["rssi"] + offset > HardwareConfig.MINIMUM_RSSI_DBM:
-        estimate = {
-            "rssi": data["rssi"] + offset,
-            "snr_est": data["snr_est"] + offset,
-            "post_snr": data["post_snr"] + offset,
-        }
-    return estimate
 
 
 def get_interference_data(
@@ -59,11 +52,7 @@ def get_interference_data(
 
 
 def get_inr(
-    rx_response: Dict,
-    tx_beam: str,
-    rx_beam: str,
-    scan_power_idx: int,
-    curr_power_idx: Optional[int],
+    rx_response: Dict, tx_beam: str, rx_beam: str, curr_power_idx: Optional[int]
 ) -> Optional[Tuple[Dict, Dict]]:
     """Get INR at tx and rx beam pair with max and current power."""
     # Get the interference measurement of the tx-rx pair
@@ -71,29 +60,28 @@ def get_inr(
     if inr is None:
         return None
 
-    # If not using max power for scans, we will adjust the results to estimate what
-    # it looks like when using max txPowerIdx (for APPROXIMATION only)
-    if scan_power_idx == HardwareConfig.MAX_PWR_IDX:
-        inr_max = inr
-    else:
-        logging.debug(
-            "IM scan was not done with max power, "
-            f"mapping from power index {scan_power_idx} to max power"
-        )
-        inr_max = estimate_interference(
-            inr, target_pwr_idx=HardwareConfig.MAX_PWR_IDX, ref_pwr_idx=scan_power_idx
-        )
-
-    # Estimate inr with current power
-    inr_curr = (
-        estimate_interference(
-            inr, target_pwr_idx=curr_power_idx, ref_pwr_idx=scan_power_idx
-        )
-        if curr_power_idx is not None
+    max_inr = (
+        {"rssi_avg": inr["rssi_avg"], "snr_avg": inr["snr_avg"]}
+        if inr["rssi_avg"] > HardwareConfig.MINIMUM_RSSI_DBM
         else {}
     )
 
-    return inr_curr, inr_max
+    # Estimate inr with current power
+    if curr_power_idx is None:
+        return {}, max_inr
+
+    curr_inr_offset = get_inr_offset(target_pwr_idx=curr_power_idx)
+    return (
+        (
+            {
+                "rssi_avg": inr["rssi_avg"] + curr_inr_offset,
+                "snr_est": inr["snr_avg"] + curr_inr_offset,
+            }
+            if inr["rssi_avg"] + curr_inr_offset > HardwareConfig.MINIMUM_RSSI_DBM
+            else {}
+        ),
+        max_inr,
+    )
 
 
 async def get_interference_from_current_beams(
@@ -104,11 +92,10 @@ async def get_interference_from_current_beams(
     tx_node = im_data["tx_node"]
     logging.info(f"Analyzing interference for {tx_node}")
     token = im_data["token"]
-    scan_power_idx = im_data["tx_pwr_idx"]
 
     tx_infos = await get_latest_stats(network_name, link_mac_map, tx_node, ["tx_power"])
 
-    for rx_node in im_data["responses"]:
+    for rx_node in im_data["current_avg_rx_responses"]:
         if rx_node == tx_node:
             continue
         logging.info(f"Analyzing interference from {tx_node} to {rx_node}")
@@ -121,7 +108,7 @@ async def get_interference_from_current_beams(
             curr_power_idx = tx_infos.get(tx_to_node, {}).get("tx_power")
             if curr_power_idx is not None:
                 curr_power_idx = int(curr_power_idx)
-            for rx_from_node, rx_beam in im_data["responses"][rx_node][
+            for rx_from_node, rx_beam in im_data["current_avg_rx_responses"][rx_node][
                 "relative_im_beams"
             ].items():
                 # Skip if it's an actual link
@@ -136,15 +123,15 @@ async def get_interference_from_current_beams(
                 )
 
                 inr = get_inr(
-                    im_data["responses"][rx_node],
+                    im_data["current_avg_rx_responses"][rx_node],
                     tx_beam,
                     rx_beam,
-                    scan_power_idx,
                     curr_power_idx,
                 )
-                if not inr:
+                if inr is None:
                     continue
                 inr_curr_power, inr_max_power = inr
+
                 result.append(
                     {
                         "group_id": im_data["group_id"],
@@ -156,30 +143,41 @@ async def get_interference_from_current_beams(
                         "rx_from_node": rx_from_node,
                         "inr_curr_power": inr_curr_power,
                         "inr_max_power": inr_max_power,
+                        "is_n_day_avg": False,
                     }
                 )
-    logging.info(f"{tx_node} causes interference to {len(result)} other nodes")
+    logging.info(
+        f"{tx_node} caused interference to {len(result)} other nodes "
+        "in the current scan."
+    )
 
     return result
 
 
 async def get_interference_from_directional_beams(
-    im_data: Dict, network_name: str, link_mac_map: Dict
+    im_data: Dict,
+    network_name: str,
+    link_mac_map: Dict,
+    n_days: int,
+    is_n_day_avg: bool,
 ) -> List[Dict]:
     """Process fine/coarse IM scan data and compute interference for directional beams."""
-
     result: List = []
     tx_node = im_data["tx_node"]
     logging.info(f"Analyzing interference for {tx_node}")
     token = im_data["token"]
-    scan_power_idx = im_data["tx_pwr_idx"]
+    rx_responses = (
+        im_data["n_day_avg_rx_responses"]
+        if is_n_day_avg
+        else im_data["current_avg_rx_responses"]
+    )
 
     tx_infos = await get_latest_stats(
         network_name, link_mac_map, tx_node, ["tx_beam_idx", "tx_power"]
     )
     coros = []
     rx_nodes = []
-    for rx_node in im_data["responses"]:
+    for rx_node in rx_responses:
         # Skip if they are the same
         if tx_node == rx_node:
             continue
@@ -215,16 +213,11 @@ async def get_interference_from_directional_beams(
                     f"RX for {rx_node} from {rx_from_node} uses rx_beam {rx_beam}"
                 )
 
-                inr = get_inr(
-                    im_data["responses"][rx_node],
-                    tx_beam,
-                    rx_beam,
-                    scan_power_idx,
-                    curr_power_idx,
-                )
-                if not inr:
+                inr = get_inr(rx_responses[rx_node], tx_beam, rx_beam, curr_power_idx)
+                if inr is None:
                     continue
                 inr_curr_power, inr_max_power = inr
+
                 result.append(
                     {
                         "group_id": im_data["group_id"],
@@ -236,15 +229,26 @@ async def get_interference_from_directional_beams(
                         "rx_from_node": rx_from_node,
                         "inr_curr_power": inr_curr_power,
                         "inr_max_power": inr_max_power,
+                        "is_n_day_avg": is_n_day_avg,
                     }
                 )
-    logging.info(f"{tx_node} causes interference to {len(result)} other nodes")
+    logging.info(
+        (
+            f"{tx_node} caused interference to {len(result)} other nodes "
+            f"over scans from last {n_days} days."
+        )
+        if is_n_day_avg
+        else (
+            f"{tx_node} caused interference to {len(result)} other nodes "
+            "in the current scan."
+        )
+    )
 
     return result
 
 
 async def analyze_interference(
-    im_data: Optional[Dict], network_name: str
+    im_data: Optional[Dict], network_name: str, n_days: int
 ) -> Optional[List[Dict]]:
     """Derive interference based on current topology."""
     if im_data is None:
@@ -259,8 +263,12 @@ async def analyze_interference(
             im_data, network_name, link_mac_map
         )
     elif im_data["mode"] == ScanMode.FINE or im_data["mode"] == ScanMode.COARSE:
-        return await get_interference_from_directional_beams(
-            im_data, network_name, link_mac_map
+        current_interference_data = await get_interference_from_directional_beams(
+            im_data, network_name, link_mac_map, n_days, False
         )
+        n_days_interference_data = await get_interference_from_directional_beams(
+            im_data, network_name, link_mac_map, n_days, True
+        )
+        return current_interference_data + n_days_interference_data
     logging.info(f"Unsupported ScanMode {im_data['mode']} for interference analysis")
     return None

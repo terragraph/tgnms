@@ -26,7 +26,7 @@ from .utils.db import write_results
 from .utils.hardware_config import HardwareConfig
 
 
-async def scan_results_handler(value: str, scan_results_dir: Path) -> None:
+async def scan_results_handler(value: str, scan_results_dir: Path, n_days: int) -> None:
     """Consume scan results, perform analysis, and write to database."""
     try:
         scan_msg = json.loads(value)
@@ -56,7 +56,7 @@ async def scan_results_handler(value: str, scan_results_dir: Path) -> None:
         logging.exception("Failed to write scan results to disk.")
 
     # Prepare to analyze scan results
-    im_data = get_im_data(scan_result["data"])
+    im_data = await get_im_data(scan_result["data"], network_name, n_days)
 
     # Analyze scan results and write all results to the database
     await write_results(
@@ -64,8 +64,11 @@ async def scan_results_handler(value: str, scan_results_dir: Path) -> None:
         network_name,
         token,
         scan_results={"results_path": str(filepath), **parse_scan_results(scan_result)},
-        connectivity_results=analyze_connectivity(im_data),
-        interference_results=await analyze_interference(im_data, network_name),
+        connectivity_results=analyze_connectivity(im_data, n_days),
+        interference_results=await analyze_interference(im_data, network_name, n_days),
+        aggregated_rx_responses=(
+            im_data["curr_aggregated_responses"] if im_data is not None else None
+        ),
     )
 
 
@@ -115,7 +118,9 @@ async def async_main(config: Dict, scan_results_dir: Path) -> None:
     async for msg in consumer:
         value = msg.value.decode("utf-8")
         if msg.topic == "scan_results":
-            asyncio.create_task(scan_results_handler(value, scan_results_dir))
+            asyncio.create_task(
+                scan_results_handler(value, scan_results_dir, config["n_days"])
+            )
         elif msg.topic == "events":
             asyncio.create_task(events_handler(value))
 

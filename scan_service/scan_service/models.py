@@ -121,6 +121,7 @@ class ConnectivityResults(Base):
     network_name = Column(String(255), nullable=False)
     group_id = Column(Integer, nullable=True)
     token = Column(Integer, nullable=False)
+    is_n_day_avg = Column(Boolean, nullable=True)
     tx_node = Column(String(255), nullable=False)
     rx_node = Column(String(255), nullable=False)
     routes = Column(JSON, nullable=False)
@@ -134,6 +135,7 @@ class InterferenceResults(Base):
     network_name = Column(String(255), nullable=False)
     group_id = Column(Integer, nullable=True)
     token = Column(Integer, nullable=False)
+    is_n_day_avg = Column(Boolean, nullable=True)
     tx_node = Column(String(255), nullable=False)
     tx_to_node = Column(String(255), nullable=False)
     tx_power_idx = Column(Integer, nullable=True)
@@ -141,3 +143,15 @@ class InterferenceResults(Base):
     rx_from_node = Column(String(255), nullable=False)
     inr_curr_power = Column(JSON, nullable=False)
     inr_max_power = Column(JSON, nullable=False)
+
+
+class AggregatedRxResponses(Base):
+    __tablename__ = "aggregated_rx_responses"
+
+    id = Column(Integer, primary_key=True)
+    execution_id = Column(Integer, ForeignKey("scan_test_execution.id"), nullable=False)
+    network_name = Column(String(255), index=True, nullable=False)
+    created_dt = Column(DateTime, server_default=func.now(), index=True, nullable=False)
+    tx_node = Column(String(255), nullable=False)
+    rx_node = Column(String(255), nullable=False)
+    stats = Column(JSON, nullable=False)

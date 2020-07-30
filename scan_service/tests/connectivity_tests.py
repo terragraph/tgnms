@@ -44,14 +44,14 @@ class ConnectivityTests(unittest.TestCase):
         self.assertEqual(routes, [(33, 18, 20), (53, 63, 11)])
 
     def test_find_routes_snr(self) -> None:
-        im_data = {"10_0": {"snr_est": 11}, "30_50": {"snr_est": 20}}
+        im_data = {"10_0": {"snr_avg": 11}, "30_50": {"snr_avg": 20}}
         routes = find_routes(im_data, 10, False)
         self.assertEqual(routes, [(30, 50, 20), (10, 0, 11)])
 
     def test_find_routes_rssi(self) -> None:
-        im_data = {"10_0": {"snr_est": -50}, "30_50": {"snr_est": -60}}
+        im_data = {"10_0": {"snr_avg": -50}, "30_50": {"snr_avg": -60}}
         routes = find_routes(im_data, 10, False)
         self.assertEqual(routes, [])
-        im_data = {"10_0": {"rssi": -50}, "30_50": {"rssi": -60}}
+        im_data = {"10_0": {"rssi_avg": -50}, "30_50": {"rssi_avg": -60}}
         routes = find_routes(im_data, -70, True)
         self.assertEqual(routes, [(10, 0, -50), (30, 50, -60)])

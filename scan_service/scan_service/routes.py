@@ -446,7 +446,8 @@ async def handle_get_execution(request: web.Request) -> web.Response:
         scan_results: defaultdict, results: Iterable, type: str
     ) -> None:
         for row in results:
-            scan_results[row.token][type].append(
+            name = "aggregated_" + type if row.is_n_day_avg else type
+            scan_results[row.token][name].append(
                 {
                     key: val
                     for key, val in row.items()
