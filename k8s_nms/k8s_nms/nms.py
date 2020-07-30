@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
+import glob
 import os
+import io
 import subprocess
+import tarfile
 import tempfile
+import urllib.request
+from typing import Any, Dict
 
 import click
 import pkg_resources
 import yaml
+
+from .config import configure_templates
 
 
 common_options = {
@@ -49,7 +56,7 @@ common_options = {
         default=None,
         multiple=True,
         required=True,
-        help="Control plane nodes for kubernetes",
+        help="Control plane nodes for Kubernetes",
     ),
     "workers": click.option(
         "-w",
@@ -57,7 +64,7 @@ common_options = {
         "workers",
         default=None,
         multiple=True,
-        help="Worker nodes for kubernetes",
+        help="Worker nodes for Kubernetes",
     ),
 }
 
@@ -70,7 +77,7 @@ def run_ansible(playbook, extra_vars_file, inventory, verbose):
     with tempfile.NamedTemporaryFile() as temp:
         temp.write(yaml.safe_dump(inventory).encode("utf-8"))
         temp.flush()
-        playbook = os.path.join(os.path.dirname(__file__), playbook)
+        playbook = os.path.join(os.path.dirname(__file__), "ansible", playbook)
 
         command = f"ansible-playbook --extra-vars @{extra_vars_file} --inventory {temp.name} {playbook}"
         command = command.split(" ")
@@ -134,9 +141,9 @@ def cli(ctx, version, short):
 @add_common_options("config-file", "tags", "password", "verbose", "masters", "workers")
 @click.pass_context
 def install(ctx, config_file, tags, verbose, password, workers, masters):
-    """Bootstrap a kubernetes cluster"""
+    """Bootstrap a Kubernetes cluster"""
     run_ansible(
-        "ansible/install.yml",
+        "install.yml",
         config_file,
         generate_inventory(masters, workers),
         verbose=verbose,
@@ -148,14 +155,45 @@ def install(ctx, config_file, tags, verbose, password, workers, masters):
 @click.pass_context
 def uninstall(ctx, config_file, verbose, tags, password, masters, workers):
     """
-    Remove a kubernetes cluster and associated packages
+    Remove a Kubernetes cluster and associated packages
     """
     run_ansible(
-        "ansible/uninstall.yml",
+        "uninstall.yml",
         config_file,
         generate_inventory(masters, workers),
         verbose=verbose,
     )
+
+
+def get_tar_files(source):
+    tar = tarfile.open(fileobj=source, mode="r:gz")
+    return {
+        filename: tar.extractfile(filename).read().decode("utf-8")
+        for filename in tar.getmembers()
+    }
+
+
+@cli.command()
+@add_common_options("config-file", "verbose")
+@click.option(
+    "-t", "--template-source", default=None, required=True, help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory"
+)
+@click.pass_context
+def configure(ctx, config_file, verbose, template_source):
+    """
+    Generate Kubernetes manifest from a template source
+    """
+    if template_source.startswith("http"):
+        with urllib.request.urlopen(template_source) as f:
+            files_map = get_tar_files(io.BytesIO(f.read()))
+    elif template_source.endswith(".tar.gz"):
+        files_map = get_tar_files(open(template_source, "rb"))
+    else:
+        files = glob.glob(f"**/{template_source}/**/*.yml", recursive=True)
+        files_map = {filename: open(filename, "r").read() for filename in files}
+
+    with open(config_file, "r") as f:
+        configure_templates(yaml.safe_load(f), files_map)
 
 
 if __name__ == "__main__":
