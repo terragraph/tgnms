@@ -79,6 +79,8 @@ def run_ansible(playbook, extra_vars_file, inventory, verbose):
         temp.flush()
         playbook = os.path.join(os.path.dirname(__file__), "ansible", playbook)
 
+        playbook = os.path.join(os.path.dirname(__file__), "ansible", playbook)
+
         command = f"ansible-playbook --extra-vars @{extra_vars_file} --inventory {temp.name} {playbook}"
         command = command.split(" ")
         if verbose > 0:

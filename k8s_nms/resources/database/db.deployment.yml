@@ -1,0 +1,85 @@
+# Create the volume for the database
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: db-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    # TODO: How much storage capacity is needed
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/data"
+---
+# Claim the volume we just created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Expose the db deployment at mysql:3306 with no ClusterIP (so it is only
+# accessible through DNS)
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: db
+  clusterIP: None
+---
+# Create MySQL deployment with a single pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  selector:
+    matchLabels:
+      app: db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: db
+        # Grab environment variables from the `mysql-env` ConfigMap
+        envFrom:
+        - configMapRef:
+            name: db-env
+        ports:
+        - containerPort: 3306
+          name: db
+        volumeMounts:
+        # Mount the PersistentVoluemClaim
+        - name: db-persistent-storage
+          mountPath: /var/lib/mysql
+        # Mount for the MySQL init scripts
+        - name: db-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      # Bind to the PersistentVolumeClaim from above
+      - name: db-persistent-storage
+        persistentVolumeClaim:
+          claimName: db-pv-claim
+      # Bind to the ConfigMap for the init scripts
+      - name: db-initdb
+        configMap:
+          name: db-init-config
