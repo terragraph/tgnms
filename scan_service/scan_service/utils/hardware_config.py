@@ -32,11 +32,13 @@ class HardwareConfig:
     @classmethod
     def set_config(cls, hardware_config: Dict) -> None:
         """Set all hardware config params."""
-        tx_power_idx_to_tx_power = {}
-        for tx_power_idx, tx_power in hardware_config[
-            "tx_power_idx_to_tx_power"
-        ].items():
-            tx_power_idx_to_tx_power[int(tx_power_idx)] = tx_power
+        tx_power_idx_to_tx_power: Dict = {}
+        for channel, info in hardware_config["tx_power_idx_to_tx_power"].items():
+            tx_power_idx_to_tx_power[channel] = {}
+            for mcs, tx_data in info.items():
+                tx_power_idx_to_tx_power[channel][mcs] = {}
+                for tx_power_idx, tx_power in tx_data.items():
+                    tx_power_idx_to_tx_power[channel][mcs][int(tx_power_idx)] = tx_power
 
         beam_idx_to_beam_angle = bidict()
         for beam_idx, beam_angle in hardware_config["beam_idx_to_beam_angle"].items():

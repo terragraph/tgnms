@@ -2,10 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
+import json
 import logging
 import time
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
@@ -13,7 +14,7 @@ from tglib.clients.prometheus_client import PrometheusClient, consts
 from tglib.exceptions import ClientRuntimeError
 
 
-async def create_link_mac_map(network_name: str) -> Optional[Dict]:
+async def get_topology_info(network_name: str) -> Optional[Tuple[Dict, Dict]]:
     try:
         topology = await APIServiceClient(timeout=2).request(
             network_name, "getTopology"
@@ -23,6 +24,8 @@ async def create_link_mac_map(network_name: str) -> Optional[Dict]:
         return None
 
     node_mac_map = {node["name"]: node["mac_addr"] for node in topology["nodes"]}
+    mac_node_map = {node["mac_addr"]: node["name"] for node in topology["nodes"]}
+
     link_mac_map: Dict = {}
     for link in topology["links"]:
         if link["link_type"] != LinkType.WIRELESS:
@@ -51,7 +54,7 @@ async def create_link_mac_map(network_name: str) -> Optional[Dict]:
             z_node_mac,
         )
 
-    return link_mac_map
+    return link_mac_map, mac_node_map
 
 
 def reshape_values(values: Dict, link_mac_map: Dict) -> defaultdict:
@@ -124,3 +127,22 @@ async def get_latest_stats(
             values[metric_name] = result
 
     return reshape_values(values, link_mac_map)
+
+
+async def get_channel(network_name: str, node_name: Optional[str]) -> Optional[str]:
+    """Fetch node's channel using 'getAutoNodeOverridesConfig' api endpoint."""
+    if node_name is None:
+        return None
+    try:
+        node_overrides_config = await APIServiceClient(timeout=1).request(
+            network_name, "getAutoNodeOverridesConfig", params={"nodes": [node_name]}
+        )
+        overrides = json.loads(node_overrides_config["overrides"])
+        for params_override in overrides[node_name]["radioParamsOverride"].values():
+            channel = str(params_override["fwParams"]["channel"])
+        return channel
+    except (ClientRuntimeError, KeyError):
+        logging.exception(
+            f"Failed to fetch overrides config for {node_name} of {network_name}."
+        )
+        return None
