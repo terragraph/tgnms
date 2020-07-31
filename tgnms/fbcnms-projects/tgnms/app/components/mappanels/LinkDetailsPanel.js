@@ -28,7 +28,11 @@ import Typography from '@material-ui/core/Typography';
 import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Controller';
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
+import {
+  apiRequest,
+  apiServiceRequestWithConfirmation,
+  requestWithConfirmation,
+} from '../../apiutils/ServiceAPIUtil';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
 import {
@@ -175,18 +179,69 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     // Delete this link
     const {link, networkName} = this.props;
 
-    const data = {
-      aNodeName: link.a_node_name,
-      zNodeName: link.z_node_name,
-    };
-    apiServiceRequestWithConfirmation(networkName, 'delLink', data, {
-      desc: `Do you want to permanently delete <strong>${link.name}</strong>?`,
-      descType: 'html',
-      checkbox: 'Force link deletion (even if ignited)',
-      processInput: (data, value) => {
-        return {...data, force: !!value};
+    async function makeRequests(params) {
+      const {force} = params ?? {force: false};
+      try {
+        const linkAutoIgnite = {
+          [link.name]: 'false',
+        };
+        await apiRequest<{linkAutoIgnite: {[link.name]: boolean}}, any>({
+          networkName,
+          endpoint: 'setIgnitionState',
+          data: linkAutoIgnite,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+      try {
+        const initiatorNodeName = link.a_node_name;
+        const responderNodeName = link.z_node_name;
+        await apiRequest<
+          {initiatorNodeName: string, responderNodeName: string},
+          any,
+        >({
+          networkName,
+          endpoint: 'setLinkStatus',
+          data: {
+            initiatorNodeName,
+            responderNodeName,
+            action: LinkActionType.LINK_DOWN,
+          },
+        });
+      } catch (error) {
+        console.error(error);
+      }
+      try {
+        const aNodeName = link.a_node_name;
+        const zNodeName = link.z_node_name;
+        await apiRequest<{aNodeName: string, zNodeName: string}, any>({
+          networkName,
+          endpoint: 'delLink',
+          data: {aNodeName, zNodeName, force},
+        });
+      } catch (error) {
+        return {
+          success: false,
+          msg: error,
+        };
+      }
+      return {
+        success: true,
+        msg: `Link was successfully deleted!`,
+      };
+    }
+    requestWithConfirmation(
+      makeRequests,
+      {
+        desc: `Do you want to permanently delete <strong>${link.name}</strong>? This will also disable link auto ignition and dissociate the link.`,
+        descType: 'html',
+        checkbox: 'Force link deletion (even if ignited)',
+        processInput: (data, value) => {
+          return {...data, force: !!value};
+        },
       },
-    });
+      {},
+    );
   }
 
   renderActions() {
