@@ -17,7 +17,7 @@ import {TopologyElementType} from '../../constants/NetworkConstants';
 import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {Feature} from '../../../../inventory/app/components/map/geocoder/MapGeocoder';
+import type {Feature} from './MapboxGeocoderTypes';
 import type {
   LinkMap,
   LinkMeta,

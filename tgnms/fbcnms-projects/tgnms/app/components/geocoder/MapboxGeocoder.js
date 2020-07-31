@@ -16,10 +16,7 @@ import mapboxgl from 'mapbox-gl';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {
-  Feature,
-  Result,
-} from '../../../../inventory/app/components/map/geocoder/MapGeocoder';
+import type {Feature, Result} from './MapboxGeocoderTypes';
 
 const styles = {
   root: {
