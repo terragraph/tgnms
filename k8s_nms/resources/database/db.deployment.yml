@@ -60,10 +60,12 @@ spec:
       containers:
       - image: mysql:5.7
         name: db
-        # Grab environment variables from the `mysql-env` ConfigMap
+        # Grab environment variables from the `db-env` and `time-zone` ConfigMap
         envFrom:
         - configMapRef:
             name: db-env
+        - configMapRef:
+            name: time-zone
         ports:
         - containerPort: 3306
           name: db

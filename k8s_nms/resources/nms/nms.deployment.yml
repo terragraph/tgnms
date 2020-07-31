@@ -1,0 +1,57 @@
+# Expose the mysql deployment at mysql:3306 with no ClusterIP (so it is only
+# accessible through DNS)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nms
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      nodePort: 30000
+      targetPort: 80
+  selector:
+    app: nms
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nms
+spec:
+  selector:
+    matchLabels:
+      app: nms
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nms
+    spec:
+      containers:
+        - image: secure.cxl-terragraph.com:443/nmsv2:stable
+          envFrom:
+            - configMapRef:
+                name: cxl-database
+            - configMapRef:
+                name: time-zone
+            - configMapRef:
+                name: nms
+          name: nms
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: tg-repo-creds
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: nms-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              serviceName: nms
+              servicePort: 80
