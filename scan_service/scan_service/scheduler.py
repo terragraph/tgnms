@@ -76,7 +76,7 @@ class Scheduler:
     _schedules: Dict[int, Schedule] = {}
     executions: Dict[int, ScanTest] = {}
     SCAN_START_DELAY_S = 5
-    CLEAN_UP_DELAY_S = 30
+    CLEAN_UP_DELAY_S = 60
 
     @classmethod
     def has_schedule(cls, schedule_id: int) -> bool:
@@ -235,7 +235,7 @@ class Scheduler:
         # Start the test
         await test.start(execution_id, cls.SCAN_START_DELAY_S)
 
-        if test.start_delay_s is not None:
+        if test.start_delay_s is not None and test.end_delay_s is not None:
             cls.executions[execution_id] = test
 
             # Schedule task for updating execution status to RUNNING
@@ -246,14 +246,33 @@ class Scheduler:
                 cls.update_execution_status(execution_id, ScanTestStatus.RUNNING),
             )
 
+            # Schedule task for updating execution status to FAILED
+            loop.call_later(
+                test.end_delay_s + cls.CLEAN_UP_DELAY_S,
+                asyncio.create_task,
+                cls.cleanup_execution_status(execution_id),
+            )
+
         return execution_id
+
+    @classmethod
+    async def cleanup_execution_status(cls, execution_id: int) -> None:
+        """If execution status is RUNNING, mark it as FAILED."""
+        async with MySQLClient().lease() as sa_conn:
+            get_execution_query = select([ScanTestExecution.status]).where(
+                ScanTestExecution.id == execution_id
+            )
+            cursor = await sa_conn.execute(get_execution_query)
+            execution_row = await cursor.first()
+        if execution_row and execution_row.status == ScanTestStatus.RUNNING:
+            await cls.update_execution_status(execution_id, ScanTestStatus.FAILED)
 
     @classmethod
     async def update_execution_status(
         cls, execution_id: int, status: Enum, end_dt: Optional[datetime] = None
     ) -> None:
         """Update status of scan execution."""
-        logging.info(f"Updating execution status for id {execution_id } to {status}")
+        logging.info(f"Updating execution status for id {execution_id} to {status}")
         async with MySQLClient().lease() as sa_conn:
             update_execution_query = (
                 update(ScanTestExecution)

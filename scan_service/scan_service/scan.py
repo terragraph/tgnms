@@ -31,6 +31,7 @@ class ScanTest:
         self.mode = mode
         self.options = options
         self.start_delay_s: Optional[float] = None
+        self.end_delay_s: Optional[float] = None
         self.start_token: Optional[int] = None
         self.end_token: Optional[int] = None
         self.token_range: Set = set()
@@ -96,10 +97,11 @@ class ScanTest:
                 return None
 
             logging.info(f"{start_scan_resp['message']}")
-            start_bwgd_idx = min(
+            start_bwgd_idxs = [
                 info["startBwgdIdx"] for info in scan_status_resp["scans"].values()
-            )
-            self.start_delay_s = bwgd_to_epoch(start_bwgd_idx) - time.time()
+            ]
+            self.start_delay_s = bwgd_to_epoch(min(start_bwgd_idxs)) - time.time()
+            self.end_delay_s = bwgd_to_epoch(max(start_bwgd_idxs)) - time.time()
             self.start_token = start_scan_resp["token"]
             self.end_token = start_scan_resp["lastToken"]
 
