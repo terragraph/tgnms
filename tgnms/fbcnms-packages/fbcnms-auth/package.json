@@ -1,6 +1,6 @@
 {
   "name": "@fbcnms/auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "@fbcnms/webpack-config": "^0.1.0",
     "email-validator": "^2.0.4",
