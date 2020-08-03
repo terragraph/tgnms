@@ -66,12 +66,7 @@ module.exports.overrides = [
     ],
   },
   {
-    files: [
-      'fbcnms-packages/**/*.js',
-      'fbcnms-projects/inventory/**/*.js',
-      'fbcnms-projects/magmalte/**/*.js',
-      'fbcnms-projects/platform-server/**/*.js',
-    ],
+    files: ['fbcnms-packages/**/*.js'],
     rules: {
       'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
     },
@@ -100,7 +95,6 @@ module.exports.overrides = [
       'fbcnms-projects/*/config/webpack.*.js',
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
-      'fbcnms-projects/platform-server/**/*.js',
       'scripts/fb/fbt/*.js',
     ],
     rules: {

@@ -31,7 +31,6 @@ module.exports = {
         '<rootDir>/fbcnms-packages/fbcnms-auth/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-platform-server/**/__tests__/*.js',
-        '<rootDir>/fbcnms-projects/platform-server/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
         '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
