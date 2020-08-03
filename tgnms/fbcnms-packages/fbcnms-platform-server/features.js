@@ -27,7 +27,10 @@ const AlwaysEnabledInTestEnvRule: FeatureFlagRule = (reqInfo: RequestInfo) => {
   if (reqInfo.isDev) {
     return true;
   }
-  return reqInfo.organization.endsWith('-test');
+  if (reqInfo.organization.endsWith('-test')) {
+    return true;
+  }
+  return null;
 };
 
 function extractRequestInfo(
