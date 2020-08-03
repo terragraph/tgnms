@@ -8,4 +8,4 @@
  * @format
  */
 
-require('@babel/register')({rootMode: 'upward'});
+require('@babel/register')({rootMode: 'upward', ignore: []});
