@@ -38,6 +38,9 @@ export const FeatureFlags: {[string]: () => boolean} = {
   TASK_BASED_CONFIG_ENABLED: () =>
     typeof window.CONFIG.env['TASK_BASED_CONFIG_ENABLED'] === 'string' &&
     window.CONFIG.env['TASK_BASED_CONFIG_ENABLED'] !== 'false',
+  GET_SYSDUMP_ENABLED: () =>
+    typeof window.CONFIG.env['GET_SYSDUMP_ENABLED'] === 'string' &&
+    window.CONFIG.end['GET_SYSDUMP_ENABLED'] === 'true',
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {

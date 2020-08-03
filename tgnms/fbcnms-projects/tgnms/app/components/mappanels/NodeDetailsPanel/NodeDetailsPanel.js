@@ -11,6 +11,7 @@ import CustomAccordion from '../../common/CustomAccordion';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import EditIcon from '@material-ui/icons/Edit';
+import GetAppIcon from '@material-ui/icons/GetApp';
 import NearMeIcon from '@material-ui/icons/NearMe';
 import NodeDetails from './NodeDetails';
 import React from 'react';
@@ -20,6 +21,7 @@ import SyncIcon from '@material-ui/icons/Sync';
 import TaskBasedConfigModal from '../../../views/config/TaskBasedConfigModal';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
+import swal from 'sweetalert2';
 import {MAPMODE} from '../../../contexts/MapContext';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
 import {apiServiceRequestWithConfirmation} from '../../../apiutils/ServiceAPIUtil';
@@ -86,6 +88,15 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             icon: <SyncIcon />,
             func: this.onRestartMinion,
           },
+          ...(isFeatureEnabled('GET_SYSDUMP_ENABLED')
+            ? [
+                {
+                  label: 'Get Sysdump',
+                  icon: <GetAppIcon />,
+                  func: this.onGetSysdump,
+                },
+              ]
+            : []),
           ...(supportsTopologyScan(nodeDetailsProps.ctrlVersion)
             ? [
                 {
@@ -223,6 +234,40 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     if (!nearbyNodes.hasOwnProperty(node.name)) {
       onUpdateNearbyNodes({...nearbyNodes, [node.name]: null});
     }
+  };
+
+  onGetSysdump = async () => {
+    // Request a sysdump from this node
+    const {node, networkName} = this.props;
+    const data = {node: node.name};
+    const successSwal = msg => {
+      swal({
+        title: 'Success!',
+        html: `Sysdump requested. Uploading <strong>${msg}</strong> to the fileserver.`,
+        type: 'success',
+      });
+    };
+
+    const failureSwal = msg => {
+      swal({
+        title: 'Failed!',
+        html: `${msg}`,
+        type: 'error',
+      });
+    };
+
+    await apiServiceRequestWithConfirmation(networkName, 'getSysdump', data, {
+      desc: `Do you want to request a sysdump from node <strong>${node.name}</strong>?`,
+      descType: 'html',
+      onResultsOverride: params => {
+        const {success, msg} = params;
+        if (success) {
+          successSwal(msg);
+        } else {
+          failureSwal(msg);
+        }
+      },
+    });
   };
 
   onDeleteNode = () => {
