@@ -225,6 +225,11 @@ export const arrayConfigs = [
     enabledByDefault: false,
     publicAccess: true,
   },
+  {
+    id: 'async_export',
+    title: 'Asynchronous location export',
+    enabledByDefault: false,
+  },
 ];
 
 export const featureConfigs: {[FeatureID]: FeatureConfig} = {};

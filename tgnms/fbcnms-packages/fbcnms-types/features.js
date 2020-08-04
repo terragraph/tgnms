@@ -40,4 +40,5 @@ export type FeatureID =
   | 'user_management_dev'
   | 'dashboard_v2'
   | 'work_order_activities_display'
-  | 'mandatory_properties_on_work_order_close';
+  | 'mandatory_properties_on_work_order_close'
+  | 'async_export';
