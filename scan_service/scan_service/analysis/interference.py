@@ -178,7 +178,7 @@ async def get_interference_from_directional_beams(  # noqa: C901
         tx_polarity = Topology.node_polarity.get(network_name, {}).get(tx_node)
         rx_polarity = Topology.node_polarity.get(network_name, {}).get(rx_node)
         if tx_polarity is None or rx_polarity is None or tx_polarity == rx_polarity:
-            llogging.info(
+            logging.info(
                 f"{tx_node} and {rx_node} have the same polarity or the information "
                 "is unavailable. Skipping interference analysis."
             )
