@@ -70,8 +70,9 @@ it('test setIgnitionState endpoint failed', async () => {
       msg: 'boo',
     },
   });
-  const topology = mockMultiHop(4, false);
-  const props = {...commonProps, ...buildTopologyMaps(topology), topology};
+
+  const {nodeMap} = buildTopologyMaps(mockMultiHop(4, false));
+  const props = {...commonProps, nodeMap};
   const {getByText, baseElement} = render(
     <TestApp>
       <LinkDetailsPanel {...props} />
@@ -111,8 +112,9 @@ it('test setLinkStatus endpoint failed', async () => {
       msg: 'yay',
     },
   });
-  const topology = mockMultiHop(4, false);
-  const props = {...commonProps, ...buildTopologyMaps(topology), topology};
+
+  const {nodeMap} = buildTopologyMaps(mockMultiHop(4, false));
+  const props = {...commonProps, nodeMap};
   const {getByText, baseElement} = render(
     <TestApp>
       <LinkDetailsPanel {...props} />
@@ -140,8 +142,9 @@ it('all three API calls successful', async () => {
       msg: 'yay',
     },
   });
-  const topology = mockMultiHop(4, false);
-  const props = {...commonProps, ...buildTopologyMaps(topology), topology};
+
+  const {nodeMap} = buildTopologyMaps(mockMultiHop(4, false));
+  const props = {...commonProps, nodeMap};
   const {getByText, baseElement} = render(
     <TestApp>
       <LinkDetailsPanel {...props} />

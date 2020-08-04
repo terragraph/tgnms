@@ -179,13 +179,12 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     // Delete this link
     const {link, networkName} = this.props;
 
-    async function makeRequests(params) {
-      const {force} = params ?? {force: false};
+    async function makeRequests() {
       try {
         const linkAutoIgnite = {
           [link.name]: 'false',
         };
-        await apiRequest<{linkAutoIgnite: {[link.name]: boolean}}, any>({
+        await apiRequest<{[string]: boolean}, any>({
           networkName,
           endpoint: 'setIgnitionState',
           data: linkAutoIgnite,
@@ -217,7 +216,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
         await apiRequest<{aNodeName: string, zNodeName: string}, any>({
           networkName,
           endpoint: 'delLink',
-          data: {aNodeName, zNodeName, force},
+          data: {aNodeName, zNodeName},
         });
       } catch (error) {
         return {
@@ -462,6 +461,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
       pinned,
       link,
     } = this.props;
+
     return (
       <CustomAccordion
         title={link.name}

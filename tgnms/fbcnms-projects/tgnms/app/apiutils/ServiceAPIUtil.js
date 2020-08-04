@@ -26,7 +26,7 @@ type apiRequestOptions = {
   failureType?: string,
   processInput?: ({}, string) => any, //first input is many formats
   onResultsOverride?: (
-    {success: boolean},
+    {success: boolean, msg: string},
     ?(string) => any,
     ?(string) => any,
   ) => any,

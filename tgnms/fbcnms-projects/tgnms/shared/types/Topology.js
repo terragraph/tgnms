@@ -56,7 +56,7 @@ export type NodeType = {|
   wlan_mac_addrs: Array<string>,
 |};
 
-export type LinkType = {|
+export type LinkType = {
   name: string,
   a_node_name: string,
   z_node_name: string,
@@ -68,7 +68,7 @@ export type LinkType = {|
   a_node_mac: string,
   z_node_mac: string,
   is_backup_cn_link?: boolean,
-|};
+};
 
 export type ConfigType = {|channel: number|};
 

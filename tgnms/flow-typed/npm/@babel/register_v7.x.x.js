@@ -2,15 +2,20 @@
 // flow-typed version: c6154227d1/@babel/register_v7.x.x/flow_>=v0.104.x
 
 declare module '@babel/register' {
-  declare type Ignore = boolean | string | RegExp | (filename: string) => boolean;
+  declare type Ignore =
+    | boolean
+    | string
+    | RegExp
+    | ((filename: string) => boolean);
   declare type Options = {|
+    rootMode: string,
     ast?: boolean,
     auxiliaryCommentAfter?: ?string,
     auxiliaryCommentBefore?: ?string,
     babelrc?: boolean,
     code?: boolean,
     comments?: boolean,
-    compact?: 'auto' | boolean,
+    compact?: 'auto' | boolean,
     configFile?: string | boolean,
     env?: Object,
     extends?: ?string,
@@ -18,9 +23,9 @@ declare module '@babel/register' {
     filename?: string,
     filenameRelative?: string,
     generatorOpts?: Object,
-    getModuleId?: void | null | (moduleName: string) => string,
+    getModuleId?: void | null | ((moduleName: string) => string),
     highlightCode?: boolean,
-    ignore?: Ignore | Array<Ignore>,
+    ignore?: Ignore | Array<Ignore>,
     inputSourceMap?: Object,
     minified?: boolean,
     moduleId?: string,
@@ -28,17 +33,25 @@ declare module '@babel/register' {
     moduleRoot?: string,
     only?: RegExp,
     parserOpts?: Object,
-    plugins?: Array<[string, Object] | string>,
+    plugins?: Array<[string, Object] | string>,
     presets?: Array<string>,
     retainLines?: boolean,
-    resolveModuleSource?: null | (source: string, filename: string) => boolean,
-    shouldPrintComment?: null | (commentContents: string) => string,
+    resolveModuleSource?:
+      | null
+      | ((source: string, filename: string) => boolean),
+    shouldPrintComment?: null | ((commentContents: string) => string),
     sourceFileName?: string,
-    sourceMaps?: boolean | 'inline' | 'both',
+    sourceMaps?: boolean | 'inline' | 'both',
     sourceMapTarget?: string,
     sourceRoot?: string,
-    sourceType?: 'script' | 'module',
-    wrapPluginVisitorMethod?: null | (pluginAlias: string, visitorType: string, callback: Function) => boolean,
+    sourceType?: 'script' | 'module',
+    wrapPluginVisitorMethod?:
+      | null
+      | ((
+          pluginAlias: string,
+          visitorType: string,
+          callback: Function,
+        ) => boolean),
     extensions?: Array<string>,
     cache?: boolean,
   |};
