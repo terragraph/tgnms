@@ -59,10 +59,14 @@ app.use(
     // Used to sign the session cookie
     resave: false,
     secret: sessionSecret,
-    saveUninitialized: true,
+    saveUninitialized: false,
     unset: 'destroy',
     rolling: true,
-    maxAge: configureSessionMaxAge(),
+    cookie: {
+      maxAge: configureSessionMaxAge(),
+      httpOnly: true,
+      sameSite: true,
+    },
     store,
   }),
 );
