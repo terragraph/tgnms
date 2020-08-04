@@ -50,8 +50,8 @@ describe('Layers', () => {
       </TestApp>,
     );
     expect(getByText('Layers')).toBeInTheDocument();
-    expect(queryByText('Link Lines')).not.toBeInTheDocument();
-    expect(queryByText('Site Icons')).not.toBeInTheDocument();
+    expect(queryByText('Links')).not.toBeInTheDocument();
+    expect(queryByText('Sites')).not.toBeInTheDocument();
     expect(queryByText('Areas')).not.toBeInTheDocument();
   });
 
@@ -67,8 +67,8 @@ describe('Layers', () => {
       </TestApp>,
     );
     expect(getByText('Layers')).toBeInTheDocument();
-    expect(getByText('Link Lines')).toBeInTheDocument();
-    expect(getByText('Site Icons')).toBeInTheDocument();
+    expect(getByText('Links')).toBeInTheDocument();
+    expect(getByText('Sites')).toBeInTheDocument();
     expect(getByText('Areas')).toBeInTheDocument();
   });
 });

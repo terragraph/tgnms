@@ -226,11 +226,11 @@ export const mapLayers: Array<{|
 |}> = [
   {
     layerId: 'link_lines',
-    name: 'Link Lines',
+    name: 'Links',
   },
   {
     layerId: 'site_icons',
-    name: 'Site Icons',
+    name: 'Sites',
   },
   {
     layerId: 'nodes',
@@ -243,7 +243,7 @@ export const mapLayers: Array<{|
   },
   {
     layerId: 'site_name_popups',
-    name: 'Site Name Popups',
+    name: 'Site Names',
     isStatic: true,
   },
   {
