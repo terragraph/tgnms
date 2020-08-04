@@ -27,6 +27,7 @@ import {
   stringifyConfig,
 } from '../../helpers/ConfigHelpers';
 import {cloneDeep, isEqual, set, unset} from 'lodash';
+import {configRootHeightCss} from '../../constants/StyleConstants';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {isPunctuation} from '../../helpers/StringHelpers';
 import {withRouter} from 'react-router-dom';
@@ -56,12 +57,7 @@ const styles = theme => ({
     display: 'flex',
     flex: '1 1 auto',
     flexFlow: 'row',
-
-    // TODO - HACK! - Figure out how to actually set the height to 100% screen
-    height: `calc(100vh - ${
-      //pad + appbar + toolbar + search bar
-      theme.spacing() + 64 + 48 + 72
-    }px)`,
+    height: configRootHeightCss(theme),
   },
   configOptions: {
     display: 'flex',

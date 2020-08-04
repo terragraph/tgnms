@@ -17,6 +17,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import {CONFIG_FIELD_DELIMITER} from '../../constants/ConfigConstants';
 import {TableOrder} from '../../helpers/TableHelpers';
+import {configRootHeightCss} from '../../constants/StyleConstants';
 import {isEqual, orderBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -31,14 +32,7 @@ const styles = theme => ({
     width: '100%',
     overflow: 'auto',
     paddingBottom: theme.spacing(),
-
-    // TODO - HACK! - Figure out how to actually set the height to 100% screen
-    height: `calc(100vh - ${
-      /* pad */ theme.spacing() +
-      /* appbar */ 64 +
-      /* toolbar */ 48 +
-      /* search bar */ 72
-    }px)`,
+    height: configRootHeightCss(theme),
   },
   header: {
     backgroundColor: '#fff',
