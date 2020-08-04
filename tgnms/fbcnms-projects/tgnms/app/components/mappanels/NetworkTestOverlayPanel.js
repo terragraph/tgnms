@@ -104,10 +104,9 @@ export default function NetworkTestOverlayPanel() {
     const selectedOverlay = selectedOverlays[overlayName];
 
     let data = networkMapOptions.testExecutionData.results[selectedOverlay];
-
     if (!isLink) {
       data = Object.keys(data).reduce((final, nodeName) => {
-        final[nodeMap[nodeName].site_name] = GetNodeColor(
+        final[nodeMap[nodeName]?.site_name] = GetNodeColor(
           data[nodeName],
           selectedOverlay,
         );
