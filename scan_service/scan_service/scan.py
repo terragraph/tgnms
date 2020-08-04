@@ -20,6 +20,7 @@ from .models import (
     ScanType,
 )
 from .utils.time import bwgd_to_epoch
+from .utils.topology import Topology
 
 
 class ScanTest:
@@ -56,6 +57,9 @@ class ScanTest:
 
         async with MySQLClient().lease() as sa_conn:
             try:
+                # Fetch latest topology for analysis
+                await Topology.update_topology(self.network_name)
+
                 start_scan_resp = await APIServiceClient(timeout=5).request(
                     self.network_name,
                     "startScan",
