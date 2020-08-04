@@ -2,13 +2,11 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import json
 import logging
 import time
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from tglib.clients import APIServiceClient
 from tglib.clients.prometheus_client import PrometheusClient, consts
 from tglib.exceptions import ClientRuntimeError
 
@@ -86,22 +84,3 @@ async def get_latest_stats(
             values[metric_name] = result
 
     return reshape_values(network_name, values)
-
-
-async def get_channel(network_name: str, node_name: Optional[str]) -> Optional[str]:
-    """Fetch node's channel using 'getAutoNodeOverridesConfig' api endpoint."""
-    if node_name is None:
-        return None
-    try:
-        node_overrides_config = await APIServiceClient(timeout=1).request(
-            network_name, "getAutoNodeOverridesConfig", params={"nodes": [node_name]}
-        )
-        overrides = json.loads(node_overrides_config["overrides"])
-        for params_override in overrides[node_name]["radioParamsOverride"].values():
-            channel = str(params_override["fwParams"]["channel"])
-        return channel
-    except (ClientRuntimeError, KeyError):
-        logging.exception(
-            f"Failed to fetch overrides config for {node_name} of {network_name}."
-        )
-        return None

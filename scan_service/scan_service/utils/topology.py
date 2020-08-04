@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import json
 import logging
 from collections import defaultdict
 from typing import Dict
@@ -15,6 +16,8 @@ class Topology:
     node_name_to_mac: defaultdict = defaultdict(dict)
     node_mac_to_name: defaultdict = defaultdict(dict)
     link_name_to_mac: defaultdict = defaultdict(dict)
+    node_channel: defaultdict = defaultdict(dict)
+    node_polarity: defaultdict = defaultdict(dict)
 
     @classmethod
     async def update_topology(cls, network_name: str) -> None:
@@ -24,6 +27,7 @@ class Topology:
         )
         cls.get_node_maps(network_name)
         cls.get_link_maps(network_name)
+        await cls.get_auto_node_overrides_config(network_name)
 
     @classmethod
     def get_node_maps(cls, network_name: str) -> None:
@@ -57,3 +61,23 @@ class Topology:
             cls.link_name_to_mac[network_name][
                 PrometheusClient.normalize(link["name"])
             ] = (a_node_mac, z_node_mac)
+
+    @classmethod
+    async def get_auto_node_overrides_config(cls, network_name: str) -> None:
+        """Fetch channel and polarity info using 'getAutoNodeOverridesConfig'."""
+        node_overrides_config = await APIServiceClient(timeout=2).request(
+            network_name, "getAutoNodeOverridesConfig"
+        )
+        overrides = json.loads(node_overrides_config["overrides"])
+
+        for node_name, override_info in overrides.items():
+            if "radioParamsOverride" not in override_info:
+                continue
+
+            _node_mac = cls.node_name_to_mac[network_name][node_name]
+            cls.node_channel[network_name][_node_mac] = override_info[
+                "radioParamsOverride"
+            ][_node_mac]["fwParams"]["channel"]
+            cls.node_polarity[network_name][_node_mac] = override_info[
+                "radioParamsOverride"
+            ][_node_mac]["fwParams"]["polarity"]
