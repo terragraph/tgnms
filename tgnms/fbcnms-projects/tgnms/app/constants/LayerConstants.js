@@ -38,6 +38,13 @@ export const LinkOverlayColors = {
   },
 };
 
+export const LinkInterferenceColors = [
+  HEALTH_DEFS[HEALTH_CODES.EXCELLENT].color,
+  HEALTH_DEFS[HEALTH_CODES.POOR].color,
+  HEALTH_DEFS[HEALTH_CODES.MARGINAL].color,
+  blue[200],
+];
+
 export const SiteOverlayColors = {
   health: {
     healthy: {color: green[800]},
@@ -461,5 +468,27 @@ export const AREA_POLYGONS: Overlays = {
     type: 'prefix_zone',
     id: 'prefix_zone',
     Component: PrefixZoneOverlay,
+  },
+};
+
+export const SCAN_CONNECTIVITY_LINK_OVERLAYS: Overlays = {
+  health: {
+    name: 'Health',
+    type: 'health',
+    id: 'health',
+    range: [0, 1, 2, 3, 4],
+    bounds: [0, 4],
+    colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
+  },
+};
+
+export const SCAN_INTERFERENCE_LINK_OVERLAYS: Overlays = {
+  health: {
+    name: 'Health',
+    type: 'health',
+    id: 'health',
+    range: [0, 1, 2, 3, 4],
+    bounds: [0, 4],
+    colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
   },
 };

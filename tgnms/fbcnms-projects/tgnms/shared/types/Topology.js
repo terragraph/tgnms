@@ -79,3 +79,15 @@ export type TopologyType = {
   sites: SiteType[],
   config: ConfigType,
 };
+
+export type TemporaryTopologyType = {
+  nodes: NodeType[],
+  links: TemporaryLinkType[],
+  sites: SiteType[],
+};
+
+export type TemporaryLinkType = {
+  name: string,
+  locationA: {longitude: number, latitude: number},
+  locationZ: {longitude: number, latitude: number},
+};

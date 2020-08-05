@@ -373,9 +373,9 @@ export default function NetworkDrawerFn({
               topology={topology}
               node={nodeMap[routesProps?.node ?? '']}
               nodeMap={nodeMap}
-              site={siteMap[nodeMap[routesProps?.node ?? ''].site_name]}
+              site={siteMap[nodeMap[routesProps?.node ?? '']?.site_name]}
               siteNodes={
-                siteToNodesMap[nodeMap[routesProps?.node ?? ''].site_name]
+                siteToNodesMap[nodeMap[routesProps?.node ?? '']?.site_name]
               }
               onClose={() => {
                 setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN);

@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import CustomAccordion from '../../common/CustomAccordion';
+import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import ScanServiceSummary from './ScanServiceSummary';
 import {MAPMODE, useMapContext} from '../../../contexts/MapContext';
 import {withRouter} from 'react-router-dom';
@@ -22,6 +23,7 @@ export default withRouter(function ScanServicePanel(props: Props) {
   const {expanded, history, scanId} = props;
   const {setMapMode} = useMapContext();
   const historyRef = React.useRef(history);
+  const {updateNetworkMapOptions} = React.useContext(NmsOptionsContext);
 
   const onClose = React.useCallback(() => {
     const urlWithoutOverlay = new URL(window.location);
@@ -36,8 +38,13 @@ export default withRouter(function ScanServicePanel(props: Props) {
 
   const handleNetworkTestClose = React.useCallback(() => {
     setMapMode(MAPMODE.DEFAULT);
+    updateNetworkMapOptions({
+      temporaryTopology: null,
+      temporarySelectedAsset: null,
+      scanLinkData: null,
+    });
     onClose();
-  }, [onClose, setMapMode]);
+  }, [onClose, updateNetworkMapOptions, setMapMode]);
 
   if (!scanId) {
     return null;

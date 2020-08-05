@@ -13,14 +13,15 @@ import Typography from '@material-ui/core/Typography';
 import {EXECUTION_STATUS} from '../../constants/ScheduleConstants';
 import {HEALTH_DEFS, HEALTH_EXECUTIONS} from '../../constants/HealthConstants';
 import {TopologyElementType} from '../../constants/NetworkConstants';
+import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {
   getExecutionHealth,
   getExecutionStatus,
 } from '../../helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
 import type {AssetTestResultType} from './NetworkTestTypes';
+import type {HealthRowType} from './HealthGroupDropDown';
 
 type Props = {|
   executionResults: Array<AssetTestResultType>,
@@ -108,7 +109,9 @@ export default function NetworkTestResults(props: Props) {
           assetHealth.executions.length ? (
             <HealthGroupDropDown
               key={HEALTH_DEFS[assetHealth.health].name}
-              executions={assetHealth.executions}
+              executions={convertType<Array<HealthRowType>>(
+                assetHealth.executions,
+              )}
               onRowSelect={handleRowSelect}
               dropDownText={`${
                 assetHealth.executions.length

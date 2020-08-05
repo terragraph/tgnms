@@ -7,7 +7,8 @@
 import * as React from 'react';
 import {TopologyElementType} from '../../constants/NetworkConstants';
 
-import type {NetworkContextType} from '../../contexts/NetworkContext';
+import type {Element, NetworkContextType} from '../../contexts/NetworkContext';
+import type {TemporaryTopologyType} from '../../../shared/types/Topology';
 
 export type MapLayerConfig = {
   layerId: string,
@@ -75,6 +76,9 @@ export type NetworkMapOptions = $Shape<{
   selectedTime: Date,
   historicalData: ?{},
   testExecutionData: ?{results: {}, type: $Values<typeof TopologyElementType>},
+  scanLinkData: ?{},
+  temporaryTopology?: ?TemporaryTopologyType,
+  temporarySelectedAsset?: ?Element,
   overlayData: LayerData<{}>,
   mapMode: string,
 }>;

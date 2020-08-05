@@ -27,7 +27,7 @@ describe('getExecutionResults', () => {
       cancelToken: mockCancelToken(),
     });
     expect(getMock).toHaveBeenCalled();
-    expect(results[0].id).toBe(1);
-    expect(results[0].status).toBe('FINISHED');
+    expect(results['0'].group_id).toBe(1);
+    expect(results['0'].tx_status).toBe('FINISHED');
   });
 });

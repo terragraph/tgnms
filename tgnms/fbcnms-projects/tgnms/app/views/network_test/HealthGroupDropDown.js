@@ -16,12 +16,18 @@ import classNames from 'classnames';
 import {HEALTH_CODES} from '../../constants/HealthConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {AssetTestResultType, LinkHealthType} from './NetworkTestTypes';
+import type {ExecutionResultDataType} from '../../../shared/dto/NetworkTestTypes';
+import type {LinkHealthType} from './NetworkTestTypes';
 
 const rowHeight = 50;
 
+export type HealthRowType = {
+  assetName: string,
+  results?: Array<ExecutionResultDataType>,
+};
+
 type Props = {
-  executions: Array<AssetTestResultType>,
+  executions: Array<HealthRowType>,
   onRowSelect: ({asset_name: string}) => void,
   dropDownText: string,
   health: $Values<typeof HEALTH_CODES>,
@@ -75,10 +81,12 @@ export default function HealthGroupDropDown(props: Props) {
     const rows = executions
       ? executions.map(assetResult => ({
           asset_name: assetResult.assetName,
-          health: assetResult.results.map(result => ({
-            id: result.id,
-            health: HEALTH_CODES[result.health],
-          })),
+          health: assetResult.results
+            ? assetResult.results.map(result => ({
+                id: result.id,
+                health: HEALTH_CODES[result.health],
+              }))
+            : [],
         }))
       : [];
 

@@ -20,21 +20,20 @@ export function mockExecutionResults(
   overrides?: $Shape<ExecutionResultsType>,
 ): {
   execution: $Shape<ExecutionDetailsType>,
-  results: Array<$Shape<ExecutionResultDataType>>,
+  results: {[string]: $Shape<ExecutionResultDataType>},
 } {
   // only a few result properties are important so we can just ignore the rest
   return {
     execution: {id: 1, ...overrides?.execution},
     results: overrides?.results
       ? overrides.results
-      : [
-          {
-            id: 1,
-            status: 'FINISHED',
-            start_dt: new Date().toString(),
-            end_dt: new Date().toString(),
+      : {
+          '0': {
+            group_id: 1,
+            tx_node: 'testNodeName',
+            tx_status: 'FINISHED',
           },
-        ],
+        },
   };
 }
 
@@ -47,34 +46,15 @@ export function mockExecutionResult(
 ): ExecutionResultDataType {
   // only a few result properties are important so we can just ignore the rest
   return {
-    id: 1,
-    link_distance: null,
-    health: 'EXCELLENT',
-    status: 'FINISHED',
-    src_node_mac: 'scanSrcMac',
-    dst_node_mac: 'scanDstMac',
-    asset_name: 'scanAssetName',
-    start_dt: 'scanStart',
-    end_dt: 'scanEnd',
-    mcs_avg: null,
-    rssi_avg: null,
-    snr_avg: null,
-    rx_beam_idx: null,
-    rx_packet_count: null,
-    rx_per: null,
-    tx_beam_idx: null,
-    tx_packet_count: null,
-    tx_per: null,
-    tx_pwr_avg: null,
-    iperf_min_throughput: null,
-    iperf_max_throughput: 10,
-    iperf_avg_throughput: null,
-    iperf_min_lost_percent: null,
-    iperf_max_lost_percent: null,
-    iperf_avg_lost_percent: null,
-    iperf_min_retransmits: null,
-    iperf_max_retransmits: null,
-    iperf_avg_retransmits: null,
+    group_id: 1,
+    n_responses_waiting: null,
+    resp_id: null,
+    rx_statuses: null,
+    start_bwgd: null,
+    subtype: null,
+    tx_node: null,
+    tx_power: null,
+    tx_status: 'FINISHED',
     ...overrides,
   };
 }

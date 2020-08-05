@@ -32,10 +32,11 @@ type Props = {
   onSubmit: () => void,
   disabled: boolean,
   uploadTopology: ?UploadTopologyType,
+  customText?: string,
 };
 
 export default function UploadTopologyConfirmationModal(props: Props) {
-  const {onSubmit, disabled, uploadTopology} = props;
+  const {onSubmit, disabled, uploadTopology, customText} = props;
   const {networkName} = useContext(NetworkContext);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +56,7 @@ export default function UploadTopologyConfirmationModal(props: Props) {
         size="small"
         disabled={disabled}
         onClick={() => setIsOpen(true)}>
-        Upload
+        {customText ?? 'Upload'}
       </Button>
       <MaterialModal
         className={classes.root}

@@ -5,13 +5,12 @@
  * @flow
  */
 
+import {HEALTH_CODES} from '../../app/constants/HealthConstants';
 import {
   SCAN_EXECUTION_STATUS,
   SCAN_MODE,
   SCAN_TYPES,
 } from '../../app/constants/ScheduleConstants';
-
-import {HEALTH_CODES} from '../../app/constants/HealthConstants';
 
 export type InputStartType = {
   enabled?: boolean,
@@ -57,36 +56,50 @@ export type ExecutionDetailsType = {
 
 export type ExecutionResultsType = {
   execution: ExecutionDetailsType,
-  results: Array<ExecutionResultDataType>,
+  results: {[string]: ExecutionResultDataType},
+};
+
+export type ConnectivityResultsType = {
+  routes: Array<[number, number, number]>,
+  rx_node: string,
+  tx_node: string,
+};
+
+export type InterferenceResultsType = {
+  inr_curr_power: {rssi: number, snr_est: number, post_snr: number},
+  inr_max_power: {rssi: number, snr_est: number, post_snr: number},
+  rx_from_node: string,
+  rx_node: string,
+  tx_node: string,
+  tx_power_idx: number,
+  tx_to_node: string,
 };
 
 export type ExecutionResultDataType = {
-  id: number,
-  link_distance: ?number,
-  health: $Keys<typeof HEALTH_CODES>,
-  status: $Keys<typeof SCAN_EXECUTION_STATUS>,
-  src_node_mac: string,
-  dst_node_mac: string,
-  asset_name: string,
-  start_dt: string,
-  end_dt: string,
-  mcs_avg: ?number,
-  rssi_avg: ?number,
-  snr_avg: ?number,
-  rx_beam_idx: ?number,
-  rx_packet_count: ?number,
-  rx_per: ?number,
-  tx_beam_idx: ?number,
-  tx_packet_count: ?number,
-  tx_per: ?number,
-  tx_pwr_avg: ?number,
-  iperf_min_throughput: ?number,
-  iperf_max_throughput: ?number,
-  iperf_avg_throughput: ?number,
-  iperf_min_lost_percent: ?number,
-  iperf_max_lost_percent: ?number,
-  iperf_avg_lost_percent: ?number,
-  iperf_min_retransmits: ?number,
-  iperf_max_retransmits: ?number,
-  iperf_avg_retransmits: ?number,
+  id?: number,
+  health?: number,
+  connectivity?: Array<ConnectivityResultsType>,
+  group_id: ?number,
+  interference?: Array<InterferenceResultsType>,
+  n_responses_waiting: ?number,
+  resp_id: ?number,
+  rx_statuses: ?{[string]: $Keys<typeof SCAN_EXECUTION_STATUS>},
+  start_bwgd: ?number,
+  subtype: ?string,
+  tx_node: ?string,
+  tx_power: ?number,
+  tx_status: ?$Keys<typeof SCAN_EXECUTION_STATUS>,
+};
+
+export type InterferenceGroupType = {
+  name: string,
+  links: Array<LinkInterferenceType>,
+  health: $Values<typeof HEALTH_CODES>,
+};
+
+export type LinkInterferenceType = {
+  assetName: string,
+  interference: Array<{interferenceLinkName: string, INR: number}>,
+  totalINR: number,
+  health: number,
 };

@@ -115,8 +115,9 @@ class NetworkTables extends React.Component<Props, State> {
     // Render table containing selected element (from NetworkContext)
     const {selectedElement} = this.props;
     if (
-      // dont jump to another tab if on the tests tab
+      // dont jump to another tab if on the test or scan tab
       this.state.selectedTable !== TABLE_TYPE.tests &&
+      this.state.selectedTable !== TABLE_TYPE.scans &&
       selectedElement &&
       !isEqual(selectedElement, prevProps.selectedElement)
     ) {

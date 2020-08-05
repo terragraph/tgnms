@@ -11,6 +11,7 @@ import axios from 'axios';
 import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
 import {SCAN_EXECUTION_STATUS} from '../constants/ScheduleConstants';
+import {objectValuesTypesafe} from '../helpers/ObjectHelpers';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 import type {
@@ -41,7 +42,11 @@ export function useLoadScanExecutionResults({scanId}: {scanId: string}) {
         });
         setLoading(false);
         setExecution(scanExecutionData.execution);
-        setResults(scanExecutionData.results);
+        setResults(
+          objectValuesTypesafe<ExecutionResultDataType>(
+            scanExecutionData.results,
+          ),
+        );
       } catch {
         setLoading(false);
       }
@@ -103,6 +108,7 @@ export function useLoadScanTableData({
       const tempRows = {running: [], schedule: [], executions: []};
       testTableData.forEach(result => {
         if (result.includes('undefined')) {
+          setLoading(false);
           return;
         }
         if (typeof result === 'string') {
@@ -124,8 +130,8 @@ export function useLoadScanTableData({
             tempRows.executions.push(newRow);
           }
         });
-        setLoading(false);
       });
+      setLoading(false);
 
       if (!runningTestTimeoutRef.current && tempRows.running.length) {
         runningTestTimeoutRef.current = setTimeout(() => {

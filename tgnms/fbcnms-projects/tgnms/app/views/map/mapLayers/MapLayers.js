@@ -7,6 +7,7 @@
 
 import BuildingsLayer from './BuildingsLayer';
 import LinksLayer from './LinksLayer';
+import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
@@ -70,6 +71,9 @@ export default function MapLayers(props: Props) {
     overlayData,
   } = useMapContext();
   const routes = useRouteContext();
+  const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
+    NmsOptionsContext,
+  );
 
   const {
     context,
@@ -115,6 +119,12 @@ export default function MapLayers(props: Props) {
     linkMap,
   );
 
+  const handleTemporaryAssetSelect = temporarySelectedAsset => {
+    updateNetworkMapOptions({
+      temporarySelectedAsset,
+    });
+  };
+
   return (
     <>
       {buildings_3d ? <BuildingsLayer key="3d-buildings-layer" /> : null}
@@ -139,6 +149,9 @@ export default function MapLayers(props: Props) {
           offlineWhitelist={offline_whitelist}
           metricData={overlayData.link_lines}
           routes={routes}
+          temporaryTopology={networkMapOptions.temporaryTopology}
+          setTemporaryAssetSelect={handleTemporaryAssetSelect}
+          temporarySelectedAsset={networkMapOptions.temporarySelectedAsset}
         />
       ) : null}
       {site_icons && overlays.site_icons ? (

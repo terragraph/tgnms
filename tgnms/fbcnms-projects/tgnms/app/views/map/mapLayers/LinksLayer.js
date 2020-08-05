@@ -17,6 +17,7 @@ import {
   LINE_TEXT_LAYOUT,
   LINE_TEXT_PAINT,
   LINE_WIRED_INTERSITE_PAINT,
+  LinkInterferenceColors,
   LinkOverlayColors,
   LinkRenderType,
   METRIC_COLOR_RANGE,
@@ -51,6 +52,7 @@ import {
 import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {Element} from '../../../contexts/NetworkContext';
 import type {
   IgnitionState,
   OfflineWhiteListType,
@@ -60,6 +62,7 @@ import type {
 import type {
   LinkType as Link,
   NodeType as Node,
+  TemporaryTopologyType,
   TopologyType,
 } from '../../../../shared/types/Topology';
 import type {
@@ -76,6 +79,9 @@ export type Props = {
   ignitionState: IgnitionState,
   siteMap: SiteMap,
   topology: TopologyType,
+  temporaryTopology?: ?TemporaryTopologyType,
+  setTemporaryAssetSelect?: Element => void,
+  temporarySelectedAsset?: ?Element,
   topologyConfig: TopologyConfig,
   selectedLinks: {},
   selectedNodeName: string,
@@ -114,16 +120,47 @@ type TopologyLayer = {
 
 class LinksLayer extends React.Component<Props> {
   getLinkColor(link, values: Array<number> | Object | void) {
-    const {overlay, ignitionState, routes, offlineWhitelist} = this.props;
+    const {
+      overlay,
+      ignitionState,
+      routes,
+      offlineWhitelist,
+      temporaryTopology,
+      temporarySelectedAsset,
+    } = this.props;
     const {igCandidates} = ignitionState;
 
     if (routes.links && Object.keys(routes.links).length !== 0) {
       if (routes.links.hasOwnProperty(link.name)) {
+        if (routes.links[link.name] !== 0) {
+          return LinkInterferenceColors[routes.links[link.name]];
+        }
         return LinkOverlayColors.metric.excellent.color;
       } else {
         return LinkOverlayColors.metric.missing.color;
       }
     }
+
+    if (temporarySelectedAsset) {
+      if (temporarySelectedAsset.name === link.name) {
+        return LinkOverlayColors.metric.marginal.color;
+      } else {
+        return LinkOverlayColors.metric.missing.color;
+      }
+    }
+
+    if (temporaryTopology && temporaryTopology.links.length !== 0) {
+      if (
+        temporaryTopology.links.find(
+          tempLink => tempLink.name === link.name,
+        ) !== undefined
+      ) {
+        return LinkOverlayColors.metric.marginal.color;
+      } else {
+        return LinkOverlayColors.metric.missing.color;
+      }
+    }
+
     if (overlay.type === 'metric' || overlay.type === 'health') {
       const clr = this.getMetricLinkColor(link, values);
       if (overlay.id === 'link_health') {
@@ -422,9 +459,23 @@ class LinksLayer extends React.Component<Props> {
     }
   };
 
+  handleTemporaryLinkClick = link => evt => {
+    // Handle clicking on a link
+    const {setTemporaryAssetSelect} = this.props;
+    if (mapboxShouldAcceptClick(evt) && setTemporaryAssetSelect) {
+      setTemporaryAssetSelect({
+        name: link.name,
+        type: 'link',
+        expanded: false,
+      });
+    }
+  };
+
   render() {
     const {
       topology,
+      temporaryTopology,
+      temporarySelectedAsset,
       nodeMap,
       selectedLinks,
       siteMap,
@@ -585,6 +636,51 @@ class LinksLayer extends React.Component<Props> {
         );
       }
     });
+
+    temporaryTopology &&
+      temporaryTopology.links.forEach(link => {
+        const featureParams = {
+          key: 'link-layer-' + link.name,
+          onMouseEnter: onLinkMouseEnter,
+          onMouseLeave: onLinkMouseLeave,
+          onClick: this.handleTemporaryLinkClick(link),
+
+          'test-link-name': link.name,
+        };
+
+        const metricValues = this.getMetricValues(link, metricData);
+        const linkColor = this.getLinkColor(link, metricValues);
+        // Draw single line
+        topologyLines[LinkRenderType.NORMAL].features.push(
+          <Feature
+            {...featureParams}
+            key={`link-layer-${link.name}`}
+            coordinates={[
+              [link.locationA.longitude, link.locationA.latitude],
+              [link.locationZ.longitude, link.locationZ.latitude],
+            ]}
+            properties={{linkColor}}
+          />,
+        );
+
+        // Draw casing over selected links
+        if (
+          temporarySelectedAsset &&
+          temporarySelectedAsset.name === link.name
+        ) {
+          lineCasingFeatures.push(
+            <Feature
+              key={'line-layer-' + link.name}
+              onMouseEnter={onLinkMouseEnter}
+              onMouseLeave={onLinkMouseLeave}
+              coordinates={[
+                [link.locationA.longitude, link.locationA.latitude],
+                [link.locationZ.longitude, link.locationZ.latitude],
+              ]}
+            />,
+          );
+        }
+      });
 
     // Draw "nearby" site links (from topology scan)
     const searchNearbyLineFeatures = [];

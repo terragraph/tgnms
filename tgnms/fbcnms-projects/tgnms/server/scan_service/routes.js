@@ -18,9 +18,13 @@ router.get('/schedule', (req, res) => {
     params: req.query,
   })
     .then(result => res.status(200).send(result.data.schedules))
-    .catch(error =>
-      res.status(error.response.status).send(error.response.statusMessage),
-    );
+    .catch(error => {
+      if (error.response) {
+        res.status(error.response.status).send(error.response.statusMessage);
+      } else {
+        res.status(400).send('Scan connection unstable');
+      }
+    });
 });
 
 router.get('/schedule/:scheduleId', (req, res) => {
@@ -30,9 +34,13 @@ router.get('/schedule/:scheduleId', (req, res) => {
     url: `${SCANSERVICE_HOST}/schedule/${scheduleId}`,
   })
     .then(result => res.status(200).send(result.data))
-    .catch(error =>
-      res.status(error.response.status).send(error.response.statusMessage),
-    );
+    .catch(error => {
+      if (error.response) {
+        res.status(error.response.status).send(error.response.statusMessage);
+      } else {
+        res.status(400).send('Scan connection unstable');
+      }
+    });
 });
 
 router.post('/schedule', (req, res) => {
@@ -91,9 +99,13 @@ router.get('/executions', (req, res) => {
     .then(result => {
       res.status(200).send(result.data.executions);
     })
-    .catch(error =>
-      res.status(error.response.status).send(error.response.statusMessage),
-    );
+    .catch(error => {
+      if (error.response) {
+        res.status(error.response.status).send(error.response.statusMessage);
+      } else {
+        res.status(400).send('Scan connection unstable');
+      }
+    });
 });
 
 router.get('/execution_result/:executionId', (req, res) => {
