@@ -8,7 +8,7 @@
     "@fbcnms/logging": "^0.1.0",
     "@fbcnms/magma-api": "^0.1.0",
     "@fbcnms/sequelize-models": "^0.1.0",
-    "@fbcnms/types": "^0.1.0",
+    "@fbcnms/types": "^0.1.1",
     "@fbcnms/util": "^0.1.0",
     "add": "^2.0.6",
     "axios": "^0.18.0",

@@ -29,7 +29,7 @@
     "@babel/preset-flow": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "@babel/runtime": "^7.3.4",
-    "@fbcnms/types": "^0.1.0",
+    "@fbcnms/types": "^0.1.1",
     "@storybook/addon-docs": "^6.0.0-beta.23",
     "@storybook/addon-links": "^5.2.0",
     "@storybook/addons": "^5.2.0",
