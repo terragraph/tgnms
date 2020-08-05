@@ -27,29 +27,6 @@ const importStatement = String.raw`^(?:var|let|const|import type|import)\s+` +
 const maxLenIgnorePattern =
   '(?:' + importStatement + '|\\})' +
   String.raw`\s*(?:=\s*require\(|from)[a-zA-Z_+./"'\s\d\-]+\)?[^;\n]*[;\n]`;
-const path = require('path');
-const {buildSchema, printSchema} = require('graphql');
-const fs = require('fs');
-
-const schemaPath1 = path.resolve(
-  __dirname,
-  '../../../../fbcode/fbc/symphony/graph/graphql/schema/symphony.graphql',
-);
-const schemaPath2 = path.resolve(
-    __dirname,
-    '../../../graph/graphql/schema/symphony.graphql',
-  )
-let schemaPath = '';
-if(fs.existsSync(schemaPath1)) {
-  schemaPath = schemaPath1;
-} else if (fs.existsSync(schemaPath2)) {
-  schemaPath = schemaPath2;
-}
-
-let schemaObject = {};
-if(schemaPath !== '') {
-  schemaObject = buildSchema(fs.readFileSync(schemaPath, {encoding: 'utf8'}));
-}
 
 const restrictedImportsRule = ['error',{
   'paths':[{
@@ -94,9 +71,7 @@ const eslintMap = {
     'prettier',
     'react',
     'react-hooks',
-    'relay',
     'sort-imports-es6-autofix',
-    'graphql',
   ],
   rules: {
     'comma-dangle': ['warn', 'always-multiline'],
@@ -183,9 +158,6 @@ const eslintMap = {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
 
-    // Relay Plugin
-    'relay/unused-fields': 'off',
-
     // sort-imports autofix plugin (sort-imports doesnt autofix)
     'sort-imports-es6-autofix/sort-imports-es6': [2, {
       'ignoreCase': false,
@@ -231,19 +203,6 @@ const eslintMap = {
        'flowtype/no-weak-types': [0],
      },
    }],
-   'extends': [
-    'plugin:relay/recommended',
-  ],
 };
 
-if(Object.keys(schemaObject).length > 0) {
-  eslintMap['rules']['graphql/no-deprecated-fields'] = [
-      'error',
-      {
-        env: 'relay',
-        schemaString: printSchema(schemaObject),
-        tagName: 'graphql',
-      },
-  ]
-}
 module.exports = Object.assign({}, fbStrict, eslintMap);

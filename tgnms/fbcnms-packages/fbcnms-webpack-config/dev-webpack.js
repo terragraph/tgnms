@@ -30,7 +30,7 @@ function entry(value: any[], hot: boolean) {
 function createDevWebpackConfig(options: Options) {
   return {
     mode: 'development',
-    devtool: 'eval-cheap-module-source-map',
+    devtool: 'cheap-module-eval-source-map',
     entry: Object.assign(
       {
         main: entry([paths.appIndexJs], options.hot),
