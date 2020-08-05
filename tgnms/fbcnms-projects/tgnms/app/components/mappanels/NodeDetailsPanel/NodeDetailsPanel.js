@@ -21,10 +21,15 @@ import SyncIcon from '@material-ui/icons/Sync';
 import TaskBasedConfigModal from '../../../views/config/TaskBasedConfigModal';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
+import axios from 'axios';
 import swal from 'sweetalert2';
 import {MAPMODE} from '../../../contexts/MapContext';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
-import {apiServiceRequestWithConfirmation} from '../../../apiutils/ServiceAPIUtil';
+import {
+  apiServiceRequest,
+  apiServiceRequestWithConfirmation,
+  requestWithConfirmation,
+} from '../../../apiutils/ServiceAPIUtil';
 import {createTestMapLink} from '../../../helpers/NetworkTestHelpers';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
 import {supportsTopologyScan} from '../../../helpers/TgFeatures';
@@ -240,34 +245,74 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     // Request a sysdump from this node
     const {node, networkName} = this.props;
     const data = {node: node.name};
-    const successSwal = msg => {
+    let filename = '';
+
+    const makeRequest = requestData =>
+      apiServiceRequest(networkName, 'getSysdump', requestData)
+        .then(response => {
+          return {
+            success: true,
+            msg: response.data.filename,
+          };
+        })
+        .catch(error => {
+          return {success: false, msg: error.response.data.error};
+        });
+    await requestWithConfirmation(
+      makeRequest,
+      {
+        desc: `Do you want to request a sysdump from node <strong>${node.name}</strong>?`,
+        descType: 'html',
+        onResultsOverride: params => {
+          const {success, msg} = params;
+          if (success) {
+            filename = msg;
+            swal({
+              title: 'Success!',
+              html: `Sysdump requested. Uploading <strong>${msg}</strong> to the fileserver.`,
+              type: 'success',
+            });
+          } else {
+            swal({
+              title: 'Failed!',
+              html: `${msg}`,
+              type: 'error',
+            });
+          }
+        },
+      },
+      data,
+    );
+
+    let result = {};
+    while (true) {
+      await new Promise(res => setTimeout(res, 5000));
+      result = await axios
+        .get('/sysdump/p/' + filename)
+        .then(response => {
+          return {status: response.status, msg: ''};
+        })
+        .catch(error => {
+          return {status: error.response.status, msg: error.response.data.msg};
+        });
+      break;
+    }
+
+    if (result.status === 200) {
       swal({
         title: 'Success!',
-        html: `Sysdump requested. Uploading <strong>${msg}</strong> to the fileserver.`,
+        html: `Sysdump available <a href=${
+          'https://labnms.terragraph.link/sysdump/' + filename
+        }>here</a>`,
         type: 'success',
       });
-    };
-
-    const failureSwal = msg => {
+    } else if (result.status === 500) {
       swal({
-        title: 'Failed!',
-        html: `${msg}`,
+        title: 'Error!',
+        html: `${result.msg}`,
         type: 'error',
       });
-    };
-
-    await apiServiceRequestWithConfirmation(networkName, 'getSysdump', data, {
-      desc: `Do you want to request a sysdump from node <strong>${node.name}</strong>?`,
-      descType: 'html',
-      onResultsOverride: params => {
-        const {success, msg} = params;
-        if (success) {
-          successSwal(msg);
-        } else {
-          failureSwal(msg);
-        }
-      },
-    });
+    }
   };
 
   onDeleteNode = () => {

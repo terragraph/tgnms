@@ -115,6 +115,7 @@ app.use(
   '/default_route_history',
   require('../server/default_route_history/routes'),
 );
+app.use('/sysdump', require('../server/sysdump/routes'));
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();
@@ -160,6 +161,7 @@ app.get('*', (req, res) => {
     'NMS_SETTINGS_ENABLED',
     'MAP_ANNOTATIONS_ENABLED',
     'TASK_BASED_CONFIG_ENABLED',
+    'GET_SYSDUMP_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {
