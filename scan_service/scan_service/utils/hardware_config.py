@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from bidict import bidict
 

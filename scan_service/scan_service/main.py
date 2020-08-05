@@ -7,10 +7,9 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 from uuid import uuid4
 
-from bidict import bidict
 from terragraph_thrift.Event.ttypes import EventId
 from tglib import ClientType, init
 from tglib.clients import KafkaConsumer
@@ -26,7 +25,9 @@ from .utils.db import write_results
 from .utils.hardware_config import HardwareConfig
 
 
-async def scan_results_handler(value: str, scan_results_dir: Path, n_days: int) -> None:
+async def scan_results_handler(
+    value: str, scan_results_dir: Path, n_days: int, use_real_links: bool
+) -> None:
     """Consume scan results, perform analysis, and write to database."""
     try:
         scan_msg = json.loads(value)
@@ -65,7 +66,9 @@ async def scan_results_handler(value: str, scan_results_dir: Path, n_days: int) 
         token,
         scan_results={"results_path": str(filepath), **parse_scan_results(scan_result)},
         connectivity_results=analyze_connectivity(im_data, n_days),
-        interference_results=await analyze_interference(im_data, network_name, n_days),
+        interference_results=await analyze_interference(
+            im_data, network_name, n_days, use_real_links
+        ),
         aggregated_rx_responses=(
             im_data["curr_aggregated_responses"] if im_data is not None else None
         ),
@@ -107,19 +110,21 @@ async def events_handler(value: str) -> None:
     del Scheduler.executions[execution_id]
 
 
-async def async_main(config: Dict, scan_results_dir: Path) -> None:
+async def async_main(
+    topics: List[str], scan_results_dir: Path, n_days: int, use_real_links: bool
+) -> None:
     """Consume and store scan data, and perform analysis when scans are complete."""
     # Reschedule any tests found in the schedule upon startup
     await Scheduler.restart()
 
     consumer = KafkaConsumer().consumer
-    consumer.subscribe(config["topics"])
+    consumer.subscribe(topics)
 
     async for msg in consumer:
         value = msg.value.decode("utf-8")
         if msg.topic == "scan_results":
             asyncio.create_task(
-                scan_results_handler(value, scan_results_dir, config["n_days"])
+                scan_results_handler(value, scan_results_dir, n_days, use_real_links)
             )
         elif msg.topic == "events":
             asyncio.create_task(events_handler(value))
@@ -127,21 +132,24 @@ async def async_main(config: Dict, scan_results_dir: Path) -> None:
 
 def main() -> None:
     try:
-        with open("./service_config.json") as f:
-            config = json.load(f)
         with open("./hardware_config.json") as f:
             hardware_config = json.load(f)
+        HardwareConfig.set_config(hardware_config)
+
+        with open("./service_config.json") as f:
+            config = json.load(f)
         scan_results_dir = Path(config["scan_results_dir"])
         scan_results_dir.mkdir(parents=True, exist_ok=True)
-    except (json.JSONDecodeError, OSError):
-        logging.exception("Failed to parse service configuration file")
+
+        topics = config["topics"]
+        n_days = config["n_days"]
+        use_real_links = config["use_real_links"]
+    except (json.JSONDecodeError, OSError, KeyError):
+        logging.exception("Failed to parse configuration file.")
         sys.exit(1)
 
-    # Set hardware specific config params
-    HardwareConfig.set_config(hardware_config)
-
     init(
-        lambda: async_main(config, scan_results_dir),
+        lambda: async_main(topics, scan_results_dir, n_days, use_real_links),
         {
             ClientType.API_SERVICE_CLIENT,
             ClientType.KAFKA_CONSUMER,

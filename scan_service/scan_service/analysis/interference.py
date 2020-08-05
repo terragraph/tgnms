@@ -60,7 +60,7 @@ def get_interference_data(
 
 
 async def get_interference_from_current_beams(
-    im_data: Dict, network_name: str
+    im_data: Dict, network_name: str, use_real_links: bool
 ) -> List[Dict]:
     """Process relative IM scan data and compute interference with current beams."""
     result: List = []
@@ -88,8 +88,9 @@ async def get_interference_from_current_beams(
         # Loop through tx_beam and rx_beam combinations
         for tx_to_node, tx_beam in im_data["relative_im_beams"].items():
             # Skip if it's an actual link
-            if rx_node == tx_to_node:
+            if rx_node == tx_to_node and not use_real_links:
                 continue
+
             curr_power_idx = tx_infos.get(tx_to_node, {}).get("tx_power")
             if curr_power_idx is not None:
                 curr_power_idx = int(curr_power_idx)
@@ -97,8 +98,9 @@ async def get_interference_from_current_beams(
                 "relative_im_beams"
             ].items():
                 # Skip if it's an actual link
-                if rx_from_node == tx_node:
+                if rx_from_node == tx_node and not use_real_links:
                     continue
+
                 logging.debug(
                     f"TX to {tx_to_node} from {tx_node} uses tx_beam {tx_beam} and "
                     f"tx_power {curr_power_idx}"
@@ -151,7 +153,11 @@ async def get_interference_from_current_beams(
 
 
 async def get_interference_from_directional_beams(  # noqa: C901
-    im_data: Dict, network_name: str, n_days: int, is_n_day_avg: bool
+    im_data: Dict,
+    network_name: str,
+    n_days: int,
+    use_real_links: bool,
+    is_n_day_avg: bool,
 ) -> List[Dict]:
     """Process fine/coarse IM scan data & compute interference for directional beams."""
     result: List = []
@@ -192,21 +198,25 @@ async def get_interference_from_directional_beams(  # noqa: C901
         # Loop through tx_beam and rx_beam combinations
         for tx_to_node, tx_info in tx_infos.items():
             # Skip if it's an actual link
-            if rx_node == tx_to_node:
+            if rx_node == tx_to_node and not use_real_links:
                 continue
+
             tx_beam = tx_info.get("tx_beam_idx")
             if tx_beam is None:
                 continue
+
             curr_power_idx = tx_info.get("tx_power")
             if curr_power_idx is not None:
                 curr_power_idx = int(curr_power_idx)
             for rx_from_node, rx_info in rx_infos.items():
                 # Skip if it's an actual link
-                if rx_from_node == tx_node:
+                if rx_from_node == tx_node and not use_real_links:
                     continue
+
                 rx_beam = rx_info.get("rx_beam_idx")
                 if rx_beam is None:
                     continue
+
                 logging.debug(
                     f"TX to {tx_to_node} from {tx_node} uses tx_beam {tx_beam} and "
                     f"tx_power {curr_power_idx}"
@@ -264,20 +274,22 @@ async def get_interference_from_directional_beams(  # noqa: C901
 
 
 async def analyze_interference(
-    im_data: Optional[Dict], network_name: str, n_days: int
+    im_data: Optional[Dict], network_name: str, n_days: int, use_real_links: bool
 ) -> Optional[List[Dict]]:
     """Derive interference based on current topology."""
     if im_data is None:
         return None
 
     if im_data["mode"] == ScanMode.RELATIVE:
-        return await get_interference_from_current_beams(im_data, network_name)
+        return await get_interference_from_current_beams(
+            im_data, network_name, use_real_links
+        )
     elif im_data["mode"] == ScanMode.FINE or im_data["mode"] == ScanMode.COARSE:
         current_interference_data = await get_interference_from_directional_beams(
-            im_data, network_name, n_days, False
+            im_data, network_name, n_days, use_real_links, False
         )
         n_days_interference_data = await get_interference_from_directional_beams(
-            im_data, network_name, n_days, True
+            im_data, network_name, n_days, use_real_links, True
         )
         return current_interference_data + n_days_interference_data
     logging.info(f"Unsupported ScanMode {im_data['mode']} for interference analysis")
