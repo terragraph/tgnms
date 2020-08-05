@@ -20,11 +20,12 @@ import useUnmount from '../../hooks/useUnmount';
 import {
   BUTTON_TYPES,
   EXECUTION_DEFS,
-  EXECUTION_STATUS,
   FREQUENCIES,
   NETWORK_TEST_PROTOCOLS,
   NETWORK_TEST_TYPES,
   PROTOCOL,
+  SCHEDULE_TABLE_TYPES,
+  TEST_EXECUTION_STATUS,
   TEST_TYPE_CODES,
 } from '../../constants/ScheduleConstants';
 import {
@@ -38,14 +39,14 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory} from 'react-router';
 import {useLoadTestTableData} from '../../hooks/NetworkTestHooks';
 
-import type {CreateTestUrl} from './NetworkTestTypes';
+import type {CreateUrl} from '../../components/scheduler/SchedulerTypes';
 import type {
   FilterOptionsType,
   InputGetType,
 } from '../../../shared/dto/NetworkTestTypes';
 
 type Props = {
-  createTestUrl: CreateTestUrl,
+  createTestUrl: CreateUrl,
   selectedExecutionId?: ?string,
 };
 
@@ -124,33 +125,31 @@ export default function NetworkTest(props: Props) {
       );
   };
 
-  const deleteSchedule = id => {
+  const deleteSchedule = async id => {
     if (id == null) {
       return;
     }
-    testApi
-      .deleteSchedule({
+    try {
+      await testApi.deleteSchedule({
         scheduleId: id,
-      })
-      .then(_ => {
-        handleActionClick();
-        enqueueSnackbar('Successfully deleted test schedule!', {
-          variant: 'success',
-        });
-      })
-      .catch(err =>
-        enqueueSnackbar('Failed to delete test schedule: ' + err, {
-          variant: 'error',
-        }),
-      );
+      });
+      handleActionClick();
+      enqueueSnackbar('Successfully deleted test schedule!', {
+        variant: 'success',
+      });
+    } catch (err) {
+      enqueueSnackbar('Failed to delete test schedule: ' + err, {
+        variant: 'error',
+      });
+    }
   };
 
   const setDisableSchedule = async input => {
     if (input.id == null) {
       return;
     }
-    await testApi
-      .editTestSchedule({
+    try {
+      await testApi.editTestSchedule({
         inputData: {
           enabled: input.enabled,
           cronExpr: input.cronExpr,
@@ -158,25 +157,22 @@ export default function NetworkTest(props: Props) {
           iperfOptions: input.iperfOptions,
         },
         scheduleId: input.id,
-      })
-      .then(_ => {
-        handleActionClick();
-        enqueueSnackbar(
-          `Successfully ${input.enabled ? 'resumed' : 'paused'} test schedule!`,
-          {
-            variant: 'success',
-          },
-        );
-      })
-      .catch(err =>
-        enqueueSnackbar(
-          `Failed to ${input.enabled ? 'resume' : 'pause'} test schedule: ` +
-            err,
-          {
-            variant: 'error',
-          },
-        ),
+      });
+      handleActionClick();
+      enqueueSnackbar(
+        `Successfully ${input.enabled ? 'resumed' : 'paused'} test schedule!`,
+        {
+          variant: 'success',
+        },
       );
+    } catch (err) {
+      enqueueSnackbar(
+        `Failed to ${input.enabled ? 'resume' : 'pause'} test schedule: ` + err,
+        {
+          variant: 'error',
+        },
+      );
+    }
   };
 
   const dataFilterOptions: $Shape<InputGetType> =
@@ -303,7 +299,7 @@ export default function NetworkTest(props: Props) {
       } else if (isTestRunning(row.status)) {
         const runningExecution =
           row.status &&
-          EXECUTION_STATUS[row.status] === EXECUTION_STATUS.RUNNING;
+          TEST_EXECUTION_STATUS[row.status] === TEST_EXECUTION_STATUS.RUNNING;
         return {
           id: row.id,
           rowId: 'execution' + row.id,
@@ -356,7 +352,8 @@ export default function NetworkTest(props: Props) {
           protocol,
           actions:
             row.status &&
-            EXECUTION_STATUS[row.status] !== EXECUTION_STATUS.FAILED ? (
+            TEST_EXECUTION_STATUS[row.status] !==
+              TEST_EXECUTION_STATUS.FAILED ? (
               <div className={classes.executionActionButtonContainer}>
                 {<ResultExport id={String(row.id)} />}
               </div>
@@ -388,10 +385,10 @@ export default function NetworkTest(props: Props) {
     {
       name: 'status',
       title: 'Status',
-      initialValue: Object.keys(EXECUTION_STATUS).map(status => status),
-      options: Object.keys(EXECUTION_STATUS).map(status => ({
+      initialValue: Object.keys(TEST_EXECUTION_STATUS).map(status => status),
+      options: Object.keys(TEST_EXECUTION_STATUS).map(status => ({
         type: status,
-        title: EXECUTION_STATUS[status],
+        title: TEST_EXECUTION_STATUS[status],
       })),
     },
   ];
@@ -411,6 +408,7 @@ export default function NetworkTest(props: Props) {
         optionsInput,
         onOptionsUpdate: handleFilterOptions,
       }}
+      mode={SCHEDULE_TABLE_TYPES.TEST}
     />
   );
 }

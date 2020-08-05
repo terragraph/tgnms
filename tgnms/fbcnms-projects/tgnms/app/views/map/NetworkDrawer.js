@@ -17,6 +17,7 @@ import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
 import NetworkTestPanel from '../../components/mappanels/NetworkTestPanel/NetworkTestPanel';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
+import ScanServicePanel from '../../components/mappanels/ScanServicePanel/ScanServicePanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
@@ -88,6 +89,7 @@ type Props = {|
   searchNearbyProps: SearchNearbyProps,
   plannedSiteProps: PlannedSiteProps,
   networkTestId?: ?string,
+  scanId?: ?string,
 |};
 
 export default function NetworkDrawerFn({
@@ -97,6 +99,7 @@ export default function NetworkDrawerFn({
   plannedSiteProps,
   networkTestId,
   onNetworkDrawerResize,
+  scanId,
 }: Props) {
   const classes = useStyles();
   const drawerDimensions = {
@@ -250,6 +253,9 @@ export default function NetworkDrawerFn({
     [collapseAll, updateForm],
   );
 
+  const testMapMode = mapMode === MAPMODE.NETWORK_TEST;
+  const scanMapMode = mapMode === MAPMODE.SCAN_SERVICE;
+
   return (
     <Drawer
       variant="permanent"
@@ -277,7 +283,7 @@ export default function NetworkDrawerFn({
           />
         ) : null}
 
-        {mapMode !== MAPMODE.NETWORK_TEST && (
+        {!testMapMode && !scanMapMode && (
           <OverviewPanel
             expanded={getIsOpen(PANELS.OVERVIEW)}
             onPanelChange={() => {
@@ -295,9 +301,10 @@ export default function NetworkDrawerFn({
             }}
           />
         )}
-        {mapMode === MAPMODE.NETWORK_TEST && (
+        {testMapMode && (
           <NetworkTestPanel expanded={true} testId={networkTestId} />
         )}
+        {scanMapMode && <ScanServicePanel expanded={true} scanId={scanId} />}
         <MapLayersPanel
           {...mapLayersProps}
           networkName={networkName}

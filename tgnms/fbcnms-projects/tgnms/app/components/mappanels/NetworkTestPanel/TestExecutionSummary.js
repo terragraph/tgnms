@@ -21,10 +21,7 @@ import {
 } from '../../../constants/ScheduleConstants';
 import {HEALTH_CODES} from '../../../constants/HealthConstants';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
-import {
-  createTestMapLink,
-  getExecutionStatus,
-} from '../../../helpers/NetworkTestHelpers';
+import {getExecutionStatus} from '../../../helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useLoadTestExecutionResults} from '../../../hooks/NetworkTestHooks';
 
@@ -56,32 +53,11 @@ export default function TestExecutionSummary(props: Props) {
   const {linkMap, selectedElement} = React.useContext(NetworkContext);
   const {loading, execution, results} = useLoadTestExecutionResults({testId});
   const {updateNetworkMapOptions} = React.useContext(NmsOptionsContext);
-  const {networkName} = React.useContext(NetworkContext);
 
   const assetType =
     results && linkMap[results[0].asset_name]
       ? TopologyElementType.LINK
       : TopologyElementType.NODE;
-
-  const createTestUrl = React.useCallback(
-    ({executionId}) => {
-      const url = new URL(
-        createTestMapLink({
-          executionId,
-          networkName,
-        }),
-        window.location.origin,
-      );
-      url.search = window.location.search;
-      if (executionId) {
-        url.searchParams.set('test', executionId);
-        url.searchParams.set('mapMode', 'NETWORK_TEST');
-      }
-      // can't use an absolute url in react-router
-      return `${url.pathname}${url.search}`;
-    },
-    [networkName],
-  );
 
   const mapTestResults = useMemo(() => {
     if (!results) {
@@ -182,7 +158,6 @@ export default function TestExecutionSummary(props: Props) {
       )}
       {!throughputTestMode && !assetTestResultMode && (
         <NetworkTestResults
-          createTestUrl={createTestUrl}
           executionResults={executionResults}
           assetType={assetType}
         />

@@ -21,6 +21,7 @@ import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
 import {Route, withRouter} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '../../contexts/RouteContext';
+import {getScanId} from '../../helpers/ScanServiceHelpers';
 import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -328,6 +329,7 @@ class NetworkMap extends React.Component<Props, State> {
                         this.setState({nearbyNodes}),
                     }}
                     networkTestId={getTestOverlayId(location)}
+                    scanId={getScanId(location)}
                     onNetworkDrawerResize={networkDrawerWidth =>
                       this.setState({networkDrawerWidth})
                     }

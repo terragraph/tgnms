@@ -2,15 +2,15 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
+
 import * as React from 'react';
-import * as api from '../apiutils/NetworkTestAPIUtil';
+import * as api from '../apiutils/ScanServiceAPIUtil';
 import axios from 'axios';
 import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
-import {TEST_EXECUTION_STATUS} from '../constants/ScheduleConstants';
-import {isTestRunning} from '../helpers/NetworkTestHelpers';
+import {SCAN_EXECUTION_STATUS} from '../constants/ScheduleConstants';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 import type {
@@ -18,71 +18,48 @@ import type {
   ExecutionResultDataType,
   FilterOptionsType,
   InputGetType,
-} from '../../shared/dto/NetworkTestTypes';
+} from '../../shared/dto/ScanServiceTypes';
 
-export function useLoadTestExecutionResults({testId}: {testId: string}) {
+export function useLoadScanExecutionResults({scanId}: {scanId: string}) {
   const [loading, setLoading] = React.useState(true);
   const [execution, setExecution] = React.useState<?ExecutionDetailsType>(null);
   const [results, setResults] = React.useState<?Array<ExecutionResultDataType>>(
     null,
   );
-  const [shouldUpdate, setShouldUpdate] = React.useState(false);
-
-  const runningTestTimeoutRef = React.useRef<?TimeoutID>(null);
 
   React.useEffect(() => {
+    if (!scanId) {
+      return;
+    }
     const cancelSource = axios.CancelToken.source();
-
-    const getExecutionResults = async () => {
-      if (!testId) {
-        return;
-      }
-      setLoading(true);
+    setLoading(true);
+    const getScanExecutionResults = async () => {
       try {
-        const executionResults = await api.getExecutionResults({
-          executionId: testId,
+        const scanExecutionData = await api.getExecutionResults({
+          executionId: scanId,
           cancelToken: cancelSource.token,
         });
-        setExecution(executionResults.execution);
-        setResults(executionResults.results);
         setLoading(false);
-      } catch (_error) {
+        setExecution(scanExecutionData.execution);
+        setResults(scanExecutionData.results);
+      } catch {
         setLoading(false);
       }
     };
-    getExecutionResults();
 
+    getScanExecutionResults();
     return () => cancelSource.cancel();
-  }, [testId, shouldUpdate]);
-
-  React.useEffect(() => {
-    if (
-      !runningTestTimeoutRef.current &&
-      execution &&
-      isTestRunning(execution.status)
-    ) {
-      runningTestTimeoutRef.current = setTimeout(() => {
-        setShouldUpdate(!shouldUpdate);
-        runningTestTimeoutRef.current = null;
-      }, 10000);
-    }
-  }, [execution, shouldUpdate]);
-
-  useUnmount(() => {
-    if (runningTestTimeoutRef.current != null) {
-      clearTimeout(runningTestTimeoutRef.current);
-    }
-  });
+  }, [scanId]);
 
   return {loading, execution, results};
 }
 
-export function useLoadTestTableData({
+export function useLoadScanTableData({
   filterOptions,
   inputData,
   actionUpdate,
 }: {
-  filterOptions: FilterOptionsType,
+  filterOptions: ?FilterOptionsType,
   inputData: InputGetType,
   actionUpdate: boolean,
 }) {
@@ -111,10 +88,10 @@ export function useLoadTestTableData({
         !currentFilterOptions?.status ||
         currentFilterOptions?.status.find(
           stat =>
-            TEST_EXECUTION_STATUS[stat.toUpperCase()] !==
-              TEST_EXECUTION_STATUS.SCHEDULED &&
-            TEST_EXECUTION_STATUS[stat.toUpperCase()] !==
-              TEST_EXECUTION_STATUS.PAUSED,
+            SCAN_EXECUTION_STATUS[stat.toUpperCase()] !==
+              SCAN_EXECUTION_STATUS.SCHEDULED &&
+            SCAN_EXECUTION_STATUS[stat.toUpperCase()] !==
+              SCAN_EXECUTION_STATUS.PAUSED,
         )
           ? api.getExecutions({
               inputData: currentInputData,
@@ -136,7 +113,12 @@ export function useLoadTestTableData({
         result.forEach(newRow => {
           if (newRow.status === undefined) {
             tempRows.schedule.push(newRow);
-          } else if (isTestRunning(newRow.status)) {
+          } else if (
+            SCAN_EXECUTION_STATUS[newRow.status] ===
+              SCAN_EXECUTION_STATUS.RUNNING ||
+            SCAN_EXECUTION_STATUS[newRow.status] ===
+              SCAN_EXECUTION_STATUS.QUEUED
+          ) {
             tempRows.running.push(newRow);
           } else {
             tempRows.executions.push(newRow);

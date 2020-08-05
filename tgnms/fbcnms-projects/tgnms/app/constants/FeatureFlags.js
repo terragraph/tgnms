@@ -10,6 +10,10 @@
 
 export const FeatureFlags: {[string]: () => boolean} = {
   NETWORK_TEST_ENABLED: () => !!window.CONFIG?.env?.NETWORKTEST_HOST,
+  SCANSERVICE_ENABLED: () =>
+    window.CONFIG.env.hasOwnProperty('SCANSERVICE_ENABLED')
+      ? window.CONFIG.env.SCANSERVICE_ENABLED === 'true'
+      : false,
   NOTIFICATION_MENU_ENABLED: () =>
     !!window.CONFIG?.env.NOTIFICATION_MENU_ENABLED,
   LOGIN_ENABLED: () => window.CONFIG?.env?.LOGIN_ENABLED,

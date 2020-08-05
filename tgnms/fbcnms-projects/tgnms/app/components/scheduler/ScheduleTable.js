@@ -12,22 +12,26 @@ import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../components/common/LoadingBox';
 import Paper from '@material-ui/core/Paper';
 import TableOptions from './TableOptions';
-import {EXECUTION_STATUS} from '../../constants/ScheduleConstants';
+import {
+  EXECUTION_STATUS,
+  SCAN_EXECUTION_STATUS,
+  SCHEDULE_TABLE_TYPES,
+} from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
+import {useHistory} from 'react-router';
 
-import type {CreateTestUrl} from '../../views/network_test/NetworkTestTypes';
-import type {RouterHistory} from 'react-router-dom';
+import type {CreateUrl} from './SchedulerTypes';
 import type {ScheduleTableRow} from './SchedulerTypes';
 import type {Props as TableOptionsType} from './TableOptions';
 
 type Props<T> = {
   schedulerModal: React.Node,
-  createURL: CreateTestUrl,
+  createURL: CreateUrl,
   selectedExecutionId?: ?string,
-  history: RouterHistory,
   rows: Array<ScheduleTableRow>,
   loading: boolean,
   tableOptions: TableOptionsType<T>,
+  mode: $Values<typeof SCHEDULE_TABLE_TYPES>,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -61,12 +65,14 @@ export default function ScheduleTable<T>(props: Props<T>) {
   const {
     schedulerModal,
     selectedExecutionId,
-    history,
     createURL,
     rows,
     loading,
     tableOptions,
+    mode,
   } = props;
+
+  const history = useHistory();
 
   const [selectedRow, setSelectedRow] = React.useState(null);
 
@@ -105,7 +111,9 @@ export default function ScheduleTable<T>(props: Props<T>) {
       scheduleColumn('type', {width: 100}),
       scheduleColumn('start', {width: 190}),
       scheduleColumn('status', {width: 120}),
-      scheduleColumn('protocol', {width: 60}),
+      scheduleColumn(mode === SCHEDULE_TABLE_TYPES.SCAN ? 'mode' : 'protocol', {
+        width: 60,
+      }),
       scheduleColumn('actions', {width: 130}),
       {
         label: 'rowId',
@@ -120,14 +128,15 @@ export default function ScheduleTable<T>(props: Props<T>) {
       columns,
       data: rows,
     };
-  }, [rows]);
+  }, [rows, mode]);
 
   const handleRowSelect = React.useCallback(
     row => {
       if (
         EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.FAILED &&
         EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.SCHEDULED &&
-        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.PAUSED
+        EXECUTION_STATUS[row.filterStatus] !== EXECUTION_STATUS.PAUSED &&
+        EXECUTION_STATUS[row.filterStatus] !== SCAN_EXECUTION_STATUS.QUEUED
       ) {
         setSelectedRow(row);
       }
@@ -162,7 +171,7 @@ export default function ScheduleTable<T>(props: Props<T>) {
               onRowSelect={handleRowSelect}
             />
           ) : (
-            'No executions or schedules with current filters, try starting a test.'
+            `No executions or schedules with current filters, try starting a ${mode}.`
           )}
         </Grid>
       </Paper>

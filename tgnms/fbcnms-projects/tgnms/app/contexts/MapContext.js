@@ -26,6 +26,7 @@ export const MAPMODE = {
   DEFAULT: 'DEFAULT',
   HISTORICAL: 'HISTORICAL',
   NETWORK_TEST: 'NETWORK_TEST',
+  SCAN_SERVICE: 'SCAN_SERVICE',
 };
 
 export type MapContext = {|

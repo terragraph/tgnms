@@ -20,10 +20,9 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
-import type {AssetTestResultType, CreateTestUrl} from './NetworkTestTypes';
+import type {AssetTestResultType} from './NetworkTestTypes';
 
 type Props = {|
-  createTestUrl: CreateTestUrl,
   executionResults: Array<AssetTestResultType>,
   assetType: $Values<typeof TopologyElementType>,
 |};

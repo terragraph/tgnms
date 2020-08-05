@@ -9,11 +9,16 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MaterialTheme from '../../../MaterialTheme';
 import ScheduleTable from '../ScheduleTable';
+import {SCHEDULE_TABLE_TYPES} from '../../../constants/ScheduleConstants';
 import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
 
-const historyMock = jest.fn();
+jest.mock('react-router', () => ({
+  useHistory: () => ({
+    push: jest.fn(),
+  }),
+}));
 
 const defaultProps = {
   schedulerModal: <div>schedulerModal</div>,
@@ -21,12 +26,13 @@ const defaultProps = {
   rows: [],
   loading: false,
   tableOptions: {onOptionsUpdate: jest.fn(), optionsInput: []},
+  mode: SCHEDULE_TABLE_TYPES.TEST,
 };
 
 test('renders without crashing', () => {
   const {getByText} = render(
     <MaterialTheme>
-      <ScheduleTable history={historyMock()} {...defaultProps} />
+      <ScheduleTable {...defaultProps} />
     </MaterialTheme>,
   );
   expect(getByText('schedulerModal')).toBeInTheDocument();
@@ -35,7 +41,7 @@ test('renders without crashing', () => {
 test('renders loading', () => {
   const {getByTestId} = render(
     <MaterialTheme>
-      <ScheduleTable {...defaultProps} history={historyMock()} loading={true} />
+      <ScheduleTable {...defaultProps} loading={true} />
     </MaterialTheme>,
   );
   expect(getByTestId('loading-box')).toBeInTheDocument();
@@ -44,7 +50,7 @@ test('renders loading', () => {
 test('renders empty message when no rows', () => {
   const {getByText} = render(
     <MaterialTheme>
-      <ScheduleTable {...defaultProps} history={historyMock()} />
+      <ScheduleTable {...defaultProps} />
     </MaterialTheme>,
   );
   expect(
@@ -59,7 +65,6 @@ test('renders custom table with rows', () => {
     <MaterialTheme>
       <ScheduleTable
         {...defaultProps}
-        history={historyMock()}
         rows={[
           {
             id: 1,

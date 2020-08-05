@@ -73,3 +73,21 @@ export function numToMegabits(number: number) {
   const MEGABITS = Math.pow(1000, 2);
   return StringHelpers.formatNumber(number / MEGABITS, 2);
 }
+export function createMapLink({
+  networkName,
+  executionId,
+  type,
+}: {
+  networkName: ?string,
+  executionId: ?string | ?number,
+  type: string,
+}) {
+  if (
+    !networkName ||
+    executionId === null ||
+    typeof executionId === 'undefined'
+  ) {
+    return '';
+  }
+  return `/map/${networkName || ''}/${type}s?${type}=${executionId || ''}`;
+}

@@ -269,6 +269,21 @@ export const SETTINGS: Array<SettingDefinition> = [
     requiresRestart: true,
     validations: [],
   },
+  {
+    key: 'SCANSERVICE_HOST',
+    required: false,
+    dataType: 'STRING',
+    requiresRestart: true,
+    validations: ['URL'],
+    tester: TESTER.SCANSERVICE,
+  },
+  {
+    key: 'SCANSERVICE_ENABLED',
+    required: false,
+    dataType: 'BOOL',
+    requiresRestart: true,
+    validations: [],
+  },
 ];
 
 /**

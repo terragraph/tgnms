@@ -16,7 +16,6 @@ import {mockLinkMapValue} from '../../../tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 const defaultProps = {
-  createTestUrl: jest.fn(),
   executionResults: [],
   assetType: TopologyElementType.LINK,
 };

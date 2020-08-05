@@ -13,7 +13,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import {BUTTON_TYPES} from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {TableResultType} from '../../views/network_test/NetworkTestTypes';
+import type {TableResultType as ScanTableResultType} from '../../views/scan_service/ScanServiceTypes';
+import type {TableResultType as TestTableResultType} from '../../views/network_test/NetworkTestTypes';
+
+type TableResultType = ScanTableResultType | TestTableResultType;
 
 const useStyles = makeStyles(theme => ({
   scheduleActionButtonContainer: {
@@ -33,7 +36,7 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   editButton: React.Node,
-  onDeleteSchedule: number => void,
+  onDeleteSchedule: number => Promise<void>,
   onSetDisableSchedule: number => Promise<void>,
   row: TableResultType,
 };

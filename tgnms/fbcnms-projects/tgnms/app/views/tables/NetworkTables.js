@@ -16,6 +16,7 @@ import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
 import NetworkTestTable from './NetworkTestTable';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
+import ScanTable from './ScanTable';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
@@ -78,6 +79,7 @@ const TABLE_TYPE = Object.freeze({
   nodes: 'nodes',
   links: 'links',
   tests: 'tests',
+  scans: 'scans',
 });
 
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
@@ -145,7 +147,7 @@ class NetworkTables extends React.Component<Props, State> {
     this.setState({selectedTable: value});
   };
 
-  renderNetworkTable = routeProps => {
+  renderNetworkTable = () => {
     // Render the selected table
     const {selectedTable} = this.state;
 
@@ -157,7 +159,9 @@ class NetworkTables extends React.Component<Props, State> {
           } else if (selectedTable === TABLE_TYPE.links) {
             return <NetworkLinksTable context={context} />;
           } else if (selectedTable === TABLE_TYPE.tests) {
-            return <NetworkTestTable {...routeProps} />;
+            return <NetworkTestTable />;
+          } else if (selectedTable === TABLE_TYPE.scans) {
+            return <ScanTable />;
           } else {
             return null;
           }
@@ -208,16 +212,26 @@ class NetworkTables extends React.Component<Props, State> {
                   value={TABLE_TYPE.tests}
                 />
               )}
+              {isFeatureEnabled('SCANSERVICE_ENABLED') && (
+                <Tab
+                  classes={{
+                    root: classes.tabRoot,
+                  }}
+                  disableRipple
+                  label="Scans"
+                  component={Link}
+                  to={`${match.url}/${TABLE_TYPE.scans}${location.search}`}
+                  value={TABLE_TYPE.scans}
+                />
+              )}
             </Tabs>
           </Grid>
           <Grid container item xs={4} justify="flex-end" alignItems="center">
-            {
-              /**export nodes only for now */ selectedTable === 'nodes' && (
-                <Grid item>
-                  <ExportMenu selectedTable={selectedTable} />
-                </Grid>
-              )
-            }
+            {selectedTable === 'nodes' && ( //export nodes only for now
+              <Grid item>
+                <ExportMenu selectedTable={selectedTable} />
+              </Grid>
+            )}
             <Grid item>
               {isEmbedded && (
                 <IconButton
@@ -236,7 +250,7 @@ class NetworkTables extends React.Component<Props, State> {
         </Grid>
         <Switch>
           <Route
-            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests})`}
+            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests}|${TABLE_TYPE.scans})`}
             component={this.renderNetworkTable}
           />
           {/** fixes a routing bug when this view is embedded in another page*/}

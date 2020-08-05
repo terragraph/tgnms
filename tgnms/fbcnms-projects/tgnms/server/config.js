@@ -22,7 +22,10 @@ const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
-const NETWORKTEST_HOST = process.env.NETWORKTEST_HOST || null;
+const NETWORKTEST_HOST =
+  process.env.NETWORKTEST_HOST || 'http://network_test:8080';
+const SCANSERVICE_HOST =
+  process.env.SCANSERVICE_HOST || 'http://scan_service:8080';
 
 const PROXY_ENABLED = process.env.http_proxy && process.env.http_proxy.length;
 
@@ -123,6 +126,7 @@ module.exports = {
   PROXY_ENABLED,
   SALT_GEN_ROUNDS: 10,
   NETWORKTEST_HOST,
+  SCANSERVICE_HOST,
   CLIENT_ROOT_URL,
   KEYCLOAK_HTTP_PROXY,
   KEYCLOAK_HOST,

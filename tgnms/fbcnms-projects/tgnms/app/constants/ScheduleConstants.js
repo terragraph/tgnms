@@ -12,6 +12,7 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import EventIcon from '@material-ui/icons/Event';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
 import RadioButtonUncheckedIcon from '@material-ui/icons/RadioButtonUnchecked';
+import ScheduleIcon from '@material-ui/icons/Schedule';
 import Tooltip from '@material-ui/core/Tooltip';
 
 export const NETWORK_TEST_TYPES = {
@@ -72,7 +73,50 @@ export const NETWORK_TEST_DEFS = {
   },
 };
 
+export const SCAN_SERVICE_TYPES = {
+  IM: 'IM Scan',
+};
+
+export const SCAN_SERVICE_MODE = {
+  COARSE: 'Coarse',
+  FINE: 'Fine',
+  SELECTIVE: 'Selective',
+  RELATIVE: 'Relative',
+};
+
+export const SCAN_TYPES = {
+  IM: 2,
+};
+
+export const SCAN_MODE = {
+  COARSE: 1,
+  FINE: 2,
+  SELECTIVE: 3,
+  RELATIVE: 4,
+};
+
+export const MODAL_MODE = {
+  EDIT: 'edit',
+  CREATE: 'create',
+};
+
+export const SCHEDULE_TABLE_TYPES = {
+  TEST: 'test',
+  SCAN: 'scan',
+};
+
 export const EXECUTION_STATUS = {
+  FINISHED: 'Completed',
+  ABORTED: 'Aborted',
+  FAILED: 'Failed',
+  SCHEDULED: 'Scheduled',
+  PAUSED: 'Paused',
+  RUNNING: 'Running',
+  PROCESSING: 'Processing',
+  QUEUED: 'Queued',
+};
+
+export const TEST_EXECUTION_STATUS = {
   FINISHED: 'Completed',
   ABORTED: 'Aborted',
   FAILED: 'Failed',
@@ -82,10 +126,19 @@ export const EXECUTION_STATUS = {
   PROCESSING: 'Processing',
 };
 
+export const SCAN_EXECUTION_STATUS = {
+  FINISHED: 'Completed',
+  FAILED: 'Failed',
+  SCHEDULED: 'Scheduled',
+  PAUSED: 'Paused',
+  RUNNING: 'Running',
+  QUEUED: 'Queued',
+};
+
 export const EXECUTION_DEFS = {
   FINISHED: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.FINISHED} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.FINISHED} placement="top">
         <CheckCircleOutlineOutlinedIcon />
       </Tooltip>
     ),
@@ -93,7 +146,7 @@ export const EXECUTION_DEFS = {
   },
   ABORTED: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.ABORTED} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.ABORTED} placement="top">
         <CancelOutlinedIcon />
       </Tooltip>
     ),
@@ -101,7 +154,7 @@ export const EXECUTION_DEFS = {
   },
   FAILED: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.FAILED} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.FAILED} placement="top">
         <ErrorOutlineIcon color="error" />
       </Tooltip>
     ),
@@ -109,7 +162,7 @@ export const EXECUTION_DEFS = {
   },
   SCHEDULED: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.SCHEDULED} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.SCHEDULED} placement="top">
         <EventIcon />
       </Tooltip>
     ),
@@ -117,7 +170,7 @@ export const EXECUTION_DEFS = {
   },
   PAUSED: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.PAUSED} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.PAUSED} placement="top">
         <PauseCircleOutlineIcon />
       </Tooltip>
     ),
@@ -125,7 +178,7 @@ export const EXECUTION_DEFS = {
   },
   RUNNING: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.RUNNING} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.RUNNING} placement="top">
         <RadioButtonUncheckedIcon />
       </Tooltip>
     ),
@@ -133,17 +186,20 @@ export const EXECUTION_DEFS = {
   },
   PROCESSING: {
     icon: (
-      <Tooltip title={EXECUTION_STATUS.RUNNING} placement="top">
+      <Tooltip title={TEST_EXECUTION_STATUS.RUNNING} placement="top">
         <RadioButtonUncheckedIcon />
       </Tooltip>
     ),
     order: 1,
   },
-};
-
-export const MODAL_MODE = {
-  EDIT: 'edit',
-  CREATE: 'create',
+  QUEUED: {
+    icon: (
+      <Tooltip title={SCAN_EXECUTION_STATUS.RUNNING} placement="top">
+        <ScheduleIcon />
+      </Tooltip>
+    ),
+    order: 1,
+  },
 };
 
 export const NETWORK_TEST_PROTOCOLS = {

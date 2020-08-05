@@ -5,7 +5,10 @@
  * @flow
  */
 
-import {EXECUTION_DEFS, EXECUTION_STATUS} from '../constants/ScheduleConstants';
+import {
+  EXECUTION_DEFS,
+  TEST_EXECUTION_STATUS,
+} from '../constants/ScheduleConstants';
 import {HEALTH_CODES} from '../constants/HealthConstants';
 import {generatePath} from 'react-router';
 import {getUrlSearchParam} from './NetworkUrlHelpers';
@@ -66,7 +69,7 @@ export function getExecutionHealth(
 
 export function getExecutionStatus(
   execution: AssetTestResultType,
-): $Values<typeof EXECUTION_STATUS> {
+): $Values<typeof TEST_EXECUTION_STATUS> {
   const status = execution.results.reduce(
     (finalStatus, result) =>
       EXECUTION_DEFS[result.status].order < EXECUTION_DEFS[finalStatus].order
@@ -74,12 +77,12 @@ export function getExecutionStatus(
         : finalStatus,
     'FAILED',
   );
-  return EXECUTION_STATUS[status];
+  return TEST_EXECUTION_STATUS[status];
 }
 
-export function isTestRunning(status: $Keys<typeof EXECUTION_STATUS>) {
+export function isTestRunning(status: $Keys<typeof TEST_EXECUTION_STATUS>) {
   return (
-    EXECUTION_STATUS[status] === EXECUTION_STATUS.RUNNING ||
-    EXECUTION_STATUS[status] === EXECUTION_STATUS.PROCESSING
+    TEST_EXECUTION_STATUS[status] === TEST_EXECUTION_STATUS.RUNNING ||
+    TEST_EXECUTION_STATUS[status] === TEST_EXECUTION_STATUS.PROCESSING
   );
 }

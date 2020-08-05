@@ -202,7 +202,19 @@ export default function NmsSettings() {
                       <SettingInput
                         label="Network Test URL"
                         setting="NETWORKTEST_HOST"
-                      />{' '}
+                      />
+                    </SettingGroup>
+                    <SettingGroup
+                      title="Scan Service"
+                      tester={<SettingsTester keys={['SCANSERVICE_HOST']} />}>
+                      <SettingInput
+                        label="Enable Scan Service"
+                        setting="SCANSERVICE_ENABLED"
+                      />
+                      <SettingInput
+                        label="Scan Service Host"
+                        setting="SCANSERVICE_HOST"
+                      />
                     </SettingGroup>
                     <SettingGroup
                       title="Default Routes History"

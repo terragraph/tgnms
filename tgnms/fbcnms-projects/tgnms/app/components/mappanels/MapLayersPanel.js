@@ -16,6 +16,7 @@ import MapOverlayLegend from './MapOverlayLegend';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkTestOverlayPanel from './NetworkTestOverlayPanel';
 import React from 'react';
+import ScanServiceOverlayPanel from './ScanServiceOverlayPanel';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
@@ -128,7 +129,8 @@ function OverlaySection() {
   return (
     <div className={classes.formContainer}>
       {isFeatureEnabled('MAP_HISTORY_ENABLED') &&
-        mapMode !== MAPMODE.NETWORK_TEST && (
+        mapMode !== MAPMODE.NETWORK_TEST &&
+        mapMode !== MAPMODE.SCAN_SERVICE && (
           <>
             <Tabs
               value={mapMode}
@@ -156,6 +158,7 @@ function OverlaySection() {
         {mapMode === MAPMODE.DEFAULT && <DefaultOverlayPanel />}
         {mapMode === MAPMODE.HISTORICAL && <MapHistoryOverlayPanel />}
         {mapMode === MAPMODE.NETWORK_TEST && <NetworkTestOverlayPanel />}
+        {mapMode === MAPMODE.SCAN_SERVICE && <ScanServiceOverlayPanel />}
         <div>
           <OverlaysForm />
         </div>

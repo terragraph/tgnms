@@ -6,65 +6,53 @@
  */
 
 import {
-  NETWORK_TEST_PROTOCOLS,
-  NETWORK_TEST_TYPES,
-  TEST_EXECUTION_STATUS,
-  TEST_TYPE_CODES,
+  SCAN_EXECUTION_STATUS,
+  SCAN_MODE,
+  SCAN_TYPES,
 } from '../../app/constants/ScheduleConstants';
 
 import {HEALTH_CODES} from '../../app/constants/HealthConstants';
 
 export type InputStartType = {
-  cronExpr?: string,
-  whitelist?: Array<string>,
-  testType?: $Keys<typeof NETWORK_TEST_TYPES>,
-  networkName: string,
-  iperfOptions?: IperfOptions,
   enabled?: boolean,
-};
-
-export type IperfOptions = {
-  bitrate?: number,
-  timeSec?: number,
-  protocol?: number,
-  omitSec?: number,
-  intervalSec?: ?number,
-  windowSize?: ?number,
-  parallelStreams?: ?number,
+  cronExpr?: string,
+  networkName: string,
+  type: $Values<typeof SCAN_TYPES>,
+  mode: $Values<typeof SCAN_MODE>,
 };
 
 export type InputGetType = {
+  type?: $Values<typeof SCAN_TYPES>,
   networkName: string,
-  testType?: ?$Keys<typeof NETWORK_TEST_TYPES>,
-  protocol?: ?$Values<typeof NETWORK_TEST_PROTOCOLS>,
-  status?: ?$Values<typeof TEST_EXECUTION_STATUS>,
+  mode?: $Values<typeof SCAN_MODE>,
+  status?: $Keys<typeof SCAN_EXECUTION_STATUS>,
   startTime?: string,
-  partial?: boolean,
 };
 
 export type FilterOptionsType = {|
-  testType?: Array<$Keys<typeof NETWORK_TEST_TYPES>>,
-  protocol?: Array<$Values<typeof NETWORK_TEST_PROTOCOLS>>,
-  status?: Array<$Keys<typeof TEST_EXECUTION_STATUS>>,
+  status?: Array<$Keys<typeof SCAN_EXECUTION_STATUS>>,
   startTime?: string,
+  type: Array<$Keys<typeof SCAN_TYPES>>,
+  mode: Array<$Keys<typeof SCAN_MODE>>,
 |};
 
 export type EditScheduleType = {
   enabled: boolean,
   cron_expr?: string,
   network_name: string,
-  iperf_options?: IperfOptions,
+  type: $Values<typeof SCAN_TYPES>,
+  mode: $Values<typeof SCAN_MODE>,
 };
 
 export type ExecutionDetailsType = {
   id: number,
   start_dt: string,
   end_dt: string,
-  status: $Keys<typeof TEST_EXECUTION_STATUS>,
-  test_type: $Keys<typeof TEST_TYPE_CODES>,
+  type: $Keys<typeof SCAN_TYPES>,
+  mode: $Keys<typeof SCAN_MODE>,
   network_name: string,
-  iperf_options: IperfOptions,
-  whitelist: Array<string>,
+  status?: $Keys<typeof SCAN_EXECUTION_STATUS>,
+  params_id: number,
 };
 
 export type ExecutionResultsType = {
@@ -76,7 +64,7 @@ export type ExecutionResultDataType = {
   id: number,
   link_distance: ?number,
   health: $Keys<typeof HEALTH_CODES>,
-  status: $Keys<typeof TEST_EXECUTION_STATUS>,
+  status: $Keys<typeof SCAN_EXECUTION_STATUS>,
   src_node_mac: string,
   dst_node_mac: string,
   asset_name: string,
