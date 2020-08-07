@@ -6,7 +6,7 @@ import json
 import logging
 from collections import defaultdict
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 from tglib.clients import APIServiceClient
@@ -44,7 +44,7 @@ def prepare_changes(
     """
     overrides: List[Tuple[bool, Dict]] = []
     entries_to_insert: List[Dict] = []
-    entries_to_delete: defaultdict = defaultdict(set)
+    entries_to_delete: DefaultDict = defaultdict(set)
 
     if current_overrides_configs["overrides"]:
         curr_overrides_configs = json.loads(current_overrides_configs["overrides"])
@@ -140,7 +140,7 @@ def prepare_overrides_config_reverts(
     network_name: str,
     curr_overrides_configs: Dict,
     previous_overrides_configs: Dict,
-    entries_to_delete: defaultdict,
+    entries_to_delete: DefaultDict,
     overrides: List[Tuple[bool, Dict]],
 ) -> None:
     """Revert overrides config for non-cut edge nodes.
@@ -388,9 +388,9 @@ async def process_cut_edges(
     )
 
 
-def create_tideal_configs(p2mp_nodes: Dict, flow_graph: FlowGraph) -> defaultdict:
+def create_tideal_configs(p2mp_nodes: Dict, flow_graph: FlowGraph) -> DefaultDict:
     """Create config overrides for txIdeal and rxIdeal on P2MP nodes."""
-    overrides: defaultdict = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    overrides: DefaultDict = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     for node, wl_links in p2mp_nodes.items():
         sum_tideal = 0
         for link in wl_links:

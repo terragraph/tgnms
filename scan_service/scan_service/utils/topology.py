@@ -4,7 +4,7 @@
 import json
 import logging
 from collections import defaultdict
-from typing import Dict
+from typing import DefaultDict, Dict
 
 from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
@@ -13,11 +13,11 @@ from tglib.clients.prometheus_client import PrometheusClient
 
 class Topology:
     topology: Dict[str, Dict] = {}
-    node_name_to_mac: defaultdict = defaultdict(dict)
-    node_mac_to_name: defaultdict = defaultdict(dict)
-    link_name_to_mac: defaultdict = defaultdict(dict)
-    node_channel: defaultdict = defaultdict(dict)
-    node_polarity: defaultdict = defaultdict(dict)
+    node_name_to_mac: DefaultDict = defaultdict(dict)
+    node_mac_to_name: DefaultDict = defaultdict(dict)
+    link_name_to_mac: DefaultDict = defaultdict(dict)
+    node_channel: DefaultDict = defaultdict(dict)
+    node_polarity: DefaultDict = defaultdict(dict)
 
     @classmethod
     async def update_topology(cls, network_name: str) -> None:

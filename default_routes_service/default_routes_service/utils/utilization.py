@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import DefaultDict, List, Optional, Tuple
 
 from aiomysql.sa.result import RowProxy
 
@@ -24,7 +24,7 @@ def to_list(routes: Optional[Tuple[Tuple]]) -> Optional[List[List]]:
 
 def compute_routes_utilization(
     raw_routes_data: List[RowProxy], start_dt: datetime, end_dt: datetime
-) -> Dict[str, defaultdict]:
+) -> DefaultDict[str, List]:
     """Calculate routes utilization.
 
     Process raw_routes_data to calculate the percentage of time each route
@@ -36,9 +36,9 @@ def compute_routes_utilization(
         node_routes_changes[row.node_name].append((row.routes, row.last_updated))
 
     total_time_window: float = (end_dt - start_dt).total_seconds()
-    routes_utilization: defaultdict = defaultdict(list)
+    routes_utilization: DefaultDict[str, List] = defaultdict(list)
     for node_name, routes_changes in node_routes_changes.items():
-        routes_duration: defaultdict = defaultdict(float)
+        routes_duration: DefaultDict = defaultdict(float)
 
         first_routes, first_last_updated = routes_changes[0]
         prev_routes = first_routes if first_last_updated < start_dt else None

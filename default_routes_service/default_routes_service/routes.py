@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 from datetime import datetime
 from functools import partial
-from typing import Any, Tuple
+from typing import Any, DefaultDict, List, Tuple
 
 from aiohttp import web
 from sqlalchemy import select
@@ -159,7 +159,7 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         results = await cursor.fetchall()
 
     # Iterate over the list of RowProxy objects to track changes in routes.
-    routes_history: defaultdict = defaultdict(list)
+    routes_history: DefaultDict[str, List] = defaultdict(list)
     for row in results:
         routes_history[row.node_name].append(
             {

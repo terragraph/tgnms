@@ -6,7 +6,7 @@ import functools
 import json
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Iterable
+from typing import Any, DefaultDict, Iterable
 
 from aiohttp import web
 from croniter import croniter
@@ -436,14 +436,14 @@ async def handle_get_execution(request: web.Request) -> web.Response:
         description: Unknown scan test execution ID.
     """
 
-    def update_results(scan_results: defaultdict, results: Iterable) -> None:
+    def update_results(scan_results: DefaultDict, results: Iterable) -> None:
         for row in results:
             scan_results[row.token].update(
                 {key: val for key, val in row.items() if key != "token"}
             )
 
     def update_analysis_results(
-        scan_results: defaultdict, results: Iterable, type: str
+        scan_results: DefaultDict, results: Iterable, type: str
     ) -> None:
         for row in results:
             name = "aggregated_" + type if row.is_n_day_avg else type
@@ -464,7 +464,7 @@ async def handle_get_execution(request: web.Request) -> web.Response:
 
     execution, results, connectivity_results, interference_results = execution_output
 
-    scan_results: defaultdict = defaultdict(lambda: defaultdict(list))
+    scan_results: DefaultDict = defaultdict(lambda: defaultdict(list))
     update_results(scan_results, results)
     update_analysis_results(scan_results, connectivity_results, "connectivity")
     update_analysis_results(scan_results, interference_results, "interference")

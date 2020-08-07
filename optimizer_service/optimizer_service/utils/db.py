@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 from collections import defaultdict
-from typing import Dict, Iterable, List
+from typing import DefaultDict, Dict, Iterable, List
 
 from sqlalchemy import func, insert, select
 from tglib.clients import MySQLClient
@@ -10,12 +10,12 @@ from tglib.clients import MySQLClient
 from ..models import CutEdgeOverridesConfig
 
 
-async def get_previous_overrides_configs(networks: Iterable) -> defaultdict:
+async def get_previous_overrides_configs(networks: Iterable) -> DefaultDict:
     """
     Get latest entries of previous overrides config for all nodes in cut edges
     of each network from the db.
     """
-    previous_overrides_config: defaultdict = defaultdict(dict)
+    previous_overrides_config: DefaultDict = defaultdict(dict)
     async with MySQLClient().lease() as sa_conn:
         query = select(
             [

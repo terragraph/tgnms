@@ -6,7 +6,7 @@ import logging
 import typing
 from collections import defaultdict
 from enum import IntEnum
-from typing import Any, Collection, Dict, Iterable, List, Optional
+from typing import Any, Collection, DefaultDict, Dict, Iterable, List, Optional
 
 import numpy as np
 from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
@@ -248,7 +248,7 @@ def process_node_alignment_metrics(prom_results: Dict, network_name: str) -> Dic
         if not prom_results[metric]:
             logging.debug(f"Found no {metric} results for {network_name}")
             continue
-        results: defaultdict = defaultdict(dict)
+        results: DefaultDict = defaultdict(dict)
         for val in values:
             results[val["metric"][consts.link_name]][
                 (val["metric"][consts.link_direction], val["metric"][consts.node_name])

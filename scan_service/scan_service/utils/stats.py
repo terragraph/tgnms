@@ -5,7 +5,7 @@ import asyncio
 import logging
 import time
 from collections import defaultdict
-from typing import Dict, List
+from typing import DefaultDict, Dict, List
 
 from tglib.clients.prometheus_client import PrometheusClient, consts
 from tglib.exceptions import ClientRuntimeError
@@ -13,9 +13,9 @@ from tglib.exceptions import ClientRuntimeError
 from .topology import Topology
 
 
-def reshape_values(network_name: str, values: Dict) -> defaultdict:
+def reshape_values(network_name: str, values: Dict) -> DefaultDict:
     """Reshape the Prometheus results and map to other node's MAC address."""
-    node_metrics: defaultdict = defaultdict(dict)
+    node_metrics: DefaultDict = defaultdict(dict)
     other_node: str
     for metric, result in values.items():
         for link_result in result:
@@ -47,7 +47,7 @@ async def get_latest_stats(
     metrics: List[str],
     sample_period: int = 300,
     hold_period: int = 30,
-) -> defaultdict:
+) -> DefaultDict:
     """Fetch latest metric values for all links in the network."""
 
     client = PrometheusClient(timeout=2)

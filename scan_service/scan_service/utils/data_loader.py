@@ -3,7 +3,7 @@
 
 import logging
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 
 from terragraph_thrift.Controller.ttypes import ScanFwStatus, ScanMode
 
@@ -11,9 +11,9 @@ from ..analysis.interference import get_inr_offset
 from .db import fetch_aggregated_responses
 
 
-def average_rx_responses(stats: defaultdict) -> defaultdict:
+def average_rx_responses(stats: DefaultDict) -> DefaultDict:
     """Average IM scan response from all RX nodes."""
-    averaged_stats: defaultdict = defaultdict(
+    averaged_stats: DefaultDict = defaultdict(
         lambda: defaultdict(lambda: defaultdict(float))
     )
     for rx_node, data in stats.items():
@@ -26,9 +26,9 @@ def average_rx_responses(stats: defaultdict) -> defaultdict:
 
 def aggregate_all_responses(
     previous_rx_responses: Iterable, current_stats: Dict
-) -> defaultdict:
+) -> DefaultDict:
     """Aggregate all current and previous IM scan responses from all RX nodes."""
-    aggregated_stats: defaultdict = defaultdict(
+    aggregated_stats: DefaultDict = defaultdict(
         lambda: defaultdict(lambda: defaultdict(float))
     )
 
@@ -47,10 +47,10 @@ def aggregate_all_responses(
 
 def aggregate_current_responses(
     responses: Dict, tx_node: str
-) -> Tuple[defaultdict, List]:
+) -> Tuple[DefaultDict, List]:
     """Aggregate IM scan response from all RX nodes."""
     to_db = []
-    current_stats: defaultdict = defaultdict(
+    current_stats: DefaultDict = defaultdict(
         lambda: defaultdict(lambda: defaultdict(float))
     )
 
@@ -106,7 +106,7 @@ async def get_im_data(scan: Dict, network_name: str, n_days: int) -> Optional[Di
 
     # Average rx responses
     current_avg_rx_responses = average_rx_responses(current_stats)
-    n_day_avg_rx_responses: defaultdict = defaultdict()
+    n_day_avg_rx_responses: DefaultDict = defaultdict()
     if scan["mode"] == ScanMode.RELATIVE:
         to_db.clear()
         for rx_node, data in current_avg_rx_responses.items():
