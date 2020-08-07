@@ -1,6 +1,6 @@
 {
   "name": "@fbcnms/platform-server",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "dependencies": {
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.0",

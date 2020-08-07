@@ -107,6 +107,7 @@ const NetworkPanels: Array<PanelParams> = [
         legendFormat: '{{networkID}}',
       },
     ],
+    unit: 's',
   },
   {
     title: 'Device Transmitting Status',
@@ -168,6 +169,7 @@ const GatewayPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Upload Throughput',
@@ -178,6 +180,7 @@ const GatewayPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Latency',
@@ -188,6 +191,7 @@ const GatewayPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 's',
   },
   {
     title: 'Gateway CPU %',
@@ -197,15 +201,17 @@ const GatewayPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 'percent',
   },
   {
-    title: 'Temperature (℃)',
+    title: 'Temperature',
     targets: [
       {
         expr: 'temperature{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
         legendFormat: '{{gatewayID}} - {{sensor}}',
       },
     ],
+    unit: 'celsius',
   },
   {
     title: 'Disk %',
@@ -215,6 +221,7 @@ const GatewayPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 'percent',
   },
   {
     title: 's6a Auth Failure',
@@ -248,6 +255,7 @@ const InternalPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}} - {{sensor}}',
       },
     ],
+    unit: 'percent',
   },
   {
     title: 'Virtual Memory Percent',
@@ -258,6 +266,7 @@ const InternalPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 'percent',
   },
   {
     title: 'Backhaul Latency',
@@ -268,6 +277,7 @@ const InternalPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}',
       },
     ],
+    unit: 's',
   },
   {
     title: 'System Uptime',
@@ -278,6 +288,7 @@ const InternalPanels: Array<PanelParams> = [
         legendFormat: '{{gatewayID}}-{{service}}',
       },
     ],
+    unit: 's',
   },
   {
     title: 'Number of Service Restarts',
@@ -369,6 +380,7 @@ export function TemplateDashboard() {
 export type PanelParams = {
   title: string,
   targets: Array<{expr: string, legendFormat?: string}>,
+  unit?: string,
 };
 
 export function newPanel(params: PanelParams) {
@@ -380,6 +392,9 @@ export function newPanel(params: PanelParams) {
   // Have to add this after to avoid grafana-dash-gen from forcing the target
   // into a Graphite format
   pan.state.targets = params.targets;
+  if (params.unit) {
+    pan.state.y_formats[0] = params.unit;
+  }
   return pan;
 }
 

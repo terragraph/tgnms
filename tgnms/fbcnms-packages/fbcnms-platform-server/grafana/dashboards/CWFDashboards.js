@@ -36,44 +36,49 @@ const SubscribersPanels: Array<PanelParams> = [
     title: 'Traffic In',
     targets: [
       {
-        expr: 'sum(octets_in{imsi=~"$imsi"})',
+        expr: 'sum(octets_in{imsi=~"$imsi"}) by (imsi)',
         legendFormat: '{{imsi}}',
       },
     ],
+    unit: 'decbytes',
   },
   {
     title: 'Traffic Out',
     targets: [
       {
-        expr: 'sum(octets_out{imsi=~"$imsi"})',
+        expr: 'sum(octets_out{imsi=~"$imsi"}) by (imsi)',
         legendFormat: '{{imsi}}',
       },
     ],
+    unit: 'decbytes',
   },
   {
     title: 'Throughput In',
     targets: [
       {
-        expr: 'avg(rate(octets_in{imsi=~"$imsi"}[5m]))',
+        expr: 'avg(rate(octets_in{imsi=~"$imsi"}[5m])) by (imsi)',
         legendFormat: '{{imsi}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Throughput Out',
     targets: [
       {
-        expr: 'avg(rate(octets_out{imsi=~"$imsi"}[5m]))',
+        expr: 'avg(rate(octets_out{imsi=~"$imsi"}[5m])) by (imsi)',
         legendFormat: '{{imsi}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Active Sessions',
     targets: [
       {
         expr: 'active_sessions{imsi=~"$imsi"}',
-        legendFormat: '{{imsi}}',
+        legendFormat:
+          '{{imsi}} Session: {{id}} -- Network: {{networkID}} -- Gateway: {{gatewayID}}',
       },
     ],
   },
@@ -84,7 +89,7 @@ const APNPanels: Array<PanelParams> = [
     title: 'Authorization',
     targets: [
       {
-        expr: 'sum(eap_auth{apn=~"$apn"}) by (code)',
+        expr: 'sum(eap_auth{apn=~"$apn"}) by (code, apn)',
         legendFormat: '{{apn}}-{{code}}',
       },
     ],
@@ -106,6 +111,7 @@ const APNPanels: Array<PanelParams> = [
         legendFormat: '{{apn}}',
       },
     ],
+    unit: 'decbytes',
   },
   {
     title: 'Traffic Out',
@@ -115,30 +121,33 @@ const APNPanels: Array<PanelParams> = [
         legendFormat: '{{apn}}',
       },
     ],
+    unit: 'decbytes',
   },
   {
     title: 'Throughput In',
     targets: [
       {
-        expr: 'avg(rate(octets_in{apn=~"$apn"}[5m]))',
+        expr: 'avg(rate(octets_in{apn=~"$apn"}[5m])) by (apn)',
         legendFormat: '{{apn}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Throughput Out',
     targets: [
       {
-        expr: 'avg(rate(octets_out{apn=~"$apn"}[5m]))',
+        expr: 'avg(rate(octets_out{apn=~"$apn"}[5m])) by (apn)',
         legendFormat: '{{apn}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Accounting Stops',
     targets: [
       {
-        expr: 'sum(accounting_stop{apn=~"$apn"})',
+        expr: 'sum(accounting_stop{apn=~"$apn"}) by (apn)',
         legendFormat: '{{apn}}',
       },
     ],
@@ -147,10 +156,11 @@ const APNPanels: Array<PanelParams> = [
     title: 'Session Terminate',
     targets: [
       {
-        expr: 'sum(session_terminate{apn=~"$apn"})',
+        expr: 'sum(session_terminate{apn=~"$apn"}) by (apn)',
         legendFormat: '{{apn}}',
       },
     ],
+    unit: 's',
   },
 ];
 
@@ -159,8 +169,8 @@ const NetworkPanels: Array<PanelParams> = [
     title: 'Authorization',
     targets: [
       {
-        expr: 'sum(eap_auth{networkID=~"$networkID"}) by (code)',
-        legendFormat: '{{networkID}}',
+        expr: 'sum(eap_auth{networkID=~"$networkID"}) by (code, networkID)',
+        legendFormat: '{{networkID}}-{{code}}',
       },
     ],
   },
@@ -168,7 +178,7 @@ const NetworkPanels: Array<PanelParams> = [
     title: 'Active Sessions',
     targets: [
       {
-        expr: 'sum(active_sessions{networkID=~"$apn"}) by (networkID)',
+        expr: 'sum(active_sessions{networkID=~"$networkID"}) by (networkID)',
         legendFormat: '{{networkID}}',
       },
     ],
@@ -181,33 +191,39 @@ const NetworkPanels: Array<PanelParams> = [
         legendFormat: '{{networkID}}',
       },
     ],
+    unit: 'decbytes',
   },
   {
     title: 'Traffic Out',
     targets: [
       {
-        expr: 'sum(octets_out{networkID=~"$apn"}) by (networkID)',
+        expr: 'sum(octets_out{networkID=~"$networkID"}) by (networkID)',
         legendFormat: '{{networkID}}',
       },
     ],
+    unit: 'decbytes',
   },
   {
     title: 'Throughput In',
     targets: [
       {
-        expr: 'avg(rate(octets_in{networkID=~"$networkID"}[5m]))',
+        expr:
+          'avg(rate(octets_in{networkID=~"$networkID"}[5m])) by (networkID)',
         legendFormat: '{{networkID}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Throughput Out',
     targets: [
       {
-        expr: 'avg(rate(octets_out{networkID=~"$networkID"}[5m]))',
+        expr:
+          'avg(rate(octets_out{networkID=~"$networkID"}[5m])) by (networkID)',
         legendFormat: '{{networkID}}',
       },
     ],
+    unit: 'Bps',
   },
   {
     title: 'Accounting Stops',
@@ -244,6 +260,7 @@ const NetworkPanels: Array<PanelParams> = [
         legendFormat: '{{networkID}}',
       },
     ],
+    unit: 's',
   },
 ];
 
