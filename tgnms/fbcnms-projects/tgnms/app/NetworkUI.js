@@ -17,6 +17,7 @@ import NetworkTables from './views/tables/NetworkTables';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NmsAlarms from './views/alarms/NmsAlarms';
 import NmsOptionsContext from './contexts/NmsOptionsContext';
+import NodeSysdumps from './views/sysdumps/NodeSysdumps';
 import React from 'react';
 import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -524,6 +525,7 @@ class NetworkUI extends React.Component<Props, State> {
                 />
               )}
             />
+            <Route path={'/sysdumps/:networkName'} component={NodeSysdumps} />
             <Redirect to="/config" />
           </Switch>
         </NetworkContext.Provider>

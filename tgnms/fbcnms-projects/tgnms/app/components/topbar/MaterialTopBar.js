@@ -15,6 +15,7 @@ import CustomAccordion from '../common/CustomAccordion';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
+import GetAppIcon from '@material-ui/icons/GetApp';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
@@ -175,6 +176,12 @@ const VIEWS = [
     viewName: 'config',
     noNetworkName: false,
     hideCondition: () => !isAuthorized(['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']),
+  },
+  {
+    name: 'Sysdumps',
+    icon: <GetAppIcon />,
+    viewName: 'sysdumps',
+    hideCondition: () => !isFeatureEnabled('GET_SYSDUMP_ENABLED'),
   },
 ];
 
