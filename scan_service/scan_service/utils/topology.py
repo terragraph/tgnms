@@ -71,13 +71,23 @@ class Topology:
         overrides = json.loads(node_overrides_config["overrides"])
 
         for node_name, override_info in overrides.items():
-            if "radioParamsOverride" not in override_info:
+            node_mac = cls.node_name_to_mac[network_name][node_name]
+            if (
+                override_info.get("radioParamsOverride", {})
+                .get(node_mac, {})
+                .get("fwParams")
+                is None
+            ):
+                logging.debug(
+                    f"Unable to get overrides config for {node_name} of {network_name}"
+                )
                 continue
 
-            _node_mac = cls.node_name_to_mac[network_name][node_name]
-            cls.node_channel[network_name][_node_mac] = override_info[
-                "radioParamsOverride"
-            ][_node_mac]["fwParams"]["channel"]
-            cls.node_polarity[network_name][_node_mac] = override_info[
-                "radioParamsOverride"
-            ][_node_mac]["fwParams"]["polarity"]
+            if "channel" in override_info["radioParamsOverride"][node_mac]["fwParams"]:
+                cls.node_channel[network_name][node_mac] = override_info[
+                    "radioParamsOverride"
+                ][node_mac]["fwParams"]["channel"]
+            if "polarity" in override_info["radioParamsOverride"][node_mac]["fwParams"]:
+                cls.node_polarity[network_name][node_mac] = override_info[
+                    "radioParamsOverride"
+                ][node_mac]["fwParams"]["polarity"]
