@@ -54,6 +54,7 @@ type Props = {
   startEnd?: [moment, moment],
   networkId?: string,
   style?: ChartStyle,
+  height?: number,
 };
 
 const useStyles = makeStyles(() => ({
@@ -303,8 +304,9 @@ function useDatasetsFetcher(props: Props) {
                 pointHitRadius: 10,
                 pointRadius: style ? style.data.pointRadius : 0,
                 borderWidth: 2,
-                backgroundColor: getColorForIndex(index),
-                borderColor: getColorForIndex(index++),
+                backgroundColor:
+                  props.backgroundColor ?? getColorForIndex(index),
+                borderColor: props.backgroundColor ?? getColorForIndex(index++),
                 data: it[dbHelper.datapointFieldName].map(i => ({
                   t: parseInt(i[0]) * 1000,
                   y: parseFloat(i[1]),
@@ -362,6 +364,7 @@ export default function AsyncMetric(props: Props) {
   }
   return (
     <Line
+      height={props.height}
       options={{
         maintainAspectRatio: false,
         scaleShowValues: true,
