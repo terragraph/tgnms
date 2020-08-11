@@ -17,12 +17,15 @@ declare module '@turf/turf' {
 
   declare export type JsonObj = {[string]: *};
   declare export type FeatureId = string | number;
+  // single position
   declare export type GeoCoord = [number, number] | [number, number, number];
+
+  declare export type LineString = Array<GeoCoord>;
+  declare export type Polygon = Array<LineString>;
 
   declare export type GeoGeometry = {|
     type: GeoGeometryType,
-    coordinates: Array<GeoCoord>,
-    // properties: JsonObj,
+    coordinates: GeoCoord | LineString | Polygon,
   |};
 
   declare export type GeoFeature = {|
@@ -70,6 +73,21 @@ declare module '@turf/turf' {
     number,
     ?{mutate?: boolean, units?: 'kilometers', zTranslation?: number},
   ): GeoJson;
-
+  /**
+   * number - bearing in decimal degrees, between -180 and 180 degrees
+   * (positive clockwise)
+   */
   declare export function bearing(GeoCoord, GeoCoord): number;
+  declare export function length(GeoFeature): number; // kilometers
+  declare export function area(GeoFeature): number; // meters
+  declare export function convertArea(
+    area: number,
+    originalUnit: string,
+    finalUnit: string,
+  ): number;
+  declare export function convertLength(
+    length: number,
+    originalUnit: string,
+    finalUnit: string,
+  ): number;
 }

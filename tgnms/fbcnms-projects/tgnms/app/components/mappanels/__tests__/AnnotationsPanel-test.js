@@ -16,6 +16,7 @@ import {
   mockPanelControl,
 } from '../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
+import type {LineString, Polygon} from '@turf/turf';
 import type {MapAnnotationContext as MapAnnotationContextType} from '../../../contexts/MapAnnotationContext';
 
 afterEach(cleanup);
@@ -42,7 +43,7 @@ test('shows form if a feature is selected', () => {
       contextVal={{
         selectedFeatureId: '123',
         selectedFeature: turf.feature(
-          {type: 'Point', coordinates: [[0, 0]]},
+          {type: 'Point', coordinates: [0, 0]},
           {name: 'test-abc', showName: true},
           {id: '123'},
         ),
@@ -56,6 +57,61 @@ test('shows form if a feature is selected', () => {
   expect(
     coerceClass(getByLabelText('Show title on map'), HTMLInputElement)?.checked,
   ).toBe(true);
+});
+
+test('shows length if feature is a line', () => {
+  const {getByText, getByTestId} = render(
+    <Wrapper
+      contextVal={{
+        selectedFeatureId: '123',
+        selectedFeature: turf.feature(
+          {
+            type: 'LineString',
+            coordinates: ([
+              [115, -32],
+              [131, -22],
+              [143, -25],
+              [150, -34],
+            ]: LineString),
+          },
+          {name: 'test-abc', showName: true},
+          {id: '123'},
+        ),
+      }}>
+      <AnnotationsPanel {...defaultProps} />
+    </Wrapper>,
+  );
+  expect(getByText('Length:')).toBeInTheDocument();
+  expect(getByTestId('feature-length').textContent).toBe('4,407.939 km');
+});
+
+test('shows area if feature is a polygon', () => {
+  const {getByText, getByTestId} = render(
+    <Wrapper
+      contextVal={{
+        selectedFeatureId: '123',
+        selectedFeature: turf.feature(
+          {
+            type: 'Polygon',
+            coordinates: ([
+              [
+                [125, -15],
+                [113, -22],
+                [154, -27],
+                [144, -15],
+                [125, -15],
+              ],
+            ]: Polygon),
+          },
+          {name: 'test-abc', showName: true},
+          {id: '123'},
+        ),
+      }}>
+      <AnnotationsPanel {...defaultProps} />
+    </Wrapper>,
+  );
+  expect(getByText('Area:')).toBeInTheDocument();
+  expect(getByTestId('feature-area').textContent).toBe('3,339,946.239 km');
 });
 
 function Wrapper({
