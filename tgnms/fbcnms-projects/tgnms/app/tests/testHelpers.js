@@ -33,7 +33,7 @@ import type {
 import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
-import type {PanelStateControl} from '../views/map/usePanelControl';
+import type {PanelStateControl} from '../components/mappanels/usePanelControl';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
@@ -291,9 +291,9 @@ export function mockPanelControl(
 ): PanelStateControl {
   return {
     getAll: jest.fn(),
-    getIsHidden: jest.fn(),
-    getIsCollapsed: jest.fn(),
-    getIsOpen: jest.fn(),
+    getIsHidden: jest.fn(() => true),
+    getIsCollapsed: jest.fn(() => false),
+    getIsOpen: jest.fn(() => false),
     getPanelState: jest.fn(),
     toggleOpen: jest.fn(),
     setPanelState: jest.fn(),

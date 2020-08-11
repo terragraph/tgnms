@@ -9,7 +9,6 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as React from 'react';
 import * as mapboxgl from 'mapbox-gl';
 import Dragger from '../../components/common/Dragger';
-import DrawLayer from './mapLayers/DrawLayer';
 import MapLayers from './mapLayers/MapLayers';
 import NetworkContext from '../../contexts/NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
@@ -18,6 +17,7 @@ import ReactMapboxGl from 'react-mapbox-gl';
 import TableControl from './TableControl';
 import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
 import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
+import {MapAnnotationContextProvider} from '../../contexts/MapAnnotationContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
 import {Route, withRouter} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '../../contexts/RouteContext';
@@ -267,102 +267,103 @@ class NetworkMap extends React.Component<Props, State> {
             <MapContextProvider
               defaultMapMode={MAPMODE.DEFAULT}
               mapboxRef={mapRef}>
-              <div className={classes.container}>
-                <div className={classes.topContainer}>
-                  <MapBoxGL
-                    fitBounds={mapBounds}
-                    fitBoundsOptions={FIT_BOUND_OPTIONS}
-                    style={selectedMapStyle}
-                    onStyleLoad={this.handleStyleLoad}
-                    containerStyle={{width: '100%', height: 'inherit'}}>
-                    <TgMapboxGeocoder
-                      accessToken={MAPBOX_ACCESS_TOKEN}
-                      mapRef={mapRef}
-                      onSelectFeature={this.onGeocoderEvent}
-                      onSelectTopologyElement={context.setSelected}
-                      nodeMap={context.nodeMap}
-                      linkMap={context.linkMap}
-                      siteMap={context.siteMap}
-                      statusReports={
-                        context.networkConfig?.status_dump?.statusReports
-                      }
-                    />
-                    <Route
-                      path={`${match.url}/:tableName?`}
-                      render={routerProps => (
-                        <TableControl
-                          style={{left: 10, bottom: 10}}
-                          baseUrl={match.url}
-                          onToggleTable={this.onToggleTable}
-                          {...routerProps}
-                        />
-                      )}
-                    />
-                    <MapLayers
-                      context={context}
-                      plannedSite={plannedSite}
-                      onPlannedSiteMoved={this.onPlannedSiteMoved}
-                      nearbyNodes={nearbyNodes}
-                      hiddenSites={hiddenSites}
-                    />
-                    <DrawLayer />
-                  </MapBoxGL>
-                  <NetworkDrawer
-                    mapLayersProps={{
-                      mapStylesConfig: this._mapBoxStyles,
-                      selectedMapStyle,
-                      onMapStyleSelectChange: selectedMapStyle =>
-                        this.setState({selectedMapStyle}),
-                      expanded: false,
-                      onPanelChange: () => {},
-                    }}
-                    plannedSiteProps={{
-                      plannedSite: plannedSite,
-                      onUpdatePlannedSite: plannedSite =>
-                        this.setState({plannedSite}),
-                      hideSite: this.hideSite,
-                      unhideSite: this.unhideSite,
-                    }}
-                    searchNearbyProps={{
-                      nearbyNodes: nearbyNodes,
-                      onUpdateNearbyNodes: nearbyNodes =>
-                        this.setState({nearbyNodes}),
-                    }}
-                    networkTestId={getTestOverlayId(location)}
-                    scanId={getScanId(location)}
-                    onNetworkDrawerResize={networkDrawerWidth =>
-                      this.setState({networkDrawerWidth})
-                    }
-                    networkDrawerWidth={networkDrawerWidth}
-                  />
-                </div>
-                {showTable && (
-                  <div
-                    style={{
-                      height: tableHeight,
-                      width: `calc(100% - ${networkDrawerWidth}px)`,
-                    }}>
-                    <div className={classes.draggerContainer}>
-                      <Dragger
-                        direction="vertical"
-                        minSize={TABLE_LIMITS.minHeight}
-                        maxSize={TABLE_LIMITS.maxHeight}
-                        onResize={this.handleTableResize}
+              <MapAnnotationContextProvider>
+                <div className={classes.container}>
+                  <div className={classes.topContainer}>
+                    <MapBoxGL
+                      fitBounds={mapBounds}
+                      fitBoundsOptions={FIT_BOUND_OPTIONS}
+                      style={selectedMapStyle}
+                      onStyleLoad={this.handleStyleLoad}
+                      containerStyle={{width: '100%', height: 'inherit'}}>
+                      <TgMapboxGeocoder
+                        accessToken={MAPBOX_ACCESS_TOKEN}
+                        mapRef={mapRef}
+                        onSelectFeature={this.onGeocoderEvent}
+                        onSelectTopologyElement={context.setSelected}
+                        nodeMap={context.nodeMap}
+                        linkMap={context.linkMap}
+                        siteMap={context.siteMap}
+                        statusReports={
+                          context.networkConfig?.status_dump?.statusReports
+                        }
                       />
-                    </div>
-                    <NetworkTables
-                      selectedElement={context.selectedElement}
-                      // fixes this component's usage of withRouter
-                      match={match}
-                      location={location}
-                      history={history}
-                      isEmbedded={true}
-                      onResize={this.handleTableResize}
-                      tableHeight={tableHeight}
+                      <Route
+                        path={`${match.url}/:tableName?`}
+                        render={routerProps => (
+                          <TableControl
+                            style={{left: 10, bottom: 10}}
+                            baseUrl={match.url}
+                            onToggleTable={this.onToggleTable}
+                            {...routerProps}
+                          />
+                        )}
+                      />
+                      <MapLayers
+                        context={context}
+                        plannedSite={plannedSite}
+                        onPlannedSiteMoved={this.onPlannedSiteMoved}
+                        nearbyNodes={nearbyNodes}
+                        hiddenSites={hiddenSites}
+                      />
+                    </MapBoxGL>
+                    <NetworkDrawer
+                      mapLayersProps={{
+                        mapStylesConfig: this._mapBoxStyles,
+                        selectedMapStyle,
+                        onMapStyleSelectChange: selectedMapStyle =>
+                          this.setState({selectedMapStyle}),
+                        expanded: false,
+                        onPanelChange: () => {},
+                      }}
+                      plannedSiteProps={{
+                        plannedSite: plannedSite,
+                        onUpdatePlannedSite: plannedSite =>
+                          this.setState({plannedSite}),
+                        hideSite: this.hideSite,
+                        unhideSite: this.unhideSite,
+                      }}
+                      searchNearbyProps={{
+                        nearbyNodes: nearbyNodes,
+                        onUpdateNearbyNodes: nearbyNodes =>
+                          this.setState({nearbyNodes}),
+                      }}
+                      networkTestId={getTestOverlayId(location)}
+                      scanId={getScanId(location)}
+                      onNetworkDrawerResize={networkDrawerWidth =>
+                        this.setState({networkDrawerWidth})
+                      }
+                      networkDrawerWidth={networkDrawerWidth}
                     />
                   </div>
-                )}
-              </div>
+                  {showTable && (
+                    <div
+                      style={{
+                        height: tableHeight,
+                        width: `calc(100% - ${networkDrawerWidth}px)`,
+                      }}>
+                      <div className={classes.draggerContainer}>
+                        <Dragger
+                          direction="vertical"
+                          minSize={TABLE_LIMITS.minHeight}
+                          maxSize={TABLE_LIMITS.maxHeight}
+                          onResize={this.handleTableResize}
+                        />
+                      </div>
+                      <NetworkTables
+                        selectedElement={context.selectedElement}
+                        // fixes this component's usage of withRouter
+                        match={match}
+                        location={location}
+                        history={history}
+                        isEmbedded={true}
+                        onResize={this.handleTableResize}
+                        tableHeight={tableHeight}
+                      />
+                    </div>
+                  )}
+                </div>
+              </MapAnnotationContextProvider>
             </MapContextProvider>
           </RoutesContextProvider>
         )}

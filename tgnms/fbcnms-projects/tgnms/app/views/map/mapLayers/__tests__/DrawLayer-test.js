@@ -12,8 +12,8 @@ import DrawLayer, {
   MAPBOX_DRAW_EVENTS,
   MAPBOX_TG_EVENTS,
   useDrawLayer,
-  useMapAnnotationGroupState,
 } from '../DrawLayer';
+import {MapAnnotationContextProvider} from '../../../../contexts/MapAnnotationContext';
 import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
@@ -31,6 +31,7 @@ beforeEach(() => {
   MapboxDrawMock.mockReset();
   cleanup();
 });
+
 describe('DrawLayer', () => {
   test('Renders button into mapboxControl', async () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
@@ -102,22 +103,6 @@ describe('DrawLayer', () => {
   });
 });
 
-describe('useMapAnnotationGroupState', () => {
-  test('before group is loaded, empty feature collection is shown', async () => {
-    const getGroupSpy = jest
-      .spyOn(mapApiUtilMock, 'getAnnotationGroup')
-      .mockResolvedValueOnce(null);
-    const {result} = await renderHook(() =>
-      useMapAnnotationGroupState({networkName: 'test', groupName: 'test'}),
-    );
-    expect(result.current.features).toMatchObject({
-      type: 'FeatureCollection',
-      features: [],
-    });
-    expect(getGroupSpy).toHaveBeenCalled();
-  });
-});
-
 describe('useDrawLayer', () => {
   test('when mapbox draw creates an annotation, saves to the backend', async () => {
     const mapboxDrawMock = mockMapboxDraw();
@@ -159,7 +144,11 @@ function Wrapper({
 }) {
   return (
     <TestApp>
-      <MapContextWrapper contextValue={mapValue}>{children}</MapContextWrapper>
+      <MapAnnotationContextProvider>
+        <MapContextWrapper contextValue={mapValue}>
+          {children}
+        </MapContextWrapper>
+      </MapAnnotationContextProvider>
     </TestApp>
   );
 }

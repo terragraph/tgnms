@@ -36,7 +36,10 @@ const defaultProps = {
     unhideSite: jest.fn(),
   },
   mapRef: null,
-  panelControl: mockPanelControl(),
+  panelControl: mockPanelControl({
+    getIsOpen: jest.fn().mockReturnValue(true),
+    getIsHidden: jest.fn().mockReturnValue(false),
+  }),
   panelForm: mockPanelForm(),
 };
 

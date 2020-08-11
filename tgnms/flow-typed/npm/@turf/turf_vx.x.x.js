@@ -16,19 +16,20 @@ declare module '@turf/turf' {
     | 'GeometryCollection';
 
   declare export type JsonObj = {[string]: *};
+  declare export type FeatureId = string | number;
   declare export type GeoCoord = [number, number] | [number, number, number];
 
   declare export type GeoGeometry = {|
     type: GeoGeometryType,
     coordinates: Array<GeoCoord>,
-    properties: JsonObj,
+    // properties: JsonObj,
   |};
 
   declare export type GeoFeature = {|
     type: 'Feature',
     geometry: GeoGeometry,
     properties: JsonObj,
-    id?: number,
+    id?: FeatureId,
   |};
 
   declare export type GeoFeatureCollection = {|
@@ -48,7 +49,11 @@ declare module '@turf/turf' {
   declare export function featureCollection(
     Array<GeoFeature>,
   ): GeoFeatureCollection;
-  declare export function feature(GeoGeometry): GeoFeature;
+  declare export function feature(
+    GeoGeometry,
+    properties?: JsonObj,
+    opt?: {id?: string},
+  ): GeoFeature;
   declare export function point(
     [number, number, ?number],
     ?JsonObj,

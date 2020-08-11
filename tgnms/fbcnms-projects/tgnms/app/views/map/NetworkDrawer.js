@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
+import AnnotationsPanel from '../../components/mappanels/AnnotationsPanel';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
@@ -33,7 +34,11 @@ import {
   TopologyElement,
 } from '../../constants/MapPanelConstants';
 import {MAPMODE, useMapContext} from '../../contexts/MapContext';
-import {PANELS, PANEL_STATE, usePanelControl} from './usePanelControl';
+import {
+  PANELS,
+  PANEL_STATE,
+  usePanelControl,
+} from '../../components/mappanels/usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
@@ -49,7 +54,7 @@ import type {
   NearbyNodes,
   PlannedSiteProps,
 } from '../../components/mappanels/MapPanelTypes';
-import type {PanelStateControl} from './usePanelControl';
+import type {PanelStateControl} from '../../components/mappanels/usePanelControl';
 
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
@@ -170,6 +175,7 @@ export default function NetworkDrawerFn({
       UPGRADE_PROGRESS: PANEL_STATE.HIDDEN,
       TOPOLOGY: PANEL_STATE.HIDDEN,
       DEFAULT_ROUTES: PANEL_STATE.HIDDEN,
+      ANNOTATIONS: PANEL_STATE.HIDDEN,
     },
   });
   const {
@@ -385,7 +391,7 @@ export default function NetworkDrawerFn({
             />
           </Slide>
         )}
-
+        <AnnotationsPanel panelControl={panelControl} />
         <TopologyBuilderMenu
           panelControl={panelControl}
           panelForm={topologyBuilderForm}

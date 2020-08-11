@@ -6,6 +6,7 @@
  */
 
 import BuildingsLayer from './BuildingsLayer';
+import DrawLayer from './DrawLayer';
 import LinksLayer from './LinksLayer';
 import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer';
@@ -15,6 +16,7 @@ import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
+import {isFeatureEnabled} from '../../../constants/FeatureFlags';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useRouteContext} from '../../../contexts/RouteContext';
 
@@ -189,6 +191,7 @@ export default function MapLayers(props: Props) {
           data={overlayData.area_polygons}
         />
       )}
+      {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawLayer />}
     </>
   );
 }

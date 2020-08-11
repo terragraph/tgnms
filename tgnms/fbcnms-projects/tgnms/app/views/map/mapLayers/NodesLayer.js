@@ -17,7 +17,7 @@ import {mapboxShouldAcceptClick} from '../../../helpers/NetworkHelpers';
 import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
 import {useMapContext} from '../../../contexts/MapContext';
 
-import type {GeoFeature} from '@turf/turf';
+import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {
   LinkType as Link,
   NodeType as Node,
@@ -124,7 +124,7 @@ function NodeAzimuthIcons() {
     return featureCollection;
   }, [topologyMapsRef]);
 
-  const selectionRef = React.useRef<?number>();
+  const selectionRef = React.useRef<?FeatureId>();
   const selectFeature = React.useCallback(
     (feature: ?GeoFeature) => {
       // deselect previous
