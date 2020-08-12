@@ -210,8 +210,7 @@ export const arrayConfigs = [
   {
     id: 'dashboard_v2',
     title: 'V2 LTE Dashboard',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
+    enabledByDefault: true,
   },
   {
     id: 'work_order_activities_display',
