@@ -72,12 +72,16 @@ class ScanTest:
                 )
                 if not start_scan_resp["success"]:
                     raise ClientRuntimeError(msg=start_scan_resp["message"])
-                if (
-                    start_scan_resp.get("token") is None
-                    or start_scan_resp.get("lastToken") is None
-                ):
+
+                self.start_token = start_scan_resp.get("token")
+                self.end_token = start_scan_resp.get("lastToken")
+                if self.start_token is None or self.end_token is None:
                     raise ClientRuntimeError(
-                        msg="Unknown token range. Cannot create scan result entries."
+                        msg=(
+                            "Unknown token range "
+                            f"({self.start_token} - {self.end_token}). "
+                            "Cannot create scan result entries."
+                        )
                     )
 
                 scan_status_resp = await APIServiceClient(timeout=1).request(
@@ -85,8 +89,8 @@ class ScanTest:
                     "getScanStatus",
                     params={
                         "isConcise": True,
-                        "tokenFrom": start_scan_resp["token"],
-                        "tokenTo": start_scan_resp["lastToken"],
+                        "tokenFrom": self.start_token,
+                        "tokenTo": self.end_token,
                     },
                 )
             except ClientRuntimeError:
@@ -106,11 +110,9 @@ class ScanTest:
             ]
             self.start_delay_s = bwgd_to_epoch(min(start_bwgd_idxs)) - time.time()
             self.end_delay_s = bwgd_to_epoch(max(start_bwgd_idxs)) - time.time()
-            self.start_token = start_scan_resp["token"]
-            self.end_token = start_scan_resp["lastToken"]
 
             values: List[Dict] = []
-            for token in range(self.start_token, self.end_token + 1):  # type: ignore
+            for token in range(self.start_token, self.end_token + 1):
                 self.token_range.add(token)
                 values.append(
                     {

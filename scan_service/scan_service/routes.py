@@ -507,6 +507,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         description: Successful operation.
       "400":
         description: Invalid or missing parameters.
+      "500":
+        description: Failed to start new scan test.
     """
     body = await request.json()
 
@@ -532,4 +534,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
 
     test = ScanTest(network_name, type, mode, options)
     execution_id = await Scheduler.start_execution(test)
+    if execution_id is None:
+        raise web.HTTPInternalServerError(
+            text="Failed to start a new scan test. Check scan service logs."
+        )
     return web.Response(text=f"Started new scan test execution with ID: {execution_id}")

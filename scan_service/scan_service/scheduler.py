@@ -212,7 +212,7 @@ class Scheduler:
     @classmethod
     async def start_execution(
         cls, test: ScanTest, params_id: Optional[int] = None
-    ) -> int:
+    ) -> Optional[int]:
         """Add a new execution to the DB and start the internal task."""
         async with MySQLClient().lease() as sa_conn:
             if params_id is None:
@@ -235,23 +235,25 @@ class Scheduler:
         # Start the test
         await test.start(execution_id, cls.SCAN_START_DELAY_S)
 
-        if test.start_delay_s is not None and test.end_delay_s is not None:
-            cls.executions[execution_id] = test
+        if test.start_delay_s is None or test.end_delay_s is None:
+            return None
 
-            # Schedule task for updating execution status to RUNNING
-            loop = asyncio.get_event_loop()
-            loop.call_later(
-                test.start_delay_s,
-                asyncio.create_task,
-                cls.update_execution_status(execution_id, ScanTestStatus.RUNNING),
-            )
+        cls.executions[execution_id] = test
 
-            # Schedule task for updating execution status to FAILED
-            loop.call_later(
-                test.end_delay_s + cls.CLEAN_UP_DELAY_S,
-                asyncio.create_task,
-                cls.cleanup_execution_status(execution_id),
-            )
+        # Schedule task for updating execution status to RUNNING
+        loop = asyncio.get_event_loop()
+        loop.call_later(
+            test.start_delay_s,
+            asyncio.create_task,
+            cls.update_execution_status(execution_id, ScanTestStatus.RUNNING),
+        )
+
+        # Schedule task for updating execution status to FAILED
+        loop.call_later(
+            test.end_delay_s + cls.CLEAN_UP_DELAY_S,
+            asyncio.create_task,
+            cls.cleanup_execution_status(execution_id),
+        )
 
         return execution_id
 
