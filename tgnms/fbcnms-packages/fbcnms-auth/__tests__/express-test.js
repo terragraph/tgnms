@@ -12,11 +12,11 @@ jest.mock('@fbcnms/sequelize-models');
 
 import OrganizationLocalStrategy from '@fbcnms/auth/strategies/OrganizationLocalStrategy';
 
-import bodyParser from 'body-parser';
 import express from 'express';
 import fbcPassport from '../passport';
 import nock from 'nock';
 import passport from 'passport';
+import path from 'path';
 import request from 'supertest';
 import routes from '@fbcnms/platform-server/apicontroller/routes';
 import userMiddleware from '../express';
@@ -64,16 +64,26 @@ function mockUserMiddleware(where) {
   };
 }
 
-function getApp(orgName: string, loggedInEmail: ?string) {
+function mockCsrfMiddleware() {
+  return async (req: FBCNMSRequest, _res, next) => {
+    req.csrfToken = () => 'myCsrfToken';
+    next();
+  };
+}
+
+function getApp(orgName: string, loggedInEmail: ?string, loginView: ?string) {
   const app = express();
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded());
+  app.set('views', path.join(__dirname, 'views'));
+  app.set('view engine', 'pug');
+  app.use(express.json());
+  app.use(express.urlencoded({extended: true}));
   fbcPassport.use();
   passport.use(new OrganizationLocalStrategy());
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(configureAccess({loginUrl: '/user/login'}));
   app.use(mockOrgMiddleware(orgName));
+  app.use(mockCsrfMiddleware());
   if (loggedInEmail) {
     app.use(mockUserMiddleware({email: loggedInEmail}));
   }
@@ -82,6 +92,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
     userMiddleware({
       loginFailureUrl: '/failure',
       loginSuccessUrl: '/success',
+      loginView: loginView || 'index',
     }),
   );
   app.use('/nms/apicontroller', routes);
@@ -94,6 +105,35 @@ describe('user tests', () => {
   });
   afterEach(async () => {
     await User.destroy({where: {}, truncate: true});
+  });
+
+  describe('login page renders', () => {
+    it('displays login page', async () => {
+      const app = getApp('validorg');
+      const expected = {
+        appData: {
+          csrfToken: 'myCsrfToken',
+          ssoEnabled: false,
+          ssoSelectedType: 'none',
+          csvCharset: null,
+          enabledFeatures: [],
+          tabs: [],
+          user: {
+            tenant: '',
+            email: '',
+            isSuperUser: false,
+            isReadOnlyUser: false,
+          },
+        },
+      };
+      await request(app)
+        .get('/user/login')
+        .expect('<script>' + JSON.stringify(expected) + ';</script>');
+    });
+    it('returns 500 when invalid view', async () => {
+      const app = getApp('validorg', null, 'badView');
+      await request(app).get('/user/login').expect(500);
+    });
   });
 
   describe('login', () => {

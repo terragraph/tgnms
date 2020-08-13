@@ -36,6 +36,7 @@ const PASSWORD_FOR_LOGGING = '<SECRET>';
 type Options = {|
   loginSuccessUrl: string,
   loginFailureUrl: string,
+  loginView?: string,
   onboardingUrl?: string,
 |};
 
@@ -89,45 +90,54 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
     router.use(expressOnboarding());
   }
 
-  router.get('/login', async (req: FBCNMSRequest, res) => {
-    if (req.isAuthenticated()) {
-      const to = req.query.to;
-      const next = ensureRelativeUrl(Array.isArray(to) ? null : to);
-      res.redirect(next || '/');
-      return;
-    }
-
-    if (options.onboardingUrl && !(await User.findOne())) {
-      res.redirect(options.onboardingUrl);
-      return;
-    }
-
-    let ssoSelectedType = 'none';
+  router.get('/login', async (req: FBCNMSRequest, res, next) => {
     try {
-      if (req.organization) {
-        const org = await req.organization();
-        ssoSelectedType = org.ssoSelectedType || 'none';
+      if (req.isAuthenticated()) {
+        const to = req.query.to;
+        const next = ensureRelativeUrl(Array.isArray(to) ? null : to);
+        res.redirect(next || '/');
+        return;
       }
+
+      if (options.onboardingUrl && !(await User.findOne())) {
+        res.redirect(options.onboardingUrl);
+        return;
+      }
+
+      let ssoSelectedType = 'none';
+      try {
+        if (req.organization) {
+          const org = await req.organization();
+          ssoSelectedType = org.ssoSelectedType || 'none';
+        }
+      } catch (e) {
+        logger.error('Error getting organization', e);
+      }
+
+      const appData: AppContextAppData = {
+        csrfToken: req.csrfToken(),
+        ssoEnabled: ssoSelectedType !== 'none',
+        ssoSelectedType,
+        csvCharset: null,
+        enabledFeatures: [],
+        tabs: [],
+        user: {
+          tenant: '',
+          email: '',
+          isSuperUser: false,
+          isReadOnlyUser: false,
+        },
+      };
+
+      res.render(options.loginView || 'login', {
+        staticDist,
+        configJson: JSON.stringify({
+          appData,
+        }),
+      });
     } catch (e) {
-      logger.error('Error getting organization', e);
+      next(e);
     }
-
-    const appData: AppContextAppData = {
-      csrfToken: req.csrfToken(),
-      ssoEnabled: ssoSelectedType !== 'none',
-      ssoSelectedType,
-      csvCharset: null,
-      enabledFeatures: [],
-      tabs: [],
-      user: {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
-    };
-
-    res.render('login', {
-      staticDist,
-      configJson: JSON.stringify({
-        appData,
-      }),
-    });
   });
 
   router.get(
