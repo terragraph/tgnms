@@ -44,7 +44,7 @@ const commonProps = {
   networkName: 'test',
 };
 
-test('Firing alerts tab renders', () => {
+test('Firing alerts tab renders', async () => {
   const firingAlerts: Array<FiringAlarm> = [
     {
       labels: {alertname: '<<testalert>>', severity: 'NOTICE'},
@@ -82,20 +82,21 @@ test('Clicking view alert shows alert details', async () => {
       status: {inhibitedBy: [], silencedBy: [], state: ''},
     },
   ];
-  jest
-    .spyOn(TgApiUtilMock, 'viewFiringAlerts')
-    .mockReturnValueOnce(firingAlerts);
+  jest.spyOn(TgApiUtilMock, 'viewFiringAlerts').mockReturnValue(firingAlerts);
   const {getByText, getByTestId} = render(
     <AlarmsTestWrapper>
       <NmsAlarms {...commonProps} />
     </AlarmsTestWrapper>,
     {baseElement: document?.body ?? undefined},
   );
+
   act(() => {
     fireEvent.click(getByText('<<testalert>>'));
   });
 
-  const detailsPane = getByTestId('alert-details-pane');
+  const detailsPane = await waitForElement(() =>
+    getByTestId('alert-details-pane'),
+  );
   expect(detailsPane).toBeInTheDocument();
 });
 

@@ -8,13 +8,16 @@
  * @format
  */
 
+import AddAlertTwoToneIcon from '@material-ui/icons/AddAlertTwoTone';
 import AlertDetailsPane from './AlertDetails/AlertDetailsPane';
+import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SimpleTable, {toLabels} from '../table/SimpleTable';
 import Slide from '@material-ui/core/Slide';
 import useRouter from '../../hooks/useRouter';
+import {Link} from 'react-router-dom';
 import {SEVERITY} from '../severity/Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
@@ -33,6 +36,14 @@ const useStyles = makeStyles(theme => ({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  addAlertIcon: {
+    fontSize: '200px',
+    margin: theme.spacing(1),
+  },
+  helperText: {
+    color: theme.palette.text.primary,
+    fontSize: theme.typography.pxToRem(20),
   },
 }));
 
@@ -84,6 +95,38 @@ export default function FiringAlerts() {
       })
     : [];
 
+  if (alertData.length === 0) {
+    return (
+      <Grid
+        container
+        spacing={2}
+        direction="column"
+        alignItems="center"
+        justify="center"
+        data-testid="no-alerts-icon"
+        style={{minHeight: '60vh'}}>
+        <Grid item>
+          <AddAlertTwoToneIcon
+            color="primary"
+            className={classes.addAlertIcon}
+          />
+        </Grid>
+        <Grid item>
+          <span className={classes.helperText}>Start creating alert rules</span>
+        </Grid>
+        <Grid item>
+          <Button
+            color="primary"
+            size="small"
+            variant="contained"
+            component={Link}
+            to={`/alarms/${match.params.networkName || ''}/rules`}>
+            Add Alert Rule
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  }
   return (
     <Grid className={classes.root} container spacing={2}>
       <Grid item xs={selectedRow ? 8 : 12}>

@@ -41,14 +41,15 @@ afterEach(() => {
 });
 
 describe('react router tests', () => {
-  test('/alerts renders the firing alerts panel', () => {
+  test('/alerts renders the no alerts icon', () => {
     const {getByTestId} = render(
       <Wrapper route={'/alarms'}>
         <Route path="/alarms" component={Alarms} />,
       </Wrapper>,
     );
-    // assert that the top level firing alerts header is visible
-    expect(getByTestId('firing-alerts')).toBeInTheDocument();
+
+    // assert that the 'no alerts' icon is visible
+    expect(getByTestId('no-alerts-icon')).toBeInTheDocument();
   });
 });
 
@@ -63,12 +64,14 @@ describe('Firing Alerts', () => {
       ],
     });
 
-    const {getByText} = render(
+    const {getByTestId, getByText} = render(
       <Wrapper route={'/alerts'}>
         <Alarms />
       </Wrapper>,
     );
 
+    // assert that the top level firing alerts header is visible
+    expect(getByTestId('firing-alerts')).toBeInTheDocument();
     expect(getByText('<<TEST ALERT>>')).toBeInTheDocument();
     expect(getByText('<<TEST DESCRIPTION>>')).toBeInTheDocument();
   });

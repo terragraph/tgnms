@@ -21,20 +21,20 @@ import type {
   RuleInterface,
 } from '@fbcnms/alarms/components/rules/RuleInterface';
 
-const styles = () => ({
+const useStyles = makeStyles(theme => ({
   root: {
     flex: '1 1 auto',
     flexFlow: 'column',
     display: 'flex',
     overflow: 'auto',
+    padding: theme.spacing(4),
   },
-});
+}));
 
 type Props = {
   networkName: string,
 };
 
-const useStyles = makeStyles(styles);
 const EVENT_RULE_TYPE = 'events';
 export default function NmsAlarms(_props: Props) {
   const classes = useStyles();

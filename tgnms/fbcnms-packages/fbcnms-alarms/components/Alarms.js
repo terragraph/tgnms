@@ -10,14 +10,18 @@
 
 import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
-import AppBar from '@material-ui/core/AppBar';
 import FiringAlerts from './alertmanager/FiringAlerts';
+import Grid from '@material-ui/core/Grid';
+import GroupOutlinedIcon from '@material-ui/icons/GroupOutlined';
+import ListOutlinedIcon from '@material-ui/icons/ListOutlined';
+import NotificationsActiveOutlinedIcon from '@material-ui/icons/NotificationsActiveOutlined';
 import React from 'react';
 import Receivers from './alertmanager/Receivers/Receivers';
 import Routes from './alertmanager/Routes';
 import Suppressions from './alertmanager/Suppressions';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import Typography from '@material-ui/core/Typography';
 import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
 import useRouter from '../hooks/useRouter';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
@@ -30,31 +34,41 @@ import type {Labels} from './AlarmAPIType';
 import type {Match} from 'react-router-dom';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
-const useStyles = makeStyles(_theme => ({
-  appBar: {
-    position: 'inherit',
+const useStyles = makeStyles(_ => ({
+  tab: {
+    minWidth: 'auto',
   },
 }));
 
+type TabData = {
+  icon: React.Node,
+  name: string,
+};
+
 type TabMap = {
-  [string]: {name: string},
+  [string]: TabData,
 };
 
 const TABS: TabMap = {
   alerts: {
     name: 'Alerts',
+    icon: <NotificationsActiveOutlinedIcon />,
   },
-  alert_rules: {
-    name: 'Alert Rules',
+  rules: {
+    name: 'Rules',
+    icon: <ListOutlinedIcon />,
   },
   suppressions: {
     name: 'Suppressions',
+    icon: <React.Fragment />,
   },
   routes: {
     name: 'Routes',
+    icon: <React.Fragment />,
   },
-  receivers: {
-    name: 'Receivers',
+  teams: {
+    name: 'Teams',
+    icon: <GroupOutlinedIcon />,
   },
 };
 
@@ -106,35 +120,46 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
         ruleMap: mergedRuleMap,
         getAlertType: getAlertType,
       }}>
-      <AppBar className={classes.appBar} color="default">
-        <Tabs
-          value={currentTabMatch?.params?.tabName || 'alerts'}
-          indicatorColor="primary"
-          textColor="primary">
-          {Object.keys(TABS).map(keyName => {
-            if (disabledTabSet.has(keyName)) {
-              return null;
-            }
-            return (
-              <Tab
-                component={Link}
-                to={makeTabLink({keyName, match})}
-                key={keyName}
-                label={TABS[keyName].name}
-                value={keyName}
-              />
-            );
-          })}
-        </Tabs>
-      </AppBar>
-
+      <Grid container spacing={2} justify="space-between">
+        <Grid item xs={10}>
+          <Typography variant="h6">
+            {`Current ${
+              currentTabMatch?.params?.tabName || DEFAULT_TAB_NAME
+            }`.toUpperCase()}
+          </Typography>
+        </Grid>
+        <Grid item xs={3}>
+          <Tabs
+            value={currentTabMatch?.params?.tabName || DEFAULT_TAB_NAME}
+            indicatorColor="primary"
+            textColor="primary">
+            {Object.keys(TABS).map(keyName => {
+              if (disabledTabSet.has(keyName)) {
+                return null;
+              }
+              const {icon, name} = TABS[keyName];
+              return (
+                <Tab
+                  className={classes.tab}
+                  component={Link}
+                  to={makeTabLink({keyName, match})}
+                  key={keyName}
+                  icon={icon}
+                  label={name}
+                  value={keyName}
+                />
+              );
+            })}
+          </Tabs>
+        </Grid>
+      </Grid>
       <Switch>
         <Route
           path={`${match.path}/alerts`}
           render={() => <FiringAlerts filterLabels={filterLabels} />}
         />
         <Route
-          path={`${match.path}/alert_rules`}
+          path={`${match.path}/rules`}
           render={() => (
             <AlertRules
               ruleMap={ruleMap}
@@ -147,7 +172,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
           render={() => <Suppressions />}
         />
         <Route path={`${match.path}/routes`} render={() => <Routes />} />
-        <Route path={`${match.path}/receivers`} render={() => <Receivers />} />
+        <Route path={`${match.path}/teams`} render={() => <Receivers />} />
         <Redirect to={`${match.path}/${DEFAULT_TAB_NAME}`} />
       </Switch>
     </AlarmContext.Provider>
