@@ -12,15 +12,16 @@ import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
 import {
-  AccessPointDashboard,
-  CWFNetworkDashboard,
-  SubscribersDashboard,
+  CWFAccessPointDBData,
+  CWFNetworkDBData,
+  CWFSubscriberDBData,
 } from './dashboards/CWFDashboards';
 import {
-  GatewaysDashboard,
-  InternalDashboard,
-  NetworksDashboard,
-  TemplateDashboard,
+  GatewayDBData,
+  InternalDBData,
+  NetworkDBData,
+  TemplateDBData,
+  createDashboard,
 } from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
 import {apiCredentials} from '../config';
@@ -473,24 +474,20 @@ export async function syncDashboards(
   });
 
   // Basic dashboards
-  const networksDB = NetworksDashboard().generate();
-  const gatewaysDB = GatewaysDashboard().generate();
-  const internalDB = InternalDashboard().generate();
-  const templateDB = TemplateDashboard().generate();
   const posts = [
-    dashboardData(networksDB),
-    dashboardData(gatewaysDB),
-    dashboardData(internalDB),
-    dashboardData(templateDB),
+    dashboardData(createDashboard(NetworkDBData).generate()),
+    dashboardData(createDashboard(GatewayDBData).generate()),
+    dashboardData(createDashboard(InternalDBData).generate()),
+    dashboardData(createDashboard(TemplateDBData).generate()),
   ];
 
   // If an org contains CWF networks, add the CWF-specific dashboards
   if (await hasCWFNetwork(networks)) {
     console.log('Creating cwf dashboards');
     posts.push(
-      dashboardData(SubscribersDashboard().generate()),
-      dashboardData(AccessPointDashboard().generate()),
-      dashboardData(CWFNetworkDashboard().generate()),
+      dashboardData(createDashboard(CWFNetworkDBData).generate()),
+      dashboardData(createDashboard(CWFAccessPointDBData).generate()),
+      dashboardData(createDashboard(CWFSubscriberDBData).generate()),
     );
   }
 
