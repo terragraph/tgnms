@@ -12,7 +12,7 @@ if [ ! -f "/data/${NMS_CONFIG_FILE}" ]; then
   echo "NMS_CONFIG_FILE not found, copying default file..."
   cp -v "/etc/stats_config/aggregator_config_default.json" "/data/${NMS_CONFIG_FILE}"
 fi
-CONFIG_ARGS=$(/usr/sbin/config_print_flags.py "/data/${NMS_CONFIG_FILE}")
+CONFIG_ARGS=$(/usr/sbin/config_print_flags "/data/${NMS_CONFIG_FILE}")
 if [ $? -ne 0 ]; then
   echo "Aggregator config file (/data/${NMS_CONFIG_FILE}) had errors: ${CONFIG_ARGS}"
   exit 1
