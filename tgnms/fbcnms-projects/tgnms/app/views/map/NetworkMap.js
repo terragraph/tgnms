@@ -7,7 +7,6 @@
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as React from 'react';
-import * as mapboxgl from 'mapbox-gl';
 import Dragger from '../../components/common/Dragger';
 import MapLayers from './mapLayers/MapLayers';
 import NetworkContext from '../../contexts/NetworkContext';
@@ -239,7 +238,6 @@ class NetworkMap extends React.Component<Props, State> {
   };
 
   handleStyleLoad = map => {
-    map.addControl(new mapboxgl.NavigationControl());
     this.setState({mapRef: map});
   };
 
@@ -268,6 +266,11 @@ class NetworkMap extends React.Component<Props, State> {
               defaultMapMode={MAPMODE.DEFAULT}
               mapboxRef={mapRef}>
               <MapAnnotationContextProvider>
+                <TgMapboxGeocoder
+                  accessToken={MAPBOX_ACCESS_TOKEN}
+                  mapRef={mapRef}
+                  onSelectFeature={this.onGeocoderEvent}
+                />
                 <div className={classes.container}>
                   <div className={classes.topContainer}>
                     <MapBoxGL
@@ -276,18 +279,6 @@ class NetworkMap extends React.Component<Props, State> {
                       style={selectedMapStyle}
                       onStyleLoad={this.handleStyleLoad}
                       containerStyle={{width: '100%', height: 'inherit'}}>
-                      <TgMapboxGeocoder
-                        accessToken={MAPBOX_ACCESS_TOKEN}
-                        mapRef={mapRef}
-                        onSelectFeature={this.onGeocoderEvent}
-                        onSelectTopologyElement={context.setSelected}
-                        nodeMap={context.nodeMap}
-                        linkMap={context.linkMap}
-                        siteMap={context.siteMap}
-                        statusReports={
-                          context.networkConfig?.status_dump?.statusReports
-                        }
-                      />
                       <Route
                         path={`${match.url}/:tableName?`}
                         render={routerProps => (

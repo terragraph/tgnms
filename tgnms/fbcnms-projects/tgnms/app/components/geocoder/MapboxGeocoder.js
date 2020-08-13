@@ -19,14 +19,9 @@ import {withStyles} from '@material-ui/core/styles';
 import type {Feature, Result} from './MapboxGeocoderTypes';
 
 const styles = {
-  root: {
-    position: 'absolute',
-    width: 240,
-    top: 10,
-    left: 10,
-    zIndex: 10,
-  },
   resultsPaper: {
+    position: 'absolute',
+    zIndex: 10,
     marginTop: 4,
   },
 };
@@ -187,7 +182,7 @@ class MapboxGeocoder extends React.Component<Props, State> {
     const {value, isLoading, results} = this.state;
 
     return (
-      <div className={classes.root}>
+      <div>
         <SearchBar
           value={value}
           onChange={this.handleInput}

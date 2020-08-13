@@ -87,7 +87,7 @@ export function useDrawLayer() {
     const toggled = !isDrawEnabled;
     setIsDrawEnabled(toggled);
     if (toggled) {
-      mapboxRef?.addControl(drawControl);
+      mapboxRef?.addControl(drawControl, 'top-left');
       drawControl.add(current?.geojson);
     } else {
       mapboxRef?.removeControl(drawControl);
@@ -116,12 +116,15 @@ export function useDrawLayer() {
   }, []);
 
   useOnceInitialized(() => {
-    mapboxRef?.addControl({
-      onAdd: _map => {
-        return mapboxControl;
+    mapboxRef?.addControl(
+      {
+        onAdd: _map => {
+          return mapboxControl;
+        },
+        onRemove: () => {},
       },
-      onRemove: () => {},
-    });
+      'top-left',
+    );
     mapboxRef?.on(MAPBOX_TG_EVENTS.TOGGLE, (...args) =>
       handleDrawToggle.current(...args),
     );
@@ -142,7 +145,7 @@ export function useDrawLayer() {
   };
 }
 
-function useOnceInitialized(fn: () => void | any, deps: Array<*>) {
+export function useOnceInitialized(fn: () => void | any, deps: Array<*>) {
   const fnRef = React.useRef(fn);
   React.useEffect(() => {
     fnRef.current = fn;
