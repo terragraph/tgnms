@@ -29,8 +29,9 @@ const useStyles = makeStyles(theme => ({
     margin: '5px',
   },
   titleCell: {
-    fontSize: 18,
-    fontWeight: 500,
+    color: theme.palette.grey[50],
+    fontSize: theme.typography.pxToRem(12),
+    fontWeight: 300,
     marginBottom: 2,
   },
   secondaryCell: {
@@ -53,20 +54,26 @@ const useStyles = makeStyles(theme => ({
   selectableRowHover: {
     cursor: 'pointer',
   },
+  darkRow: {
+    backgroundColor: theme.palette.grey[100],
+  },
+  lightRow: {
+    backgroundColor: 'white',
+  },
 }));
 
 const HeadTableCell = withStyles({
   root: {
-    borderBottom: 'none',
-    fontSize: '14px',
-    color: 'black',
+    fontSize: '12px',
+    color: 'gray',
     textTransform: 'uppercase',
+    marginLeft: 5,
   },
 })(TableCell);
 
 const BodyTableCell = withStyles({
   root: {
-    borderBottom: 'none',
+    marginLeft: 5,
   },
 })(TableCell);
 
@@ -297,6 +304,11 @@ export type ColumnData<TRow> =
       ...CommonColumnProps<TRow>,
     }
   | {
+      getValue: (row: TRow) => string,
+      render: 'date',
+      ...CommonColumnProps<TRow>,
+    }
+  | {
       getValue: (row: TRow) => Array<string>,
       render: 'list',
       ...CommonColumnProps<TRow>,
@@ -331,6 +343,7 @@ export default function SimpleTable<T>(props: Props<T>) {
         classes={{
           root: !!onRowClick ? classes.selectableRowHover : undefined,
         }}
+        className={rowIdx % 2 ? classes.lightRow : classes.darkRow}
         key={rowKey}
         onClick={e => {
           e.stopPropagation();

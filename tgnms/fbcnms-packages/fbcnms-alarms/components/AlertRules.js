@@ -27,7 +27,7 @@ import type {GenericRule} from './rules/RuleInterface';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(4),
+    paddingTop: theme.spacing(4),
   },
   addButton: {
     position: 'fixed',

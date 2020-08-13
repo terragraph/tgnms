@@ -16,6 +16,8 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SimpleTable, {toLabels} from '../table/SimpleTable';
 import Slide from '@material-ui/core/Slide';
+import Typography from '@material-ui/core/Typography';
+import moment from 'moment';
 import useRouter from '../../hooks/useRouter';
 import {Link} from 'react-router-dom';
 import {SEVERITY} from '../severity/Severity';
@@ -29,7 +31,7 @@ import type {FiringAlarm} from '../AlarmAPIType';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(4),
+    paddingTop: theme.spacing(4),
   },
   loading: {
     display: 'flex',
@@ -142,11 +144,11 @@ export default function FiringAlerts() {
                 const desc = data?.annotations?.description ?? '';
                 return (
                   <>
-                    <div className={classes.titleCell}>
+                    <Typography variant="body1">
                       {data.labels?.alertname}
-                    </div>
+                    </Typography>
                     {entity && (
-                      <div className={classes.secondaryCell}>{entity}</div>
+                      <Typography variant="body2">{entity}</Typography>
                     )}
                     <div className={classes.secondaryItalicCell}>{desc}</div>
                   </>
@@ -157,6 +159,22 @@ export default function FiringAlerts() {
               title: 'severity',
               getValue: x => x.labels?.severity,
               render: 'severity',
+            },
+            {
+              title: 'date',
+              getValue: x => x.startsAt,
+              renderFunc: (data, classes) => {
+                const date = moment(new Date(data.startsAt));
+                return (
+                  <>
+                    <Typography variant="body1">{date.fromNow()}</Typography>
+
+                    <div className={classes.secondaryItalicCell}>
+                      {date.format('dddd, MMMM Do YYYY')}
+                    </div>
+                  </>
+                );
+              },
             },
             {
               title: 'labels',
