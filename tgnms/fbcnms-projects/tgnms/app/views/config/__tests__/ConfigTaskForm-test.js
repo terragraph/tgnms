@@ -27,7 +27,7 @@ jest
   .mockReturnValue({
     loading: false,
     configData: [{field: ['test', 'param']}],
-    configParams: {},
+    configParams: {nodeOverridesConfig: {}, networkOverridesConfig: {}},
   });
 
 test('renders loading initially', () => {

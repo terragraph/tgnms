@@ -20,6 +20,8 @@ afterEach(cleanup);
 const defaultProps = {
   configData: [],
   configMetadata: {},
+  configOverrides: {},
+  networkConfigOverride: {},
   onUpdate: jest.fn(),
 };
 
@@ -34,7 +36,12 @@ test('wrapper renders without crashing', () => {
 
 test('useContext provides expected values', () => {
   const {result} = renderHook(() => useConfigTaskContext());
-  expect(result.current).toStrictEqual({configData: [], configMetadata: {}});
+  expect(result.current).toStrictEqual({
+    configData: [],
+    configMetadata: {},
+    configOverrides: {},
+    networkConfigOverride: {},
+  });
 });
 
 function Wrapper({
@@ -42,6 +49,8 @@ function Wrapper({
   configData,
   configMetadata,
   onUpdate,
+  configOverrides,
+  networkConfigOverride,
 }: {
   children: React.Node,
   configData: ?Array<ConfigDataType>,
@@ -50,12 +59,16 @@ function Wrapper({
     configField: string,
     draftValue: string | number | boolean,
   }) => void,
+  configOverrides: {},
+  networkConfigOverride: {},
 }) {
   return (
     <TaskConfigContextProvider
       configData={configData}
       configMetadata={configMetadata}
-      onUpdate={onUpdate}>
+      onUpdate={onUpdate}
+      configOverrides={configOverrides}
+      networkConfigOverride={networkConfigOverride}>
       {children}
     </TaskConfigContextProvider>
   );

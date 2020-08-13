@@ -49,11 +49,15 @@ export type ConfigTaskContext = {|
     configField: string,
     draftValue: string | number | boolean,
   }) => void,
+  configOverrides: {},
+  networkConfigOverride: {},
 |};
 
 const defaultValue: $Shape<ConfigTaskContext> = {
   configData: [],
   configMetadata: {},
+  configOverrides: {},
+  networkConfigOverride: {},
 };
 
 const context = React.createContext<ConfigTaskContext>(defaultValue);
@@ -72,9 +76,18 @@ export function Provider({
   configData,
   configMetadata,
   onUpdate,
+  configOverrides,
+  networkConfigOverride,
 }: ProviderProps) {
   return (
-    <context.Provider value={{configData, configMetadata, onUpdate}}>
+    <context.Provider
+      value={{
+        configData,
+        configOverrides,
+        networkConfigOverride,
+        configMetadata,
+        onUpdate,
+      }}>
       {children}
     </context.Provider>
   );

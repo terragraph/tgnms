@@ -151,10 +151,16 @@ export default function ConfigTaskForm({
           )}
         </Grid>
       )}
-      <Grid container item spacing={3} direction={'column'} xs={10}>
+      <Grid item>
         <TaskConfigContextProvider
           configData={configDataRef.current}
           configMetadata={configParams?.metadata || {}}
+          configOverrides={
+            (mode !== configModes.Network && nodeName != null
+              ? configParams?.nodeOverridesConfig[nodeName]
+              : configParams?.networkOverridesConfig) ?? {}
+          }
+          networkConfigOverride={configParams?.networkOverridesConfig ?? {}}
           onUpdate={handleInputUpdate}>
           {children}
         </TaskConfigContextProvider>
