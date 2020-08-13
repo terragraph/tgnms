@@ -55,6 +55,7 @@ type Props = {
   networkId?: string,
   style?: ChartStyle,
   height?: number,
+  chartColors?: Array<string>,
 };
 
 const useStyles = makeStyles(() => ({
@@ -232,7 +233,10 @@ function getStepUnit(startEnd: [moment, moment]): [string, string] {
   return [r.step, r.unit];
 }
 
-function getColorForIndex(index: number) {
+function getColorForIndex(index: number, customChartColors?: Array<string>) {
+  if (customChartColors != null) {
+    return customChartColors[index % customChartColors.length];
+  }
   return COLORS[index % COLORS.length];
 }
 
@@ -304,9 +308,8 @@ function useDatasetsFetcher(props: Props) {
                 pointHitRadius: 10,
                 pointRadius: style ? style.data.pointRadius : 0,
                 borderWidth: 2,
-                backgroundColor:
-                  props.backgroundColor ?? getColorForIndex(index),
-                borderColor: props.backgroundColor ?? getColorForIndex(index++),
+                backgroundColor: getColorForIndex(index, props.chartColors),
+                borderColor: getColorForIndex(index++, props.chartColors),
                 data: it[dbHelper.datapointFieldName].map(i => ({
                   t: parseInt(i[0]) * 1000,
                   y: parseFloat(i[1]),
