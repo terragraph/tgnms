@@ -12,6 +12,14 @@
     - "{{ terragraph_docker_path }}/proxy/conf/conf.d/streams"
     - "{{ terragraph_docker_path }}/proxy/users"
 
+- name: create sysdump path
+  file:
+    path: "{{ sysdump_gfs_path }}"
+    state: directory
+    owner: "65534"  # openresty runs as "nobody"
+    group: docker
+    mode: 0755
+
 - name: copy docker compose
   template:
     src: docker-compose.yml

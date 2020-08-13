@@ -33,11 +33,12 @@ services:
       - inbound
       - terragraph_net
     volumes:
-      - "{{ terragraph_docker_path }}/proxy/conf/nginx.conf:/etc/nginx/nginx.conf"
-      - "{{ terragraph_docker_path }}/proxy/conf/conf.d:/etc/nginx/conf.d"
+      - "{{ terragraph_docker_path }}/proxy/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
+      - "{{ terragraph_docker_path }}/proxy/conf/conf.d:/usr/local/openresty/nginx/conf/conf.d"
       - "{{ terragraph_docker_path }}/proxy/certs:/etc/letsencrypt"
-      - "{{ terragraph_docker_path }}/proxy/users/htpasswd:/etc/nginx/.htpasswd"
-    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && init-cert.sh && /usr/sbin/cron && nginx-debug -g 'daemon off;'"]
+      - "{{ terragraph_docker_path }}/proxy/users/htpasswd:/usr/local/openresty/nginx/.htpasswd"
+      - "{{ sysdump_gfs_path }}:{{ sysdump_gfs_path }}"
+    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && init-cert.sh && /usr/sbin/crond && openresty -g 'daemon off;'"]
 
 networks:
   inbound:

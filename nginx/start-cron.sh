@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 #crond -L /var/log/cron.log -c /etc/crontabs
-/usr/sbin/cron
+/usr/sbin/crond
 
 trap "echo \"killing crond\"; kill \$!; exit" SIGINT SIGTERM
 
