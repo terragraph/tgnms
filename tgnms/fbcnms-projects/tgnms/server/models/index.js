@@ -19,9 +19,6 @@ import type {ControllerAttributes} from './controller';
 import type {LinkEventAttributes} from './linkEvents';
 import type {LinkMetricAttributes} from './linkMetric';
 import type {MapAnnotationGroupAttributes} from './mapAnnotationGroup';
-import type {TestExecution} from './testExecution';
-import type {TestResultAttributes} from './testResult';
-import type {TestScheduleAttributes} from './testSchedule';
 import type {TopologyAttributes} from './topology';
 import type {WirelessControllerAttributes} from './wirelessController';
 
@@ -30,9 +27,6 @@ declare class LinkEvent extends _Model<LinkEventAttributes> {}
 declare class LinkMetric extends _Model<LinkMetricAttributes> {}
 declare class Controller extends _Model<ControllerAttributes> {}
 declare class WirelessController extends _Model<WirelessControllerAttributes> {}
-declare class ApiTestRunExecution extends _Model<TestExecution> {}
-declare class ApiTestResult extends _Model<TestResultAttributes> {}
-declare class ApiTestSchedule extends _Model<TestScheduleAttributes> {}
 declare class MapAnnotationGroup extends _Model<MapAnnotationGroupAttributes> {}
 
 export type TopologyModel = Topology;
@@ -43,9 +37,6 @@ export type Models = {|
   controller: typeof Controller,
   link_event: typeof LinkEvent,
   link_metric: typeof LinkMetric,
-  api_testrunexecution: typeof ApiTestRunExecution,
-  api_testresult: typeof ApiTestResult,
-  api_testschedule: typeof ApiTestSchedule,
   map_annotation_group: typeof MapAnnotationGroup,
   sequelize: SequelizeClass,
   Sequelize: typeof Sequelize,
