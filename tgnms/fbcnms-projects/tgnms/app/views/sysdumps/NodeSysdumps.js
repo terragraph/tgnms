@@ -10,6 +10,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import NetworkContext from '../../contexts/NetworkContext';
 import NodeSysdumpsTable from './NodeSysdumpsTable';
 import React from 'react';
+import swal from 'sweetalert2';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -17,6 +18,11 @@ export type NodeSysdumpType = {|
   filename: string,
   date: string,
   size: number,
+|};
+
+export type NodeSysdumpDeleteType = {|
+  deleted: Array<string>,
+  failedDelete: Array<string>,
 |};
 
 const styles = theme => ({
@@ -56,6 +62,23 @@ class NodeSysdumps extends React.Component<Props, State> {
     );
   }
 
+  handleDelete = selected => {
+    sysdumpApi.deleteSysdump(selected).then(response => {
+      const newSysdumps = this.state.sysdumps.filter(
+        sysdump => !response.deleted.includes(sysdump.filename),
+      );
+      this.setState({sysdumps: newSysdumps});
+      if (response.failedDelete.length > 0) {
+        const failedMsg = response.failedDelete.join(',');
+        swal({
+          title: 'Failed!',
+          html: `The following sysdumps failed to delete: ${failedMsg}`,
+          type: 'error',
+        });
+      }
+    });
+  };
+
   renderContext = context => {
     const {classes} = this.props;
 
@@ -67,6 +90,7 @@ class NodeSysdumps extends React.Component<Props, State> {
         <NodeSysdumpsTable
           controllerVersion={networkConfig.controller_version}
           data={this.state.sysdumps}
+          onDelete={this.handleDelete}
         />
       </div>
     );

@@ -69,6 +69,7 @@ type Props = {
   classes: Object,
   controllerVersion: string,
   data: Array<NodeSysdumpType>,
+  onDelete: (Array<string>) => void,
 };
 
 type State = {
@@ -153,6 +154,10 @@ class NodeSysdumpsTable extends React.Component<Props, State> {
                 <ModalDelete
                   controllerVersion={getVersion(this.props.controllerVersion)}
                   selected={selected}
+                  onDelete={() => {
+                    this.props.onDelete(selected);
+                    this.setState({selected: []});
+                  }}
                 />
               </div>
             </>

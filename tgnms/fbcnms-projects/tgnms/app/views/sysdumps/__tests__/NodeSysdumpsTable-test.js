@@ -18,6 +18,7 @@ const defaultProps = {
   controllerVersion: 'testVersion',
   data: mockSysdumpData(),
   networkName: 'testNetwork',
+  onDelete: () => {},
 };
 
 test('renders empty without crashing', () => {

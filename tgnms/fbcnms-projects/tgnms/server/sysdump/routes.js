@@ -5,7 +5,7 @@
  */
 
 import {SYSDUMP_ENDPOINT_URL} from '../config';
-import {createRequest} from '../helpers/apiHelpers';
+import {createRequest, safePathJoin} from '../helpers/apiHelpers';
 
 const express = require('express');
 const querystring = require('querystring');
@@ -29,6 +29,26 @@ router.get('/', (req, res, _next) => {
   } catch (err) {
     res.status(500).send(err);
   }
+});
+
+router.post('/delete', (req, res, _next) => {
+  const failedDelete = [];
+  const deleted = [];
+  req.body.sysdumps.forEach(filename => {
+    const path = safePathJoin(SYSDUMP_PATH, filename);
+    try {
+      if (fs.existsSync(path)) {
+        fs.unlinkSync(path);
+        deleted.push(filename);
+      }
+    } catch (err) {
+      failedDelete.push(filename);
+    }
+  });
+  res.status(200).json({
+    deleted,
+    failedDelete,
+  });
 });
 
 router.get('/p/:filename', (req, res, _next) => {

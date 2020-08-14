@@ -22,6 +22,7 @@ afterEach(cleanup);
 const defaultProps = {
   selected: ['testSysdump'],
   networkName: 'Tower C',
+  onDelete: () => {},
 };
 
 test('renders without crashing', () => {
@@ -60,7 +61,3 @@ test('closes', async () => {
   });
   expect(getByText('Delete')).toBeInTheDocument();
 });
-
-test('submit success', async () => {});
-
-test('submit fail', async () => {});

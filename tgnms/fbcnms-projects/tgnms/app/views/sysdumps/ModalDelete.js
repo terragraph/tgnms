@@ -37,6 +37,7 @@ const styles = theme => ({
 type Props = {
   classes: Object,
   selected: Array<string>,
+  onDelete: (Array<string>) => void,
 };
 
 type State = {
@@ -58,7 +59,8 @@ class ModalDelete extends React.Component<Props, State> {
     this.setState({isOpen: false});
   };
 
-  handleSubmitDelete = () => {
+  handleDelete = () => {
+    this.props.onDelete(this.props.selected);
     this.handleClose();
   };
 
@@ -94,7 +96,7 @@ class ModalDelete extends React.Component<Props, State> {
             <>
               <Button
                 className={classes.button}
-                onClick={this.handleSubmitDelete}
+                onClick={this.handleDelete}
                 variant="outlined">
                 Submit
               </Button>
