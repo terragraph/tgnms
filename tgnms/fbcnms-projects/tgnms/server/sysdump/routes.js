@@ -10,6 +10,26 @@ import {createRequest} from '../helpers/apiHelpers';
 const express = require('express');
 const querystring = require('querystring');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+
+const SYSDUMP_PATH = path.join(process.cwd(), '/sysdump');
+
+router.get('/', (req, res, _next) => {
+  try {
+    const sysdumps = fs.readdirSync(SYSDUMP_PATH).map(filename => {
+      const stats = fs.statSync(path.join(SYSDUMP_PATH, filename));
+      return {
+        filename,
+        date: stats.birthtime,
+        size: stats.size,
+      };
+    });
+    res.status(200).json(sysdumps);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
 
 router.get('/p/:filename', (req, res, _next) => {
   const {filename} = req.params;

@@ -8,6 +8,7 @@
 import 'jest-dom/extend-expect';
 import NodeSysdumps from '../NodeSysdumps';
 import React from 'react';
+import axios from 'axios';
 import {
   NetworkContextWrapper,
   TestApp,
@@ -17,9 +18,7 @@ import {
 } from '../../../tests/testHelpers';
 import {cleanup} from '@testing-library/react';
 
-jest.useFakeTimers();
 jest.mock('axios');
-jest.mock('copy-to-clipboard');
 
 beforeEach(() => {
   initWindowConfig();
@@ -27,15 +26,21 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-test('renders empty without crashing', () => {
-  const sysdumps = [];
+test('renders empty without crashing', async () => {
+  const getMock = jest.spyOn(axios, 'get').mockResolvedValueOnce({
+    data: [],
+  });
   const {getByTestId} = renderWithRouter(
     <TestApp>
       <NetworkContextWrapper
         contextValue={{networkConfig: mockNetworkConfig()}}>
-        <NodeSysdumps sysdumps={sysdumps} />
+        <NodeSysdumps />
       </NetworkContextWrapper>
     </TestApp>,
   );
+  expect(getMock).toHaveBeenCalled();
+  await new Promise(resolve => {
+    setTimeout(resolve, 0);
+  });
   expect(getByTestId('sysdumps')).toBeInTheDocument();
 });
