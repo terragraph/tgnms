@@ -1,6 +1,6 @@
 {
   "name": "eslint-config-fbcnms",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "This package provides Facebook NMS' eslint config as an extensible shared config. This is only used internally, use at your own risk",
   "repository": {
     "type": "git",

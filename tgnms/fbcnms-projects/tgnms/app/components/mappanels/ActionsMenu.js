@@ -5,6 +5,8 @@
  * @flow
  */
 
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
+
 import * as React from 'react';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -32,7 +34,7 @@ type ActionOptions = {
 
 type ActionType = {
   label: string,
-  icon?: React.Element<React.ComponentType<SvgIconExports>>,
+  icon?: React.Element<SvgIcon>,
   func?: () => any,
   component?: React.ComponentType<any>,
 };

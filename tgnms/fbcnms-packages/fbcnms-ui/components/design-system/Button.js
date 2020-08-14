@@ -8,6 +8,7 @@
  * @format
  */
 
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 import type {TRefFor} from './types/TRefFor.flow';
 
 import * as React from 'react';
@@ -316,7 +317,6 @@ export type ButtonSkin =
   | 'secondaryGray'
   | 'orange'
   | 'green';
-type SvgIcon = React$ComponentType<SvgIconExports>;
 
 export type ButtonProps = $ReadOnly<{|
   skin?: ButtonSkin,

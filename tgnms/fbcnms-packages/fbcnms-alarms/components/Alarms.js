@@ -29,6 +29,7 @@ import {makeStyles} from '@material-ui/styles';
 import {matchPath} from 'react-router';
 
 import type {ApiUtil} from './AlarmsApi';
+import type {Element} from 'react';
 import type {FiringAlarm} from './AlarmAPIType';
 import type {Labels} from './AlarmAPIType';
 import type {Match} from 'react-router-dom';
@@ -41,7 +42,7 @@ const useStyles = makeStyles(_ => ({
 }));
 
 type TabData = {
-  icon: React.Node,
+  icon: Element<*>,
   name: string,
 };
 

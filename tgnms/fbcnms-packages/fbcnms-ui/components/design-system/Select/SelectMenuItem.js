@@ -8,6 +8,7 @@
  * @format
  */
 
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 import type {
   ErrorHandlingProps,
   PermissionHandlingProps,
@@ -61,7 +62,7 @@ const useStyles = makeStyles(() => ({
 export type MenuItemLeftAux = $ReadOnly<
   | {|
       type: 'icon',
-      icon: React$ComponentType<SvgIconExports>,
+      icon: SvgIcon,
     |}
   | {
       type: 'node',
@@ -77,7 +78,7 @@ export type SelectMenuItemBaseProps<TValue> = $ReadOnly<{|
   leftAux?: MenuItemLeftAux,
   secondaryText?: React.Node,
   disabled?: boolean,
-  skin?: 'regular' | 'red',
+  skin?: 'inherit' | 'red',
   ...PermissionHandlingProps,
   ...ErrorHandlingProps,
 |}>;
@@ -96,14 +97,14 @@ const SelectMenuItem = <TValue>({
   className,
   leftAux,
   secondaryText,
-  skin = 'regular',
+  skin = 'inherit',
   disabled: disabledProp = false,
   ...actionProps
 }: Props<TValue>) => {
   const classes = useStyles();
   const LeftIcon = leftAux?.type === 'icon' ? leftAux.icon : null;
   const coercedSkin = disabledProp
-    ? 'regular'
+    ? 'inherit'
     : skin === 'red'
     ? 'error'
     : skin;

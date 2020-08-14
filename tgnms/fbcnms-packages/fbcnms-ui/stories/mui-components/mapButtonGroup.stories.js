@@ -8,7 +8,8 @@
  * @format
  */
 declare module '@material-ui/icons/AccessAlarms' {
-  declare module.exports: React$ComponentType<SvgIconExports>;
+  import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
+  declare module.exports: SvgIcon;
 }
 
 import ListAltIcon from '@material-ui/icons/ListAlt';

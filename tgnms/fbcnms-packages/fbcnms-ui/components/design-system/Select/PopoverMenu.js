@@ -8,6 +8,7 @@
  * @format
  */
 
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 import type {ButtonProps} from '../Button';
 import type {OptionProps} from './SelectMenu';
 
@@ -36,8 +37,8 @@ export type PopoverMenuProps<TValue> = $ReadOnly<{|
   children: React.Node,
   options: Array<OptionProps<TValue>>,
   onChange?: (value: TValue) => void | (() => void),
-  leftIcon?: React$ComponentType<SvgIconExports>,
-  rightIcon?: React$ComponentType<SvgIconExports>,
+  leftIcon?: SvgIcon,
+  rightIcon?: SvgIcon,
   onOptionsFetchRequested?: (searchTerm: string) => void,
   onVisibilityChange?: (isVisible: boolean) => void,
   ...ButtonProps,
