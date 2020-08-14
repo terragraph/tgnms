@@ -101,10 +101,6 @@ const STATS_ALLOWED_DELAY_SEC = requiredInt(
   60 * 2,
 );
 
-// fileserver endpoint for sysdump uploads/downloads
-const SYSDUMP_ENDPOINT_URL =
-  process.env.SYSDUMP_ENDPOINT_URL || 'https://labnms.terragraph.link/sysdump';
-
 module.exports = {
   API_REQUEST_TIMEOUT,
   PROMETHEUS_URL,
@@ -148,5 +144,4 @@ module.exports = {
 
   DEFAULT_ROUTES_HISTORY_HOST,
   STATS_ALLOWED_DELAY_SEC,
-  SYSDUMP_ENDPOINT_URL,
 };

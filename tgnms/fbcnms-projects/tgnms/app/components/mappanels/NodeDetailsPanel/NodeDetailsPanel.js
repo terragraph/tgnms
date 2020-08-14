@@ -21,10 +21,14 @@ import SyncIcon from '@material-ui/icons/Sync';
 import TaskBasedConfigModal from '../../../views/config/TaskBasedConfigModal';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
-import axios from 'axios';
 import swal from 'sweetalert2';
 import {MAPMODE} from '../../../contexts/MapContext';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
+import {
+  SYSDUMP_PATH,
+  SYSDUMP_RESULT,
+  sysdumpExists,
+} from '../../../apiutils/SysdumpAPIUtil';
 import {
   apiServiceRequest,
   apiServiceRequestWithConfirmation,
@@ -287,29 +291,25 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     let result = {};
     while (true) {
       await new Promise(res => setTimeout(res, 5000));
-      result = await axios
-        .get('/sysdump/p/' + filename)
-        .then(response => {
-          return {status: response.status, msg: ''};
-        })
-        .catch(error => {
-          return {status: error.response.status, msg: error.response.data.msg};
-        });
-      break;
+      result = await sysdumpExists(filename);
+      if (
+        result === SYSDUMP_RESULT.SUCCESS ||
+        result === SYSDUMP_RESULT.ERROR
+      ) {
+        break;
+      }
     }
 
-    if (result.status === 200) {
+    if (result === SYSDUMP_RESULT.SUCCESS) {
       swal({
         title: 'Success!',
-        html: `Sysdump available <a href=${
-          'https://labnms.terragraph.link/sysdump/' + filename
-        }>here</a>`,
+        html: `Sysdump available <a href=${`${SYSDUMP_PATH}/download/${filename}`}>here</a>`,
         type: 'success',
       });
-    } else if (result.status === 500) {
+    } else if (result === SYSDUMP_RESULT.ERROR) {
       swal({
         title: 'Error!',
-        html: `${result.msg}`,
+        html: `Encountered an error while polling for sysdump: ${filename}`,
         type: 'error',
       });
     }

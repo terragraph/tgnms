@@ -4,11 +4,9 @@
  * @format
  */
 
-import {SYSDUMP_ENDPOINT_URL} from '../config';
-import {createRequest, safePathJoin} from '../helpers/apiHelpers';
+import {safePathJoin} from '../helpers/apiHelpers';
 
 const express = require('express');
-const querystring = require('querystring');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -28,6 +26,20 @@ router.get('/', (req, res, _next) => {
     res.status(200).json(sysdumps);
   } catch (err) {
     res.status(500).send(err);
+  }
+});
+
+router.get('/download/:filename', (req, res, _next) => {
+  const {filename} = req.params;
+  const path = safePathJoin(SYSDUMP_PATH, filename);
+  try {
+    if (fs.existsSync(path)) {
+      res.download(path);
+    } else {
+      res.status(404).send();
+    }
+  } catch (err) {
+    res.status(500).send();
   }
 });
 
@@ -53,21 +65,16 @@ router.post('/delete', (req, res, _next) => {
 
 router.get('/p/:filename', (req, res, _next) => {
   const {filename} = req.params;
-  createRequest({
-    uri: `${SYSDUMP_ENDPOINT_URL}/${querystring.escape(filename)}`,
-  })
-    .then(response => {
-      if (response.statusCode === 200) {
-        res.status(200).send();
-      } else {
-        res.status(404).send();
-      }
-    })
-    .catch(() => {
-      res.status(500).json({
-        msg: `Encountered an error while polling for sysdump: ${filename}`,
-      });
-    });
+  const path = safePathJoin(SYSDUMP_PATH, filename);
+  try {
+    if (fs.existsSync(path)) {
+      res.status(200).send();
+    } else {
+      res.status(202).send();
+    }
+  } catch (err) {
+    res.status(500).send();
+  }
 });
 
 module.exports = router;

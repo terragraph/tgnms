@@ -63,6 +63,7 @@ const columns = [
   {id: 'filename', label: 'Filename', filter: false},
   {id: 'date', label: 'Date', filter: false},
   {id: 'size', label: 'Size', filter: false},
+  {id: 'download', label: 'Download', filter: false},
 ];
 
 type Props = {

@@ -9,6 +9,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
+import {SYSDUMP_PATH} from '../../apiutils/SysdumpAPIUtil';
 import type {NodeSysdumpType} from './NodeSysdumps';
 
 type Props = {
@@ -31,6 +32,13 @@ class NodeSysdumpsTableEntry extends React.Component<Props> {
         </TableCell>
         <TableCell size="small">{sysdump.date}</TableCell>
         <TableCell size="small">{sysdump.size}</TableCell>
+        <TableCell
+          size="small"
+          numeric
+          component="a"
+          href={`${SYSDUMP_PATH}/download/${sysdump.filename}`}>
+          Download
+        </TableCell>
       </TableRow>
     );
   }
