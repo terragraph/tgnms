@@ -5,14 +5,24 @@
  * @flow
  */
 
+import {NetworkDto} from '../../shared/dto/api/v1';
 import {getNodesAsCSV, getSitesAsKML} from './model';
 import type {ExpressRequest, ExpressResponse} from 'express';
+const {getAllNetworkConfigs} = require('../topology/model');
+
 const express = require('express');
 const router: express.Router<
   ExpressRequest,
   ExpressResponse,
 > = express.Router();
 const logger = require('../log')(module);
+
+router.post('/', (req, res) => {
+  const configs = getAllNetworkConfigs();
+  return res.json(
+    Object.keys(configs).map(name => new NetworkDto(configs[name])),
+  );
+});
 
 router.get('/:networkName/sites', async (req: ExpressRequest, res, _next) => {
   const {networkName} = req.params;

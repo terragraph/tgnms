@@ -45,6 +45,9 @@ export const FeatureFlags: {[string]: () => boolean} = {
   GET_SYSDUMP_ENABLED: () =>
     typeof window.CONFIG.env['GET_SYSDUMP_ENABLED'] === 'string' &&
     window.CONFIG.env['GET_SYSDUMP_ENABLED'] === 'true',
+  NMS_BACKUP_ENABLED: () =>
+    typeof window.CONFIG.env['NMS_BACKUP_ENABLED'] === 'string' &&
+    window.CONFIG.env.NMS_BACKUP_ENABLED === 'true',
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {

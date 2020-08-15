@@ -99,6 +99,7 @@ app.use('/dashboards', require('../server/dashboard/routes'));
 app.use('/docker', require('../server/docker/routes'));
 app.use('/events', require('../server/events/routes'));
 app.use('/export', require('../server/export/routes'));
+app.use('/import', require('../server/import/routes'));
 app.use('/map', require('../server/map/routes'));
 app.use('/metrics', require('../server/metrics/routes'));
 app.use('/nodeupdateservice', require('../server/nodeupdateservice/routes'));
@@ -161,6 +162,7 @@ app.get('*', (req, res) => {
     'MAP_ANNOTATIONS_ENABLED',
     'TASK_BASED_CONFIG_ENABLED',
     'GET_SYSDUMP_ENABLED',
+    'NMS_BACKUP_ENABLED',
   ];
   // validate ENVs
   const validateEnv = (key, value) => {

@@ -11,6 +11,7 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
+import NmsBackup from './NmsBackup';
 import NmsConfig from './NmsConfig';
 import Paper from '@material-ui/core/Paper';
 import SettingInput from './SettingInput';
@@ -93,6 +94,9 @@ export default function NmsSettings() {
             classes={{root: classes.tabs}}>
             <TabLink label="networks" value={'networks'} />
             <TabLink label="services" value={'services'} />
+            {isFeatureEnabled('NMS_BACKUP_ENABLED') ? (
+              <TabLink label="backup" value={'backup'} />
+            ) : null}
           </Tabs>
         </Grid>
         <Grid item xs={10}>
@@ -326,6 +330,7 @@ export default function NmsSettings() {
                   </SettingsForm>
                 )}
               />
+              <Route path="/config/:networkName/backup" component={NmsBackup} />
 
               <DefaultRedirect />
             </Switch>
