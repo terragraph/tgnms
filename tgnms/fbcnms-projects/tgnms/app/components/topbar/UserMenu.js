@@ -13,7 +13,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import PersonIcon from '@material-ui/icons/Person';
-import {getUser} from '../../helpers/UserHelpers';
+import {getUser} from '../../common/uiConfig';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({

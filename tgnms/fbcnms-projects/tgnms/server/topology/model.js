@@ -34,7 +34,6 @@ const networkNodeHealth = {};
 let networkInstanceConfig = {};
 
 // TODO - these aren't in the new config yet
-//let fbinternal = false;
 // hold all state
 const networkState = {};
 // backend service status - just Prometheus for now

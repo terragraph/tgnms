@@ -5,16 +5,10 @@
  * @flow strict-local
  */
 
+import {getUser} from '../common/uiConfig';
 import {isAuthorized as isAuthorizedShared} from '../../shared/auth/Permissions';
 import {isFeatureEnabled} from '../constants/FeatureFlags';
 import type {Permission} from '../../shared/auth/Permissions';
-import type {User} from '../../shared/auth/User';
-
-export function getUser(): ?User {
-  if (window.CONFIG && window.CONFIG.user) {
-    return window.CONFIG.user;
-  }
-}
 
 /**
  * Checks if the currently loaded user has the specified permissions.
