@@ -22,6 +22,7 @@ import {Route, withRouter} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '../../contexts/RouteContext';
 import {getScanId} from '../../helpers/ScanServiceHelpers';
 import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
+import {getUIEnvVal} from '../../common/uiConfig';
 import {withStyles} from '@material-ui/core/styles';
 
 import type Map from 'mapbox-gl';
@@ -52,7 +53,7 @@ const styles = theme => ({
   },
 });
 
-const {MAPBOX_ACCESS_TOKEN} = window.CONFIG.env;
+const MAPBOX_ACCESS_TOKEN = getUIEnvVal('MAPBOX_ACCESS_TOKEN');
 const MapBoxGL = ReactMapboxGl({
   accessToken: MAPBOX_ACCESS_TOKEN,
   attributionControl: false,
@@ -149,18 +150,18 @@ class NetworkMap extends React.Component<Props, State> {
   }
 
   mapBoxStylesList() {
+    const customStyles = getUIEnvVal('TILE_STYLE');
     // use default styles if no override specified
-    if (!window.CONFIG.env.hasOwnProperty('TILE_STYLE')) {
+    if (!customStyles) {
       return DefaultMapBoxStyles.map(({name, endpoint}) => ({
         name,
         endpoint: getMapBoxStyleUrl(endpoint),
       }));
     }
     // override list of styles if env specified
-    const {TILE_STYLE} = window.CONFIG.env;
     // parse style format
     // <Display Name>=<Tile URL>,...
-    const tileStyleUrls = TILE_STYLE.split(',');
+    const tileStyleUrls = customStyles.split(',');
     return tileStyleUrls.map(tileStyle => {
       const [name, endpoint] = tileStyle.split('=');
       return {name, endpoint};

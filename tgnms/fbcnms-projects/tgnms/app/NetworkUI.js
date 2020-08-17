@@ -57,9 +57,7 @@ const styles = _theme => ({
   },
 });
 
-const REFRESH_INTERVAL = window.CONFIG.refresh_interval
-  ? window.CONFIG.refresh_interval
-  : 5000;
+const REFRESH_INTERVAL = 5000;
 
 type Props = {
   classes: {[string]: string},

@@ -16,6 +16,7 @@ import {NmsOptionsContextProvider} from './contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {generatePath, matchPath} from 'react-router';
+import {getUIConfig} from './common/uiConfig';
 import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {useLocation, withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -37,7 +38,7 @@ function getDefaultNetworkName(networkList: {[string]: NetworkListType}) {
   );
   return network ? network.name : null;
 }
-const defaultNetworkName = getDefaultNetworkName(window.CONFIG.networks);
+const defaultNetworkName = getDefaultNetworkName(getUIConfig().networks);
 
 const styles = theme => ({
   appBarSpacer: {
@@ -66,9 +67,7 @@ const styles = theme => ({
 
 const CONFIG_URL = '/config';
 
-const REFRESH_INTERVAL = window.CONFIG.refresh_interval
-  ? window.CONFIG.refresh_interval
-  : 5000;
+const REFRESH_INTERVAL = 5000;
 
 type Props = {
   classes: {[string]: string},

@@ -9,6 +9,7 @@
  */
 
 import * as React from 'react';
+import {getUIEnvVal} from '../../common/uiConfig';
 
 /**
  * Creates a link to a grafana dashboard with templated variables filled in.
@@ -68,7 +69,7 @@ export function buildGrafanaUrl(
   prometheusVars?: {[string]: string},
   vars?: {[string]: string},
 ) {
-  const grafanaBaseUrl = window.CONFIG.env.GRAFANA_URL;
+  const grafanaBaseUrl = getUIEnvVal('GRAFANA_URL');
   let baseUrl: URL;
   try {
     baseUrl = new URL(grafanaBaseUrl);

@@ -43,6 +43,7 @@ import UserMenu from './UserMenu';
 import axios from 'axios';
 import classNames from 'classnames';
 import {NavLink} from 'react-router-dom';
+import {getUIConfig} from '../../common/uiConfig';
 import {isAuthorized} from '../../helpers/UserHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {withRouter} from 'react-router-dom';
@@ -311,9 +312,9 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
     // Render the view selection drawer
     const {classes} = this.props;
     const {drawerOpen} = this.state;
-    const {version} = window.CONFIG;
+    const {version, env} = getUIConfig();
     // TODO - remove, build force
-    const {COMMIT_DATE, COMMIT_HASH, DOC_URL} = window.CONFIG.env;
+    const {COMMIT_DATE, COMMIT_HASH, DOC_URL} = env;
     const toggleBuildModal = () => {
       this.setState({buildInformationOpen: !this.state.buildInformationOpen});
     };
