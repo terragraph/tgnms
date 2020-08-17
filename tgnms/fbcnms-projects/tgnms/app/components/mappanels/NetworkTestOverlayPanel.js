@@ -9,7 +9,7 @@ import * as React from 'react';
 import NetworkContext from '../../contexts/NetworkContext';
 import NmsOptionsContext from '../../contexts/NmsOptionsContext';
 import {
-  AREA_POLYGONS,
+  AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
   METRIC_COLOR_RANGE,
@@ -67,7 +67,7 @@ export default function NetworkTestOverlayPanel() {
         },
         area_polygons: {
           layerId: 'area_polygons',
-          overlays: objectValuesTypesafe<Overlay>(AREA_POLYGONS),
+          overlays: objectValuesTypesafe<Overlay>(AREA_OVERLAYS),
           defaultOverlayId: defaultOverlays.area_polygons,
           legend: SiteOverlayColors,
         },
@@ -88,7 +88,7 @@ export default function NetworkTestOverlayPanel() {
         },
         area_polygons: {
           layerId: 'area_polygons',
-          overlays: objectValuesTypesafe<Overlay>(AREA_POLYGONS),
+          overlays: objectValuesTypesafe<Overlay>(AREA_OVERLAYS),
           defaultOverlayId: defaultOverlays.area_polygons,
           legend: SiteOverlayColors,
         },

@@ -8,7 +8,7 @@
 import * as React from 'react';
 import NmsOptionsContext from '../../contexts/NmsOptionsContext';
 import {
-  AREA_POLYGONS,
+  AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
   SCAN_CONNECTIVITY_LINK_OVERLAYS,
@@ -60,7 +60,7 @@ export default function ScanServiceOverlayPanel() {
       },
       area_polygons: {
         layerId: 'area_polygons',
-        overlays: objectValuesTypesafe<Overlay>(AREA_POLYGONS),
+        overlays: objectValuesTypesafe<Overlay>(AREA_OVERLAYS),
         defaultOverlayId: defaultOverlays.area_polygons,
         legend: SiteOverlayColors,
       },

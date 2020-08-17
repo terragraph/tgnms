@@ -462,7 +462,7 @@ export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
   },
 };
 
-export const AREA_POLYGONS: Overlays = {
+export const AREA_OVERLAYS: Overlays = {
   prefix_zone: {
     name: 'Prefix Zone',
     type: 'prefix_zone',

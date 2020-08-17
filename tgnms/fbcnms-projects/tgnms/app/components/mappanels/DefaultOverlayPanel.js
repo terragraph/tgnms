@@ -10,7 +10,7 @@ import NetworkContext from '../../contexts/NetworkContext';
 import axios from 'axios';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import {
-  AREA_POLYGONS,
+  AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
   NODE_OVERLAYS,
@@ -66,7 +66,7 @@ export default function DefaultOverlayPanel() {
       },
       area_polygons: {
         layerId: 'area_polygons',
-        overlays: objectValuesTypesafe<Overlay>(AREA_POLYGONS),
+        overlays: objectValuesTypesafe<Overlay>(AREA_OVERLAYS),
         defaultOverlayId: defaultOverlays.area_polygons,
         legend: SiteOverlayColors,
       },
