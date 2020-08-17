@@ -8,18 +8,25 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ConfigTaskGroup from '../ConfigTaskGroup';
+import {TestApp} from '../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
 
 test('renders with just children', () => {
-  const {getByText} = render(<ConfigTaskGroup>test</ConfigTaskGroup>);
+  const {getByText} = render(
+    <TestApp>
+      <ConfigTaskGroup>test</ConfigTaskGroup>
+    </TestApp>,
+  );
   expect(getByText('test')).toBeInTheDocument();
 });
 
 test('renders title', () => {
   const {getByText} = render(
-    <ConfigTaskGroup title={'title'}>test</ConfigTaskGroup>,
+    <TestApp>
+      <ConfigTaskGroup title={'title'}>test</ConfigTaskGroup>
+    </TestApp>,
   );
   expect(getByText('title')).toBeInTheDocument();
   expect(getByText('test')).toBeInTheDocument();
@@ -27,7 +34,9 @@ test('renders title', () => {
 
 test('renders description', () => {
   const {getByText} = render(
-    <ConfigTaskGroup description={'description'}>test</ConfigTaskGroup>,
+    <TestApp>
+      <ConfigTaskGroup description={'description'}>test</ConfigTaskGroup>
+    </TestApp>,
   );
   expect(getByText('description')).toBeInTheDocument();
   expect(getByText('test')).toBeInTheDocument();

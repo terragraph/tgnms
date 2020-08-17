@@ -46,7 +46,7 @@ export default function ConfigTaskInput({configField, label}: Props) {
     if (result?.type == 'OBJECT') {
       return result?.objVal?.properties[key];
     } else if (result?.type == 'MAP') {
-      return result?.mapVal?.objVal.properties[key] ?? result;
+      return result?.mapVal?.objVal?.properties[key] ?? {};
     } else {
       return result ? result[key] : result;
     }
@@ -106,16 +106,25 @@ export default function ConfigTaskInput({configField, label}: Props) {
   return (
     <Grid item>
       {settingType === 'checkbox' ? (
-        <FormControlLabel
-          data-testid="checkbox"
-          control={React.createElement(Checkbox, {
-            checked: draftValue === true,
-            onChange: handleInputChange,
-            value: String(draftValue) || '',
-            color: 'primary',
-          })}
-          label={label}
-        />
+        <>
+          <FormLabel>
+            <Grid className={classes.inputLabel} item container spacing={1}>
+              <Grid item xs={12}>
+                {metadata?.desc}
+              </Grid>
+            </Grid>
+          </FormLabel>
+          <FormControlLabel
+            data-testid="checkbox"
+            control={React.createElement(Checkbox, {
+              checked: draftValue === true,
+              onChange: handleInputChange,
+              value: String(draftValue) || '',
+              color: 'primary',
+            })}
+            label={label}
+          />
+        </>
       ) : selectList ? (
         <>
           <FormLabel>{inputLabel}</FormLabel>

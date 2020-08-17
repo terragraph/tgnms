@@ -490,7 +490,7 @@ class ConfigRoot extends React.Component<Props, State> {
     const sidebarProps = getSidebarProps(editMode);
 
     if (
-      editMode === NetworkConfigMode.FORM &&
+      editMode === NetworkConfigMode['QUICK SETTINGS'] &&
       isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
     ) {
       return <TaskBasedConfig />;
@@ -572,7 +572,7 @@ class ConfigRoot extends React.Component<Props, State> {
                 textColor="primary"
                 onChange={this.handleChangeEditMode}>
                 {Object.keys(editModes).map(key => {
-                  if (key === NetworkConfigMode.FORM) {
+                  if (key === NetworkConfigMode['QUICK SETTINGS']) {
                     return (
                       isFeatureEnabled('TASK_BASED_CONFIG_ENABLED') && (
                         <Tab key={key} label={key} value={key} />
@@ -582,7 +582,7 @@ class ConfigRoot extends React.Component<Props, State> {
                   return <Tab key={key} label={key} value={key} />;
                 })}
               </Tabs>
-              {editMode !== NetworkConfigMode.FORM && (
+              {editMode !== NetworkConfigMode['QUICK SETTINGS'] && (
                 <div className={classes.buttonContainer}>
                   <Button
                     onClick={this.resetDraftConfig}
@@ -598,7 +598,8 @@ class ConfigRoot extends React.Component<Props, State> {
               )}
             </AppBar>
             {this.renderTabContent()}
-            {!useRawJsonEditor && editMode !== NetworkConfigMode.FORM
+            {!useRawJsonEditor &&
+            editMode !== NetworkConfigMode['QUICK SETTINGS']
               ? this.renderAddFieldButton()
               : null}
 

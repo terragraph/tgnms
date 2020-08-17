@@ -5,18 +5,21 @@
  * @flow
  */
 
+import Button from '@material-ui/core/Button';
+import CnConfig from './configTasks/CnConfig';
 import ConfigTaskForm from './ConfigTaskForm';
-import ConfigTaskGroup from './ConfigTaskGroup';
-import ConfigTaskInput from './ConfigTaskInput';
 import Grid from '@material-ui/core/Grid';
 import MaterialModal from '../../components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../contexts/NetworkContext';
+import PopKvstoreParams from './configTasks/PopKvstoreParams';
+import PopRouting from './configTasks/PopRouting';
+import RadioParams from './configTasks/RadioParams';
 import React from 'react';
+import SysParams from './configTasks/SysParams';
 import TextField from '@material-ui/core/TextField';
 import useForm from '../../hooks/useForm';
 import {NodeTypeValueMap} from '../../../shared/types/Topology';
-import {configGroups} from '../../constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
 const useModalStyles = makeStyles(theme => ({
@@ -24,9 +27,9 @@ const useModalStyles = makeStyles(theme => ({
     width: '60%',
     minWidth: 400,
   },
-
-  selector: {
-    marginTop: theme.spacing(1),
+  advancedLink: {
+    paddingTop: theme.spacing(2),
+    float: 'right',
   },
 }));
 
@@ -34,21 +37,30 @@ export type Props = {
   open: boolean,
   modalTitle: string,
   onClose: () => void,
+  onAdvancedLinkClick?: () => void,
 };
 
 export default function TaskBasedConfigModal(props: Props) {
-  const {modalTitle, open, onClose} = props;
+  const {modalTitle, open, onClose, onAdvancedLinkClick} = props;
   const {selectedElement, nodeMap} = React.useContext(NetworkContext);
   const classes = useModalStyles();
   const node = nodeMap[selectedElement?.name || ''];
 
   const configGroup = [
-    ...(node?.is_primary && node?.pop_node ? configGroups.POP : []),
-    ...(node?.node_type === NodeTypeValueMap?.CN ? configGroups.CN : []),
-    ...configGroups.Node,
+    ...(node?.is_primary && node?.pop_node
+      ? [
+          {title: 'Upstream Routing', content: <PopRouting />},
+          {title: 'Key-Value Store Parameters', content: <PopKvstoreParams />},
+        ]
+      : []),
+    ...(node?.node_type === NodeTypeValueMap?.CN
+      ? [{title: 'Client Node Config', content: <CnConfig />}]
+      : []),
+    {title: 'System Parameters', content: <SysParams />},
+    {title: 'Radio Parameters', content: <RadioParams />},
   ];
   const {formState, handleInputChange} = useForm({
-    initialState: configGroup[0],
+    initialState: {currentConfig: configGroup[0]},
   });
 
   return (
@@ -56,19 +68,21 @@ export default function TaskBasedConfigModal(props: Props) {
       className={classes.root}
       open={open}
       modalContent={
-        <ConfigTaskForm
-          nodeName={selectedElement?.name || null}
-          onClose={onClose}>
-          <ConfigTaskGroup>
-            {formState.inputs.map(input => (
-              <ConfigTaskInput
-                key={input.configField}
-                label={input.label}
-                configField={input.configField}
-              />
-            ))}
-          </ConfigTaskGroup>
-        </ConfigTaskForm>
+        <>
+          <ConfigTaskForm
+            nodeName={selectedElement?.name || null}
+            onClose={onClose}
+            advancedLink={
+              <Button
+                color="primary"
+                className={classes.advancedLink}
+                onClick={onAdvancedLinkClick}>
+                Go to advanced configuration
+              </Button>
+            }>
+            {formState.currentConfig.content}
+          </ConfigTaskForm>
+        </>
       }
       modalTitle={
         <Grid container direction="row" spacing={0}>
@@ -77,14 +91,14 @@ export default function TaskBasedConfigModal(props: Props) {
           </Grid>
           <Grid item xs={8}>
             <TextField
-              className={classes.selector}
               select
-              value={formState.title}
+              value={formState.currentConfig.title}
               InputLabelProps={{shrink: true}}
               fullWidth
-              onChange={handleInputChange(
-                val => configGroup.find(config => config.title === val) ?? {},
-              )}>
+              onChange={handleInputChange(val => ({
+                currentConfig:
+                  configGroup.find(config => config.title === val) ?? null,
+              }))}>
               {configGroup.map(group => (
                 <MenuItem key={group.title} value={group.title}>
                   {group.title}

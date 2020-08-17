@@ -44,7 +44,7 @@ test('renders', () => {
       <TaskBasedConfig />
     </TestApp>,
   );
-  expect(getByText('Env Params')).toBeInTheDocument();
+  expect(getByText('Routing')).toBeInTheDocument();
 });
 
 test('clicking tab renders new config form for that tab', async () => {
@@ -53,11 +53,11 @@ test('clicking tab renders new config form for that tab', async () => {
       <TaskBasedConfig />
     </TestApp>,
   );
-  expect(getByText('Env Params')).toBeInTheDocument();
+  expect(getByText('Routing')).toBeInTheDocument();
   act(() => {
     fireEvent.click(getByText('POP'));
   });
-  expect(queryByText('Env Params')).not.toBeInTheDocument();
+  expect(queryByText('Routing')).not.toBeInTheDocument();
   await waitForElement(() => getByText('POP'));
   expect(getByText('POP')).toBeInTheDocument();
 });

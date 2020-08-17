@@ -7,7 +7,7 @@
 
 /** Config layers for nodes and E2E services. */
 export const NetworkConfigMode = Object.freeze({
-  FORM: 'FORM',
+  'QUICK SETTINGS': 'QUICK SETTINGS',
   NETWORK: 'NETWORK',
   NODE: 'NODE',
   CONTROLLER: 'CONTROLLER',
@@ -69,132 +69,20 @@ export const STATS_LINK_QUERY_PARAM = 'linkName';
 export const configModes = {
   Network: 'Network',
   POP: 'POP Nodes',
-  CN: 'CN Nodes',
+  CN: 'Client Nodes',
   Node: 'Node',
 };
 
 export const configModeDescription = {
-  Network: 'description for Network',
-  POP: 'description for POP',
-  CN: 'description for CN',
+  Network:
+    'Change parameters across the entire network, such as stats endpoints and environment settings.',
+  POP:
+    'Set parameters on all POP nodes to enable routing in and out of the network.',
+  CN: 'Set client node parameters.',
+  Node: 'Change parameters on specific nodes.',
 };
 
 export type ConfigGroupType = {
   title: string,
   inputs: Array<{label: string, configField: string}>,
-};
-
-export const configGroups = {
-  Network: [
-    {
-      title: 'Env Params',
-      inputs: [
-        {label: 'CPE_INTERFACE', configField: 'envParams.CPE_INTERFACE'},
-        {label: 'E2E_ENABLED', configField: 'envParams.E2E_ENABLED'},
-      ],
-    },
-    {
-      title: 'Kafka Config Params',
-      inputs: [
-        {
-          label: 'Enable Kafka',
-          configField: 'statsAgentParams.endpointParams.kafkaParams.enabled',
-        },
-        {
-          label: 'EndPoint',
-          configField:
-            'statsAgentParams.endpointParams.kafkaParams.config.brokerEndpointList',
-        },
-        {
-          label: 'Messages Batch Number',
-          configField:
-            'statsAgentParams.endpointParams.kafkaParams.config.batchNumMessages',
-        },
-      ],
-    },
-  ],
-  POP: [
-    {
-      title: 'bgpParams',
-      inputs: [
-        {label: 'localAsn', configField: 'bgpParams.localAsn'},
-        {
-          label: 'neightbor asn',
-          configField: 'bgpParams.neighbors.0.asn',
-        },
-        {
-          label: 'neightbor ipv6',
-          configField: 'bgpParams.neighbors.0.ipv6',
-        },
-        {
-          label: 'specificNetworkPrefixes',
-          configField: 'bgpParams.specificNetworkPrefixes',
-        },
-      ],
-    },
-    {
-      title: 'kvstoreParams',
-      inputs: [
-        {
-          label: 'e2e-aggr-url',
-          configField: 'kvstoreParams.e2e-aggr-url',
-        },
-        {
-          label: 'e2e-ctrl-url',
-          configField: 'kvstoreParams.e2e-ctrl-url',
-        },
-        {
-          label: 'e2e-network-prefix',
-          configField: 'kvstoreParams.e2e-network-prefix',
-        },
-      ],
-    },
-    {
-      title: 'popParams',
-      inputs: [
-        {
-          label: 'GW_ADDR',
-          configField: 'popParams.GW_ADDR',
-        },
-        {
-          label: 'POP_ADDR',
-          configField: 'popParams.POP_ADDR',
-        },
-        {
-          label: 'POP_BGP_ROUTING',
-          configField: 'popParams.POP_BGP_ROUTING',
-        },
-        {
-          label: 'POP_IFACE',
-          configField: 'popParams.POP_IFACE',
-        },
-      ],
-    },
-  ],
-  CN: [
-    {
-      title: 'CN config',
-      inputs: [
-        {
-          label: 'tpcEnable',
-          configField: 'linkParamsOverride.fwParams.tpcEnable',
-        },
-        {
-          label: 'link flaps',
-          configField: 'envParams.OPENR_LINK_FLAP_MAX_BACKOFF_MS',
-        },
-      ],
-    },
-  ],
-  Node: [
-    {
-      title: 'txPower',
-      inputs: [
-        {
-          label: 'txPower',
-          configField: 'linkParamsOverride.fwParams.txPower',
-        },
-      ],
-    },
-  ],
 };

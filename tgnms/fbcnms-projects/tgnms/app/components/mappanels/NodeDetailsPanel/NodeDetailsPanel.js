@@ -77,11 +77,11 @@ type State = {configModalOpen: boolean};
 
 class NodeDetailsPanel extends React.Component<Props, State> {
   state = {configModalOpen: false};
-
   actionItems;
+
   constructor(props) {
     super(props);
-    const {nodeDetailsProps, history, networkName, node} = props;
+    const {nodeDetailsProps} = props;
 
     this.actionItems = [
       {
@@ -125,11 +125,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             icon: <RouterIcon />,
             func: isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
               ? this.onEditNodeConfig
-              : () =>
-                  history.push({
-                    pathname: '/network_config/' + networkName,
-                    search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
-                  }),
+              : this.handleToConfigTable,
           },
           {
             label: 'Edit Node',
@@ -174,6 +170,14 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     ];
   }
 
+  handleToConfigTable = () => {
+    const {history, networkName, node} = this.props;
+
+    history.push({
+      pathname: '/network_config/' + networkName,
+      search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
+    });
+  };
   onStartThroughputTest = () => {
     const {networkName, node, history} = this.props;
     testApi
@@ -394,6 +398,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
           open={configModalOpen}
           modalTitle="Node Config"
           onClose={this.handleConfigModalClose}
+          onAdvancedLinkClick={this.handleToConfigTable}
         />
       </>
     );

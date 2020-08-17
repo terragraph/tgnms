@@ -6,16 +6,22 @@
  */
 
 import * as React from 'react';
+import CnConfig from './configTasks/CnConfig';
 import ConfigTaskForm from './ConfigTaskForm';
-import ConfigTaskGroup from './ConfigTaskGroup';
-import ConfigTaskInput from './ConfigTaskInput';
 import Grid from '@material-ui/core/Grid';
+import KafkaParams from './configTasks/KafkaParams';
+import NetworkEnvParams from './configTasks/NetworkEnvParams';
+import NetworkRouting from './configTasks/NetworkRouting';
+import NetworkSnmp from './configTasks/NetworkSnmp';
 import NodeSelector from './NodeSelector';
 import Paper from '@material-ui/core/Paper';
+import PopKvstoreParams from './configTasks/PopKvstoreParams';
+import PopRouting from './configTasks/PopRouting';
+import RadioParams from './configTasks/RadioParams';
+import SysParams from './configTasks/SysParams';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {
-  configGroups,
   configModeDescription,
   configModes,
 } from '../../constants/ConfigConstants';
@@ -56,6 +62,32 @@ export default function TaskBasedConfig() {
     [setConfigMode],
   );
 
+  const configGroups = {
+    Network: (
+      <>
+        <SysParams />
+        <NetworkRouting />
+        <NetworkEnvParams />
+        <NetworkSnmp />
+        <KafkaParams />
+        <RadioParams />
+      </>
+    ),
+    POP: (
+      <>
+        <PopRouting />
+        <PopKvstoreParams />
+      </>
+    ),
+    CN: <CnConfig />,
+    Node: (
+      <>
+        <SysParams />
+        <RadioParams />
+      </>
+    ),
+  };
+
   return (
     <Paper className={classes.root} elevation={1}>
       <Grid container spacing={0}>
@@ -88,17 +120,7 @@ export default function TaskBasedConfig() {
               title={configModes[configMode]}
               description={configModeDescription[configMode]}
               nodeName={nodeName}>
-              {configGroups[configMode].map(configGroup => (
-                <ConfigTaskGroup title={configGroup.title}>
-                  {configGroup.inputs.map(input => (
-                    <ConfigTaskInput
-                      key={input.configField}
-                      label={input.label}
-                      configField={input.configField}
-                    />
-                  ))}
-                </ConfigTaskGroup>
-              ))}
+              {configGroups[configMode]}
             </ConfigTaskForm>
           </Paper>
         </Grid>

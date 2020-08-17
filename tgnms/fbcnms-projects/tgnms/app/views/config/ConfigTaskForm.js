@@ -31,6 +31,7 @@ export type Props = {
   mode?: $Keys<typeof configModes>,
   nodeName?: ?string,
   onClose?: () => void,
+  advancedLink?: React.Node,
 };
 
 export default function ConfigTaskForm({
@@ -40,6 +41,7 @@ export default function ConfigTaskForm({
   mode,
   nodeName,
   onClose,
+  advancedLink,
 }: Props) {
   const {loading, configData, configParams} = useNodeConfig({nodeName});
   const {networkName} = React.useContext(NetworkContext);
@@ -166,7 +168,7 @@ export default function ConfigTaskForm({
         </TaskConfigContextProvider>
       </Grid>
       <Grid item>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} style={{justifyContent: 'flex-end'}}>
           <Grid item>
             <Button
               onClick={handleCancel}
@@ -187,6 +189,7 @@ export default function ConfigTaskForm({
             </Button>
           </Grid>
         </Grid>
+        {advancedLink}
       </Grid>
     </Grid>
   );
