@@ -29,9 +29,8 @@ const useStyles = makeStyles(theme => ({
     margin: '5px',
   },
   titleCell: {
-    color: theme.palette.grey[50],
-    fontSize: theme.typography.pxToRem(12),
-    fontWeight: 300,
+    fontSize: theme.typography.pxToRem(15),
+    fontWeight: 400,
     marginBottom: 2,
   },
   secondaryCell: {
