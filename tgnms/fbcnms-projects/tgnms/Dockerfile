@@ -38,4 +38,4 @@ COPY --from=builder /app /app
 WORKDIR /app/fbcnms-projects/tgnms
 
 # Start app
-CMD yarn start
+CMD yarn run start:prod
