@@ -223,6 +223,10 @@ export default class SettingsEngine {
   ): boolean => {
     for (const key of keys) {
       const setting = settings[key];
+      if (typeof setting === 'undefined') {
+        logger.error(`bad key: ${key}`, settings);
+        continue;
+      }
       if (setting.requiresRestart !== false) {
         return true;
       }
@@ -257,6 +261,11 @@ export default class SettingsEngine {
       }
     }
     function restart() {
+      if (process.env.NODE_ENV === 'production') {
+        logger.info('Gracefully stopping the process for settings change...');
+        return process.exit(0);
+      }
+
       prevent = false;
       logger.info('settings updated. restarting...');
       setTimeout(() => {
