@@ -91,9 +91,9 @@ export default function ScanConnectivity(props: Props) {
     };
     potentialLinks.map(potentialLink => {
       const locationA =
-        siteMap[nodeMap[potentialLink.aNodeName].site_name].location;
+        siteMap[nodeMap[potentialLink.aNodeName]?.site_name]?.location;
       const locationZ =
-        siteMap[nodeMap[potentialLink.zNodeName].site_name].location;
+        siteMap[nodeMap[potentialLink.zNodeName]?.site_name]?.location;
       temporaryTopology.links.push({
         name: potentialLink.name,
         locationA,
@@ -130,8 +130,8 @@ export default function ScanConnectivity(props: Props) {
   const potentialTopologyAddition = React.useMemo(() => {
     const cnLinks = potentialLinks.filter(
       potentialLink =>
-        nodeMap[potentialLink.aNodeName].node_type === NodeTypeValueMap.CN ||
-        nodeMap[potentialLink.zNodeName].node_type === NodeTypeValueMap.CN,
+        nodeMap[potentialLink.aNodeName]?.node_type === NodeTypeValueMap.CN ||
+        nodeMap[potentialLink.zNodeName]?.node_type === NodeTypeValueMap.CN,
     );
 
     const potentialCnLinks = cnLinks.map(cnLink => ({

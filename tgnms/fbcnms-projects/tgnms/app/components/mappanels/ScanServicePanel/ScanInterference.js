@@ -182,31 +182,38 @@ function parseInterference(scanData, topologyMaps) {
       const zInterferenceNodeLinks =
         nodeToLinksMap[macToNodeMap[interference.tx_to_node]];
 
-      // find the link that both nodes are on
-      const linkName =
-        [...aNodeLinks.values()].find(link => zNodeLinks.has(link)) ?? '';
-      const interferenceLinkName =
-        [...aInterferenceNodeLinks.values()].find(link =>
-          zInterferenceNodeLinks.has(link),
-        ) ?? '';
+      if (
+        aNodeLinks &&
+        zNodeLinks &&
+        aInterferenceNodeLinks &&
+        zInterferenceNodeLinks
+      ) {
+        // find the link that both nodes are on
+        const linkName =
+          [...aNodeLinks.values()].find(link => zNodeLinks.has(link)) ?? '';
+        const interferenceLinkName =
+          [...aInterferenceNodeLinks.values()].find(link =>
+            zInterferenceNodeLinks.has(link),
+          ) ?? '';
 
-      const currentINR = interference.inr_curr_power.snr_est ?? 0;
+        const currentINR = interference.inr_curr_power.snr_est ?? 0;
 
-      // if the link already has been processed,
-      // add this link to the INR list otherwise add it
-      const currentLink = result.find(link => link.assetName === linkName);
-      if (currentLink) {
-        currentLink.interference.push({
-          interferenceLinkName,
-          INR: currentINR,
-        });
-        currentLink.totalINR += currentINR;
-      } else {
-        result.push({
-          assetName: linkName,
-          interference: [{interferenceLinkName, INR: currentINR}],
-          totalINR: currentINR,
-        });
+        // if the link already has been processed,
+        // add this link to the INR list otherwise add it
+        const currentLink = result.find(link => link.assetName === linkName);
+        if (currentLink) {
+          currentLink.interference.push({
+            interferenceLinkName,
+            INR: currentINR,
+          });
+          currentLink.totalINR += currentINR;
+        } else {
+          result.push({
+            assetName: linkName,
+            interference: [{interferenceLinkName, INR: currentINR}],
+            totalINR: currentINR,
+          });
+        }
       }
     });
     return result;

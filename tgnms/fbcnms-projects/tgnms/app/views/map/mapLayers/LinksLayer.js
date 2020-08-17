@@ -651,17 +651,19 @@ class LinksLayer extends React.Component<Props> {
         const metricValues = this.getMetricValues(link, metricData);
         const linkColor = this.getLinkColor(link, metricValues);
         // Draw single line
-        topologyLines[LinkRenderType.NORMAL].features.push(
-          <Feature
-            {...featureParams}
-            key={`link-layer-${link.name}`}
-            coordinates={[
-              [link.locationA.longitude, link.locationA.latitude],
-              [link.locationZ.longitude, link.locationZ.latitude],
-            ]}
-            properties={{linkColor}}
-          />,
-        );
+        if (link.locationA && link.locationZ) {
+          topologyLines[LinkRenderType.NORMAL].features.push(
+            <Feature
+              {...featureParams}
+              key={`link-layer-${link.name}`}
+              coordinates={[
+                [link.locationA?.longitude, link.locationA?.latitude],
+                [link.locationZ?.longitude, link.locationZ?.latitude],
+              ]}
+              properties={{linkColor}}
+            />,
+          );
+        }
 
         // Draw casing over selected links
         if (
