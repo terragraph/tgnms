@@ -22,6 +22,7 @@ import {objectEntriesTypesafe} from './ObjectHelpers';
 
 import type {AggregatorConfigType} from '../../shared/types/Aggregator';
 import type {ConfigConstraintType} from '../constants/ConfigConstants';
+import type {ConfigOption} from '../views/config/ConfigOptionSelector';
 import type {ControllerConfigType} from '../../shared/types/Controller';
 import type {NetworkConfig} from '../contexts/NetworkContext';
 
@@ -494,4 +495,35 @@ export const getFirmwareVersions = (networkConfig: NetworkConfig) => {
       node => status_dump.statusReports[node.mac_addr].firmwareVersion || '',
     );
   return Array.from<string>(new Set(firmwareVersions));
+};
+
+/**
+ * Check which selected option is set by default based on configs
+ */
+export const getDefaultSelected = ({
+  options,
+  configData,
+}: {
+  options: {[string]: ConfigOption},
+  configData: {},
+}) => {
+  const keys = Object.keys(options);
+
+  const selectedOption = keys.filter(key => {
+    const isSelected = options[key].setConfigs?.reduce(
+      (final, selectedConfig) => {
+        const value = get(configData, selectedConfig.configField.split('.'));
+        if (selectedConfig.set) {
+          final.push(value === selectedConfig.set);
+        } else {
+          final.push(value != null);
+        }
+        return final;
+      },
+      [],
+    );
+    return isSelected?.includes(true) && !isSelected?.includes(false);
+  });
+
+  return selectedOption[0] ?? keys[0];
 };
