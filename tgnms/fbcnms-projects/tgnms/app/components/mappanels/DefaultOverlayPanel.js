@@ -13,6 +13,7 @@ import {
   AREA_POLYGONS,
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
+  NODE_OVERLAYS,
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
 } from '../../constants/LayerConstants';
@@ -28,6 +29,7 @@ const defaultOverlays = {
   link_lines: 'ignition_status',
   site_icons: 'health',
   area_polygons: 'prefix_zone',
+  nodes: 'bearing',
 };
 
 export default function DefaultOverlayPanel() {
@@ -67,6 +69,12 @@ export default function DefaultOverlayPanel() {
         overlays: objectValuesTypesafe<Overlay>(AREA_POLYGONS),
         defaultOverlayId: defaultOverlays.area_polygons,
         legend: SiteOverlayColors,
+      },
+      nodes: {
+        layerId: 'nodes',
+        overlays: objectValuesTypesafe<Overlay>(NODE_OVERLAYS),
+        defaultOverlayId: defaultOverlays.nodes,
+        legend: {},
       },
     });
   }, [setOverlaysConfig, setSelectedOverlays]);

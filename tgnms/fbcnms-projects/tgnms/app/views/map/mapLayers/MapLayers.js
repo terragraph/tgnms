@@ -9,7 +9,7 @@ import BuildingsLayer from './BuildingsLayer';
 import DrawLayer from './DrawLayer';
 import LinksLayer from './LinksLayer';
 import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
-import NodesLayer from './NodesLayer';
+import NodesLayer from './NodesLayer/NodesLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
@@ -180,7 +180,7 @@ export default function MapLayers(props: Props) {
           routes={routes}
         />
       ) : null}
-      {nodes && <NodesLayer />}
+      {nodes && <NodesLayer overlay={overlays.nodes} />}
       {site_name_popups ? (
         <SitePopupsLayer key="popups-layer" topology={networkConfig.topology} />
       ) : null}

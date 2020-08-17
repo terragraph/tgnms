@@ -492,3 +492,11 @@ export const SCAN_INTERFERENCE_LINK_OVERLAYS: Overlays = {
     colorRange: NETWORK_TEST_HEALTH_COLOR_RANGE,
   },
 };
+
+export const NODE_OVERLAYS: Overlays = {
+  bearing: {
+    name: 'Bearing',
+    type: '',
+    id: 'bearing',
+  },
+};

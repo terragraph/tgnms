@@ -6,26 +6,22 @@
  */
 
 import * as turf from '@turf/turf';
-import NetworkContext from '../../../contexts/NetworkContext';
+import NetworkContext from '../../../../contexts/NetworkContext';
 import React from 'react';
-import useLiveRef from '../../../hooks/useLiveRef';
+import useLiveRef from '../../../../hooks/useLiveRef';
 import {Layer, Source} from 'react-mapbox-gl';
-import {LinkTypeValueMap as LinkType} from '../../../../shared/types/Topology';
-import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {handleLayerMouseEnter, handleLayerMouseLeave} from './helpers';
-import {mapboxShouldAcceptClick} from '../../../helpers/NetworkHelpers';
-import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
-import {useMapContext} from '../../../contexts/MapContext';
+import {LinkTypeValueMap as LinkType} from '../../../../../shared/types/Topology';
+import {TopologyElementType} from '../../../../constants/NetworkConstants';
+import {handleLayerMouseEnter, handleLayerMouseLeave} from '../helpers';
+import {mapboxShouldAcceptClick} from '../../../../helpers/NetworkHelpers';
+import {objectValuesTypesafe} from '../../../../helpers/ObjectHelpers';
+import {useMapContext} from '../../../../contexts/MapContext';
 
 import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {
   LinkType as Link,
   NodeType as Node,
-} from '../../../../shared/types/Topology';
-
-export default function NodesLayer() {
-  return <NodeAzimuthIcons />;
-}
+} from '../../../../../shared/types/Topology';
 
 export const BEARING_PROP = 'bearing';
 export const BORESIGHT_IMAGE_ID = 'boresight';
@@ -33,7 +29,7 @@ export const BORESIGHT_IMAGE_PATH = '/static/images/map/boresight.png';
 export const SOURCE_ID = 'nodes';
 export const LAYER_ID = 'nodes-azimuth';
 
-function NodeAzimuthIcons() {
+export default function NodeBearingOverlay() {
   const {
     nodeMap,
     siteMap,

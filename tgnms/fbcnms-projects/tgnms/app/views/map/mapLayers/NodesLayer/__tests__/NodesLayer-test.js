@@ -13,7 +13,7 @@ import NodesLayer, {
   BORESIGHT_IMAGE_PATH,
   LAYER_ID,
   SOURCE_ID,
-} from '../NodesLayer';
+} from '../NodeBearingOverlay';
 import {Layer as LayerMock} from 'react-mapbox-gl';
 import {
   MapContextWrapper,
@@ -22,21 +22,21 @@ import {
   mockFig0,
   mockNetworkConfig,
   renderAsync,
-} from '../../../../tests/testHelpers';
+} from '../../../../../tests/testHelpers';
 import {act, cleanup} from '@testing-library/react';
-import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
+import {buildTopologyMaps} from '../../../../../helpers/TopologyHelpers';
 import {
   getLayerById,
   getPropValue,
   getSourceById,
-} from '../../../../tests/mapHelpers';
+} from '../../../../../tests/mapHelpers';
 
 import type {GeoFeatureCollection, GeoJson} from '@turf/turf';
-import type {NetworkContextType} from '../../../../contexts/NetworkContext';
+import type {NetworkContextType} from '../../../../../contexts/NetworkContext';
 
 jest
   .spyOn(
-    require('../../../../helpers/NetworkHelpers'),
+    require('../../../../../helpers/NetworkHelpers'),
     'mapboxShouldAcceptClick',
   )
   .mockReturnValue(true);
