@@ -34,7 +34,8 @@ export const FeatureFlags: {[string]: () => boolean} = {
       ? window.CONFIG.env.MAP_HISTORY_ENABLED === 'true'
       : true,
   NMS_SETTINGS_ENABLED: () =>
-    typeof window.CONFIG.env['NMS_SETTINGS_ENABLED'] === 'string' &&
+    // enabled by default
+    typeof window.CONFIG.env['NMS_SETTINGS_ENABLED'] === 'undefined' ||
     window.CONFIG.env['NMS_SETTINGS_ENABLED'] !== 'false',
   MAP_ANNOTATIONS_ENABLED: () =>
     typeof window.CONFIG.env['MAP_ANNOTATIONS_ENABLED'] === 'string' &&

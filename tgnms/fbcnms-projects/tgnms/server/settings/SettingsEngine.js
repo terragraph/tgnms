@@ -185,7 +185,7 @@ export default class SettingsEngine {
     try {
       const enableSettingsFile = process.env[ENABLE_SETTINGS_FILE_KEY];
       if (
-        typeof enableSettingsFile !== 'string' ||
+        typeof enableSettingsFile !== 'undefined' &&
         enableSettingsFile === 'false'
       ) {
         logger.warn('settings file disabled');
@@ -194,7 +194,7 @@ export default class SettingsEngine {
       const filePath = this._getSettingsFilePath();
       logger.debug(`reading from settings file: ${filePath}`);
       if (!fs.existsSync(filePath)) {
-        logger.error(`no settings file found: ${filePath}`);
+        logger.warn(`no settings file found: ${filePath}`);
         return {};
       }
       const fileString = fs.readFileSync(filePath, {encoding: 'utf8'});

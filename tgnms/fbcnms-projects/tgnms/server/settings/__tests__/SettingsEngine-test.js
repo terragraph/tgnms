@@ -155,9 +155,9 @@ describe('Settings Engine', () => {
     test('logs error if settings file is specified but not found at startup', () => {
       fsMock.unlinkSync('settings.json');
       expect(fsMock.existsSync('settings.json')).toBe(false);
-      expect(errorLogSpy).not.toHaveBeenCalled();
+      expect(warnLogSpy).not.toHaveBeenCalled();
       settings.initialize(SETTINGS);
-      expect(errorLogSpy).toHaveBeenCalled();
+      expect(warnLogSpy).toHaveBeenCalled();
     });
     test('sets settingsState properly', () => {
       writeSettingsFile(`{"PORT":"8080","API_REQUEST_TIMEOUT":"5000"}`);
