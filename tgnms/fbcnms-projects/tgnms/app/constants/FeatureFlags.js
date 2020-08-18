@@ -48,8 +48,20 @@ export const FeatureFlags: {[string]: () => boolean} = {
   NMS_BACKUP_ENABLED: () =>
     typeof window.CONFIG.env['NMS_BACKUP_ENABLED'] === 'string' &&
     window.CONFIG.env.NMS_BACKUP_ENABLED === 'true',
+  WEBSOCKETS_ENABLED: () =>
+    typeof window.CONFIG.env['WEBSOCKETS_ENABLED'] === 'string' &&
+    window.CONFIG.env['WEBSOCKETS_ENABLED'] === 'true',
 };
 
 export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {
+  const fn = FeatureFlags[flag];
+  if (typeof fn !== 'function') {
+    console.error(
+      `Invalid feature flag: ${flag} - must be one of: ${Object.keys(
+        FeatureFlags,
+      ).join(', ')}`,
+    );
+    return false;
+  }
   return FeatureFlags[flag]();
 }

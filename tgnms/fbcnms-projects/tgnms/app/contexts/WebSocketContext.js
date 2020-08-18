@@ -11,6 +11,7 @@ import {
   WEB_SOCKET_COMMAND_TYPE,
   WebSocketMessage,
 } from '../../shared/dto/WebSockets';
+import {isFeatureEnabled} from '../constants/FeatureFlags';
 import type {WebSocketCommand} from '../../shared/dto/WebSockets';
 
 export type WebSocketContextType<TSocket: WebSocket> = {|
@@ -203,6 +204,9 @@ export function useDurableWebSocket<TSocket: WebSocket>(
    * enqueued messages are sent.
    */
   React.useEffect(() => {
+    if (!isFeatureEnabled('WEBSOCKETS_ENABLED')) {
+      return;
+    }
     let reconnectTimeout: TimeoutID;
     function createSocket() {
       clearTimeout(reconnectTimeout);

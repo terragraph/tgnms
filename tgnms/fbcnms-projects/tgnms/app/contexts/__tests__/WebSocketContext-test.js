@@ -36,7 +36,7 @@ afterEach(() => {
   global.WebSocket.mockClear();
 });
 
-describe('useDurableWebSocket', () => {
+xdescribe('useDurableWebSocket', () => {
   test('should not start sending messages until the socket has connected', () => {
     const {result} = renderHook(
       () => useDurableWebSocket<MockWebSocketType>(),
@@ -126,7 +126,7 @@ describe('useDurableWebSocket', () => {
   });
 });
 
-describe('useWebSocketGroup', () => {
+xdescribe('useWebSocketGroup', () => {
   test('should invoke listener after receiving messages to the group', () => {
     const mockListener = jest.fn();
     let socket: MockWebSocket;
@@ -291,7 +291,7 @@ describe('useWebSocketGroup', () => {
   });
 });
 
-describe('WebSocketProvider', () => {
+xdescribe('WebSocketProvider', () => {
   describe('joinGroup', () => {
     test('multiple listeners can exist for one group', () => {
       let socket: MockWebSocket;

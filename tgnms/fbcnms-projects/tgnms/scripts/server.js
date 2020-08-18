@@ -43,7 +43,9 @@ const port = process.env.PORT ? process.env.PORT : 80;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
 
 const app = express();
-require('express-ws')(app);
+if (process.env.WEBSOCKETS_ENABLED) {
+  require('express-ws')(app);
+}
 
 app.use(bodyParser.json({limit: '1mb'})); // parse json
 app.use(bodyParser.urlencoded({limit: '1mb', extended: false})); // parse application/x-www-form-urlencoded

@@ -34,6 +34,7 @@ const envKeys: Array<$Keys<UIEnv>> = [
   'TASK_BASED_CONFIG_ENABLED',
   'GET_SYSDUMP_ENABLED',
   'NMS_BACKUP_ENABLED',
+  'WEBSOCKETS_ENABLED',
 ];
 export function buildUIConfig(req: Request): UIConfig {
   // construct config JSON to inject
