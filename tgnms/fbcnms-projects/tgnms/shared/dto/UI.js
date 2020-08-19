@@ -29,6 +29,7 @@ export type UIEnv = $Shape<{
   TASK_BASED_CONFIG_ENABLED: string,
   GET_SYSDUMP_ENABLED: string,
   NMS_BACKUP_ENABLED: string,
+  WEBSOCKETS_ENABLED: string,
 }>;
 
 // NetworkConfig
