@@ -9,6 +9,10 @@
  */
 
 export const FeatureFlags: {[string]: () => boolean} = {
+  L2_TUNNELS_ENABLED: () =>
+    window.CONFIG.env.hasOwnProperty('L2_TUNNELS_ENABLED')
+      ? window.CONFIG.env.L2_TUNNELS_ENABLED === 'true'
+      : false,
   NETWORK_TEST_ENABLED: () => !!window.CONFIG?.env?.NETWORKTEST_HOST,
   SCANSERVICE_ENABLED: () =>
     window.CONFIG.env.hasOwnProperty('SCANSERVICE_ENABLED')

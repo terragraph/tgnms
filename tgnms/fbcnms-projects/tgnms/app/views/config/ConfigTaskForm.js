@@ -32,6 +32,7 @@ export type Props = {
   nodeName?: ?string,
   onClose?: () => void,
   advancedLink?: React.Node,
+  customText?: string,
 };
 
 export default function ConfigTaskForm({
@@ -42,6 +43,7 @@ export default function ConfigTaskForm({
   nodeName,
   onClose,
   advancedLink,
+  customText,
 }: Props) {
   const {loading, configData, configParams} = useNodeConfig({nodeName});
   const {networkName} = React.useContext(NetworkContext);
@@ -185,7 +187,7 @@ export default function ConfigTaskForm({
               color="primary"
               onClick={handleSubmitConfig}
               disabled={Object.values(draftsRef.current).length === 0}>
-              Submit
+              {customText ?? 'Submit'}
             </Button>
           </Grid>
         </Grid>

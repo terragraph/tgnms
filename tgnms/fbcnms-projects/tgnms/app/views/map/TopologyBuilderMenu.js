@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import AddIcon from '@material-ui/icons/Add';
+import AddL2Tunnel from '../../components/mappanels/AddL2Tunnel';
 import AddLinkPanel from '../../components/mappanels/AddLinkPanel';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import AddNodePanel from '../../components/mappanels/AddNodePanel';
@@ -21,12 +22,14 @@ import NetworkContext from '../../contexts/NetworkContext';
 import PublishIcon from '@material-ui/icons/Publish';
 import RouterIcon from '@material-ui/icons/Router';
 import Slide from '@material-ui/core/Slide';
+import TuneIcon from '@material-ui/icons/Tune';
 import mapboxgl from 'mapbox-gl';
 import useLiveRef from '../../hooks/useLiveRef';
 import {FormType, SlideProps} from '../../constants/MapPanelConstants';
 import {PANELS, PANEL_STATE} from '../../components/mappanels/usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UploadTopologyPanel} from '../../components/mappanels/UploadTopologyPanel';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -295,6 +298,16 @@ export default function TopologyBuilderMenu(props: Props) {
     setShowMenu(false);
   }, [panelControlRef, updateForm]);
 
+  const handleL2TunnelClick = useCallback(() => {
+    panelControlRef.current.collapseAll();
+    panelControlRef.current.setPanelState(PANELS.L2_TUNNEL, PANEL_STATE.OPEN);
+    updateForm({
+      formType: FormType.CREATE,
+      params: {},
+    });
+    setShowMenu(false);
+  }, [panelControlRef, updateForm]);
+
   const handleUploadTopologyClick = useCallback(() => {
     panelControlRef.current.collapseAll();
     panelControlRef.current.setPanelState(
@@ -348,6 +361,20 @@ export default function TopologyBuilderMenu(props: Props) {
           networkName={networkName}
         />
       </Slide>
+      {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
+        <Slide
+          {...SlideProps}
+          unmountOnExit
+          in={!panelControl.getIsHidden(PANELS.L2_TUNNEL)}>
+          <AddL2Tunnel
+            expanded={panelControl.getIsOpen(PANELS.L2_TUNNEL)}
+            onPanelChange={() => panelControl.toggleOpen(PANELS.L2_TUNNEL)}
+            onClose={() => {
+              hidePanel(PANELS.L2_TUNNEL);
+            }}
+          />
+        </Slide>
+      )}
       <Slide
         {...SlideProps}
         unmountOnExit
@@ -398,6 +425,10 @@ export default function TopologyBuilderMenu(props: Props) {
         <MenuItem onClick={handleAddLinkClick} data-testid="add-link">
           <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
           <ListItemText primary="Add Link" />
+        </MenuItem>
+        <MenuItem onClick={handleL2TunnelClick} data-testid="add-l2">
+          <ListItemIcon>{<TuneIcon />}</ListItemIcon>
+          <ListItemText primary="Add L2 Tunnel" />
         </MenuItem>
         <MenuItem onClick={handleAddSiteClick} data-testid="add-planned-site">
           <ListItemIcon>{<AddLocationIcon />}</ListItemIcon>
