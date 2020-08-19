@@ -29,6 +29,7 @@ const useStyles = makeStyles(theme => ({
     margin: '5px',
   },
   titleCell: {
+    color: theme.palette.black,
     fontSize: theme.typography.pxToRem(15),
     fontWeight: 400,
     marginBottom: 2,
