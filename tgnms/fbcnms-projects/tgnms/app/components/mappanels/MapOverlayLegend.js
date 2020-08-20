@@ -5,23 +5,24 @@
  * @flow
  */
 
-import Chip from '@material-ui/core/Chip';
-import MapLayersPanelConfigButton from './MapLayersPanelConfigButton';
+import Divider from '@material-ui/core/Divider';
+import Grid from '@material-ui/core/Grid';
+import HealthIndicator from '../common/HealthIndicator';
+import Paper from '@material-ui/core/Paper';
 import React from 'react';
+import ReactDOM from 'react-dom';
+import Typography from '@material-ui/core/Typography';
+import {MAP_CONTROL_LOCATIONS} from '../../constants/NetworkConstants';
 import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
-import {convertType} from '../../helpers/ObjectHelpers';
-import {has} from 'lodash';
-import {withStyles} from '@material-ui/core/styles';
+import {SpecialNodeOverlayColors} from '../../constants/LayerConstants';
+import {makeStyles} from '@material-ui/styles';
+import {useMapContext} from '../../contexts/MapContext';
 
-import type {
-  ChangeOverlayRange,
-  Overlay,
-  OverlayConfig,
-} from '../../views/map/NetworkMapTypes';
+// delete this thing and make it in the map
 
-const styles = theme => ({
-  formContainer: {
-    flexDirection: 'column',
+const useStyles = makeStyles(theme => ({
+  root: {
+    padding: theme.spacing(1.5),
   },
   chip: {
     height: 20,
@@ -30,97 +31,168 @@ const styles = theme => ({
     paddingLeft: theme.spacing(1),
     paddingRight: theme.spacing(1),
   },
-  select: {
-    marginBottom: theme.spacing(1),
+  resultDivider: {
+    margin: `${theme.spacing()}px -${theme.spacing(1.5)}px`,
   },
-  loadingIndicator: {
-    marginLeft: theme.spacing(1),
-    marginTop: -4,
+  labelName: {
+    marginTop: theme.spacing(0.75),
+    textTransform: 'capitalize',
   },
-  formGroup: {
-    marginBottom: theme.spacing(2),
+  legendLabel: {
+    magrinTop: -theme.spacing(1),
   },
-});
+  linkHealthIndicator: {
+    marginLeft: theme.spacing(),
+    width: theme.spacing(0.5),
+    height: theme.spacing(3),
+  },
+  siteHealthIndicator: {
+    marginTop: theme.spacing(1.25),
+    marginRight: theme.spacing(0.5),
+    width: theme.spacing(1.5),
+    height: theme.spacing(1.5),
+  },
+}));
 
-type Props = {
-  classes: {[string]: string},
-  layerOverlays: ?OverlayConfig,
-  overlay: ?Overlay,
-};
-class MapOverlayLegend extends React.Component<Props> {
-  getLegend(input: {
-    legendConfig: {[string]: {color: string}},
-    overlay: Overlay,
-    changeOverlayRange: ChangeOverlayRange,
-  }) {
-    const {classes} = this.props;
-    const {legendConfig, overlay, changeOverlayRange} = input;
-    const {range, units = ''} = overlay;
-    return (
-      <div>
-        {Object.keys(legendConfig).map((element, idx) => {
-          const elementColor = legendConfig[element].color;
-          let labelName = element.replace('_', ' ');
+export default function MapOverlayLegend() {
+  const classes = useStyles();
+  const {mapboxRef, overlaysConfig, selectedOverlays} = useMapContext();
 
-          // Add range label
-          if (
-            range &&
-            range.length === METRIC_COLOR_RANGE.length &&
-            idx < range.length &&
-            overlay.overlayLegendType !== 'ignition_status'
-          ) {
-            if (range[METRIC_COLOR_RANGE.length - 1] > range[0]) {
-              labelName += ` (<= ${range[idx]}${units})`;
-            } else {
-              labelName += ` (>= ${range[idx]}${units})`;
-            }
-          }
+  const mapboxControl = React.useMemo(() => {
+    const container = document.createElement('div');
+    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    container.setAttribute('data-testid', 'tg-legend-container');
+    return container;
+  }, []);
 
-          return (
-            <Chip
-              key={element}
-              label={labelName}
-              className={classes.chip}
-              classes={{label: classes.chipLabel}}
-              style={{
-                color: elementColor,
-              }}
-              variant="outlined"
-            />
-          );
-        })}
-        {range &&
-          range.length === METRIC_COLOR_RANGE.length &&
-          overlay.overlayLegendType !== 'ignition_status' && (
-            <MapLayersPanelConfigButton
-              changeOverlayRange={changeOverlayRange}
-              legendConfig={legendConfig}
-              overlay={convertType<{range: Array<number>, ...Overlay}>(overlay)}
-            />
-          )}
-      </div>
+  React.useEffect(() => {
+    mapboxRef?.addControl(
+      {
+        onAdd: _map => {
+          return mapboxControl;
+        },
+        onRemove: () => {},
+      },
+      MAP_CONTROL_LOCATIONS.TOP_RIGHT,
     );
-  }
+  }, [mapboxRef, mapboxControl]);
 
-  render() {
-    const {layerOverlays, overlay} = this.props;
-    return (
-      <div>
-        {overlay &&
-          has(layerOverlays, ['legend', overlay.type]) &&
-          this.getLegend({
-            legendConfig:
-              layerOverlays.legend[
-                overlay.overlayLegendType
-                  ? overlay.overlayLegendType
-                  : overlay.type
-              ],
-            overlay: overlay,
-            changeOverlayRange: layerOverlays.changeOverlayRange,
-          })}
-      </div>
-    );
-  }
+  const linkLegend = React.useMemo(
+    () => getLegendsFromOverlay(overlaysConfig.link_lines, selectedOverlays),
+    [overlaysConfig, selectedOverlays],
+  );
+
+  const nodeLegend = React.useMemo(
+    () =>
+      Object.keys(SpecialNodeOverlayColors).map(nodeType => ({
+        elementColor: SpecialNodeOverlayColors[nodeType].color,
+        labelName: `${nodeType} node`,
+      })),
+    [],
+  );
+
+  const siteLegend = React.useMemo(
+    () => getLegendsFromOverlay(overlaysConfig.site_icons, selectedOverlays),
+    [overlaysConfig, selectedOverlays],
+  );
+
+  return ReactDOM.createPortal(
+    <Paper className={classes.root} elevation={2}>
+      <Typography variant="subtitle1">Legend</Typography>
+      <Grid container direction="column">
+        {linkLegend?.map(({labelName, elementColor}) => (
+          <Grid item container spacing={1}>
+            <Grid item>
+              <HealthIndicator
+                color={elementColor}
+                className={classes.linkHealthIndicator}
+              />
+            </Grid>
+            <Grid item>
+              <Typography className={classes.labelName} variant="body2">
+                {labelName +
+                  (!labelName.includes('link') && !labelName.match(/\d+/g)
+                    ? ' link'
+                    : '')}
+              </Typography>
+            </Grid>
+          </Grid>
+        ))}
+        <Divider className={classes.resultDivider} />
+        {nodeLegend.map(({labelName, elementColor}) => (
+          <Grid item container spacing={1}>
+            <Grid item>
+              <HealthIndicator
+                color={elementColor}
+                className={classes.siteHealthIndicator}
+              />
+            </Grid>
+            <Grid item>
+              <Typography className={classes.labelName} variant="body2">
+                {labelName}
+              </Typography>
+            </Grid>
+          </Grid>
+        ))}
+        <Divider className={classes.resultDivider} />
+        {siteLegend?.map(({labelName, elementColor}) => (
+          <Grid item container spacing={1}>
+            <Grid item>
+              <HealthIndicator
+                color={elementColor}
+                className={classes.siteHealthIndicator}
+              />
+            </Grid>
+            <Grid item>
+              <Typography className={classes.labelName} variant="body2">
+                {labelName} site
+              </Typography>
+            </Grid>
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>,
+    mapboxControl,
+  );
 }
 
-export default withStyles(styles)(MapOverlayLegend);
+function getLegendsFromOverlay(overlayConfig, selectedOverlays) {
+  if (!overlayConfig) {
+    return;
+  }
+
+  const layerId = overlayConfig.layerId;
+  const overlay = overlayConfig?.overlays.find(
+    overlay => overlay.id === selectedOverlays[layerId],
+  );
+  const legend = overlayConfig.legend;
+
+  if (!legend || !overlay) {
+    return [];
+  }
+  const legendConfig = {
+    ...(legend[overlay.overlayLegendType ?? overlay.type] ?? {}),
+  };
+  const {range, units = ''} = overlay;
+
+  return Object.keys(legendConfig).map((element, idx) => {
+    const elementColor = legendConfig[element].color;
+    let labelName = element.replace('_', ' ');
+
+    // Add range label
+    if (
+      range &&
+      range.length === METRIC_COLOR_RANGE.length &&
+      idx < range.length &&
+      overlay.overlayLegendType !== 'ignition_status'
+    ) {
+      if (range[METRIC_COLOR_RANGE.length - 1] > range[0]) {
+        labelName += ` (<= ${range[idx]}${units})`;
+      } else {
+        labelName += ` (>= ${range[idx]}${units})`;
+      }
+    }
+
+    return {elementColor, labelName};
+  });
+}

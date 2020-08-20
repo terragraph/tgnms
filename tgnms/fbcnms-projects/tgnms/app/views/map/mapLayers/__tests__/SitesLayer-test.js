@@ -7,11 +7,11 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import SitesLayer, {
+import SitesLayer, {PLANNED_SITE_COLOR} from '../SitesLayer';
+import {
   CN_SITE_COLOR,
-  PLANNED_SITE_COLOR,
   POP_SITE_COLOR,
-} from '../SitesLayer';
+} from '../../../../constants/LayerConstants';
 import {NodeTypeValueMap as NodeType} from '../../../../../shared/types/Topology';
 import {TestApp, mockRoutes, mockTopology} from '../../../../tests/testHelpers';
 import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';

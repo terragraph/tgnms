@@ -9,6 +9,7 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as React from 'react';
 import Dragger from '../../components/common/Dragger';
 import MapLayers from './mapLayers/MapLayers';
+import MapOverlayLegend from '../../components/mappanels/MapOverlayLegend';
 import NetworkContext from '../../contexts/NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
@@ -272,6 +273,7 @@ class NetworkMap extends React.Component<Props, State> {
                   mapRef={mapRef}
                   onSelectFeature={this.onGeocoderEvent}
                 />
+                <MapOverlayLegend />
                 <div className={classes.container}>
                   <div className={classes.topContainer}>
                     <MapBoxGL

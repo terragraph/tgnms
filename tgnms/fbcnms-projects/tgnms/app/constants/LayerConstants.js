@@ -29,6 +29,21 @@ export const LinkOverlayColors = {
     igniting: {color: purple[500]},
     planned: {color: grey[500]},
   },
+  golay: {
+    [0]: {color: 'hsl(0,50%,50%)'},
+    [1]: {color: 'hsl(170,50%,50%)'},
+    [2]: {color: 'hsl(30,50%,50%)'},
+    [3]: {color: 'hsl(200,50%,50%)'},
+    [4]: {color: 'hsl(60,50%,50%)'},
+    [5]: {color: 'hsl(240,50%,50%)'},
+    [6]: {color: 'hsl(100,50%,50%)'},
+    [7]: {color: 'hsl(280,50%,50%)'},
+  },
+  superframe: {
+    [0]: {color: 'hsl(170,50%,50%)'},
+    [1]: {color: 'hsl(30,50%,50%)'},
+    [255]: {color: 'hsl(200,50%,50%)'},
+  },
   metric: {
     excellent: {color: green[800]},
     good: {color: lightGreen[500]},
@@ -60,6 +75,15 @@ export const SiteOverlayColors = {
     hw_hybrid: {color: orange[500]},
     unknown: {color: red[600]},
   },
+};
+
+// === Inner circle paint (for special site types) ===
+export const POP_SITE_COLOR = 'blue';
+export const CN_SITE_COLOR = 'pink';
+
+export const SpecialNodeOverlayColors = {
+  pop: {color: POP_SITE_COLOR},
+  client: {color: CN_SITE_COLOR},
 };
 
 export const TestOverlayColors = {
@@ -128,11 +152,6 @@ export const POSITION_CIRCLE_PAINT = {
 };
 export const CIRCLE_RADIUS = 10;
 export const INNER_CIRCLE_RADIUS = 5;
-
-// === Inner circle paint (for special site types) ===
-// TODO - Make a legend for this
-export const POP_SITE_COLOR = 'blue';
-export const CN_SITE_COLOR = 'pink';
 
 // === Selected site paint ===
 export const SELECTED_CIRCLE_STROKE_COLOR = '#0077ff';
@@ -424,7 +443,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
   },
   channel: {
     name: 'Channel',
-    type: 'channel',
+    type: 'golay',
     id: 'channel',
   },
 };

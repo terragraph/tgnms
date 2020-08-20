@@ -12,7 +12,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import MapHistoryOverlayPanel from './MapHistoryOverlayPanel';
-import MapOverlayLegend from './MapOverlayLegend';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkTestOverlayPanel from './NetworkTestOverlayPanel';
 import React from 'react';
@@ -32,6 +31,7 @@ import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
 const styles = theme => ({
   formContainer: {
     flexDirection: 'column',
+    width: '100%',
   },
   select: {
     marginBottom: theme.spacing(1),
@@ -53,7 +53,7 @@ const styles = theme => ({
   tabsRoot: {
     borderBottom: '1px solid #e8e8e8',
     flex: '0 1 auto',
-    marginBottom: theme.spacing(),
+    marginBottom: theme.spacing(2),
     paddingTop: theme.spacing(),
     paddingLeft: theme.spacing(),
   },
@@ -228,10 +228,6 @@ function OverlaysForm() {
       const legendName = mapLayers.find(layer => layer.layerId === layerId)
         ?.name;
 
-      // map overlay id -> type to render legend keys
-      const currentLayerOverlay = layerOverlays.overlays.find(
-        overlay => overlay.id === selectedOverlays[layerId],
-      );
       if (overlays.length < 2) {
         return null;
       }
@@ -259,10 +255,6 @@ function OverlaysForm() {
               );
             })}
           </Select>
-          <MapOverlayLegend
-            overlay={currentLayerOverlay}
-            layerOverlays={layerOverlays}
-          />
         </FormGroup>
       );
     },

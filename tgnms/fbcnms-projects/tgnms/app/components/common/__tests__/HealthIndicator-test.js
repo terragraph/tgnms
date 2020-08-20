@@ -16,5 +16,7 @@ const defaultProps = {
 
 test('renders', () => {
   const {container} = render(<HealthIndicator {...defaultProps} />);
-  expect(container.firstChild).toHaveClass('makeStyles-healthIndicator-1');
+  expect(container.firstChild).toHaveClass(
+    'makeStyles-statusIndicator-1 makeStyles-statusIndicator-2',
+  );
 });

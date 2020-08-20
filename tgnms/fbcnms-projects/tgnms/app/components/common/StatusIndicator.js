@@ -11,6 +11,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   color: string,
+  clearIndicator?: boolean,
   className?: string,
 };
 
@@ -22,8 +23,10 @@ const styles = {
     margin: '3px 8px 3px 3px',
     verticalAlign: 'middle',
     width: '17px',
-    background: ({color}: Props) =>
-      `radial-gradient(circle, ${color} 40%, transparent 70%)`,
+    background: ({color, clearIndicator}: Props) =>
+      clearIndicator === true
+        ? `radial-gradient(circle, ${color} 50%, transparent 60%)`
+        : `radial-gradient(circle, ${color} 40%, transparent 70%)`,
   },
 };
 

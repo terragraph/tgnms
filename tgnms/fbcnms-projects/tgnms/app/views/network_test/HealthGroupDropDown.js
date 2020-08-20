@@ -9,7 +9,7 @@ import * as React from 'react';
 import Collapse from '@material-ui/core/Collapse';
 import CustomTable from '../../components/common/CustomTable';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import HealthIndicator from '../../views/network_test/HealthIndicator';
+import HealthIndicator from '../../components/common/HealthIndicator';
 import IconButton from '@material-ui/core/IconButton';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import classNames from 'classnames';
@@ -63,7 +63,6 @@ const useStyles = makeStyles(theme => ({
   transition: {
     transition: 'all 0.3s',
   },
-  linkDirectionHealth: {},
 }));
 
 export default function HealthGroupDropDown(props: Props) {
@@ -109,7 +108,6 @@ export default function HealthGroupDropDown(props: Props) {
             <div className={classes.healthCell}>
               {linkHealth.map(result => (
                 <HealthIndicator
-                  className={classes.linkDirectionHealth}
                   key={result.id}
                   health={
                     typeof result.health === 'number'

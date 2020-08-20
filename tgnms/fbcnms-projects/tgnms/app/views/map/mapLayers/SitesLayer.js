@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import {CN_SITE_COLOR, POP_SITE_COLOR} from '../../../constants/LayerConstants';
 import {Feature, Layer, Popup} from 'react-mapbox-gl';
 import {
   LinkTypeValueMap as LinkType,
@@ -54,11 +55,6 @@ const POSITION_CIRCLE_PAINT = {
 };
 const CIRCLE_RADIUS = 10;
 const INNER_CIRCLE_RADIUS = 5;
-
-// === Inner circle paint (for special site types) ===
-// TODO - Make a legend for this
-export const POP_SITE_COLOR = 'blue';
-export const CN_SITE_COLOR = 'pink';
 
 // === Selected site paint ===
 const SELECTED_CIRCLE_STROKE_COLOR = '#0077ff';
