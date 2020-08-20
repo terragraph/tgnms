@@ -201,7 +201,7 @@ class NetworkTables extends React.Component<Props, State> {
                 to={`${match.url}/${TABLE_TYPE.links}${location.search}`}
                 value={TABLE_TYPE.links}
               />
-              {isFeatureEnabled('NETWORK_TEST_ENABLED') && (
+              {isFeatureEnabled('NETWORKTEST_ENABLED') && (
                 <Tab
                   classes={{
                     root: classes.tabRoot,

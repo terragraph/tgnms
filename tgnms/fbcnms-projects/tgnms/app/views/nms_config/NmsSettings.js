@@ -204,6 +204,10 @@ export default function NmsSettings() {
                       title="Network Test"
                       tester={<SettingsTester keys={['NETWORKTEST_HOST']} />}>
                       <SettingInput
+                        label="Enable Network Test"
+                        setting="NETWORKTEST_ENABLED"
+                      />
+                      <SettingInput
                         label="Network Test URL"
                         setting="NETWORKTEST_HOST"
                       />

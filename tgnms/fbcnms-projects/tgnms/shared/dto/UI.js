@@ -9,7 +9,7 @@ export type UIEnv = $Shape<{
   GRAFANA_URL: string,
   MAPBOX_ACCESS_TOKEN: string,
   ISSUES_URL: string,
-  NETWORKTEST_HOST: string,
+  NETWORKTEST_ENABLED: string,
   SCANSERVICE_ENABLED: string,
   LOGIN_ENABLED: string,
   TILE_STYLE: string,

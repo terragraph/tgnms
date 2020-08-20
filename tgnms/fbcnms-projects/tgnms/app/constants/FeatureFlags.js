@@ -13,11 +13,14 @@ export const FeatureFlags: {[string]: () => boolean} = {
     window.CONFIG.env.hasOwnProperty('L2_TUNNELS_ENABLED')
       ? window.CONFIG.env.L2_TUNNELS_ENABLED === 'true'
       : false,
-  NETWORK_TEST_ENABLED: () => !!window.CONFIG?.env?.NETWORKTEST_HOST,
+  NETWORKTEST_ENABLED: () =>
+    window.CONFIG.env.hasOwnProperty('NETWORKTEST_ENABLED')
+      ? window.CONFIG.env.NETWORKTEST_ENABLED !== 'false'
+      : true,
   SCANSERVICE_ENABLED: () =>
     window.CONFIG.env.hasOwnProperty('SCANSERVICE_ENABLED')
-      ? window.CONFIG.env.SCANSERVICE_ENABLED === 'true'
-      : false,
+      ? window.CONFIG.env.SCANSERVICE_ENABLED !== 'false'
+      : true,
   NOTIFICATION_MENU_ENABLED: () =>
     !!window.CONFIG?.env.NOTIFICATION_MENU_ENABLED,
   LOGIN_ENABLED: () => window.CONFIG?.env?.LOGIN_ENABLED,

@@ -233,6 +233,13 @@ export const SETTINGS: Array<SettingDefinition> = [
     requiresRestart: true,
   },
   {
+    key: 'NETWORKTEST_ENABLED',
+    required: false,
+    dataType: 'BOOL',
+    requiresRestart: true,
+    validations: [],
+  },
+  {
     key: 'NETWORKTEST_HOST',
     required: false,
     dataType: 'STRING',

@@ -153,7 +153,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             },
           ]
         : []),
-      ...(isFeatureEnabled('NETWORK_TEST_ENABLED')
+      ...(isFeatureEnabled('NETWORKTEST_ENABLED')
         ? [
             {
               heading: 'Tests',
