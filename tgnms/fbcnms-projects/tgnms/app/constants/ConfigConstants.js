@@ -7,7 +7,7 @@
 
 /** Config layers for nodes and E2E services. */
 export const NetworkConfigMode = Object.freeze({
-  'QUICK SETTINGS': 'QUICK SETTINGS',
+  FORM: 'QUICK SETTINGS',
   NETWORK: 'NETWORK',
   NODE: 'NODE',
   CONTROLLER: 'CONTROLLER',

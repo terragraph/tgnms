@@ -30,6 +30,7 @@ import {cloneDeep, isEqual, set, unset} from 'lodash';
 import {configRootHeightCss} from '../../constants/StyleConstants';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {isPunctuation} from '../../helpers/StringHelpers';
+import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -490,7 +491,7 @@ class ConfigRoot extends React.Component<Props, State> {
     const sidebarProps = getSidebarProps(editMode);
 
     if (
-      editMode === NetworkConfigMode['QUICK SETTINGS'] &&
+      editMode === NetworkConfigMode.FORM &&
       isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
     ) {
       return <TaskBasedConfig />;
@@ -571,18 +572,18 @@ class ConfigRoot extends React.Component<Props, State> {
                 indicatorColor="primary"
                 textColor="primary"
                 onChange={this.handleChangeEditMode}>
-                {Object.keys(editModes).map(key => {
-                  if (key === NetworkConfigMode['QUICK SETTINGS']) {
+                {objectValuesTypesafe<string>(editModes).map(mode => {
+                  if (mode === NetworkConfigMode.FORM) {
                     return (
                       isFeatureEnabled('TASK_BASED_CONFIG_ENABLED') && (
-                        <Tab key={key} label={key} value={key} />
+                        <Tab key={mode} label={mode} value={mode} />
                       )
                     );
                   }
-                  return <Tab key={key} label={key} value={key} />;
+                  return <Tab key={mode} label={mode} value={mode} />;
                 })}
               </Tabs>
-              {editMode !== NetworkConfigMode['QUICK SETTINGS'] && (
+              {editMode !== NetworkConfigMode.FORM && (
                 <div className={classes.buttonContainer}>
                   <Button
                     onClick={this.resetDraftConfig}
@@ -598,8 +599,7 @@ class ConfigRoot extends React.Component<Props, State> {
               )}
             </AppBar>
             {this.renderTabContent()}
-            {!useRawJsonEditor &&
-            editMode !== NetworkConfigMode['QUICK SETTINGS']
+            {!useRawJsonEditor && editMode !== NetworkConfigMode.FORM
               ? this.renderAddFieldButton()
               : null}
 

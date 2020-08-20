@@ -532,7 +532,7 @@ class NetworkConfig extends React.Component<Props, State> {
           selectedNodeInfo
             ? NetworkConfigMode.NODE
             : isFeatureEnabled('TASK_BASED_CONFIG_ENABLED')
-            ? NetworkConfigMode['QUICK SETTINGS']
+            ? NetworkConfigMode.FORM
             : NetworkConfigMode.NETWORK
         }
         setParentState={this.setState.bind(this)}
