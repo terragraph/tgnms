@@ -64,7 +64,7 @@ export default function ScanConnectivity(props: Props) {
   const {formState, handleInputChange} = useForm({
     initialState: {
       filterString: '',
-      filterSNR: 0,
+      filterSNR: 15,
     },
   });
 
