@@ -14,6 +14,7 @@ import {
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
   NODE_OVERLAYS,
+  OVERLAY_NONE,
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
 } from '../../constants/LayerConstants';
@@ -28,8 +29,8 @@ const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;
 const defaultOverlays = {
   link_lines: 'ignition_status',
   site_icons: 'health',
-  area_polygons: 'prefix_zone',
-  nodes: 'bearing',
+  area_polygons: OVERLAY_NONE.id,
+  nodes: OVERLAY_NONE.id,
 };
 
 export default function DefaultOverlayPanel() {
@@ -64,17 +65,17 @@ export default function DefaultOverlayPanel() {
         legend: SiteOverlayColors,
         defaultOverlayId: defaultOverlays.site_icons,
       },
-      area_polygons: {
-        layerId: 'area_polygons',
-        overlays: objectValuesTypesafe<Overlay>(AREA_OVERLAYS),
-        defaultOverlayId: defaultOverlays.area_polygons,
-        legend: SiteOverlayColors,
-      },
       nodes: {
         layerId: 'nodes',
         overlays: objectValuesTypesafe<Overlay>(NODE_OVERLAYS),
         defaultOverlayId: defaultOverlays.nodes,
         legend: {},
+      },
+      area_polygons: {
+        layerId: 'area_polygons',
+        overlays: objectValuesTypesafe<Overlay>(AREA_OVERLAYS),
+        defaultOverlayId: defaultOverlays.area_polygons,
+        legend: SiteOverlayColors,
       },
     });
   }, [setOverlaysConfig, setSelectedOverlays]);

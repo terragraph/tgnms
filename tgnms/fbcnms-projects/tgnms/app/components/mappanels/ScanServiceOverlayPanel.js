@@ -11,6 +11,7 @@ import {
   AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
   LinkOverlayColors,
+  OVERLAY_NONE,
   SCAN_CONNECTIVITY_LINK_OVERLAYS,
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
@@ -23,7 +24,7 @@ import type {Overlay} from '../../views/map/NetworkMapTypes';
 const defaultOverlays = {
   link_lines: 'health',
   site_icons: 'health',
-  area_polygons: 'prefix_zone',
+  area_polygons: OVERLAY_NONE.id,
   initial_link_lines: 'ignition_status',
 };
 

@@ -100,9 +100,9 @@ describe('setters', () => {
       link_lines: true,
       site_icons: true,
       nodes: false,
-      area_polygons: false,
       buildings_3d: false,
       site_name_popups: false,
+      area_polygons: false,
     });
     act(() => {
       result.current.setSelectedLayers(allLayersSelected);
@@ -256,8 +256,6 @@ describe('optionsContext integration', () => {
     expect(result.current.selectedLayers).toEqual({
       link_lines: true,
       site_icons: true,
-      area_polygons: false,
-      nodes: false,
     });
     expect(result.current.selectedOverlays).toEqual({});
   });

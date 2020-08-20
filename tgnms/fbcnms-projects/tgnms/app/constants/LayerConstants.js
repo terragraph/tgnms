@@ -225,6 +225,8 @@ export const MILLISECONDS_TO_MINUTES = 60000;
 export const mapLayers: Array<{|
   layerId: $Keys<LayerData<*>>,
   name: string,
+  // If the layer can be enabled/disabled - default true
+  toggleable?: boolean,
   /**
    * Static layers cannot have their overlay changed and do not require
    * an overlay config to render.
@@ -242,11 +244,12 @@ export const mapLayers: Array<{|
   {
     layerId: 'nodes',
     name: 'Nodes',
-    isStatic: true,
+    toggleable: false,
   },
   {
     layerId: 'area_polygons',
     name: 'Areas',
+    toggleable: false,
   },
   {
     layerId: 'site_name_popups',
@@ -261,6 +264,12 @@ export const mapLayers: Array<{|
 ];
 
 type Overlays = {[string]: Overlay};
+
+export const OVERLAY_NONE: Overlay = {
+  name: 'None',
+  type: '',
+  id: 'none',
+};
 
 export const SITE_METRIC_OVERLAYS: Overlays = {
   health: {name: 'Health', type: 'health', id: 'health'},
@@ -463,6 +472,7 @@ export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
 };
 
 export const AREA_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   prefix_zone: {
     name: 'Prefix Zone',
     type: 'prefix_zone',
@@ -494,6 +504,7 @@ export const SCAN_INTERFERENCE_LINK_OVERLAYS: Overlays = {
 };
 
 export const NODE_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   bearing: {
     name: 'Bearing',
     type: '',

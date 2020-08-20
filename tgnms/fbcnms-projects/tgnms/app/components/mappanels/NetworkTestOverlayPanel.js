@@ -14,6 +14,7 @@ import {
   LinkOverlayColors,
   METRIC_COLOR_RANGE,
   NETWORK_TEST_HEALTH_COLOR_RANGE,
+  OVERLAY_NONE,
   SITE_METRIC_OVERLAYS,
   SITE_TEST_OVERLAYS,
   SiteOverlayColors,
@@ -32,7 +33,7 @@ const defaultOverlays = {
   link_test_link_lines: 'health',
   node_test_link_links: 'ignition_status',
   site_icons: 'health',
-  area_polygons: 'prefix_zone',
+  area_polygons: OVERLAY_NONE.id,
 };
 
 export default function NetworkTestOverlayPanel() {

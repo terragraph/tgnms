@@ -88,10 +88,8 @@ export default function MapLayers(props: Props) {
   const {
     site_icons,
     link_lines,
-    nodes,
     site_name_popups,
     buildings_3d,
-    area_polygons,
   } = selectedLayers;
 
   const {
@@ -180,17 +178,15 @@ export default function MapLayers(props: Props) {
           routes={routes}
         />
       ) : null}
-      {nodes && <NodesLayer overlay={overlays.nodes} />}
+      <NodesLayer overlay={overlays.nodes} />
       {site_name_popups ? (
         <SitePopupsLayer key="popups-layer" topology={networkConfig.topology} />
       ) : null}
-      {area_polygons && overlays.area_polygons && (
-        <PolygonLayer
-          key="polygon-layer"
-          overlay={overlays.area_polygons}
-          data={overlayData.area_polygons}
-        />
-      )}
+      <PolygonLayer
+        key="polygon-layer"
+        overlay={overlays.area_polygons}
+        data={overlayData.area_polygons}
+      />
       {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawLayer />}
     </>
   );

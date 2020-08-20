@@ -11,9 +11,16 @@ import type {Overlay} from '../NetworkMapTypes';
 
 type Props = {|overlay: Overlay, data?: {}|};
 export default function PolygonLayer({overlay, data}: Props) {
+  if (!overlay) {
+    return null;
+  }
   const {Component} = overlay;
   if (Component) {
     return <Component overlay={overlay} />;
+  }
+
+  if (!data) {
+    return null;
   }
   // if there is no custom component, render the data as geojson
   return (

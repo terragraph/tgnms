@@ -87,8 +87,6 @@ export type ProviderProps = {|
 const defaultSelectedLayers: SelectedLayersType = {
   link_lines: true,
   site_icons: true,
-  area_polygons: false,
-  nodes: false,
 };
 export function MapContextProvider({
   children,

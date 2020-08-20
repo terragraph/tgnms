@@ -186,9 +186,9 @@ function LayersForm() {
   return (
     <FormGroup key="layers" row={false} className={classes.formGroup}>
       <FormLabel component="legend">Layers</FormLabel>
-      {mapLayers.map(({layerId, name, isStatic}) => {
+      {mapLayers.map(({layerId, name, isStatic, toggleable}) => {
         // non-static overlays require an overlay config
-        if (!isStatic && !overlaysConfig[layerId]) {
+        if ((!isStatic && !overlaysConfig[layerId]) || toggleable === false) {
           return null;
         }
         return (
