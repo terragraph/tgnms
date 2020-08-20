@@ -18,7 +18,6 @@ type Props = {linkInterference?: LinkInterferenceType};
 export default function LinkInterference(props: Props) {
   const {linkInterference} = props;
   const routes = useRouteContext();
-
   const routesRef = React.useRef(routes);
 
   React.useEffect(() => {
