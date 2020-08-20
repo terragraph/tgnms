@@ -39,12 +39,12 @@ export type PanelStateControl = {|
   getIsOpen: (key: string) => boolean,
   getIsHidden: (key: string) => boolean,
   getIsCollapsed: (key: string) => boolean,
-  getIsOpen: (key: string) => boolean,
   getPanelState: (key: string) => PanelState,
   toggleOpen: (key: string) => void,
   setPanelState: (key: string, state: PanelState) => void,
   removePanel: (key: string) => void,
   collapseAll: () => void,
+  getIsAnyOpen: () => boolean,
 |};
 
 export function usePanelControl({
@@ -117,6 +117,10 @@ export function usePanelControl({
     }
   }, [getAll, setPanelState, getIsOpen]);
 
+  const getIsAnyOpen = React.useCallback(() => {
+    return Object.values(getAll()).includes(PANEL_STATE.OPEN);
+  }, [getAll]);
+
   return {
     getAll,
     getIsHidden,
@@ -130,5 +134,6 @@ export function usePanelControl({
      */
     removePanel,
     collapseAll,
+    getIsAnyOpen,
   };
 }

@@ -102,7 +102,7 @@ export default function TopologyBuilderMenu(props: Props) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const plannedSitePropsRef = useLiveRef(plannedSiteProps);
-  const panelControlRef = useLiveRef(props.panelControl);
+  const panelControlRef = useLiveRef(panelControl);
   const context = useContext(NetworkContext);
   const {networkConfig, networkName, selectedElement, setSelected} = context;
   const {controller_version, topology} = networkConfig;
@@ -348,10 +348,7 @@ export default function TopologyBuilderMenu(props: Props) {
           expanded={panelControl.getIsOpen(PANELS.TOPOLOGY_LINK)}
           onPanelChange={() => panelControl.toggleOpen(PANELS.TOPOLOGY_LINK)}
           onClose={status => {
-            panelControl.setPanelState(
-              PANELS.TOPOLOGY_LINK,
-              PANEL_STATE.HIDDEN,
-            );
+            hidePanel(PANELS.TOPOLOGY_LINK);
             if (status) {
               handleTopologyChangeSnackbar(status);
             }

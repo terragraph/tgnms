@@ -43,7 +43,6 @@ import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
 import {makeStyles, useTheme} from '@material-ui/styles';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {useNetworkContext} from '../../contexts/NetworkContext';
 import {useRouteContext} from '../../contexts/RouteContext';
 
@@ -182,26 +181,29 @@ export default function NetworkDrawerFn({
     setPanelState,
     getIsOpen,
     getIsHidden,
+    getIsCollapsed,
     toggleOpen,
     collapseAll,
-    getAll,
+    getIsAnyOpen,
   } = panelControl;
 
   // this state is for the TopologyBuilderMenu forms
   const topologyBuilderForm = useTopologyBuilderForm();
   const {updateForm} = topologyBuilderForm;
 
+  const isAnyPanelOpen =
+    getIsAnyOpen() &&
+    getIsCollapsed(PANELS.OVERVIEW) &&
+    getIsCollapsed(PANELS.MAP_LAYERS);
+
   React.useEffect(() => {
     if (selectedElement) {
       return collapseAll();
     }
-    const isAnyPanelOpen = objectValuesTypesafe<$Values<typeof PANEL_STATE>>(
-      getAll(),
-    ).includes(PANEL_STATE.OPEN);
     if (!isAnyPanelOpen) {
       return setPanelState(PANELS.OVERVIEW, PANEL_STATE.OPEN);
     }
-  }, [selectedElement, getAll, collapseAll, setPanelState]);
+  }, [selectedElement, isAnyPanelOpen, collapseAll, setPanelState]);
 
   const upgradeReq = upgrade_state.curReq.urReq;
   const showUpgradeProgressPanel =
@@ -342,7 +344,7 @@ export default function NetworkDrawerFn({
             expanded={getIsOpen(PANELS.ACCESS_POINTS)}
             onPanelChange={() => toggleOpen(PANELS.OVERVIEW)}
             onClose={() =>
-              setPanelState(PANELS.IGNITION_STATE, PANEL_STATE.HIDDEN)
+              setPanelState(PANELS.ACCESS_POINTS, PANEL_STATE.HIDDEN)
             }
             onSelectSite={siteName =>
               context.setSelected(TopologyElementType.SITE, siteName)
