@@ -42,7 +42,6 @@ export type NetworkContextType = {|
   linkMap: LinkMap,
   siteMap: SiteMap,
   siteToNodesMap: SiteToNodesMap,
-  nodeToLinksMap: NodeToLinksMap,
   macToNodeMap: MacToNodeMap,
   // Topology elements
   selectedElement: ?Element,
@@ -235,7 +234,6 @@ const NetworkContext = React.createContext<NetworkContextType>({
   linkMap: {},
   siteMap: {},
   siteToNodesMap: {},
-  nodeToLinksMap: {},
   macToNodeMap: {},
 
   // Topology elements
