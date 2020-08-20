@@ -125,7 +125,7 @@ kick off the jobs again.
             sleep_time = start_time + pipeline["period"] - time.time()
 
             print(
-                f"Done enqueuing jobs in the '{name}' pipeline. "
+                f"Done enqueuing jobs in '{name}'. "
                 f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time}s"
             )
 

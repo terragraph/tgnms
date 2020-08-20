@@ -1,7 +1,7 @@
 {
   "num_consumers": 10,
   "pipelines": {
-    "route_analysis_pipeline": {
+    "pipeline 1": {
       "period": 60,
       "jobs": [
         {

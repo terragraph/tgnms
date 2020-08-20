@@ -1,7 +1,7 @@
 {
     "num_consumers": 5,
     "pipelines": {
-      "analytics_service_pipeline": {
+      "pipeline 1": {
         "period_s": 300,
         "jobs": [
           {

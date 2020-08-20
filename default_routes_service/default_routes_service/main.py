@@ -109,7 +109,7 @@ async def produce(
         sleep_time = start_time + pipeline["period"] - time.time()
 
         logging.info(
-            f"Done enqueuing jobs in the '{name}' pipeline. "
+            f"Done enqueuing jobs in '{name}'. "
             f"Added {len(tasks)} job(s) to the queue. Sleeping for {sleep_time:0.2f}s"
         )
         await asyncio.sleep(sleep_time)

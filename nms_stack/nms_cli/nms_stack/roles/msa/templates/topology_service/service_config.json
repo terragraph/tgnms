@@ -1,7 +1,7 @@
 {
   "num_consumers": 10,
   "pipelines": {
-    "30_sec_pipeline": {
+    "pipeline 1": {
       "period": 30,
       "jobs": [
         {
@@ -10,7 +10,7 @@
         }
       ]
     },
-    "10_min_pipeline": {
+    "pipeline 2": {
       "period": 600,
       "jobs": [
         {
