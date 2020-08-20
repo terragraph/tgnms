@@ -14,7 +14,10 @@ import ReactDOM from 'react-dom';
 import TgMapboxGeocoderIcon from './TgMapboxGeocoderIcon';
 import mapboxgl from 'mapbox-gl';
 import {LinkTypeValueMap} from '../../../shared/types/Topology';
-import {TopologyElementType} from '../../constants/NetworkConstants';
+import {
+  MAP_CONTROL_LOCATIONS,
+  TopologyElementType,
+} from '../../constants/NetworkConstants';
 import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '../../contexts/MapContext';
@@ -64,9 +67,12 @@ export default function TgMapboxGeocoder(props: Props) {
         },
         onRemove: () => {},
       },
-      'top-left',
+      MAP_CONTROL_LOCATIONS.TOP_LEFT,
     );
-    mapboxRef?.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    mapboxRef?.addControl(
+      new mapboxgl.NavigationControl(),
+      MAP_CONTROL_LOCATIONS.TOP_LEFT,
+    );
   }, [mapboxRef, mapboxControl]);
 
   const searchInMap = React.useCallback((query, map, filter) => {

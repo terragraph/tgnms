@@ -15,6 +15,7 @@ import {
   useMapAnnotationContext,
   useMapAnnotationGroupState,
 } from '../../../contexts/MapAnnotationContext';
+import {MAP_CONTROL_LOCATIONS} from '../../../constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
@@ -87,7 +88,7 @@ export function useDrawLayer() {
     const toggled = !isDrawEnabled;
     setIsDrawEnabled(toggled);
     if (toggled) {
-      mapboxRef?.addControl(drawControl, 'top-left');
+      mapboxRef?.addControl(drawControl, MAP_CONTROL_LOCATIONS.TOP_LEFT);
       drawControl.add(current?.geojson);
     } else {
       mapboxRef?.removeControl(drawControl);
@@ -123,7 +124,7 @@ export function useDrawLayer() {
         },
         onRemove: () => {},
       },
-      'top-left',
+      MAP_CONTROL_LOCATIONS.TOP_LEFT,
     );
     mapboxRef?.on(MAPBOX_TG_EVENTS.TOGGLE, (...args) =>
       handleDrawToggle.current(...args),

@@ -47,3 +47,8 @@ export const TIME_WINDOWS = [
   {hours: 24 * 2, title: '2 days'},
   {hours: 24 * 7, title: '1 week'},
 ];
+
+export const MAP_CONTROL_LOCATIONS = {
+  TOP_LEFT: 'top-left',
+  TOP_RIGHT: 'top-right',
+};
