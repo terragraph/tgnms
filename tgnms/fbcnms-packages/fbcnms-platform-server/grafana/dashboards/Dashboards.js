@@ -35,7 +35,7 @@ export const networkTemplate: TemplateConfig = variableTemplate({
 // gateways associated with this organization that exist for the
 // currently selected $networkID. $networkID variable must also
 // be configured for this dashboard in order for it to work
-const gatewayTemplate: TemplateConfig = variableTemplate({
+export const gatewayTemplate: TemplateConfig = variableTemplate({
   labelName: gwIDVar,
   query: `label_values({networkID=~"$networkID",gatewayID=~".+"}, ${gwIDVar})`,
   regex: `/.+/`,
@@ -59,6 +59,7 @@ export const NetworkDBData: GrafanaDBData = {
               legendFormat: '{{networkID}}',
             },
           ],
+          aggregates: {avg: true, max: true},
         },
         {
           title: 'Number of Registered UEs',
@@ -69,6 +70,7 @@ export const NetworkDBData: GrafanaDBData = {
               legendFormat: '{{networkID}}',
             },
           ],
+          aggregates: {avg: true, max: true},
         },
         {
           title: 'Number of Connected eNBs',
@@ -79,6 +81,7 @@ export const NetworkDBData: GrafanaDBData = {
               legendFormat: '{{networkID}}',
             },
           ],
+          aggregates: {avg: true, max: true},
         },
         {
           title: 'S1 Setup',
@@ -201,8 +204,6 @@ export const GatewayDBData: GrafanaDBData = {
               legendFormat: '{{gatewayID}}',
             },
           ],
-          noAggregates: true,
-          yMin: 0,
         },
         {
           title: 'Connected Subscribers',
@@ -213,8 +214,6 @@ export const GatewayDBData: GrafanaDBData = {
               legendFormat: '{{gatewayID}}',
             },
           ],
-          noAggregates: true,
-          yMin: 0,
         },
         {
           title: 'Download Throughput',
@@ -226,7 +225,6 @@ export const GatewayDBData: GrafanaDBData = {
             },
           ],
           unit: 'Bps',
-          yMin: 0,
         },
         {
           title: 'Upload Throughput',
@@ -238,7 +236,6 @@ export const GatewayDBData: GrafanaDBData = {
             },
           ],
           unit: 'Bps',
-          yMin: 0,
         },
         {
           title: 'Latency',
@@ -250,7 +247,6 @@ export const GatewayDBData: GrafanaDBData = {
             },
           ],
           unit: 's',
-          yMin: 0,
         },
         {
           title: 'Gateway CPU %',
@@ -262,7 +258,6 @@ export const GatewayDBData: GrafanaDBData = {
             },
           ],
           unit: 'percent',
-          yMin: 0,
         },
         {
           title: 'Temperature',
@@ -273,6 +268,7 @@ export const GatewayDBData: GrafanaDBData = {
               legendFormat: '{{gatewayID}} - {{sensor}}',
             },
           ],
+          yMin: null,
           unit: 'celsius',
         },
         {
@@ -285,8 +281,6 @@ export const GatewayDBData: GrafanaDBData = {
             },
           ],
           unit: 'percent',
-          noAggregates: true,
-          yMin: 0,
         },
         {
           title: 's6a Auth Failure',
@@ -297,8 +291,6 @@ export const GatewayDBData: GrafanaDBData = {
               legendFormat: '{{gatewayID}}',
             },
           ],
-          noAggregates: true,
-          yMin: 0,
         },
       ],
     },
@@ -323,7 +315,6 @@ export const InternalDBData: GrafanaDBData = {
               legendFormat: '{{gatewayID}}',
             },
           ],
-          yMin: 0,
         },
         {
           title: 'Temperature',
@@ -346,7 +337,6 @@ export const InternalDBData: GrafanaDBData = {
             },
           ],
           unit: 'percent',
-          yMin: 0,
         },
         {
           title: 'Backhaul Latency',
@@ -358,7 +348,6 @@ export const InternalDBData: GrafanaDBData = {
             },
           ],
           unit: 's',
-          yMin: 0,
         },
         {
           title: 'System Uptime',
@@ -370,8 +359,6 @@ export const InternalDBData: GrafanaDBData = {
             },
           ],
           unit: 's',
-          noAggregates: true,
-          yMin: 0,
         },
         {
           title: 'Number of Service Restarts',
@@ -382,8 +369,6 @@ export const InternalDBData: GrafanaDBData = {
               legendFormat: '{{gatewayID}}-{{service_name}}',
             },
           ],
-          noAggregates: true,
-          yMin: 0,
         },
       ],
     },
@@ -445,8 +430,8 @@ type PanelParams = {
   title: string,
   targets: Array<{expr: string, legendFormat?: string}>,
   unit?: string,
-  yMin?: number,
-  noAggregates?: boolean,
+  yMin?: ?number,
+  aggregates?: {avg?: boolean, max?: boolean},
 };
 
 function newPanel(params: PanelParams) {
@@ -461,13 +446,16 @@ function newPanel(params: PanelParams) {
   if (params.unit) {
     pan.state.y_formats[0] = params.unit;
   }
-  if (params.yMin !== undefined) {
-    pan.state.grid.leftMin = params.yMin;
+  // yMin should be 0 at minimum unless otherwise specified.
+  // null is used to indicate 'auto' in grafana
+  if (params.yMin === null) {
+    pan.state.grid.leftMin = null;
+  } else {
+    pan.state.grid.leftMin = params.yMin ?? 0;
   }
-  if (params.noAggregates) {
-    pan.state.legend.avg = false;
-    pan.state.legend.max = false;
-  }
+
+  pan.state.legend.avg = params.aggregates?.avg ?? false;
+  pan.state.legend.max = params.aggregates?.max ?? false;
   return pan;
 }
 

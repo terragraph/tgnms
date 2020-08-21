@@ -13,6 +13,7 @@ import {isEqual, sortBy} from 'lodash';
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
 import {
   CWFAccessPointDBData,
+  CWFGatewayDBData,
   CWFNetworkDBData,
   CWFSubscriberDBData,
 } from './dashboards/CWFDashboards';
@@ -488,6 +489,7 @@ export async function syncDashboards(
       dashboardData(createDashboard(CWFNetworkDBData).generate()),
       dashboardData(createDashboard(CWFAccessPointDBData).generate()),
       dashboardData(createDashboard(CWFSubscriberDBData).generate()),
+      dashboardData(createDashboard(CWFGatewayDBData).generate()),
     );
   }
 
