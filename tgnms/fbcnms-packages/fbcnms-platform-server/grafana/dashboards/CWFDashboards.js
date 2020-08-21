@@ -196,10 +196,32 @@ export const CWFAccessPointDBData: GrafanaDBData = {
           noAggregates: true,
         },
         {
+          title: 'Session Stop',
+          targets: [
+            {
+              expr: 'sum(session_stop{apn=~"$apn"}) by (apn)',
+              legendFormat: '{{apn}}',
+            },
+          ],
+          yMin: 0,
+          noAggregates: true,
+        },
+        {
+          title: 'Session Timeout',
+          targets: [
+            {
+              expr: 'sum(session_timeouts{apn=~"$apn"}) by (apn)',
+              legendFormat: '{{apn}}',
+            },
+          ],
+          yMin: 0,
+          noAggregates: true,
+        },
+        {
           title: 'Session Terminate',
           targets: [
             {
-              expr: 'sum(session_terminate{apn=~"$apn"}) by (apn)',
+              expr: 'sum(session_manager_terminate{apn=~"$apn"}) by (apn)',
               legendFormat: '{{apn}}',
             },
           ],
@@ -331,11 +353,10 @@ export const CWFNetworkDBData: GrafanaDBData = {
           noAggregates: true,
         },
         {
-          title: 'Session Terminate',
+          title: 'Session Stop',
           targets: [
             {
-              expr:
-                'sum(session_terminate{networkID=~"$networkID"}) by (networkID)',
+              expr: 'sum(session_stop{networkID=~"$networkID"}) by (networkID)',
               legendFormat: '{{networkID}}',
             },
           ],
@@ -343,10 +364,23 @@ export const CWFNetworkDBData: GrafanaDBData = {
           noAggregates: true,
         },
         {
-          title: 'Session Stop',
+          title: 'Session Timeouts',
           targets: [
             {
-              expr: 'sum(session_stop{networkID=~"$networkID"}) by (networkID)',
+              expr:
+                'sum(session_timeouts{networkID=~"$networkID"}) by (networkID)',
+              legendFormat: '{{networkID}}',
+            },
+          ],
+          yMin: 0,
+          noAggregates: true,
+        },
+        {
+          title: 'Session Terminate',
+          targets: [
+            {
+              expr:
+                'sum(session_manager_terminate{networkID=~"$networkID"}) by (networkID)',
               legendFormat: '{{networkID}}',
             },
           ],
