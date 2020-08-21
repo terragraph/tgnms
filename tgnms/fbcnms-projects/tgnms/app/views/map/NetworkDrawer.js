@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import AccessPointsPanel from '../../components/mappanels/AccessPointsPanel';
-import AnnotationsPanel from '../../components/mappanels/AnnotationsPanel';
+import AnnotationsPanel from '../../components/mappanels/AnnotationsPanel/AnnotationsPanel';
 import DefaultRouteHistoryPanel from '../../components/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '../../components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';

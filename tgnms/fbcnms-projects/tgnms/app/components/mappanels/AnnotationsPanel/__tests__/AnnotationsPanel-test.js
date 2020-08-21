@@ -9,15 +9,15 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as turf from '@turf/turf';
 import AnnotationsPanel from '../AnnotationsPanel';
-import {context as MapAnnotationContext} from '../../../contexts/MapAnnotationContext';
+import {context as MapAnnotationContext} from '../../../../contexts/MapAnnotationContext';
 import {
   TestApp,
   coerceClass,
   mockPanelControl,
-} from '../../../tests/testHelpers';
+} from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 import type {LineString, Polygon} from '@turf/turf';
-import type {MapAnnotationContext as MapAnnotationContextType} from '../../../contexts/MapAnnotationContext';
+import type {MapAnnotationContext as MapAnnotationContextType} from '../../../../contexts/MapAnnotationContext';
 
 afterEach(cleanup);
 
