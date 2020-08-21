@@ -10,6 +10,7 @@
  */
 
 import theme from '@mapbox/mapbox-gl-draw/src/lib/theme';
+import {GEOMETRY_TYPE} from './GeoJSONConstants';
 import {
   blue,
   green,
@@ -38,6 +39,12 @@ export const MAPBOX_DRAW_DEFAULT_STYLE_IDS: {|[string]: string|} = {
   POLYGON_STROKE_ACTIVE: 'gl-draw-polygon-stroke-active',
   VERTEX_STROKE_INACTIVE: 'gl-draw-polygon-and-line-vertex-stroke-inactive',
   VERTEX_INACTIVE: 'gl-draw-polygon-and-line-vertex-inactive',
+};
+
+export const GEO_GEOM_TYPE_TITLES = {
+  [(GEOMETRY_TYPE.POINT: string)]: 'Point',
+  [(GEOMETRY_TYPE.POLYGON: string)]: 'Polygon',
+  [(GEOMETRY_TYPE.LINE_STRING: string)]: 'Line',
 };
 
 export const TG_DRAW_STYLES = [
@@ -74,6 +81,9 @@ export const TG_DRAW_STYLES = [
     },
   },
 ];
+
+export const MAPBOX_DRAW_DEFAULT_COLOR = '#3bb2d0';
+export const MAPBOX_DRAW_VERTEX_COLOR = '#cccccc';
 
 export const ANNOTATION_COLORS = [
   green[500],

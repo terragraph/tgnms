@@ -29,12 +29,12 @@ const defaultProps = {
 };
 
 test('renders', () => {
-  const {getByText} = render(
+  const {getByTestId} = render(
     <Wrapper>
       <AnnotationsPanel {...defaultProps} />
     </Wrapper>,
   );
-  expect(getByText('Annotations')).toBeInTheDocument();
+  expect(getByTestId('annotations-panel')).toBeInTheDocument();
 });
 
 test('shows form if a feature is selected', () => {
@@ -51,11 +51,11 @@ test('shows form if a feature is selected', () => {
       <AnnotationsPanel {...defaultProps} />
     </Wrapper>,
   );
-  expect(coerceClass(getByLabelText('Title'), HTMLInputElement).value).toBe(
+  expect(coerceClass(getByLabelText('Name'), HTMLInputElement).value).toBe(
     'test-abc',
   );
   expect(
-    coerceClass(getByLabelText('Show title on map'), HTMLInputElement)?.checked,
+    coerceClass(getByLabelText('Show name on map'), HTMLInputElement)?.checked,
   ).toBe(true);
 });
 
@@ -111,7 +111,7 @@ test('shows area if feature is a polygon', () => {
     </Wrapper>,
   );
   expect(getByText('Area:')).toBeInTheDocument();
-  expect(getByTestId('feature-area').textContent).toBe('3,339,946.239 km');
+  expect(getByTestId('feature-area').textContent).toBe('3,339,946.239 sq km');
 });
 
 function Wrapper({

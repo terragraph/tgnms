@@ -90,4 +90,6 @@ declare module '@turf/turf' {
     originalUnit: string,
     finalUnit: string,
   ): number;
+
+  declare export function getType(GeoJson | GeoFeature | GeoGeometry): string;
 }

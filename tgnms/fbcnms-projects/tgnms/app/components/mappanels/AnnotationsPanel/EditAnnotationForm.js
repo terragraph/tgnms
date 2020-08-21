@@ -16,7 +16,9 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import useForm from '../../../hooks/useForm';
 import {ANNOTATION_COLORS} from '../../../constants/MapAnnotationConstants';
+import {MAPBOX_DRAW_DEFAULT_COLOR} from '../../../constants/MapAnnotationConstants';
 import {debounce} from 'lodash';
+import {makeStyles} from '@material-ui/styles';
 import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
 
 /**
@@ -35,7 +37,17 @@ const defaultProperties: $Shape<AnnotationProperties> = {
   color: null,
   opacity: null,
 };
+
+const colorSize = 0.25;
+const useStyles = makeStyles(theme => ({
+  colorRadio: {
+    padding: theme.spacing(colorSize),
+    // marginLeft: theme.spacing(colorSize),
+  },
+}));
+
 export default function EditAnnotationForm() {
+  const classes = useStyles();
   const {
     selectedFeature,
     updateFeatureProperty,
@@ -77,18 +89,23 @@ export default function EditAnnotationForm() {
     return null;
   }
 
+  const radioProps = {
+    name: 'color',
+    classes: {root: classes.colorRadio},
+    size: 'small',
+  };
   return (
     <Grid container item xs={12} direction="column" spacing={1}>
       <Grid item>
         <TextField
           onChange={handleInputChange(val => ({name: val}))}
           value={formState.name}
-          label="Title"
-          id="annotation-title"
+          label="Name"
+          id="annotation-name"
           fullWidth
         />
         <FormControlLabel
-          label="Show title on map"
+          label="Show name on map"
           color="secondary"
           control={
             <Checkbox
@@ -104,16 +121,24 @@ export default function EditAnnotationForm() {
         <FormControl component="fieldset">
           <FormLabel component="legend">Color</FormLabel>
           <RadioGroup row>
-            <Box mx={-1}>
+            <Box my={1} mx={-colorSize}>
+              <Radio
+                key="default"
+                {...radioProps}
+                style={{color: MAPBOX_DRAW_DEFAULT_COLOR}}
+                checked={!formState.color}
+                value={''}
+                inputProps={{'aria-label': 'default'}}
+              />
               {ANNOTATION_COLORS.map(color => (
                 <Radio
                   key={color}
-                  checked={formState.color === color}
-                  onChange={e => updateFormState({color: e.target.value})}
-                  name="color"
-                  value={color}
-                  inputProps={{'aria-label': color}}
+                  {...radioProps}
                   style={{color}}
+                  checked={formState.color === color}
+                  value={color}
+                  onChange={e => updateFormState({color: e.target.value})}
+                  inputProps={{'aria-label': color}}
                 />
               ))}
             </Box>

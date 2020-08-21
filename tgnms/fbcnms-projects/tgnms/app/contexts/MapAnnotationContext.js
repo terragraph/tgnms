@@ -9,8 +9,10 @@ import * as mapApiUtil from '../apiutils/MapAPIUtil';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import useTaskState, {TASK_STATE} from '../hooks/useTaskState';
 import {
+  MAPBOX_DRAW_DEFAULT_COLOR,
   MAPBOX_DRAW_DEFAULT_STYLES,
   MAPBOX_DRAW_DEFAULT_STYLE_IDS,
+  MAPBOX_DRAW_VERTEX_COLOR,
   TG_DRAW_STYLES,
 } from '../constants/MapAnnotationConstants';
 import {useNetworkContext} from './NetworkContext';
@@ -171,10 +173,6 @@ function useDrawControl() {
     const overriddenStyles = overrideStyles([...MAPBOX_DRAW_DEFAULT_STYLES]);
     return new MapboxDraw({
       userProperties: true,
-      controls: {
-        combine_features: false,
-        uncombine_features: false,
-      },
       styles: [...overriddenStyles, ...TG_DRAW_STYLES],
     });
   }, []);
@@ -202,7 +200,7 @@ function overrideStyles(
     orig => ({
       paint: {
         ...orig.paint,
-        'fill-color': getPropertyExp('color', orig.paint['fill-color']),
+        'fill-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
       },
     }),
   );
@@ -212,7 +210,7 @@ function overrideStyles(
     orig => ({
       paint: {
         ...orig.paint,
-        'fill-color': getPropertyExp('color', orig.paint['fill-color']),
+        'fill-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
       },
     }),
   );
@@ -222,7 +220,7 @@ function overrideStyles(
     orig => ({
       paint: {
         ...orig.paint,
-        'line-color': getPropertyExp('color', orig.paint['line-color']),
+        'line-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
       },
     }),
   );
@@ -232,7 +230,7 @@ function overrideStyles(
     orig => ({
       paint: {
         ...orig.paint,
-        'line-color': getPropertyExp('color', orig.paint['line-color']),
+        'line-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
       },
     }),
   );
@@ -241,13 +239,13 @@ function overrideStyles(
   mutateStyle(lookup, MAPBOX_DRAW_DEFAULT_STYLE_IDS.LINE_ACTIVE, orig => ({
     paint: {
       ...orig.paint,
-      'line-color': getPropertyExp('color', orig.paint['line-color']),
+      'line-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
     },
   }));
   mutateStyle(lookup, MAPBOX_DRAW_DEFAULT_STYLE_IDS.LINE_INACTIVE, orig => ({
     paint: {
       ...orig.paint,
-      'line-color': getPropertyExp('color', orig.paint['line-color']),
+      'line-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
     },
   }));
 
@@ -255,13 +253,20 @@ function overrideStyles(
   mutateStyle(lookup, MAPBOX_DRAW_DEFAULT_STYLE_IDS.POINT_INACTIVE, orig => ({
     paint: {
       ...orig.paint,
-      'circle-color': getPropertyExp('color', orig.paint['circle-color']),
+      'circle-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
     },
   }));
   mutateStyle(lookup, MAPBOX_DRAW_DEFAULT_STYLE_IDS.POINT_ACTIVE, orig => ({
     paint: {
       ...orig.paint,
-      'circle-color': getPropertyExp('color', orig.paint['circle-color']),
+      'circle-color': getPropertyExp('color', MAPBOX_DRAW_DEFAULT_COLOR),
+    },
+  }));
+
+  mutateStyle(lookup, MAPBOX_DRAW_DEFAULT_STYLE_IDS.VERTEX_INACTIVE, orig => ({
+    paint: {
+      ...orig.paint,
+      'circle-color': MAPBOX_DRAW_VERTEX_COLOR,
     },
   }));
 

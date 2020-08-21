@@ -65,10 +65,10 @@ function FeatureArea({feature}: {feature: GeoFeature}) {
   const areaM = turf.area(feature);
   const areaString = React.useMemo(() => {
     if (areaM < MAX_AREA_M) {
-      return `${formatNumber(areaM, 1)} m`;
+      return `${formatNumber(areaM, 1)} sq m`;
     }
     const areaKM = turf.convertArea(areaM, 'meters', 'kilometers');
-    return `${formatNumber(areaKM)} km`;
+    return `${formatNumber(areaKM)} sq km`;
   }, [areaM]);
 
   return (
@@ -79,8 +79,6 @@ function FeatureArea({feature}: {feature: GeoFeature}) {
       <Grid item>
         <Typography>
           <span data-testid="feature-area">{areaString}</span>
-          {/**superscript m^2 for area */}
-          <span style={{'font-variant-position': 'super'}}>2</span>
         </Typography>
       </Grid>
     </Grid>
