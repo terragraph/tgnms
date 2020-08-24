@@ -32,6 +32,7 @@ import {getUIEnvVal} from '../../common/uiConfig';
  */
 export const GrafanaDashboardUUID = {
   link: 'link_prom',
+  network: 'network_health',
 };
 
 export type Props = {
