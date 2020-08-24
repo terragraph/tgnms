@@ -10,6 +10,7 @@ import ReactLoginForm from '../../app/views/login/LoginForm';
 import _ from 'lodash';
 import express from 'express';
 import passport from 'passport';
+import {LOGIN_ENABLED} from '../config';
 import {URL} from 'url';
 import {awaitClient} from './oidc';
 const logger = require('../log')(module);
@@ -19,6 +20,10 @@ import type {Request} from '../types/express';
 const router = express.Router();
 
 router.get('/login', (req: Request, res) => {
+  if (!LOGIN_ENABLED) {
+    logger.warn('login disabled. redirecting to /');
+    return res.redirect('/');
+  }
   const errorMessage = req.query.errorMessage;
   const {app, styleSheets} = ssr.render(ReactLoginForm, {
     errorMessage: errorMessage,
