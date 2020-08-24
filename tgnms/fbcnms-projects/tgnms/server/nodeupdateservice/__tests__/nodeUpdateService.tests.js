@@ -120,6 +120,19 @@ describe('/downloadimage/:network/:release/:image', () => {
   });
 });
 
+describe('/', () => {
+  test('doesnt crash when an error occurs', async () => {
+    const app = setupApp();
+    requestMock.mockImplementationOnce((_input, done) => {
+      done(null, {
+        statusCode: 400,
+        body: {},
+      });
+    });
+    await request(app).get('/nodeupdateservice').expect(400);
+  });
+});
+
 function setupApp() {
   const app = express();
   app.use(require('body-parser').json());

@@ -176,9 +176,9 @@ router.use('/', (req: ExpressRequest, res: ExpressResponse) => {
           response.statusCode,
         );
         res.status(response.statusCode).end();
+      } else {
+        res.status(response.statusCode).send(body);
       }
-
-      res.status(response.statusCode).send(body);
     },
   );
 });
