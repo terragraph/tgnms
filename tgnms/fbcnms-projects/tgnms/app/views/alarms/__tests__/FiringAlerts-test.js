@@ -57,9 +57,7 @@ test('Firing alerts tab renders', async () => {
       status: {inhibitedBy: [], silencedBy: [], state: ''},
     },
   ];
-  jest
-    .spyOn(TgApiUtilMock, 'viewFiringAlerts')
-    .mockReturnValueOnce(firingAlerts);
+  jest.spyOn(TgApiUtilMock, 'viewFiringAlerts').mockReturnValue(firingAlerts);
   const {getByText} = render(
     <AlarmsTestWrapper>
       <NmsAlarms {...commonProps} />

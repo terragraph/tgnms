@@ -24,8 +24,8 @@ import {SEVERITY} from '../severity/Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
+import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useState} from 'react';
 
 import type {FiringAlarm} from '../AlarmAPIType';
 
@@ -55,15 +55,36 @@ export default function FiringAlerts() {
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
+  const [alertData, setAlertData] = useState<?Array<FiringAlarm>>(null);
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-
-  const {isLoading, error, response} = apiUtil.useAlarmsApi(
+  const {error, isLoading, response} = apiUtil.useAlarmsApi(
     apiUtil.viewFiringAlerts,
     {networkId: match.params.networkId},
     lastRefreshTime,
   );
+
+  useEffect(() => {
+    if (!isLoading) {
+      const alertData = response
+        ? response.map(alert => {
+            let labels = alert.labels;
+            if (labels && filterLabels) {
+              labels = filterLabels(labels);
+            }
+            return {
+              ...alert,
+              labels,
+            };
+          })
+        : [];
+      setAlertData(alertData);
+    }
+    return () => {
+      setAlertData(null);
+    };
+  }, [filterLabels, isLoading, response, setAlertData]);
 
   const showRowDetailsPane = React.useCallback(
     (row: FiringAlarm) => {
@@ -84,20 +105,7 @@ export default function FiringAlerts() {
     );
   }
 
-  const alertData: Array<FiringAlarm> = response
-    ? response.map(alert => {
-        let labels = alert.labels;
-        if (labels && filterLabels) {
-          labels = filterLabels(labels);
-        }
-        return {
-          ...alert,
-          labels,
-        };
-      })
-    : [];
-
-  if (alertData.length === 0) {
+  if (!isLoading && alertData?.length === 0) {
     return (
       <Grid
         container
@@ -189,7 +197,7 @@ export default function FiringAlerts() {
               hideFields: ['description'],
             },
           ]}
-          tableData={alertData}
+          tableData={alertData || []}
           sortFunc={alert =>
             get(
               SEVERITY,
@@ -199,7 +207,7 @@ export default function FiringAlerts() {
           }
           data-testid="firing-alerts"
         />
-        {isLoading && alertData.length === 0 && (
+        {isLoading && (
           <div className={classes.loading}>
             <CircularProgress />
           </div>

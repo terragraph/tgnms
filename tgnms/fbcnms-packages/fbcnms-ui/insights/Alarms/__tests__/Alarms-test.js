@@ -55,7 +55,7 @@ describe('react router tests', () => {
 
 describe('Firing Alerts', () => {
   test('renders currently firing alerts if api returns alerts', () => {
-    useMagmaAPIMock.mockReturnValueOnce({
+    useMagmaAPIMock.mockReturnValue({
       response: [
         {
           labels: {alertname: '<<TEST ALERT>>', team: '<<TEST TEAM>>'},
