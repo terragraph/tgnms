@@ -36,7 +36,6 @@ export type OverlayConfig = {|
   layerId: string,
   overlays: Array<Overlay>,
   defaultOverlayId?: string,
-  changeOverlayRange?: ChangeOverlayRange,
   legend: {},
 |};
 
@@ -64,10 +63,6 @@ export type Overlay = {|
 |};
 
 export type SelectedLayersType = LayerData<boolean>;
-
-export type ChangeOverlayRange = {
-  (id: string, newRange: Array<number>): void,
-};
 
 export type NetworkMapOptions = $Shape<{
   selectedLayers: SelectedLayersType,

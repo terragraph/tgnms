@@ -8,6 +8,7 @@
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
+import EditLegendButton from './EditLegendButton';
 import Grid from '@material-ui/core/Grid';
 import HealthIndicator from '../common/HealthIndicator';
 import IconButton from '@material-ui/core/IconButton';
@@ -21,8 +22,6 @@ import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
 import {SpecialNodeOverlayColors} from '../../constants/LayerConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '../../contexts/MapContext';
-
-// delete this thing and make it in the map
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -81,6 +80,15 @@ export default function MapOverlayLegend() {
     return container;
   }, []);
 
+  const editableLinkLegend = React.useMemo(
+    () =>
+      overlaysConfig.link_lines?.overlays.find(
+        overlay =>
+          overlay.id === selectedOverlays[overlaysConfig.link_lines.layerId],
+      )?.range ?? null,
+    [overlaysConfig, selectedOverlays],
+  );
+
   const toggleLegend = React.useCallback(() => setShowLegend(curr => !curr), [
     setShowLegend,
   ]);
@@ -134,6 +142,8 @@ export default function MapOverlayLegend() {
         <Typography className={classes.title} variant="subtitle1">
           Legend
         </Typography>
+
+        {editableLinkLegend && <EditLegendButton />}
       </Grid>
 
       <Collapse in={showLegend}>
@@ -210,6 +220,7 @@ function getLegendsFromOverlay(overlayConfig, selectedOverlays) {
   const overlay = overlayConfig?.overlays.find(
     overlay => overlay.id === selectedOverlays[layerId],
   );
+
   const legend = overlayConfig.legend;
 
   if (!legend || !overlay) {
