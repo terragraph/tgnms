@@ -358,7 +358,7 @@ export default function TopologyBuilderMenu(props: Props) {
           networkName={networkName}
         />
       </Slide>
-      {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
+      {
         <Slide
           {...SlideProps}
           unmountOnExit
@@ -371,7 +371,7 @@ export default function TopologyBuilderMenu(props: Props) {
             }}
           />
         </Slide>
-      )}
+      }
       <Slide
         {...SlideProps}
         unmountOnExit
@@ -423,10 +423,12 @@ export default function TopologyBuilderMenu(props: Props) {
           <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
           <ListItemText primary="Add Link" />
         </MenuItem>
-        <MenuItem onClick={handleL2TunnelClick} data-testid="add-l2">
-          <ListItemIcon>{<TuneIcon />}</ListItemIcon>
-          <ListItemText primary="Add L2 Tunnel" />
-        </MenuItem>
+        {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
+          <MenuItem onClick={handleL2TunnelClick} data-testid="add-l2">
+            <ListItemIcon>{<TuneIcon />}</ListItemIcon>
+            <ListItemText primary="Add L2 Tunnel" />
+          </MenuItem>
+        )}
         <MenuItem onClick={handleAddSiteClick} data-testid="add-planned-site">
           <ListItemIcon>{<AddLocationIcon />}</ListItemIcon>
           <ListItemText primary="Add Planned Site" />
