@@ -12,8 +12,8 @@ import Loading from '@material-ui/core/CircularProgress';
 import NetworkContext from '../../contexts/NetworkContext';
 import Typography from '@material-ui/core/Typography';
 import {Provider as TaskConfigContextProvider} from '../../contexts/ConfigTaskContext';
-import {configModes} from '../../constants/ConfigConstants';
 import {convertType} from '../../helpers/ObjectHelpers';
+import {formConfigModes} from '../../constants/ConfigConstants';
 import {set} from 'lodash';
 import {
   setNetworkOverridesConfig,
@@ -28,7 +28,7 @@ export type Props = {
   children: React.Node,
   title?: React.Node,
   description?: React.Node,
-  mode?: $Keys<typeof configModes>,
+  mode?: $Values<typeof formConfigModes>,
   nodeName?: ?string,
   onClose?: () => void,
   advancedLink?: React.Node,
@@ -53,22 +53,14 @@ export default function ConfigTaskForm({
   const configDataRef = React.useRef(configData);
 
   const handleSubmitConfig = React.useCallback(() => {
-    const draftConfig = nodeName
-      ? configParams?.nodeOverridesConfig[nodeName] || {}
-      : configParams?.networkOverridesConfig;
-
-    if (
-      draftConfig == null ||
-      (mode !== configModes.Network && nodeName == null)
-    ) {
+    if (mode === formConfigModes.Node && nodeName == null) {
       enqueueSnackbar('Config change failed, please double check the form', {
         variant: 'error',
       });
       return;
     }
-    Object.keys(draftsRef.current).forEach(configField => {
-      set(draftConfig, configField.split('.'), draftsRef.current[configField]);
-    });
+
+    const drafts = draftsRef.current;
 
     const onSuccess = () =>
       enqueueSnackbar(
@@ -80,7 +72,12 @@ export default function ConfigTaskForm({
         variant: 'error',
       });
 
-    if (mode === configModes.Network) {
+    if (mode === formConfigModes.Network) {
+      const draftConfig = GetDraftConfig({
+        nodeName,
+        configParams,
+        drafts,
+      });
       const networkDraftConfig: NodeConfigType = convertType<NodeConfigType>(
         draftConfig,
       );
@@ -91,7 +88,28 @@ export default function ConfigTaskForm({
         onSuccess,
         onError,
       );
+    } else if (mode === formConfigModes.MultiNode) {
+      const nodeConfig = Object.keys(drafts).reduce((result, nodeName) => {
+        const draftConfig = GetDraftConfig({
+          nodeName,
+          configParams,
+          drafts:
+            drafts.hasOwnProperty(nodeName) && typeof nodeName == 'string'
+              ? drafts[nodeName]
+              : {},
+        });
+
+        result[nodeName] = draftConfig;
+        return result;
+      }, {});
+
+      setNodeOverridesConfig(networkName, nodeConfig, onSuccess, onError);
     } else if (nodeName) {
+      const draftConfig = GetDraftConfig({
+        nodeName,
+        configParams,
+        drafts,
+      });
       const nodeConfig = {[nodeName]: draftConfig};
       setNodeOverridesConfig(networkName, nodeConfig, onSuccess, onError);
     }
@@ -160,7 +178,7 @@ export default function ConfigTaskForm({
           configData={configDataRef.current}
           configMetadata={configParams?.metadata || {}}
           configOverrides={
-            (mode !== configModes.Network && nodeName != null
+            (mode !== formConfigModes.Network && nodeName != null
               ? configParams?.nodeOverridesConfig[nodeName]
               : configParams?.networkOverridesConfig) ?? {}
           }
@@ -195,4 +213,15 @@ export default function ConfigTaskForm({
       </Grid>
     </Grid>
   );
+}
+
+function GetDraftConfig({nodeName, configParams, drafts}) {
+  const draftConfig = nodeName
+    ? configParams?.nodeOverridesConfig[nodeName] || {}
+    : configParams?.networkOverridesConfig;
+  Object.keys(drafts).forEach(configField => {
+    set(draftConfig, configField.split('.'), drafts[configField]);
+  });
+
+  return draftConfig;
 }

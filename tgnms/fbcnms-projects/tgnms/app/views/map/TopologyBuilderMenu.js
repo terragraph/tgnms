@@ -358,20 +358,18 @@ export default function TopologyBuilderMenu(props: Props) {
           networkName={networkName}
         />
       </Slide>
-      {
-        <Slide
-          {...SlideProps}
-          unmountOnExit
-          in={!panelControl.getIsHidden(PANELS.L2_TUNNEL)}>
-          <AddL2Tunnel
-            expanded={panelControl.getIsOpen(PANELS.L2_TUNNEL)}
-            onPanelChange={() => panelControl.toggleOpen(PANELS.L2_TUNNEL)}
-            onClose={() => {
-              hidePanel(PANELS.L2_TUNNEL);
-            }}
-          />
-        </Slide>
-      }
+      <Slide
+        {...SlideProps}
+        unmountOnExit
+        in={!panelControl.getIsHidden(PANELS.L2_TUNNEL)}>
+        <AddL2Tunnel
+          expanded={panelControl.getIsOpen(PANELS.L2_TUNNEL)}
+          onPanelChange={() => panelControl.toggleOpen(PANELS.L2_TUNNEL)}
+          onClose={() => {
+            hidePanel(PANELS.L2_TUNNEL);
+          }}
+        />
+      </Slide>
       <Slide
         {...SlideProps}
         unmountOnExit
@@ -423,7 +421,7 @@ export default function TopologyBuilderMenu(props: Props) {
           <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
           <ListItemText primary="Add Link" />
         </MenuItem>
-        {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
+        {!isFeatureEnabled('L2_TUNNELS_ENABLED') && (
           <MenuItem onClick={handleL2TunnelClick} data-testid="add-l2">
             <ListItemIcon>{<TuneIcon />}</ListItemIcon>
             <ListItemText primary="Add L2 Tunnel" />

@@ -57,7 +57,7 @@ function Wrapper({
   configMetadata: $Shape<ConfigMetaDataType>,
   onUpdate: ({
     configField: string,
-    draftValue: string | number | boolean,
+    draftValue: string | number | boolean | {},
   }) => void,
   configOverrides: {},
   networkConfigOverride: {},

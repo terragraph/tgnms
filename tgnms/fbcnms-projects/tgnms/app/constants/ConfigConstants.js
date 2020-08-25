@@ -73,6 +73,12 @@ export const configModes = {
   Node: 'Node',
 };
 
+export const formConfigModes = {
+  Network: 'Network',
+  Node: 'Node',
+  MultiNode: 'MultiNode',
+};
+
 export const configModeDescription = {
   Network:
     'Change parameters across the entire network, such as stats endpoints and environment settings.',

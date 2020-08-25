@@ -21,5 +21,5 @@ test('renders empty without crashing', () => {
       </NetworkContextWrapper>
     </TestApp>,
   );
-  expect(getByText('Pop Node *')).toBeInTheDocument();
+  expect(getByText('Node 1 *')).toBeInTheDocument();
 });
