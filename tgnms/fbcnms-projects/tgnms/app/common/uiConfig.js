@@ -11,7 +11,7 @@ export function getUIConfig(): UIConfig {
   if (window.CONFIG) {
     return window.CONFIG;
   }
-  return {env: {}, networks: {}, user: null, version: 'none'};
+  return {env: {}, networks: {}, user: null, version: 'none', featureFlags: {}};
 }
 
 export function getUIEnv(): UIEnv {

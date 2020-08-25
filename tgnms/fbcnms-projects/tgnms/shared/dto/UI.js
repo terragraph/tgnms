@@ -3,33 +3,21 @@
  * @format
  * @flow strict-local
  */
+import type {FeatureFlagKey} from '../FeatureFlags';
 import type {User as UserDto} from '../auth/User';
+
+export type UIFeatureFlags = {|
+  [FeatureFlagKey]: boolean,
+|};
 
 export type UIEnv = $Shape<{
   GRAFANA_URL: string,
   MAPBOX_ACCESS_TOKEN: string,
   ISSUES_URL: string,
-  NETWORKTEST_ENABLED: string,
-  SCANSERVICE_ENABLED: string,
-  LOGIN_ENABLED: string,
   TILE_STYLE: string,
   COMMIT_DATE: string,
   COMMIT_HASH: string,
   DOC_URL: string,
-  NOTIFICATION_MENU_ENABLED: string,
-  SERVICE_AVAILABILITY_ENABLED: string,
-  SOFTWARE_PORTAL_ENABLED: string,
-  ALARMS_ENABLED: string,
-  // Experimental features, remove these flags once the features are done
-  DEFAULT_ROUTES_HISTORY_ENABLED: string,
-  JSON_CONFIG_ENABLED: string,
-  MAP_HISTORY_ENABLED: string,
-  NMS_SETTINGS_ENABLED: string,
-  MAP_ANNOTATIONS_ENABLED: string,
-  TASK_BASED_CONFIG_ENABLED: string,
-  GET_SYSDUMP_ENABLED: string,
-  NMS_BACKUP_ENABLED: string,
-  WEBSOCKETS_ENABLED: string,
 }>;
 
 // NetworkConfig
@@ -39,4 +27,5 @@ export type UIConfig = {|
   networks: Networks, // list of currently configured networks
   user: ?UserDto, // non-secret UI info about the currently logged-in user
   version: ?string,
+  featureFlags: UIFeatureFlags,
 |};

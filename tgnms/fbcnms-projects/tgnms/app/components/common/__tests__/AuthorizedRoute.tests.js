@@ -19,7 +19,7 @@ import {withStyles} from '@material-ui/core';
 
 beforeEach(() => {
   initWindowConfig({
-    env: {
+    featureFlags: {
       LOGIN_ENABLED: true,
     },
   });
@@ -30,7 +30,7 @@ afterEach(cleanup);
 
 test('If login is disabled, show protected route', () => {
   initWindowConfig({
-    env: {
+    featureFlags: {
       LOGIN_ENABLED: false,
     },
   });

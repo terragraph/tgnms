@@ -17,7 +17,7 @@ import Authorize from '../Authorize';
 
 beforeEach(() => {
   initWindowConfig({
-    env: {
+    featureFlags: {
       LOGIN_ENABLED: true,
     },
   });
@@ -28,7 +28,7 @@ afterEach(cleanup);
 
 test('If login is disabled, allow all', () => {
   initWindowConfig({
-    env: {
+    featureFlags: {
       LOGIN_ENABLED: false,
     },
   });

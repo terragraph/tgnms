@@ -5,11 +5,11 @@
  * @flow strict-local
  */
 
-import SettingsEngine from './SettingsEngine';
+import SettingsEngine, {mapFromFeatureFlags} from './SettingsEngine';
+import {FEATURE_FLAGS} from '../../shared/FeatureFlags';
 import {TESTER} from './settingsTesters';
 import type {EnvMap, SettingDefinition} from '../../shared/dto/Settings';
 
-const settings = new SettingsEngine();
 export const SETTINGS: Array<SettingDefinition> = [
   {
     key: 'PORT',
@@ -30,13 +30,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     required: false,
     dataType: 'STRING',
     defaultValue: 'info',
-    requiresRestart: true,
-  },
-  {
-    key: 'LOGIN_ENABLED',
-    required: true,
-    dataType: 'BOOL',
-    defaultValue: true,
     requiresRestart: true,
   },
   {
@@ -127,13 +120,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     dataType: 'SECRET_STRING',
     requiresRestart: true,
     tester: TESTER.SOFTWARE_PORTAL,
-  },
-  {
-    key: 'ALARMS_ENABLED',
-    required: false,
-    dataType: 'BOOL',
-    requiresRestart: true,
-    tester: TESTER.ALARMS,
   },
   {
     key: 'PROMETHEUS_CONFIG_URL',
@@ -233,13 +219,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     requiresRestart: true,
   },
   {
-    key: 'NETWORKTEST_ENABLED',
-    required: false,
-    dataType: 'BOOL',
-    requiresRestart: true,
-    validations: [],
-  },
-  {
     key: 'NETWORKTEST_HOST',
     required: false,
     dataType: 'STRING',
@@ -256,27 +235,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     tester: TESTER.DEFAULT_ROUTES_HISTORY,
   },
   {
-    key: 'DEFAULT_ROUTES_HISTORY_ENABLED',
-    required: false,
-    dataType: 'BOOL',
-    requiresRestart: true,
-    validations: [],
-  },
-  {
-    key: 'MAP_ANNOTATIONS_ENABLED',
-    required: false,
-    dataType: 'BOOL',
-    requiresRestart: true,
-    validations: [],
-  },
-  {
-    key: 'TASK_BASED_CONFIG_ENABLED',
-    required: false,
-    dataType: 'BOOL',
-    requiresRestart: true,
-    validations: [],
-  },
-  {
     key: 'SCANSERVICE_HOST',
     required: false,
     dataType: 'STRING',
@@ -284,15 +242,10 @@ export const SETTINGS: Array<SettingDefinition> = [
     validations: ['URL'],
     tester: TESTER.SCANSERVICE,
   },
-  {
-    key: 'SCANSERVICE_ENABLED',
-    required: false,
-    dataType: 'BOOL',
-    requiresRestart: true,
-    validations: [],
-  },
+  ...mapFromFeatureFlags(FEATURE_FLAGS),
 ];
 
+const settings = new SettingsEngine();
 /**
  * Read the settings files and load the data into the environment.
  */

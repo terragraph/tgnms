@@ -31,8 +31,8 @@ const _postMock = jest
 beforeEach(() => {
   jest.clearAllMocks();
   initWindowConfig({
-    env: {
-      NMS_SETTINGS_ENABLED: 'true',
+    featureFlags: {
+      NMS_SETTINGS_ENABLED: true,
     },
   });
 });
@@ -51,8 +51,8 @@ describe('routing', () => {
   });
   test('renders networks view when feature is disabled', async () => {
     initWindowConfig({
-      env: {
-        NMS_SETTINGS_ENABLED: 'false',
+      featureFlags: {
+        NMS_SETTINGS_ENABLED: false,
       },
     });
     const {getByTestId} = await renderAsync(

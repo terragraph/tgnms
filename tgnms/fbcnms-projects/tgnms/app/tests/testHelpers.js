@@ -13,6 +13,7 @@ import NetworkContext from '../contexts/NetworkContext';
 import NmsOptionsContext from '../contexts/NmsOptionsContext';
 import {CancelToken} from 'axios';
 import {EMPTY_SETTINGS_STATE} from '../../shared/dto/Settings';
+import {FEATURE_FLAGS} from '../../shared/FeatureFlags';
 import {
   LINK_METRIC_OVERLAYS,
   SITE_METRIC_OVERLAYS,
@@ -37,6 +38,7 @@ import type {PanelStateControl} from '../components/mappanels/usePanelControl';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
+import type {UIConfig} from '../../shared/dto/UI';
 import type {User} from '../../shared/auth/User';
 
 // exports things like mockNetworkConfig and mockTopology
@@ -66,13 +68,24 @@ export function renderWithRouter(
 }
 
 // TGNMS renders json into the dom and loads it into window.CONFIG
-export function initWindowConfig(config: any = {env: {}}) {
+export function initWindowConfig(config?: $Shape<UIConfig>) {
   if (!window) {
     throw new Error(
       'window is undefined. Ensure that the current jest environment is jsdom',
     );
   }
-  window.CONFIG = config;
+  const emptyConf = {env: {}, featureFlags: {}};
+  const defaults = Object.keys(FEATURE_FLAGS).reduce(
+    (map, key) =>
+      Object.assign(map, {[key]: FEATURE_FLAGS[key].isDefaultEnabled}),
+    {},
+  );
+  const conf = config ?? emptyConf;
+  conf.featureFlags = {
+    ...defaults,
+    ...conf.featureFlags,
+  };
+  window.CONFIG = {...emptyConf, ...conf};
 }
 
 export function setTestUser(user: $Shape<User>) {

@@ -14,8 +14,8 @@ import {mockNetworkConfig, renderWithRouter} from '../../../tests/testHelpers';
 
 beforeEach(() => {
   initWindowConfig({
-    env: {
-      JSON_CONFIG_ENABLED: 'true',
+    featureFlags: {
+      JSON_CONFIG_ENABLED: true,
     },
   });
 });

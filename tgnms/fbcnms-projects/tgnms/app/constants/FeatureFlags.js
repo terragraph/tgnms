@@ -8,68 +8,23 @@
  * providing configuration values to the frontend.
  */
 
-export const FeatureFlags: {[string]: () => boolean} = {
-  L2_TUNNELS_ENABLED: () =>
-    window.CONFIG.env.hasOwnProperty('L2_TUNNELS_ENABLED')
-      ? window.CONFIG.env.L2_TUNNELS_ENABLED === 'true'
-      : false,
-  NETWORKTEST_ENABLED: () =>
-    window.CONFIG.env.hasOwnProperty('NETWORKTEST_ENABLED')
-      ? window.CONFIG.env.NETWORKTEST_ENABLED !== 'false'
-      : true,
-  SCANSERVICE_ENABLED: () =>
-    window.CONFIG.env.hasOwnProperty('SCANSERVICE_ENABLED')
-      ? window.CONFIG.env.SCANSERVICE_ENABLED !== 'false'
-      : true,
-  NOTIFICATION_MENU_ENABLED: () =>
-    !!window.CONFIG?.env.NOTIFICATION_MENU_ENABLED,
-  LOGIN_ENABLED: () => window.CONFIG?.env?.LOGIN_ENABLED,
-  GRAFANA_ENABLED: () => window.CONFIG.env.hasOwnProperty('GRAFANA_URL'),
-  SERVICE_AVAILABILITY_ENABLED: () =>
-    window.CONFIG.env.SERVICE_AVAILABILITY_ENABLED === 'true',
-  SOFTWARE_PORTAL_ENABLED: () =>
-    window.CONFIG?.env?.SOFTWARE_PORTAL_ENABLED === 'true',
-  ALARMS_ENABLED: () => window.CONFIG.env.ALARMS_ENABLED,
-  DEFAULT_ROUTES_HISTORY_ENABLED: () =>
-    window.CONFIG.env.DEFAULT_ROUTES_HISTORY_ENABLED,
-  JSON_CONFIG_ENABLED: () =>
-    window.CONFIG.env.hasOwnProperty('JSON_CONFIG_ENABLED')
-      ? window.CONFIG.env.JSON_CONFIG_ENABLED === 'true'
-      : true,
-  MAP_HISTORY_ENABLED: () =>
-    window.CONFIG.env.hasOwnProperty('MAP_HISTORY_ENABLED')
-      ? window.CONFIG.env.MAP_HISTORY_ENABLED === 'true'
-      : true,
-  NMS_SETTINGS_ENABLED: () =>
-    // enabled by default
-    typeof window.CONFIG.env['NMS_SETTINGS_ENABLED'] === 'undefined' ||
-    window.CONFIG.env['NMS_SETTINGS_ENABLED'] !== 'false',
-  MAP_ANNOTATIONS_ENABLED: () =>
-    typeof window.CONFIG.env['MAP_ANNOTATIONS_ENABLED'] === 'string' &&
-    window.CONFIG.env['MAP_ANNOTATIONS_ENABLED'] === 'true',
-  TASK_BASED_CONFIG_ENABLED: () =>
-    typeof window.CONFIG.env['TASK_BASED_CONFIG_ENABLED'] === 'string' &&
-    window.CONFIG.env['TASK_BASED_CONFIG_ENABLED'] !== 'false',
-  GET_SYSDUMP_ENABLED: () =>
-    typeof window.CONFIG.env['GET_SYSDUMP_ENABLED'] === 'string' &&
-    window.CONFIG.env['GET_SYSDUMP_ENABLED'] === 'true',
-  NMS_BACKUP_ENABLED: () =>
-    typeof window.CONFIG.env['NMS_BACKUP_ENABLED'] === 'string' &&
-    window.CONFIG.env.NMS_BACKUP_ENABLED === 'true',
-  WEBSOCKETS_ENABLED: () =>
-    typeof window.CONFIG.env['WEBSOCKETS_ENABLED'] === 'string' &&
-    window.CONFIG.env['WEBSOCKETS_ENABLED'] === 'true',
-};
+import type {FeatureFlagKey} from '../../shared/FeatureFlags';
 
-export function isFeatureEnabled(flag: $Keys<typeof FeatureFlags>): boolean {
-  const fn = FeatureFlags[flag];
-  if (typeof fn !== 'function') {
+export function isFeatureEnabled(flag: FeatureFlagKey): boolean {
+  const flags = window?.CONFIG?.featureFlags;
+  if (!flags) {
+    console.error('no feature flags found');
+    return false;
+  }
+  const val = flags[flag];
+
+  if (typeof val === 'undefined') {
     console.error(
       `Invalid feature flag: ${flag} - must be one of: ${Object.keys(
-        FeatureFlags,
+        flags,
       ).join(', ')}`,
     );
     return false;
   }
-  return FeatureFlags[flag]();
+  return val;
 }

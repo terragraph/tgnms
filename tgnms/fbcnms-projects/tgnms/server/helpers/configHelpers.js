@@ -55,7 +55,7 @@ export function envInt(val: string, defaultValue: number): number {
 
 export function envBool(val: string): boolean {
   // empty env vars like ENABLE_X are still considered true
-  if (val === 'true' || val === '') {
+  if (val === 'true' || val === '' || val === '1') {
     return true;
   }
   if (val === 'false' || val === '0') {

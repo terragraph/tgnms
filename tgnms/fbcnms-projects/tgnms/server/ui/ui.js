@@ -7,34 +7,20 @@
 
 const logger = require('../log')(module);
 const {getAllNetworkConfigs} = require('../topology/model');
+import {FEATURE_FLAGS} from '../../shared/FeatureFlags';
+import {envBool} from '../helpers/configHelpers';
 import type {Request} from '../types/express';
-import type {UIConfig, UIEnv} from '../../shared/dto/UI';
+import type {UIConfig, UIEnv, UIFeatureFlags} from '../../shared/dto/UI';
 
 // define which env keys to add to config
 const envKeys: Array<$Keys<UIEnv>> = [
   'GRAFANA_URL',
   'MAPBOX_ACCESS_TOKEN',
   'ISSUES_URL',
-  'NETWORKTEST_ENABLED',
-  'SCANSERVICE_ENABLED',
-  'LOGIN_ENABLED',
   'TILE_STYLE',
   'COMMIT_DATE',
   'COMMIT_HASH',
   'DOC_URL',
-  'NOTIFICATION_MENU_ENABLED',
-  'SERVICE_AVAILABILITY_ENABLED',
-  'SOFTWARE_PORTAL_ENABLED',
-  'ALARMS_ENABLED',
-  'DEFAULT_ROUTES_HISTORY_ENABLED',
-  'JSON_CONFIG_ENABLED',
-  'MAP_HISTORY_ENABLED',
-  'NMS_SETTINGS_ENABLED',
-  'MAP_ANNOTATIONS_ENABLED',
-  'TASK_BASED_CONFIG_ENABLED',
-  'GET_SYSDUMP_ENABLED',
-  'NMS_BACKUP_ENABLED',
-  'WEBSOCKETS_ENABLED',
 ];
 export function buildUIConfig(req: Request): UIConfig {
   // construct config JSON to inject
@@ -43,6 +29,7 @@ export function buildUIConfig(req: Request): UIConfig {
     networks: getAllNetworkConfigs(),
     user: req.user,
     version: process.env.npm_package_version,
+    featureFlags: makeFeatureFlags(process.env),
   };
 
   // validate ENVs
@@ -76,4 +63,30 @@ export function buildUIConfig(req: Request): UIConfig {
     }
   });
   return configObj;
+}
+
+export function makeFeatureFlags(env: {|
+  [string]: string | void,
+|}): UIFeatureFlags {
+  const flags: UIFeatureFlags = {};
+  for (const envKey in FEATURE_FLAGS) {
+    const flagDef = FEATURE_FLAGS[envKey];
+    const envVal = env[envKey];
+    if (typeof flagDef.customFlag === 'function') {
+      flags[envKey] = flagDef.customFlag(env);
+    } else {
+      const type = typeof envVal;
+      switch (type) {
+        case 'undefined':
+          flags[envKey] = flagDef.isDefaultEnabled;
+          break;
+        case 'string':
+          flags[envKey] = envBool(envVal);
+          break;
+        default:
+          logger.error(`invalid env type: ${type}`);
+      }
+    }
+  }
+  return flags;
 }

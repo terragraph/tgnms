@@ -20,7 +20,7 @@ import {
 import {cleanup, fireEvent} from '@testing-library/react';
 
 beforeEach(() => {
-  initWindowConfig({env: {}});
+  initWindowConfig();
 });
 
 afterEach(cleanup);
@@ -43,8 +43,8 @@ describe('Drawer feature flags', () => {
     );
     expect(result.queryByTestId('menu-toggle')).not.toBeInTheDocument();
     initWindowConfig({
-      env: {
-        NOTIFICATION_MENU_ENABLED: 'true',
+      featureFlags: {
+        NOTIFICATION_MENU_ENABLED: true,
       },
     });
     result = renderWithRouter(

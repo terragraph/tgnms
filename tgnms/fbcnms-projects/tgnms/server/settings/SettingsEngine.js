@@ -16,6 +16,7 @@ import type {
   SettingsMap,
   SettingsState,
 } from '../../shared/dto/Settings';
+import type {FeatureFlagDef, FeatureFlagKey} from '../../shared/FeatureFlags';
 
 const NMS_SETTINGS_FILE_KEY = 'NMS_SETTINGS_FILE';
 const DISABLE_ENV_FILE_KEY = 'DISABLE_ENV_FILE';
@@ -380,4 +381,16 @@ export function createLogger() {
     stderrLevels: ['error', 'warning'],
     transports: [new winston.transports.Console()],
   });
+}
+
+export function mapFromFeatureFlags(flags: {|
+  [FeatureFlagKey]: FeatureFlagDef,
+|}): Array<SettingDefinition> {
+  return Object.keys(flags).map(key => ({
+    key,
+    required: true,
+    dataType: 'BOOL',
+    defaultValue: flags[key].isDefaultEnabled,
+    requiresRestart: true,
+  }));
 }
