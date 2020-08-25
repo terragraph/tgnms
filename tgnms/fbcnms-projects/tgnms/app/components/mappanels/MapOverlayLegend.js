@@ -24,13 +24,7 @@ const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(1.5),
   },
-  chip: {
-    height: 20,
-  },
-  chipLabel: {
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-  },
+  title: {paddingLeft: theme.spacing(0.75)},
   resultDivider: {
     margin: `${theme.spacing()}px -${theme.spacing(1.5)}px`,
   },
@@ -38,8 +32,13 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(0.75),
     textTransform: 'capitalize',
   },
-  legendLabel: {
-    magrinTop: -theme.spacing(1),
+  siteLegendLabel: {
+    margin: `-${theme.spacing(0.375)}px ${theme.spacing(1.5)}px`,
+    marginLeft: 0,
+  },
+  linkLegendLabel: {
+    margin: `-${theme.spacing(0.5)}px ${theme.spacing(1.5)}px`,
+    marginLeft: 0,
   },
   linkHealthIndicator: {
     marginLeft: theme.spacing(),
@@ -98,57 +97,65 @@ export default function MapOverlayLegend() {
 
   return ReactDOM.createPortal(
     <Paper className={classes.root} elevation={2}>
-      <Typography variant="subtitle1">Legend</Typography>
+      <Typography className={classes.title} variant="subtitle1">
+        Legend
+      </Typography>
       <Grid container direction="column">
         {linkLegend?.map(({labelName, elementColor}) => (
-          <Grid item container spacing={1}>
-            <Grid item>
-              <HealthIndicator
-                color={elementColor}
-                className={classes.linkHealthIndicator}
-              />
+          <div className={classes.linkLegendLabel}>
+            <Grid item container spacing={1}>
+              <Grid item>
+                <HealthIndicator
+                  color={elementColor}
+                  className={classes.linkHealthIndicator}
+                />
+              </Grid>
+              <Grid item>
+                <Typography className={classes.labelName} variant="body2">
+                  {labelName +
+                    (!labelName.includes('link') && !labelName.match(/\d+/g)
+                      ? ' link'
+                      : '')}
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Typography className={classes.labelName} variant="body2">
-                {labelName +
-                  (!labelName.includes('link') && !labelName.match(/\d+/g)
-                    ? ' link'
-                    : '')}
-              </Typography>
-            </Grid>
-          </Grid>
+          </div>
         ))}
         <Divider className={classes.resultDivider} />
         {nodeLegend.map(({labelName, elementColor}) => (
-          <Grid item container spacing={1}>
-            <Grid item>
-              <HealthIndicator
-                color={elementColor}
-                className={classes.siteHealthIndicator}
-              />
+          <div className={classes.siteLegendLabel}>
+            <Grid item container spacing={1}>
+              <Grid item>
+                <HealthIndicator
+                  color={elementColor}
+                  className={classes.siteHealthIndicator}
+                />
+              </Grid>
+              <Grid item>
+                <Typography className={classes.labelName} variant="body2">
+                  {labelName}
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Typography className={classes.labelName} variant="body2">
-                {labelName}
-              </Typography>
-            </Grid>
-          </Grid>
+          </div>
         ))}
         <Divider className={classes.resultDivider} />
         {siteLegend?.map(({labelName, elementColor}) => (
-          <Grid item container spacing={1}>
-            <Grid item>
-              <HealthIndicator
-                color={elementColor}
-                className={classes.siteHealthIndicator}
-              />
+          <div className={classes.siteLegendLabel}>
+            <Grid item container spacing={1}>
+              <Grid item>
+                <HealthIndicator
+                  color={elementColor}
+                  className={classes.siteHealthIndicator}
+                />
+              </Grid>
+              <Grid item>
+                <Typography className={classes.labelName} variant="body2">
+                  {labelName} site
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Typography className={classes.labelName} variant="body2">
-                {labelName} site
-              </Typography>
-            </Grid>
-          </Grid>
+          </div>
         ))}
       </Grid>
     </Paper>,
