@@ -229,6 +229,11 @@ export const arrayConfigs = [
     title: 'Asynchronous location export',
     enabledByDefault: false,
   },
+  {
+    id: 'add_port_to_service',
+    title: 'Add standalone port to service',
+    enabledByDefault: false,
+  },
 ];
 
 export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
