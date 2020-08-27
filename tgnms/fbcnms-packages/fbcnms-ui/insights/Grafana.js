@@ -9,7 +9,11 @@
  */
 
 import React from 'react';
+
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+
 import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -29,9 +33,17 @@ type Props = {
 
 export default function GrafanaDashboards(props: Props) {
   const classes = useStyles();
+  const [isLoading, setIsLoading] = useState(true);
   return (
-    <div className={classes.root}>
-      <iframe src={props.grafanaURL} className={classes.dashboardsIframe} />
-    </div>
+    <>
+      {isLoading ? <LoadingFiller /> : null}
+      <div className={classes.root}>
+        <iframe
+          src={props.grafanaURL}
+          onLoad={() => setIsLoading(false)}
+          className={classes.dashboardsIframe}
+        />
+      </div>
+    </>
   );
 }
