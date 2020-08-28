@@ -16,7 +16,7 @@ import {
   mockPanelControl,
 } from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
-import type {LineString, Polygon} from '@turf/turf';
+import type {LineStringCoords, PolygonCoords} from '@turf/turf';
 import type {MapAnnotationContext as MapAnnotationContextType} from '../../../../contexts/MapAnnotationContext';
 
 afterEach(cleanup);
@@ -72,7 +72,7 @@ test('shows length if feature is a line', () => {
               [131, -22],
               [143, -25],
               [150, -34],
-            ]: LineString),
+            ]: LineStringCoords),
           },
           {name: 'test-abc', showName: true},
           {id: '123'},
@@ -101,7 +101,7 @@ test('shows area if feature is a polygon', () => {
                 [144, -15],
                 [125, -15],
               ],
-            ]: Polygon),
+            ]: PolygonCoords),
           },
           {name: 'test-abc', showName: true},
           {id: '123'},

@@ -14,18 +14,27 @@ declare module '@turf/turf' {
     | 'Polygon'
     | 'MultiPolygon'
     | 'GeometryCollection';
+  declare export type DistanceUnit =
+    | 'miles'
+    | 'nauticalmiles'
+    | 'inches'
+    | 'yards'
+    | 'meters'
+    | 'metres'
+    | 'kilometers'
+    | 'centimeters'
+    | 'feet';
 
   declare export type JsonObj = {[string]: *};
   declare export type FeatureId = string | number;
   // single position
   declare export type GeoCoord = [number, number] | [number, number, number];
-
-  declare export type LineString = Array<GeoCoord>;
-  declare export type Polygon = Array<LineString>;
+  declare export type LineStringCoords = Array<GeoCoord>;
+  declare export type PolygonCoords = Array<LineStringCoords>;
 
   declare export type GeoGeometry = {|
     type: GeoGeometryType,
-    coordinates: GeoCoord | LineString | Polygon,
+    coordinates: GeoCoord | LineStringCoords | PolygonCoords,
   |};
 
   declare export type GeoFeature = {|
@@ -62,17 +71,27 @@ declare module '@turf/turf' {
     ?JsonObj,
     ?{bbox?: ?Array<GeoCoord>, id?: string | number},
   ): GeoFeature;
+  declare export function polygon(
+    coords: PolygonCoords,
+    properties?: Object,
+    options?: {bbox?: Array<number>, id: FeatureId},
+  ): GeoFeature;
+  declare export function circle(
+    coords: GeoCoord,
+    radius: number, //kilometers by default
+    options?: {units?: DistanceUnit, id?: FeatureId},
+  ): GeoFeature;
   declare export function transformRotate(
-    GeoJson,
+    GeoFeature,
     number,
     ?{mutate?: boolean, pivot?: 'centroid' | GeoCoord},
-  ): GeoJson;
+  ): GeoFeature;
   declare export function transformTranslate(
-    GeoJson,
+    GeoFeature,
     number,
     number,
-    ?{mutate?: boolean, units?: 'kilometers', zTranslation?: number},
-  ): GeoJson;
+    ?{mutate?: boolean, units?: DistanceUnit, zTranslation?: number},
+  ): GeoFeature;
   /**
    * number - bearing in decimal degrees, between -180 and 180 degrees
    * (positive clockwise)
@@ -92,4 +111,13 @@ declare module '@turf/turf' {
   ): number;
 
   declare export function getType(GeoJson | GeoFeature | GeoGeometry): string;
+  declare export function getGeom(GeoFeature | GeoGeometry): ?GeoGeometry;
+  // get the coord of a single point
+  declare export function getCoord(GeoFeature | GeoGeometry): GeoCoord;
+  // this can also return a LineString. i couldn't figure out how to flowtype
+  declare export function getCoords(
+    GeoFeature | GeoGeometry | Array<GeoFeature | GeoGeometry>,
+  ): PolygonCoords;
+
+  declare export function intersect(GeoFeature, GeoFeature): ?Feature;
 }
