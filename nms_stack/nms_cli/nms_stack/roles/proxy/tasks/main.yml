@@ -40,6 +40,18 @@
     - { src: "time.env", dest: "{{ terragraph_docker_path }}/proxy/env" }
     - { src: "nginx.conf", dest: "{{ terragraph_docker_path }}/proxy/conf" }
     - { src: "http.conf", dest: "{{ terragraph_docker_path }}/proxy/conf/conf.d" }
+  vars:
+    upstream_nms: nms
+    upstream_grafana: grafana
+    upstream_jupyter: jupyter
+    upstream_prometheus: prometheus
+    upstream_kibana: kibana
+    upstream_keycloak: keycloak_keycloak
+    upstream_chihaya: chihaya
+    upstream_elasticsearch: elasticsearch
+    upstream_exporter: es_exporter
+    upstream_fluentd: fluentd
+    resolver: "127.0.0.11"
 
 - name: copy nginx backend stream config
   template:
