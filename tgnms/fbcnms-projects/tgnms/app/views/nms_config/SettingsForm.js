@@ -259,7 +259,8 @@ function ReviewSettingChanges({
 
   const oldVal = initialFormState[setting];
   const newVal = formState[setting];
-  const mask = (x: string) => '*'.repeat(x.length);
+  const mask = (x: ?string) =>
+    typeof x === 'string' ? '*'.repeat(x.length) : '';
   return (
     <Grid container spacing={2} alignItems="center">
       <Grid item>

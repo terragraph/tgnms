@@ -105,6 +105,24 @@ describe('Services', () => {
 
     expect(_postMock).toHaveBeenCalled();
   });
+  test('request confirmation does not crash when things changed', async () => {
+    getMock.mockResolvedValueOnce(makeResponse({API_REQUEST_TIMEOUT: '3000'}));
+    const {getByText, getByLabelText, getByTestId} = await renderAsync(
+      <TestApp route="/config/_/services">
+        <NmsSettings />
+      </TestApp>,
+      {baseElement: document.body},
+    );
+    expect(_postMock).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.change(
+        coerceClass(getByLabelText('Nodeupdate Auth Token'), HTMLInputElement),
+        {target: {value: 'anything'}},
+      );
+    });
+    await submitAndConfirm({getByTestId, getByText});
+    expect(_postMock).toHaveBeenCalled();
+  });
 });
 
 async function submitAndConfirm({getByTestId, getByText}) {
