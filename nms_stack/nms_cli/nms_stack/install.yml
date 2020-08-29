@@ -109,6 +109,15 @@
     - { role: stats, tags: ["stats"] }
     - { role: udp_pinger, tags: ["udp_pinger", "pinger"] }
 
+- name: Install nginx
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+    - { role: proxy, tags: ["nginx", "proxy"] }
+
 - name: Setup services on a manager
   hosts: managers
   run_once: true
@@ -148,15 +157,6 @@
       loop_control:
           loop_var: ctrlr
           index_var: index
-
-- name: Install nginx
-  hosts: all
-  become: true
-  become_user: root
-  become_method: sudo
-  gather_facts: no
-  roles:
-    - { role: proxy, tags: ["nginx", "proxy"] }
 
 - name: Backup installation config post install/upgrade
   hosts: managers
