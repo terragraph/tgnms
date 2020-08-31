@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import signal
-from typing import Callable, Optional, Set, cast, Type
+from typing import Callable, Optional, Set, Type, cast
 
 import uvloop
 from aiohttp import web
@@ -74,13 +74,11 @@ def init(
     app = web.Application(middlewares=[error_middleware])
     app["main"] = main
     app["config"] = config
+    app["clients"] = clients
     app["shutdown_event"] = asyncio.Event()
 
     # Initialize routes for the HTTP server
     _add_all_routes(app, routes, extra_routes)
-
-    # Initialize the clients
-    app["clients"] = clients
 
     app.on_startup.append(_start_background_tasks)
     app.on_cleanup.append(_stop_background_tasks)
