@@ -150,11 +150,10 @@ class APIServiceClient(BaseClient):
         headers: Optional[Dict] = None
         if self._keycloak_enabled:
             async with self._lock:
-                if (
-                    time.time() > (self._refresh_time + self._jwt["expires_in"])
-                    and await self._refresh_token()
-                ):
-                    headers = {"Authorization": f"Bearer {self._jwt['access_token']}"}
+                if time.time() > (self._refresh_time + self._jwt["expires_in"]):
+                    await self._refresh_token()
+
+                headers = {"Authorization": f"Bearer {self._jwt['access_token']}"}
 
         try:
             url = f"http://{addr}/api/{endpoint}"
