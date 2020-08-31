@@ -9,6 +9,7 @@
  */
 
 import type {ComponentType} from 'react';
+import type {CustomLayerInterface} from 'mapbox-gl/src/style/style_layer/custom_style_layer';
 import type {
   FilterSpecification,
   LayerSpecification,
@@ -35,9 +36,11 @@ type State = {
   map: ?mapboxgl.Map,
 };
 
+type LayerType = LayerSpecification | CustomLayerInterface;
+
 type Props = WithStyles<typeof styles> & {
   geojson: MagmaFeatureCollection,
-  mapLayers?: Array<LayerSpecification>,
+  mapLayers?: Array<LayerType>,
   MapMarker: ComponentType<MapMarkerProps>,
   onMarkerClick?: (string | number) => void,
   mapLayerFilters?: Map<string, FilterSpecification>,
@@ -87,7 +90,7 @@ class MapView extends React.Component<Props, State> {
   }
 
   initMap() {
-    const map = new mapboxgl.Map({
+    const map: mapboxgl.Map = new mapboxgl.Map({
       attributionControl: false,
       container: this.mapContainer,
       hash: false,
@@ -116,7 +119,7 @@ class MapView extends React.Component<Props, State> {
   };
 
   _updateLayers(
-    prevMapLayers?: Array<LayerSpecification>,
+    prevMapLayers?: Array<LayerType>,
     prevMapLayerFilters?: Map<string, FilterSpecification>,
   ): boolean {
     // returns true if displayed layers were updated

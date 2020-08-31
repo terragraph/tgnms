@@ -56,6 +56,7 @@ export default function DrawLayer() {
           : undefined
       }
       title="Map Annotations"
+      // $FlowFixMe fire might be deprecated. See flow def for more.
       onClick={() => mapboxRef?.fire(MAPBOX_TG_EVENTS.TOGGLE, {})}
       data-testid="tg-draw-toggle">
       {isDrawEnabled ? (
@@ -126,16 +127,22 @@ export function useDrawLayer() {
       },
       MAP_CONTROL_LOCATIONS.TOP_LEFT,
     );
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_TG_EVENTS.TOGGLE, (...args) =>
       handleDrawToggle.current(...args),
     );
     const handleDrawEvent = event => handleDrawUpdate.current(event);
     const handleSelectEvent = (...args) =>
       handleSelectionChange.current(...args);
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_DRAW_EVENTS.CREATE, handleDrawEvent);
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_DRAW_EVENTS.CREATE, handleDrawEvent);
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_DRAW_EVENTS.DELETE, handleDrawEvent);
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_DRAW_EVENTS.UPDATE, handleDrawEvent);
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_DRAW_EVENTS.SELECTION_CHANGE, handleSelectEvent);
   }, [mapboxRef]);
 

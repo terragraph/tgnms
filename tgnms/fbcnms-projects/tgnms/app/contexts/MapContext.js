@@ -11,7 +11,7 @@ import useUnmount from '../hooks/useUnmount';
 import {getUrlSearchParam} from '../helpers/NetworkUrlHelpers';
 import {useLocation} from 'react-router-dom';
 
-import type Map from 'mapbox-gl';
+import type Map from 'mapbox-gl/src/ui/map';
 import type {
   LayerData,
   Overlay,

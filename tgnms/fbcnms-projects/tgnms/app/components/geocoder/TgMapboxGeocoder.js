@@ -70,7 +70,7 @@ export default function TgMapboxGeocoder(props: Props) {
       MAP_CONTROL_LOCATIONS.TOP_LEFT,
     );
     mapboxRef?.addControl(
-      new mapboxgl.NavigationControl(),
+      new mapboxgl.NavigationControl({}),
       MAP_CONTROL_LOCATIONS.TOP_LEFT,
     );
   }, [mapboxRef, mapboxControl]);

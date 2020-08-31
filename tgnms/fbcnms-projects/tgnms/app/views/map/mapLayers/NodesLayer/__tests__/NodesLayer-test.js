@@ -168,6 +168,7 @@ function Wrapper({
           ...topologyMaps,
           ...(networkVals || {}: $Shape<NetworkContextType>),
         }}>
+        {/* $FlowIgnore It's a mock */}
         <MapContextWrapper contextValue={{mapboxRef: mapboxMock}}>
           {children}
         </MapContextWrapper>

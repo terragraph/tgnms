@@ -26,7 +26,7 @@ import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
 import {getUIEnvVal} from '../../common/uiConfig';
 import {withStyles} from '@material-ui/core/styles';
 
-import type Map from 'mapbox-gl';
+import type Map from 'mapbox-gl/src/ui/map';
 import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
 import type {
   NearbyNodes,
@@ -86,7 +86,7 @@ type Props = {
 };
 
 type State = {
-  mapRef: Map, // reference to Map class
+  mapRef: ?Map, // reference to Map class
   mapBounds?: [Coordinate, Coordinate],
   showTable: boolean,
   tableHeight: number,

@@ -132,7 +132,7 @@ export default function NodeBearingOverlay() {
       }
 
       // set new feature as selected
-      if (feature) {
+      if (feature && feature.id != null) {
         const id = feature.id;
         mapboxRef?.setFeatureState(
           {source: SOURCE_ID, id: id},

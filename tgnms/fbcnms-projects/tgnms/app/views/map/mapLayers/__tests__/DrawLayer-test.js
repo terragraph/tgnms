@@ -36,6 +36,7 @@ describe('DrawLayer', () => {
   test('Renders button into mapboxControl', async () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
+      // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
         <DrawLayer />
       </Wrapper>,
@@ -49,6 +50,7 @@ describe('DrawLayer', () => {
     mockMapboxDraw();
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
+      // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
         <DrawLayer />
       </Wrapper>,
@@ -65,6 +67,7 @@ describe('DrawLayer', () => {
   test('adds control', async () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
+      // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
         <DrawLayer />
       </Wrapper>,
@@ -78,6 +81,7 @@ describe('DrawLayer', () => {
     const mapboxDrawMock = mockMapboxDraw();
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId, queryByTestId} = await render(
+      // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
         <DrawLayer />
       </Wrapper>,
@@ -115,10 +119,12 @@ describe('useDrawLayer', () => {
       wrapper: props => <Wrapper {...props} mapValue={{mapboxRef}} />,
     });
     await hooksAct(async () => {
+      // $FlowFixMe fire might be deprecated, see API
       mapboxRef.fire(MAPBOX_TG_EVENTS.TOGGLE);
     });
     expect(mapApiUtilMock.saveAnnotationGroup).not.toHaveBeenCalled();
     await hooksAct(async () => {
+      // $FlowFixMe fire might be deprecated, see API
       mapboxRef.fire(MAPBOX_DRAW_EVENTS.CREATE, {});
     });
     expect(mapApiUtilMock.saveAnnotationGroup).toHaveBeenCalledWith({
@@ -174,6 +180,7 @@ function mockMapboxRef() {
     }),
     __baseElement: baseElement,
   };
+  // $FlowIgnore it's a mock!
   return mapboxRef;
 }
 

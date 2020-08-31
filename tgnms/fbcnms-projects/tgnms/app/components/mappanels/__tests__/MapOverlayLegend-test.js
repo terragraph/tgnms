@@ -24,6 +24,7 @@ test('Renders legend container into mapboxControl', async () => {
   const {__baseElement, ...mapboxRef} = mockMapboxRef();
   const {getByTestId} = await render(
     <TestApp>
+      {/* $FlowIgnore It's a mock */}
       <MapContextWrapper contextValue={{mapboxRef}}>
         <MapOverlayLegend />
       </MapContextWrapper>
@@ -37,6 +38,7 @@ test('Renders legend in container ', async () => {
   const {__baseElement, ...mapboxRef} = mockMapboxRef();
   const {getByText} = await render(
     <TestApp>
+      {/* $FlowIgnore It's a mock */}
       <MapContextWrapper contextValue={{mapboxRef}}>
         <MapOverlayLegend />
       </MapContextWrapper>

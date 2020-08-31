@@ -8,17 +8,15 @@
  * @flow
  */
 
-import type {LngLatLike} from 'mapbox-gl/src/geo/lng_lat';
-
 export type Feature = {
   title: string,
   properties: {
     name: string,
   },
   id: number | string,
-  center?: LngLatLike,
-  bbox?: Array<LngLatLike>,
-  geometry: {type: string, coordinates: LngLatLike},
+  center?: [number, number],
+  bbox?: [number, number, number, number], //minX,minY,maxX,maxY
+  geometry: {type: string, coordinates: [number, number]},
 };
 
 export type Result = {feature: Feature};
