@@ -330,6 +330,11 @@ export default function NmsSettings() {
                         label="Task Based Config"
                         setting="TASK_BASED_CONFIG_ENABLED"
                       />
+                      <SettingInput
+                        isFeatureToggle
+                        label="Link Budgeting"
+                        setting="LINK_BUDGETING_ENABLED"
+                      />
                     </SettingGroup>
                   </SettingsForm>
                 )}

@@ -18,6 +18,7 @@ import {MCS_DATARATE_TABLE} from './NetworkConstants';
 import {formatNumber} from '../helpers/StringHelpers';
 //TODO don't import from views
 import PrefixZoneOverlay from '../views/map/overlays/PrefixZoneOverlay';
+import {isFeatureEnabled} from './FeatureFlags';
 import {numToMegabits} from '../helpers/ScheduleHelpers';
 
 import type {LayerData, Overlay} from '../views/map/NetworkMapTypes';
@@ -235,6 +236,21 @@ export const SEARCH_NEARBY_FILL_PAINT = {
   'fill-color': '#aec6cf',
   'fill-opacity': 0.3,
 };
+
+/**
+ * Maps from mcs to colors and blends colors in-between
+ * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/#interpolate
+ */
+export const MCS_INTERPOLATE_FILL_COLOR = [
+  0,
+  '#eeeeee', //grey
+  5,
+  '#ff0000', //red
+  9,
+  '#ffff00', //yellow
+  12,
+  '#00ff00', //green
+];
 
 export const MINUTES_IN_DAY = 1440;
 export const STEP_SIZE = 60;
@@ -529,4 +545,13 @@ export const NODE_OVERLAYS: Overlays = {
     type: '',
     id: 'bearing',
   },
+  ...(isFeatureEnabled('LINK_BUDGETING_ENABLED')
+    ? {
+        mcs_estimate: {
+          name: 'MCS Estimate',
+          type: '',
+          id: 'mcs_estimate',
+        },
+      }
+    : {}),
 };

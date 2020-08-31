@@ -8,6 +8,7 @@
 import BuildingsLayer from './BuildingsLayer';
 import DrawLayer from './DrawLayer';
 import LinksLayer from './LinksLayer';
+import McsEstimateLayer from './McsEstimateLayer';
 import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer/NodesLayer';
 import PolygonLayer from './PolygonLayer';
@@ -188,6 +189,7 @@ export default function MapLayers(props: Props) {
         data={overlayData.area_polygons}
       />
       {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawLayer />}
+      {isFeatureEnabled('LINK_BUDGETING_ENABLED') && <McsEstimateLayer />}
     </>
   );
 }
