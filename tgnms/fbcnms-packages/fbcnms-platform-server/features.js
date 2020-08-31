@@ -234,6 +234,12 @@ export const arrayConfigs = [
     title: 'Add standalone port to service',
     enabledByDefault: false,
   },
+  {
+    id: 'execute_automation_flows',
+    title: 'Execute automation flows',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
 ];
 
 export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
