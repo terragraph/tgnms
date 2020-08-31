@@ -100,10 +100,10 @@ RUN wget -O /tmp/fbthrift.tar.gz https://github.com/facebook/fbthrift/archive/v$
     cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/facebook -DCMAKE_PREFIX_PATH=/usr/local/facebook/lib/cmake . && \
     make -j $(nproc) install
 
-# pistache doesn't have versioned releases, this could bite us if they break master
-RUN wget -O /tmp/pistache.tar.gz https://github.com/oktal/pistache/archive/master.tar.gz && \
-    tar xf /tmp/pistache.tar.gz && \
-    cd /tmp/pistache-master && \
+# pistache doesn't have versioned releases, pin to specific commit
+RUN git clone https://github.com/oktal/pistache.git && \
+    cd pistache && \
+    git checkout a345fcc6ed0eafed487cd3877bee842e5f4607be && \
     cmake . && \
     make -j $(nproc) install
 
