@@ -111,7 +111,9 @@ declare module '@turf/turf' {
     finalUnit: string,
   ): number;
 
-  declare export function getType(GeoJson | GeoFeature | GeoGeometry): string;
+  declare export function getType(
+    GeoJson | GeoFeature | GeoGeometry,
+  ): GeoGeometryType;
   declare export function getGeom(GeoFeature | GeoGeometry): ?GeoGeometry;
   // get the coord of a single point
   declare export function getCoord(GeoFeature | GeoGeometry): GeoCoord;

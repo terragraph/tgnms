@@ -12,6 +12,7 @@ import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import CreateAnnotationGroupForm from './CreateAnnotationGroupForm';
 import Grid from '@material-ui/core/Grid';
+import ImportAnnotationKMLForm from './ImportAnnotationKMLForm';
 import MenuIconButton from '../../common/MenuIconButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
@@ -28,6 +29,7 @@ import type {MapAnnotationGroupIdent} from '../../../../shared/dto/MapAnnotation
 const MODE = {
   DEFAULT: 'default',
   NEW_LAYER: 'new_layer',
+  IMPORT: 'import',
 };
 
 export default function AnnotationGroupsForm() {
@@ -66,6 +68,8 @@ export default function AnnotationGroupsForm() {
     () => setMode(MODE.NEW_LAYER),
     [],
   );
+  const handleImportKML = React.useCallback(() => setMode(MODE.IMPORT), []);
+
   return (
     <>
       <Grid item container direction="column" spacing={2} wrap="nowrap">
@@ -80,10 +84,19 @@ export default function AnnotationGroupsForm() {
               onClick={handleCreateLayer}>
               New Layer
             </Button>
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={handleImportKML}>
+              Import KML
+            </Button>
           </Grid>
         )}
         {mode === MODE.NEW_LAYER && (
           <CreateAnnotationGroupForm onClose={() => setMode(MODE.DEFAULT)} />
+        )}
+        {mode === MODE.IMPORT && (
+          <ImportAnnotationKMLForm onClose={() => setMode(MODE.DEFAULT)} />
         )}
         <Box mb={1}>
           <Grid container item direction="column" xs={12} wrap="nowrap">
