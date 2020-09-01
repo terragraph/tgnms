@@ -38,9 +38,11 @@ export type MapAnnotationContext = {|
     val: ?string | ?number | ?boolean,
   ) => void,
   deselectAll: () => void,
+  deleteFeature: (id: ?FeatureId) => Promise<void>,
 |};
 
 const empty = () => {};
+const emptyPromise = () => Promise.reject();
 export const defaultValue: MapAnnotationContext = {
   current: null,
   setCurrent: empty,
@@ -49,9 +51,10 @@ export const defaultValue: MapAnnotationContext = {
   selectedFeature: null,
   getFeature: empty,
   drawControl: new MapboxDraw(),
-  updateFeatures: () => Promise.reject(),
+  updateFeatures: emptyPromise,
   updateFeatureProperty: empty,
   deselectAll: empty,
+  deleteFeature: emptyPromise,
 };
 
 export const context = React.createContext<MapAnnotationContext>(defaultValue);
@@ -71,12 +74,10 @@ export function MapAnnotationContextProvider({
     null,
   );
 
-  const selectedFeature = React.useMemo<?GeoFeature>(() => {
-    if (!selectedFeatureId) {
-      return null;
-    }
-    return drawControl.get(selectedFeatureId);
-  }, [selectedFeatureId, drawControl]);
+  const selectedFeature =
+    selectedFeatureId && drawControl
+      ? drawControl.get(selectedFeatureId)
+      : null;
 
   const getFeature = React.useCallback((id: string) => drawControl.get(id), [
     drawControl,
@@ -114,6 +115,20 @@ export function MapAnnotationContextProvider({
     setSelectedFeatureId(null);
   }, [drawControl]);
 
+  const deleteFeature = React.useCallback(
+    async (featureId: ?FeatureId) => {
+      drawControl.delete(featureId);
+      if (
+        typeof selectedFeatureId === 'string' &&
+        selectedFeatureId === featureId
+      ) {
+        setSelectedFeatureId(null);
+      }
+      await updateFeatures(drawControl.getAll());
+    },
+    [drawControl, updateFeatures, selectedFeatureId],
+  );
+
   return (
     <context.Provider
       value={{
@@ -126,6 +141,7 @@ export function MapAnnotationContextProvider({
         updateFeatures,
         updateFeatureProperty,
         deselectAll,
+        deleteFeature,
         /**
          * usually, don't use the draw control directly as a consumer.
          * Make a more nicely named helper function in this context

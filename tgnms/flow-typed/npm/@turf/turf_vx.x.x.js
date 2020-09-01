@@ -67,7 +67,7 @@ declare module '@turf/turf' {
     opt?: {id?: string},
   ): GeoFeature;
   declare export function point(
-    [number, number, ?number],
+    GeoCoord,
     ?JsonObj,
     ?{bbox?: ?Array<GeoCoord>, id?: string | number},
   ): GeoFeature;

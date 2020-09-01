@@ -27,6 +27,7 @@ type ActionOptions = {
   actionItems: Array<{
     heading: string,
     actions: Array<ActionType>,
+    isDisabled?: boolean,
   }>,
   buttonClassName?: string,
   buttonName?: string,
@@ -35,8 +36,10 @@ type ActionOptions = {
 type ActionType = {
   label: string,
   icon?: React.Element<SvgIcon>,
-  func?: () => any,
-  component?: React.ComponentType<any>,
+  func?: () => *,
+  component?: React.ComponentType<*>,
+  isDisabled?: boolean,
+  testId?: string,
 };
 
 type Props = {
@@ -78,30 +81,47 @@ class ActionsMenu extends React.Component<Props, State> {
           open={Boolean(anchor)}
           onClose={() => this.setState({anchor: null})}
           disableAutoFocusItem>
-          {actionItems.map(({heading, actions}) => [
-            <ListSubheader
-              key={heading}
-              component="div"
-              style={{lineHeight: '2rem', outline: 'none'}}>
-              {heading}
-            </ListSubheader>,
-            ...actions.map(({label, icon, func, component}) => {
-              return (
-                <MenuItem
-                  key={label}
-                  onClick={() => {
-                    this.setState({anchor: null});
-                    if (func) {
-                      func();
-                    }
-                  }}
-                  {...(component ? {component} : {})}>
-                  {icon && <ListItemIcon>{icon}</ListItemIcon>}
-                  <ListItemText primary={label} />
-                </MenuItem>
-              );
-            }),
-          ])}
+          {actionItems.map(({heading, actions, isDisabled}) =>
+            isDisabled === true
+              ? null
+              : [
+                  <ListSubheader
+                    key={heading}
+                    component="div"
+                    style={{lineHeight: '2rem', outline: 'none'}}>
+                    {heading}
+                  </ListSubheader>,
+                  ...actions.map(
+                    ({
+                      label,
+                      icon,
+                      func,
+                      component,
+                      isDisabled,
+                      ...itemProps
+                    }) => {
+                      if (isDisabled === true) {
+                        return null;
+                      }
+                      return (
+                        <MenuItem
+                          data-testid={itemProps?.testId ?? null}
+                          key={label}
+                          onClick={() => {
+                            this.setState({anchor: null});
+                            if (func) {
+                              func();
+                            }
+                          }}
+                          {...(component ? {component} : {})}>
+                          {icon && <ListItemIcon>{icon}</ListItemIcon>}
+                          <ListItemText primary={label} />
+                        </MenuItem>
+                      );
+                    },
+                  ),
+                ],
+          )}
         </Menu>
       </>
     );

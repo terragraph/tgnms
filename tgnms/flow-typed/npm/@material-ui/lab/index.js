@@ -24,12 +24,20 @@ declare module "@material-ui/lab/ToggleButtonGroup" {
     value?: any,
   }>;
 }
-  
+
+declare module "@material-ui/lab/Alert" {
+  declare module.exports: React$ComponentType<{
+    children?:React$Node,
+    classes?:Object,
+    color?:"success"|"error"|"info"|"warning"
+  }>
+}
+
 declare module "@material-ui/lab" {
   declare module.exports: {
       Autocomplete: $Exports<"@material-ui/lab/Autocomplete">,
       ToggleButton: $Exports<"@material-ui/lab/ToggleButton">,
       ToggleButtonGroup: $Exports<"@material-ui/lab/ToggleButtonGroup">,
+      Alert: $Exports<"@material-ui/lab/Alert">
   };
 }
-  

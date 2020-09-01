@@ -8,31 +8,26 @@ import * as turf from '@turf/turf';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import {LINES, MEASURABLE, POLYS} from '../../../constants/GeoJSONConstants';
 import {formatNumber} from '../../../helpers/StringHelpers';
 import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
 import type {GeoFeature} from '@turf/turf';
 
 const MIN_LEN_KM = 2;
 const MAX_AREA_M = 1000000; // maximum m^2 before we convert to km^2
-const lines = new Set(['LineString', 'MultiLineString']);
-const polys = new Set(['Polygon', 'MultiPolygon']);
 
-// doesn't make sense to calculate area for a point
-const measurableGeometries = new Set([...lines, ...polys]);
 export default function Measurement() {
   const {selectedFeature} = useMapAnnotationContext();
 
   const geometryType = selectedFeature?.geometry?.type;
-  if (
-    !(geometryType && measurableGeometries.has(geometryType) && selectedFeature)
-  ) {
+  if (!(geometryType && MEASURABLE.has(geometryType) && selectedFeature)) {
     return null;
   }
 
   return (
     <Grid item container direction="column">
-      {lines.has(geometryType) && <FeatureLength feature={selectedFeature} />}
-      {polys.has(geometryType) && <FeatureArea feature={selectedFeature} />}
+      {LINES.has(geometryType) && <FeatureLength feature={selectedFeature} />}
+      {POLYS.has(geometryType) && <FeatureArea feature={selectedFeature} />}
     </Grid>
   );
 }

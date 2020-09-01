@@ -32,6 +32,7 @@ import type {
   SettingsState,
 } from '../../shared/dto/Settings';
 import type {MapContext as MapContextType} from '../contexts/MapContext';
+import type {MapboxDraw} from '@mapbox/mapbox-gl-draw';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
 import type {PanelStateControl} from '../components/mappanels/usePanelControl';
@@ -332,4 +333,22 @@ export function getIsExpanded(el: HTMLElement): boolean {
     return false;
   }
   return !!attr;
+}
+
+export function mockMapboxDraw(
+  overrides?: $Shape<MapboxDraw>,
+): $Shape<MapboxDraw> {
+  const el = document.createElement('div');
+  el.setAttribute('data-testid', 'mapbox-gl-draw-mock');
+  return {
+    __el: el,
+    onAdd: jest.fn(() => {
+      return el;
+    }),
+    onRemove: jest.fn(),
+    add: jest.fn(),
+    getAll: jest.fn(),
+    get: jest.fn(),
+    ...(overrides || {}),
+  };
 }

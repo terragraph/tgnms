@@ -42,7 +42,6 @@ const colorSize = 0.25;
 const useStyles = makeStyles(theme => ({
   colorRadio: {
     padding: theme.spacing(colorSize),
-    // marginLeft: theme.spacing(colorSize),
   },
 }));
 

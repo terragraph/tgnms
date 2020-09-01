@@ -59,5 +59,6 @@ export default function useTaskState(options?: {initialState?: TaskState}) {
     isLoading: state === TASK_STATE.LOADING,
     isSuccess: state === TASK_STATE.SUCCESS,
     isError: state === TASK_STATE.ERROR,
+    TASK_STATE,
   };
 }
