@@ -8,11 +8,11 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as mapApiUtilMock from '../../../../apiutils/MapAPIUtil';
-import DrawLayer, {
+import DrawLayer, {useDrawLayer} from '../DrawLayer';
+import {
   MAPBOX_DRAW_EVENTS,
   MAPBOX_TG_EVENTS,
-  useDrawLayer,
-} from '../DrawLayer';
+} from '../../../../constants/MapAnnotationConstants';
 import {MapAnnotationContextProvider} from '../../../../contexts/MapAnnotationContext';
 import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';

@@ -19,6 +19,7 @@ import {
   red,
   yellow,
 } from '@material-ui/core/colors';
+import type {GeoGeometryType} from '@turf/turf';
 
 export const MAPBOX_DRAW_DEFAULT_STYLES = theme;
 export const MAPBOX_DRAW_DEFAULT_STYLE_IDS: {|[string]: string|} = {
@@ -41,10 +42,23 @@ export const MAPBOX_DRAW_DEFAULT_STYLE_IDS: {|[string]: string|} = {
   VERTEX_INACTIVE: 'gl-draw-polygon-and-line-vertex-inactive',
 };
 
-export const GEO_GEOM_TYPE_TITLES = {
+export const GEO_GEOM_TYPE_TITLES: {[string]: GeoGeometryType} = {
   [(GEOMETRY_TYPE.POINT: string)]: 'Point',
   [(GEOMETRY_TYPE.POLYGON: string)]: 'Polygon',
   [(GEOMETRY_TYPE.LINE_STRING: string)]: 'Line',
+};
+
+export const MAPBOX_DRAW_EVENTS = {
+  CREATE: 'draw.create',
+  DELETE: 'draw.delete',
+  UPDATE: 'draw.update',
+  SELECTION_CHANGE: 'draw.selectionchange',
+  MODE_CHANGE: 'draw.modechange',
+};
+
+export const MAPBOX_TG_EVENTS = {
+  TOGGLE: 'tg.draw.toggle',
+  SET_DRAW_ENABLED: 'tg.draw.set_enabled',
 };
 
 export const TG_DRAW_STYLES = [

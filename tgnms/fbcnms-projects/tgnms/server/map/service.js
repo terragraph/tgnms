@@ -76,7 +76,7 @@ export async function saveAnnotationGroup(
     name,
   }: {
     network: string,
-    id: number,
+    id?: number,
     name: string,
     geojson: string,
   },
@@ -86,7 +86,7 @@ export async function saveAnnotationGroup(
 
   await map_annotation_group.upsert(
     {
-      id,
+      id: id ?? 0,
       topology_id: t.id,
       geojson,
       name,
@@ -97,7 +97,9 @@ export async function saveAnnotationGroup(
   const group = await getAnnotationGroup({network, group: name}, transaction);
   if (!group) {
     logger.error(
-      `created/updated group id:${id} - ${name} but could not reload group`,
+      `created/updated group id:${
+        id ?? 'null'
+      } - ${name} but could not reload group`,
     );
   }
   return group;
@@ -114,6 +116,32 @@ export async function deleteAnnotationGroup({network, group}: GroupIdent) {
   if (groupRow) {
     groupRow.destroy();
   }
+}
+
+export async function duplicateAnnotationGroup({
+  network,
+  groupName,
+  newName,
+}: {
+  network: string,
+  groupName: string,
+  newName: string,
+}) {
+  const t = await getNetworkByName(network);
+  const groupRow = await map_annotation_group.findOne({
+    where: {
+      topology_id: t.id,
+      name: groupName,
+    },
+  });
+  if (!groupRow) {
+    return Promise.reject();
+  }
+  await saveAnnotationGroup({
+    geojson: groupRow.geojson,
+    name: newName,
+    network,
+  });
 }
 
 async function getNetworkByName(name: string) {

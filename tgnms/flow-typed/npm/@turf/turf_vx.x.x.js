@@ -92,6 +92,7 @@ declare module '@turf/turf' {
     number,
     ?{mutate?: boolean, units?: DistanceUnit, zTranslation?: number},
   ): GeoFeature;
+  declare export function bbox(GeoJson): [number, number, number, number];
   /**
    * number - bearing in decimal degrees, between -180 and 180 degrees
    * (positive clockwise)

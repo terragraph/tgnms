@@ -1079,8 +1079,7 @@ declare module "@material-ui/core/IconButton/IconButton" {
     | "inherit"
     | "primary"
     | "secondary";
-
-  declare module.exports: ComponentType<{
+  declare export type Props = {
     buttonRef?: Function,
     children?: Node,
     classes?: Object,
@@ -1089,8 +1088,11 @@ declare module "@material-ui/core/IconButton/IconButton" {
     disabled?: boolean,
     disableRipple?: boolean,
     rootRef?: Function,
-    ref?: ?any
-  }>;
+    ref?: ?any,
+    edge?: "end" | "start",
+    size?:"small" | "medium",
+  }
+  declare module.exports: ComponentType<Props>;
 }
 
 declare module "@material-ui/core/IconButton" {

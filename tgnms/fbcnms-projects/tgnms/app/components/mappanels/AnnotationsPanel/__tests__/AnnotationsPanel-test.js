@@ -10,7 +10,10 @@ import * as React from 'react';
 import * as serviceApiUtil from '../../../../apiutils/ServiceAPIUtil';
 import * as turf from '@turf/turf';
 import AnnotationsPanel from '../AnnotationsPanel';
-import {context as MapAnnotationContext} from '../../../../contexts/MapAnnotationContext';
+import {
+  context as MapAnnotationContext,
+  MapAnnotationContextProvider,
+} from '../../../../contexts/MapAnnotationContext';
 import {
   TestApp,
   coerceClass,
@@ -35,9 +38,12 @@ const defaultProps = {
 
 test('renders', () => {
   const {getByTestId} = render(
-    <Wrapper>
-      <AnnotationsPanel {...defaultProps} />
-    </Wrapper>,
+    <TestApp>
+      <MapAnnotationContextProvider>
+        <AnnotationsPanel {...defaultProps} />
+      </MapAnnotationContextProvider>
+      ,
+    </TestApp>,
   );
   expect(getByTestId('annotations-panel')).toBeInTheDocument();
 });

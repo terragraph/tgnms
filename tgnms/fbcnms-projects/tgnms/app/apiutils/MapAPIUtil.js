@@ -15,8 +15,8 @@ export async function getAnnotationGroups({
   networkName,
 }: {|
   networkName: string,
-|}): Promise<?MapAnnotationGroupIdent> {
-  const response = await axios.get<void, MapAnnotationGroupIdent>(
+|}): Promise<Array<MapAnnotationGroupIdent>> {
+  const response = await axios.get<void, Array<MapAnnotationGroupIdent>>(
     `/map/annotations/${networkName}`,
   );
   return response.data;
@@ -47,4 +47,33 @@ export async function saveAnnotationGroup({
     MapAnnotationGroup,
   >(`/map/annotations/${networkName}`, group);
   return response.data;
+}
+
+export async function deleteAnnotationGroup({
+  networkName,
+  group,
+}: {|
+  networkName: string,
+  group: $Shape<MapAnnotationGroupIdent>,
+|}): Promise<void> {
+  await axios.delete<MapAnnotationGroupIdent, void>(
+    `/map/annotations/${networkName}/${group?.name ?? ''}`,
+  );
+}
+export async function duplicateAnnotationGroup({
+  networkName,
+  groupName,
+  newName,
+}: {|
+  networkName: string,
+  groupName: string,
+  newName: string,
+|}) {
+  const newGroup = await axios.post<MapAnnotationGroupIdent, void>(
+    `/map/annotations/${networkName}/${groupName}/duplicate`,
+    {
+      newName,
+    },
+  );
+  return newGroup;
 }

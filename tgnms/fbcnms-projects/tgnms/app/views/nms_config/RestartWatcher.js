@@ -16,7 +16,7 @@ import useLiveRef from '../../hooks/useLiveRef';
 import useTaskState from '../../hooks/useTaskState';
 import {MILLISECONDS_TO_MINUTES} from '../../constants/LayerConstants';
 
-import type {TaskState} from '../../hooks/useTaskState';
+import type {TaskStateKey} from '../../hooks/useTaskState';
 
 /**
  * It may take a few seconds for NMS to actually go down for restart. Poll for
@@ -34,7 +34,7 @@ type RestartWatcher = {|
    * Start polling the NMS for when it's back online
    */
   start: () => *,
-  state: TaskState,
+  state: TaskStateKey,
 |};
 export function useRestartWatcher(conf: ?{timeout: number}): RestartWatcher {
   const {timeout} = conf || {timeout: DEFAULT_ERROR_TIMEOUT};

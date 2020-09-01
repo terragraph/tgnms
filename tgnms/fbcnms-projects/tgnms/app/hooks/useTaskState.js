@@ -17,9 +17,33 @@ export const TASK_STATE = {
   ERROR: 'ERROR',
 };
 
-export type TaskState = $Values<typeof TASK_STATE>;
-export default function useTaskState(options?: {initialState?: TaskState}) {
-  const [state, setState] = React.useState<TaskState>(
+export type TaskStateKey = $Keys<typeof TASK_STATE>;
+
+export type TaskState = {|
+  message: ?string,
+  setMessage: (?string) => void | (((curr: ?string) => ?string) => void),
+  state: TaskStateKey,
+  setState: TaskStateKey =>
+    | void
+    | (((curr: TaskStateKey) => TaskStateKey) => void),
+  reset: () => void,
+  idle: () => void,
+  loading: () => void,
+  success: () => void,
+  error: () => void,
+  isInState: (state: TaskStateKey) => boolean,
+  isInAnyState: (states: Array<TaskStateKey>) => boolean,
+  isIdle: boolean,
+  isLoading: boolean,
+  isSuccess: boolean,
+  isError: boolean,
+  TASK_STATE: typeof TASK_STATE,
+|};
+
+export default function useTaskState(options?: {
+  initialState?: TaskStateKey,
+}): TaskState {
+  const [state, setState] = React.useState<TaskStateKey>(
     options?.initialState ?? TASK_STATE.IDLE,
   );
   const [message, setMessage] = React.useState<?string>(null);
@@ -31,9 +55,11 @@ export default function useTaskState(options?: {initialState?: TaskState}) {
   const loading = React.useCallback(() => setState(TASK_STATE.LOADING), []);
   const success = React.useCallback(() => setState(TASK_STATE.SUCCESS), []);
   const error = React.useCallback(() => setState(TASK_STATE.ERROR), []);
-  const isInState = React.useCallback((s: TaskState) => state === s, [state]);
+  const isInState = React.useCallback((s: TaskStateKey) => state === s, [
+    state,
+  ]);
   const isInAnyState = React.useCallback(
-    (states: Array<TaskState>) => {
+    (states: Array<TaskStateKey>) => {
       for (const s of states) {
         if (isInState(s)) {
           return true;

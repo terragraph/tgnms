@@ -46,4 +46,16 @@ router.delete('/annotations/:network/:group', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.post('/annotations/:network/:groupName/duplicate', (req, res) => {
+  const {network, groupName} = req.params;
+  const {newName} = req.body;
+  if (!(network && groupName && newName)) {
+    return res.status(400).send();
+  }
+  return mapService
+    .duplicateAnnotationGroup({network, groupName, newName})
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+
 module.exports = router;

@@ -7,6 +7,7 @@
 import * as turf from '@turf/turf';
 import ActionsMenu from '../ActionsMenu';
 import Alert from '@material-ui/lab/Alert';
+import AnnotationGroupsForm from './AnnotationGroupsForm';
 import Box from '@material-ui/core/Box';
 import CustomAccordion from '../../common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
@@ -17,12 +18,16 @@ import React from 'react';
 import Slide from '@material-ui/core/Slide';
 import useTaskState from '../../../hooks/useTaskState';
 import {GEOMETRY_TYPE, POINTS} from '../../../constants/GeoJSONConstants';
-import {GEO_GEOM_TYPE_TITLES} from '../../../constants/MapAnnotationConstants';
+import {
+  GEO_GEOM_TYPE_TITLES,
+  MAPBOX_TG_EVENTS,
+} from '../../../constants/MapAnnotationConstants';
 import {PANELS, PANEL_STATE} from '../usePanelControl';
 import {SlideProps} from '../../../constants/MapPanelConstants';
 import {apiRequest} from '../../../apiutils/ServiceAPIUtil';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
+import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoFeature} from '@turf/turf';
 import type {
@@ -44,34 +49,30 @@ export default function AnnotationsPanel({
     setPanelState,
     collapseAll,
   } = panelControl;
+  const {mapboxRef} = useMapContext();
   const {
     selectedFeatureId,
     selectedFeature,
     deselectAll,
+    isDrawEnabled,
   } = useMapAnnotationContext();
   const togglePanel = React.useCallback(() => toggleOpen(PANELS.ANNOTATIONS), [
     toggleOpen,
   ]);
   const handleClose = React.useCallback(() => {
-    setPanelState(PANELS.ANNOTATIONS, PANEL_STATE.HIDDEN);
+    mapboxRef?.fire(MAPBOX_TG_EVENTS.SET_DRAW_ENABLED, {enabled: false});
     deselectAll();
-  }, [setPanelState, deselectAll]);
+    setPanelState(PANELS.ANNOTATIONS, PANEL_STATE.HIDDEN);
+  }, [mapboxRef, setPanelState, deselectAll]);
+
   React.useEffect(() => {
-    if (selectedFeatureId) {
+    if (isDrawEnabled) {
       collapseAll();
       setPanelState(PANELS.ANNOTATIONS, PANEL_STATE.OPEN);
-    }
-  }, [selectedFeatureId, setPanelState, collapseAll]);
-
-  /**
-   * For now, the annotations panel is only used to render the
-   * EditAnnotationForm, so the panel is closed when not in use.
-   */
-  React.useEffect(() => {
-    if (!selectedFeatureId) {
+    } else {
       setPanelState(PANELS.ANNOTATIONS, PANEL_STATE.HIDDEN);
     }
-  }, [selectedFeatureId, setPanelState]);
+  }, [isDrawEnabled, setPanelState, collapseAll]);
 
   return (
     <Slide {...SlideProps} in={!getIsHidden(PANELS.ANNOTATIONS)}>
@@ -80,12 +81,17 @@ export default function AnnotationsPanel({
         data-testid="annotations-panel"
         details={
           <Grid container direction="column" spacing={2} wrap="nowrap">
+            {!selectedFeatureId && (
+              <>
+                <AnnotationGroupsForm />
+                <Divider />
+              </>
+            )}
             {selectedFeatureId && (
               <>
                 <EditAnnotationForm />
                 <Measurement />
                 <Divider />
-
                 <AnnotationsPanelActions />
               </>
             )}
@@ -109,7 +115,7 @@ function getPanelTitle(feature: ?GeoFeature) {
     }
   }
 
-  return 'Annotation';
+  return 'Annotations';
 }
 
 type ActionsProps = {||};

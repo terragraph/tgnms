@@ -7,6 +7,7 @@
 import * as React from 'react';
 import * as mapApiUtil from '../apiutils/MapAPIUtil';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import useLiveRef from '../hooks/useLiveRef';
 import useTaskState, {TASK_STATE} from '../hooks/useTaskState';
 import {
   MAPBOX_DRAW_DEFAULT_COLOR,
@@ -17,14 +18,21 @@ import {
 } from '../constants/MapAnnotationConstants';
 import {useNetworkContext} from './NetworkContext';
 import type {FeatureId, GeoFeature, GeoFeatureCollection} from '@turf/turf';
-import type {MapAnnotationGroup} from '../../shared/dto/MapAnnotations';
+import type {
+  MapAnnotationGroup,
+  MapAnnotationGroupIdent,
+} from '../../shared/dto/MapAnnotations';
+import type {TaskState} from '../hooks/useTaskState';
 
 // for now, only use one annotation group
 export const ANNOTATION_DEFAULT_GROUP = 'default';
 
 export type MapAnnotationContext = {|
+  isDrawEnabled: boolean,
+  setIsDrawEnabled: boolean => void,
   current: ?MapAnnotationGroup,
   setCurrent: (curr: ?MapAnnotationGroup) => void,
+  groups: Array<MapAnnotationGroupIdent>,
   // rename to selected FEATURE id
   selectedFeatureId: ?FeatureId,
   setSelectedFeatureId: (s: ?FeatureId) => void,
@@ -39,13 +47,23 @@ export type MapAnnotationContext = {|
   ) => void,
   deselectAll: () => void,
   deleteFeature: (id: ?FeatureId) => Promise<void>,
+  taskStates: {
+    loadGroup: TaskState,
+    loadGroups: TaskState,
+  },
+  loadGroup: MapAnnotationGroupIdent => Promise<?MapAnnotationGroup>,
+  loadGroups: () => Promise<void>,
+  selectGroup: (name: string) => Promise<void>,
 |};
 
 const empty = () => {};
 const emptyPromise = () => Promise.reject();
 export const defaultValue: MapAnnotationContext = {
+  isDrawEnabled: false,
+  setIsDrawEnabled: empty,
   current: null,
   setCurrent: empty,
+  groups: [],
   selectedFeatureId: null,
   setSelectedFeatureId: empty,
   selectedFeature: null,
@@ -55,6 +73,10 @@ export const defaultValue: MapAnnotationContext = {
   updateFeatureProperty: empty,
   deselectAll: empty,
   deleteFeature: emptyPromise,
+  taskStates: {},
+  loadGroup: emptyPromise,
+  loadGroups: emptyPromise,
+  selectGroup: emptyPromise,
 };
 
 export const context = React.createContext<MapAnnotationContext>(defaultValue);
@@ -68,20 +90,37 @@ export function MapAnnotationContextProvider({
   children: React.Node,
 }) {
   const {networkName} = useNetworkContext();
+  const [isDrawEnabled, setIsDrawEnabled] = React.useState(false);
   const drawControl = useDrawControl();
   const [current, setCurrent] = React.useState<?MapAnnotationGroup>(null);
   const [selectedFeatureId, setSelectedFeatureId] = React.useState<?FeatureId>(
     null,
   );
+  const [groups, setGroups] = React.useState<Array<MapAnnotationGroupIdent>>(
+    [],
+  );
 
   const selectedFeature =
-    selectedFeatureId && drawControl
+    selectedFeatureId && drawControl && isDrawEnabled
       ? drawControl.get(selectedFeatureId)
       : null;
 
   const getFeature = React.useCallback((id: string) => drawControl.get(id), [
     drawControl,
   ]);
+  const loadGroupsTaskRef = useLiveRef(useTaskState());
+  const loadGroups = React.useCallback(async () => {
+    try {
+      loadGroupsTaskRef.current.setState(TASK_STATE.LOADING);
+      const _groups = await mapApiUtil.getAnnotationGroups({networkName});
+      if (_groups) {
+        setGroups(_groups);
+      }
+      loadGroupsTaskRef.current.setState(TASK_STATE.SUCCESS);
+    } catch (err) {
+      loadGroupsTaskRef.current.setState(TASK_STATE.ERROR);
+    }
+  }, [networkName, loadGroupsTaskRef]);
   //TODO rename
   const updateFeatures = React.useCallback(
     async (updated: GeoFeatureCollection) => {
@@ -99,6 +138,44 @@ export function MapAnnotationContextProvider({
       return saved;
     },
     [setCurrent, current, networkName],
+  );
+
+  const loadGroupState = useTaskState();
+  const loadGroup = React.useCallback(
+    async ({
+      topologyName,
+      name,
+    }: MapAnnotationGroupIdent): Promise<?MapAnnotationGroup> => {
+      try {
+        loadGroupState.setState(TASK_STATE.LOADING);
+        const group = await mapApiUtil.getAnnotationGroup({
+          networkName: topologyName,
+          groupName: name,
+        });
+        if (!group) {
+          throw new Error(`Group: ${name} not found`);
+        }
+        setCurrent(group);
+        drawControl.set(group.geojson);
+        loadGroupState.setState(TASK_STATE.SUCCESS);
+        return group;
+      } catch (err) {
+        loadGroupState.setState(TASK_STATE.ERROR);
+        loadGroupState.setMessage(err?.message ?? 'Error');
+        return null;
+      }
+    },
+    [loadGroupState, drawControl],
+  );
+
+  const selectGroup = React.useCallback(
+    async (groupName: string) => {
+      const group = groups.find(x => x.name === groupName);
+      if (group) {
+        await loadGroup(group);
+      }
+    },
+    [loadGroup, groups],
   );
 
   // does not trigger a react rerender
@@ -132,8 +209,13 @@ export function MapAnnotationContextProvider({
   return (
     <context.Provider
       value={{
+        isDrawEnabled,
+        setIsDrawEnabled,
         current,
         setCurrent,
+        groups,
+        loadGroups,
+        loadGroup,
         selectedFeatureId,
         setSelectedFeatureId,
         selectedFeature,
@@ -142,6 +224,11 @@ export function MapAnnotationContextProvider({
         updateFeatureProperty,
         deselectAll,
         deleteFeature,
+        selectGroup,
+        taskStates: {
+          loadGroup: loadGroupState,
+          loadGroups: loadGroupsTaskRef.current,
+        },
         /**
          * usually, don't use the draw control directly as a consumer.
          * Make a more nicely named helper function in this context
@@ -183,6 +270,31 @@ export function useMapAnnotationGroupState({
     isError,
   };
 }
+
+// export function useGroupList({networkName}: {networkName: string}) {
+//   const [groups, setGroups] = React.useState<Array<MapAnnotationGroupIdent>>(
+//     [],
+//   );
+//   const {isLoading, setState} = useTaskState();
+//   const loadGroups = React.useCallback(async () => {
+//     try {
+//       setState(TASK_STATE.LOADING);
+//       const _groups = await mapApiUtil.getAnnotationGroups({networkName});
+//       if (_groups) {
+//         setGroups(_groups);
+//       }
+//       setState(TASK_STATE.SUCCESS);
+//     } catch (err) {
+//       setState(TASK_STATE.ERROR);
+//     }
+//   }, [networkName, setState]);
+
+//   return {
+//     isLoading,
+//     groups,
+//     loadGroups,
+//   };
+// }
 
 function useDrawControl() {
   const drawControl = React.useMemo(() => {

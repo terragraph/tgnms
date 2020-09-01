@@ -15,23 +15,15 @@ import {
   useMapAnnotationContext,
   useMapAnnotationGroupState,
 } from '../../../contexts/MapAnnotationContext';
+import {
+  MAPBOX_DRAW_EVENTS,
+  MAPBOX_TG_EVENTS,
+} from '../../../constants/MapAnnotationConstants';
 import {MAP_CONTROL_LOCATIONS} from '../../../constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoFeature} from '@turf/turf';
-
-export const MAPBOX_DRAW_EVENTS = {
-  CREATE: 'draw.create',
-  DELETE: 'draw.delete',
-  UPDATE: 'draw.update',
-  SELECTION_CHANGE: 'draw.selectionchange',
-  MODE_CHANGE: 'draw.modechange',
-};
-
-export const MAPBOX_TG_EVENTS = {
-  TOGGLE: 'tg.draw.toggle',
-};
 
 const useStyles = makeStyles(_theme => ({
   icon: {
@@ -77,27 +69,35 @@ export function useDrawLayer() {
     current,
     drawControl,
     updateFeatures,
+    isDrawEnabled,
+    setIsDrawEnabled,
   } = useMapAnnotationContext();
-  const [isDrawEnabled, setIsDrawEnabled] = React.useState(false);
-
   useMapAnnotationGroupState({
     networkName,
     groupName: ANNOTATION_DEFAULT_GROUP,
   });
 
+  const setDrawControlState = React.useCallback(
+    (enabled: boolean) => {
+      setIsDrawEnabled(enabled);
+      if (enabled) {
+        mapboxRef?.addControl(drawControl, MAP_CONTROL_LOCATIONS.TOP_LEFT);
+        drawControl.add(current?.geojson);
+      } else {
+        mapboxRef?.removeControl(drawControl);
+      }
+    },
+    [setIsDrawEnabled, mapboxRef, drawControl, current],
+  );
   const handleDrawToggle = useLiveRef(() => {
     const toggled = !isDrawEnabled;
-    setIsDrawEnabled(toggled);
-    if (toggled) {
-      mapboxRef?.addControl(drawControl, MAP_CONTROL_LOCATIONS.TOP_LEFT);
-      drawControl.add(current?.geojson);
-    } else {
-      mapboxRef?.removeControl(drawControl);
-    }
+    setDrawControlState(toggled);
   });
-
   const handleDrawUpdate = useLiveRef(_update => {
     updateFeatures(drawControl.getAll());
+  });
+  const handleDrawSet = useLiveRef(({enabled}: {enabled: boolean}) => {
+    setDrawControlState(enabled);
   });
 
   const handleSelectionChange = useLiveRef(
@@ -131,6 +131,9 @@ export function useDrawLayer() {
     mapboxRef?.on(MAPBOX_TG_EVENTS.TOGGLE, (...args) =>
       handleDrawToggle.current(...args),
     );
+    mapboxRef?.on(MAPBOX_TG_EVENTS.SET_DRAW_ENABLED, (...args) => {
+      handleDrawSet.current(...args);
+    });
     const handleDrawEvent = event => handleDrawUpdate.current(event);
     const handleSelectEvent = (...args) =>
       handleSelectionChange.current(...args);
