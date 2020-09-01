@@ -54,11 +54,11 @@ export function usePanelControl({
   const stateRef = React.useRef(state);
   stateRef.current = state;
   const updateState = React.useCallback(
-    (update: $Shape<PanelStates>) =>
-      setState(curr => ({
-        ...curr,
-        ...update,
-      })),
+    (update: $Shape<PanelStates>) => {
+      const next = {...stateRef.current, ...update};
+      stateRef.current = next;
+      setState(next);
+    },
     [setState],
   );
   const getAll = React.useCallback(() => stateRef.current, [stateRef]);
@@ -100,6 +100,7 @@ export function usePanelControl({
       if (key in PANELS) {
         console.error(`Deleting static panel: ${key}`);
       }
+      delete stateRef.current[key];
       setState(curr => {
         const nextState = {...curr};
         delete nextState[key];
@@ -110,11 +111,13 @@ export function usePanelControl({
   );
 
   const collapseAll = React.useCallback(() => {
+    const update = {};
     for (const panel of Object.keys(getAll())) {
       if (getIsOpen(panel)) {
-        setPanelState(panel, PANEL_STATE.COLLAPSED);
+        update[panel] = PANEL_STATE.COLLAPSED;
       }
     }
+    updateState(update);
   }, [getAll, setPanelState, getIsOpen]);
 
   const getIsAnyOpen = React.useCallback(() => {

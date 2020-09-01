@@ -191,19 +191,23 @@ export default function NetworkDrawerFn({
   const topologyBuilderForm = useTopologyBuilderForm();
   const {updateForm} = topologyBuilderForm;
 
-  const isAnyPanelOpen =
+  const shouldOpenOverview = !(
     getIsAnyOpen() &&
     getIsCollapsed(PANELS.OVERVIEW) &&
-    getIsCollapsed(PANELS.MAP_LAYERS);
+    getIsCollapsed(PANELS.MAP_LAYERS)
+  );
 
   React.useEffect(() => {
-    if (selectedElement) {
-      return collapseAll();
-    }
-    if (!isAnyPanelOpen) {
+    if (!selectedElement && !getIsAnyOpen() && shouldOpenOverview) {
       return setPanelState(PANELS.OVERVIEW, PANEL_STATE.OPEN);
     }
-  }, [selectedElement, isAnyPanelOpen, collapseAll, setPanelState]);
+  }, [
+    selectedElement,
+    shouldOpenOverview,
+    getIsAnyOpen,
+    collapseAll,
+    setPanelState,
+  ]);
 
   const upgradeReq = upgrade_state.curReq.urReq;
   const showUpgradeProgressPanel =
@@ -424,7 +428,7 @@ function RenderTopologyElement({
     type: $Values<typeof TopologyElement>,
   ) => *,
 }) {
-  const {setPanelState, getIsHidden, removePanel} = panelControl;
+  const {setPanelState, getIsHidden, removePanel, collapseAll} = panelControl;
   const theme = useTheme();
 
   const {type, name, expanded} = element;
@@ -460,6 +464,7 @@ function RenderTopologyElement({
 
   // When this component first mounts, open it
   React.useEffect(() => {
+    collapseAll();
     setPanelState(panelKey, PANEL_STATE.OPEN);
   }, [setPanelState, panelKey]);
   useUnmount(() => {
