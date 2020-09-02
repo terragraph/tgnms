@@ -28,13 +28,13 @@ export const FEATURE_FLAGS: {|[string]: FeatureFlagDef|} = {
   SCANSERVICE_ENABLED: {isDefaultEnabled: true},
   L2_TUNNELS_ENABLED: {isDefaultEnabled: true},
   TASK_BASED_CONFIG_ENABLED: {isDefaultEnabled: true},
+  JSON_CONFIG_ENABLED: {isDefaultEnabled: true},
 
   //experimental
   NMS_BACKUP_ENABLED: {isDefaultEnabled: false},
   GET_SYSDUMP_ENABLED: {isDefaultEnabled: false},
   MAP_ANNOTATIONS_ENABLED: {isDefaultEnabled: false},
   MAP_HISTORY_ENABLED: {isDefaultEnabled: false},
-  JSON_CONFIG_ENABLED: {isDefaultEnabled: false},
   ALARMS_ENABLED: {isDefaultEnabled: false},
   DEFAULT_ROUTES_HISTORY_ENABLED: {isDefaultEnabled: false},
   LINK_BUDGETING_ENABLED: {isDefaultEnabled: false},
