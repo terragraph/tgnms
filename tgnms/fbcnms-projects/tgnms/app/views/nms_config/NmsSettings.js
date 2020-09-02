@@ -335,6 +335,16 @@ export default function NmsSettings() {
                         label="Link Budgeting"
                         setting="LINK_BUDGETING_ENABLED"
                       />
+                      <SettingInput
+                        isFeatureToggle
+                        label="JSON Config View"
+                        setting="JSON_CONFIG_ENABLED"
+                      />
+                      <SettingInput
+                        isFeatureToggle
+                        label="ODS Link Button"
+                        setting="ODS_ENABLED"
+                      />
                     </SettingGroup>
                   </SettingsForm>
                 )}

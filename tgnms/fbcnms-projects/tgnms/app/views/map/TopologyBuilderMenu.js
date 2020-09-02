@@ -421,7 +421,7 @@ export default function TopologyBuilderMenu(props: Props) {
           <ListItemIcon>{<CompareArrowsIcon />}</ListItemIcon>
           <ListItemText primary="Add Link" />
         </MenuItem>
-        {!isFeatureEnabled('L2_TUNNELS_ENABLED') && (
+        {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
           <MenuItem onClick={handleL2TunnelClick} data-testid="add-l2">
             <ListItemIcon>{<TuneIcon />}</ListItemIcon>
             <ListItemText primary="Add L2 Tunnel" />
