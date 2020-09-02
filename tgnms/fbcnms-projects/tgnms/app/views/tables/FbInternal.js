@@ -9,6 +9,8 @@ import Button from '@material-ui/core/Button';
 import DashboardLink from '../../components/common/DashboardLink';
 import GrafanaIcon from '../../components/common/GrafanaIcon';
 import React from 'react';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
+
 import type {LinkType} from '../../../shared/types/Topology';
 import type {NetworkContextType} from '../../contexts/NetworkContext';
 
@@ -87,20 +89,22 @@ export function renderDashboardLinks(
     </DashboardLink>,
   ];
 
-  const odsLink = renderODSLink(row.a_node_name, row.z_node_name, context);
-  if (odsLink) {
-    buttons.push(
-      <Button
-        className={classes.button}
-        color="primary"
-        href={odsLink}
-        key={`ods-link-${row.a_node_name}-${row.z_node_name}`}
-        size="small"
-        target="_new"
-        variant="outlined">
-        ODS
-      </Button>,
-    );
+  if (isFeatureEnabled('ODS_ENABLED')) {
+    const odsLink = renderODSLink(row.a_node_name, row.z_node_name, context);
+    if (odsLink) {
+      buttons.push(
+        <Button
+          className={classes.button}
+          color="primary"
+          href={odsLink}
+          key={`ods-link-${row.a_node_name}-${row.z_node_name}`}
+          size="small"
+          target="_new"
+          variant="outlined">
+          ODS
+        </Button>,
+      );
+    }
   }
 
   return (
