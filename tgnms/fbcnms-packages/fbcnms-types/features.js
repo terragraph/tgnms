@@ -43,4 +43,5 @@ export type FeatureID =
   | 'mandatory_properties_on_work_order_close'
   | 'async_export'
   | 'add_port_to_service'
-  | 'execute_automation_flows';
+  | 'execute_automation_flows'
+  | 'workorder_new_status';
