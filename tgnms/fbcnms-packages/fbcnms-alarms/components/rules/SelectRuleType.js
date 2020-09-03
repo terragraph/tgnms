@@ -9,17 +9,22 @@
  */
 
 import * as React from 'react';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Grid from '@material-ui/core/Grid';
+import InputLabel from '@material-ui/core/InputLabel';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {makeStyles} from '@material-ui/styles';
 import type {RuleInterfaceMap} from './RuleInterface';
 
-const useRuleTypeStyles = makeStyles(_theme => ({
-  select: {
+const useRuleTypeStyles = makeStyles(theme => ({
+  buttonGroup: {
+    paddingTop: theme.spacing(1),
+  },
+  button: {
     textTransform: 'capitalize',
   },
-  menuItem: {
-    textTransform: 'capitalize',
+  label: {
+    fontSize: theme.typography.pxToRem(14),
   },
 }));
 export default function SelectRuleType<TRuleUnion>({
@@ -51,21 +56,24 @@ export default function SelectRuleType<TRuleUnion>({
    * and padding.
    */
   return (
-    <TextField
-      label="Rule Type"
-      value={value}
-      onChange={event => onChange(event.target.value)}
-      classes={{root: classes.select}}
-      select
-      fullWidth>
-      {ruleTypes.map(ruleType => (
-        <MenuItem
-          className={classes.menuItem}
-          key={ruleType.type}
-          value={ruleType.type}>
-          {ruleType.friendlyName}
-        </MenuItem>
-      ))}
-    </TextField>
+    <Grid item>
+      <InputLabel className={classes.label}>Rule Type</InputLabel>
+      <ToggleButtonGroup
+        className={classes.buttonGroup}
+        size="medium"
+        color="primary"
+        variant="outlined"
+        value={value}
+        onChange={onChange}>
+        {ruleTypes.map(ruleType => (
+          <ToggleButton
+            className={classes.button}
+            key={ruleType.type}
+            value={ruleType.type}>
+            {ruleType.friendlyName}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+    </Grid>
   );
 }

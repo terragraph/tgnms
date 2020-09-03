@@ -10,8 +10,12 @@
 
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
+import Button from '@material-ui/core/Button';
+import Divider from '@material-ui/core/Divider';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import Grid from '@material-ui/core/Grid';
-import HelpIcon from '@material-ui/icons/Help';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import RuleEditorBase from '../RuleEditorBase';
 import TextField from '@material-ui/core/TextField';
@@ -19,12 +23,12 @@ import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
-import Tooltip from '@material-ui/core/Tooltip';
 import useForm from '../../../hooks/useForm';
 import useRouter from '../../../hooks/useRouter';
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../severity/Severity';
+import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
@@ -36,6 +40,13 @@ import type {ThresholdExpression} from './ToggleableExpressionEditor';
 type MenuItemProps = {key: string, value: string, children: string};
 
 type TimeUnit = {value: string, label: string};
+
+const useStyles = makeStyles(theme => ({
+  button: {
+    marginLeft: -theme.spacing(0.5),
+    margin: theme.spacing(1.5),
+  },
+}));
 
 const timeUnits: Array<TimeUnit> = [
   {
@@ -80,17 +91,21 @@ function SeverityEditor(props: {
   options: Array<MenuItemProps>,
 }) {
   return (
-    <TextField
-      required
-      label="Severity"
-      select
-      fullWidth
-      value={props.severity}
-      onChange={props.onChange(value => ({severity: value}))}>
-      {props.options.map(opt => (
-        <MenuItem {...opt} />
-      ))}
-    </TextField>
+    <Grid item xs={3}>
+      <InputLabel htmlFor="severity-input">Severity</InputLabel>
+      <TextField
+        id="severity-input"
+        fullWidth
+        required
+        select
+        value={props.severity}
+        onChange={props.onChange(value => ({severity: value}))}>
+        {props.options.map(opt => (
+          <MenuItem {...opt} />
+        ))}
+      </TextField>
+      <FormHelperText>Minor, Major, Critical...</FormHelperText>
+    </Grid>
   );
 }
 
@@ -100,31 +115,17 @@ function TimeEditor(props: {
   timeUnit: string,
 }) {
   return (
-    <Grid container spacing={1} alignItems="flex-end" justify="space-between">
-      <Grid item xs={6}>
-        <TimeNumberEditor
-          onChange={props.onChange}
-          timeNumber={props.timeNumber}
-        />
-      </Grid>
-      <Grid item xs={5}>
-        <TimeUnitEditor
-          onChange={props.onChange}
-          timeUnit={props.timeUnit}
-          timeUnits={timeUnits}
-        />
-      </Grid>
-      <Grid item>
-        <Tooltip
-          title={
-            'Enter the amount of time the alert expression needs to be ' +
-            'true for before the alert fires.'
-          }
-          placement="right">
-          <HelpIcon />
-        </Tooltip>
-      </Grid>
-    </Grid>
+    <>
+      <TimeNumberEditor
+        onChange={props.onChange}
+        timeNumber={props.timeNumber}
+      />
+      <TimeUnitEditor
+        onChange={props.onChange}
+        timeUnit={props.timeUnit}
+        timeUnits={timeUnits}
+      />
+    </>
   );
 }
 
@@ -133,13 +134,19 @@ function TimeNumberEditor(props: {
   timeNumber: number,
 }) {
   return (
-    <TextField
-      type="number"
-      value={isNaN(props.timeNumber) ? '' : props.timeNumber}
-      onChange={props.onChange(val => ({timeNumber: parseInt(val, 10)}))}
-      label="Duration"
-      fullWidth
-    />
+    <Grid item xs={6}>
+      <InputLabel htmlFor="duration-input">Duration</InputLabel>
+      <Input
+        id="duration-input"
+        fullWidth
+        type="number"
+        value={isNaN(props.timeNumber) ? '' : props.timeNumber}
+        onChange={props.onChange(val => ({timeNumber: parseInt(val, 10)}))}
+      />
+      <FormHelperText>
+        Send alert when condtions are true for this amount of time
+      </FormHelperText>
+    </Grid>
   );
 }
 
@@ -149,18 +156,22 @@ function TimeUnitEditor(props: {
   timeUnits: Array<TimeUnit>,
 }) {
   return (
-    <TextField
-      select
-      value={props.timeUnit}
-      onChange={props.onChange(val => ({timeUnit: val}))}
-      label="Unit"
-      fullWidth>
-      {props.timeUnits.map(option => (
-        <MenuItem key={option.value} value={option.value}>
-          {option.label}
-        </MenuItem>
-      ))}
-    </TextField>
+    <Grid item xs={3}>
+      <InputLabel htmlFor="unit-input">Unit</InputLabel>
+      <TextField
+        id="unit-input"
+        fullWidth
+        select
+        value={props.timeUnit}
+        onChange={props.onChange(val => ({timeUnit: val}))}>
+        {props.timeUnits.map(option => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
+      </TextField>
+      <FormHelperText>Minutes, hours, ...</FormHelperText>
+    </Grid>
   );
 }
 
@@ -172,6 +183,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
+  const classes = useStyles();
 
   /**
    * after the user types into the form, map back from FormState and
@@ -293,21 +305,41 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
             expression={formState.expression}
             onChange={handleInputChange}
           />
+          <Button
+            className={classes.button}
+            color="primary"
+            size="small"
+            target="_blank"
+            href="https://prometheus.io/docs/prometheus/latest/querying/basics/">
+            PromQL FAQ
+          </Button>
+          <Button
+            className={classes.button}
+            color="primary"
+            size="small"
+            onClick={() => setAdvancedEditorMode(true)}>
+            Switch to template
+          </Button>
         </Grid>
       )}
-
-      <Grid item xs={12}>
-        <SeverityEditor
-          onChange={handleInputChange}
-          options={severityOptions}
-          severity={formState.severity}
-        />
+      <Grid item>
+        <Divider />
       </Grid>
-      <Grid item xs={12}>
+      <Grid
+        item
+        container
+        alignItems="flex-start"
+        justify="space-between"
+        spacing={2}>
         <TimeEditor
           onChange={handleInputChange}
           timeNumber={formState.timeNumber}
           timeUnit={formState.timeUnit}
+        />
+        <SeverityEditor
+          onChange={handleInputChange}
+          options={severityOptions}
+          severity={formState.severity}
         />
       </Grid>
     </RuleEditorBase>

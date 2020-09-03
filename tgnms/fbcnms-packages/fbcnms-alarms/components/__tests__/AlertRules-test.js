@@ -173,7 +173,7 @@ describe('AddEditAlert > Prometheus Editor', () => {
       });
     });
     act(() => {
-      fireEvent.change(getByLabelText(/expression/i), {
+      fireEvent.change(getByLabelText(/metric/i), {
         target: {value: 'vector(1)'},
       });
     });

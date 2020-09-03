@@ -92,7 +92,7 @@ export default function RuleEditorBase({
             <Card>
               <CardHeader title="Details" />
               <CardContent>
-                <Grid container direction="column" spacing={2}>
+                <Grid container direction="column" spacing={4}>
                   {isNew && (
                     <Grid item xs={6}>
                       <SelectRuleType

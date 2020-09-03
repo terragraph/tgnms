@@ -16,6 +16,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
+import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
@@ -131,14 +132,17 @@ export function AdvancedExpressionEditor(props: {
   expression: string,
 }) {
   return (
-    <TextField
-      required
-      label="Expression"
-      placeholder="Ex: up == 0"
-      value={props.expression}
-      onChange={props.onChange(value => ({expression: value}))}
-      fullWidth
-    />
+    <>
+      <InputLabel htmlFor="metric-advanced-input">Metric</InputLabel>
+      <TextField
+        id="metric-advanced-input"
+        required
+        placeholder="SNR >= 0"
+        value={props.expression}
+        onChange={props.onChange(value => ({expression: value}))}
+        fullWidth
+      />
+    </>
   );
 }
 
