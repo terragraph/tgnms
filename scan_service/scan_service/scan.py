@@ -58,7 +58,7 @@ class ScanTest:
         async with MySQLClient().lease() as sa_conn:
             try:
                 # Fetch latest topology for analysis
-                await Topology.update_topology(self.network_name)
+                await Topology.update_topologies(self.network_name)
 
                 start_scan_resp = await APIServiceClient(timeout=5).request(
                     self.network_name,

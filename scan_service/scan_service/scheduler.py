@@ -397,14 +397,7 @@ class Scheduler:
             if not execution:
                 return None
 
-            ignore_cols = {
-                "id",
-                "network_name",
-                "execution_id",
-                "type",
-                "mode",
-                "results_path",
-            }
+            ignore_cols = {"id", "execution_id", "type", "mode", "results_path"}
 
             get_results_query = select(
                 filter(

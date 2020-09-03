@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import json
 import logging
 from collections import defaultdict
-from typing import DefaultDict, Dict
+from typing import DefaultDict, Dict, Optional
 
 from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
 from tglib.clients.prometheus_client import PrometheusClient
+from tglib.exceptions import ClientRuntimeError
 
 
 class Topology:
@@ -16,18 +18,31 @@ class Topology:
     node_name_to_mac: DefaultDict = defaultdict(dict)
     node_mac_to_name: DefaultDict = defaultdict(dict)
     link_name_to_mac: DefaultDict = defaultdict(dict)
+    mac_to_link_name: DefaultDict = defaultdict(dict)
     node_channel: DefaultDict = defaultdict(dict)
     node_polarity: DefaultDict = defaultdict(dict)
 
     @classmethod
-    async def update_topology(cls, network_name: str) -> None:
-        """Fetch latest topology and update class params."""
-        cls.topology[network_name] = await APIServiceClient(timeout=2).request(
-            network_name, "getTopology"
-        )
-        cls.get_node_maps(network_name)
-        cls.get_link_maps(network_name)
-        await cls.get_auto_node_overrides_config(network_name)
+    async def update_topologies(cls, network_name: Optional[str] = None) -> None:
+        """Fetch latest topologies and update class params."""
+        client = APIServiceClient(timeout=2)
+        if network_name is None:
+            topologies = await client.request_all("getTopology", return_exceptions=True)
+        else:
+            topologies = {
+                network_name: await client.request(network_name, "getTopology")
+            }
+
+        coroutines = []
+        for name, topology in topologies.items():
+            if isinstance(topology, ClientRuntimeError):
+                logging.error(f"Failed to fetch topology for {name}")
+                continue
+            cls.topology[name] = topology
+            cls.get_node_maps(name)
+            cls.get_link_maps(name)
+            coroutines.append(cls.get_auto_node_overrides_config(client, name))
+        await asyncio.gather(*coroutines, return_exceptions=True)
 
     @classmethod
     def get_node_maps(cls, network_name: str) -> None:
@@ -62,10 +77,15 @@ class Topology:
                 PrometheusClient.normalize(link["name"])
             ] = (a_node_mac, z_node_mac)
 
+            cls.mac_to_link_name[network_name][(a_node_mac, z_node_mac)] = link["name"]
+            cls.mac_to_link_name[network_name][(z_node_mac, a_node_mac)] = link["name"]
+
     @classmethod
-    async def get_auto_node_overrides_config(cls, network_name: str) -> None:
+    async def get_auto_node_overrides_config(
+        cls, client: APIServiceClient, network_name: str
+    ) -> None:
         """Fetch channel and polarity info using 'getAutoNodeOverridesConfig'."""
-        node_overrides_config = await APIServiceClient(timeout=2).request(
+        node_overrides_config = await client.request(
             network_name, "getAutoNodeOverridesConfig"
         )
         overrides = json.loads(node_overrides_config["overrides"])

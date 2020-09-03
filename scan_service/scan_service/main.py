@@ -23,6 +23,7 @@ from .scheduler import Scheduler
 from .utils.data_loader import get_im_data
 from .utils.db import write_results
 from .utils.hardware_config import HardwareConfig
+from .utils.topology import Topology
 
 
 async def scan_results_handler(
@@ -116,6 +117,9 @@ async def async_main(
     """Consume and store scan data, and perform analysis when scans are complete."""
     # Reschedule any tests found in the schedule upon startup
     await Scheduler.restart()
+
+    # Fetch latest topologies for analysis
+    await Topology.update_topologies()
 
     consumer = KafkaConsumer().consumer
     consumer.subscribe(topics)

@@ -3,13 +3,60 @@
 
 import asyncio
 import logging
-from typing import Dict, List, Optional
+from collections import defaultdict
+from typing import DefaultDict, Dict, Iterable, List, Optional
 
+import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
 
 from ..utils.hardware_config import HardwareConfig
 from ..utils.stats import get_latest_stats
 from ..utils.topology import Topology
+
+
+def get_link_inr(network_name: str, rx_pair_inr: Dict) -> Dict:
+    """Fetch the inr in each direction for all links."""
+    results: DefaultDict = defaultdict(list)
+    for (rx_node, rx_from_node), inr_power in rx_pair_inr.items():
+        link_name = Topology.mac_to_link_name.get(network_name, {}).get(
+            (rx_node, rx_from_node)
+        )
+        if link_name is None:
+            continue
+
+        inr_db = 10 * np.log10(inr_power)
+        if inr_db < HardwareConfig.MINIMUM_SNR_DB:
+            continue
+
+        results[link_name].append(
+            {"rx_node": rx_node, "rx_from_node": rx_from_node, "inr_curr_power": inr_db}
+        )
+    return results
+
+
+def aggregate_interference_results(interference_results: Iterable) -> Dict:
+    """Aggregate inr for each link direction."""
+    if not interference_results:
+        return {}
+
+    inr_current_scan: DefaultDict = defaultdict(int)
+    inr_n_days_scan: DefaultDict = defaultdict(int)
+    for row in interference_results:
+        network_name = row.network_name
+        inr_db = row.inr_curr_power.get("snr_avg")
+        if inr_db is None:
+            continue
+
+        if row.is_n_day_avg:
+            inr_n_days_scan[(row.rx_node, row.rx_from_node)] += pow(10, inr_db / 10)
+        else:
+            inr_current_scan[(row.rx_node, row.rx_from_node)] += pow(10, inr_db / 10)
+
+    aggregated_results: Dict = {
+        "current": get_link_inr(network_name, inr_current_scan),
+        "n_day_avg": get_link_inr(network_name, inr_n_days_scan),
+    }
+    return aggregated_results
 
 
 def get_inr_offset(
@@ -128,7 +175,7 @@ async def get_interference_from_current_beams(
                         channel=tx_channel,
                         mcs=tx_infos.get(tx_to_node, {}).get("mcs"),
                     )
-                    inr_curr_power = {"snr_est": inr["snr_avg"] + curr_inr_offset}
+                    inr_curr_power = {"snr_avg": inr["snr_avg"] + curr_inr_offset}
 
                 result.append(
                     {
@@ -242,7 +289,7 @@ async def get_interference_from_directional_beams(  # noqa: C901
                         channel=tx_channel,
                         mcs=tx_info.get("mcs"),
                     )
-                    inr_curr_power = {"snr_est": inr["snr_avg"] + curr_inr_offset}
+                    inr_curr_power = {"snr_avg": inr["snr_avg"] + curr_inr_offset}
 
                 result.append(
                     {

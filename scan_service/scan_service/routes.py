@@ -12,6 +12,7 @@ from aiohttp import web
 from croniter import croniter
 from tglib.clients import APIServiceClient
 
+from .analysis.interference import aggregate_interference_results
 from .models import ScanMode, ScanTestStatus, ScanType
 from .scan import ScanTest
 from .scheduler import Schedule, Scheduler
@@ -439,19 +440,23 @@ async def handle_get_execution(request: web.Request) -> web.Response:
     def update_results(scan_results: DefaultDict, results: Iterable) -> None:
         for row in results:
             scan_results[row.token].update(
-                {key: val for key, val in row.items() if key != "token"}
+                {
+                    key: val
+                    for key, val in row.items()
+                    if key not in {"token", "network_name"}
+                }
             )
 
     def update_analysis_results(
         scan_results: DefaultDict, results: Iterable, type: str
     ) -> None:
         for row in results:
-            name = "aggregated_" + type if row.is_n_day_avg else type
+            name = "averaged_" + type if row.is_n_day_avg else type
             scan_results[row.token][name].append(
                 {
                     key: val
                     for key, val in row.items()
-                    if key not in {"token", "group_id"}
+                    if key not in {"token", "group_id", "network_name"}
                 }
             )
 
@@ -470,7 +475,11 @@ async def handle_get_execution(request: web.Request) -> web.Response:
     update_analysis_results(scan_results, interference_results, "interference")
 
     return web.json_response(
-        {"execution": dict(execution), "results": scan_results},
+        {
+            "execution": dict(execution),
+            "results": scan_results,
+            "aggregated_inr": aggregate_interference_results(interference_results),
+        },
         dumps=functools.partial(json.dumps, default=custom_serializer),
     )
 
