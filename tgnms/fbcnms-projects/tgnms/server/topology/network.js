@@ -15,6 +15,7 @@ const {
   link_event,
   topology,
   wireless_controller,
+  map_profile,
 } = require('../models');
 import type {ControllerAttributes} from '../models/controller';
 import type {LinkType, NodeType} from '../../shared/types/Topology';
@@ -88,6 +89,10 @@ export function getNetworkList() {
       {
         model: wireless_controller,
         as: 'wac',
+      },
+      {
+        model: map_profile,
+        as: 'map_profile',
       },
     ],
   });

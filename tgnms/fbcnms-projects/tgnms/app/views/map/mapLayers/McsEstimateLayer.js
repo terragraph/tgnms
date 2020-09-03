@@ -8,6 +8,7 @@
 import * as turf from '@turf/turf';
 import React from 'react';
 import useLiveRef from '../../../hooks/useLiveRef';
+import {DEFAULT_MCS_TABLE} from '../../../constants/MapProfileConstants';
 import {
   LINE_TEXT_PAINT,
   MCS_INTERPOLATE_FILL_COLOR,
@@ -25,108 +26,14 @@ import type {TopologyMaps} from '../../../helpers/TopologyHelpers';
 export const LAYER_ID = 'nodes-mcs-estimate';
 export const SOURCE_ID = 'nodes-mcs-estimate-source';
 
-type McsLinkBudget = {|
-  mcs: number,
-  rate: string,
-  rangeMeters: number,
-  sensitivityDbm: number,
-  throughputGbps: number,
-|};
-
-const DUPE_RANGE_OFFSET = 10;
 const CIRCLE_STEPS = 64;
 const TRIANGLE_HEIGHT = 300;
 const BEAM_WIDTH_DEGREES = 30;
 
 //TODO don't hard-code this table
-const MCS_TABLE: Array<McsLinkBudget> = [
-  {
-    mcs: 1,
-    rate: 'BPSK',
-    throughputGbps: 0.3,
-    rangeMeters: 287,
-    sensitivityDbm: -75,
-  },
-  {
-    mcs: 2,
-    rate: 'BPSK',
-    throughputGbps: 0.6,
-    rangeMeters: 258,
-    sensitivityDbm: -73,
-  },
-  {
-    mcs: 3,
-    rate: 'BPSK',
-    throughputGbps: 0.8,
-    rangeMeters: 244,
-    sensitivityDbm: -72,
-  },
-  {
-    mcs: 4,
-    rate: 'BPSK',
-    throughputGbps: 0.9,
-    rangeMeters: 231,
-    sensitivityDbm: -71,
-  },
-  {
-    mcs: 5,
-    rate: 'BPSK',
-    throughputGbps: 1.0,
-    rangeMeters: 205,
-    sensitivityDbm: -69,
-  },
-  {
-    mcs: 6,
-    rate: 'QPSK',
-    throughputGbps: 1.3,
-    // TODO: better visually distinguish 6 from 4
-    rangeMeters: 231 - DUPE_RANGE_OFFSET,
-    sensitivityDbm: -71,
-  },
-  {
-    mcs: 7,
-    rate: 'QPSK',
-    throughputGbps: 1.6,
-    // TODO: better visually distinguish 7 from 5
-    rangeMeters: 205 - DUPE_RANGE_OFFSET,
-    sensitivityDbm: -69,
-  },
-  {
-    mcs: 8,
-    rate: 'QPSK',
-    throughputGbps: 1.9,
-    rangeMeters: 192,
-    sensitivityDbm: -68,
-  },
-  {
-    mcs: 9,
-    rate: 'QPSK',
-    throughputGbps: 2.1,
-    rangeMeters: 180,
-    sensitivityDbm: -67,
-  },
-  {
-    mcs: 10,
-    rate: '16QAM',
-    throughputGbps: 2.6,
-    rangeMeters: 147,
-    sensitivityDbm: -65,
-  },
-  {
-    mcs: 11,
-    rate: '16QAM',
-    throughputGbps: 3.2,
-    rangeMeters: 127,
-    sensitivityDbm: -63,
-  },
-  {
-    mcs: 12,
-    rate: '16QAM',
-    throughputGbps: 3.9,
-    rangeMeters: 109,
-    sensitivityDbm: -61,
-  },
-].sort((a, b) => b.rangeMeters - a.rangeMeters);
+const MCS_TABLE = DEFAULT_MCS_TABLE.sort(
+  (a, b) => b.rangeMeters - a.rangeMeters,
+);
 
 export default function McsEstimateOverlay() {
   const {selectedOverlays, mapboxRef} = useMapContext();
@@ -141,6 +48,7 @@ export default function McsEstimateOverlay() {
     selectedElement,
     setSelected,
   } = useNetworkContext();
+  const mcsTable = useMapProfileMcsTable();
   const topologyMapsRef = useLiveRef({
     nodeMap,
     siteMap,
@@ -182,7 +90,7 @@ export default function McsEstimateOverlay() {
       const startPoint = turf.point(startCoords, {
         ...node,
       });
-      const mcsRings = mcsRingsTemplate(startCoords);
+      const mcsRings = mcsRingsTemplate(startCoords, mcsTable);
       const pointBearing = BEAM_WIDTH_DEGREES / 2.0;
       const eastPoint = turf.transformTranslate(
         startPoint,
@@ -231,7 +139,7 @@ export default function McsEstimateOverlay() {
       features.filter(x => x),
     );
     return turf.featureCollection(flattened);
-  }, [topologyMapsRef, selectedElement, isMcsEstimateSelected]);
+  }, [topologyMapsRef, selectedElement, isMcsEstimateSelected, mcsTable]);
 
   React.useEffect(() => {
     if (!mapboxRef) {
@@ -340,8 +248,8 @@ function getWirelessPeers(
   return peers;
 }
 
-function mcsRingsTemplate(location: GeoCoord): Array<GeoFeature> {
-  const circles = [...MCS_TABLE].map(({mcs, rangeMeters}) =>
+function mcsRingsTemplate(location: GeoCoord, mcsTable): Array<GeoFeature> {
+  const circles = [...mcsTable].map(({mcs, rangeMeters}) =>
     turf.circle(location, rangeMeters, {
       units: 'meters',
       steps: CIRCLE_STEPS,
@@ -387,4 +295,21 @@ export function McsEstimateTextLayer() {
       paint={LINE_TEXT_PAINT}
     />
   );
+}
+
+function useMapProfileMcsTable() {
+  const {networkConfig} = useNetworkContext();
+  return React.useMemo(() => {
+    if (
+      networkConfig != null &&
+      networkConfig?.map_profile?.data?.mcsTable != null
+    ) {
+      const mcsTable = networkConfig.map_profile.data.mcsTable.sort(
+        (a, b) => b.rangeMeters - a.rangeMeters,
+      );
+      return mcsTable;
+    }
+    return MCS_TABLE;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [networkConfig]);
 }

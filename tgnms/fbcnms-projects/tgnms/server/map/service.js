@@ -2,10 +2,11 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
 
-const {map_annotation_group, topology} = require('../models');
+const {map_annotation_group, map_profile, topology} = require('../models');
+import Sequelize from 'sequelize';
 const logger = require('../log')(module);
 import type {GeoFeatureCollection} from '@turf/turf';
 import type {
@@ -13,6 +14,8 @@ import type {
   MapAnnotationGroupIdent,
 } from '../../shared/dto/MapAnnotations';
 import type {MapAnnotationGroupAttributes} from '../models/mapAnnotationGroup';
+import type {MapProfile, MapProfileData} from '../../shared/dto/MapProfile';
+import type {MapProfileAttributes} from '../models/mapProfile';
 import type {Transaction} from 'sequelize';
 
 type GroupIdent = {|
@@ -156,6 +159,123 @@ async function getNetworkByName(name: string) {
   return t;
 }
 
+export async function getProfileById(id: number): Promise<?MapProfile> {
+  const row = await map_profile.findByPk(id);
+  if (row == null) {
+    return null;
+  }
+  return attrToMapProfile(row.toJSON());
+}
+
+export async function getAllProfiles(): Promise<Array<MapProfile>> {
+  const rows = await map_profile.findAll({
+    include: [
+      {
+        model: topology,
+        as: 'networks',
+        attributes: ['name'],
+      },
+    ],
+  });
+  if (!rows) {
+    return [];
+  }
+
+  return rows.map<MapProfile>(row => attrToMapProfile(row.toJSON()));
+}
+
+export async function createProfile(req: $Shape<MapProfile>) {
+  const create = sanitizeProfile(req);
+  if (create == null) {
+    throw new Error('invalid profile');
+  }
+  const {name, data} = create;
+  if (name == null || data == null) {
+    throw new Error('missing required parameters');
+  }
+  const created = await map_profile.create(
+    ({name, json: JSON.stringify(data)}: $Shape<MapProfileAttributes>),
+  );
+  return created;
+}
+
+export async function saveProfile(
+  req: $Shape<MapProfile>,
+): Promise<MapProfile> {
+  const update = sanitizeProfile(req);
+  if (update == null) {
+    throw new Error('invalid profile');
+  }
+  const {id, name, data, networks} = update;
+  if (name == null || data == null || id == null) {
+    throw new Error('missing required parameters');
+  }
+  const row = await map_profile.findByPk(id);
+  if (row == null) {
+    throw new Error('Profile not found');
+  }
+  row.name = name;
+  row.json = JSON.stringify(data);
+  await row.save();
+  const profileData = row.toJSON();
+
+  const [numUpdated, updatedRows] = await topology.update(
+    {map_profile_id: row.id},
+    {
+      where: {
+        name: {
+          [(Sequelize.Op.in: any)]: networks,
+        },
+      },
+    },
+  );
+  /**
+   * set map_profile_id=null on all of this map_profile's networks
+   * which are not in the selected list
+   */
+  const [numRemoved] = await topology.update(
+    {map_profile_id: null},
+    {
+      where: {
+        map_profile_id: {
+          [(Sequelize.Op.eq: any)]: row.id,
+        },
+        name: {
+          [(Sequelize.Op.notIn: any)]: networks,
+        },
+      },
+    },
+  );
+
+  logger.info(
+    `Map Profile Saved: ${name} - ${numUpdated} networks added ${numRemoved} removed `,
+  );
+
+  const updatedNetworks = (updatedRows || []).map(row => row.toJSON());
+
+  return attrToMapProfile({...profileData, networks: updatedNetworks});
+}
+
+export async function deleteProfile(id: number): Promise<void> {
+  const row = await map_profile.findByPk(id);
+  await row?.destroy();
+}
+
+function sanitizeProfile(profile: $Shape<MapProfile>): ?MapProfile {
+  if (!profile || profile.name == null) {
+    return null;
+  }
+  profile.name = profile.name.replace(/[^A-Za-z-0-9_ ]/g, '');
+  if (profile.name === '') {
+    return null;
+  }
+  profile.data = {
+    ...(profile.data || {}),
+  };
+  profile.data.mcsTable = profile?.data?.mcsTable ?? [];
+  return profile;
+}
+
 function mapToAnnotationGroup({
   id,
   name,
@@ -171,6 +291,20 @@ function mapToAnnotationGroup({
       features: [],
       properties: {},
     },
+  };
+}
+
+export function attrToMapProfile({
+  id,
+  name,
+  json,
+  networks,
+}: $Shape<MapProfileAttributes>): MapProfile {
+  return {
+    id,
+    name,
+    data: safeJsonParse<MapProfileData>(json) ?? {mcsTable: null},
+    networks: networks ? networks.map(network => network.name) : [],
   };
 }
 

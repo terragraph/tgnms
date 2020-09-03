@@ -23,122 +23,124 @@ type MockTopology = $Shape<{
   save: () => Promise<MockTopology>,
 }>;
 
-test('if nodes and links are empty, nothing is added to whitelist', async () => {
-  await seedTopology();
-  const newWhitelist = await updateOnlineWhitelist('test-network', {
-    nodes: [],
-    links: [],
-  });
-  expect(newWhitelist).toBeTruthy;
-  expect(newWhitelist.nodes).toMatchObject({});
-  expect(newWhitelist.links).toMatchObject({});
-});
-
-test('if whitelist is empty and offline nodes/links are provided, nothing is added to whitelist', async () => {
-  await seedTopology();
-  const newWhitelist = await updateOnlineWhitelist('test-network', {
-    nodes: [mockNode()],
-    links: [mockLink()],
-  });
-  expect(newWhitelist).toBeTruthy;
-  expect(newWhitelist.nodes).toMatchObject({});
-  expect(newWhitelist.links).toMatchObject({});
-});
-
-test('if whitelist is empty and online nodes/links are provided, they should be added to the whitelist', async () => {
-  mockFindTopology();
-
-  const newWhitelist = await updateOnlineWhitelist('test-network', {
-    nodes: [
-      mockNode({
-        status: NodeStatusTypeValueMap.ONLINE,
-      }),
-    ],
-    links: [
-      mockLink({
-        is_alive: true,
-      }),
-    ],
-  });
-  const foundTopology = await topology.findOne.mock.results[0].value;
-  expect(foundTopology.save).toHaveBeenCalled();
-  expect(newWhitelist.nodes['node-1']).toBe(true);
-  expect(newWhitelist.links['link-1']).toBe(true);
-});
-
-test('if nodes/links contained in whitelist are down, whitelist should stay the same', async () => {
-  await seedTopology();
-  // first add them to whitelist
-  await updateOnlineWhitelist('test-network', {
-    nodes: [
-      mockNode({
-        status: NodeStatusTypeValueMap.ONLINE,
-      }),
-    ],
-    links: [
-      mockLink({
-        is_alive: true,
-      }),
-    ],
+describe('offline whitelist', () => {
+  test('if nodes and links are empty, nothing is added to whitelist', async () => {
+    await seedTopology();
+    const newWhitelist = await updateOnlineWhitelist('test-network', {
+      nodes: [],
+      links: [],
+    });
+    expect(newWhitelist).toBeTruthy;
+    expect(newWhitelist.nodes).toMatchObject({});
+    expect(newWhitelist.links).toMatchObject({});
   });
 
-  // now they're offline, whitelist shouldn't change
-  const whitelist = await updateOnlineWhitelist('test-network', {
-    nodes: [
-      mockNode({
-        status: NodeStatusTypeValueMap.OFFLINE,
-      }),
-    ],
-    links: [
-      mockLink({
-        is_alive: false,
-      }),
-    ],
+  test('if whitelist is empty and offline nodes/links are provided, nothing is added to whitelist', async () => {
+    await seedTopology();
+    const newWhitelist = await updateOnlineWhitelist('test-network', {
+      nodes: [mockNode()],
+      links: [mockLink()],
+    });
+    expect(newWhitelist).toBeTruthy;
+    expect(newWhitelist.nodes).toMatchObject({});
+    expect(newWhitelist.links).toMatchObject({});
   });
 
-  expect(whitelist.nodes['node-1']).toBe(true);
-  expect(whitelist.links['link-1']).toBe(true);
+  test('if whitelist is empty and online nodes/links are provided, they should be added to the whitelist', async () => {
+    mockFindTopology();
 
-  // ensure that whitelist is persisted to the DB too
-  const dbTopology = await topology.findOne({where: {name: 'test-network'}});
-  expect(dbTopology?.offline_whitelist?.nodes['node-1']).toBe(true);
-  expect(dbTopology?.offline_whitelist?.links['link-1']).toBe(true);
-});
+    const newWhitelist = await updateOnlineWhitelist('test-network', {
+      nodes: [
+        mockNode({
+          status: NodeStatusTypeValueMap.ONLINE,
+        }),
+      ],
+      links: [
+        mockLink({
+          is_alive: true,
+        }),
+      ],
+    });
+    const foundTopology = await topology.findOne.mock.results[0].value;
+    expect(foundTopology.save).toHaveBeenCalled();
+    expect(newWhitelist.nodes['node-1']).toBe(true);
+    expect(newWhitelist.links['link-1']).toBe(true);
+  });
 
-test('if whitelist exists, newly online nodes/links should be added', async () => {
-  await seedTopology({
-    offline_whitelist: {
-      links: {
-        'link-a': true,
-        'link-b': true,
+  test('if nodes/links contained in whitelist are down, whitelist should stay the same', async () => {
+    await seedTopology();
+    // first add them to whitelist
+    await updateOnlineWhitelist('test-network', {
+      nodes: [
+        mockNode({
+          status: NodeStatusTypeValueMap.ONLINE,
+        }),
+      ],
+      links: [
+        mockLink({
+          is_alive: true,
+        }),
+      ],
+    });
+
+    // now they're offline, whitelist shouldn't change
+    const whitelist = await updateOnlineWhitelist('test-network', {
+      nodes: [
+        mockNode({
+          status: NodeStatusTypeValueMap.OFFLINE,
+        }),
+      ],
+      links: [
+        mockLink({
+          is_alive: false,
+        }),
+      ],
+    });
+
+    expect(whitelist.nodes['node-1']).toBe(true);
+    expect(whitelist.links['link-1']).toBe(true);
+
+    // ensure that whitelist is persisted to the DB too
+    const dbTopology = await topology.findOne({where: {name: 'test-network'}});
+    expect(dbTopology?.offline_whitelist?.nodes['node-1']).toBe(true);
+    expect(dbTopology?.offline_whitelist?.links['link-1']).toBe(true);
+  });
+
+  test('if whitelist exists, newly online nodes/links should be added', async () => {
+    await seedTopology({
+      offline_whitelist: {
+        links: {
+          'link-a': true,
+          'link-b': true,
+        },
+        nodes: {
+          'node-a': true,
+        },
       },
-      nodes: {
-        'node-a': true,
-      },
-    },
-  });
+    });
 
-  await updateOnlineWhitelist('test-network', {
-    nodes: [
-      mockNode({
-        name: 'node-b',
-        status: NodeStatusTypeValueMap.ONLINE,
-      }),
-    ],
-    links: [
-      mockLink({
-        name: 'link-c',
-        is_alive: true,
-      }),
-    ],
-  });
+    await updateOnlineWhitelist('test-network', {
+      nodes: [
+        mockNode({
+          name: 'node-b',
+          status: NodeStatusTypeValueMap.ONLINE,
+        }),
+      ],
+      links: [
+        mockLink({
+          name: 'link-c',
+          is_alive: true,
+        }),
+      ],
+    });
 
-  const dbTopology = await topology.findOne({where: {name: 'test-network'}});
-  expect(dbTopology?.offline_whitelist?.nodes['node-a']).toBe(true);
-  expect(dbTopology?.offline_whitelist?.nodes['node-b']).toBe(true);
-  expect(dbTopology?.offline_whitelist?.links['link-a']).toBe(true);
-  expect(dbTopology?.offline_whitelist?.links['link-b']).toBe(true);
-  expect(dbTopology?.offline_whitelist?.links['link-c']).toBe(true);
+    const dbTopology = await topology.findOne({where: {name: 'test-network'}});
+    expect(dbTopology?.offline_whitelist?.nodes['node-a']).toBe(true);
+    expect(dbTopology?.offline_whitelist?.nodes['node-b']).toBe(true);
+    expect(dbTopology?.offline_whitelist?.links['link-a']).toBe(true);
+    expect(dbTopology?.offline_whitelist?.links['link-b']).toBe(true);
+    expect(dbTopology?.offline_whitelist?.links['link-c']).toBe(true);
+  });
 });
 
 /*

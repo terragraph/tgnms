@@ -7,6 +7,7 @@
 
 import {Model as _Model} from 'sequelize';
 import type Sequelize, {DataTypes as DataTypesType} from 'sequelize';
+import type {MapProfileAttributes} from './mapProfile';
 
 export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   const Topology = sequelize.define(
@@ -43,6 +44,10 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
         allowNull: true,
         type: DataTypes.JSON,
       },
+      map_profile_id: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+      },
     },
     {
       doNotCreateTable: true,
@@ -52,7 +57,6 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   );
 
   Topology.associate = function (models) {
-    // associations can be defined here
     models.topology.belongsTo(models.controller, {
       foreignKey: 'primary_controller',
       as: 'primary',
@@ -64,6 +68,10 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
     models.topology.belongsTo(models.wireless_controller, {
       foreignKey: 'wireless_controller',
       as: 'wac',
+    });
+    models.topology.belongsTo(models.map_profile, {
+      foreignKey: 'map_profile_id',
+      as: 'map_profile',
     });
   };
   return Topology;
@@ -80,4 +88,6 @@ export type TopologyAttributes = {|
     links: {[string]: boolean},
     nodes: {[string]: boolean},
   },
+  map_profile_id: ?number,
+  map_profile: ?MapProfileAttributes,
 |};

@@ -182,7 +182,7 @@ app.get('*', (req, res) => {
     // Refresh all topologies
     await refreshTopologies();
   } catch (error) {
-    logger.error('Unable to load initial network list:', error);
+    logger.error(`Unable to load initial network list:${error?.message}`);
   }
 })();
 

@@ -12,8 +12,8 @@ const {
 } = require('../config');
 const EventSource = require('eventsource');
 import apiServiceClient from '../apiservice/apiServiceClient';
-
 import {approxDistance, computeAngle} from './helpers';
+import {attrToMapProfile} from '../map/service';
 
 const {
   getPeerAPIServiceHost,
@@ -109,60 +109,58 @@ async function apiServiceRequest(
 function reloadInstanceConfig() {
   logger.debug('Reloading instance config');
   const topologyConfig = {};
-  return new Promise((resolve, reject) => {
-    getNetworkList()
-      .then(topologyList => {
-        topologyList.forEach(topologyItem => {
-          const topologyName = topologyItem.name;
-          // ensure topology key exists in networkState
-          if (!networkState.hasOwnProperty(topologyName)) {
-            networkState[topologyName] = {};
-          }
-          const primaryController = topologyItem.primary;
-          topologyConfig[topologyName] = {
-            name: topologyName,
-            id: topologyItem.id,
-            offline_whitelist: topologyItem.offline_whitelist,
-            site_overrides: topologyItem.site_overrides,
-            primary: {
-              id: primaryController.id,
-              api_ip: primaryController.api_ip,
-              e2e_ip: primaryController.e2e_ip,
-              e2e_port: primaryController.e2e_port,
-              api_port: primaryController.api_port,
-              controller_online: false,
-            },
-            controller_online: false,
-          };
-          if (topologyItem.backup) {
-            const backupController = topologyItem.backup;
-            topologyConfig[topologyName].backup = {
-              id: backupController.id,
-              api_ip: backupController.api_ip,
-              e2e_ip: backupController.e2e_ip,
-              e2e_port: backupController.e2e_port,
-              api_port: backupController.api_port,
-              controller_online: false,
-            };
-          }
-          if (topologyItem.wac) {
-            const {wac} = topologyItem;
-            topologyConfig[topologyName].wireless_controller = {
-              id: wac.id,
-              type: wac.type,
-              url: wac.url,
-              username: wac.username,
-              // don't load the password, no need to show
-            };
-          }
-        });
-        // update instance config
-        networkInstanceConfig = topologyConfig;
-        resolve(topologyConfig);
-      })
-      .catch(err => {
-        reject(err.response);
-      });
+  return getNetworkList().then(topologyList => {
+    topologyList.forEach(topologyItem => {
+      const topologyName = topologyItem.name;
+      // ensure topology key exists in networkState
+      if (!networkState.hasOwnProperty(topologyName)) {
+        networkState[topologyName] = {};
+      }
+      const primaryController = topologyItem.primary;
+      topologyConfig[topologyName] = {
+        name: topologyName,
+        id: topologyItem.id,
+        offline_whitelist: topologyItem.offline_whitelist,
+        site_overrides: topologyItem.site_overrides,
+        primary: {
+          id: primaryController.id,
+          api_ip: primaryController.api_ip,
+          e2e_ip: primaryController.e2e_ip,
+          e2e_port: primaryController.e2e_port,
+          api_port: primaryController.api_port,
+          controller_online: false,
+        },
+        controller_online: false,
+        // TODO(BE)  use the api instead of attaching to instance config
+        map_profile: attrToMapProfile(
+          topologyItem?.map_profile?.toJSON() ?? {},
+        ),
+      };
+      if (topologyItem.backup) {
+        const backupController = topologyItem.backup;
+        topologyConfig[topologyName].backup = {
+          id: backupController.id,
+          api_ip: backupController.api_ip,
+          e2e_ip: backupController.e2e_ip,
+          e2e_port: backupController.e2e_port,
+          api_port: backupController.api_port,
+          controller_online: false,
+        };
+      }
+      if (topologyItem.wac) {
+        const {wac} = topologyItem;
+        topologyConfig[topologyName].wireless_controller = {
+          id: wac.id,
+          type: wac.type,
+          url: wac.url,
+          username: wac.username,
+          // don't load the password, no need to show
+        };
+      }
+    });
+    // update instance config
+    networkInstanceConfig = topologyConfig;
+    return topologyConfig;
   });
 }
 

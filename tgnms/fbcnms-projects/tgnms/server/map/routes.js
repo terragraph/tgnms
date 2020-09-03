@@ -7,6 +7,8 @@
 
 import * as mapService from './service';
 import {createApi, createErrorHandler} from '../helpers/apiHelpers';
+const {reloadInstanceConfig} = require('../topology/model');
+const logger = require('../log')(module);
 
 const router = createApi();
 
@@ -54,6 +56,44 @@ router.post('/annotations/:network/:groupName/duplicate', (req, res) => {
   }
   return mapService
     .duplicateAnnotationGroup({network, groupName, newName})
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+
+router.get('/profile', (req, res) => {
+  return mapService
+    .getAllProfiles()
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+
+router.post('/profile', (req, res) => {
+  const {name, data} = req.body;
+  return mapService
+    .createProfile({name, data})
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+
+router.put('/profile', (req, res) => {
+  const {id, name, data, networks} = req.body;
+  return mapService
+    .saveProfile({id, name, data, networks})
+    .then(x => {
+      try {
+        reloadInstanceConfig();
+      } catch (err) {
+        logger.error(err?.message);
+      }
+      return res.json(x);
+    })
+    .catch(createErrorHandler(res));
+});
+
+router.delete('/profile/:id', (req, res) => {
+  const {id} = req.params;
+  return mapService
+    .deleteProfile(id)
     .then(x => res.json(x))
     .catch(createErrorHandler(res));
 });

@@ -14,6 +14,7 @@ import type {
   NodeType,
   TopologyType,
 } from '../../shared/types/Topology';
+import type {MapProfile} from '../../shared/dto/MapProfile';
 import type {
   StatusDumpType,
   UpgradeStateDumpType,
@@ -93,6 +94,8 @@ export type NetworkConfig = {
   wireless_controller: ?WirelessController,
   wireless_controller_stats: {|[string]: WirelessControllerStats|},
   controller_error: ?string,
+  //TODO don't attach map profile to network config
+  map_profile?: ?MapProfile,
 };
 
 export type OfflineWhiteListType = {

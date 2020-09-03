@@ -131,6 +131,7 @@ export function useDrawLayer() {
     mapboxRef?.on(MAPBOX_TG_EVENTS.TOGGLE, (...args) =>
       handleDrawToggle.current(...args),
     );
+    // $FlowFixMe on only accepts limited events
     mapboxRef?.on(MAPBOX_TG_EVENTS.SET_DRAW_ENABLED, (...args) => {
       handleDrawSet.current(...args);
     });

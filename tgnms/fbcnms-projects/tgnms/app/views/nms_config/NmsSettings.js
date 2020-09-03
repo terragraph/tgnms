@@ -7,15 +7,14 @@
 
 import * as React from 'react';
 import Box from '@material-ui/core/Box';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
+import MapSettings from './MapSettings/MapSettings';
 import NmsBackup from './NmsBackup';
 import NmsConfig from './NmsConfig';
 import Paper from '@material-ui/core/Paper';
 import SettingInput from './SettingInput';
 import SettingsForm from './SettingsForm';
+import SettingsGroup from './SettingsGroup';
 import SettingsTester from './SettingsTester';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -24,7 +23,6 @@ import classnames from 'classnames';
 import {Link, Redirect, Route, Switch, useRouteMatch} from 'react-router-dom';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
-
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(2),
@@ -97,6 +95,9 @@ export default function NmsSettings() {
             {isFeatureEnabled('NMS_BACKUP_ENABLED') ? (
               <TabLink label="backup" value={'backup'} />
             ) : null}
+            {isFeatureEnabled('LINK_BUDGETING_ENABLED') ? (
+              <TabLink label="map profiles" value={'map'} />
+            ) : null}
           </Tabs>
         </Grid>
         <Grid item xs={10}>
@@ -112,7 +113,7 @@ export default function NmsSettings() {
                   <SettingsForm
                     title="Services"
                     description="External services which NMS depends on to provide functionality">
-                    <SettingGroup title="Nodeupdate">
+                    <SettingsGroup title="Nodeupdate">
                       <SettingInput
                         label="Nodeupdate URL"
                         setting="NODEUPDATE_SERVER_URL"
@@ -121,8 +122,8 @@ export default function NmsSettings() {
                         label="Nodeupdate Auth Token"
                         setting="NODEUPDATE_AUTH_TOKEN"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Software Portal"
                       tester={
                         <SettingsTester
@@ -150,8 +151,8 @@ export default function NmsSettings() {
                         label="Software Portal API ID"
                         setting="SOFTWARE_PORTAL_API_ID"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Stats"
                       tester={
                         <SettingsTester keys={['PROMETHEUS', 'GRAFANA_URL']} />
@@ -165,8 +166,8 @@ export default function NmsSettings() {
                         label="Stats Max Delay (Seconds)"
                         setting="STATS_ALLOWED_DELAY_SEC"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Alarms"
                       tester={
                         <SettingsTester
@@ -199,8 +200,8 @@ export default function NmsSettings() {
                         label="Terragraph Event Alarms Service URL"
                         setting="TG_ALARM_URL"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Network Test"
                       tester={<SettingsTester keys={['NETWORKTEST_HOST']} />}>
                       <SettingInput
@@ -211,8 +212,8 @@ export default function NmsSettings() {
                         label="Network Test URL"
                         setting="NETWORKTEST_HOST"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Scan Service"
                       tester={<SettingsTester keys={['SCANSERVICE_HOST']} />}>
                       <SettingInput
@@ -223,8 +224,8 @@ export default function NmsSettings() {
                         label="Scan Service Host"
                         setting="SCANSERVICE_HOST"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Default Routes History"
                       tester={
                         <SettingsTester
@@ -239,8 +240,8 @@ export default function NmsSettings() {
                         label="Default Routes History Host"
                         setting="DEFAULT_ROUTES_HISTORY_HOST"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Authentication"
                       tester={
                         <SettingsTester
@@ -283,8 +284,8 @@ export default function NmsSettings() {
                         label="Keycloak HTTP Proxy"
                         setting="KEYCLOAK_HTTP_PROXY"
                       />
-                    </SettingGroup>
-                    <SettingGroup
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Database"
                       tester={
                         <SettingsTester
@@ -305,15 +306,15 @@ export default function NmsSettings() {
                         label="MySQL Password"
                         setting="MYSQL_PASS"
                       />
-                    </SettingGroup>
-                    <SettingGroup title="Controller">
+                    </SettingsGroup>
+                    <SettingsGroup title="Controller">
                       <SettingInput
                         label="API Request Timeout"
                         setting="API_REQUEST_TIMEOUT"
                       />
-                    </SettingGroup>
+                    </SettingsGroup>
 
-                    <SettingGroup title="Experimental Features">
+                    <SettingsGroup title="Experimental Features">
                       <Box color="warning.main" m={2}>
                         <Typography>
                           Warning: Experimental features are incomplete and can
@@ -345,51 +346,18 @@ export default function NmsSettings() {
                         label="ODS Link Button"
                         setting="ODS_ENABLED"
                       />
-                    </SettingGroup>
+                    </SettingsGroup>
                   </SettingsForm>
                 )}
               />
               <Route path="/config/:networkName/backup" component={NmsBackup} />
-
+              <Route path="/config/:networkName/map" component={MapSettings} />
               <DefaultRedirect />
             </Switch>
           </Paper>
         </Grid>
       </Grid>
     </Paper>
-  );
-}
-
-/**
- * A group of settings which are edited and tested together. ex:
- * MYSQL
- *  MYSQL_HOST,MYSQL_PASS,MYSQL_USER
- * */
-function SettingGroup({
-  title,
-  children,
-  tester,
-}: {
-  title: React.Node,
-  children: React.Node,
-  tester?: React.Node,
-}) {
-  return (
-    <Grid item>
-      <Card>
-        <CardHeader title={<Typography variant="h6">{title}</Typography>} />
-        <CardContent>
-          <Grid container direction="column" spacing={3}>
-            {children}
-            {tester && (
-              <Grid item container justify="flex-end">
-                {tester}
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
-    </Grid>
   );
 }
 

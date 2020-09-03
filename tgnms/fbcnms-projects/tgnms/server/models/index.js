@@ -19,6 +19,7 @@ import type {ControllerAttributes} from './controller';
 import type {LinkEventAttributes} from './linkEvents';
 import type {LinkMetricAttributes} from './linkMetric';
 import type {MapAnnotationGroupAttributes} from './mapAnnotationGroup';
+import type {MapProfileAttributes} from './mapProfile';
 import type {TopologyAttributes} from './topology';
 import type {WirelessControllerAttributes} from './wirelessController';
 
@@ -28,6 +29,7 @@ declare class LinkMetric extends _Model<LinkMetricAttributes> {}
 declare class Controller extends _Model<ControllerAttributes> {}
 declare class WirelessController extends _Model<WirelessControllerAttributes> {}
 declare class MapAnnotationGroup extends _Model<MapAnnotationGroupAttributes> {}
+declare class MapProfile extends _Model<MapProfileAttributes> {}
 
 export type TopologyModel = Topology;
 
@@ -38,6 +40,7 @@ export type Models = {|
   link_event: typeof LinkEvent,
   link_metric: typeof LinkMetric,
   map_annotation_group: typeof MapAnnotationGroup,
+  map_profile: typeof MapProfile,
   sequelize: SequelizeClass,
   Sequelize: typeof Sequelize,
 |};

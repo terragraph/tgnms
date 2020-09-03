@@ -60,6 +60,7 @@ export default function AnnotationsPanel({
     toggleOpen,
   ]);
   const handleClose = React.useCallback(() => {
+    // $FlowFixMe fire is deprecated
     mapboxRef?.fire(MAPBOX_TG_EVENTS.SET_DRAW_ENABLED, {enabled: false});
     deselectAll();
     setPanelState(PANELS.ANNOTATIONS, PANEL_STATE.HIDDEN);

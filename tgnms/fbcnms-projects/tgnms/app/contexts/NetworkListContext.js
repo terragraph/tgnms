@@ -31,4 +31,9 @@ const NetworkListContext = React.createContext<NetworkListContextType>(
   defaultValue,
 );
 
+export function useNetworkListContext() {
+  const ctx = React.useContext(NetworkListContext);
+  return ctx;
+}
+
 export default NetworkListContext;

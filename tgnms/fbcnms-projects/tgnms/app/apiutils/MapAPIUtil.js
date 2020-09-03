@@ -10,6 +10,7 @@ import type {
   MapAnnotationGroupIdent,
   SaveAnnotationGroupRequest,
 } from '../../shared/dto/MapAnnotations';
+import type {MapProfile} from '../../shared/dto/MapProfile';
 
 export async function getAnnotationGroups({
   networkName,
@@ -76,4 +77,29 @@ export async function duplicateAnnotationGroup({
     },
   );
   return newGroup;
+}
+
+export async function getProfiles() {
+  const response = await axios.get<void, Array<MapProfile>>('/map/profile');
+  return response.data;
+}
+
+export async function createProfile(body: $Shape<MapProfile>) {
+  const response = await axios.post<$Shape<MapProfile>, MapProfile>(
+    '/map/profile',
+    body,
+  );
+  return response.data;
+}
+
+export async function saveProfile(body: $Shape<MapProfile>) {
+  const response = await axios.put<$Shape<MapProfile>, MapProfile>(
+    '/map/profile',
+    body,
+  );
+  return response.data;
+}
+
+export async function deleteProfile(id: number): Promise<void> {
+  await axios.delete<void, void>(`/map/profile/${id}`);
 }
