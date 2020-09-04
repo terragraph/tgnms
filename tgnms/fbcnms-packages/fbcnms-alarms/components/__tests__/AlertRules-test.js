@@ -189,7 +189,7 @@ describe('AddEditAlert > Prometheus Editor', () => {
           severity: 'minor',
         },
         for: '1m',
-        expr: 'vector(1)',
+        expr: 'vector(1) == 0',
       },
     });
   });

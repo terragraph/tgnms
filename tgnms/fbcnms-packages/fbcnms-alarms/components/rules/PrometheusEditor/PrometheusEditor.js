@@ -283,6 +283,8 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     [],
   );
 
+  const toggleMode = () => setAdvancedEditorMode(!advancedEditorMode);
+
   return (
     <RuleEditorBase
       initialState={editorBaseInitialState}
@@ -290,16 +292,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       onSave={saveAlert}
       onExit={onExit}
       isNew={isNew}>
-      {thresholdEditorEnabled ? (
-        <ToggleableExpressionEditor
-          onChange={handleInputChange}
-          onThresholdExpressionChange={updateThresholdExpression}
-          expression={thresholdExpression}
-          stringExpression={formState.expression}
-          toggleOn={advancedEditorMode}
-          onToggleChange={val => setAdvancedEditorMode(val)}
-        />
-      ) : (
+      {advancedEditorMode ? (
         <Grid item>
           <AdvancedExpressionEditor
             expression={formState.expression}
@@ -317,10 +310,19 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
             className={classes.button}
             color="primary"
             size="small"
-            onClick={() => setAdvancedEditorMode(true)}>
+            onClick={toggleMode}>
             Switch to template
           </Button>
         </Grid>
+      ) : (
+        <ToggleableExpressionEditor
+          onChange={handleInputChange}
+          onThresholdExpressionChange={updateThresholdExpression}
+          expression={thresholdExpression}
+          stringExpression={formState.expression}
+          toggleOn={advancedEditorMode}
+          onToggleChange={toggleMode}
+        />
       )}
       <Grid item>
         <Divider />

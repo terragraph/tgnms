@@ -14,18 +14,12 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
-import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
-import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import useRouter from '../../../hooks/useRouter';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
@@ -40,7 +34,8 @@ type prometheus_labelset = {
 
 const useStyles = makeStyles(theme => ({
   button: {
-    marginRight: theme.spacing(1),
+    marginLeft: -theme.spacing(0.5),
+    margin: theme.spacing(1.5),
   },
   instructions: {
     marginTop: theme.spacing(1),
@@ -86,7 +81,7 @@ export default function ToggleableExpressionEditor(props: {
   expression: ThresholdExpression,
   stringExpression: string,
   toggleOn: boolean,
-  onToggleChange: boolean => void,
+  onToggleChange: void => void,
 }) {
   const {apiUtil} = useAlarmContext();
   const {match} = useRouter();
@@ -103,26 +98,12 @@ export default function ToggleableExpressionEditor(props: {
 
   return (
     <Grid container item xs={12}>
-      <Grid item xs={12}>
-        <ToggleSwitch
-          toggleOn={props.toggleOn}
-          onChange={({target}) => props.onToggleChange(target.checked)}
-        />
-      </Grid>
-      {props.toggleOn ? (
-        <Grid item xs={12}>
-          <AdvancedExpressionEditor
-            onChange={props.onChange}
-            expression={props.stringExpression}
-          />
-        </Grid>
-      ) : (
-        <ThresholdExpressionEditor
-          onChange={props.onThresholdExpressionChange}
-          expression={props.expression}
-          metricsByName={metricsByName}
-        />
-      )}
+      <ThresholdExpressionEditor
+        onChange={props.onThresholdExpressionChange}
+        expression={props.expression}
+        metricsByName={metricsByName}
+        onToggleChange={props.onToggleChange}
+      />
     </Grid>
   );
 }
@@ -132,7 +113,7 @@ export function AdvancedExpressionEditor(props: {
   expression: string,
 }) {
   return (
-    <>
+    <Grid item>
       <InputLabel htmlFor="metric-advanced-input">Metric</InputLabel>
       <TextField
         id="metric-advanced-input"
@@ -142,7 +123,7 @@ export function AdvancedExpressionEditor(props: {
         onChange={props.onChange(value => ({expression: value}))}
         fullWidth
       />
-    </>
+    </Grid>
   );
 }
 
@@ -150,72 +131,95 @@ function ThresholdExpressionEditor(props: {
   onChange: (expression: ThresholdExpression) => void,
   expression: ThresholdExpression,
   metricsByName: {[string]: Array<prometheus_labelset>},
+  onToggleChange: void => void,
 }) {
   const metricSelector = (
-    <Select
-      displayEmpty
-      value={props.expression.metricName}
-      onChange={({target}) => {
-        props.onChange({...props.expression, metricName: target.value});
-      }}>
-      <MenuItem disabled value="">
-        <em>Metric Name</em>
-      </MenuItem>
-      {Object.keys(props.metricsByName).map(item => (
-        <MenuItem key={item} value={item}>
-          {item}
-        </MenuItem>
-      ))}
-      {props.metricsByName[props.expression.metricName] ? (
-        ''
-      ) : (
-        <MenuItem
-          key={props.expression.metricName}
-          value={props.expression.metricName}>
-          {props.expression.metricName}
-        </MenuItem>
-      )}
-    </Select>
+    <Grid item>
+      <InputLabel htmlFor="metric-input">Metric</InputLabel>
+      <TextField
+        id="metric-input"
+        fullWidth
+        required
+        select
+        value={props.expression.metricName || ''}
+        onChange={({target}) => {
+          props.onChange({...props.expression, metricName: target.value});
+        }}>
+        {Object.keys(props.metricsByName).map(item => (
+          <MenuItem key={item} value={item}>
+            {item}
+          </MenuItem>
+        ))}
+        {props.metricsByName[props.expression.metricName] ? (
+          ''
+        ) : (
+          <MenuItem
+            key={props.expression.metricName}
+            value={props.expression.metricName}>
+            {props.expression.metricName}
+          </MenuItem>
+        )}
+      </TextField>
+    </Grid>
+  );
+  const conditions = ['>', '<', '==', '>=', '<=', '!='];
+  const conditionSelector = (
+    <Grid item>
+      <InputLabel htmlFor="condition-input">Condition</InputLabel>
+      <TextField
+        id="condition-input"
+        fullWidth
+        required
+        select
+        value={props.expression.comparator.op}
+        onChange={({target}) => {
+          props.onChange({
+            ...props.expression,
+            comparator: new PromQL.BinaryComparator(target.value),
+          });
+        }}>
+        {conditions.map(item => (
+          <MenuItem key={item} value={item}>
+            {item}
+          </MenuItem>
+        ))}
+      </TextField>
+    </Grid>
+  );
+  const valueSelector = (
+    <Grid item>
+      <InputLabel htmlFor="value-input">Value</InputLabel>
+      <TextField
+        id="value-input"
+        fullWidth
+        value={props.expression.value}
+        type="number"
+        onChange={({target}) => {
+          props.onChange({
+            ...props.expression,
+            value: parseFloat(target.value),
+          });
+        }}
+      />
+    </Grid>
   );
 
   return (
     <>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item>
-          <Typography variant="body2">IF</Typography>
+      <Grid
+        item
+        container
+        spacing={1}
+        alignItems="flex-start"
+        justify="space-between">
+        <Grid item xs={5}>
+          {metricSelector}
         </Grid>
-        <Grid item>{metricSelector}</Grid>
-        <Grid item>
-          <Typography variant="body2">IS</Typography>
+        <Grid item xs={4}>
+          {conditionSelector}
         </Grid>
-        <Grid item>
-          <ToggleButtonGroup
-            exclusive={true}
-            value={props.expression.comparator.op}
-            onChange={(event, val) => {
-              props.onChange({
-                ...props.expression,
-                comparator: new PromQL.BinaryComparator(val),
-              });
-            }}>
-            <ToggleButton value="<">{'<'}</ToggleButton>
-            <ToggleButton value="<=">{'≤'}</ToggleButton>
-            <ToggleButton value="==">{'='}</ToggleButton>
-            <ToggleButton value=">=">{'≥'}</ToggleButton>
-            <ToggleButton value=">">{'>'}</ToggleButton>
-          </ToggleButtonGroup>
-        </Grid>
-        <Grid item xs={2}>
-          <TextField
-            value={props.expression.value}
-            type="number"
-            onChange={({target}) => {
-              props.onChange({
-                ...props.expression,
-                value: parseFloat(target.value),
-              });
-            }}
-          />
+        <Grid item xs={3}>
+          {valueSelector}
         </Grid>
       </Grid>
       <Grid item xs={12}>
@@ -228,6 +232,7 @@ function ThresholdExpressionEditor(props: {
           metricSeries={props.metricsByName[props.expression?.metricName] || []}
           expression={props.expression}
           onChange={props.onChange}
+          onToggleChange={props.onToggleChange}
         />
       </Grid>
     </>
@@ -238,6 +243,7 @@ function MetricFilters(props: {
   metricSeries: Array<prometheus_labelset>,
   expression: ThresholdExpression,
   onChange: (expression: ThresholdExpression) => void,
+  onToggleChange: void => void,
 }) {
   const classes = useStyles();
   return (
@@ -262,9 +268,9 @@ function MetricFilters(props: {
       ))}
       <Grid item>
         <Button
-          disabled={props.expression.metricName == ''}
-          variant="contained"
           className={classes.button}
+          color="primary"
+          size="small"
           onClick={() => {
             const filtersCopy = props.expression.filters.copy();
             filtersCopy.addEqual('', '');
@@ -273,7 +279,14 @@ function MetricFilters(props: {
               filters: filtersCopy,
             });
           }}>
-          Add Filter
+          Add new conditional
+        </Button>
+        <Button
+          className={classes.button}
+          color="primary"
+          size="small"
+          onClick={props.onToggleChange}>
+          Write a custom expression
         </Button>
       </Grid>
     </Grid>
@@ -349,35 +362,6 @@ function MetricFilter(props: {
         </IconButton>
       </Grid>
     </Grid>
-  );
-}
-
-function ToggleSwitch(props: {
-  toggleOn: boolean,
-  onChange: (event: SyntheticInputEvent<HTMLInputElement>) => void,
-}) {
-  const classes = useStyles();
-  return (
-    <>
-      <FormLabel>Advanced Expression</FormLabel>
-      <Switch onChange={props.onChange} checked={props.toggleOn} />
-      <Tooltip
-        title={
-          'Switch the toggle on to write an arbitrary alerting expression' +
-          'in PromQL.\n' +
-          'To learn more about how to write alert expressions, click ' +
-          'on the help icon to open the prometheus querying basics guide.'
-        }
-        placement="right">
-        <IconButton
-          className={classes.helpButton}
-          href="https://prometheus.io/docs/prometheus/latest/querying/basics/"
-          target="_blank"
-          size="small">
-          <HelpIcon />
-        </IconButton>
-      </Tooltip>
-    </>
   );
 }
 
