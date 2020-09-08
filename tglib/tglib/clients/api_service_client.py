@@ -32,7 +32,7 @@ class APIServiceClient(BaseClient):
     _networks: Optional[Dict[str, str]] = None
     _session: Optional[aiohttp.ClientSession] = None
     # Needed for Keycloak
-    _lock: asyncio.Lock = asyncio.Lock()
+    _lock: Optional[asyncio.Lock] = None
     _jwt: Dict = {}
     _refresh_time: Optional[float] = None
     _keycloak_enabled: bool = False
@@ -71,6 +71,7 @@ class APIServiceClient(BaseClient):
 
         cls._keycloak_enabled = api_params["keycloak_enabled"]
         cls._session = aiohttp.ClientSession()
+        cls._lock = asyncio.Lock()
 
         headers: Optional[Dict] = None
         if cls._keycloak_enabled and await cls._refresh_token():
@@ -140,7 +141,7 @@ class APIServiceClient(BaseClient):
             ClientStoppedError: The HTTP client session pool is not running.
             ClientRuntimeError: The request failed, timed out, or did not return ``200``.
         """
-        if self._networks is None or self._session is None:
+        if self._networks is None or self._session is None or self._lock is None:
             raise ClientStoppedError()
 
         addr = self._networks.get(network_name)
