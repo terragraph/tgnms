@@ -38,17 +38,20 @@ const useStyles = makeStyles(theme => ({
     maxWidth: 300,
   },
 }));
+
+type Props = {|
+  isDefault: boolean,
+  isDisabled: boolean,
+  profile: MapProfile,
+  onUpdate: MapProfile => void | Promise<void>,
+|};
+
 export default function MapProfileForm({
   isDisabled,
   isDefault,
   profile,
   onUpdate,
-}: {
-  isDefault: boolean,
-  isDisabled: boolean,
-  profile: MapProfile,
-  onUpdate: MapProfile => void | Promise<void>,
-}) {
+}: Props) {
   const classes = useStyles();
   const {
     formState,
@@ -105,6 +108,7 @@ export default function MapProfileForm({
             value={formState.name}
             onChange={handleInputChange(val => ({name: val}))}
             label="Name"
+            id="name"
           />
         </Grid>
         <Grid item xs={12}>

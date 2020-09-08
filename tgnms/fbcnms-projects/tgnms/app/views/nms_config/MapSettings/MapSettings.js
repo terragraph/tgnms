@@ -70,6 +70,7 @@ export default function MapSettings() {
     }
   }, [setProfiles, setState, setMessage]);
   const loadProfilesRef = useLiveRef(loadProfiles);
+
   // load the profiles when the component mounts
   React.useEffect(() => {
     loadProfilesRef.current();
@@ -143,6 +144,7 @@ export default function MapSettings() {
     },
     [saveProfile],
   );
+
   const isFormDisabled = isDefaultSelected || dirtyProfile == null || isLoading;
   return (
     <MapSettingsLayout
@@ -159,6 +161,7 @@ export default function MapSettings() {
               fullWidth
               value={selectedName}
               label="Profiles"
+              id="profiles"
               onChange={e => setSelectedName(e.target.value)}>
               <MenuItem value={DEFAULT_MAP_PROFILE.name}>
                 {DEFAULT_MAP_PROFILE.name}
@@ -175,7 +178,8 @@ export default function MapSettings() {
               <ProfileButton
                 tooltip="Duplicate Profile"
                 onClick={handleDuplicateProfile}
-                disabled={isLoading}>
+                disabled={isLoading}
+                data-testid="duplicate-profile">
                 <FileCopyIcon />
               </ProfileButton>
             </Grid>
@@ -189,7 +193,8 @@ export default function MapSettings() {
                       Delete Profile - Networks using this profile will be reset
                       back to the default profile
                     </>
-                  }>
+                  }
+                  data-testid="delete-profile">
                   <DeleteIcon />
                 </ProfileButton>
               </Grid>

@@ -352,3 +352,18 @@ export function mockMapboxDraw(
     ...(overrides || {}),
   };
 }
+
+/**
+ * Gets the menu for a <Select/> or <TextField select/> element.
+ */
+export function getSelectMenu(): ?HTMLElement {
+  return document.querySelector(`[role="listbox"]`);
+}
+
+/**
+ * Gets the menu option elements such as <MenuItem>.
+ * Children of <Select/> or <TextField select/> element
+ */
+export function getOptions(el: ?HTMLElement): ?Array<HTMLElement> {
+  return el ? [...el.querySelectorAll('[role="option"]')] : null;
+}

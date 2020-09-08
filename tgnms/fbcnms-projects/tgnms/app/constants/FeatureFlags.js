@@ -13,7 +13,7 @@ import type {FeatureFlagKey} from '../../shared/FeatureFlags';
 export function isFeatureEnabled(flag: FeatureFlagKey): boolean {
   const flags = window?.CONFIG?.featureFlags;
   if (!flags) {
-    console.error('no feature flags found');
+    console.warn('no feature flags found');
     return false;
   }
   const val = flags[flag];

@@ -102,4 +102,5 @@ export const DEFAULT_MAP_PROFILE: $Shape<MapProfile> = {
   data: {
     mcsTable: [...DEFAULT_MCS_TABLE],
   },
+  networks: [],
 };
