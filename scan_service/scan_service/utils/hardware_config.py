@@ -41,7 +41,7 @@ class HardwareConfig:
                 for tx_power_idx, tx_power in tx_data.items():
                     tx_power_idx_to_tx_power[channel][mcs][int(tx_power_idx)] = tx_power
 
-        beam_idx_to_beam_angle = bidict()
+        beam_idx_to_beam_angle: bidict = bidict()
         for beam_idx, beam_angle in hardware_config["beam_idx_to_beam_angle"].items():
             beam_idx_to_beam_angle[int(beam_idx)] = beam_angle
 
