@@ -68,7 +68,7 @@ export async function getAnnotationGroup(
   if (!groupResult) {
     return null;
   }
-  return mapToAnnotationGroup(groupResult);
+  return attrToAnnotationGroup(groupResult);
 }
 
 export async function saveAnnotationGroup(
@@ -276,7 +276,7 @@ function sanitizeProfile(profile: $Shape<MapProfile>): ?MapProfile {
   return profile;
 }
 
-function mapToAnnotationGroup({
+function attrToAnnotationGroup({
   id,
   name,
   geojson,

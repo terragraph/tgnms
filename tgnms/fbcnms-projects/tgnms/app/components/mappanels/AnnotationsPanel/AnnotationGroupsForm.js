@@ -133,7 +133,7 @@ const useGroupLayerStyles = makeStyles(theme => ({
 }));
 function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
   const {name, topologyName} = group ?? {};
-  const {loadGroups, selectGroup} = useMapAnnotationContext();
+  const {loadGroups, loadGroup} = useMapAnnotationContext();
   const classes = useGroupLayerStyles({isSelected});
   const handleSelect = React.useCallback(() => {
     onSelect(group);
@@ -153,8 +153,8 @@ function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
       newName,
     });
     await loadGroups();
-    await selectGroup(newName);
-  }, [name, loadGroups, selectGroup, topologyName]);
+    await loadGroup({name: newName});
+  }, [name, loadGroups, loadGroup, topologyName]);
 
   return (
     <Grid

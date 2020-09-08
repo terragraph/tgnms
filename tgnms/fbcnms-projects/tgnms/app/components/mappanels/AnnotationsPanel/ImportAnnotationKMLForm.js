@@ -39,7 +39,7 @@ export default function ImportAnnotationKMLForm({
 }: {
   onClose: () => void,
 }) {
-  const {loadGroups, selectGroup} = useMapAnnotationContext();
+  const {loadGroups, loadGroup} = useMapAnnotationContext();
   const {networkName} = useNetworkContext();
   const {isLoading, isError, message, setMessage, setState} = useTaskState();
   const [importData, setImportData] = React.useState<?KMLAnnotationImport>(
@@ -100,7 +100,7 @@ export default function ImportAnnotationKMLForm({
           },
         });
         await loadGroups();
-        await selectGroup(importData?.groupName);
+        await loadGroup({name: importData?.groupName});
         onClose();
       } catch (err) {
         setState(TASK_STATE.ERROR);
@@ -110,7 +110,7 @@ export default function ImportAnnotationKMLForm({
     [
       onClose,
       loadGroups,
-      selectGroup,
+      loadGroup,
       setState,
       setMessage,
       importData,
