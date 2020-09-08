@@ -15,7 +15,7 @@ import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import useForm from '../../../hooks/useForm';
 import useTaskState, {TASK_STATE} from '../../../hooks/useTaskState';
-import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
+import {useAnnotationGroups} from '../../../contexts/MapAnnotationContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 
 export default function CreateAnnotationGroupForm({
@@ -23,7 +23,7 @@ export default function CreateAnnotationGroupForm({
 }: {
   onClose: () => void,
 }) {
-  const {groups, loadGroups} = useMapAnnotationContext();
+  const {groups, loadGroups} = useAnnotationGroups();
   const {networkName} = useNetworkContext();
   const {handleInputChange, formState} = useForm({
     initialState: {

@@ -19,7 +19,10 @@ import {ANNOTATION_COLORS} from '../../../constants/MapAnnotationConstants';
 import {MAPBOX_DRAW_DEFAULT_COLOR} from '../../../constants/MapAnnotationConstants';
 import {debounce} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
+import {
+  useAnnotationFeatures,
+  useMapAnnotationContext,
+} from '../../../contexts/MapAnnotationContext';
 
 /**
  * Most customizable things on an annotation come from its GeoJSON Properties
@@ -49,10 +52,10 @@ export default function EditAnnotationForm() {
   const classes = useStyles();
   const {
     selectedFeature,
-    updateFeatureProperty,
     updateFeatures,
     drawControl,
   } = useMapAnnotationContext();
+  const {updateFeatureProperty} = useAnnotationFeatures();
   const updateFeaturesDebounced = React.useMemo(
     () => debounce(() => updateFeatures(drawControl.getAll()), 2000),
     [updateFeatures, drawControl],

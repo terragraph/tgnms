@@ -19,6 +19,7 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Typography from '@material-ui/core/Typography';
 import {
   ANNOTATION_DEFAULT_GROUP,
+  useAnnotationGroups,
   useMapAnnotationContext,
 } from '../../../contexts/MapAnnotationContext';
 import {makeStyles} from '@material-ui/styles';
@@ -35,7 +36,8 @@ const MODE = {
 export default function AnnotationGroupsForm() {
   const {mapboxRef} = useMapContext();
   const {networkName} = useNetworkContext();
-  const {current, loadGroup, loadGroups, groups} = useMapAnnotationContext();
+  const {current} = useMapAnnotationContext();
+  const {groups, loadGroup, loadGroups} = useAnnotationGroups();
 
   const [mode, setMode] = React.useState(MODE.DEFAULT);
   React.useEffect(() => {
@@ -133,7 +135,7 @@ const useGroupLayerStyles = makeStyles(theme => ({
 }));
 function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
   const {name, topologyName} = group ?? {};
-  const {loadGroups, loadGroup} = useMapAnnotationContext();
+  const {loadGroups, loadGroup} = useAnnotationGroups();
   const classes = useGroupLayerStyles({isSelected});
   const handleSelect = React.useCallback(() => {
     onSelect(group);

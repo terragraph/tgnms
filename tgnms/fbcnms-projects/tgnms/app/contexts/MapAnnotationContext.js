@@ -28,6 +28,9 @@ export const ANNOTATION_DEFAULT_GROUP = 'default';
 type SetState<S> = {
   ((S => S) | S): void,
 };
+type UpdateFeaturePropery = {
+  (id: FeatureId, prop: string, val: ?string | ?number | ?boolean): void,
+};
 export type MapAnnotationContext = {|
   isDrawEnabled: boolean,
   setIsDrawEnabled: boolean => void,
@@ -41,15 +44,7 @@ export type MapAnnotationContext = {|
   getFeature: (s: string) => ?GeoFeature,
   drawControl: typeof MapboxDraw,
   updateFeatures: GeoFeatureCollection => Promise<MapAnnotationGroup>,
-  updateFeatureProperty: (
-    id: FeatureId,
-    prop: string,
-    val: ?string | ?number | ?boolean,
-  ) => void,
   deselectAll: () => void,
-  deleteFeature: (id: ?FeatureId) => Promise<void>,
-  loadGroup: ({name: string}) => Promise<?MapAnnotationGroup>,
-  loadGroups: () => Promise<void>,
 |};
 
 const empty = () => {};
@@ -67,11 +62,7 @@ export const defaultValue: MapAnnotationContext = {
   getFeature: empty,
   drawControl: new MapboxDraw(),
   updateFeatures: emptyPromise,
-  updateFeatureProperty: empty,
   deselectAll: empty,
-  deleteFeature: emptyPromise,
-  loadGroup: emptyPromise,
-  loadGroups: emptyPromise,
 };
 
 export const context = React.createContext<MapAnnotationContext>(defaultValue);
@@ -102,13 +93,7 @@ export function MapAnnotationContextProvider({
   const getFeature = React.useCallback((id: string) => drawControl.get(id), [
     drawControl,
   ]);
-  const loadGroups = React.useCallback(async () => {
-    const _groups = await mapApiUtil.getAnnotationGroups({networkName});
-    if (_groups) {
-      setGroups(_groups);
-    }
-  }, [networkName]);
-  //TODO rename
+
   const updateFeatures = React.useCallback(
     async (updated: GeoFeatureCollection) => {
       // save to backend
@@ -127,50 +112,11 @@ export function MapAnnotationContextProvider({
     [setCurrent, current, networkName],
   );
 
-  const loadGroup = React.useCallback(
-    async ({name}: {name: string}): Promise<?MapAnnotationGroup> => {
-      const group = await mapApiUtil.getAnnotationGroup({
-        networkName,
-        groupName: name,
-      });
-      if (!group) {
-        throw new Error(`Group: ${name} not found`);
-      }
-      setCurrent(group);
-      drawControl.set(group.geojson);
-      return group;
-    },
-    [, drawControl, networkName],
-  );
-
-  // does not trigger a react rerender
-  const updateFeatureProperty = React.useCallback(
-    (featureId: ?FeatureId, property: string, value) => {
-      drawControl.setFeatureProperty(featureId, property, value);
-    },
-    [drawControl],
-  );
-
   const deselectAll = React.useCallback(() => {
     // changing mode back to simple_select with no features deselects everything
     drawControl.changeMode('simple_select');
     setSelectedFeatureId(null);
   }, [drawControl]);
-
-  const deleteFeature = React.useCallback(
-    async (featureId: ?FeatureId) => {
-      drawControl.delete(featureId);
-      if (
-        typeof selectedFeatureId === 'string' &&
-        selectedFeatureId === featureId
-      ) {
-        setSelectedFeatureId(null);
-      }
-      await updateFeatures(drawControl.getAll());
-    },
-    [drawControl, updateFeatures, selectedFeatureId],
-  );
-
   return (
     <context.Provider
       value={{
@@ -180,16 +126,13 @@ export function MapAnnotationContextProvider({
         setCurrent,
         groups,
         setGroups,
-        loadGroups,
-        loadGroup,
         selectedFeatureId,
         setSelectedFeatureId,
         selectedFeature,
         getFeature,
         updateFeatures,
-        updateFeatureProperty,
         deselectAll,
-        deleteFeature,
+
         /**
          * usually, don't use the draw control directly as a consumer.
          * Make a more nicely named helper function in this context
@@ -229,6 +172,104 @@ export function useMapAnnotationGroupState({
   return {
     isLoading,
     isError,
+  };
+}
+
+export function useAnnotationGroups(): {
+  groups: Array<MapAnnotationGroupIdent>,
+  loadGroup: ({name: string}) => Promise<?MapAnnotationGroup>,
+  loadGroups: () => Promise<void>,
+} {
+  const {
+    setCurrent,
+    drawControl,
+    groups,
+    setGroups,
+  } = useMapAnnotationContext();
+  const {networkName} = useNetworkContext();
+  const taskState = useTaskState();
+  const loadGroup = React.useCallback(
+    async ({name}: {name: string}): Promise<?MapAnnotationGroup> => {
+      try {
+        taskState.setState(TASK_STATE.LOADING);
+        const group = await mapApiUtil.getAnnotationGroup({
+          networkName,
+          groupName: name,
+        });
+        if (!group) {
+          throw new Error(`Group: ${name} not found`);
+        }
+        setCurrent(group);
+        drawControl.set(group.geojson);
+        taskState.setState(TASK_STATE.SUCCESS);
+        return group;
+      } catch (err) {
+        taskState.setState(TASK_STATE.ERROR);
+        taskState.setMessage(err?.message ?? 'Error');
+        return null;
+      }
+    },
+    [taskState, setCurrent, drawControl, networkName],
+  );
+
+  const loadGroups = React.useCallback(async () => {
+    try {
+      taskState.setState(TASK_STATE.LOADING);
+      const _groups = await mapApiUtil.getAnnotationGroups({networkName});
+      if (_groups) {
+        setGroups(_groups);
+      }
+      taskState.setState(TASK_STATE.SUCCESS);
+    } catch (err) {
+      taskState.setState(TASK_STATE.ERROR);
+    }
+  }, [networkName, taskState, setGroups]);
+
+  return {
+    groups,
+    loadGroups,
+    loadGroup,
+    ...taskState,
+  };
+}
+
+type DeleteFeature = {
+  (?FeatureId): Promise<void>,
+};
+export function useAnnotationFeatures(): {
+  updateFeatureProperty: UpdateFeaturePropery,
+  deleteFeature: DeleteFeature,
+} {
+  const {
+    drawControl,
+    setSelectedFeatureId,
+    updateFeatures,
+  } = useMapAnnotationContext();
+  // does not trigger a react rerender
+  const updateFeatureProperty = React.useCallback<UpdateFeaturePropery>(
+    (featureId, property, value) => {
+      drawControl.setFeatureProperty(featureId, property, value);
+    },
+    [drawControl],
+  );
+
+  const deleteFeature = React.useCallback<DeleteFeature>(
+    async (featureId: ?FeatureId) => {
+      drawControl.delete(featureId);
+      setSelectedFeatureId(curr => {
+        if (typeof curr === 'string' && curr === featureId) {
+          return null;
+        }
+        return curr;
+      });
+      await updateFeatures(drawControl.getAll());
+    },
+    [drawControl, updateFeatures, setSelectedFeatureId],
+  );
+
+  return {
+    updateFeatureProperty,
+    deleteFeature,
   };
 }
 

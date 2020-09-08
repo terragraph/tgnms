@@ -24,7 +24,7 @@ import useTaskState, {TASK_STATE} from '../../../hooks/useTaskState';
 import {LINES, POINTS, POLYS} from '../../../constants/GeoJSONConstants';
 import {kml as kmlToGeojson} from '@mapbox/togeojson';
 import {parseAndCleanKML} from '../../../helpers/KMLImport';
-import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
+import {useAnnotationGroups} from '../../../contexts/MapAnnotationContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoFeature, GeoGeometryType} from '@turf/turf';
 
@@ -39,7 +39,7 @@ export default function ImportAnnotationKMLForm({
 }: {
   onClose: () => void,
 }) {
-  const {loadGroups, loadGroup} = useMapAnnotationContext();
+  const {loadGroups, loadGroup} = useAnnotationGroups();
   const {networkName} = useNetworkContext();
   const {isLoading, isError, message, setMessage, setState} = useTaskState();
   const [importData, setImportData] = React.useState<?KMLAnnotationImport>(

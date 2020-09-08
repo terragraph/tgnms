@@ -25,8 +25,11 @@ import {
 import {PANELS, PANEL_STATE} from '../usePanelControl';
 import {SlideProps} from '../../../constants/MapPanelConstants';
 import {apiRequest} from '../../../apiutils/ServiceAPIUtil';
+import {
+  useAnnotationFeatures,
+  useMapAnnotationContext,
+} from '../../../contexts/MapAnnotationContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoFeature} from '@turf/turf';
@@ -131,7 +134,8 @@ function AnnotationsPanelActions({}: ActionsProps) {
     setMessage,
   } = useTaskState();
   const {networkName} = useNetworkContext();
-  const {selectedFeature, deleteFeature} = useMapAnnotationContext();
+  const {selectedFeature} = useMapAnnotationContext();
+  const {deleteFeature} = useAnnotationFeatures();
   const {success: onChangeSuccess} = useTopologyChangeSnackbar();
   const handleConvertToSite = async () => {
     reset();
