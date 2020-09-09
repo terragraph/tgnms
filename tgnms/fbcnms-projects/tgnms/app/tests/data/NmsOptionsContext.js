@@ -29,6 +29,7 @@ export function mockNmsOptionsContext(
  *   site_icons: false,
  *   link_lines: false,
  *   site_name_popups: false,
+ *   alert_popups: false,
  *   buildings_3d: false,
  * }})
  */
@@ -42,6 +43,7 @@ export function mockNetworkMapOptions(
       nodes: false,
       area_polygons: false,
       site_name_popups: false,
+      alert_popups: false,
       buildings_3d: false,
     },
     selectedOverlays: {

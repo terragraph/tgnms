@@ -52,6 +52,7 @@ const allLayersSelected = {
   nodes: true,
   buildings_3d: true,
   site_name_popups: true,
+  alert_popups: true,
 };
 
 describe('mapMode', () => {
@@ -102,6 +103,7 @@ describe('setters', () => {
       nodes: false,
       buildings_3d: false,
       site_name_popups: false,
+      alert_popups: false,
       area_polygons: false,
     });
     act(() => {
@@ -118,6 +120,7 @@ describe('setters', () => {
       area_polygons: false,
       buildings_3d: false,
       site_name_popups: false,
+      alert_popups: false,
     });
     act(() => {
       result.current.setIsLayerSelected('site_icons', false);
@@ -132,6 +135,7 @@ describe('setters', () => {
       area_polygons: false,
       buildings_3d: true,
       site_name_popups: false,
+      alert_popups: false,
     });
   });
 
@@ -256,6 +260,7 @@ describe('optionsContext integration', () => {
     expect(result.current.selectedLayers).toEqual({
       link_lines: true,
       site_icons: true,
+      alert_popups: true,
     });
     expect(result.current.selectedOverlays).toEqual({});
   });

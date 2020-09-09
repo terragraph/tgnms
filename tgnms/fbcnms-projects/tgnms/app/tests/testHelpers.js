@@ -182,6 +182,7 @@ export function MapContextWrapper({
       site_icons: true,
       buildings_3d: true,
       site_name_popups: true,
+      alert_popups: false,
     },
     setIsLayerSelected: jest.fn(),
     overlaysConfig: {},

@@ -286,6 +286,15 @@ export const mapLayers: Array<{|
     name: 'Areas',
     toggleable: false,
   },
+  ...(isFeatureEnabled('ALERTS_LAYER_ENABLED')
+    ? [
+        {
+          layerId: 'alert_popups',
+          name: 'Alert Icons',
+          isStatic: true,
+        },
+      ]
+    : []),
   {
     layerId: 'site_name_popups',
     name: 'Site Names',

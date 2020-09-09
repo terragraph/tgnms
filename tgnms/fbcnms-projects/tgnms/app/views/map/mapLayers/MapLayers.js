@@ -5,6 +5,7 @@
  * @flow
  */
 
+import AlertsLayer from './AlertsLayer';
 import BuildingsLayer from './BuildingsLayer';
 import DrawLayer from './DrawLayer';
 import LinksLayer from './LinksLayer';
@@ -90,6 +91,7 @@ export default function MapLayers(props: Props) {
     site_icons,
     link_lines,
     site_name_popups,
+    alert_popups,
     buildings_3d,
   } = selectedLayers;
 
@@ -190,6 +192,9 @@ export default function MapLayers(props: Props) {
       />
       {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawLayer />}
       {isFeatureEnabled('LINK_BUDGETING_ENABLED') && <McsEstimateLayer />}
+      {isFeatureEnabled('ALERTS_LAYER_ENABLED') && alert_popups && (
+        <AlertsLayer />
+      )}
     </>
   );
 }

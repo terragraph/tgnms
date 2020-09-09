@@ -21,6 +21,7 @@ export type LayerData<T> = $Shape<{|
   site_icons: T,
   nodes: T,
   site_name_popups: T,
+  alert_popups: T,
   buildings_3d: T,
   area_polygons: T,
 |}>;

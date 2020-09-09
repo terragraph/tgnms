@@ -346,6 +346,11 @@ export default function NmsSettings() {
                         label="ODS Link Button"
                         setting="ODS_ENABLED"
                       />
+                      <SettingInput
+                        isFeatureToggle
+                        label="Alerts Map Layer"
+                        setting="ALERTS_LAYER_ENABLED"
+                      />
                     </SettingsGroup>
                   </SettingsForm>
                 )}

@@ -44,6 +44,7 @@ test('renders with no layers selected', () => {
           site_icons: false,
           buildings_3d: false,
           site_name_popups: false,
+          alert_popups: false,
           area_polygons: false,
         },
       }}>

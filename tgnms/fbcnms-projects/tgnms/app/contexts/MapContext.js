@@ -84,10 +84,13 @@ export type ProviderProps = {|
   overlayData?: LayerData<{}>,
   mapboxRef: ?Map,
 |};
+
 const defaultSelectedLayers: SelectedLayersType = {
   link_lines: true,
   site_icons: true,
+  alert_popups: true,
 };
+
 export function MapContextProvider({
   children,
   defaultMapMode,
