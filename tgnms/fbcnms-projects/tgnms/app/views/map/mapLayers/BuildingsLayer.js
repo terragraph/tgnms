@@ -7,11 +7,8 @@
 
 import React from 'react';
 import {Layer} from 'react-mapbox-gl';
-import {withStyles} from '@material-ui/core/styles';
 
 /** Copied from: http://alex3165.github.io/react-mapbox-gl/demos -> "3d-map" */
-
-const styles = {};
 
 const PAINT_LAYER = {
   'fill-extrusion-color': '#aaa',
@@ -26,23 +23,17 @@ const PAINT_LAYER = {
   'fill-extrusion-opacity': 0.9,
 };
 
-type Props = {};
-
-class BuildingsLayer extends React.Component<Props> {
-  render() {
-    return (
-      <Layer
-        id="3d-buildings"
-        before="link-normal"
-        sourceId="composite"
-        sourceLayer="building"
-        filter={['==', 'extrude', 'true']}
-        type="fill-extrusion"
-        minZoom={14}
-        paint={PAINT_LAYER}
-      />
-    );
-  }
+export default function BuildingsLayer() {
+  return (
+    <Layer
+      id="3d-buildings"
+      before="link-normal"
+      sourceId="composite"
+      sourceLayer="building"
+      filter={['==', 'extrude', 'true']}
+      type="fill-extrusion"
+      minZoom={14}
+      paint={PAINT_LAYER}
+    />
+  );
 }
-
-export default withStyles(styles)(BuildingsLayer);

@@ -7,7 +7,6 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import BuildingsLayer from '../BuildingsLayer';
 import LinksLayer from '../LinksLayer';
 import MapLayers from '../MapLayers';
 import SitesLayer from '../SitesLayer';
@@ -27,7 +26,7 @@ import type {Props} from '../MapLayers';
 
 const sitesLayerSpy = jest.spyOn(SitesLayer, 'render');
 const linksLayerSpy = jest.spyOn(LinksLayer, 'render');
-const buildingsLayerSpy = jest.spyOn(BuildingsLayer, 'render');
+const buildingsLayerSpy = jest.spyOn(require('../BuildingsLayer'), 'default');
 const sitePopupsLayerSpy = jest.spyOn(require('../SitePopupsLayer'), 'default');
 
 afterEach(cleanup);
