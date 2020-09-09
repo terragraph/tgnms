@@ -10,11 +10,16 @@ import * as React from 'react';
 import BuildingsLayer from '../BuildingsLayer';
 import LinksLayer from '../LinksLayer';
 import MapLayers from '../MapLayers';
-import SitePopupsLayer from '../SitePopupsLayer';
 import SitesLayer from '../SitesLayer';
 import {Layer} from 'react-mapbox-gl';
-import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {
+  MapContextWrapper,
+  NetworkContextWrapper,
+  TestApp,
+  mockTopology,
+} from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
+import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
 import {mockNetworkContext} from '../../../../tests/data/NetworkContext';
 
 import type {MapContext} from '../../../../contexts/MapContext';
@@ -23,7 +28,7 @@ import type {Props} from '../MapLayers';
 const sitesLayerSpy = jest.spyOn(SitesLayer, 'render');
 const linksLayerSpy = jest.spyOn(LinksLayer, 'render');
 const buildingsLayerSpy = jest.spyOn(BuildingsLayer, 'render');
-const sitePopupsLayerSpy = jest.spyOn(SitePopupsLayer, 'render');
+const sitePopupsLayerSpy = jest.spyOn(require('../SitePopupsLayer'), 'default');
 
 afterEach(cleanup);
 
@@ -87,9 +92,29 @@ function Wrapper({
   children: React.Node,
   mapValue?: $Shape<MapContext>,
 }) {
+  const topology = mockTopology();
+  topology.__test.addSite({
+    name: 'site1',
+    location: {latitude: 1, longitude: 1, accuracy: 1, altitude: 1},
+  });
+
   return (
     <TestApp>
-      <MapContextWrapper contextValue={mapValue}>{children}</MapContextWrapper>
+      <NetworkContextWrapper
+        contextValue={{
+          networkName: 'testNetworkName',
+          siteMap: {
+            site1: {
+              name: 'site1',
+              location: {latitude: 1, longitude: 1, accuracy: 1, altitude: 1},
+            },
+          },
+          networkConfig: mockNetworkConfig({topology}),
+        }}>
+        <MapContextWrapper contextValue={mapValue}>
+          {children}
+        </MapContextWrapper>
+      </NetworkContextWrapper>
     </TestApp>
   );
 }

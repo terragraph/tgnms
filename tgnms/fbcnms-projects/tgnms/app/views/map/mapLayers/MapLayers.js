@@ -182,9 +182,7 @@ export default function MapLayers(props: Props) {
         />
       ) : null}
       <NodesLayer overlay={overlays.nodes} />
-      {site_name_popups ? (
-        <SitePopupsLayer key="popups-layer" topology={networkConfig.topology} />
-      ) : null}
+      {site_name_popups ? <SitePopupsLayer key="popups-layer" /> : null}
       <PolygonLayer
         key="polygon-layer"
         overlay={overlays.area_polygons}
