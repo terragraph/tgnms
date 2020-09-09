@@ -6,12 +6,12 @@
  */
 
 import * as React from 'react';
+import * as topologyApi from './apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from './contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
 import NmsSettings from './views/nms_config/NmsSettings';
-import axios from 'axios';
 import {NmsOptionsContextProvider} from './contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
@@ -97,9 +97,7 @@ class NetworkListBase extends React.Component<Props, State> {
 
   refreshTopologyList = () => {
     // Fetch list of network/topology configurations
-    axios.get('/topology/list').then(response => {
-      // update network list context
-      const networkList = response.data;
+    topologyApi.listTopology().then(networkList => {
       this.setState({networkList});
     });
   };

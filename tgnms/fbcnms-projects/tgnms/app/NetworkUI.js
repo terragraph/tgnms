@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as topologyApi from './apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
@@ -212,15 +213,15 @@ class NetworkUI extends React.Component<Props, State> {
 
   getNetworkStatus = networkName => {
     // Fetch the network config for the given network
-    axios
-      .get('/topology/get/' + networkName)
-      .then(response => {
+    topologyApi
+      .getTopology(networkName)
+      .then(topology => {
         if (this.state.invalidTopologyRedirect) {
           this.setState({
             invalidTopologyRedirect: false,
           });
         }
-        this.processNetworkConfig(response.data, networkName);
+        this.processNetworkConfig(topology, networkName);
       })
       .catch(error => {
         if (!error.response || error.response.status === 404) {
@@ -301,11 +302,10 @@ class NetworkUI extends React.Component<Props, State> {
 
   updateNetworkHealth = (networkName: string, timeWindowHours: number) => {
     // Refresh network node/link health
-    axios
-      .get(`/topology/link_health/${networkName}/${timeWindowHours}`)
-      .then(response => {
-        this.setState({networkLinkHealth: response.data || {}});
-      });
+
+    topologyApi.getHealth({networkName, timeWindowHours}).then(health => {
+      this.setState({networkLinkHealth: health || {}});
+    });
 
     axios.get(`/metrics/node_health/${networkName}`).then(response => {
       this.setState({networkNodeHealthPrometheus: response.data || {}});
