@@ -25,9 +25,9 @@ import {
 import {makeStyles} from '@material-ui/styles';
 
 import type {
-  NetworkConfig,
+  NetworkState as NetworkConfig,
   NetworkHealth,
-} from '../../../contexts/NetworkContext';
+} from '../../../../shared/dto/NetworkState';
 import type {NodeType, TopologyType} from '../../../../shared/types/Topology';
 import type {StatusReportType} from '../../../../shared/types/Controller';
 

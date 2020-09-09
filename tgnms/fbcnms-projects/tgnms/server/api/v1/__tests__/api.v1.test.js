@@ -7,13 +7,19 @@
 
 import express from 'express';
 import request from 'supertest';
-const {
-  getAllNetworkConfigs,
-  getNetworkConfig,
-} = require('../../../topology/model');
+
 jest.mock('request');
 jest.mock('../../../models');
 jest.mock('../../../topology/model');
+
+const getAllNetworkConfigs = jest.spyOn(
+  require('../../../topology/model'),
+  'getAllNetworkConfigs',
+);
+const getNetworkConfig = jest.spyOn(
+  require('../../../topology/model'),
+  'getNetworkConfig',
+);
 
 const configs = {
   foo: {
@@ -38,7 +44,6 @@ const configs = {
       e2e_port: 7777,
       id: 2,
     },
-    prometheus_online: true,
     site_overrides: {},
   },
   bar: {
@@ -63,7 +68,6 @@ const configs = {
       e2e_port: 7777,
       id: 4,
     },
-    prometheus_online: true,
     site_overrides: {},
   },
 };
@@ -86,7 +90,6 @@ const responses = {
       e2e_port: 7777,
       id: 2,
     },
-    prometheus_online: true,
     site_overrides: {},
   },
   bar: {
@@ -106,7 +109,6 @@ const responses = {
       e2e_port: 7777,
       id: 4,
     },
-    prometheus_online: true,
     site_overrides: {},
   },
 };

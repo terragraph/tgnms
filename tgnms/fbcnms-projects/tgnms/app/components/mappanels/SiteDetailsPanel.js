@@ -44,8 +44,7 @@ import {
 } from '../../helpers/NetworkHelpers';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
-
-import type {NetworkHealth} from '../../contexts/NetworkContext';
+import type {NetworkHealth} from '../../../shared/dto/NetworkState';
 import type {
   NodeType as Node,
   SiteType,

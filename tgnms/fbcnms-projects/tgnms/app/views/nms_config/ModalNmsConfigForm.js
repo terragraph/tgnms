@@ -11,7 +11,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NetworkListContext from '../../contexts/NetworkListContext';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import {WAC_TYPES} from '../../constants/NetworkConstants';
+import {WAC_TYPES} from '../../../shared/dto/NetworkState';
 import {
   createNumericInput,
   createSelectInput,
@@ -20,8 +20,7 @@ import {
 } from '../../helpers/FormHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
-
-import type {NetworkListType} from '../../NetworkListBase';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
 
 type InputType = {
   _heading?: string,
@@ -66,21 +65,21 @@ const DEFAULT_CONTROLLER_CONFIG = Object.freeze({
 type Props = {
   classes: {[string]: string},
   open: boolean,
-  networkConfig: NetworkListType,
+  networkConfig: NetworkConfig,
   onClose: () => any,
   onCreateNetwork: (
-    $Shape<NetworkListType>,
+    $Shape<NetworkConfig>,
     () => any,
     ?({}) => any,
     ?({}) => any,
   ) => any,
   onEditNetwork: (
-    $Shape<NetworkListType>,
+    $Shape<NetworkConfig>,
     () => any,
     ?({}) => any,
     ?({}) => any,
   ) => any,
-  networkList: NetworkListType,
+  networkList: NetworkConfig,
   type: $Values<typeof FormType>,
 };
 
@@ -109,7 +108,7 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
     this.state = this.getState(props);
   }
 
-  getState(props) {
+  getState(props): State {
     // Compute the form state based on the given props
     let {networkConfig} = props;
     if (networkConfig === undefined) {
@@ -127,10 +126,10 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       primaryE2eIp: networkConfig.primary.e2e_ip || '',
       primaryApiPort: networkConfig.primary.api_port,
       primaryE2ePort: networkConfig.primary.e2e_port,
-      backupApiIp: networkConfig.backup.api_ip,
-      backupE2eIp: networkConfig.backup.e2e_ip || '',
-      backupApiPort: networkConfig.backup.api_port,
-      backupE2ePort: networkConfig.backup.e2e_port,
+      backupApiIp: networkConfig.backup?.api_ip ?? '',
+      backupE2eIp: networkConfig.backup?.e2e_ip ?? '',
+      backupApiPort: networkConfig.backup?.api_port ?? 0,
+      backupE2ePort: networkConfig.backup?.e2e_port ?? 0,
       wacType: networkConfig.wireless_controller?.type || WAC_TYPES.none,
       wacUrl: networkConfig.wireless_controller
         ? networkConfig.wireless_controller.url

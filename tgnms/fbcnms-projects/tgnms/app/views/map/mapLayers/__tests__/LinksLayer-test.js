@@ -26,6 +26,7 @@ import {
 } from '../../../../tests/mapHelpers';
 
 import type {Props} from '../LinksLayer';
+import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
 afterEach(cleanup);
 
 const mockMetrics = {
@@ -56,7 +57,7 @@ const commonProps: Props = {
     lastIgCandidates: [],
   },
   routes: mockRoutes(),
-  topologyConfig: {},
+  topologyConfig: ({}: $Shape<TopologyConfig>),
   ctrlVersion: 'RELEASE_M45_PRE',
   ...buildTopologyMaps(defaultTopology),
   onSelectLinkChange: jest.fn(),

@@ -53,6 +53,7 @@ describe('api contract tests', () => {
 
 function setupApp() {
   const app = express();
+  // $FlowFixMe
   app.use('/topology', require('../routes'));
   return app;
 }
@@ -64,8 +65,8 @@ async function seedLinkHealth({
   networkName: string,
   linkName: string,
 }) {
-  const startTs = moment().subtract(10, 'hours');
-  const endTs = moment().subtract(4, 'hours');
+  const startTs = moment().subtract(10, 'hours').toDate().getTime();
+  const endTs = moment().subtract(4, 'hours').toDate().getTime();
   // create link up interval, ensure % availability
   await link_event.bulkCreate(
     ([

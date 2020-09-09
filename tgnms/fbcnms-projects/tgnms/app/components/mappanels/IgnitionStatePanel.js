@@ -14,7 +14,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
-import type {IgnitionState} from '../../contexts/NetworkContext';
+import type {IgnitionState} from '../../../shared/dto/NetworkState';
 
 const styles = theme => ({
   sectionSpacer: {

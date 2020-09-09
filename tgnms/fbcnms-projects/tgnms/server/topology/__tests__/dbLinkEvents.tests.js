@@ -17,8 +17,8 @@ describe('basic db tests', () => {
     // online for one hour
     const networkName = 'test net';
     const linkName = 'link-A-B';
-    const startTs = moment().subtract(10, 'hours');
-    const endTs = moment().subtract(4, 'hours');
+    const startTs = moment().subtract(10, 'hours').toDate().getTime();
+    const endTs = moment().subtract(4, 'hours').toDate().getTime();
     // create link up interval, ensure % availability
     await link_event.bulkCreate([
       {

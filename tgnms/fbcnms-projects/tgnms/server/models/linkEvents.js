@@ -6,7 +6,6 @@
  */
 'use strict';
 import type Sequelize, {DataTypes as DataTypesType, Model} from 'sequelize';
-import type moment from 'moment';
 
 export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   const LinkEvent = sequelize.define(
@@ -50,9 +49,9 @@ export type LinkEventAttributes = {|
   linkName: string,
   linkDirection: string,
   eventType: string,
-  startTs: number | moment,
-  endTs: number | moment,
+  startTs: number,
+  endTs: number,
   topologyName: string,
 |};
 
-export type LinkEvent = Model<LinkEventAttributes>;
+export type LinkEvent = LinkEventAttributes & Model<LinkEventAttributes>;

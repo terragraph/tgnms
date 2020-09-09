@@ -21,19 +21,19 @@ import {objectValuesTypesafe} from './helpers/ObjectHelpers';
 import {useLocation, withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkConfig} from './contexts/NetworkContext';
-import type {NetworkList} from './contexts/NetworkListContext';
+import type {
+  NetworkInstanceConfig,
+  NetworkList,
+} from '../shared/dto/NetworkState';
 import type {RouterHistory} from 'react-router-dom';
-
-export type NetworkListType = NetworkConfig & {name: string};
 
 // Pick a network if no network is requested in URL
 // This will choose any alive controller, otherwise redirect to /config
-function getDefaultNetworkName(networkList: {[string]: NetworkListType}) {
+function getDefaultNetworkName(networkList: {[string]: NetworkInstanceConfig}) {
   if (!networkList || !Object.keys(networkList).length) {
     return null;
   }
-  const network = objectValuesTypesafe<NetworkListType>(networkList).find(
+  const network = objectValuesTypesafe<NetworkInstanceConfig>(networkList).find(
     cfg => cfg.controller_online,
   );
   return network ? network.name : null;

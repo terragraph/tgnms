@@ -2,12 +2,13 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow strict-local
  */
-
+import type {LocationType} from '../../shared/types/Topology';
 /** Computes the line-of-sight distance between two locations.
     Approximation tested for:
     max 1% error, Locations upto 50km away, near poles/equator */
-export function approxDistance(l1, l2) {
+export function approxDistance(l1: LocationType, l2: LocationType): number {
   // Circumference 40,075.017 km (24,901.461 mi) (equatorial)
   const earthCircumference = 40075017;
   const lengthPerDeg = earthCircumference / 360;
@@ -33,7 +34,7 @@ export function approxDistance(l1, l2) {
 }
 
 /** Computes the angle between two Locations. */
-export function computeAngle(l1, l2) {
+export function computeAngle(l1: LocationType, l2: LocationType): number {
   const lon = l1.longitude;
   const lat = l1.latitude;
   const lonRef = l2.longitude;

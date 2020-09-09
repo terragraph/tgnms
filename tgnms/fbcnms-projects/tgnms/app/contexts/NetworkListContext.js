@@ -6,11 +6,7 @@
  */
 
 import React from 'react';
-import type {NetworkConfig} from './NetworkContext';
-
-export type NetworkList = {
-  [networkName: string]: NetworkConfig,
-};
+import type {NetworkList} from '../../shared/dto/NetworkState';
 
 export type NetworkListContextType = {|
   networkList: NetworkList,

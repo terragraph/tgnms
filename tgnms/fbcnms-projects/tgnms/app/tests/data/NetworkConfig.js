@@ -18,11 +18,39 @@ import type {
   TopologyType,
 } from '../../../shared/types/Topology';
 
-import type {NetworkConfig, NetworkHealth} from '../../contexts/NetworkContext';
+import type {NetworkConfig} from '../../contexts/NetworkContext';
+import type {
+  NetworkHealth,
+  NetworkInstanceConfig,
+  TopologyConfig,
+} from '../../../shared/dto/NetworkState';
 import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
 import type {Overlay} from '../../views/map/NetworkMapTypes';
 import type {RoutesContext as Routes} from '../../contexts/RouteContext';
 
+export function mockNetworkInstanceConfig(): NetworkInstanceConfig {
+  const mockCtrl = {
+    api_ip: '::',
+    api_port: 8080,
+    controller_online: true,
+    e2e_port: 8080,
+    id: 1,
+  };
+  return {
+    id: 1,
+    name: 'test',
+    controller_online: true,
+    backup: mockCtrl,
+    primary: mockCtrl,
+    site_overrides: [],
+    offline_whitelist: {
+      links: {},
+      nodes: {},
+    },
+    map_profile: null,
+    wireless_controller: null,
+  };
+}
 /**
  * Creates a fake network config which passes flow validation
  * @param {object} overrides overrides default properties of the network config
@@ -72,10 +100,12 @@ export function mockNetworkConfig(
     backup: mockCtrl,
     primary: mockCtrl,
     prometheus_online: true,
-    site_overrides: {
-      name: '',
-      location: mockLocation,
-    },
+    site_overrides: [
+      {
+        name: '',
+        location: mockLocation,
+      },
+    ],
     status_dump: {
       statusReports: {},
       timeStamp: 0,
@@ -121,7 +151,7 @@ export function mockNetworkConfig(
     },
     wireless_controller_stats: {},
     controller_error: null,
-    topologyConfig: {},
+    topologyConfig: ({}: $Shape<TopologyConfig>),
   };
 
   return Object.assign(config, overrides || {});
@@ -213,7 +243,7 @@ export function mockTopology(
  * @example
  * mockLink({name:'link-node-a-z', is_alive:false})
  */
-export function mockLink(overrides?: $Shape<LinkType>): LinkType {
+export function mockLink(overrides?: $Shape<LinkType>): $Shape<LinkType> {
   return {
     name: '',
     a_node_name: '',

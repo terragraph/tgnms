@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow
+ * @flow strict-local
  */
 
 import Sequelize from 'sequelize';
@@ -19,7 +19,8 @@ const {
 } = require('../models');
 import type {ControllerAttributes} from '../models/controller';
 import type {LinkType, NodeType} from '../../shared/types/Topology';
-import type {TopologyAttributes} from '../models/topology';
+import type {OfflineWhiteListType} from '../../shared/dto/NetworkState';
+import type {Topology, TopologyAttributes} from '../models/topology';
 import type {
   WirelessControllerAttributes,
   WirelessControllerType,
@@ -47,15 +48,15 @@ export function createWirelessController(
   );
 }
 
-export function getNetworkById(networkId: number) {
+export function getNetworkById(networkId: number): Promise<?Topology> {
   return getNetworkByClause({id: networkId});
 }
 
-export function getNetworkByName(networkName: string) {
+export function getNetworkByName(networkName: string): Promise<?Topology> {
   return getNetworkByClause({name: networkName});
 }
 
-export function getNetworkByClause(clause: {}) {
+export function getNetworkByClause(clause: {}): Promise<?Topology> {
   return topology.findOne({
     include: [
       {
@@ -124,10 +125,7 @@ export function updateOnlineWhitelist(
     nodes: Array<NodeType>,
     links: Array<LinkType>,
   },
-): Promise<{
-  nodes: {[string]: boolean},
-  links: {[string]: boolean},
-}> {
+): Promise<OfflineWhiteListType> {
   const onlineNodes: {[string]: boolean} = nodes.reduce((map, node) => {
     if (
       typeof node.status !== 'undefined' &&
@@ -209,9 +207,8 @@ export function getLinkEvents(topologyName: string, intervalHours: number) {
     where: {
       topologyName,
       endTs: {
-        [(Sequelize.Op.gte: any)]: moment()
-          .subtract(intervalHours, 'hours')
-          .toDate(),
+        // $FlowIgnore flow doesnt support symbols
+        [Sequelize.Op.gte]: moment().subtract(intervalHours, 'hours').toDate(),
       },
     },
   });

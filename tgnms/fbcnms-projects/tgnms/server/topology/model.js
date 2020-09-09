@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 const {
@@ -28,22 +29,36 @@ const logger = require('../log')(module);
 import axios from 'axios';
 import moment from 'moment';
 
+import type {
+  LinkHealth,
+  NetworkHealth,
+  NetworkInstanceConfig,
+  NetworkState,
+  ServerNetworkState,
+  ServiceState,
+} from '../../shared/dto/NetworkState';
+import type {Response} from '../types/express';
+
+type NetworkStateMap = {|
+  [string]: ServerNetworkState,
+|};
+
 const networkLinkHealth = {};
 const networkNodeHealth = {};
 // hold the network configuration (primary/backup)
-let networkInstanceConfig = {};
+let networkInstanceConfig: {|[string]: NetworkInstanceConfig|} = {};
 
 // TODO - these aren't in the new config yet
 // hold all state
-const networkState = {};
+const networkState: NetworkStateMap = {};
 // backend service status - just Prometheus for now
-const serviceState = {};
+const serviceState: ServiceState = {prometheus_online: false};
 
 // This array and the two functions below keep tracks of topology
 // stream event connections from browsers
 let topologyEventRequesters = [];
 
-function addRequester(name, res) {
+export function addRequester(name: string, res: Response) {
   topologyEventRequesters.push({topologyName: name, response: res});
   // although we remove session when user disconnects, it is still a good idea
   // to protect in case the session ended, otherwise, it will crash the server
@@ -53,30 +68,30 @@ function addRequester(name, res) {
   return;
 }
 
-function removeRequester(response) {
+export function removeRequester(response: Response) {
   // session is gone, delete reference
   topologyEventRequesters = topologyEventRequesters.filter(item => {
     return item.response !== response;
   });
 }
 
-function getAllTopologyNames() {
+export function getAllTopologyNames(): Array<string> {
   return Object.keys(networkInstanceConfig);
 }
 
-function getNetworkLinkHealth(topologyName) {
+export function getNetworkLinkHealth(topologyName: string) {
   return _.get(networkLinkHealth, topologyName);
 }
 
-function getNetworkNodeHealth(topologyName) {
+export function getNetworkNodeHealth(topologyName: string) {
   return _.get(networkNodeHealth, topologyName);
 }
 
-function getAllNetworkConfigs() {
+export function getAllNetworkConfigs() {
   return networkInstanceConfig;
 }
 
-function getNetworkConfig(networkName) {
+export function getNetworkConfig(networkName: string) {
   if (networkInstanceConfig.hasOwnProperty(networkName)) {
     return networkInstanceConfig[networkName];
   }
@@ -84,14 +99,14 @@ function getNetworkConfig(networkName) {
 }
 
 // DEPRECATED - use apiServiceClient.backgroundRequest directly instead
-async function apiServiceRequest(
-  networkName,
-  isPrimaryController,
-  host,
-  port,
-  apiMethod,
-  data,
-  config,
+export async function apiServiceRequest(
+  networkName: string,
+  isPrimaryController: boolean,
+  host: string,
+  port: number,
+  apiMethod: string,
+  data: Object,
+  config: Object,
 ) {
   const result = await apiServiceClient.backgroundRequest({
     networkName,
@@ -106,15 +121,15 @@ async function apiServiceRequest(
 }
 
 // fetch list of networks
-function reloadInstanceConfig() {
+export function reloadInstanceConfig() {
   logger.debug('Reloading instance config');
-  const topologyConfig = {};
+  const topologyConfig: {[string]: $Shape<NetworkInstanceConfig>} = {};
   return getNetworkList().then(topologyList => {
     topologyList.forEach(topologyItem => {
       const topologyName = topologyItem.name;
       // ensure topology key exists in networkState
       if (!networkState.hasOwnProperty(topologyName)) {
-        networkState[topologyName] = {};
+        networkState[topologyName] = ({}: $Shape<ServerNetworkState>);
       }
       const primaryController = topologyItem.primary;
       topologyConfig[topologyName] = {
@@ -123,11 +138,11 @@ function reloadInstanceConfig() {
         offline_whitelist: topologyItem.offline_whitelist,
         site_overrides: topologyItem.site_overrides,
         primary: {
-          id: primaryController.id,
-          api_ip: primaryController.api_ip,
-          e2e_ip: primaryController.e2e_ip,
-          e2e_port: primaryController.e2e_port,
-          api_port: primaryController.api_port,
+          id: primaryController?.id ?? 0,
+          api_ip: primaryController?.api_ip ?? '',
+          e2e_ip: primaryController?.e2e_ip ?? '',
+          e2e_port: primaryController?.e2e_port ?? 0,
+          api_port: primaryController?.api_port ?? 0,
           controller_online: false,
         },
         controller_online: false,
@@ -164,7 +179,12 @@ function reloadInstanceConfig() {
   });
 }
 
-function updateControllerVersion(request, success, responseTime, data) {
+export function updateControllerVersion(
+  request: {networkName: string},
+  success: boolean,
+  responseTime: number,
+  data: {version: string},
+) {
   if (data.version) {
     networkState[request.networkName].controller_version = data.version.slice(
       0,
@@ -173,7 +193,12 @@ function updateControllerVersion(request, success, responseTime, data) {
   }
 }
 
-function updateSiteOverrides(request, success, responseTime, data) {
+export function updateSiteOverrides(
+  request: {networkName: string},
+  success: boolean,
+  responseTime: number,
+  data: Object,
+) {
   const {site_overrides} = networkInstanceConfig[request.networkName];
   if (!site_overrides || !success) {
     return data;
@@ -197,14 +222,28 @@ function updateSiteOverrides(request, success, responseTime, data) {
   return data;
 }
 
-function updateControllerState(request, success, _responseTime, _data) {
+export function updateControllerState(
+  request: {networkName: string, isPrimaryController: boolean},
+  success: boolean,
+  _responseTime: number,
+  _data: Object,
+) {
   // update controller state per role
-  networkInstanceConfig[request.networkName][
-    request.isPrimaryController ? 'primary' : 'backup'
-  ].controller_online = success;
+  const config =
+    networkInstanceConfig[request.networkName][
+      request.isPrimaryController ? 'primary' : 'backup'
+    ];
+  if (config != null) {
+    config.controller_online = success;
+  }
 }
 
-function updateTopologyState(request, _success, _responseTime, data) {
+export function updateTopologyState(
+  request: {networkName: string, isPrimaryController: boolean},
+  _success: boolean,
+  _responseTime: number,
+  data: Object,
+) {
   updateInitialCoordinates(request.networkName);
   updateLinksMeta(request.networkName);
   updateTopologyName(request.networkName, request.isPrimaryController);
@@ -216,7 +255,7 @@ function updateTopologyState(request, _success, _responseTime, data) {
   });
 }
 
-function updateActiveController() {
+export function updateActiveController() {
   Object.keys(networkInstanceConfig).forEach(networkName => {
     const state = networkState[networkName];
 
@@ -239,7 +278,7 @@ function updateActiveController() {
 }
 
 // fetch topologies for all networks
-function refreshTopologies(selectedNetwork = null) {
+export function refreshTopologies(selectedNetwork: ?string = null) {
   // no networks defined
   if (!Object.keys(networkInstanceConfig).length) {
     return;
@@ -354,7 +393,7 @@ function refreshTopologies(selectedNetwork = null) {
               activeController.active === HAPeerType.BACKUP
                 ? 'backup'
                 : 'primary'
-            ].controller_online;
+            ]?.controller_online ?? false;
           networkState[networkName].controller_online = controllerOnline;
           networkInstanceConfig[
             networkName
@@ -365,7 +404,7 @@ function refreshTopologies(selectedNetwork = null) {
           Object.keys(apiCallsPerNetwork).forEach(apiRequestName => {
             const {api_port, api_ip} =
               activeController.active === HAPeerType.BACKUP
-                ? networkConfig.backup
+                ? networkConfig.backup ?? {}
                 : networkConfig.primary;
             networkPromiseList.push(
               apiServiceRequest(
@@ -408,14 +447,14 @@ function refreshTopologies(selectedNetwork = null) {
   });
 }
 
-function cacheBackgroundCredentials() {
+export function cacheBackgroundCredentials() {
   if (!LOGIN_ENABLED) {
     return Promise.resolve();
   }
   return apiServiceClient.loadServiceCredentials();
 }
 
-function updateInitialCoordinates(networkName) {
+export function updateInitialCoordinates(networkName: string) {
   const {sites} = networkState[networkName].topology;
 
   // compute bounding rectangle from site locations (latitude/longitude)
@@ -443,7 +482,7 @@ function updateInitialCoordinates(networkName) {
   networkState[networkName].bounds = bounds;
 }
 
-function updateLinksMeta(networkName) {
+export function updateLinksMeta(networkName: string) {
   const {links, nodes, sites} = networkState[networkName].topology;
 
   // Create maps for easy location access
@@ -460,16 +499,18 @@ function updateLinksMeta(networkName) {
   links.forEach(link => {
     const l1 = siteMap[nodeMap[link.a_node_name].site_name].location;
     const l2 = siteMap[nodeMap[link.z_node_name].site_name].location;
-
-    if (!link.hasOwnProperty('_meta_')) {
-      link._meta_ = {};
-    }
-    link._meta_.distance = approxDistance(l1, l2);
-    link._meta_.angle = computeAngle(l1, l2);
+    link._meta_ = {
+      ...(link._meta_ ?? {}),
+      distance: approxDistance(l1, l2),
+      angle: computeAngle(l1, l2),
+    };
   });
 }
 
-function updateTopologyName(networkName, isPrimaryController) {
+export function updateTopologyName(
+  networkName: string,
+  isPrimaryController: boolean,
+) {
   const {name} = networkState[networkName].topology;
 
   // If topology name is empty, set it to the NMS network name
@@ -478,7 +519,7 @@ function updateTopologyName(networkName, isPrimaryController) {
       networkInstanceConfig[networkName][
         isPrimaryController ? 'primary' : 'backup'
       ];
-    const {api_ip, api_port} = activeController;
+    const {api_ip, api_port} = activeController ?? {};
 
     const data = {name: networkName};
     apiServiceRequest(
@@ -492,52 +533,66 @@ function updateTopologyName(networkName, isPrimaryController) {
   }
 }
 
-function getNetworkState(networkName) {
+export function getNetworkState(networkName: string): ?NetworkState {
   // overlay instance config
   if (
     networkInstanceConfig.hasOwnProperty(networkName) &&
     networkState.hasOwnProperty(networkName)
   ) {
-    return {
+    const state = {
       ...networkState[networkName],
       ...networkInstanceConfig[networkName],
       ...serviceState,
     };
+    return state;
   }
   return null;
 }
 
-function getApiActiveControllerAddress({topology}) {
+export function getApiActiveControllerAddress({
+  topology,
+}: {
+  topology: string,
+}): {api_ip: string, api_port: number} {
   const networkState = getNetworkState(topology);
-  let controllerConfig = networkState.primary;
+  let controllerConfig = networkState?.primary;
   if (
-    networkState.hasOwnProperty('active') &&
-    networkState.active === HAPeerType.BACKUP
+    networkState?.hasOwnProperty('active') &&
+    networkState?.active === HAPeerType.BACKUP
   ) {
-    controllerConfig = networkState.backup;
+    controllerConfig = networkState?.backup;
+  }
+  if (!controllerConfig) {
+    return {};
   }
   const {api_ip, api_port} = controllerConfig;
   return {api_ip, api_port};
 }
 
-async function refreshNetworkHealth(topologyName) {
+export async function refreshNetworkHealth(topologyName: string) {
   await cacheNetworkHealthFromDb(topologyName, LINK_HEALTH_TIME_WINDOW_HOURS);
 }
 
-async function cacheNetworkHealthFromDb(topologyName, timeWindowHours) {
+export async function cacheNetworkHealthFromDb(
+  topologyName: string,
+  timeWindowHours: number,
+) {
   networkLinkHealth[topologyName] = await fetchNetworkHealthFromDb(
     topologyName,
     timeWindowHours,
   );
 }
 
-async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
-  const eventsByLink = {};
+export async function fetchNetworkHealthFromDb(
+  topologyName: string,
+  timeWindowHours: number,
+): Promise<NetworkHealth> {
+  const eventsByLink: {[string]: LinkHealth} = {};
   // TODO - account for missing gaps at the end
   const windowSeconds = timeWindowHours * 60 * 60;
   const curTs = new Date().getTime() / 1000;
   const minStartTs = curTs - 60 * 60 * timeWindowHours;
-  return await getLinkEvents(topologyName, timeWindowHours).then(resp => {
+  return getLinkEvents(topologyName, timeWindowHours).then(resp => {
     resp.forEach(linkEvent => {
       const {linkName, linkDirection, eventType, startTs, endTs} = linkEvent;
       // adjust time from DB
@@ -550,7 +605,7 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
         return;
       }
       if (!eventsByLink.hasOwnProperty(linkName)) {
-        eventsByLink[linkName] = {};
+        eventsByLink[linkName] = ({}: $Shape<LinkHealth>);
       }
       if (!eventsByLink[linkName].hasOwnProperty('events')) {
         eventsByLink[linkName] = {
@@ -567,7 +622,7 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
         endTime = curTs;
       }
       // TODO - decimals
-      const timeWindow = Number.parseInt((endTime - startTime) / 60);
+      const timeWindow = parseInt((endTime - startTime) / 60);
       // format time in HH:MM:SS
       const startTimeStr = moment.unix(startTime).format('LTS');
       const endTimeStr = moment.unix(endTime).format('LTS');
@@ -593,12 +648,12 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
         const lastEndTime = lastEvent.endTime;
         assumedOnlineSeconds = curTs - lastEndTime;
       }
-      const availSeconds = linkEvents.events.reduce(
+      const availSeconds: number = linkEvents.events.reduce(
         (accumulator, {startTime, endTime}) =>
           accumulator + (endTime - startTime),
         0,
       );
-      const dataDownSeconds = linkEvents.events
+      const dataDownSeconds: number = linkEvents.events
         .filter(event => event.linkState === LinkStateType['LINK_UP_DATADOWN'])
         .reduce(
           (accumulator, {startTime, endTime}) =>
@@ -608,12 +663,12 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
       // calculate the availability window by removing the window of time at
       // the end (from data-point lag) we assume to be available
       const alivePerc =
-        Number.parseInt(
+        parseInt(
           (availSeconds / (windowSeconds - assumedOnlineSeconds)) * 10000.0,
         ) / 100.0;
       // remove LINK_UP_DATADOWN seconds from available %
       const availPerc =
-        Number.parseInt(
+        parseInt(
           ((availSeconds - dataDownSeconds) /
             (windowSeconds - assumedOnlineSeconds)) *
             10000.0,
@@ -629,7 +684,7 @@ async function fetchNetworkHealthFromDb(topologyName, timeWindowHours) {
   });
 }
 
-function refreshPrometheusStatus() {
+export function refreshPrometheusStatus() {
   // call the test handler to verify service is healthy
   const testHandlerUrl = PROMETHEUS_URL + '/-/healthy';
   axios.get(testHandlerUrl).then(res => {
@@ -646,9 +701,9 @@ function refreshPrometheusStatus() {
 // wait for server sent events, and only query controller when an event is
 // received. Could act on event change directly in the future, but these events
 // do not happen frequently, maybe it is ok to just query the whole thing
-function runNowAndWatchForTopologyUpdate() {
+export function runNowAndWatchForTopologyUpdate() {
   logger.debug('watching for topology stream events');
-  const topologies = Object.keys(networkState).map(
+  const topologies = Object.keys(networkState).map<ServerNetworkState>(
     keyName => networkState[keyName],
   );
 
@@ -736,7 +791,10 @@ function runNowAndWatchForTopologyUpdate() {
   });
 }
 
-function setConfigParamsFromOverrides(topologyName, overrides) {
+export function setConfigParamsFromOverrides(
+  topologyName: string,
+  overrides: Object,
+) {
   Object.keys(overrides).forEach(nodeName => {
     const nodeConfig = overrides[nodeName];
     const topologyConfig = networkState[topologyName].topologyConfig;
@@ -753,7 +811,7 @@ function setConfigParamsFromOverrides(topologyName, overrides) {
           // Topology level channel configuration (pre M40)
           const networkState = getNetworkState(topologyName);
           if (
-            networkState.topology &&
+            networkState?.topology &&
             networkState.topology.config &&
             networkState.topology.config.channel
           ) {
@@ -796,7 +854,12 @@ function setConfigParamsFromOverrides(topologyName, overrides) {
   });
 }
 
-function updateConfigParams(request, _success, _responseTime, _data) {
+export function updateConfigParams(
+  request: {networkName: string},
+  _success: boolean,
+  _responseTime: number,
+  _data: Object,
+) {
   const topologyName = request.networkName;
   const nodeConfig = networkState[topologyName].config_node_overrides;
   const autoConfig = networkState[topologyName].config_auto_overrides;
@@ -823,21 +886,3 @@ function updateConfigParams(request, _success, _responseTime, _data) {
     );
   }
 }
-
-module.exports = {
-  addRequester,
-  fetchNetworkHealthFromDb,
-  getAllTopologyNames,
-  getAllNetworkConfigs,
-  getNetworkConfig,
-  getNetworkLinkHealth,
-  getNetworkNodeHealth,
-  getNetworkState,
-  getApiActiveControllerAddress,
-  refreshNetworkHealth,
-  refreshTopologies,
-  reloadInstanceConfig,
-  removeRequester,
-  runNowAndWatchForTopologyUpdate,
-  refreshPrometheusStatus,
-};

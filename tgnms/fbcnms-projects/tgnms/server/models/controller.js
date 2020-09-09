@@ -62,4 +62,4 @@ export type ControllerAttributes = {|
   api_port: number,
 |};
 
-export type Controller = Model<ControllerAttributes>;
+export type Controller = ControllerAttributes & Model<ControllerAttributes>;

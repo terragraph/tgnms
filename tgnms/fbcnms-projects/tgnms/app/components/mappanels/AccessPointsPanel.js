@@ -23,7 +23,7 @@ import type {TopologyType} from '../../../shared/types/Topology';
 import type {
   WirelessController,
   WirelessControllerStats,
-} from '../../contexts/NetworkContext';
+} from '../../../shared/dto/NetworkState';
 
 const styles = theme => ({
   sectionSpacer: {

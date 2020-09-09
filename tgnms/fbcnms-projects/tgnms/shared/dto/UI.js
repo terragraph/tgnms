@@ -4,6 +4,7 @@
  * @flow strict-local
  */
 import type {FeatureFlagKey} from '../FeatureFlags';
+import type {NetworkInstanceConfig} from './NetworkState';
 import type {User as UserDto} from '../auth/User';
 
 export type UIFeatureFlags = {|
@@ -21,7 +22,7 @@ export type UIEnv = $Shape<{
 }>;
 
 // NetworkConfig
-export type Networks = {[string]: *};
+export type Networks = {|[string]: NetworkInstanceConfig|};
 export type UIConfig = {|
   env: UIEnv,
   networks: Networks, // list of currently configured networks

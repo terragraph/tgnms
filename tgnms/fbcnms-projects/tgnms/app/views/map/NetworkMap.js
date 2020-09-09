@@ -27,7 +27,7 @@ import {getUIEnvVal} from '../../common/uiConfig';
 import {withStyles} from '@material-ui/core/styles';
 
 import type Map from 'mapbox-gl/src/ui/map';
-import type {Coordinate, NetworkConfig} from '../../contexts/NetworkContext';
+import type {Coordinate, NetworkState} from '../../../shared/dto/NetworkState';
 import type {
   NearbyNodes,
   PlannedSite,
@@ -78,7 +78,7 @@ const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 type Props = {
   classes: {[string]: string},
   location: Location,
-  networkConfig: NetworkConfig,
+  networkConfig: NetworkState,
   networkName: string,
   siteToNodesMap: {[string]: Set<string>},
   match: Object,

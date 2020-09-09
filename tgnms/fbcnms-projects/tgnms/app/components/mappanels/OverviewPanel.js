@@ -49,10 +49,10 @@ import {shortenVersionString} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 import type {
   ControllerHAState,
-  NetworkConfig,
   NetworkHealth,
+  NetworkState,
   WirelessControllerStats,
-} from '../../contexts/NetworkContext';
+} from '../../../shared/dto/NetworkState';
 
 const styles = theme => ({
   button: {
@@ -106,7 +106,7 @@ const BINARY_STAR_FSM_INVERTED = invert(BinaryStarFsmStateValueMap);
 const FETCH_SERVICE_AVAILABILITY_INTERVAL_MS = 5000;
 
 type Props = {
-  networkConfig: NetworkConfig,
+  networkConfig: NetworkState,
   networkLinkHealth: NetworkHealth,
   expanded: boolean,
   onPanelChange: () => void,
@@ -705,7 +705,7 @@ class OverviewPanel extends React.Component<Props, State> {
               <div className={classes.spaceBetween}>
                 <Typography variant="subtitle2">
                   Backup
-                  {!backup.controller_online && backup.api_ip
+                  {!backup?.controller_online && backup?.api_ip
                     ? haOfflineText
                     : null}
                 </Typography>
@@ -719,7 +719,7 @@ class OverviewPanel extends React.Component<Props, State> {
                   </em>
                 </Typography>
               </div>
-              {backup.api_ip ? (
+              {backup?.api_ip ? (
                 <Typography gutterBottom variant="body2">
                   {backup.api_ip}
                 </Typography>

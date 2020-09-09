@@ -51,14 +51,12 @@ import {
 } from '../../../helpers/ObjectHelpers';
 import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
-
 import type {Element} from '../../../contexts/NetworkContext';
 import type {
   IgnitionState,
   OfflineWhiteListType,
-  SiteMap,
   TopologyConfig,
-} from '../../../contexts/NetworkContext';
+} from '../../../../shared/dto/NetworkState';
 import type {
   LinkType as Link,
   NodeType as Node,
@@ -71,6 +69,7 @@ import type {
 } from '../../../components/mappanels/MapPanelTypes';
 import type {Overlay} from '../NetworkMapTypes';
 import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
+import type {SiteMap} from '../../../contexts/NetworkContext';
 
 const styles = _theme => ({});
 
@@ -93,7 +92,7 @@ export type Props = {
   onSelectLinkChange: string => void,
   onLinkMouseEnter: Object => void,
   onLinkMouseLeave: Object => void,
-  offlineWhitelist: OfflineWhiteListType,
+  offlineWhitelist: ?OfflineWhiteListType,
   metricData: ?{[string]: {}},
   routes: Routes,
 };

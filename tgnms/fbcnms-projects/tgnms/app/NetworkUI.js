@@ -31,12 +31,11 @@ import type {
   Element,
   LinkMeta,
   MacToNodeMap,
-  NetworkConfig as NetworkConfigType,
-  NetworkHealth,
   NetworkNodeStats,
   NodeToLinksMap,
   SiteMap,
 } from './contexts/NetworkContext';
+import type {NetworkHealth, NetworkState} from '../shared/dto/NetworkState';
 
 import type {LinkType, NodeType as Node} from '../shared/types/Topology';
 
@@ -70,7 +69,7 @@ type State = {
   linkMap: {[string]: LinkType & LinkMeta},
   macToNodeMap: MacToNodeMap,
   nodeToLinksMap: NodeToLinksMap,
-  networkConfig: NetworkConfigType,
+  networkConfig: NetworkState,
   networkNodeHealth: NetworkHealth,
   networkNodeHealthPrometheus: NetworkNodeStats,
   networkLinkHealth: NetworkHealth,
@@ -91,7 +90,7 @@ class NetworkUI extends React.Component<Props, State> {
     invalidTopologyRedirect: false,
 
     // Selected network
-    networkConfig: {},
+    networkConfig: ({}: $Shape<NetworkState>),
     isReloading: false,
 
     // Topology maps
@@ -165,7 +164,7 @@ class NetworkUI extends React.Component<Props, State> {
 
   clearNetworkConfig() {
     this.setState({
-      networkConfig: ({}: NetworkConfigType),
+      networkConfig: ({}: $Shape<NetworkState>),
       isReloading: false,
       nodeMap: {},
       linkMap: {},

@@ -49,7 +49,7 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   return WirelessController;
 }
 
-export type WirelessControllerType = 'ruckus';
+export type WirelessControllerType = 'ruckus' | 'none';
 
 export type WirelessControllerAttributes = {|
   id: number,
@@ -59,4 +59,5 @@ export type WirelessControllerAttributes = {|
   password: string,
 |};
 
-export type WirelessController = Model<WirelessControllerAttributes>;
+export type WirelessController = WirelessControllerAttributes &
+  Model<WirelessControllerAttributes>;

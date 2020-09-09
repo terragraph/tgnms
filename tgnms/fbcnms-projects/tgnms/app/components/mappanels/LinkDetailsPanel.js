@@ -51,10 +51,9 @@ import type {
   NodeType as Node,
 } from '../../../shared/types/Topology';
 import type {
-  LinkMeta,
-  NetworkConfig,
   NetworkHealth,
-} from '../../contexts/NetworkContext';
+  NetworkState,
+} from '../../../shared/dto/NetworkState';
 import type {RouterHistory} from 'react-router-dom';
 
 const styles = theme => ({
@@ -81,10 +80,10 @@ type Props = {
   expanded: boolean,
   history: RouterHistory,
   ignitionEnabled: boolean,
-  link: Link & LinkMeta,
+  link: Link,
   networkName: string,
   nodeMap: {[string]: Node},
-  networkConfig: NetworkConfig,
+  networkConfig: NetworkState,
   networkLinkHealth: NetworkHealth,
   networkLinkMetrics: {},
   onClose: () => any,

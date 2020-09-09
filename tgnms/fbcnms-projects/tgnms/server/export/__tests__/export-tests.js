@@ -6,10 +6,6 @@
  */
 import express from 'express';
 import request from 'supertest';
-const {
-  getNetworkState,
-  getApiActiveControllerAddress,
-} = require('../../topology/model');
 const xml2js = require('xml2js');
 import type {TopologyType} from '../../../shared/types/Topology';
 jest.mock('../../models');
@@ -20,7 +16,14 @@ const backgroundRequestMock = jest.spyOn(
   require('../../apiservice/apiServiceClient').default,
   'backgroundRequest',
 );
-getApiActiveControllerAddress.mockReturnValue({api_ip: '', api_port: ''});
+const getNetworkState = jest.spyOn(
+  require('../../topology/model'),
+  'getNetworkState',
+);
+jest
+  .spyOn(require('../../topology/model'), 'getApiActiveControllerAddress')
+  .mockReturnValue({api_ip: '', api_port: ''});
+
 describe('KML export', () => {
   test('assert api endpoint /export/:networkName/sites returns correct results', async () => {
     const app = setupApp();

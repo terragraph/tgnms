@@ -5,20 +5,13 @@
  * @flow
  */
 
-type ControllerDto = {
-  api_ip: string,
-  api_port: number,
-  e2e_ip: ?string,
-  e2e_port: number,
-  id: number,
-};
+import type {E2EController} from '../NetworkState';
 
 export class NetworkDto {
   name: string;
-  backup: ControllerDto;
+  backup: ?E2EController;
   controller_online: boolean;
-  primary: ControllerDto;
-  prometheus_online: boolean;
+  primary: E2EController;
   site_overrides: Object;
 
   constructor(init: $ReadOnly<NetworkDto>) {
@@ -26,7 +19,6 @@ export class NetworkDto {
     this.backup = init.backup;
     this.controller_online = init.controller_online;
     this.primary = init.primary;
-    this.prometheus_online = init.prometheus_online;
     this.site_overrides = init.site_overrides;
   }
 }

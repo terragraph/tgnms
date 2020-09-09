@@ -24,7 +24,7 @@ export type BackgroundRequest = {
 
 export type Request = {|
   host: string,
-  port: string,
+  port: string | number,
   // TODO: rename this
   apiMethod: string,
   // axios request config

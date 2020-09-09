@@ -5,12 +5,7 @@
  */
 
 import {BinaryStarFsmStateValueMap as BinaryStarFsmState} from '../../shared/types/Controller';
-
-const HAPeerType = {
-  PRIMARY: 'PRIMARY',
-  BACKUP: 'BACKUP',
-  ERROR: 'ERROR',
-};
+import {HAPeerType} from '../../shared/dto/NetworkState';
 
 function determineActiveController(bStarStatePrimary, bStarStateBackup) {
   const haState = {active: HAPeerType.PRIMARY};

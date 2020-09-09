@@ -5,9 +5,12 @@
  * @flow strict-local
  */
 
-import {Model as _Model} from 'sequelize';
+import {Model} from 'sequelize';
 import type Sequelize, {DataTypes as DataTypesType} from 'sequelize';
-import type {MapProfileAttributes} from './mapProfile';
+import type {Controller} from './controller';
+import type {MapProfile} from './mapProfile';
+import type {SiteType} from '../../shared/types/Topology';
+import type {WirelessController} from './wirelessController';
 
 export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
   const Topology = sequelize.define(
@@ -82,12 +85,18 @@ export type TopologyAttributes = {|
   name: string,
   primary_controller: number,
   backup_controller: ?number,
-  site_overrides: ?string,
+  site_overrides: Array<SiteType>,
   wireless_controller: ?number,
   offline_whitelist: ?{
     links: {[string]: boolean},
     nodes: {[string]: boolean},
   },
   map_profile_id: ?number,
-  map_profile: ?MapProfileAttributes,
+  //associations
+  primary: Controller,
+  backup: Controller,
+  wac: WirelessController,
+  map_profile: MapProfile,
 |};
+
+export type Topology = TopologyAttributes & Model<TopologyAttributes>;

@@ -30,6 +30,9 @@ export function getSitesAsKML(networkName: string) {
   const xmlAsJson = {kml: [{Document: []}]};
   const networkState = getNetworkState(networkName);
   try {
+    if (!networkState) {
+      return null;
+    }
     const sites = networkState.topology.sites;
     sites.forEach(site => {
       const placemark = {

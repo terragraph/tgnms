@@ -68,6 +68,8 @@ export type LinkType = {
   a_node_mac: string,
   z_node_mac: string,
   is_backup_cn_link?: boolean,
+  // node.js decorates the link with this
+   _meta_: {angle: number, distance: number}
 };
 
 export type ConfigType = {|channel: number|};

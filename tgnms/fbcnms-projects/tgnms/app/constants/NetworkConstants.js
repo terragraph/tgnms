@@ -11,11 +11,6 @@ export const TopologyElementType = {
   SITE: 'site',
 };
 
-export const WAC_TYPES = Object.freeze({
-  none: 'none',
-  ruckus: 'ruckus',
-});
-
 // At a PER of 1e-3, 6.1dB is needed to support MCS2 and 13dB for MCS9
 export const SNR_THRESHOLD_MCS2 = 6.1;
 export const SNR_THRESHOLD_MCS9 = 13;

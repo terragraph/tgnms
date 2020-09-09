@@ -23,6 +23,7 @@ import {
 } from '../../../../tests/mapHelpers';
 
 import type {Props} from '../SitesLayer';
+import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
 
 afterEach(cleanup);
 
@@ -32,7 +33,7 @@ const commonProps: Props = {
   overlay: 'mock',
   selectedSites: {},
   nearbyNodes: {},
-  topologyConfig: {},
+  topologyConfig: ({}: $Shape<TopologyConfig>),
   ctrlVersion: 'RELEASE_M45_PRE',
   ...buildTopologyMaps(defaultTopology),
   onPlannedSiteMoved: jest.fn(),

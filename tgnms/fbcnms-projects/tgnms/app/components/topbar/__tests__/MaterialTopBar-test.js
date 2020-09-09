@@ -14,10 +14,11 @@ import NetworkListContext from '../../../contexts/NetworkListContext';
 import {
   TestApp,
   initWindowConfig,
-  mockNetworkConfig,
+  mockNetworkInstanceConfig,
   renderWithRouter,
 } from '../../../tests/testHelpers';
 import {cleanup, fireEvent} from '@testing-library/react';
+import type {NetworkList} from '../../../../shared/dto/NetworkState';
 
 beforeEach(() => {
   initWindowConfig();
@@ -70,7 +71,7 @@ describe('Network Menu', () => {
       getNetworkName: () => '',
       // changeNetworkName is a terrible name for what this actually does
       changeNetworkName: name => name,
-      networkList: {},
+      networkList: ({}: $Shape<NetworkList>),
       ...listContextValue,
     };
     return (
@@ -98,8 +99,8 @@ describe('Network Menu', () => {
       <NetworkMenuWrapper
         listContextValue={{
           networkList: {
-            'Network A': mockNetworkConfig(),
-            'Network B': mockNetworkConfig(),
+            'Network A': mockNetworkInstanceConfig(),
+            'Network B': mockNetworkInstanceConfig(),
           },
         }}>
         <MaterialTopBar />

@@ -194,7 +194,7 @@ function mockNode(overrides?: $Shape<NodeType>): NodeType {
   };
 }
 
-function mockLink(overrides?: $Shape<LinkType>): LinkType {
+function mockLink(overrides?: $Shape<LinkType>): $Shape<LinkType> {
   return {
     name: 'link-1',
     a_node_name: 'node-1',

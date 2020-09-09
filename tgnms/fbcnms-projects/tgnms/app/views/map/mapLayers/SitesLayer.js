@@ -27,12 +27,11 @@ import type {
   NearbyNodes,
   TopologyScanInfo,
 } from '../../../components/mappanels/MapPanelTypes';
+import type {NodeMap, SiteToNodesMap} from '../../../contexts/NetworkContext';
 import type {
-  NodeMap,
   OfflineWhiteListType,
-  SiteToNodesMap,
   TopologyConfig,
-} from '../../../contexts/NetworkContext';
+} from '../../../../shared/dto/NetworkState';
 import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
 import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
 import type {TopologyType} from '../../../../shared/types/Topology';
@@ -78,7 +77,7 @@ export type Props = {
   ctrlVersion: string,
   selectedSites: {[string]: string},
   onSelectSiteChange: string => any,
-  offlineWhitelist: OfflineWhiteListType,
+  offlineWhitelist: ?OfflineWhiteListType,
   nodeMap?: NodeMap,
   siteToNodesMap?: SiteToNodesMap,
   plannedSite?: ?PlannedSite,

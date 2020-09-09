@@ -112,13 +112,15 @@ export function processData(
   const prometheusResponseList = prometheusResponse.data.result;
   const networkState = getNetworkState(topologyName);
   const linkMap = {};
-  networkState.topology.links.forEach(link => {
-    linkMap[formatPrometheusLabel(link.name)] = link.name;
-  });
   const nodeMap = {};
-  networkState.topology.nodes.forEach(node => {
-    nodeMap[formatPrometheusLabel(node.name)] = node.name;
-  });
+  if (networkState != null) {
+    networkState.topology.links.forEach(link => {
+      linkMap[formatPrometheusLabel(link.name)] = link.name;
+    });
+    networkState.topology.nodes.forEach(node => {
+      nodeMap[formatPrometheusLabel(node.name)] = node.name;
+    });
+  }
   // If the prometheus query has valid data, return an Object
   // with the name as the key, and fix linkName and nodeName
   // to be in readable form. Otherwise return empty Object
