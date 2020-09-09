@@ -33,6 +33,7 @@ class BuildingsLayer extends React.Component<Props> {
     return (
       <Layer
         id="3d-buildings"
+        before="link-normal"
         sourceId="composite"
         sourceLayer="building"
         filter={['==', 'extrude', 'true']}
