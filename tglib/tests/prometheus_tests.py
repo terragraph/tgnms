@@ -66,6 +66,9 @@ class PrometheusClientTests(asynctest.TestCase):
 
     def test_format_query_ops(self) -> None:
         labels = {"foo": "bar"}
+        query = ops.abs(self.client.format_query("metric", labels))
+        expected_query = 'abs(metric{foo="bar"})'
+        self.assertEqual(query, expected_query)
         query = ops.avg_over_time(self.client.format_query("metric", labels), "24h")
         expected_query = 'avg_over_time(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
@@ -75,14 +78,38 @@ class PrometheusClientTests(asynctest.TestCase):
         query = ops.delta(self.client.format_query("metric", labels), "24h")
         expected_query = 'delta(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
+        query = ops.diff_on(
+            self.client.format_query("metric_1", labels),
+            self.client.format_query("metric_2", labels),
+            "linkName",
+        )
+        expected_query = 'metric_1{foo="bar"} - on (linkName) metric_2{foo="bar"}'
+        self.assertEqual(query, expected_query)
+        query = ops.max_by(self.client.format_query("metric", labels), "linkName")
+        expected_query = 'max by (linkName) (metric{foo="bar"})'
+        self.assertEqual(query, expected_query)
+        query = ops.min_by(self.client.format_query("metric", labels), "linkName")
+        expected_query = 'min by (linkName) (metric{foo="bar"})'
+        self.assertEqual(query, expected_query)
         query = ops.max_over_time(self.client.format_query("metric", labels), "24h")
         expected_query = 'max_over_time(metric{foo="bar"} [24h])'
+        self.assertEqual(query, expected_query)
+        query = ops.quantile_over_time(
+            self.client.format_query("metric", labels), "24h", 0.75
+        )
+        expected_query = 'quantile_over_time(0.75, metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
         query = ops.rate(self.client.format_query("metric", labels), "24h")
         expected_query = 'rate(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
         query = ops.resets(self.client.format_query("metric", labels), "24h")
         expected_query = 'resets(metric{foo="bar"} [24h])'
+        self.assertEqual(query, expected_query)
+        query = ops.sum_by(self.client.format_query("metric", labels), "linkName")
+        expected_query = 'sum by (linkName) (metric{foo="bar"})'
+        self.assertEqual(query, expected_query)
+        query = ops.sum_over_time(self.client.format_query("metric", labels), "24h")
+        expected_query = 'sum_over_time(metric{foo="bar"} [24h])'
         self.assertEqual(query, expected_query)
 
     @asynctest.patch("time.time", return_value=100)

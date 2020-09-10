@@ -39,12 +39,21 @@ consts.site_name = "siteName"
 
 # Built-in Prometheus query transformation operators/functions
 ops = SimpleNamespace()
+ops.abs = lambda query: f"abs({query})"
 ops.avg_over_time = lambda query, interval: f"avg_over_time({query} [{interval}])"
 ops.count_over_time = lambda query, interval: f"count_over_time({query} [{interval}])"
 ops.delta = lambda query, interval: f"delta({query} [{interval}])"
+ops.diff_on = lambda query_1, query_2, consts: f"{query_1} - on ({consts}) {query_2}"
+ops.max_by = lambda query, consts: f"max by ({consts}) ({query})"
+ops.min_by = lambda query, consts: f"min by ({consts}) ({query})"
 ops.max_over_time = lambda query, interval: f"max_over_time({query} [{interval}])"
+ops.quantile_over_time = lambda query, interval, percentile: (
+    f"quantile_over_time({percentile}, {query} [{interval}])"
+)
 ops.rate = lambda query, interval: f"rate({query} [{interval}])"
 ops.resets = lambda query, interval: f"resets({query} [{interval}])"
+ops.sum_by = lambda query, consts: f"sum by ({consts}) ({query})"
+ops.sum_over_time = lambda query, interval: f"sum_over_time({query} [{interval}])"
 
 
 @dataclasses.dataclass
