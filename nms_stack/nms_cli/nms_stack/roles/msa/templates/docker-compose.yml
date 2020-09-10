@@ -72,6 +72,27 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  scan_service:
+    image: secure.cxl-terragraph.com:443/scan_service:stable
+    env_file:
+      - {{ msa_gfs_path }}/env/scan_service.env
+{% if keycloak_enabled %}
+      - {{ msa_gfs_path }}/env/scan_service_auth.env
+{% endif %}
+    volumes:
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/scan_service/config.json
+      - {{ msa_gfs_path }}/config/scan_service/alembic.ini:/usr/local/scan_service/alembic.ini
+      - {{ msa_gfs_path }}/config/scan_service/service_config.json:/usr/local/scan_service/service_config.json
+      - {{ msa_gfs_path }}/config/hardware_config.json:/usr/local/scan_service/hardware_config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "alembic upgrade head && scan_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
   topology_service:
     image: secure.cxl-terragraph.com:443/topology_service:stable
     env_file:
