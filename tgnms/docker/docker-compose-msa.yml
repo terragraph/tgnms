@@ -20,6 +20,21 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  network_health_service:
+    image: secure.cxl-terragraph.com:443/network_health_service:latest
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/network_health_service/config.json
+      - ./docker_volumes/network_health_service/service_config.json:/usr/local/network_health_service/service_config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < network_health_service.sql && network_health_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
   network_test:
     image: secure.cxl-terragraph.com:443/network_test:latest
     env_file:

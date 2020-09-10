@@ -1,0 +1,107 @@
+{
+  "num_consumers": 5,
+  "pipelines": {
+    "pipeline 1": {
+      "period": 21600,
+      "jobs": [
+        {
+          "name": "generate_network_health_labels",
+          "enabled": true
+        }
+      ]
+    }
+  },
+  "prometheus_hold_time": 30,
+  "metrics": {
+    "analytics_alignment_status": {
+      "interval_s": 300,
+      "lower_threshold": 95.0,
+      "higher_threshold": 99.0
+    },
+    "topology_link_is_online": {
+      "interval_s": 30,
+      "lower_threshold": 99.5,
+      "higher_threshold": 99.9
+    },
+    "link_alive": {
+      "interval_s": null,
+      "lower_threshold": 99.5,
+      "higher_threshold": 99.9
+    },
+    "link_avail_for_data": {
+      "interval_s": null,
+      "lower_threshold": 99.5,
+      "higher_threshold": 99.9
+    },
+    "tx_byte": {
+      "interval_s": 30,
+      "lower_threshold": 0.8,
+      "higher_threshold": 1.2
+    },
+    "analytics_foliage_factor": {
+      "interval_s": 30,
+      "lower_threshold": 0.5,
+      "higher_threshold": 0.85
+    },
+    "drs_cn_egress_routes_total": {
+      "interval_s": 60,
+      "lower_threshold": 0.5,
+      "higher_threshold": 10.0
+    },
+    "tx_ok": {
+      "interval_s": 1,
+      "lower_threshold": 250000000.0,
+      "higher_threshold": 300000000.0
+    },
+    "link_avail": {
+      "interval_s": null,
+      "lower_threshold": 6.0,
+      "higher_threshold": 12.0
+    },
+    "mcs": {
+      "interval_s": 1,
+      "lower_threshold": 6.0,
+      "higher_threshold": 9.0
+    },
+    "mcs_diff": {
+      "interval_s": 1,
+      "lower_threshold": 2.0,
+      "higher_threshold": 4.0
+    },
+    "tx_power_diff": {
+      "interval_s": 1,
+      "lower_threshold": 3.0,
+      "higher_threshold": 6.0
+    },
+    "analytics_cn_power_status": {
+      "interval_s": 300,
+      "lower_threshold": 95.0,
+      "higher_threshold": 99.0
+    },
+    "topology_node_is_online": {
+      "interval_s": 30,
+      "lower_threshold": 99.5,
+      "higher_threshold": 99.9
+    },
+    "udp_pinger_loss_ratio": {
+      "interval_s": 30,
+      "lower_threshold": 99.5,
+      "higher_threshold": 99.9
+    },
+    "node_online": {
+      "interval_s": 30,
+      "lower_threshold": 99.5,
+      "higher_threshold": 99.9
+    },
+    "udp_pinger_rtt_avg": {
+      "interval_s": null,
+      "lower_threshold": 50.0,
+      "higher_threshold": 70.0
+    },
+    "interference": {
+      "interval_s": null,
+      "lower_threshold": -3.0,
+      "higher_threshold": 3.0
+    }
+  }
+}
