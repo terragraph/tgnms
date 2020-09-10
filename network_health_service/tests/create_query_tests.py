@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import json
 import unittest
 
 from network_health_service.stats.fetch_stats import get_link_queries, get_node_queries
-from tglib.clients.prometheus_client import ops
+from network_health_service.stats.metrics import Metrics
 
 
 class CreateQueryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        with open("tests/metrics.json") as f:
+            metrics = json.load(f)
+            Metrics.update_metrics(metrics, prometheus_hold_time=30)
+
     def test_get_link_queries(self) -> None:
         expected_link_queries = {
             "analytics_alignment_status": (
@@ -58,7 +64,7 @@ class CreateQueryTests(unittest.TestCase):
                 "[3599s:1s])"
             ),
         }
-        link_queries = get_link_queries("network_A")
+        link_queries = get_link_queries("network_A", 3600)
         self.assertDictEqual(link_queries, expected_link_queries)
 
         expected_node_queries = {
@@ -66,6 +72,9 @@ class CreateQueryTests(unittest.TestCase):
                 "sum_over_time("
                 '(analytics_cn_power_status{network="network_A"} == bool 3) '
                 "[3599s:30s])"
+            ),
+            "topology_node_is_online": (
+                'sum_over_time(topology_node_is_online{network="network_A"} [3600s])'
             ),
             "udp_pinger_loss_ratio": (
                 "sum_over_time("
@@ -81,5 +90,5 @@ class CreateQueryTests(unittest.TestCase):
                 'udp_pinger_rtt_avg{network="network_A",intervalSec="30"} [3600s])'
             ),
         }
-        node_queries = get_node_queries("network_A")
+        node_queries = get_node_queries("network_A", 3600)
         self.assertDictEqual(node_queries, expected_node_queries)

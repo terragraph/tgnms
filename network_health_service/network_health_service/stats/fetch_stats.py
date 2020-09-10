@@ -12,35 +12,56 @@ import aiohttp
 from tglib.clients.prometheus_client import PrometheusClient, consts, ops
 from tglib.exceptions import ClientRuntimeError
 
+from ..models import NodeAlignmentStatus, NodePowerStatus
+from .metrics import Metrics
 
-def get_link_queries(network_name: str) -> Dict[str, str]:
+
+def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     """Create PromQL queries for link metrics."""
     queries = {}
     labels: Dict[str, Any] = {consts.network: network_name}
 
     base_query = PrometheusClient.format_query("analytics_alignment_status", labels)
+    hold_time = min(
+        Metrics.prometheus_hold_time, Metrics.analytics_alignment_status.interval_s
+    )
     queries["analytics_alignment_status"] = ops.sum_over_time(
-        ops.min_by(f"{base_query} == bool 1", consts.link_name), "3599s:30s"
+        ops.min_by(
+            f"{base_query} == bool {NodeAlignmentStatus.TX_RX_HEALTHY.value}",
+            consts.link_name,
+        ),
+        f"{period_s - 1}s:{hold_time}s",
     )
 
     base_query = PrometheusClient.format_query("topology_link_is_online", labels)
+    hold_time = min(
+        Metrics.prometheus_hold_time, Metrics.topology_link_is_online.interval_s
+    )
     queries["topology_link_is_online"] = ops.sum_over_time(
-        ops.min_by(base_query, consts.link_name), "3599s:30s"
+        ops.min_by(base_query, consts.link_name), f"{period_s - 1}s:{hold_time}s"
     )
 
     base_query = PrometheusClient.format_query("tx_byte", labels)
     queries["tx_byte"] = ops.quantile_over_time(
-        ops.sum_by(base_query, consts.link_name), "3599s:30s", 0.75
+        ops.sum_by(base_query, consts.link_name),
+        f"{period_s - 1}s:{Metrics.tx_byte.interval_s}s",
+        0.75,
     )
 
     base_query = PrometheusClient.format_query("analytics_foliage_factor", labels)
+    hold_time = min(
+        Metrics.prometheus_hold_time, Metrics.analytics_foliage_factor.interval_s
+    )
     queries["analytics_foliage_factor"] = ops.quantile_over_time(
-        ops.abs(base_query), "3599s:30s", 0.75
+        ops.abs(base_query), f"{period_s - 1}s:{hold_time}s", 0.75
     )
 
     base_query = PrometheusClient.format_query("drs_cn_egress_routes_total", labels)
+    hold_time = min(
+        Metrics.prometheus_hold_time, Metrics.drs_cn_egress_routes_total.interval_s
+    )
     queries["drs_cn_egress_routes_total"] = ops.quantile_over_time(
-        ops.max_by(base_query, consts.link_name), "3599s:30s", 0.75
+        ops.max_by(base_query, consts.link_name), f"{period_s - 1}s:{hold_time}s", 0.75
     )
 
     # All stats below can be found using intervalSec label
@@ -48,17 +69,21 @@ def get_link_queries(network_name: str) -> Dict[str, str]:
 
     base_query = PrometheusClient.format_query("tx_ok", labels)
     queries["tx_ok"] = ops.quantile_over_time(
-        ops.sum_by(base_query, consts.link_name), "3599s:1s", 0.75
+        ops.sum_by(base_query, consts.link_name),
+        f"{period_s - 1}s:{Metrics.tx_ok.interval_s}s",
+        0.75,
     )
 
     base_query = PrometheusClient.format_query("link_avail", labels)
     queries["link_avail"] = ops.max_by(
-        ops.resets(base_query, "3600s"), consts.link_name
+        ops.resets(base_query, f"{period_s}s"), consts.link_name
     )
 
     base_query = PrometheusClient.format_query("mcs", labels)
     queries["mcs"] = ops.quantile_over_time(
-        ops.min_by(base_query, consts.link_name), "3599s:1s", 0.25
+        ops.min_by(base_query, consts.link_name),
+        f"{period_s - 1}s:{Metrics.mcs.interval_s}s",
+        0.25,
     )
 
     labels[consts.link_direction] = "A"
@@ -66,7 +91,9 @@ def get_link_queries(network_name: str) -> Dict[str, str]:
     labels[consts.link_direction] = "Z"
     query_Z = PrometheusClient.format_query("mcs", labels)
     queries["mcs_diff"] = ops.quantile_over_time(
-        ops.abs(ops.diff_on(query_A, query_Z, consts.link_name)), "3599s:1s", 0.75
+        ops.abs(ops.diff_on(query_A, query_Z, consts.link_name)),
+        f"{period_s - 1}s:{Metrics.mcs_diff.interval_s}s",
+        0.75,
     )
 
     labels[consts.link_direction] = "A"
@@ -74,35 +101,47 @@ def get_link_queries(network_name: str) -> Dict[str, str]:
     labels[consts.link_direction] = "Z"
     query_Z = PrometheusClient.format_query("tx_power", labels)
     queries["tx_power_diff"] = ops.quantile_over_time(
-        ops.abs(ops.diff_on(query_A, query_Z, consts.link_name)), "3599s:1s", 0.75
+        ops.abs(ops.diff_on(query_A, query_Z, consts.link_name)),
+        f"{period_s - 1}s:{Metrics.tx_power_diff.interval_s}s",
+        0.75,
     )
 
     return queries
 
 
-def get_node_queries(network_name: str) -> Dict[str, str]:
+def get_node_queries(network_name: str, period_s: int) -> Dict[str, str]:
     """Create PromQL queries for node metrics."""
     queries = {}
     labels: Dict[str, Any] = {consts.network: network_name}
 
     base_query = PrometheusClient.format_query("analytics_cn_power_status", labels)
-    queries["analytics_cn_power_status"] = ops.sum_over_time(
-        f"({base_query} == bool 3)", "3599s:30s"
+    hold_time = min(
+        Metrics.prometheus_hold_time, Metrics.analytics_cn_power_status.interval_s
     )
+    queries["analytics_cn_power_status"] = ops.sum_over_time(
+        f"({base_query} == bool {NodePowerStatus.LINK_ALIVE.value})",
+        f"{period_s - 1}s:{hold_time}s",
+    )
+
+    base_query = PrometheusClient.format_query("topology_node_is_online", labels)
+    queries["topology_node_is_online"] = ops.sum_over_time(base_query, f"{period_s}s")
 
     # All stats below can be found using intervalSec label
     labels[consts.data_interval_s] = 30
 
     base_query = PrometheusClient.format_query("udp_pinger_loss_ratio", labels)
     queries["udp_pinger_loss_ratio"] = ops.sum_over_time(
-        f"({base_query} >= bool 0.9)", "3599s:30s"
+        f"({base_query} >= bool 0.9)",
+        f"{period_s - 1}s:{Metrics.udp_pinger_loss_ratio.interval_s}s",
     )
 
     base_query = PrometheusClient.format_query("node_online", labels)
-    queries["node_online"] = ops.sum_over_time(base_query, "3600s")
+    queries["node_online"] = ops.sum_over_time(base_query, f"{period_s}s")
 
     base_query = PrometheusClient.format_query("udp_pinger_rtt_avg", labels)
-    queries["udp_pinger_rtt_avg"] = ops.quantile_over_time(base_query, "3600s", 0.75)
+    queries["udp_pinger_rtt_avg"] = ops.quantile_over_time(
+        base_query, f"{period_s}s", 0.75
+    )
 
     return queries
 
@@ -111,16 +150,17 @@ async def fetch_prometheus_stats(
     network_name: str, time_s: int, period_s: int, link_stats: Dict, node_stats: Dict
 ) -> None:
     """Fetch metrics for all links of the network from Prometheus."""
-    client = PrometheusClient(timeout=2)
+    client = PrometheusClient(timeout=60)
     coros = []
     metrics = []
-    link_queries = get_link_queries(network_name)
-    node_queries = get_node_queries(network_name)
+    link_queries = get_link_queries(network_name, period_s)
+    node_queries = get_node_queries(network_name, period_s)
 
     for metric, query in {**link_queries, **node_queries}.items():
         metrics.append(metric)
         coros.append(client.query_latest(query, time_s))
 
+    logging.info(f"Fetching Prometheus stats for {network_name}...")
     for metric, response in zip(
         metrics, await asyncio.gather(*coros, return_exceptions=True)
     ):
@@ -138,7 +178,7 @@ async def fetch_prometheus_stats(
             if metric in link_queries:
                 link_name = result["metric"][consts.link_name]
                 link_stats[network_name][link_name][metric] = float(value)
-            elif metric in node_queries:
+            if metric in node_queries:
                 node_name = result["metric"][consts.node_name]
                 node_stats[network_name][node_name][metric] = float(value)
 

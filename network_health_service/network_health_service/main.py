@@ -12,6 +12,8 @@ from typing import Any, Dict, NoReturn
 from tglib import ClientType, init
 
 from . import jobs
+from .routes import routes
+from .stats.metrics import Metrics
 
 
 @dataclasses.dataclass
@@ -75,6 +77,8 @@ async def async_main(config: Dict[str, Any]) -> None:
     logging.info("#### Starting the 'network_health_service' ####")
     logging.debug(f"service config: {config}")
 
+    Metrics.update_metrics(config["metrics"], config["prometheus_hold_time"])
+
     q: asyncio.Queue = asyncio.Queue()
 
     # Create producer coroutines
@@ -99,5 +103,10 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
+        {
+            ClientType.API_SERVICE_CLIENT,
+            ClientType.MYSQL_CLIENT,
+            ClientType.PROMETHEUS_CLIENT,
+        },
+        routes,
     )
