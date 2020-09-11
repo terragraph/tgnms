@@ -17,7 +17,11 @@ import {HEALTH_CODES} from '../../constants/HealthConstants';
 import {makeStyles} from '@material-ui/styles';
 
 import type {ExecutionResultDataType} from '../../../shared/dto/NetworkTestTypes';
-import type {LinkHealthType} from './NetworkTestTypes';
+
+export type HealthType = {
+  id: number,
+  health: number,
+};
 
 const rowHeight = 50;
 
@@ -103,10 +107,10 @@ export default function HealthGroupDropDown(props: Props) {
         key: 'health',
         label: '',
         width: 40,
-        render: (linkHealth: Array<LinkHealthType>) =>
-          linkHealth && (
+        render: (assetHealth: Array<HealthType>) =>
+          assetHealth && (
             <div className={classes.healthCell}>
-              {linkHealth.map(result => (
+              {assetHealth.map(result => (
                 <HealthIndicator
                   key={result.id}
                   health={

@@ -6,7 +6,7 @@
  */
 
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import HealthGroupDropDown from '../../../views/network_test/HealthGroupDropDown';
+import HealthGroupDropDown from '../../common/HealthGroupDropDown';
 import IconButton from '@material-ui/core/IconButton';
 import LinkInterference from './LinkInterference';
 import NetworkContext from '../../../contexts/NetworkContext';
@@ -25,7 +25,7 @@ import type {
   ExecutionResultDataType,
   InterferenceGroupType,
 } from '../../../../shared/dto/ScanServiceTypes';
-import type {HealthRowType} from '../../../views/network_test/HealthGroupDropDown';
+import type {HealthRowType} from '../../common/HealthGroupDropDown';
 
 export const SCAN_INTERFERENCE_CUTOFFS = {
   STRONG: 0,

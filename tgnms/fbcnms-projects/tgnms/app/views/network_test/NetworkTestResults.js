@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import HealthGroupDropDown from './HealthGroupDropDown';
+import HealthGroupDropDown from '../../components/common/HealthGroupDropDown';
 import HealthHistogram from './HealthHistogram';
 import NetworkContext from '../../contexts/NetworkContext';
 import Typography from '@material-ui/core/Typography';
@@ -21,7 +21,7 @@ import {
 import {makeStyles} from '@material-ui/styles';
 
 import type {AssetTestResultType} from './NetworkTestTypes';
-import type {HealthRowType} from './HealthGroupDropDown';
+import type {HealthRowType} from '../../components/common/HealthGroupDropDown';
 
 type Props = {|
   executionResults: Array<AssetTestResultType>,

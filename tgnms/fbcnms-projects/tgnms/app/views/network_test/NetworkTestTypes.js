@@ -34,11 +34,6 @@ export type AssetTestResultType = {|
   results: Array<ExecutionResultDataType>,
 |};
 
-export type LinkHealthType = {
-  id: number,
-  health: number,
-};
-
 export type HealthExecutionType = {
   health: $Values<typeof HEALTH_CODES>,
   executions: Array<AssetTestResultType>,
