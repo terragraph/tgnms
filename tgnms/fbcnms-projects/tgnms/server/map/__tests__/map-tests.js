@@ -92,7 +92,7 @@ describe('GET /annotations/:network/:group', () => {
   });
 });
 
-describe('POST /annotations/:network/', () => {
+describe('PUT /annotations/:network/', () => {
   test('if group does not exist, it is created', async () => {
     await seedTopology();
     const shouldBeNull = await map_annotation_group.findOne({
@@ -100,7 +100,7 @@ describe('POST /annotations/:network/', () => {
     });
     expect(shouldBeNull).toBe(null);
     const response = await request(setupApp())
-      .post('/map/annotations/test-network')
+      .put('/map/annotations/test-network')
       .send({name: 'test_group', geojson: '{}'})
       .expect(200);
 
@@ -126,7 +126,7 @@ describe('POST /annotations/:network/', () => {
       }: $Shape<MapAnnotationGroupAttributes>),
     );
     const response = await request(setupApp())
-      .post('/map/annotations/test-network')
+      .put('/map/annotations/test-network')
       .send({
         id: group.id,
         name: 'test_group_renamed',

@@ -43,7 +43,7 @@ export async function saveAnnotationGroup({
   networkName: string,
   group: SaveAnnotationGroupRequest,
 |}) {
-  const response = await axios.post<
+  const response = await axios.put<
     SaveAnnotationGroupRequest,
     MapAnnotationGroup,
   >(`/map/annotations/${networkName}`, group);

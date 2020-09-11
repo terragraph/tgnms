@@ -28,7 +28,7 @@ router.get('/annotations/:network/:group', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.post('/annotations/:network', (req, res) => {
+router.put('/annotations/:network', (req, res) => {
   const {network} = req.params;
   if (!req.body?.geojson) {
     return res.status(400).send();
