@@ -13,79 +13,75 @@ import React from 'react';
 import SearchBar from '../common/SearchBar';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
+import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
-import {withStyles} from '@material-ui/core/styles';
 
 import type {Feature, Result} from './MapboxSearchTypes';
 
-const styles = {
+const useStyles = makeStyles(() => ({
   resultsPaper: {
     position: 'absolute',
     zIndex: 10,
     marginTop: 4,
   },
-};
+  resultsList: {
+    overflow: 'auto',
+    maxHeight: 300,
+  },
+}));
 
 type Props = {
-  classes: {[string]: string},
   accessToken: string,
   mapRef: ?mapboxgl.Map,
   onSelectFeature: Feature => any,
   getCustomResults: string => any,
   shouldSearchPlaces: (Array<Result>) => any,
   onRenderResult: (Object, () => any) => any,
-  apiEndpoint: string,
-  searchDebounceMs: number,
+  apiEndpoint?: string,
+  searchDebounceMs?: number,
 };
 
-type State = {
-  value: string,
-  isLoading: boolean,
-  results: Array<{feature: Object}>,
-};
+export default function MapboxSearchBar(props: Props) {
+  const classes = useStyles();
+  const {
+    getCustomResults,
+    shouldSearchPlaces,
+    accessToken,
+    mapRef,
+    onSelectFeature,
+    onRenderResult,
+  } = props;
 
-class MapboxSearchBar extends React.Component<Props, State> {
-  state = {
-    value: '',
-    isLoading: false,
-    results: [], // {feature: obj}, or custom structures via getCustomResults()
-  };
+  const apiEndpoint =
+    props.apiEndpoint ?? 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
+  const searchDebounceMs = props.searchDebounceMs ?? 200;
 
-  static defaultProps = {
-    apiEndpoint: 'https://api.mapbox.com/geocoding/v5/mapbox.places/',
-    searchDebounceMs: 200,
-  };
+  const [value, setValue] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  getResults = query => {
-    // Fetch results for the given query
-    const {getCustomResults, shouldSearchPlaces} = this.props;
+  // {feature: obj}, or custom structures via getCustomResults()
+  const [results, setResults] = React.useState([]);
 
+  const getResults = query => {
     // Fetch any custom results first
-    let results = [];
+    let tempResults = [];
     if (getCustomResults) {
-      results = getCustomResults(query);
-      if (shouldSearchPlaces && !shouldSearchPlaces(results)) {
-        // Don't search for default place results?
-        this.setState({results});
-        return;
+      tempResults = getCustomResults(query);
+      if (shouldSearchPlaces && !shouldSearchPlaces(tempResults)) {
+        return setResults(tempResults);
       }
     }
-
-    // Fetch default place results (if needed)
-    this.setState({results, isLoading: true}, () =>
-      this.mapboxPlacesSearch(query),
-    );
+    setResults(tempResults);
+    setIsLoading(true);
+    mapboxPlacesSearch(query);
   };
 
-  mapboxPlacesSearch = query => {
-    // Send an API request for the given query
-    const {apiEndpoint, accessToken} = this.props;
-
+  const mapboxPlacesSearch = query => {
     // Construct GET request
     // See: https://www.mapbox.com/api-documentation/#search-for-places
     const params = {
       access_token: accessToken,
-      ...this.getProximity(),
+      ...getProximity(),
     };
     const encodedParams = objectEntriesTypesafe<string, string>(params)
       .map(kv => kv.map(encodeURIComponent).join('='))
@@ -100,49 +96,43 @@ class MapboxSearchBar extends React.Component<Props, State> {
         // Store the results
         const {features} = response.data;
         if (features) {
-          this.setState({
-            results: [
-              ...this.state.results,
-              ...features.map(feature => ({feature})),
-            ],
-            isLoading: false,
-          });
+          setResults([...results, ...features.map(feature => ({feature}))]);
+          setIsLoading(false);
         }
       })
       .catch(_err => {
         // TODO handle this better
-        this.setState({results: [], isLoading: false});
+        setResults([]);
+        setIsLoading(false);
       });
   };
 
-  getProximity() {
+  const getProximity = () => {
     // Return proximity arguments based on the current map center and zoom level
     // (or none if not applicable)
-    const {mapRef} = this.props;
     if (mapRef && mapRef.getZoom() > 9) {
       const center = mapRef.getCenter().wrap();
       return {proximity: [center.lng, center.lat].join(',')};
     }
     return {};
-  }
+  };
 
-  handleInput = e => {
+  const handleInput = e => {
     // Handle an input value update
-    this.setState({value: e.target.value});
+    setValue(e.target.value);
   };
 
-  handleClearInput = () => {
+  const handleClearInput = () => {
     // Clear the current input and results
-    this.setState({value: '', results: [], isLoading: false});
+    setValue('');
+    setResults([]);
+    setIsLoading(false);
   };
 
-  renderResult = result => {
-    // Render a single result
-    const {onSelectFeature, onRenderResult} = this.props;
-
+  const renderResult = result => {
     // Use custom renderer (if applicable)
     if (onRenderResult) {
-      const listItem = onRenderResult(result, this.handleClearInput.bind(this));
+      const listItem = onRenderResult(result, handleClearInput.bind(this));
       if (listItem !== null) {
         return listItem;
       }
@@ -170,38 +160,31 @@ class MapboxSearchBar extends React.Component<Props, State> {
           onSelectFeature(result.feature);
 
           // Clear the search field
-          this.handleClearInput();
+          handleClearInput();
         }}>
         <ListItemText primary={primaryText} secondary={secondaryText} />
       </ListItem>
     );
   };
 
-  render() {
-    const {classes, searchDebounceMs} = this.props;
-    const {value, isLoading, results} = this.state;
+  return (
+    <div data-testid="mapbox-search-bar">
+      <SearchBar
+        value={value}
+        onChange={handleInput}
+        onClearInput={handleClearInput}
+        onSearch={getResults}
+        isLoading={isLoading}
+        debounceMs={searchDebounceMs}
+      />
 
-    return (
-      <div>
-        <SearchBar
-          value={value}
-          onChange={this.handleInput}
-          onClearInput={this.handleClearInput}
-          onSearch={this.getResults}
-          isLoading={isLoading}
-          debounceMs={searchDebounceMs}
-        />
-
-        {results.length > 0 ? (
-          <Paper className={classes.resultsPaper} elevation={2}>
-            <List component="nav">
-              {results.map(result => this.renderResult(result))}
-            </List>
-          </Paper>
-        ) : null}
-      </div>
-    );
-  }
+      {results.length > 0 ? (
+        <Paper className={classes.resultsPaper} elevation={2}>
+          <List className={classes.resultsList} component="nav">
+            {results.map(result => renderResult(result))}
+          </List>
+        </Paper>
+      ) : null}
+    </div>
+  );
 }
-
-export default withStyles(styles)(MapboxSearchBar);

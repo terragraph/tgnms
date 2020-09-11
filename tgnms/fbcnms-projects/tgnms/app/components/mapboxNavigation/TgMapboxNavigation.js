@@ -77,11 +77,12 @@ export default function TgMapboxNavigation(props: Props) {
 
   const searchInMap = React.useCallback((query, map, filter) => {
     // Performs a case-insensitive substring lookup in the given map
-    // TODO - return multiple results?
     if (map.hasOwnProperty(query)) {
       // Has exact match, return it now
-      return {el: map[query], matchIdx: 0, matchLen: query.length};
+      return [{el: map[query], matchIdx: 0, matchLen: query.length}];
     }
+
+    const results = [];
 
     for (const key in map) {
       if (map.hasOwnProperty(key)) {
@@ -90,11 +91,11 @@ export default function TgMapboxNavigation(props: Props) {
         }
         const idx = key.toLowerCase().indexOf(query);
         if (idx >= 0) {
-          return {el: map[key], matchIdx: idx, matchLen: query.length};
+          results.push({el: map[key], matchIdx: idx, matchLen: query.length});
         }
       }
     }
-    return {};
+    return results;
   }, []);
 
   const getCustomResults = React.useCallback(
@@ -123,76 +124,78 @@ export default function TgMapboxNavigation(props: Props) {
 
       // Search for matching nodes/links/sites
       if (siteMap) {
-        const {el, matchIdx, matchLen} = searchInMap(query, siteMap);
-        if (el) {
-          const location = convertType<Site>(el).location;
-          addMatch({
-            type: TopologyElementType.SITE,
-            name: el.name,
-            label: el.name,
-            location,
-            matchIdx,
-            matchLen,
-          });
-        }
+        searchInMap(query, siteMap).forEach(({el, matchIdx, matchLen}) => {
+          if (el) {
+            const location = convertType<Site>(el).location;
+            addMatch({
+              type: TopologyElementType.SITE,
+              name: el.name,
+              label: el.name,
+              location,
+              matchIdx,
+              matchLen,
+            });
+          }
+        });
       }
       if (nodeMap) {
-        const {el, matchIdx, matchLen} = searchInMap(query, nodeMap);
-        if (el) {
-          const location =
-            siteMap[convertType<NodeType>(el).site_name].location;
-          addMatch({
-            type: TopologyElementType.NODE,
-            name: el.name,
-            label: el.name,
-            location,
-            matchIdx,
-            matchLen,
-          });
-        }
-
-        // Match by MAC address
-
-        const macMatch = objectValuesTypesafe<NodeType>(nodeMap).find(
-          node =>
-            node.mac_addr.toLowerCase() === query ||
-            (node.wlan_mac_addrs &&
-              node.wlan_mac_addrs.find(mac => mac.toLowerCase() === query)),
-        );
-        if (macMatch) {
-          const location = siteMap[macMatch.site_name].location;
-          addMatch({
-            type: TopologyElementType.NODE,
-            name: macMatch.name,
-            label: originalQuery,
-            location,
-            matchIdx: 0,
-            matchLen: originalQuery.length,
-          });
-        }
-
-        // Match by IP address
-        const ipMatch = statusReports
-          ? Object.keys(statusReports).find(
-              mac => statusReports[mac].ipv6Address.toLowerCase() === query,
-            )
-          : null;
-        if (ipMatch) {
-          const ipMatchNode = objectValuesTypesafe<NodeType>(nodeMap).find(
-            node => node.mac_addr === ipMatch,
-          );
-          if (ipMatchNode) {
-            const location = siteMap[ipMatchNode.site_name].location;
+        searchInMap(query, nodeMap).forEach(({el, matchIdx, matchLen}) => {
+          if (el) {
+            const location =
+              siteMap[convertType<NodeType>(el).site_name].location;
             addMatch({
               type: TopologyElementType.NODE,
-              name: ipMatchNode.name,
+              name: el.name,
+              label: el.name,
+              location,
+              matchIdx,
+              matchLen,
+            });
+          }
+
+          // Match by MAC address
+
+          const macMatch = objectValuesTypesafe<NodeType>(nodeMap).find(
+            node =>
+              node.mac_addr.toLowerCase() === query ||
+              (node.wlan_mac_addrs &&
+                node.wlan_mac_addrs.find(mac => mac.toLowerCase() === query)),
+          );
+          if (macMatch) {
+            const location = siteMap[macMatch.site_name].location;
+            addMatch({
+              type: TopologyElementType.NODE,
+              name: macMatch.name,
               label: originalQuery,
               location,
               matchIdx: 0,
               matchLen: originalQuery.length,
             });
           }
-        }
+
+          // Match by IP address
+          const ipMatch = statusReports
+            ? Object.keys(statusReports).find(
+                mac => statusReports[mac].ipv6Address.toLowerCase() === query,
+              )
+            : null;
+          if (ipMatch) {
+            const ipMatchNode = objectValuesTypesafe<NodeType>(nodeMap).find(
+              node => node.mac_addr === ipMatch,
+            );
+            if (ipMatchNode) {
+              const location = siteMap[ipMatchNode.site_name].location;
+              addMatch({
+                type: TopologyElementType.NODE,
+                name: ipMatchNode.name,
+                label: originalQuery,
+                location,
+                matchIdx: 0,
+                matchLen: originalQuery.length,
+              });
+            }
+          }
+        });
       }
       if (linkMap) {
         // First, exclude wired links
@@ -203,31 +206,34 @@ export default function TgMapboxNavigation(props: Props) {
             convertType<LinkType & LinkMeta>(link).link_type !==
             LinkTypeValueMap.ETHERNET,
         );
-        if (!searchResult.el) {
+        if (searchResult.length === 0) {
           // No results, so retry with wired links
           searchResult = searchInMap(query, linkMap);
         }
 
-        const {el, matchIdx, matchLen} = searchResult;
-        if (el) {
-          // Fake location = midpoint of link
-          const aNode = nodeMap[convertType<LinkType>(el).a_node_name];
-          const zNode = nodeMap[convertType<LinkType>(el).z_node_name];
-          const aLocation = siteMap[aNode.site_name].location;
-          const zLocation = siteMap[zNode.site_name].location;
-          const location = {...aLocation};
-          location.latitude = (aLocation.latitude + zLocation.latitude) / 2;
-          location.longitude = (aLocation.longitude + zLocation.longitude) / 2;
-          addMatch({
-            type: TopologyElementType.LINK,
-            name: el.name,
-            label: el.name,
-            location,
-            matchIdx,
-            matchLen,
-          });
-        }
+        searchResult.forEach(({el, matchIdx, matchLen}) => {
+          if (el) {
+            // Fake location = midpoint of link
+            const aNode = nodeMap[convertType<LinkType>(el).a_node_name];
+            const zNode = nodeMap[convertType<LinkType>(el).z_node_name];
+            const aLocation = siteMap[aNode.site_name].location;
+            const zLocation = siteMap[zNode.site_name].location;
+            const location = {...aLocation};
+            location.latitude = (aLocation.latitude + zLocation.latitude) / 2;
+            location.longitude =
+              (aLocation.longitude + zLocation.longitude) / 2;
+            addMatch({
+              type: TopologyElementType.LINK,
+              name: el.name,
+              label: el.name,
+              location,
+              matchIdx,
+              matchLen,
+            });
+          }
+        });
       }
+
       return matches;
     },
     [linkMap, nodeMap, searchInMap, siteMap, statusReports],
