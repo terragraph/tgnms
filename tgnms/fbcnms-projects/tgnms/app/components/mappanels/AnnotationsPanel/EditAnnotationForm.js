@@ -25,20 +25,22 @@ import {
 } from '../../../contexts/MapAnnotationContext';
 
 /**
- * Most customizable things on an annotation come from its GeoJSON Properties
+ * Most customizable things on an annotation come from its GeoJSON Properties.
+ * Be careful modifying these types, they're queried by mapbox-gl-js
+ * style expressions.
  */
 export type AnnotationProperties = {|
   name: string,
   showName: boolean,
-  color: ?string,
+  color: string,
   opacity: ?number,
 |};
 
 const defaultProperties: $Shape<AnnotationProperties> = {
   name: '',
   showName: false,
-  color: null,
-  opacity: null,
+  color: '',
+  opacity: 1.0,
 };
 
 const colorSize = 0.25;

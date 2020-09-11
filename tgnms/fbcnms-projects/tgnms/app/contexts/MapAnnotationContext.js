@@ -385,7 +385,12 @@ function mutateStyle(map, key, transform) {
 function getPropertyExp(property, fallback) {
   // gl-draw prefixes user_ to user-defined feature properties
   const drawProp = `user_${property}`;
-  return ['case', ['has', drawProp], ['get', drawProp], fallback];
+  return [
+    'case',
+    ['all', ['has', drawProp], ['to-boolean', ['get', drawProp]]],
+    ['get', drawProp],
+    fallback,
+  ];
 }
 
 export default context;
