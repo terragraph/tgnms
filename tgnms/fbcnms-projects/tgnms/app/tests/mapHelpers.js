@@ -6,6 +6,7 @@
  */
 
 import MapboxGlMock from 'mapbox-gl';
+import type {GeoFeatureCollection} from '@turf/turf';
 
 /**
  * Get the mapbox gl layer with the specified id
@@ -90,6 +91,22 @@ export function getPropValue(node: HTMLElement, propName: string) {
     return null;
   }
   return JSON.parse(attr);
+}
+
+export function getSourceFeatureCollection(
+  container: HTMLElement,
+  sourceId: string,
+): GeoFeatureCollection {
+  const source = getSourceById(container, sourceId);
+  if (!source) {
+    throw new Error(`No geojson source found with id: ${sourceId}`);
+  }
+  const geoJsonSource = getPropValue(source, 'geoJsonSource');
+  if (!geoJsonSource) {
+    throw new Error(`no data returned from geoJsonSource`);
+  }
+  const data = geoJsonSource.data;
+  return data;
 }
 
 /**

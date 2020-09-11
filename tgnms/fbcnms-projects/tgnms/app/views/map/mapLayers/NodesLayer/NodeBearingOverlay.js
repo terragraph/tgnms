@@ -10,18 +10,15 @@ import NetworkContext from '../../../../contexts/NetworkContext';
 import React from 'react';
 import useLiveRef from '../../../../hooks/useLiveRef';
 import {Layer, Source} from 'react-mapbox-gl';
-import {LinkTypeValueMap as LinkType} from '../../../../../shared/types/Topology';
 import {TopologyElementType} from '../../../../constants/NetworkConstants';
+import {getEstimatedNodeBearing} from '../../../../helpers/TopologyHelpers';
 import {handleLayerMouseEnter, handleLayerMouseLeave} from '../helpers';
 import {mapboxShouldAcceptClick} from '../../../../helpers/NetworkHelpers';
 import {objectValuesTypesafe} from '../../../../helpers/ObjectHelpers';
 import {useMapContext} from '../../../../contexts/MapContext';
 
 import type {FeatureId, GeoFeature} from '@turf/turf';
-import type {
-  LinkType as Link,
-  NodeType as Node,
-} from '../../../../../shared/types/Topology';
+import type {NodeType as Node} from '../../../../../shared/types/Topology';
 
 export const BEARING_PROP = 'bearing';
 export const BORESIGHT_IMAGE_ID = 'boresight';
@@ -65,7 +62,11 @@ export default function NodeBearingOverlay() {
     loadImage();
   }, [mapboxRef]);
   const geoJson = React.useMemo(() => {
-    const {nodeMap, siteMap, linkMap, nodeToLinksMap} = topologyMapsRef.current;
+    const {
+      nodeMap,
+      siteMap,
+      // linkMap, nodeToLinksMap
+    } = topologyMapsRef.current;
     const features = objectValuesTypesafe<Node>(nodeMap).map((node, idx) => {
       const {location} = siteMap[node.site_name];
       const feature = turf.point(
@@ -75,45 +76,11 @@ export default function NodeBearingOverlay() {
         },
         {id: idx},
       );
-      let bearing: number = 0;
-      if (
-        typeof node.ant_azimuth === 'number' &&
-        !isNaN(node.ant_azimuth) &&
-        node.ant_azimuth !== 0
-      ) {
-        bearing = node.ant_azimuth;
-      } else {
-        const links: Array<Link> = [];
-        for (const linkName of Array.from(nodeToLinksMap[node.name] || [])) {
-          const link = linkMap[linkName];
-          if (link.link_type === LinkType.WIRELESS) {
-            links.push(link);
-          }
-        }
-        if (links.length < 1) {
-          return feature;
-        }
-        // only show first link, no averaging
-        const link1 = links[0];
-        const otherNode =
-          nodeMap[
-            link1.a_node_name === node.name
-              ? link1.z_node_name
-              : link1.a_node_name
-          ];
-        const otherSiteLocation = siteMap[otherNode.site_name].location;
-        // Calculate bearing to rotate the icon along the link
-        bearing = turf.bearing(
-          [location.longitude, location.latitude, location.altitude],
-          [
-            otherSiteLocation.longitude,
-            otherSiteLocation.latitude,
-            otherSiteLocation.altitude,
-          ],
-        );
-      }
-
-      feature.properties[BEARING_PROP] = bearing;
+      const estimatedBearing = getEstimatedNodeBearing(
+        node,
+        topologyMapsRef.current,
+      );
+      feature.properties[BEARING_PROP] = estimatedBearing ?? 0;
       return feature;
     });
     const featureCollection = turf.featureCollection(features);

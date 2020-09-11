@@ -6,7 +6,8 @@
  */
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import McsEstimateLayer from '../McsEstimateLayer';
+import * as turf from '@turf/turf';
+import McsEstimateLayer, {SOURCE_ID} from '../McsEstimateLayer';
 import {
   MapContextWrapper,
   NetworkContextWrapper,
@@ -14,15 +15,16 @@ import {
   mockFig0,
   mockNetworkConfig,
 } from '../../../../tests/testHelpers';
+import {TopologyElementType} from '../../../../constants/NetworkConstants';
 import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
-
 import {cleanup, render} from '@testing-library/react';
-
+import {getSourceFeatureCollection} from '../../../../tests/mapHelpers';
+import type {MapContext} from '../../../../contexts/MapContext';
 import type {NetworkContextType} from '../../../../contexts/NetworkContext';
 
 afterEach(cleanup);
 
-test('renders', async () => {
+test('renders without any props', async () => {
   await render(
     <Wrapper>
       <McsEstimateLayer />
@@ -30,12 +32,102 @@ test('renders', async () => {
   );
 });
 
+test(
+  'if mcs_estimate layer is selected and no node is selected ' +
+    'selects a node with a wireless link',
+  async () => {
+    const setSelected = jest.fn();
+    expect(setSelected).not.toHaveBeenCalled();
+    await render(
+      <Wrapper
+        mapVals={{
+          mapboxRef: ({}: any),
+          selectedOverlays: {
+            nodes: 'mcs_estimate',
+          },
+        }}
+        networkVals={{
+          selectedElement: null,
+          setSelected,
+        }}>
+        <McsEstimateLayer />
+      </Wrapper>,
+    );
+    expect(setSelected).toHaveBeenCalled();
+  },
+);
+
+test(
+  'if mcs_estimate layer is selected and any node is selected ' +
+    'does not change selection ',
+  async () => {
+    const setSelected = jest.fn();
+    expect(setSelected).not.toHaveBeenCalled();
+    await render(
+      <Wrapper
+        mapVals={{
+          mapboxRef: ({}: any),
+          selectedOverlays: {
+            nodes: 'mcs_estimate',
+          },
+        }}
+        networkVals={{
+          selectedElement: {
+            type: TopologyElementType.NODE,
+            name: 'randomname',
+            expanded: true,
+          },
+          setSelected,
+        }}>
+        <McsEstimateLayer />
+      </Wrapper>,
+    );
+    expect(setSelected).not.toHaveBeenCalled();
+  },
+);
+
+test('if a node with wireless links is selected, renders the selected segments', async () => {
+  const {container} = await render(
+    <Wrapper
+      mapVals={{
+        mapboxRef: ({}: any),
+        selectedOverlays: {
+          nodes: 'mcs_estimate',
+        },
+      }}
+      networkVals={{
+        selectedElement: {
+          type: TopologyElementType.NODE,
+          name: 'site1-0',
+          expanded: true,
+        },
+      }}>
+      <McsEstimateLayer />
+    </Wrapper>,
+  );
+  const sourceData = getSourceFeatureCollection(container, SOURCE_ID);
+  expect(sourceData.type).toBe('FeatureCollection');
+  expect(sourceData.features.length).toBe(12); // there are 12 MCS indexes
+  for (const segment of sourceData.features) {
+    expect(segment.properties).toMatchObject({
+      mcs: expect.any(Number),
+    });
+    /**
+     * the segments are polygons, they should have non-zero area or
+     * else they may have been corrupted.
+     */
+    expect(turf.area(segment)).toBeGreaterThan(0);
+  }
+});
+
 function Wrapper({
   children,
   networkVals,
+  mapVals,
 }: {
   children: React.Node,
   networkVals?: $Shape<NetworkContextType>,
+  mapVals?: $Shape<MapContext>,
 }) {
   const topology = mockFig0();
   // node with no links to ensure no crashy business
@@ -52,7 +144,7 @@ function Wrapper({
           ...topologyMaps,
           ...(networkVals || {}: $Shape<NetworkContextType>),
         }}>
-        <MapContextWrapper>{children}</MapContextWrapper>
+        <MapContextWrapper contextValue={mapVals}>{children}</MapContextWrapper>
       </NetworkContextWrapper>
     </TestApp>
   );

@@ -4,6 +4,9 @@
  * @format
  * @flow strict-local
  */
+import * as turf from '@turf/turf';
+import {LinkTypeValueMap} from '../../shared/types/Topology';
+import {averageAngles} from './MathHelpers';
 import type {
   LinkMap,
   MacToNodeMap,
@@ -12,7 +15,7 @@ import type {
   SiteMap,
   SiteToNodesMap,
 } from '../contexts/NetworkContext';
-import type {TopologyType} from '../../shared/types/Topology';
+import type {NodeType, TopologyType} from '../../shared/types/Topology';
 
 export type TopologyMaps = {|
   nodeMap: NodeMap,
@@ -61,4 +64,53 @@ export function buildTopologyMaps(topology: TopologyType): TopologyMaps {
     nodeToLinksMap,
     macToNodeMap,
   };
+}
+
+export function getEstimatedNodeBearing(
+  node: NodeType,
+  topologyMaps: $Shape<TopologyMaps>,
+): ?number {
+  const site = topologyMaps.siteMap[node.site_name];
+  const peerLocations = getWirelessPeers(node, topologyMaps).map(
+    (peerNode: NodeType) => {
+      const peerSite = topologyMaps.siteMap[peerNode.site_name];
+      return peerSite.location;
+    },
+  );
+  if (peerLocations.length < 1) {
+    return null;
+  }
+  const bearings = peerLocations.map(peerLocation =>
+    turf.bearing(
+      [site.location.longitude, site.location.latitude, site.location.altitude],
+      [peerLocation.longitude, peerLocation.latitude, peerLocation.altitude],
+    ),
+  );
+  const averageBearing = averageAngles(bearings);
+  return averageBearing;
+}
+
+/*
+ * Get the nodes on the other side of this node's wireless links */
+export function getWirelessPeers(
+  node: NodeType,
+  {linkMap, nodeToLinksMap, nodeMap}: TopologyMaps,
+): Array<NodeType> {
+  const peers: Array<NodeType> = [];
+  for (const linkName of Array.from(nodeToLinksMap[node.name] || [])) {
+    const link = linkMap[linkName];
+    if (link.link_type === LinkTypeValueMap.WIRELESS) {
+      // get node on the other side of the link
+      const peerName =
+        link.a_node_name === node.name ? link.z_node_name : link.a_node_name;
+      const peer = nodeMap[peerName];
+      if (!peer) {
+        console.error(`peer not found: ${peerName}`);
+        continue;
+      }
+      peers.push(peer);
+    }
+  }
+
+  return peers;
 }

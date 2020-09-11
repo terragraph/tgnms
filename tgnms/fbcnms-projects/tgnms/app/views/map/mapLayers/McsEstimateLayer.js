@@ -16,12 +16,10 @@ import {
 import {Layer, Source} from 'react-mapbox-gl';
 import {LinkTypeValueMap as LinkType} from '../../../../shared/types/Topology';
 import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {averageAngles} from '../../../helpers/MathHelpers';
+import {getEstimatedNodeBearing} from '../../../helpers/TopologyHelpers';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoCoord, GeoFeature} from '@turf/turf';
-import type {NodeType as Node} from '../../../../shared/types/Topology';
-import type {TopologyMaps} from '../../../helpers/TopologyHelpers';
 
 export const LAYER_ID = 'nodes-mcs-estimate';
 export const SOURCE_ID = 'nodes-mcs-estimate-source';
@@ -197,55 +195,6 @@ export default function McsEstimateOverlay() {
       />
     </>
   );
-}
-
-function getEstimatedNodeBearing(
-  node: Node,
-  topologyMaps: $Shape<TopologyMaps>,
-) {
-  const site = topologyMaps.siteMap[node.site_name];
-  const peerLocations = getWirelessPeers(node, topologyMaps).map(
-    (peerNode: Node) => {
-      const peerSite = topologyMaps.siteMap[peerNode.site_name];
-      return peerSite.location;
-    },
-  );
-  if (peerLocations.length < 1) {
-    return null;
-  }
-  const bearings = peerLocations.map(peerLocation =>
-    turf.bearing(
-      [site.location.longitude, site.location.latitude, site.location.altitude],
-      [peerLocation.longitude, peerLocation.latitude, peerLocation.altitude],
-    ),
-  );
-  const averageBearing = averageAngles(bearings);
-  return averageBearing;
-}
-
-/*
- * Get the nodes on the other side of this node's wireless links */
-function getWirelessPeers(
-  node: Node,
-  {linkMap, nodeToLinksMap, nodeMap}: TopologyMaps,
-): Array<Node> {
-  const peers: Array<Node> = [];
-  for (const linkName of Array.from(nodeToLinksMap[node.name] || [])) {
-    const link = linkMap[linkName];
-    if (link.link_type === LinkType.WIRELESS) {
-      // get node on the other side of the link
-      const peerName =
-        link.a_node_name === node.name ? link.z_node_name : link.a_node_name;
-      const peer = nodeMap[peerName];
-      if (!peer) {
-        console.error(`peer not found: ${peerName}`);
-        continue;
-      }
-      peers.push(peer);
-    }
-  }
-
-  return peers;
 }
 
 function mcsRingsTemplate(location: GeoCoord, mcsTable): Array<GeoFeature> {
