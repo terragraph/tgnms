@@ -8,13 +8,13 @@
 import 'jest-dom/extend-expect';
 import AddL2Tunnel from '../AddL2Tunnel';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(cleanup);
 
 jest
-  .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')
+  .spyOn(require('../../../../hooks/useNodeConfig'), 'useNodeConfig')
   .mockReturnValue({
     loading: false,
     configData: [{field: ['test', 'param']}],

@@ -7,21 +7,21 @@
 
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '../../common/CustomAccordion';
 import EditIcon from '@material-ui/icons/Edit';
 import EditRadioMacs from './EditRadioMacs';
 import MenuItem from '@material-ui/core/MenuItem';
-import ShowAdvanced from '../common/ShowAdvanced';
+import ShowAdvanced from '../../common/ShowAdvanced';
 import swal from 'sweetalert2';
-import {FormType} from '../../constants/MapPanelConstants';
+import {FormType} from '../../../constants/MapPanelConstants';
 import {
   NodeTypeValueMap,
   PolarityTypeValueMap as PolarityType,
-} from '../../../shared/types/Topology';
+} from '../../../../shared/types/Topology';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
+} from '../../../apiutils/ServiceAPIUtil';
 import {
   createNumericInput,
   createReactSelectInput,
@@ -29,22 +29,22 @@ import {
   createTextInput,
   formParseFloat,
   formParseInt,
-} from '../../helpers/FormHelpers';
+} from '../../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
-import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
+import {sendTopologyBuilderRequest} from '../../../helpers/MapPanelHelpers';
 import {
   supportsUserSpecifiedPolairtyAndGolay,
   useNodeWlanMacs,
-} from '../../helpers/TgFeatures';
-import {toTitleCase} from '../../helpers/StringHelpers';
+} from '../../../helpers/TgFeatures';
+import {toTitleCase} from '../../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {EditNodeParams} from './MapPanelTypes';
-import type {NetworkConfig} from '../../contexts/NetworkContext';
+import type {EditNodeParams} from '../MapPanelTypes';
+import type {NetworkConfig} from '../../../contexts/NetworkContext';
 import type {
   PolarityTypeType,
   TopologyType,
-} from '../../../shared/types/Topology';
+} from '../../../../shared/types/Topology';
 
 export type ApiRequestAttemptsType = {
   networkName: string,

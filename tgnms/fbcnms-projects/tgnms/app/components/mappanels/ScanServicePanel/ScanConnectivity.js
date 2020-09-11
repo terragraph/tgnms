@@ -15,7 +15,7 @@ import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import UploadTopologyConfirmationModal from '../UploadTopologyConfirmationModal';
+import UploadTopologyConfirmationModal from '../topologyCreationPanels/UploadTopologyConfirmationModal';
 import useForm from '../../../hooks/useForm';
 import {NodeTypeValueMap} from '../../../../shared/types/Topology';
 import {makeStyles} from '@material-ui/styles';

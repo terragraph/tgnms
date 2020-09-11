@@ -8,11 +8,11 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddNodePanel from '../AddNodePanel';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '../../../../tests/testHelpers';
 import {
   mockNetworkConfig,
   mockTopology,
-} from '../../../tests/data/NetworkConfig';
+} from '../../../../tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 const commonProps = {

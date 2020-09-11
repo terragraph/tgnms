@@ -15,7 +15,7 @@ import {
   render,
   waitForElement,
 } from '@testing-library/react';
-import {coerceClass, mockNetworkConfig} from '../../../tests/testHelpers';
+import {coerceClass, mockNetworkConfig} from '../../../../tests/testHelpers';
 
 afterEach(cleanup);
 

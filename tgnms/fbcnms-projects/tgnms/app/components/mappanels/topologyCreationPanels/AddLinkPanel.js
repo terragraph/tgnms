@@ -6,23 +6,23 @@
  */
 
 import Button from '@material-ui/core/Button';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '../../common/CustomAccordion';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import swal from 'sweetalert2';
 import {
   LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
-} from '../../../shared/types/Topology';
+} from '../../../../shared/types/Topology';
 import {
   createReactSelectInput,
   createSelectInput,
-} from '../../helpers/FormHelpers';
+} from '../../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
-import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
-import {toTitleCase} from '../../helpers/StringHelpers';
+import {sendTopologyBuilderRequest} from '../../../helpers/MapPanelHelpers';
+import {toTitleCase} from '../../../helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {LinkType, TopologyType} from '../../../shared/types/Topology';
+import type {LinkType, TopologyType} from '../../../../shared/types/Topology';
 
 const styles = {
   button: {

@@ -6,31 +6,31 @@
  */
 
 import Button from '@material-ui/core/Button';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '../../common/CustomAccordion';
 import EditIcon from '@material-ui/icons/Edit';
 import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import PlannedSiteTemplates from './PlannedSiteTemplates';
 import React from 'react';
-import ShowAdvanced from '../common/ShowAdvanced';
+import ShowAdvanced from '../../common/ShowAdvanced';
 import Typography from '@material-ui/core/Typography';
 import {
   basicTemplates,
   defaultTemplate,
-} from '../../constants/TemplateConstants';
-import {createNumericInput, formParseFloat} from '../../helpers/FormHelpers';
+} from '../../../constants/TemplateConstants';
+import {createNumericInput, formParseFloat} from '../../../helpers/FormHelpers';
 import {isEqual} from 'lodash';
-import {sendTopologyBuilderRequest} from '../../helpers/MapPanelHelpers';
-import {templateTopologyBuilderRequest} from '../../helpers/TopologyTemplateHelpers';
+import {sendTopologyBuilderRequest} from '../../../helpers/MapPanelHelpers';
+import {templateTopologyBuilderRequest} from '../../../helpers/TopologyTemplateHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
   LocationType,
   SiteType,
   TopologyType,
-} from '../../../shared/types/Topology';
-import type {PlannedSite} from '../../components/mappanels/MapPanelTypes';
-import type {SiteTemplate} from '../../constants/TemplateConstants';
+} from '../../../../shared/types/Topology';
+import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
+import type {SiteTemplate} from '../../../constants/TemplateConstants';
 
 const styles = theme => ({
   button: {

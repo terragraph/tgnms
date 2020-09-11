@@ -12,7 +12,7 @@ import {
   NetworkContextWrapper,
   TestApp,
   renderWithRouter,
-} from '../../../tests/testHelpers';
+} from '../../../../tests/testHelpers';
 import {cleanup, fireEvent} from '@testing-library/react';
 
 afterEach(cleanup);

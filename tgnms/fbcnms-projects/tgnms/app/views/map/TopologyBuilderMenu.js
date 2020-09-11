@@ -7,11 +7,11 @@
 
 import * as React from 'react';
 import AddIcon from '@material-ui/icons/Add';
-import AddL2Tunnel from '../../components/mappanels/AddL2Tunnel';
-import AddLinkPanel from '../../components/mappanels/AddLinkPanel';
+import AddL2Tunnel from '../../components/mappanels/topologyCreationPanels/AddL2Tunnel';
+import AddLinkPanel from '../../components/mappanels/topologyCreationPanels/AddLinkPanel';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
-import AddNodePanel from '../../components/mappanels/AddNodePanel';
-import AddSitePanel from '../../components/mappanels/AddSitePanel';
+import AddNodePanel from '../../components/mappanels/topologyCreationPanels/AddNodePanel';
+import AddSitePanel from '../../components/mappanels/topologyCreationPanels/AddSitePanel';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import Fab from '@material-ui/core/Fab';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -28,7 +28,7 @@ import useLiveRef from '../../hooks/useLiveRef';
 import {FormType, SlideProps} from '../../constants/MapPanelConstants';
 import {PANELS, PANEL_STATE} from '../../components/mappanels/usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import {UploadTopologyPanel} from '../../components/mappanels/UploadTopologyPanel';
+import {UploadTopologyPanel} from '../../components/mappanels/topologyCreationPanels/UploadTopologyPanel';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';

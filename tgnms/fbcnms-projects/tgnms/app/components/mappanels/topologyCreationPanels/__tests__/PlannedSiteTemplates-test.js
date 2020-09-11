@@ -8,11 +8,15 @@
 import 'jest-dom/extend-expect';
 import PlannedSiteTemplates from '../PlannedSiteTemplates';
 import React from 'react';
-import {TestApp, mockTopology, renderAsync} from '../../../tests/testHelpers';
+import {
+  TestApp,
+  mockTopology,
+  renderAsync,
+} from '../../../../tests/testHelpers';
 import {
   basicTemplates,
   defaultTemplate,
-} from '../../../constants/TemplateConstants';
+} from '../../../../constants/TemplateConstants';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(cleanup);

@@ -7,10 +7,10 @@
 
 import 'jest-dom/extend-expect';
 import React from 'react';
-import {TestApp, cast, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, cast, renderAsync} from '../../../../tests/testHelpers';
 import {UploadTopologyPanel} from '../UploadTopologyPanel';
 import {cleanup, fireEvent, render} from '@testing-library/react';
-import {mockUploadJson} from '../../../tests/data/UploadTopology';
+import {mockUploadJson} from '../../../../tests/data/UploadTopology';
 
 afterEach(cleanup);
 

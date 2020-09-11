@@ -5,11 +5,11 @@
  * @flow
  */
 
-import ConfigTaskForm from '../../views/config/ConfigTaskForm';
-import CustomAccordion from '../common/CustomAccordion';
+import ConfigTaskForm from '../../../views/config/ConfigTaskForm';
+import CustomAccordion from '../../common/CustomAccordion';
 import L2TunnelInputs from './L2TunnelInputs';
 import React from 'react';
-import {formConfigModes} from '../../constants/ConfigConstants';
+import {formConfigModes} from '../../../constants/ConfigConstants';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';

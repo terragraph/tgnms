@@ -9,13 +9,13 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddLinkPanel from '../AddLinkPanel';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '../../../../tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
 import {
   mockMultiHop,
   mockNetworkConfig,
-} from '../../../tests/data/NetworkConfig';
+} from '../../../../tests/data/NetworkConfig';
 
 jest.mock('sweetalert2');
 const commonProps = {

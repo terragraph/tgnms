@@ -12,12 +12,14 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import React from 'react';
-import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import StatusIndicator, {
+  StatusIndicatorColor,
+} from '../../common/StatusIndicator';
 import TextField from '@material-ui/core/TextField';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {ApiRequestAttemptsType} from './AddNodePanel';
-import type {NetworkConfig} from '../../contexts/NetworkContext';
+import type {NetworkConfig} from '../../../contexts/NetworkContext';
 import type {Theme, WithStyles} from '@material-ui/core';
 
 type RadioMacChangesType = {
