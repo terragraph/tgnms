@@ -5,7 +5,7 @@
  * @flow
  */
 
-import ConfigTaskForm from '../../../views/config/ConfigTaskForm';
+import ConfigTaskForm from '../../taskBasedConfig/ConfigTaskForm';
 import CustomAccordion from '../../common/CustomAccordion';
 import L2TunnelInputs from './L2TunnelInputs';
 import React from 'react';

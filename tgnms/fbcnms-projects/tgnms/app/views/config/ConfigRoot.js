@@ -19,7 +19,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import TaskBasedConfig from './TaskBasedConfig';
+import TaskBasedConfig from '../../components/taskBasedConfig/TaskBasedConfig';
 import {ConfigLayer, NetworkConfigMode} from '../../constants/ConfigConstants';
 import {
   cleanupObject,

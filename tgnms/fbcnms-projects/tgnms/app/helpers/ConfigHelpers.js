@@ -22,7 +22,7 @@ import {objectEntriesTypesafe} from './ObjectHelpers';
 
 import type {AggregatorConfigType} from '../../shared/types/Aggregator';
 import type {ConfigConstraintType} from '../constants/ConfigConstants';
-import type {ConfigOption} from '../views/config/ConfigOptionSelector';
+import type {ConfigOption} from '../components/taskBasedConfig/ConfigOptionSelector';
 import type {ControllerConfigType} from '../../shared/types/Controller';
 import type {NetworkConfig} from '../contexts/NetworkContext';
 

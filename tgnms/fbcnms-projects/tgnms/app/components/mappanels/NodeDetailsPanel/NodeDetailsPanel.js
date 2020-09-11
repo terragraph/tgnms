@@ -18,7 +18,7 @@ import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import RouterIcon from '@material-ui/icons/Router';
 import SyncIcon from '@material-ui/icons/Sync';
-import TaskBasedConfigModal from '../../../views/config/TaskBasedConfigModal';
+import TaskBasedConfigModal from '../../taskBasedConfig/TaskBasedConfigModal';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
 import swal from 'sweetalert2';

@@ -29,7 +29,6 @@ export default function ConfigOptionSelector({
   options: {[string]: ConfigOption},
 }) {
   const {configOverrides, onUpdate} = useConfigTaskContext();
-
   const selectedOptionKey = React.useMemo(
     () => getDefaultSelected({options, configData: configOverrides}),
     [options, configOverrides],
