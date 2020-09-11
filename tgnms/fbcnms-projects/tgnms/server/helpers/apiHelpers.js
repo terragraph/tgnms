@@ -84,3 +84,7 @@ export function createRequest(options: string | Req): Promise<any> {
     }
   });
 }
+
+export class ExpectedError extends Error {
+  expected = true;
+}

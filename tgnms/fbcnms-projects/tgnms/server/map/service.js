@@ -8,7 +8,8 @@
 const {map_annotation_group, map_profile, topology} = require('../models');
 import Sequelize from 'sequelize';
 const logger = require('../log')(module);
-import type {GeoFeatureCollection} from '@turf/turf';
+import {ExpectedError} from '../helpers/apiHelpers';
+import type {GeoFeature, GeoFeatureCollection} from '@turf/turf';
 import type {
   MapAnnotationGroup,
   MapAnnotationGroupIdent,
@@ -147,6 +148,81 @@ export async function duplicateAnnotationGroup({
   });
 }
 
+export async function saveAnnotation({
+  network,
+  group,
+  annotationId,
+  annotation,
+}: {
+  network: string,
+  group: string,
+  annotationId: ?string,
+  annotation: GeoFeature,
+}): Promise<GeoFeature> {
+  const _group = await getAnnotationGroup({network, group});
+  if (_group == null || _group.geojson == null) {
+    throw new ExpectedError('Group not found');
+  }
+  if (annotationId == null) {
+    throw new ExpectedError('Missing annotation id');
+  }
+
+  const featIdx = _group.geojson.features.findIndex(
+    feat => feat.id === annotationId,
+  );
+  if (featIdx < 0) {
+    _group.geojson.features.push(annotation);
+    //create the feature if it doesn't exist
+  } else {
+    _group.geojson.features.splice(featIdx, 1, annotation);
+  }
+  const updatedGroup = await saveAnnotationGroup({
+    id: _group.id,
+    name: _group.name,
+    geojson: JSON.stringify(_group.geojson),
+    network: network,
+  });
+  if (updatedGroup == null) {
+    throw new ExpectedError('Failed to save annotation');
+  }
+  const feature = updatedGroup.geojson.features.find(
+    feat => feat.id === annotationId,
+  );
+  if (!feature) {
+    throw new ExpectedError('Could not find updated feature');
+  }
+  return feature;
+}
+
+export async function deleteAnnotation({
+  network,
+  group,
+  annotationId,
+}: {
+  network: string,
+  group: string,
+  annotationId: string,
+}): Promise<void> {
+  const _group = await getAnnotationGroup({network, group});
+  if (_group == null || _group.geojson == null || annotationId == null) {
+    throw new ExpectedError('Group not found');
+  }
+
+  const features = _group.geojson?.features?.filter(feature => {
+    if (feature.id != null && feature.id === annotationId) {
+      return false;
+    }
+    return true;
+  });
+  _group.geojson.features = features;
+  await saveAnnotationGroup({
+    id: _group.id,
+    name: _group.name,
+    geojson: JSON.stringify(_group.geojson),
+    network: network,
+  });
+}
+
 async function getNetworkByName(name: string) {
   const t = await topology.findOne({
     where: {
@@ -154,7 +230,7 @@ async function getNetworkByName(name: string) {
     },
   });
   if (!t) {
-    return Promise.reject(new Error(`network not found`));
+    throw new ExpectedError(`network not found`);
   }
   return t;
 }

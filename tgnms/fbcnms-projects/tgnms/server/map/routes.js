@@ -60,6 +60,30 @@ router.post('/annotations/:network/:groupName/duplicate', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.put('/annotations/:network/:group/:annotationId', (req, res) => {
+  const {network, group, annotationId} = req.params;
+  return mapService
+    .saveAnnotation({
+      network,
+      group,
+      annotationId,
+      annotation: req.body,
+    })
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+router.delete('/annotations/:network/:group/:annotationId', (req, res) => {
+  const {network, group, annotationId} = req.params;
+  return mapService
+    .deleteAnnotation({
+      network,
+      group,
+      annotationId,
+    })
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+
 router.get('/profile', (req, res) => {
   return mapService
     .getAllProfiles()
