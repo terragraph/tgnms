@@ -20,18 +20,14 @@ import {getEstimatedNodeBearing} from '../../../helpers/TopologyHelpers';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoCoord, GeoFeature} from '@turf/turf';
+import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
 
 export const LAYER_ID = 'nodes-mcs-estimate';
 export const SOURCE_ID = 'nodes-mcs-estimate-source';
 
 const CIRCLE_STEPS = 64;
-const TRIANGLE_HEIGHT = 300;
+const TRIANGLE_LENGTH = 300;
 const BEAM_WIDTH_DEGREES = 30;
-
-//TODO don't hard-code this table
-const MCS_TABLE = DEFAULT_MCS_TABLE.sort(
-  (a, b) => b.rangeMeters - a.rangeMeters,
-);
 
 export default function McsEstimateOverlay() {
   const {selectedOverlays, mapboxRef} = useMapContext();
@@ -85,40 +81,19 @@ export default function McsEstimateOverlay() {
         location.latitude,
         location.altitude,
       ];
-      const startPoint = turf.point(startCoords, {
-        ...node,
-      });
       const mcsRings = mcsRingsTemplate(startCoords, mcsTable);
-      const pointBearing = BEAM_WIDTH_DEGREES / 2.0;
-      const eastPoint = turf.transformTranslate(
-        startPoint,
-        TRIANGLE_HEIGHT,
-        pointBearing,
-        {
-          units: 'meters',
-        },
-      );
-      const westPoint = turf.transformTranslate(
-        startPoint,
-        TRIANGLE_HEIGHT,
-        -pointBearing,
-        {
-          units: 'meters',
-        },
-      );
-      // start must always be first and last coord
-      const triangleCoords: Array<GeoCoord> = [
-        startPoint,
-        eastPoint,
-        westPoint,
-        startPoint,
-      ].map(turf.getCoord);
 
-      // first, build a triangle facing north
-      const triangle = turf.polygon([triangleCoords]);
-      turf.transformRotate(triangle, nodeBearing ?? 0, {
-        mutate: true,
-        pivot: startCoords,
+      // build a triangle to represent the node's radio coverage
+      const triangle = sectorAngleTemplate({
+        position: startCoords,
+        angleDegrees: BEAM_WIDTH_DEGREES,
+        bearing: nodeBearing,
+        length: TRIANGLE_LENGTH,
+      });
+      const labels = labelsTemplate({
+        position: startCoords,
+        bearing: nodeBearing ?? 0,
+        mcsTable,
       });
 
       const segments: Array<GeoFeature> = mcsRings.map((circle: GeoFeature) => {
@@ -130,7 +105,7 @@ export default function McsEstimateOverlay() {
         intersected.properties = circle.properties;
         return intersected;
       });
-      return segments;
+      return segments.concat(labels);
     });
     const flattened = [].concat.apply(
       [],
@@ -183,6 +158,7 @@ export default function McsEstimateOverlay() {
         type="fill"
         sourceId={SOURCE_ID}
         layout={{}}
+        filter={['all', ['==', '$type', 'Polygon']]}
         paint={{
           'fill-color': [
             'interpolate',
@@ -192,6 +168,17 @@ export default function McsEstimateOverlay() {
           ],
           'fill-opacity': 0.3,
         }}
+      />
+      <Layer
+        id={'mcs-estimate-text'}
+        type="symbol"
+        sourceId={SOURCE_ID}
+        filter={['all', ['==', '$type', 'Point']]}
+        layout={{
+          'text-field': '{mcs}',
+          'text-size': 12,
+        }}
+        paint={LINE_TEXT_PAINT}
       />
     </>
   );
@@ -227,38 +214,102 @@ function mcsRingsTemplate(location: GeoCoord, mcsTable): Array<GeoFeature> {
   return rings;
 }
 
+function labelsTemplate({
+  position,
+  bearing,
+  mcsTable,
+}: {
+  position: GeoCoord,
+  bearing: number,
+  mcsTable: Array<McsLinkBudget>,
+}): Array<GeoFeature> {
+  const labelPoints: Array<GeoFeature> = [];
+  // sort by range ascending so we're starting from inner rings and moving out
+  const sortedAsc = [...mcsTable].sort((a, b) => a.rangeMeters - b.rangeMeters);
+  for (let i = 0; i < sortedAsc.length; i++) {
+    const prev: $Shape<McsLinkBudget> =
+      i > 0 ? sortedAsc[i - 1] : {rangeMeters: 0};
+    const ring = sortedAsc[i];
+    // calculate midpoint radius between outer and inner ring
+    const midpointOffset = Math.abs((ring.rangeMeters - prev.rangeMeters) / 2);
+    const point = turf.transformTranslate(
+      turf.point(position, {mcs: ring.mcs}),
+      ring.rangeMeters - midpointOffset,
+      bearing,
+      {units: 'meters'},
+    );
+    labelPoints.push(point);
+  }
+  return labelPoints;
+}
+
 /**
- * TODO: proper label placement by generating points where labels should be
+ * Generates an isosceles triangle aiming from "position" at "bearing".
+ * The length of the sides of this triangle are "length",
+ * and the angle betwen the sides
+ * will be "angleDegrees".
+ *
+ * This is used to visualize the bearing of a node, or its coverage area.
+ *
+ *  bearing 0 faces north
+ *
+ *
+ * ------- <- the base of the tri, 2*length(cos(angle))
+ *  \   /  <- length
+ *    .    <- position
+ *
+ *    ^ - angle is angleDegrees
  */
-export function McsEstimateTextLayer() {
-  return (
-    <Layer
-      id={LAYER_ID + '-text'}
-      before="site-layer"
-      type="symbol"
-      sourceId={SOURCE_ID}
-      layout={{
-        'text-field': '{mcs}',
-        'text-size': 12,
-      }}
-      paint={LINE_TEXT_PAINT}
-    />
-  );
+function sectorAngleTemplate({
+  position,
+  bearing,
+  angleDegrees,
+  length,
+}: {
+  position: GeoCoord,
+  bearing?: number,
+  angleDegrees: number,
+  length: number,
+}) {
+  const pointBearing = angleDegrees / 2.0;
+  const startPoint = turf.point(position);
+  const eastPoint = turf.transformTranslate(startPoint, length, pointBearing, {
+    units: 'meters',
+  });
+  const westPoint = turf.transformTranslate(startPoint, length, -pointBearing, {
+    units: 'meters',
+  });
+  // start must always be first and last coord
+  const triangleCoords: Array<GeoCoord> = [
+    startPoint,
+    eastPoint,
+    westPoint,
+    startPoint,
+  ].map(turf.getCoord);
+
+  // first, build a triangle facing north
+  const triangle = turf.polygon([triangleCoords]);
+  turf.transformRotate(triangle, bearing ?? 0, {
+    mutate: true,
+    pivot: position,
+  });
+  return triangle;
 }
 
 function useMapProfileMcsTable() {
   const {networkConfig} = useNetworkContext();
   return React.useMemo(() => {
+    let table = [...DEFAULT_MCS_TABLE];
     if (
       networkConfig != null &&
       networkConfig?.map_profile?.data?.mcsTable != null
     ) {
-      const mcsTable = networkConfig.map_profile.data.mcsTable.sort(
-        (a, b) => b.rangeMeters - a.rangeMeters,
-      );
+      table = networkConfig.map_profile.data.mcsTable;
+      const mcsTable = networkConfig.map_profile.data.mcsTable;
       return mcsTable;
     }
-    return MCS_TABLE;
+    table.sort((a, b) => b.rangeMeters - a.rangeMeters);
+    return table;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [networkConfig]);
 }

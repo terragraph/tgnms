@@ -107,8 +107,14 @@ test('if a node with wireless links is selected, renders the selected segments',
   );
   const sourceData = getSourceFeatureCollection(container, SOURCE_ID);
   expect(sourceData.type).toBe('FeatureCollection');
-  expect(sourceData.features.length).toBe(12); // there are 12 MCS indexes
-  for (const segment of sourceData.features) {
+  const polygons = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Polygon',
+  );
+  const labels = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Point',
+  );
+  expect(polygons.length).toBe(12); // there are 12 MCS indexes
+  for (const segment of polygons) {
     expect(segment.properties).toMatchObject({
       mcs: expect.any(Number),
     });
@@ -117,6 +123,12 @@ test('if a node with wireless links is selected, renders the selected segments',
      * else they may have been corrupted.
      */
     expect(turf.area(segment)).toBeGreaterThan(0);
+  }
+
+  for (const label of labels) {
+    expect(label.properties).toMatchObject({
+      mcs: expect.any(Number),
+    });
   }
 });
 
