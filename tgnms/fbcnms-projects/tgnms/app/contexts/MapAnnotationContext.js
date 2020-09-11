@@ -7,6 +7,7 @@
 import * as React from 'react';
 import * as mapApiUtil from '../apiutils/MapAPIUtil';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import useLiveRef from '../hooks/useLiveRef';
 import useTaskState, {TASK_STATE} from '../hooks/useTaskState';
 import {
   MAPBOX_DRAW_DEFAULT_COLOR,
@@ -188,10 +189,11 @@ export function useAnnotationGroups(): {
   } = useMapAnnotationContext();
   const {networkName} = useNetworkContext();
   const taskState = useTaskState();
+  const taskStateRef = useLiveRef(taskState);
   const loadGroup = React.useCallback(
     async ({name}: {name: string}): Promise<?MapAnnotationGroup> => {
       try {
-        taskState.setState(TASK_STATE.LOADING);
+        taskStateRef.current.setState(TASK_STATE.LOADING);
         const group = await mapApiUtil.getAnnotationGroup({
           networkName,
           groupName: name,
@@ -201,29 +203,29 @@ export function useAnnotationGroups(): {
         }
         setCurrent(group);
         drawControl.set(group.geojson);
-        taskState.setState(TASK_STATE.SUCCESS);
+        taskStateRef.current.setState(TASK_STATE.SUCCESS);
         return group;
       } catch (err) {
-        taskState.setState(TASK_STATE.ERROR);
-        taskState.setMessage(err?.message ?? 'Error');
+        taskStateRef.current.setState(TASK_STATE.ERROR);
+        taskStateRef.current.setMessage(err?.message ?? 'Error');
         return null;
       }
     },
-    [taskState, setCurrent, drawControl, networkName],
+    [taskStateRef, setCurrent, drawControl, networkName],
   );
 
   const loadGroups = React.useCallback(async () => {
     try {
-      taskState.setState(TASK_STATE.LOADING);
+      taskStateRef.current.setState(TASK_STATE.LOADING);
       const _groups = await mapApiUtil.getAnnotationGroups({networkName});
       if (_groups) {
         setGroups(_groups);
       }
-      taskState.setState(TASK_STATE.SUCCESS);
+      taskStateRef.current.setState(TASK_STATE.SUCCESS);
     } catch (err) {
-      taskState.setState(TASK_STATE.ERROR);
+      taskStateRef.current.setState(TASK_STATE.ERROR);
     }
-  }, [networkName, taskState, setGroups]);
+  }, [taskStateRef, networkName, setGroups]);
 
   return {
     groups,
