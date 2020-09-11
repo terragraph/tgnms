@@ -26,6 +26,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
+import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';
 
 type prometheus_labelset = {
@@ -162,7 +163,14 @@ function ThresholdExpressionEditor(props: {
       </TextField>
     </Grid>
   );
-  const conditions = ['>', '<', '==', '>=', '<=', '!='];
+  const conditions: Array<BinaryComparator> = [
+    '>',
+    '<',
+    '==',
+    '>=',
+    '<=',
+    '!=',
+  ];
   const conditionSelector = (
     <Grid item>
       <InputLabel htmlFor="condition-input">Condition</InputLabel>
@@ -175,7 +183,10 @@ function ThresholdExpressionEditor(props: {
         onChange={({target}) => {
           props.onChange({
             ...props.expression,
-            comparator: new PromQL.BinaryComparator(target.value),
+            comparator: new PromQL.BinaryComparator(
+              // Cast to element type of conditions as it's item type
+              ((target.value: any): $ElementType<typeof conditions, 0>),
+            ),
           });
         }}>
         {conditions.map(item => (
