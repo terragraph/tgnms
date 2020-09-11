@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import NmsOptionsContext from '../../contexts/NmsOptionsContext';
+import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import {
   AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
@@ -15,11 +15,11 @@ import {
   SCAN_CONNECTIVITY_LINK_OVERLAYS,
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
-} from '../../constants/LayerConstants';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useMapContext} from '../../contexts/MapContext';
+} from '../../../constants/LayerConstants';
+import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
+import {useMapContext} from '../../../contexts/MapContext';
 
-import type {Overlay} from '../../views/map/NetworkMapTypes';
+import type {Overlay} from '../../../views/map/NetworkMapTypes';
 
 const defaultOverlays = {
   link_lines: 'health',

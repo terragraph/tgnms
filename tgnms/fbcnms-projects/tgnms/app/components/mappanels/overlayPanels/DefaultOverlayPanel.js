@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '../../../contexts/NetworkContext';
 import axios from 'axios';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import {
@@ -17,11 +17,11 @@ import {
   OVERLAY_NONE,
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
-} from '../../constants/LayerConstants';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useMapContext} from '../../contexts/MapContext';
+} from '../../../constants/LayerConstants';
+import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
+import {useMapContext} from '../../../contexts/MapContext';
 
-import type {Overlay} from '../../views/map/NetworkMapTypes';
+import type {Overlay} from '../../../views/map/NetworkMapTypes';
 
 // Interval at which link overlay metrics are refreshed (in ms)
 const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 30000;

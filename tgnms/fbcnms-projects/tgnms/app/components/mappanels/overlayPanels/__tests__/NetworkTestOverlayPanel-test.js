@@ -11,17 +11,17 @@ import NetworkTestOverlayPanel from '../NetworkTestOverlayPanel';
 import {
   MapContextWrapper,
   NmsOptionsContextWrapper,
-} from '../../../tests/testHelpers';
+} from '../../../../tests/testHelpers';
 import {
   MuiPickersWrapper,
   TestApp,
   renderAsync,
-} from '../../../tests/testHelpers';
+} from '../../../../tests/testHelpers';
 import {cleanup} from '@testing-library/react';
-import {mockNetworkMapOptions} from '../../../tests/data/NmsOptionsContext';
+import {mockNetworkMapOptions} from '../../../../tests/data/NmsOptionsContext';
 
-import type {MapContext} from '../../../contexts/MapContext';
-import type {NmsOptionsContextType} from '../../../contexts/NmsOptionsContext';
+import type {MapContext} from '../../../../contexts/MapContext';
+import type {NmsOptionsContextType} from '../../../../contexts/NmsOptionsContext';
 
 jest.mock('axios');
 afterEach(() => {
