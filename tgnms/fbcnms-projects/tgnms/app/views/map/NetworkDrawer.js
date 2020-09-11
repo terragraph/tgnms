@@ -34,11 +34,7 @@ import {
   TopologyElement,
 } from '../../constants/MapPanelConstants';
 import {MAPMODE, useMapContext} from '../../contexts/MapContext';
-import {
-  PANELS,
-  PANEL_STATE,
-  usePanelControl,
-} from '../../components/mappanels/usePanelControl';
+import {PANELS, PANEL_STATE, usePanelControl} from './usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
 import {get} from 'lodash';
@@ -53,7 +49,7 @@ import type {
   NearbyNodes,
   PlannedSiteProps,
 } from '../../components/mappanels/MapPanelTypes';
-import type {PanelStateControl} from '../../components/mappanels/usePanelControl';
+import type {PanelStateControl} from './usePanelControl';
 
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,

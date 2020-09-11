@@ -26,7 +26,7 @@ import TuneIcon from '@material-ui/icons/Tune';
 import mapboxgl from 'mapbox-gl';
 import useLiveRef from '../../hooks/useLiveRef';
 import {FormType, SlideProps} from '../../constants/MapPanelConstants';
-import {PANELS, PANEL_STATE} from '../../components/mappanels/usePanelControl';
+import {PANELS, PANEL_STATE} from './usePanelControl';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {UploadTopologyPanel} from '../../components/mappanels/topologyCreationPanels/UploadTopologyPanel';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
@@ -40,7 +40,7 @@ import type {
   PlannedSiteProps,
 } from '../../components/mappanels/MapPanelTypes';
 import type {LocationType, SiteType} from '../../../shared/types/Topology';
-import type {PanelStateControl} from '../../components/mappanels/usePanelControl';
+import type {PanelStateControl} from './usePanelControl';
 
 const useStyles = makeStyles(theme => ({
   addButton: {

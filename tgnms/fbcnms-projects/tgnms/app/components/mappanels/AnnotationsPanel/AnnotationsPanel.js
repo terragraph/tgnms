@@ -22,7 +22,7 @@ import {
   GEO_GEOM_TYPE_TITLES,
   MAPBOX_TG_EVENTS,
 } from '../../../constants/MapAnnotationConstants';
-import {PANELS, PANEL_STATE} from '../usePanelControl';
+import {PANELS, PANEL_STATE} from '../../../views/map/usePanelControl';
 import {SlideProps} from '../../../constants/MapPanelConstants';
 import {apiRequest} from '../../../apiutils/ServiceAPIUtil';
 import {
@@ -38,7 +38,7 @@ import type {
   NodeType,
   SiteType,
 } from '../../../../shared/types/Topology';
-import type {PanelStateControl} from '../usePanelControl';
+import type {PanelStateControl} from '../../../views/map/usePanelControl';
 
 export default function AnnotationsPanel({
   panelControl,

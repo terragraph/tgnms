@@ -35,7 +35,7 @@ import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {MapboxDraw} from '@mapbox/mapbox-gl-draw';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
-import type {PanelStateControl} from '../components/mappanels/usePanelControl';
+import type {PanelStateControl} from '../views/map/usePanelControl';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
