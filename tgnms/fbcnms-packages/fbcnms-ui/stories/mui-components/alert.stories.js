@@ -14,7 +14,7 @@ import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
 import Alert from '../../components/Alert/Alert';
-import Button from '../../components/Button';
+import Button from '@material-ui/core/Button';
 import withAlert from '../../components/Alert/withAlert';
 import {STORY_CATEGORIES} from '../storybookUtils';
 
