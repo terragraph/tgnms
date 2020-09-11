@@ -18,7 +18,7 @@ type Props = {
 export default function TgMapboxNavIcon(props: Props) {
   const {resultType} = props;
   return resultType === TopologyElementType.NODE ? (
-    <RouterIcon />
+    <RouterIcon data-testid="node-search-icon" />
   ) : resultType === TopologyElementType.LINK ? (
     <CompareArrowsIcon />
   ) : (

@@ -318,6 +318,51 @@ export function mockPanelControl(
   };
 }
 
+/*
+ * Use this if a component needs a valid mapboxRef or
+ * if a component is rendered in Mapbox Control.
+ *
+ * For example:
+ *
+ * const {__baseElement, ...mapboxRef} = mockMapboxRef();
+ * const {getByTestId} = await render(
+ *  <TestApp>
+ *    <MapContextWrapper contextValue={{mapboxRef}}>
+ *      <TgMapboxNavigation {...defaultProps} />
+ *    </MapContextWrapper>
+ *  </TestApp>,
+ *  {container: document.body?.appendChild(__baseElement)},
+ * );
+ */
+export function mockMapboxRef() {
+  const EventEmitter = require('events');
+  const emitter = new EventEmitter();
+  const baseElement = document.createElement('div');
+  const images = new Map();
+
+  const mapboxRef = {
+    addControl: jest.fn<any, void>(({onAdd}) => {
+      const control = onAdd(mapboxRef);
+      baseElement.appendChild(control);
+    }),
+    removeControl: jest.fn<any, void>(({__el, onRemove}) => {
+      onRemove(mapboxRef);
+      baseElement.removeChild(__el);
+    }),
+    on: jest.fn<any, void>((eventId, callback) => {
+      emitter.on(eventId, callback);
+    }),
+    fire: jest.fn<any, void>((eventId, arg) => {
+      emitter.emit(eventId, arg);
+    }),
+    loadImage: jest.fn<any, any>((path, cb) => cb(null, {})),
+    addImage: jest.fn<any, any>((k, v) => images.set(k, v)),
+    hasImage: jest.fn<any, any>(key => images.has(key)),
+    __baseElement: baseElement,
+  };
+  return mapboxRef;
+}
+
 /**
  * CustomAccordion has the data-test-expanded attr to aid in testing.
  * This reads that attr and converts it to a bool.

@@ -14,7 +14,11 @@ import {
   MAPBOX_TG_EVENTS,
 } from '../../../../constants/MapAnnotationConstants';
 import {MapAnnotationContextProvider} from '../../../../contexts/MapAnnotationContext';
-import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {
+  MapContextWrapper,
+  TestApp,
+  mockMapboxRef,
+} from '../../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
 import type {MapContext} from '../../../../contexts/MapContext';
@@ -157,31 +161,6 @@ function Wrapper({
       </MapAnnotationContextProvider>
     </TestApp>
   );
-}
-
-function mockMapboxRef() {
-  const EventEmitter = require('events');
-  const emitter = new EventEmitter();
-  const baseElement = document.createElement('div');
-  const mapboxRef = {
-    addControl: jest.fn(({onAdd}) => {
-      const control = onAdd(mapboxRef);
-      baseElement.appendChild(control);
-    }),
-    removeControl: jest.fn(({__el, onRemove}) => {
-      onRemove(mapboxRef);
-      baseElement.removeChild(__el);
-    }),
-    on: jest.fn((eventId, callback) => {
-      emitter.on(eventId, callback);
-    }),
-    fire: jest.fn((eventId, arg) => {
-      emitter.emit(eventId, arg);
-    }),
-    __baseElement: baseElement,
-  };
-  // $FlowIgnore it's a mock!
-  return mapboxRef;
 }
 
 function mockMapboxDraw() {

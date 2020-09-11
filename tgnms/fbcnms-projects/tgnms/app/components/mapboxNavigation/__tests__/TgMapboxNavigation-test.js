@@ -7,7 +7,7 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import MapOverlayLegend from '../MapOverlayLegend';
+import TgMapboxNavigation from '../TgMapboxNavigation';
 import {
   MapContextWrapper,
   TestApp,
@@ -15,39 +15,51 @@ import {
 } from '../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
-import MapboxDrawMock from '@mapbox/mapbox-gl-draw';
-jest.mock('@mapbox/mapbox-gl-draw');
+function mockNavControl() {
+  return {
+    onAdd: () => {
+      return document.createElement('div');
+    },
+  };
+}
+
+jest.mock('mapbox-gl', () => ({
+  NavigationControl: mockNavControl,
+}));
 
 beforeEach(() => {
-  MapboxDrawMock.mockClear();
-  MapboxDrawMock.mockReset();
   cleanup();
 });
 
-test('Renders legend container into mapboxControl', async () => {
+const defaultProps = {
+  accessToken: 'string',
+  mapRef: null,
+  onSelectFeature: jest.fn(),
+};
+test('Renders container into mapboxControl', async () => {
   const {__baseElement, ...mapboxRef} = mockMapboxRef();
   const {getByTestId} = await render(
     <TestApp>
       {/* $FlowIgnore It's a mock */}
       <MapContextWrapper contextValue={{mapboxRef}}>
-        <MapOverlayLegend />
+        <TgMapboxNavigation {...defaultProps} />
       </MapContextWrapper>
     </TestApp>,
     {container: document.body?.appendChild(__baseElement)},
   );
-  expect(getByTestId('tg-legend-container')).toBeInTheDocument();
+  expect(getByTestId('tg-draw-toggle-container')).toBeInTheDocument();
 });
 
-test('Renders legend in container ', async () => {
+test('Renders search in container ', async () => {
   const {__baseElement, ...mapboxRef} = mockMapboxRef();
-  const {getByText} = await render(
+  const {getByTestId} = await render(
     <TestApp>
       {/* $FlowIgnore It's a mock */}
       <MapContextWrapper contextValue={{mapboxRef}}>
-        <MapOverlayLegend />
+        <TgMapboxNavigation {...defaultProps} />
       </MapContextWrapper>
     </TestApp>,
     {container: document.body?.appendChild(__baseElement)},
   );
-  expect(getByText('Legend')).toBeInTheDocument();
+  expect(getByTestId('mapbox-search-bar')).toBeInTheDocument();
 });

@@ -20,6 +20,7 @@ import {
   NetworkContextWrapper,
   TestApp,
   mockFig0,
+  mockMapboxRef,
   mockNetworkConfig,
   renderAsync,
 } from '../../../../../tests/testHelpers';
@@ -187,17 +188,4 @@ function getGeoJson<T: GeoJson>(container: HTMLElement): T {
     throw new Error('Prop not found: geoJsonSource');
   }
   return sourceData.data;
-}
-
-function mockMapboxRef(): {
-  loadImage: JestMockFn<*, *>,
-  addImage: JestMockFn<*, *>,
-  hasImage: JestMockFn<*, *>,
-} {
-  const images = new Map();
-  return {
-    loadImage: jest.fn((path, cb) => cb(null, {})),
-    addImage: jest.fn((k, v) => images.set(k, v)),
-    hasImage: jest.fn(key => images.has(key)),
-  };
 }
