@@ -131,7 +131,6 @@
     - { role: e2e_controller, tags: ["e2e_controller"] }
     - { role: nms, tags: ["nms"] }
     - { role: chihaya, tags: ["chihaya", "opentracker", "tracker"] }
-    - { role: docker_proxy, tags: ["docker_proxy"] }
     - { role: alarms, tags: ["alarms"] }
     - { role: msa, tags: ["msa", "tglib"] }
     - { role: monitoring, tags: ["monitoring", "monitor"]}
