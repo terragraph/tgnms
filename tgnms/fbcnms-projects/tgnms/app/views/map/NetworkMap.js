@@ -15,7 +15,7 @@ import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
 import ReactMapboxGl from 'react-mapbox-gl';
 import TableControl from './TableControl';
-import TgMapboxGeocoder from '../../components/geocoder/TgMapboxGeocoder';
+import TgMapboxNavigation from '../../components/mapboxNavigation/TgMapboxNavigation';
 import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
 import {MapAnnotationContextProvider} from '../../contexts/MapAnnotationContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
@@ -268,7 +268,7 @@ class NetworkMap extends React.Component<Props, State> {
               defaultMapMode={MAPMODE.DEFAULT}
               mapboxRef={mapRef}>
               <MapAnnotationContextProvider>
-                <TgMapboxGeocoder
+                <TgMapboxNavigation
                   accessToken={MAPBOX_ACCESS_TOKEN}
                   mapRef={mapRef}
                   onSelectFeature={this.onGeocoderEvent}

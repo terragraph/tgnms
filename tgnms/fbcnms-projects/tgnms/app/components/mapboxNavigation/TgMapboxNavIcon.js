@@ -15,7 +15,7 @@ type Props = {
   resultType: $Values<typeof TopologyElementType>,
 };
 
-export default function TgMapboxGeocoderIcon(props: Props) {
+export default function TgMapboxNavIcon(props: Props) {
   const {resultType} = props;
   return resultType === TopologyElementType.NODE ? (
     <RouterIcon />

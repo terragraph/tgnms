@@ -8,10 +8,10 @@
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import MapboxGeocoder from './MapboxGeocoder';
+import MapboxSearchBar from './MapboxSearchBar';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import TgMapboxGeocoderIcon from './TgMapboxGeocoderIcon';
+import TgMapboxNavIcon from './TgMapboxNavIcon';
 import mapboxgl from 'mapbox-gl';
 import {LinkTypeValueMap} from '../../../shared/types/Topology';
 import {
@@ -23,7 +23,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '../../contexts/MapContext';
 import {useNetworkContext} from '../../contexts/NetworkContext';
 
-import type {Feature} from './MapboxGeocoderTypes';
+import type {Feature} from './MapboxSearchTypes';
 import type {LinkMeta, Site} from '../../contexts/NetworkContext';
 import type {LinkType, NodeType} from '../../../shared/types/Topology';
 
@@ -39,7 +39,7 @@ type Props = {
   onSelectFeature: ($Shape<Feature>) => any,
 };
 
-export default function TgMapboxGeocoder(props: Props) {
+export default function TgMapboxNavigation(props: Props) {
   const classes = useStyles();
   const {accessToken, mapRef, onSelectFeature} = props;
   const {mapboxRef} = useMapContext();
@@ -276,7 +276,7 @@ export default function TgMapboxGeocoder(props: Props) {
             handleClearInput();
           }}>
           <ListItemIcon classes={{root: classes.listItemIcon}}>
-            <TgMapboxGeocoderIcon resultType={result.type} />
+            <TgMapboxNavIcon resultType={result.type} />
           </ListItemIcon>
           <ListItemText primary={primaryText} />
         </ListItem>
@@ -286,7 +286,7 @@ export default function TgMapboxGeocoder(props: Props) {
   );
 
   return ReactDOM.createPortal(
-    <MapboxGeocoder
+    <MapboxSearchBar
       accessToken={accessToken}
       mapRef={mapRef}
       onSelectFeature={onSelectFeature}

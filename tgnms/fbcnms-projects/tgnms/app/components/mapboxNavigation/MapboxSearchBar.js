@@ -16,7 +16,7 @@ import mapboxgl from 'mapbox-gl';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {Feature, Result} from './MapboxGeocoderTypes';
+import type {Feature, Result} from './MapboxSearchTypes';
 
 const styles = {
   resultsPaper: {
@@ -44,7 +44,7 @@ type State = {
   results: Array<{feature: Object}>,
 };
 
-class MapboxGeocoder extends React.Component<Props, State> {
+class MapboxSearchBar extends React.Component<Props, State> {
   state = {
     value: '',
     isLoading: false,
@@ -204,4 +204,4 @@ class MapboxGeocoder extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(MapboxGeocoder);
+export default withStyles(styles)(MapboxSearchBar);
