@@ -92,6 +92,7 @@ export default function TaskBasedConfig() {
     <Paper className={classes.root} elevation={1}>
       <Grid container spacing={0}>
         <Grid
+          xs={3}
           container
           item
           justify="space-between"
