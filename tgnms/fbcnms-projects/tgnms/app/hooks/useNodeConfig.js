@@ -44,17 +44,21 @@ export function useNodeConfig({
   const [loading, setLoading] = React.useState(true);
   const [configData, setConfigData] = React.useState(null);
   const [configParams, setConfigParams] = React.useState(null);
+  const networkConfigRef = React.useRef(networkConfig);
 
   React.useEffect(() => {
     setLoading(true);
 
     async function getConfigData() {
-      const configParams = await getConfigParams({networkName, networkConfig});
+      const configParams = await getConfigParams({
+        networkName,
+        networkConfig: networkConfigRef.current,
+      });
       setConfigParams(configParams);
     }
 
-    getConfigData();
     if (!configParams) {
+      getConfigData();
       return;
     }
 
@@ -105,7 +109,7 @@ export function useNodeConfig({
 
     setConfigData(convertType<Array<ConfigDataType>>(processedConfigData));
     setLoading(false);
-  }, [networkConfig, networkName, nodeName, configParams]);
+  }, [networkConfigRef, networkName, nodeName, configParams]);
 
   return {loading, configData, configParams};
 }
