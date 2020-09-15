@@ -20,7 +20,7 @@ services:
         max-file: "10"
 
   gluster_exporter:
-    image: secure.cxl-terragraph.com:443/gluster_exporter:latest
+    image: {{ monitoring_gluster_exporter_image }}
     deploy:
       mode: global
     volumes:

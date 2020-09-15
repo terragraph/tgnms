@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   fluentd:
-    image: secure.cxl-terragraph.com:443/fluentd:stable
+    image: {{ efk_fluentd_image }}
     volumes:
       - "{{ efk_gfs_path }}/config/fluentd/fluent.conf:/fluentd/etc/fluent.conf"
       - "{{ audit_logs_gfs_path }}:/audit"

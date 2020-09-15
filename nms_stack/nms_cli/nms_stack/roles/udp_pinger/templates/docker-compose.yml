@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   udp_pinger:
-    image: secure.cxl-terragraph.com:443/cpp_backends:stable
+    image: {{ udp_pinger_image }}
     env_file:
       - {{ db_gfs_path }}/env/mysql.env
 {% if keycloak_enabled %}

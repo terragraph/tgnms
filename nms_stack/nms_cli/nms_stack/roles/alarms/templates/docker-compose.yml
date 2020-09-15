@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   alarms:
-    image: secure.cxl-terragraph.com:443/tg-alarms:stable
+    image: {{ alarms_image }}
     logging:
       driver: "json-file"
       options:

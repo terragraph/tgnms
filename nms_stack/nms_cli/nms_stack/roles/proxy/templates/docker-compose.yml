@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   nginx:
-    image: secure.cxl-terragraph.com:443/nms_nginx:latest
+    image: {{ nginx_image }}
     environment:
       - "ext_nms_hostname={{ ext_nms_hostname }}"
       - "certbot_user_email={{ certbot_user_email }}"

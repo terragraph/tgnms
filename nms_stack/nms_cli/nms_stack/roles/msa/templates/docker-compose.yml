@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   analytics:
-    image: secure.cxl-terragraph.com:443/analytics:stable
+    image: {{ msa_analytics_image }}
 {% if keycloak_enabled %}
     env_file:
       - {{ msa_gfs_path }}/env/analytics_auth.env
@@ -20,7 +20,7 @@ services:
         max-file: "10"
 
   default_routes_service:
-    image: secure.cxl-terragraph.com:443/default_routes_service:stable
+    image: {{ msa_default_routes_service_image }}
     env_file:
       - {{ msa_gfs_path }}/env/default_routes_service.env
 {% if keycloak_enabled %}
@@ -40,7 +40,7 @@ services:
         max-file: "10"
 
   jupyter:
-    image: secure.cxl-terragraph.com:443/jupyter:stable
+    image: {{ msa_jupyter_image }}
     volumes:
       - {{ msa_gfs_path }}/config/config.json:/usr/local/tglib/jupyter/notebooks/config.json
     networks:
@@ -53,7 +53,7 @@ services:
         max-file: "10"
 
   network_test:
-    image: secure.cxl-terragraph.com:443/network_test:stable
+    image: {{ msa_network_test_image }}
     env_file:
       - {{ msa_gfs_path }}/env/network_test.env
 {% if keycloak_enabled %}
@@ -73,7 +73,7 @@ services:
         max-file: "10"
 
   scan_service:
-    image: secure.cxl-terragraph.com:443/scan_service:stable
+    image: {{ msa_scan_service_image }}
     env_file:
       - {{ msa_gfs_path }}/env/scan_service.env
 {% if keycloak_enabled %}
@@ -94,7 +94,7 @@ services:
         max-file: "10"
 
   topology_service:
-    image: secure.cxl-terragraph.com:443/topology_service:stable
+    image: {{ msa_topology_service_image }}
     env_file:
       - {{ msa_gfs_path }}/env/topology_service.env
 {% if keycloak_enabled %}
@@ -114,7 +114,7 @@ services:
         max-file: "10"
 
   weather_service:
-    image: secure.cxl-terragraph.com:443/weather_service:latest
+    image: {{ msa_weather_service_image }}
 {% if keycloak_enabled %}
     env_file:
       - {{ msa_gfs_path }}/env/weather_service_auth.env

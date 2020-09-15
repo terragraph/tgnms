@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   nms:
-    image: secure.cxl-terragraph.com:443/nmsv2:stable
+    image: {{ nms_image }}
     env_file:
       - {{ db_gfs_path }}/env/mysql.env
       - {{ nms_path }}/env/nms.env

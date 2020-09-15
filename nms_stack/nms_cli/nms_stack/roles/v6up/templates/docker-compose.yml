@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   v6up:
-    image: secure.cxl-terragraph.com:443/docker_v6up:stable
+    image: {{ v6up_image }}
     env_file:
       - env/time.env
     network_mode: "host"

@@ -26,7 +26,7 @@ services:
 {% endfor %}
 
   kafka:
-    image: secure.cxl-terragraph.com:443/kafka:stable
+    image: {{ kafka_image }}
     deploy:
       mode: global
     networks:
