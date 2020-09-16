@@ -81,7 +81,7 @@ services:
   prometheus_configurer:
     image: facebookincubator/prometheus-configurer:1.0.0
     command: ['-port=9100' ,
-              '-rules-dir=/etc/configs/alert_rules',
+              '-rules-dir=/etc/configs/alert_rules/',
               '-prometheusURL=stats_prometheus:9090',
               '-multitenant-label=networkID']
     networks:
