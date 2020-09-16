@@ -74,6 +74,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
 
     passport.authenticate('local', (err, user, _info) => {
       if (!user || err) {
+        logger.error('Failed login: ' + err);
         return res.redirect(loginFailureUrl);
       }
       req.logIn(user, err => {
