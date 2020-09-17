@@ -10,9 +10,8 @@
 
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import Attachment from '@material-ui/icons/Attachment';
 import Button from '@material-ui/core/Button';
-import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -21,6 +20,7 @@ import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import useRouter from '../../../hooks/useRouter';
+import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
@@ -128,41 +128,10 @@ export function AdvancedExpressionEditor(props: {
   );
 }
 
-function ThresholdExpressionEditor(props: {
+function ConditionSelector(props: {
   onChange: (expression: ThresholdExpression) => void,
   expression: ThresholdExpression,
-  metricsByName: {[string]: Array<prometheus_labelset>},
-  onToggleChange: void => void,
 }) {
-  const metricSelector = (
-    <Grid item>
-      <InputLabel htmlFor="metric-input">Metric</InputLabel>
-      <TextField
-        id="metric-input"
-        fullWidth
-        required
-        select
-        value={props.expression.metricName || ''}
-        onChange={({target}) => {
-          props.onChange({...props.expression, metricName: target.value});
-        }}>
-        {Object.keys(props.metricsByName).map(item => (
-          <MenuItem key={item} value={item}>
-            {item}
-          </MenuItem>
-        ))}
-        {props.metricsByName[props.expression.metricName] ? (
-          ''
-        ) : (
-          <MenuItem
-            key={props.expression.metricName}
-            value={props.expression.metricName}>
-            {props.expression.metricName}
-          </MenuItem>
-        )}
-      </TextField>
-    </Grid>
-  );
   const conditions: Array<BinaryComparator> = [
     '>',
     '<',
@@ -171,8 +140,8 @@ function ThresholdExpressionEditor(props: {
     '<=',
     '!=',
   ];
-  const conditionSelector = (
-    <Grid item>
+  return (
+    <Grid>
       <InputLabel htmlFor="condition-input">Condition</InputLabel>
       <TextField
         id="condition-input"
@@ -197,7 +166,13 @@ function ThresholdExpressionEditor(props: {
       </TextField>
     </Grid>
   );
-  const valueSelector = (
+}
+
+function ValueSelector(props: {
+  onChange: (expression: ThresholdExpression) => void,
+  expression: ThresholdExpression,
+}) {
+  return (
     <Grid item>
       <InputLabel htmlFor="value-input">Value</InputLabel>
       <TextField
@@ -214,69 +189,101 @@ function ThresholdExpressionEditor(props: {
       />
     </Grid>
   );
+}
 
+function MetricSelector(props: {
+  expression: ThresholdExpression,
+  onChange: (expression: ThresholdExpression) => void,
+  metricsByName: {[string]: Array<prometheus_labelset>},
+}) {
   return (
-    <>
+    <Grid item>
+      <InputLabel htmlFor="metric-input">Metric</InputLabel>
+      <TextField
+        id="metric-input"
+        fullWidth
+        required
+        select
+        value={props.expression.metricName || ''}
+        onChange={({target}) => {
+          props.onChange({...props.expression, metricName: target.value});
+        }}>
+        {getFilteredListOfLabelNames(Object.keys(props.metricsByName)).map(
+          item => (
+            <MenuItem key={item} value={item}>
+              {item}
+            </MenuItem>
+          ),
+        )}
+        {props.metricsByName[props.expression.metricName] ? (
+          ''
+        ) : (
+          <MenuItem
+            key={props.expression.metricName}
+            value={props.expression.metricName}>
+            {props.expression.metricName}
+          </MenuItem>
+        )}
+      </TextField>
+    </Grid>
+  );
+}
+
+function ThresholdExpressionEditor(props: {
+  onChange: (expression: ThresholdExpression) => void,
+  expression: ThresholdExpression,
+  metricsByName: {[string]: Array<prometheus_labelset>},
+  onToggleChange: void => void,
+}) {
+  return (
+    <Grid item container spacing={1}>
       <Grid
         item
         container
         spacing={1}
-        alignItems="flex-start"
+        alignItems="flex-end"
         justify="space-between">
-        <Grid item xs={5}>
-          {metricSelector}
-        </Grid>
-        <Grid item xs={4}>
-          {conditionSelector}
+        <Grid item xs={7}>
+          <MetricSelector
+            expression={props.expression}
+            onChange={props.onChange}
+            metricsByName={props.metricsByName}
+          />
         </Grid>
         <Grid item xs={3}>
-          {valueSelector}
+          <ConditionSelector
+            expression={props.expression}
+            onChange={props.onChange}
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <ValueSelector
+            expression={props.expression}
+            onChange={props.onChange}
+          />
         </Grid>
       </Grid>
       <Grid item xs={12}>
-        {props.expression.filters.len() > 0 ? (
-          <FormLabel>For metrics matching:</FormLabel>
-        ) : (
-          <></>
-        )}
         <MetricFilters
-          metricSeries={props.metricsByName[props.expression?.metricName] || []}
+          metricsByName={props.metricsByName || {}}
           expression={props.expression}
           onChange={props.onChange}
           onToggleChange={props.onToggleChange}
         />
       </Grid>
-    </>
+    </Grid>
   );
 }
 
 function MetricFilters(props: {
-  metricSeries: Array<prometheus_labelset>,
+  metricsByName: {[string]: Array<prometheus_labelset>},
   expression: ThresholdExpression,
   onChange: (expression: ThresholdExpression) => void,
   onToggleChange: void => void,
 }) {
   const classes = useStyles();
   return (
-    <Grid container>
-      {props.expression.filters.labels.map((filter, idx) => (
-        <Grid item xs={12}>
-          <MetricFilter
-            key={idx}
-            metricSeries={props.metricSeries}
-            onChange={props.onChange}
-            onRemove={filterIdx => {
-              const filtersCopy = props.expression.filters.copy();
-              filtersCopy.remove(filterIdx);
-              props.onChange({...props.expression, filters: filtersCopy});
-            }}
-            expression={props.expression}
-            filterIdx={idx}
-            selectedLabel={filter.name}
-            selectedValue={filter.value}
-          />
-        </Grid>
-      ))}
+    <Grid item container direction="column">
       <Grid item>
         <Button
           className={classes.button}
@@ -300,12 +307,32 @@ function MetricFilters(props: {
           Write a custom expression
         </Button>
       </Grid>
+      <Grid item container direction="column" spacing={3}>
+        {props.expression.filters.labels.map((filter, idx) => (
+          <Grid item>
+            <MetricFilter
+              key={idx}
+              metricsByName={props.metricsByName}
+              onChange={props.onChange}
+              onRemove={filterIdx => {
+                const filtersCopy = props.expression.filters.copy();
+                filtersCopy.remove(filterIdx);
+                props.onChange({...props.expression, filters: filtersCopy});
+              }}
+              expression={props.expression}
+              filterIdx={idx}
+              selectedLabel={filter.name}
+              selectedValue={filter.value}
+            />
+          </Grid>
+        ))}
+      </Grid>
     </Grid>
   );
 }
 
 function MetricFilter(props: {
-  metricSeries: Array<prometheus_labelset>,
+  metricsByName: {[string]: Array<prometheus_labelset>},
   onChange: (expression: ThresholdExpression) => void,
   onRemove: (filerIdx: number) => void,
   expression: ThresholdExpression,
@@ -313,18 +340,23 @@ function MetricFilter(props: {
   selectedLabel: string,
   selectedValue: string,
 }) {
-  const labelNames: Array<string> = [];
-  props.metricSeries.forEach(metric => {
-    labelNames.push(...Object.keys(metric));
-  });
-  labelNames.push(props.selectedLabel);
-
+  const currentFilter = props.expression.filters.labels[props.filterIdx];
   return (
-    <Grid container xs={12} spacing={1} alignItems="center">
-      <Grid item>
+    <Grid item container xs={12} spacing={2} alignItems="flex-end">
+      <Grid item xs={1}>
+        <IconButton disabled>
+          <Attachment />
+        </IconButton>
+      </Grid>
+      <Grid item xs={6}>
+        <InputLabel htmlFor={'metric-input-' + props.filterIdx}>
+          Metric
+        </InputLabel>
         <FilterSelector
-          values={getFilteredListOfLabelNames([...new Set(labelNames)])}
-          defaultVal="Label"
+          id={'metric-input-' + props.filterIdx}
+          fullWidth
+          values={getFilteredListOfLabelNames(Object.keys(props.metricsByName))}
+          defaultVal=""
           onChange={({target}) => {
             const filtersCopy = props.expression.filters.copy();
             filtersCopy.setIndex(props.filterIdx, target.value, '');
@@ -333,41 +365,63 @@ function MetricFilter(props: {
           selectedValue={props.selectedLabel}
         />
       </Grid>
-      <Grid item xs={3}>
-        <FilterAutocomplete
-          values={
-            props.selectedLabel
-              ? [
-                  ...new Set(
-                    props.metricSeries.map(item => item[props.selectedLabel]),
-                  ),
-                ]
-              : []
-          }
-          disabled={props.selectedLabel == ''}
-          defaultVal="Value"
-          onChange={(event, value) => {
-            // TODO: This is here because we have to pass the onChange function
-            // to both the Autocomplete element and the TextInput element
-            // T57876329
-            if (!value) {
-              value = event.target.value;
-            }
-            const filtersCopy = props.expression.filters.copy();
-            const filterOperator = isRegexValue(value) ? '=~' : '=';
-            filtersCopy.setIndex(
-              props.filterIdx,
-              filtersCopy.labels[props.filterIdx].name,
-              value || '',
-              filterOperator,
-            );
-            props.onChange({...props.expression, filters: filtersCopy});
-          }}
-          updateExpression={props.onChange}
-          selectedValue={props.selectedValue}
-        />
+      <Grid item xs={2}>
+        <Grid>
+          <InputLabel htmlFor={'condition-input-' + props.filterIdx}>
+            Condition
+          </InputLabel>
+          <TextField
+            id={'condition-input-' + props.filterIdx}
+            fullWidth
+            required
+            select
+            value={currentFilter.operator}
+            onChange={({target}) => {
+              const filtersCopy = props.expression.filters.copy();
+              const filterOperator = isRegexValue(target.value) ? '=~' : '=';
+              filtersCopy.setIndex(
+                props.filterIdx,
+                currentFilter.name,
+                currentFilter.value,
+                filterOperator,
+              );
+              props.onChange({...props.expression, filters: filtersCopy});
+            }}>
+            {LABEL_OPERATORS.map(item => (
+              <MenuItem key={item} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
       </Grid>
-      <Grid item>
+      <Grid item xs={2}>
+        <Grid item>
+          <InputLabel htmlFor={'value-input-' + props.filterIdx}>
+            Value
+          </InputLabel>
+          <TextField
+            id={'value-input-' + props.filterIdx}
+            fullWidth
+            value={currentFilter.value}
+            type="number"
+            onChange={({target}) => {
+              const filtersCopy = props.expression.filters.copy();
+              filtersCopy.setIndex(
+                props.filterIdx,
+                currentFilter.name,
+                target.value,
+                currentFilter.operator,
+              );
+              props.onChange({
+                ...props.expression,
+                filters: filtersCopy,
+              });
+            }}
+          />
+        </Grid>
+      </Grid>
+      <Grid item xs={1}>
         <IconButton onClick={() => props.onRemove(props.filterIdx)}>
           <RemoveCircleIcon />
         </IconButton>
@@ -392,48 +446,17 @@ function FilterSelector(props: {
 
   return (
     <Select
+      fullWidth
       disabled={props.disabled}
       displayEmpty
       className={classes.metricFilterItem}
       value={props.selectedValue}
       onChange={props.onChange}>
       <MenuItem disabled value="">
-        <em>{props.defaultVal}</em>
+        {props.defaultVal}
       </MenuItem>
       {menuItems}
     </Select>
-  );
-}
-
-function FilterAutocomplete(props: {
-  values: Array<string>,
-  defaultVal: string,
-  onChange: (event: SyntheticInputEvent<HTMLElement>) => void,
-  selectedValue: string,
-  disabled?: boolean,
-}) {
-  return (
-    <Autocomplete
-      freeSolo
-      options={props.values}
-      onChange={props.onChange}
-      value={props.selectedValue}
-      renderInput={({inputProps, ...params}) => (
-        <TextField
-          {...params}
-          inputProps={{
-            ...inputProps,
-            autoComplete: 'off',
-            onChange: props.onChange,
-          }}
-          disabled={props.values.length === 0}
-          label={props.defaultVal}
-          margin="normal"
-          variant="filled"
-          fullWidth
-        />
-      )}
-    />
   );
 }
 
