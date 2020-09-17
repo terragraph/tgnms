@@ -35,6 +35,9 @@ const useStyles = makeStyles(theme => ({
     fontSize: '1.2rem',
     color: theme.palette.text.secondary,
   },
+  logoutBtn: {
+    width: '100%',
+  },
 }));
 
 export default function UserMenu() {
@@ -83,11 +86,11 @@ export default function UserMenu() {
           method="POST"
           action="/user/logout">
           <MenuItem
+            component="button"
+            role="button"
+            type="submit"
             data-testid="logout-menuitem"
-            onClick={() =>
-              formRef.current &&
-              formRef.current.dispatchEvent(new Event('submit'))
-            }>
+            classes={{root: classes.logoutBtn}}>
             <ListItemIcon>
               <ExitToAppIcon />
             </ListItemIcon>
