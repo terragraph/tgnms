@@ -9,9 +9,10 @@
  */
 
 import * as React from 'react';
+import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
 import useRouter from '../../../hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
 
@@ -45,12 +46,21 @@ export default function SelectReceiver({
   }
 
   return (
-    <TextField
+    <Select
       {...fieldProps}
-      select
       id="select-receiver"
       onChange={handleChange}
+      defaultValue="Select Team"
       inputProps={{'data-testid': 'select-receiver-input'}}
+      renderValue={value => (
+        <Chip
+          key={value}
+          label={value}
+          variant="outlined"
+          color="primary"
+          size="small"
+        />
+      )}
       value={receiver || ''}>
       <MenuItem value="" key={''}>
         None
@@ -61,6 +71,6 @@ export default function SelectReceiver({
           {receiver.name}
         </MenuItem>
       ))}
-    </TextField>
+    </Select>
   );
 }

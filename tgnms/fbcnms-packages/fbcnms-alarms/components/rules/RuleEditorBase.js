@@ -12,11 +12,13 @@
  */
 
 import * as React from 'react';
+import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
+import InputLabel from '@material-ui/core/InputLabel';
 import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
@@ -156,12 +158,21 @@ export default function RuleEditorBase({
                 }
               />
               <CardContent>
-                <SelectReceiver
-                  label="Send Notification To:"
-                  fullWidth
-                  receiver={receiver}
-                  onChange={setReceiver}
-                />
+                <Grid container direction="column" spacing={2}>
+                  <Grid item>
+                    <InputLabel>Team</InputLabel>
+                    <SelectReceiver
+                      fullWidth
+                      receiver={receiver}
+                      onChange={setReceiver}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Button color="primary" size="small">
+                      Create new team
+                    </Button>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           </Grid>

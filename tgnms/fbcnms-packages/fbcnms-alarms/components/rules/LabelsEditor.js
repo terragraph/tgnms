@@ -18,6 +18,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import InputLabel from '@material-ui/core/InputLabel';
 import SyncIcon from '@material-ui/icons/Sync';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -109,7 +110,7 @@ export default function LabelsEditor({labels, onChange}: Props) {
               Labels
             </Typography>
             <Typography color="textSecondary" gutterBottom variant="body2">
-              Add labels to the fired alert
+              Add labels to attach data to this alert
             </Typography>
           </>
         }
@@ -131,7 +132,9 @@ export default function LabelsEditor({labels, onChange}: Props) {
             labelsState.map(([key, value], index) => (
               <Grid container key={index} item spacing={1}>
                 <Grid item xs={6}>
+                  <InputLabel htmlFor="label-name-input">Label Name</InputLabel>
                   <TextField
+                    id="label-name-input"
                     placeholder="Name"
                     value={key}
                     fullWidth
@@ -139,7 +142,9 @@ export default function LabelsEditor({labels, onChange}: Props) {
                   />
                 </Grid>
                 <Grid item xs={5}>
+                  <InputLabel htmlFor="label-value-input">Value</InputLabel>
                   <TextField
+                    id="label-value-input"
                     placeholder="Value"
                     value={value}
                     fullWidth
@@ -158,7 +163,11 @@ export default function LabelsEditor({labels, onChange}: Props) {
             ))}
 
           <Grid item>
-            <Button onClick={addNewLabel} data-testid="add-new-label">
+            <Button
+              color="primary"
+              size="small"
+              onClick={addNewLabel}
+              data-testid="add-new-label">
               Add new label
             </Button>
           </Grid>
