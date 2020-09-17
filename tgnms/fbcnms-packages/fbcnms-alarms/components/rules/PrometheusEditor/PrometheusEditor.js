@@ -436,7 +436,9 @@ function getMostSignificantTime(
   return {timeNumber: duration.seconds, timeUnit: 's'};
 }
 
-function getThresholdExpression(exp: PromQL.Expression): ?ThresholdExpression {
+function getThresholdExpression(
+  exp: PromQL.Expression<string | number>,
+): ?ThresholdExpression {
   if (
     !(
       exp instanceof PromQL.BinaryOperation &&

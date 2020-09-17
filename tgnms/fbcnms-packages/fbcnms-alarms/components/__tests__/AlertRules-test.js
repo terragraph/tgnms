@@ -63,7 +63,7 @@ test('renders rules returned by api', () => {
     </AlarmsWrapper>,
   );
   expect(getByText('<<test>>')).toBeInTheDocument();
-  expect(getByText('up == 0')).toBeInTheDocument();
+  expect(getByText('UP == 0 for 1m')).toBeInTheDocument();
 });
 
 test('clicking the add alert icon displays the AddEditAlert view', () => {

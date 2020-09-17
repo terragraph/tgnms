@@ -18,6 +18,7 @@ import TableActionDialog from './table/TableActionDialog';
 import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
 import useRouter from '../hooks/useRouter';
+import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
@@ -81,16 +82,6 @@ export default function AlertRules<TRuleUnion>() {
       {
         title: 'name',
         getValue: x => x.name,
-        renderFunc: (rule, classes) => {
-          return (
-            <>
-              <div className={classes.titleCell}>{rule.name}</div>
-              <div className={classes.secondaryItalicCell}>
-                {rule.description}
-              </div>
-            </>
-          );
-        },
       },
       {
         title: 'severity',
@@ -98,12 +89,24 @@ export default function AlertRules<TRuleUnion>() {
         render: 'severity',
       },
       {
-        title: 'period',
-        getValue: rule => rule.period,
+        title: 'fire alert when',
+        getValue: rule => {
+          try {
+            const exp = Parse(rule.expression);
+            if (exp) {
+              const metricName = exp.lh.selectorName?.toUpperCase() || '';
+              const operator = exp.operator?.toString() || '';
+              const value = exp.rh.value?.toString() || '';
+              return `${metricName} ${operator} ${value} for ${rule.period}`;
+            }
+          } catch {}
+
+          return 'error';
+        },
       },
       {
-        title: 'expression',
-        getValue: rule => rule.expression,
+        title: 'description',
+        getValue: rule => rule.description,
       },
     ],
     [],

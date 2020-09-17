@@ -35,11 +35,7 @@ const useStyles = makeStyles(theme => ({
     marginBottom: 2,
   },
   secondaryCell: {
-    color: theme.palette.text.secondary,
-  },
-  secondaryItalicCell: {
-    fontStyle: 'italic',
-    color: theme.palette.text.secondary,
+    color: theme.palette.text.primary,
   },
   secondaryChip: {
     color: theme.palette.secondary.main,
@@ -66,13 +62,14 @@ const HeadTableCell = withStyles({
   root: {
     fontSize: '12px',
     color: 'gray',
-    textTransform: 'uppercase',
+    textTransform: 'capitalize',
     marginLeft: 5,
   },
 })(TableCell);
 
 const BodyTableCell = withStyles({
   root: {
+    fontSize: '14px',
     marginLeft: 5,
   },
 })(TableCell);
@@ -209,9 +206,7 @@ function LabelsCell({
   return (
     <BodyTableCell>
       <div
-        className={
-          columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
-        }>
+        className={columnIdx === 0 ? classes.titleCell : classes.secondaryCell}>
         {Object.keys(labels).map(keyName => {
           const val = renderLabelValue(labels[keyName]);
           return (
@@ -239,9 +234,7 @@ function TextCell({value, classes, columnIdx}: CellProps<string>) {
   return (
     <BodyTableCell>
       <div
-        className={
-          columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
-        }>
+        className={columnIdx === 0 ? classes.titleCell : classes.secondaryCell}>
         {value}
       </div>
     </BodyTableCell>
@@ -384,11 +377,9 @@ export default function SimpleTable<T>(props: Props<T>) {
       <Table>
         <TableHead>
           <TableRow>
-            {columnStruct
-              .concat(onActionsClick ? [{title: 'actions'}] : [])
-              .map((column, idx) => (
-                <HeadTableCell key={'row' + idx}>{column.title}</HeadTableCell>
-              ))}
+            {columnStruct.map((column, idx) => (
+              <HeadTableCell key={'row' + idx}>{column.title}</HeadTableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>{rows}</TableBody>

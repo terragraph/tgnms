@@ -20,15 +20,18 @@ import type {
   BinaryComparator as SimpleBinaryComparator,
 } from './PromQLTypes';
 
-export interface Expression {
+export interface Expression<+T> {
+  selectorName?: ?string;
+  value?: T;
+  op?: string;
   toPromQL(): string;
 }
 
-export class Function implements Expression {
+export class Function implements Expression<*> {
   name: FunctionName;
-  arguments: Array<Expression>;
+  arguments: Array<Expression<*>>;
 
-  constructor(name: FunctionName, args: Array<Expression>) {
+  constructor(name: FunctionName, args: Array<Expression<*>>) {
     this.name = name;
     this.arguments = args;
   }
@@ -42,7 +45,7 @@ export class Function implements Expression {
   }
 }
 
-export class InstantSelector implements Expression {
+export class InstantSelector implements Expression<*> {
   selectorName: ?string;
   labels: ?Labels;
   offset: ?Range;
@@ -190,7 +193,7 @@ export class Label {
   }
 }
 
-export class Scalar implements Expression {
+export class Scalar implements Expression<number> {
   value: number;
 
   constructor(value: number) {
@@ -202,15 +205,15 @@ export class Scalar implements Expression {
   }
 }
 
-export class BinaryOperation implements Expression {
-  lh: Expression;
-  rh: Expression;
+export class BinaryOperation implements Expression<string | number> {
+  lh: Expression<string | number>;
+  rh: Expression<string | number>;
   operator: BinaryOperator;
   clause: ?VectorMatchClause;
 
   constructor(
-    lh: Expression,
-    rh: Expression,
+    lh: Expression<string | number>,
+    rh: Expression<string | number>,
     operator: BinaryOperator,
     clause: ?VectorMatchClause,
   ) {
@@ -293,14 +296,14 @@ export class Clause<ClauseType: ClauseType> {
   }
 }
 
-export class AggregationOperation implements Expression {
+export class AggregationOperation implements Expression<*> {
   name: AggregationOperator;
-  parameters: Array<Expression>;
+  parameters: Array<Expression<*>>;
   clause: ?Clause<AggrClauseType>;
 
   constructor(
     name: AggregationOperator,
-    parameters: Array<Expression>,
+    parameters: Array<Expression<*>>,
     clause: ?Clause<AggrClauseType>,
   ) {
     this.name = name;
@@ -318,7 +321,7 @@ export class AggregationOperation implements Expression {
   }
 }
 
-export class String implements Expression {
+export class String implements Expression<string> {
   value: string;
 
   constructor(value: string) {
@@ -330,14 +333,14 @@ export class String implements Expression {
   }
 }
 
-export class SubQuery implements Expression {
-  expr: Expression;
+export class SubQuery implements Expression<string | number> {
+  expr: Expression<string | number>;
   range: Range;
   resolution: ?Range;
   offset: ?Range;
 
   constructor(
-    expr: Expression,
+    expr: Expression<string | number>,
     range: Range,
     resolution: ?Range,
     offset: ?Range,

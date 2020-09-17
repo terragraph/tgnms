@@ -10,14 +10,14 @@
 
 import grammar from './__generated__/PromQLGrammar.js';
 import nearley from 'nearley';
-import {Expression} from './PromQL';
+import {BinaryOperation} from './PromQL';
 import {SyntaxError} from './PromQLTypes';
 
 export function Parser() {
   return new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
 }
 
-export function Parse(input: ?string): ?Expression {
+export function Parse(input: ?string): ?BinaryOperation {
   if (!input) {
     throw 'empty input to parser';
   }
