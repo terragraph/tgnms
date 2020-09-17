@@ -10,6 +10,7 @@ services:
       options:
         max-size: "20m"
         max-file: "10"
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /lib/modules:/lib/modules:ro
