@@ -8,7 +8,9 @@
  * @format
  */
 import * as React from 'react';
+import Checkbox from '@material-ui/core/Checkbox';
 import ConfigEditor from './ConfigEditor';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import type {EditorProps} from './ConfigEditor';
@@ -92,6 +94,20 @@ export default function EmailConfigEditor({
               onChange={e => onUpdate({auth_identity: e.target.value})}
               fullWidth
               helperText="SMTP Auth using PLAIN"
+            />
+          </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={config.require_tls}
+                  onChange={e => onUpdate({require_tls: e.target.checked})}
+                  name="require_tls"
+                  color="primary"
+                  indeterminate={config.require_tls == null}
+                />
+              }
+              label="Require TLS"
             />
           </Grid>
         </>

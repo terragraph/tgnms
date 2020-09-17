@@ -60,6 +60,7 @@ export type ReceiverEmailConfig = {
   text?: string,
   to: string,
   send_resolved?: boolean,
+  require_tls?: boolean,
 };
 
 export type ReceiverSlackConfig = {
