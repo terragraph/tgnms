@@ -20,18 +20,20 @@ import type {
   BinaryComparator as SimpleBinaryComparator,
 } from './PromQLTypes';
 
-export interface Expression<+T> {
+type Value = string | number;
+
+export interface Expression<+T: Value> {
   selectorName?: ?string;
   value?: T;
   op?: string;
   toPromQL(): string;
 }
 
-export class Function implements Expression<*> {
+export class Function implements Expression<Value> {
   name: FunctionName;
-  arguments: Array<Expression<*>>;
+  arguments: Array<Expression<Value>>;
 
-  constructor(name: FunctionName, args: Array<Expression<*>>) {
+  constructor(name: FunctionName, args: Array<Expression<Value>>) {
     this.name = name;
     this.arguments = args;
   }
@@ -296,14 +298,14 @@ export class Clause<ClauseType: ClauseType> {
   }
 }
 
-export class AggregationOperation implements Expression<*> {
+export class AggregationOperation implements Expression<Value> {
   name: AggregationOperator;
-  parameters: Array<Expression<*>>;
+  parameters: Array<Expression<Value>>;
   clause: ?Clause<AggrClauseType>;
 
   constructor(
     name: AggregationOperator,
-    parameters: Array<Expression<*>>,
+    parameters: Array<Expression<Value>>,
     clause: ?Clause<AggrClauseType>,
   ) {
     this.name = name;
@@ -333,14 +335,14 @@ export class String implements Expression<string> {
   }
 }
 
-export class SubQuery implements Expression<string | number> {
-  expr: Expression<string | number>;
+export class SubQuery implements Expression<Value> {
+  expr: Expression<Value>;
   range: Range;
   resolution: ?Range;
   offset: ?Range;
 
   constructor(
-    expr: Expression<string | number>,
+    expr: Expression<Value>,
     range: Range,
     resolution: ?Range,
     offset: ?Range,
