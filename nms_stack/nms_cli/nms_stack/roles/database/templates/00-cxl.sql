@@ -54,31 +54,6 @@ call Create_Nms_User();
 call Create_Grafana_Database();
 call Create_Grafana_Reader();
 
-/* procedure to_add a column if it doesn't exist or modify it if it does */
-DROP PROCEDURE IF EXISTS Add_Modify_Column;
-DELIMITER $$
-CREATE PROCEDURE Add_Modify_Column(IN tableName varchar(100), IN columnName varchar(100), IN varType varchar(100))
-BEGIN
-    DECLARE _count INT;
-    SET _count = (  SELECT COUNT(*)
-                    FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE   TABLE_NAME = tableName AND
-                            COLUMN_NAME = columnName);
-    IF _count = 0 THEN /* if column does not exist */
-	SET @s=CONCAT('ALTER TABLE ', tableName,' ADD COLUMN `', columnName, '` ', varType);
-        PREPARE addcmd FROM @s;
-	EXECUTE addcmd;
-	DEALLOCATE PREPARE addcmd;
-    ELSE
-	SET @s=CONCAT('ALTER TABLE ', tableName, ' MODIFY COLUMN `', columnName, '` ', varType);
-        PREPARE addcmd FROM @s;
-	EXECUTE addcmd;
-	DEALLOCATE PREPARE addcmd;
-
-    END IF;
-END $$
-DELIMITER ;
-
 DROP PROCEDURE IF EXISTS Adjust_Agg_Key_Auto;
 DELIMITER $$
 CREATE PROCEDURE Adjust_Agg_Key_Auto ()
@@ -121,59 +96,15 @@ CREATE TABLE IF NOT EXISTS `nodes` (
   KEY `site` (`site`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
-/* scan_results table is no longer used, replaced by tx_scan_results and
-   rx_scan_results - added July 2018 */
 DROP TABLE IF EXISTS scan_results;
-
+DROP TABLE IF EXISTS scan_response_rate;
+DROP TABLE IF EXISTS rx_scan_results;
+DROP TABLE IF EXISTS tx_scan_results;
 DROP TABLE IF EXISTS event_categories;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS topologies;
 DROP TABLE IF EXISTS controller_news;
 DROP TABLE IF EXISTS topology_news;
-
-
-CREATE TABLE IF NOT EXISTS `rx_scan_results` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `scan_resp` blob,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `rx_node_id` int,
-  `status` int,
-  `tx_id` int,
-  `new_beam_flag` tinyint,
-  `rx_node_name` varchar(100) DEFAULT NULL,
-  KEY `rx_node_id` (`rx_node_id`),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
-
-CREATE TABLE IF NOT EXISTS `tx_scan_results` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `scan_resp` blob,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `token` int unsigned,
-  `tx_node_id` int,
-  `start_bwgd` bigint,
-  `scan_type` tinyint,
-  `scan_sub_type` tinyint,
-  `scan_mode` tinyint,
-  `apply_flag` tinyint,
-  `status` int,
-  `tx_power` tinyint,
-  `resp_id` int,
-  `combined_status` int,
-  `tx_node_name` varchar(100) DEFAULT NULL,
-  `network` varchar(100) DEFAULT NULL,
-  CONSTRAINT unique_token UNIQUE(start_bwgd,token,network),
-  KEY `tx_node_id` (`tx_node_id`),
-  KEY `network` (`network`),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
-/* these can be deleted once all DBs are updated */
-CALL Add_Modify_Column('tx_scan_results','combined_status','int'); /* added July 2018 */
-CALL Add_Modify_Column('tx_scan_results','token','int unsigned');  /* added July 2018 */
-CALL Add_Modify_Column('tx_scan_results', 'n_responses_waiting', 'int unsigned'); /* added March 2019 */
-CALL Add_Modify_Column('tx_scan_results', 'group_id', 'int unsigned'); /* added June 2019 */
 
 CREATE TABLE IF NOT EXISTS `topology` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -193,28 +124,5 @@ CREATE TABLE IF NOT EXISTS `ts_key` (
   KEY `node_id` (`node_id`),
   KEY `key` (`key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
-
-CREATE TABLE IF NOT EXISTS `scan_response_rate` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `scan_group_id` int,
-  `network_id` int(11),
-  `scan_type` tinyint,
-  `scan_mode` tinyint,
-  `scan_sub_type` tinyint,
-  `n_scans` int,
-  `n_valid_scans` int,
-  `n_invalid_scans` int,
-  `n_incomplete_scans` int,
-  `start_time` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `end_time` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `total_tx_resp` int,
-  `invalid_tx_resp` int,
-  `tx_errors` json,
-  `total_rx_resp` int,
-  `invalid_rx_resp` int,
-  `rx_errors` json,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY (`network_id`) REFERENCES topology(`id`)
-) ENGINE=InnoDB;
 
 SELECT 'Done initializing DB.' AS '';

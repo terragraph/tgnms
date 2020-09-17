@@ -38,8 +38,6 @@ set(QUERY_SRCS
     NetworkHealthUtils.h
     PrometheusUtils.cpp
     PrometheusUtils.h
-    ScanRespService.cpp
-    ScanRespService.h
     StatsUtils.cpp
     StatsUtils.h
     TopologyFetcher.cpp

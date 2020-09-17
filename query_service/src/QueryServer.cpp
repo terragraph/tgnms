@@ -13,7 +13,6 @@
 #include "KafkaStatsService.h"
 #include "NetworkHealthService.h"
 #include "HttpService.h"
-#include "ScanRespService.h"
 #include "TopologyFetcher.h"
 
 #include <curl/curl.h>
@@ -35,7 +34,6 @@ DEFINE_int32(
     0,
     "Number of threads to listen on. Numbers <= 0 "
     "will use the number of cores on this machine.");
-DEFINE_bool(enable_scans, true, "Enable the scan response service");
 DEFINE_string(kafka_broker_endpoint_list, "", "Kafka broker endpoint list");
 // regular frequency node stats
 DEFINE_bool(enable_kafka_stats, false, "Enable Kafka stats service");
@@ -86,14 +84,6 @@ int main(int argc, char* argv[]) {
   LOG(INFO) << "Starting Network Health Service";
   auto healthService =
       std::make_shared<NetworkHealthService>(FLAGS_kafka_broker_endpoint_list);
-
-  std::shared_ptr<ScanRespService> scanRespService;
-  if (FLAGS_enable_scans) {
-    LOG(INFO) << "Starting Scan Response Service";
-    scanRespService.reset(new ScanRespService());
-  } else {
-    LOG(INFO) << "Scan Response Service Disabled";
-  }
 
   std::vector<std::unique_ptr<KafkaStatsService>> kafkaStatsServiceList;
   if (FLAGS_enable_kafka_stats) {

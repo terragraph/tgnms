@@ -21,7 +21,6 @@ set(
     IpPrefix.thrift
     Lsdb.thrift
     Pinger.thrift
-    scans.thrift
     Stats.thrift
     Topology.thrift
 )

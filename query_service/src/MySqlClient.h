@@ -19,7 +19,6 @@
 #include "if/gen-cpp2/QueryService_types_custom_protocol.h"
 #include "if/gen-cpp2/Stats_types_custom_protocol.h"
 #include "if/gen-cpp2/Topology_types_custom_protocol.h"
-#include "if/gen-cpp2/scans_types_custom_protocol.h"
 
 #include "mysql_connection.h"
 #include "mysql_driver.h"
@@ -69,12 +68,6 @@ class MySqlClient {
 
   void refreshLinkMetrics() noexcept;
 
-  bool writeScanResponses(
-      const std::vector<thrift::MySqlScanResp>& mySqlScanResponses) noexcept;
-  int64_t refreshScanResponse(std::string& network) noexcept;
-
-  int64_t getLastBwgd(const std::string& network) noexcept;
-
   // link health state
   folly::Optional<thrift::LinkEvent> getLinkEvents(
       const std::string& topologyName,
@@ -94,18 +87,6 @@ class MySqlClient {
   folly::Synchronized<std::map<int64_t, std::shared_ptr<thrift::TopologyConfig>>>
       topologyIdMap_{};
   folly::Synchronized<LinkMetricMap> linkMetrics_{};
-
-  bool writeRxScanResponse(
-      const thrift::MySqlScanRxResp& scanResponse,
-      const int64_t txId,
-      sql::Connection* connection) noexcept;
-  int writeTxScanResponse(
-      const thrift::MySqlScanTxResp& scanResponse,
-      sql::Connection* connection) noexcept;
-  int64_t getLastId(
-      const int token,
-      const int64_t startBwgd,
-      const std::string& network) noexcept;
 };
 
 } // namespace stats
