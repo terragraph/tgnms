@@ -8,6 +8,7 @@
 import * as React from 'react';
 import NmsOptionsContext from './NmsOptionsContext';
 import useUnmount from '../hooks/useUnmount';
+import {DEFAULT_MAP_PROFILE} from '../constants/MapProfileConstants';
 import {getUrlSearchParam} from '../helpers/NetworkUrlHelpers';
 import {useLocation} from 'react-router-dom';
 
@@ -19,6 +20,7 @@ import type {
   SelectedLayersType,
   SelectedOverlays,
 } from '../views/map/NetworkMapTypes';
+import type {MapProfile} from '../../shared/dto/MapProfile';
 
 type OverlayMap = LayerData<Overlay>;
 
@@ -52,6 +54,7 @@ export type MapContext = {|
   setOverlayData: (LayerData<{}>) => void,
   isOverlayLoading: boolean,
   setIsOverlayLoading: boolean => void,
+  mapProfiles: Array<MapProfile>,
   mapboxRef: ?Map,
 |};
 
@@ -72,6 +75,7 @@ const defaultValue: MapContext = {
   setOverlayData: empty,
   isOverlayLoading: false,
   setIsOverlayLoading: empty,
+  mapProfiles: [DEFAULT_MAP_PROFILE],
   mapboxRef: null,
 };
 
@@ -82,6 +86,7 @@ export type ProviderProps = {|
   children: React.Node,
   defaultMapMode?: string,
   overlayData?: LayerData<{}>,
+  mapProfiles: Array<MapProfile>,
   mapboxRef: ?Map,
 |};
 
@@ -95,6 +100,7 @@ export function MapContextProvider({
   children,
   defaultMapMode,
   mapboxRef,
+  mapProfiles,
 }: ProviderProps) {
   const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
     NmsOptionsContext,
@@ -215,6 +221,7 @@ export function MapContextProvider({
         overlays,
         isOverlayLoading,
         setIsOverlayLoading,
+        mapProfiles,
         mapboxRef,
       }}>
       {children}

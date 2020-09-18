@@ -201,6 +201,7 @@ export function MapContextWrapper({
     setOverlayData: jest.fn(),
     isOverlayLoading: false,
     setIsOverlayLoading: jest.fn(),
+    mapProfiles: [],
     ...(contextValue || {}: $Shape<MapContextType>),
   };
   return <MapContext.Provider value={val}>{children}</MapContext.Provider>;

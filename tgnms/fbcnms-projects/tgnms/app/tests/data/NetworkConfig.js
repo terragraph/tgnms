@@ -47,7 +47,7 @@ export function mockNetworkInstanceConfig(): NetworkInstanceConfig {
       links: {},
       nodes: {},
     },
-    map_profile: null,
+    map_profile_id: null,
     wireless_controller: null,
   };
 }

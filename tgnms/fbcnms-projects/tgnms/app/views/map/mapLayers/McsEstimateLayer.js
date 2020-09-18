@@ -184,7 +184,10 @@ export default function McsEstimateOverlay() {
   );
 }
 
-function mcsRingsTemplate(location: GeoCoord, mcsTable): Array<GeoFeature> {
+function mcsRingsTemplate(
+  location: GeoCoord,
+  mcsTable: Array<McsLinkBudget>,
+): Array<GeoFeature> {
   const circles = [...mcsTable].map(({mcs, rangeMeters}) =>
     turf.circle(location, rangeMeters, {
       units: 'meters',
@@ -296,20 +299,22 @@ function sectorAngleTemplate({
   return triangle;
 }
 
-function useMapProfileMcsTable() {
-  const {networkConfig} = useNetworkContext();
+function useMapProfileMcsTable(): Array<McsLinkBudget> {
+  const {networkName} = useNetworkContext();
+  const {mapProfiles} = useMapContext();
   return React.useMemo(() => {
-    let table = [...DEFAULT_MCS_TABLE];
-    if (
-      networkConfig != null &&
-      networkConfig?.map_profile?.data?.mcsTable != null
-    ) {
-      table = networkConfig.map_profile.data.mcsTable;
-      const mcsTable = networkConfig.map_profile.data.mcsTable;
-      return mcsTable;
+    const mapProfile = mapProfiles.find(p =>
+      p.networks?.some(netName => netName === networkName),
+    );
+    if (mapProfile != null) {
+      const mcsTable = mapProfile.data.mcsTable;
+      if (mcsTable != null) {
+        return mcsTable;
+      }
     }
+
+    const table = [...DEFAULT_MCS_TABLE];
     table.sort((a, b) => b.rangeMeters - a.rangeMeters);
     return table;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [networkConfig]);
+  }, [networkName, mapProfiles]);
 }

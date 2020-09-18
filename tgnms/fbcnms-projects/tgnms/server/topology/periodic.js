@@ -12,7 +12,6 @@ const {
   refreshPrometheusStatus,
   runNowAndWatchForTopologyUpdate,
   scheduleScansUpdate,
-  //watchForTopologyUpdate,
 } = require('./model');
 const {runNowAndSchedule} = require('../scheduler');
 

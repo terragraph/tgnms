@@ -6,7 +6,6 @@
  */
 
 import {BinaryStarFsmStateValueMap} from '../types/Controller';
-import type {MapProfile} from './MapProfile';
 import type {SiteType, TopologyType} from '../types/Topology';
 import type {StatusDumpType, UpgradeStateDumpType} from '../types/Controller';
 
@@ -29,8 +28,8 @@ export type NetworkInstanceConfig = {|
   backup: ?E2EController,
   site_overrides: Array<SiteType>,
   offline_whitelist: ?OfflineWhiteListType,
-  map_profile: ?MapProfile,
   wireless_controller: ?WirelessController,
+  map_profile_id: ?number,
 |};
 
 export type ServiceState = {|
@@ -82,6 +81,7 @@ export type NetworkHealth = {
     [string]: LinkHealth,
   |},
 };
+
 export type LinkHealth = {
   events: Array<HealthEvent>,
   linkAlive: number,

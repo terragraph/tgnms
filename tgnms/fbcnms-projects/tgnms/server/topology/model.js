@@ -14,15 +14,12 @@ const {
 const EventSource = require('eventsource');
 import apiServiceClient from '../apiservice/apiServiceClient';
 import {approxDistance, computeAngle} from './helpers';
-import {attrToMapProfile} from '../map/service';
-
 const {
   getPeerAPIServiceHost,
   HAPeerType,
   determineActiveController,
 } = require('../high_availability/model');
 import {LinkStateType} from '../../thrift/gen-nodejs/Stats_types';
-
 import {getLinkEvents, getNetworkList, updateOnlineWhitelist} from './network';
 const _ = require('lodash');
 const logger = require('../log')(module);
@@ -41,6 +38,10 @@ import type {Response} from '../types/express';
 
 type NetworkStateMap = {|
   [string]: ServerNetworkState,
+|};
+
+type TopologyConfigMap = {|
+  [string]: $Shape<NetworkInstanceConfig>,
 |};
 
 const networkLinkHealth = {};
@@ -121,9 +122,9 @@ export async function apiServiceRequest(
 }
 
 // fetch list of networks
-export function reloadInstanceConfig() {
+export async function reloadInstanceConfig(): Promise<TopologyConfigMap> {
   logger.debug('Reloading instance config');
-  const topologyConfig: {[string]: $Shape<NetworkInstanceConfig>} = {};
+  const topologyConfig: TopologyConfigMap = {};
   return getNetworkList().then(topologyList => {
     topologyList.forEach(topologyItem => {
       const topologyName = topologyItem.name;
@@ -146,10 +147,7 @@ export function reloadInstanceConfig() {
           controller_online: false,
         },
         controller_online: false,
-        // TODO(BE)  use the api instead of attaching to instance config
-        map_profile: attrToMapProfile(
-          topologyItem?.map_profile?.toJSON() ?? {},
-        ),
+        map_profile_id: topologyItem?.map_profile?.id,
       };
       if (topologyItem.backup) {
         const backupController = topologyItem.backup;

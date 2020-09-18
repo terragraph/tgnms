@@ -7,6 +7,7 @@
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as React from 'react';
+import * as mapApi from '../../apiutils/MapAPIUtil';
 import Dragger from '../../components/common/Dragger';
 import MapLayers from './mapLayers/MapLayers';
 import MapOverlayLegend from '../../components/mappanels/MapOverlayLegend';
@@ -16,6 +17,7 @@ import NetworkTables from '../tables/NetworkTables';
 import ReactMapboxGl from 'react-mapbox-gl';
 import TableControl from './TableControl';
 import TgMapboxNavigation from '../../components/mapboxNavigation/TgMapboxNavigation';
+import {DEFAULT_MAP_PROFILE} from '../../constants/MapProfileConstants';
 import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
 import {MapAnnotationContextProvider} from '../../contexts/MapAnnotationContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
@@ -28,6 +30,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import type Map from 'mapbox-gl/src/ui/map';
 import type {Coordinate, NetworkState} from '../../../shared/dto/NetworkState';
+import type {MapProfile} from '../../../shared/dto/MapProfile';
 import type {
   NearbyNodes,
   PlannedSite,
@@ -105,6 +108,7 @@ type State = {
   // Sites that should not be rendered on the map (e.g. while editing)
   hiddenSites: Set<string>,
   networkDrawerWidth: number,
+  mapProfiles: Array<MapProfile>,
 };
 
 class NetworkMap extends React.Component<Props, State> {
@@ -147,9 +151,21 @@ class NetworkMap extends React.Component<Props, State> {
       // Sites that should not be rendered on the map (e.g. while editing)
       hiddenSites: new Set(),
       networkDrawerWidth: NetworkDrawerConstants.DRAWER_MIN_WIDTH,
+      mapProfiles: [DEFAULT_MAP_PROFILE],
     };
   }
 
+  componentDidMount() {
+    this.loadMapProfiles();
+  }
+  loadMapProfiles = async () => {
+    try {
+      const profiles = await mapApi.getProfiles();
+      this.setState({mapProfiles: [DEFAULT_MAP_PROFILE].concat(profiles)});
+    } catch (error) {
+      console.error(error);
+    }
+  };
   mapBoxStylesList() {
     const customStyles = getUIEnvVal('TILE_STYLE');
     // use default styles if no override specified
@@ -256,6 +272,7 @@ class NetworkMap extends React.Component<Props, State> {
       routes,
       hiddenSites,
       networkDrawerWidth,
+      mapProfiles,
     } = this.state;
     return (
       <NetworkContext.Consumer>
@@ -266,7 +283,8 @@ class NetworkMap extends React.Component<Props, State> {
             resetRoutes={this.resetRoutes}>
             <MapContextProvider
               defaultMapMode={MAPMODE.DEFAULT}
-              mapboxRef={mapRef}>
+              mapboxRef={mapRef}
+              mapProfiles={mapProfiles}>
               <MapAnnotationContextProvider>
                 <TgMapboxNavigation
                   accessToken={MAPBOX_ACCESS_TOKEN}
