@@ -74,7 +74,7 @@ test(
         networkVals={{
           selectedElement: {
             type: TopologyElementType.NODE,
-            name: 'randomname',
+            name: 'site1-0',
             expanded: true,
           },
           setSelected,
@@ -132,6 +132,67 @@ test('if a node with wireless links is selected, renders the selected segments',
   }
 });
 
+test('if a site with wireless links is selected, renders the selected nodes', async () => {
+  const {container} = await render(
+    <Wrapper
+      mapVals={{
+        mapboxRef: ({}: any),
+        selectedOverlays: {
+          nodes: 'mcs_estimate',
+        },
+      }}
+      networkVals={{
+        selectedElement: {
+          type: TopologyElementType.SITE,
+          name: 'site1',
+          expanded: true,
+        },
+      }}>
+      <McsEstimateLayer />
+    </Wrapper>,
+  );
+  const sourceData = getSourceFeatureCollection(container, SOURCE_ID);
+  expect(sourceData.type).toBe('FeatureCollection');
+  const polygons = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Polygon',
+  );
+  const labels = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Point',
+  );
+  expect(polygons.length).toBe(12 * 2);
+  expect(labels.length).toBe(12 * 2);
+});
+test('if a site without wireless links is selected, renders nothing', async () => {
+  const {container} = await render(
+    <Wrapper
+      mapVals={{
+        mapboxRef: ({}: any),
+        selectedOverlays: {
+          nodes: 'mcs_estimate',
+        },
+      }}
+      networkVals={{
+        selectedElement: {
+          type: TopologyElementType.SITE,
+          name: 'site-nonodes',
+          expanded: true,
+        },
+      }}>
+      <McsEstimateLayer />
+    </Wrapper>,
+  );
+  const sourceData = getSourceFeatureCollection(container, SOURCE_ID);
+  expect(sourceData.type).toBe('FeatureCollection');
+  const polygons = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Polygon',
+  );
+  const labels = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Point',
+  );
+  expect(polygons.length).toBe(0);
+  expect(labels.length).toBe(0);
+});
+
 function Wrapper({
   children,
   networkVals,
@@ -146,6 +207,9 @@ function Wrapper({
   topology.__test.addNode({
     name: 'site1-99',
     site_name: 'site1',
+  });
+  topology.__test.addSite({
+    name: 'site-nonodes',
   });
   const topologyMaps = buildTopologyMaps(topology);
   return (

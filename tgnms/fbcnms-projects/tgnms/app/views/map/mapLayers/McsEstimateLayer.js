@@ -21,6 +21,7 @@ import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoCoord, GeoFeature} from '@turf/turf';
 import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
+import type {NodeType} from '../../../../shared/types/Topology';
 
 export const LAYER_ID = 'nodes-mcs-estimate';
 export const SOURCE_ID = 'nodes-mcs-estimate-source';
@@ -56,16 +57,29 @@ export default function McsEstimateOverlay() {
     if (!isMcsEstimateSelected) {
       return turf.featureCollection([]);
     }
-    const {nodeMap, siteMap} = topologyMapsRef.current;
-    const selected =
-      selectedElement && selectedElement?.type === TopologyElementType.NODE
-        ? nodeMap[selectedElement?.name]
-        : null;
-
-    const nodes = [];
-    if (selected) {
-      nodes.push(selected);
+    const {nodeMap, siteMap, siteToNodesMap} = topologyMapsRef.current;
+    const nodes: Array<NodeType> = [];
+    if (selectedElement != null) {
+      if (selectedElement.type === TopologyElementType.SITE) {
+        const nodeNames = siteToNodesMap[selectedElement?.name];
+        for (const n of nodeNames) {
+          const node = nodeMap[n];
+          /**
+           * Every node on a site can be pushed onto the nodes list.
+           * If it doesn't have wireless links, it will be filtered out.
+           */
+          if (node != null) {
+            nodes.push(node);
+          }
+        }
+      } else if (selectedElement.type === TopologyElementType.NODE) {
+        const node = nodeMap[selectedElement?.name];
+        if (node != null) {
+          nodes.push(node);
+        }
+      }
     }
+
     const features: Array<?Array<GeoFeature>> = nodes.map(node => {
       const nodeBearing = getEstimatedNodeBearing(
         node,
@@ -107,6 +121,7 @@ export default function McsEstimateOverlay() {
       });
       return segments.concat(labels);
     });
+    // filters out null and flattens feature arrays into one array
     const flattened = [].concat.apply(
       [],
       features.filter(x => x),
