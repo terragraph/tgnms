@@ -77,7 +77,7 @@ export default function CreateAnnotationGroupForm({
       </Grid>
       <Grid item xs={12}>
         <TextField
-          label="New Layer Name"
+          label="Name"
           name="name"
           fullWidth
           value={formState.name}

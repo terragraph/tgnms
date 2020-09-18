@@ -114,7 +114,7 @@ function getPanelTitle(feature: ?GeoFeature) {
     }
   }
 
-  return 'Annotations';
+  return 'Annotation Layers';
 }
 
 type ActionsProps = {||};

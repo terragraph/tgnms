@@ -32,8 +32,13 @@ const MODE = {
   NEW_LAYER: 'new_layer',
   IMPORT: 'import',
 };
-
+const useStyles = makeStyles(theme => ({
+  root: {
+    paddingTop: theme.spacing(1),
+  },
+}));
 export default function AnnotationGroupsForm() {
+  const classes = useStyles();
   const {mapboxRef} = useMapContext();
   const {networkName} = useNetworkContext();
   const {current} = useMapAnnotationContext();
@@ -76,47 +81,48 @@ export default function AnnotationGroupsForm() {
   const handleImportKML = React.useCallback(() => setMode(MODE.IMPORT), []);
 
   return (
-    <>
-      <Grid item container direction="column" spacing={2} wrap="nowrap">
-        <Grid item>
-          <Typography variant="h5">Annotation Layers</Typography>
-        </Grid>
-        {mode === MODE.DEFAULT && (
-          <Grid item container justify="space-between">
+    <Grid container direction="column" wrap="nowrap" className={classes.root}>
+      {mode === MODE.DEFAULT && (
+        <Grid container justify="space-between" spacing={3}>
+          <Grid item xs={6}>
             <Button
               variant="contained"
               disableElevation
-              onClick={handleCreateLayer}>
+              onClick={handleCreateLayer}
+              fullWidth>
               New Layer
             </Button>
+          </Grid>
+          <Grid item xs={6}>
             <Button
               variant="contained"
               disableElevation
-              onClick={handleImportKML}>
+              onClick={handleImportKML}
+              fullWidth>
               Import KML
             </Button>
           </Grid>
-        )}
-        {mode === MODE.NEW_LAYER && (
-          <CreateAnnotationGroupForm onClose={() => setMode(MODE.DEFAULT)} />
-        )}
-        {mode === MODE.IMPORT && (
-          <ImportAnnotationKMLForm onClose={() => setMode(MODE.DEFAULT)} />
-        )}
-        <Box mb={1}>
-          <Grid container item direction="column" xs={12} wrap="nowrap">
-            {groups.map(group => (
-              <GroupLayer
-                key={group.name}
-                group={group}
-                isSelected={current?.name === group.name}
-                onSelect={handleGroupSelect}
-              />
-            ))}
-          </Grid>
-        </Box>
-      </Grid>
-    </>
+        </Grid>
+      )}
+      {mode === MODE.NEW_LAYER && (
+        <CreateAnnotationGroupForm onClose={() => setMode(MODE.DEFAULT)} />
+      )}
+      {mode === MODE.IMPORT && (
+        <ImportAnnotationKMLForm onClose={() => setMode(MODE.DEFAULT)} />
+      )}
+      <Box mb={1} mt={3}>
+        <Grid container item direction="column" xs={12} wrap="nowrap">
+          {groups.map(group => (
+            <GroupLayer
+              key={group.name}
+              group={group}
+              isSelected={current?.name === group.name}
+              onSelect={handleGroupSelect}
+            />
+          ))}
+        </Grid>
+      </Box>
+    </Grid>
   );
 }
 
@@ -134,6 +140,9 @@ const useGroupLayerStyles = makeStyles(theme => ({
     '&:hover': {
       backgroundColor: theme.palette.grey[100],
     },
+  },
+  groupName: {
+    textTransform: 'capitalize',
   },
 }));
 function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
@@ -171,7 +180,9 @@ function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
       className={classes.group}
       onClick={handleSelect}>
       <Grid item xs={9}>
-        <Typography variant="subtitle1">{name}</Typography>
+        <Typography className={classes.groupName} variant="subtitle1">
+          {name}
+        </Typography>
       </Grid>
       <Grid
         item

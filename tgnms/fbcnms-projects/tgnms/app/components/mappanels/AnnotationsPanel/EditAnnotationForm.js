@@ -44,7 +44,7 @@ const defaultProperties: $Shape<AnnotationProperties> = {
   opacity: 1.0,
 };
 
-const colorSize = 0.25;
+const colorSize = 0.5;
 const useStyles = makeStyles(theme => ({
   colorRadio: {
     padding: theme.spacing(colorSize),
