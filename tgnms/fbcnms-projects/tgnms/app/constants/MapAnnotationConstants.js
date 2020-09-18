@@ -56,11 +56,6 @@ export const MAPBOX_DRAW_EVENTS = {
   MODE_CHANGE: 'draw.modechange',
 };
 
-export const MAPBOX_TG_EVENTS = {
-  TOGGLE: 'tg.draw.toggle',
-  SET_DRAW_ENABLED: 'tg.draw.set_enabled',
-};
-
 export const TG_DRAW_STYLES = [
   {
     id: 'tg-draw-title',

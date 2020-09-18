@@ -12,18 +12,14 @@ import ReactDOM from 'react-dom';
 import useLiveRef from '../../../hooks/useLiveRef';
 import {
   ANNOTATION_DEFAULT_GROUP,
+  useDrawState,
   useMapAnnotationContext,
   useMapAnnotationGroupState,
 } from '../../../contexts/MapAnnotationContext';
-import {
-  MAPBOX_DRAW_EVENTS,
-  MAPBOX_TG_EVENTS,
-} from '../../../constants/MapAnnotationConstants';
 import {MAP_CONTROL_LOCATIONS} from '../../../constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
-import type {GeoFeature} from '@turf/turf';
 
 const useStyles = makeStyles(_theme => ({
   icon: {
@@ -33,7 +29,7 @@ const useStyles = makeStyles(_theme => ({
 
 export default function DrawLayer() {
   const classes = useStyles();
-  const {isDrawEnabled, mapboxControl, mapboxRef} = useDrawLayer();
+  const {isDrawEnabled, setIsDrawEnabled, mapboxControl} = useDrawLayer();
   if (!mapboxControl) {
     return null;
   }
@@ -48,8 +44,7 @@ export default function DrawLayer() {
           : undefined
       }
       title="Map Annotations"
-      // $FlowFixMe fire might be deprecated. See flow def for more.
-      onClick={() => mapboxRef?.fire(MAPBOX_TG_EVENTS.TOGGLE, {})}
+      onClick={() => setIsDrawEnabled(!isDrawEnabled)}
       data-testid="tg-draw-toggle">
       {isDrawEnabled ? (
         <CloseIcon className={classes.icon} />
@@ -61,14 +56,12 @@ export default function DrawLayer() {
   );
 }
 
-export function useDrawLayer() {
+function useDrawLayer() {
   const {networkName} = useNetworkContext();
   const {mapboxRef} = useMapContext();
   const {
-    setSelectedFeatureId,
     current,
     drawControl,
-    updateFeatures,
     isDrawEnabled,
     setIsDrawEnabled,
   } = useMapAnnotationContext();
@@ -76,39 +69,31 @@ export function useDrawLayer() {
     networkName,
     groupName: ANNOTATION_DEFAULT_GROUP,
   });
+  useDrawState();
+  const isControlAdded = React.useRef(false);
 
-  const setDrawControlState = React.useCallback(
-    (enabled: boolean) => {
-      setIsDrawEnabled(enabled);
-      if (enabled) {
-        mapboxRef?.addControl(drawControl, MAP_CONTROL_LOCATIONS.TOP_LEFT);
-        drawControl.add(current?.geojson);
-      } else {
-        mapboxRef?.removeControl(drawControl);
-      }
-    },
-    [setIsDrawEnabled, mapboxRef, drawControl, current],
+  const setDrawControlState = useLiveRef(
+    React.useCallback(
+      (enabled: boolean) => {
+        if (enabled) {
+          mapboxRef?.addControl(drawControl, MAP_CONTROL_LOCATIONS.TOP_LEFT);
+          isControlAdded.current = true;
+          if (current && current.geojson) {
+            drawControl.add(current.geojson);
+          }
+        } else {
+          if (isControlAdded.current === true) {
+            mapboxRef?.removeControl(drawControl);
+            isControlAdded.current = false;
+          }
+        }
+      },
+      [mapboxRef, drawControl, current, isControlAdded],
+    ),
   );
-  const handleDrawToggle = useLiveRef(() => {
-    const toggled = !isDrawEnabled;
-    setDrawControlState(toggled);
-  });
-  const handleDrawUpdate = useLiveRef(_update => {
-    updateFeatures(drawControl.getAll());
-  });
-  const handleDrawSet = useLiveRef(({enabled}: {enabled: boolean}) => {
-    setDrawControlState(enabled);
-  });
-
-  const handleSelectionChange = useLiveRef(
-    ({features}: {features: Array<GeoFeature>}) => {
-      if (!features) {
-        return;
-      }
-      const [lastSelected] = features.slice(-1);
-      setSelectedFeatureId(lastSelected?.id);
-    },
-  );
+  React.useEffect(() => {
+    setDrawControlState.current(isDrawEnabled);
+  }, [isDrawEnabled, setDrawControlState]);
 
   const mapboxControl = React.useMemo(() => {
     const container = document.createElement('div');
@@ -127,33 +112,13 @@ export function useDrawLayer() {
       },
       MAP_CONTROL_LOCATIONS.TOP_LEFT,
     );
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_TG_EVENTS.TOGGLE, (...args) =>
-      handleDrawToggle.current(...args),
-    );
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_TG_EVENTS.SET_DRAW_ENABLED, (...args) => {
-      handleDrawSet.current(...args);
-    });
-    const handleDrawEvent = event => handleDrawUpdate.current(event);
-    const handleSelectEvent = (...args) =>
-      handleSelectionChange.current(...args);
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_DRAW_EVENTS.CREATE, handleDrawEvent);
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_DRAW_EVENTS.CREATE, handleDrawEvent);
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_DRAW_EVENTS.DELETE, handleDrawEvent);
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_DRAW_EVENTS.UPDATE, handleDrawEvent);
-    // $FlowFixMe on only accepts limited events
-    mapboxRef?.on(MAPBOX_DRAW_EVENTS.SELECTION_CHANGE, handleSelectEvent);
   }, [mapboxRef]);
 
   return {
     mapboxControl,
     mapboxRef,
     isDrawEnabled,
+    setIsDrawEnabled,
   };
 }
 

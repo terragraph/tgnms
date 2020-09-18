@@ -5,6 +5,7 @@
  * @flow
  */
 import axios from 'axios';
+import type {GeoFeature} from '@turf/turf';
 import type {
   MapAnnotationGroup,
   MapAnnotationGroupIdent,
@@ -61,6 +62,7 @@ export async function deleteAnnotationGroup({
     `/map/annotations/${networkName}/${group?.name ?? ''}`,
   );
 }
+
 export async function duplicateAnnotationGroup({
   networkName,
   groupName,
@@ -77,6 +79,38 @@ export async function duplicateAnnotationGroup({
     },
   );
   return newGroup;
+}
+
+export async function saveAnnotation({
+  networkName,
+  groupName,
+  annotationId,
+  annotation,
+}: {|
+  networkName: string,
+  groupName: string,
+  annotationId: string | number,
+  annotation: GeoFeature,
+|}): Promise<GeoFeature> {
+  const response = await axios.put<GeoFeature, GeoFeature>(
+    `/map/annotations/${networkName}/${groupName}/${annotationId}`,
+    annotation,
+  );
+  return response.data;
+}
+
+export async function deleteAnnotation({
+  networkName,
+  groupName,
+  annotationId,
+}: {|
+  networkName: string,
+  groupName: string,
+  annotationId: string | number,
+|}): Promise<void> {
+  await axios.delete<void, void>(
+    `/map/annotations/${networkName}/${groupName}/${annotationId}`,
+  );
 }
 
 export async function getProfiles() {

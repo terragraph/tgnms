@@ -13,11 +13,13 @@ import {
   MAPBOX_DRAW_DEFAULT_COLOR,
   MAPBOX_DRAW_DEFAULT_STYLES,
   MAPBOX_DRAW_DEFAULT_STYLE_IDS,
+  MAPBOX_DRAW_EVENTS,
   MAPBOX_DRAW_VERTEX_COLOR,
   TG_DRAW_STYLES,
 } from '../constants/MapAnnotationConstants';
+import {useMapContext} from './MapContext';
 import {useNetworkContext} from './NetworkContext';
-import type {FeatureId, GeoFeature, GeoFeatureCollection} from '@turf/turf';
+import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {
   MapAnnotationGroup,
   MapAnnotationGroupIdent,
@@ -44,12 +46,10 @@ export type MapAnnotationContext = {|
   selectedFeature: ?GeoFeature,
   getFeature: (s: string) => ?GeoFeature,
   drawControl: typeof MapboxDraw,
-  updateFeatures: GeoFeatureCollection => Promise<MapAnnotationGroup>,
   deselectAll: () => void,
 |};
 
 const empty = () => {};
-const emptyPromise = () => Promise.reject();
 export const defaultValue: MapAnnotationContext = {
   isDrawEnabled: false,
   setIsDrawEnabled: empty,
@@ -62,7 +62,6 @@ export const defaultValue: MapAnnotationContext = {
   selectedFeature: null,
   getFeature: empty,
   drawControl: new MapboxDraw(),
-  updateFeatures: emptyPromise,
   deselectAll: empty,
 };
 
@@ -76,7 +75,6 @@ export function MapAnnotationContextProvider({
 }: {
   children: React.Node,
 }) {
-  const {networkName} = useNetworkContext();
   const [isDrawEnabled, setIsDrawEnabled] = React.useState(false);
   const drawControl = useDrawControl();
   const [current, setCurrent] = React.useState<?MapAnnotationGroup>(null);
@@ -94,24 +92,6 @@ export function MapAnnotationContextProvider({
   const getFeature = React.useCallback((id: string) => drawControl.get(id), [
     drawControl,
   ]);
-
-  const updateFeatures = React.useCallback(
-    async (updated: GeoFeatureCollection) => {
-      // save to backend
-      const saved = await mapApiUtil.saveAnnotationGroup({
-        networkName,
-        group: {
-          id: current?.id,
-          name: current?.name || ANNOTATION_DEFAULT_GROUP,
-          geojson: JSON.stringify(updated),
-        },
-      });
-      // update local state to include database primary key and things
-      setCurrent(saved);
-      return saved;
-    },
-    [setCurrent, current, networkName],
-  );
 
   const deselectAll = React.useCallback(() => {
     // changing mode back to simple_select with no features deselects everything
@@ -131,7 +111,6 @@ export function MapAnnotationContextProvider({
         setSelectedFeatureId,
         selectedFeature,
         getFeature,
-        updateFeatures,
         deselectAll,
 
         /**
@@ -238,15 +217,21 @@ export function useAnnotationGroups(): {
 type DeleteFeature = {
   (?FeatureId): Promise<void>,
 };
+type UpdateFeature = {
+  (GeoFeature): Promise<GeoFeature>,
+};
 export function useAnnotationFeatures(): {
   updateFeatureProperty: UpdateFeaturePropery,
   deleteFeature: DeleteFeature,
+  updateFeature: UpdateFeature,
 } {
+  const {networkName} = useNetworkContext();
   const {
     drawControl,
     setSelectedFeatureId,
-    updateFeatures,
+    current,
   } = useMapAnnotationContext();
+  const groupName = current?.name;
   // does not trigger a react rerender
   const updateFeatureProperty = React.useCallback<UpdateFeaturePropery>(
     (featureId, property, value) => {
@@ -255,24 +240,113 @@ export function useAnnotationFeatures(): {
     [drawControl],
   );
 
+  const updateFeature = React.useCallback(
+    async (feature: GeoFeature) => {
+      return mapApiUtil.saveAnnotation({
+        networkName: networkName,
+        groupName: groupName ?? '',
+        annotationId: feature.id ?? '',
+        annotation: feature,
+      });
+    },
+    [networkName, groupName],
+  );
   const deleteFeature = React.useCallback<DeleteFeature>(
     async (featureId: ?FeatureId) => {
-      drawControl.delete(featureId);
+      if (drawControl.get(featureId)) {
+        drawControl.delete(featureId);
+      }
       setSelectedFeatureId(curr => {
         if (typeof curr === 'string' && curr === featureId) {
           return null;
         }
         return curr;
       });
-      await updateFeatures(drawControl.getAll());
+      if (featureId == null || groupName == null) {
+        return;
+      }
+      await mapApiUtil.deleteAnnotation({
+        networkName: networkName,
+        groupName: groupName,
+        annotationId: featureId,
+      });
     },
-    [drawControl, updateFeatures, setSelectedFeatureId],
+    [drawControl, groupName, networkName, setSelectedFeatureId],
   );
 
   return {
     updateFeatureProperty,
     deleteFeature,
+    updateFeature,
   };
+}
+
+type MapboxDrawEvent = {|
+  type: string,
+  features: Array<GeoFeature>,
+|};
+export function useDrawState() {
+  const {mapboxRef} = useMapContext();
+  const {setSelectedFeatureId} = useMapAnnotationContext();
+  const {deleteFeature, updateFeature} = useAnnotationFeatures();
+  const handleFeaturesDeleted = (features: Array<GeoFeature>) => {
+    for (const feat of features) {
+      deleteFeature(feat.id);
+    }
+  };
+  const handleFeaturesUpdated = (features: Array<GeoFeature>) => {
+    for (const feat of features) {
+      updateFeature(feat);
+    }
+  };
+  const handleSelectionChanged = (features: Array<GeoFeature>) => {
+    if (!features) {
+      return;
+    }
+    const [lastSelected] = features.slice(-1);
+    setSelectedFeatureId(lastSelected?.id);
+  };
+
+  const handleDrawUpdate = useLiveRef((update: MapboxDrawEvent) => {
+    switch (update.type) {
+      case MAPBOX_DRAW_EVENTS.CREATE:
+      case MAPBOX_DRAW_EVENTS.UPDATE:
+        return handleFeaturesUpdated(update.features);
+      case MAPBOX_DRAW_EVENTS.DELETE:
+        return handleFeaturesDeleted(update.features);
+      case MAPBOX_DRAW_EVENTS.SELECTION_CHANGE:
+        return handleSelectionChanged(update.features);
+    }
+  });
+  React.useEffect(() => {
+    if (mapboxRef) {
+      const events = [
+        MAPBOX_DRAW_EVENTS.CREATE,
+        MAPBOX_DRAW_EVENTS.UPDATE,
+        MAPBOX_DRAW_EVENTS.DELETE,
+        MAPBOX_DRAW_EVENTS.SELECTION_CHANGE,
+      ];
+      const handleDrawEvent = (event: MapboxDrawEvent) =>
+        handleDrawUpdate.current(event);
+      for (const event of events) {
+        /**
+         * mapbox doesn't explicitly support arbitrary strings on the on method,
+         * but its the only way to get events from mapbox-gl-draw. We'll update
+         * when they do.
+         */
+        // $FlowIgnore
+        mapboxRef.on(event, handleDrawEvent);
+      }
+      return () => {
+        for (const event of events) {
+          // $FlowIgnore
+          mapboxRef.off(event, handleDrawEvent);
+        }
+      };
+    }
+  }, [handleDrawUpdate, mapboxRef]);
+
+  return {};
 }
 
 function useDrawControl() {

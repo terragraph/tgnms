@@ -23,6 +23,7 @@ import {
   useAnnotationFeatures,
   useMapAnnotationContext,
 } from '../../../contexts/MapAnnotationContext';
+import type {GeoFeature} from '@turf/turf';
 
 /**
  * Most customizable things on an annotation come from its GeoJSON Properties.
@@ -52,15 +53,11 @@ const useStyles = makeStyles(theme => ({
 
 export default function EditAnnotationForm() {
   const classes = useStyles();
-  const {
-    selectedFeature,
-    updateFeatures,
-    drawControl,
-  } = useMapAnnotationContext();
-  const {updateFeatureProperty} = useAnnotationFeatures();
-  const updateFeaturesDebounced = React.useMemo(
-    () => debounce(() => updateFeatures(drawControl.getAll()), 2000),
-    [updateFeatures, drawControl],
+  const {selectedFeature, drawControl} = useMapAnnotationContext();
+  const {updateFeatureProperty, updateFeature} = useAnnotationFeatures();
+  const updateFeatureDebounced = React.useMemo(
+    () => debounce((feature: GeoFeature) => updateFeature(feature), 500),
+    [updateFeature],
   );
   const {formState, handleInputChange, setFormState, updateFormState} = useForm<
     $Shape<AnnotationProperties>,
@@ -70,13 +67,13 @@ export default function EditAnnotationForm() {
       if (!selectedFeature || typeof selectedFeature.id === 'undefined') {
         return;
       }
-      for (const key of Object.keys(update)) {
-        const val = update[key];
-        if (typeof selectedFeature.id !== 'undefined') {
+      if (typeof selectedFeature.id !== 'undefined') {
+        for (const key of Object.keys(update)) {
+          const val = update[key];
           updateFeatureProperty(selectedFeature.id, key, val);
         }
+        updateFeatureDebounced(drawControl.get(selectedFeature.id));
       }
-      updateFeaturesDebounced();
     },
   });
   // if selectedFeature changes, update the local form

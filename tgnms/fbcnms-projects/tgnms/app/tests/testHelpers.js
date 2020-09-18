@@ -353,6 +353,9 @@ export function mockMapboxRef() {
     on: jest.fn<any, void>((eventId, callback) => {
       emitter.on(eventId, callback);
     }),
+    off: jest.fn<any, void>((eventId, callback) => {
+      emitter.off(eventId, callback);
+    }),
     fire: jest.fn<any, void>((eventId, arg) => {
       emitter.emit(eventId, arg);
     }),

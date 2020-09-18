@@ -18,10 +18,7 @@ import React from 'react';
 import Slide from '@material-ui/core/Slide';
 import useTaskState from '../../../hooks/useTaskState';
 import {GEOMETRY_TYPE, POINTS} from '../../../constants/GeoJSONConstants';
-import {
-  GEO_GEOM_TYPE_TITLES,
-  MAPBOX_TG_EVENTS,
-} from '../../../constants/MapAnnotationConstants';
+import {GEO_GEOM_TYPE_TITLES} from '../../../constants/MapAnnotationConstants';
 import {PANELS, PANEL_STATE} from '../../../views/map/usePanelControl';
 import {SlideProps} from '../../../constants/MapPanelConstants';
 import {apiRequest} from '../../../apiutils/ServiceAPIUtil';
@@ -30,7 +27,6 @@ import {
   useMapAnnotationContext,
 } from '../../../contexts/MapAnnotationContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
 import type {GeoFeature} from '@turf/turf';
 import type {
@@ -52,22 +48,21 @@ export default function AnnotationsPanel({
     setPanelState,
     collapseAll,
   } = panelControl;
-  const {mapboxRef} = useMapContext();
   const {
     selectedFeatureId,
     selectedFeature,
     deselectAll,
     isDrawEnabled,
+    setIsDrawEnabled,
   } = useMapAnnotationContext();
   const togglePanel = React.useCallback(() => toggleOpen(PANELS.ANNOTATIONS), [
     toggleOpen,
   ]);
   const handleClose = React.useCallback(() => {
-    // $FlowFixMe fire is deprecated
-    mapboxRef?.fire(MAPBOX_TG_EVENTS.SET_DRAW_ENABLED, {enabled: false});
+    setIsDrawEnabled(false);
     deselectAll();
     setPanelState(PANELS.ANNOTATIONS, PANEL_STATE.HIDDEN);
-  }, [mapboxRef, setPanelState, deselectAll]);
+  }, [setIsDrawEnabled, setPanelState, deselectAll]);
 
   React.useEffect(() => {
     if (isDrawEnabled) {
