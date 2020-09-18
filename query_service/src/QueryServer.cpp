@@ -9,7 +9,6 @@
 
 #include <unistd.h>
 
-#include "AggregatorService.h"
 #include "KafkaStatsService.h"
 #include "NetworkHealthService.h"
 #include "HttpService.h"
@@ -77,9 +76,6 @@ int main(int argc, char* argv[]) {
 
   LOG(INFO) << "Starting Topology Update Service";
   auto topologyFetch = std::make_shared<TopologyFetcher>();
-
-  LOG(INFO) << "Starting Aggregator Service";
-  auto topologyAggregator = std::make_shared<AggregatorService>();
 
   LOG(INFO) << "Starting Network Health Service";
   auto healthService =

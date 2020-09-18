@@ -88,15 +88,10 @@ void MySqlClient::refreshTopologies() noexcept {
         "cp.api_ip AS `pip`, "
         "cp.api_port AS `papi_port`, "
         "cb.api_ip AS `bip`, "
-        "cb.api_port AS `bapi_port`, "
-        "wc.type AS `wac_type`, "
-        "wc.url AS `wac_url`, "
-        "wc.username AS `wac_username`, "
-        "wc.password AS `wac_password` "
+        "cb.api_port AS `bapi_port` "
         "FROM topology t "
         "JOIN (controller cp) ON (t.primary_controller=cp.id) "
-        "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id) "
-        "LEFT JOIN (wireless_controller wc) ON (t.wireless_controller=wc.id)"));
+        "LEFT JOIN (controller cb) ON (t.backup_controller=cb.id)"));
     std::map<int64_t, std::shared_ptr<thrift::TopologyConfig>> topologyIdTmp;
     while (res->next()) {
       auto config = std::make_shared<thrift::TopologyConfig>();
@@ -110,15 +105,6 @@ void MySqlClient::refreshTopologies() noexcept {
         backupController.ip = backupIp;
         backupController.api_port = res->getInt("bapi_port");
         config->set_backup_controller(backupController);
-      }
-      const std::string wacType = res->getString("wac_type");
-      if (!wacType.empty()) {
-        thrift::WirelessController wirelessController;
-        wirelessController.type = wacType;
-        wirelessController.url = res->getString("wac_url");
-        wirelessController.username = res->getString("wac_username");
-        wirelessController.password = res->getString("wac_password");
-        config->set_wireless_controller(wirelessController);
       }
       // add to topology list
       topologyIdTmp[config->id] = config;

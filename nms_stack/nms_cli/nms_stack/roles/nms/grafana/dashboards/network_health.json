@@ -30,6 +30,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
+      "datasource": "Prometheus",
       "decimals": null,
       "format": "percent",
       "gauge": {
@@ -82,7 +83,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "online_nodes_perc{network=\"$networkName\"}",
+          "expr": "topology_online_nodes_ratio{network=\"$networkName\"} * 100",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -112,6 +113,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
+      "datasource": "Prometheus",
       "decimals": null,
       "format": "percent",
       "gauge": {
@@ -164,7 +166,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "online_wireless_links_perc{network=\"$networkName\"}",
+          "expr": "topology_online_wireless_links_ratio{network=\"$networkName\"} * 100",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -190,6 +192,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": "Prometheus",
       "fill": 1,
       "gridPos": {
         "h": 5,
@@ -312,7 +315,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(link_online{network=\"$networkName\",cn=\"false\"}) * 100",
+          "expr": "avg(topology_link_is_online{network=\"$networkName\",cn=\"false\"}) * 100",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "% online",
@@ -400,7 +403,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(node_online{network=\"$networkName\"}) * 100",
+          "expr": "avg(topology_node_is_online{network=\"$networkName\"}) * 100",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "% online",
@@ -432,195 +435,6 @@
           "logBase": 1,
           "max": "100",
           "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 10
-      },
-      "id": 21,
-      "panels": [],
-      "title": "Ruckus",
-      "type": "row"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fill": 1,
-      "gridPos": {
-        "h": 5,
-        "w": 12,
-        "x": 0,
-        "y": 11
-      },
-      "id": 18,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": true,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "paceLength": 10,
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": true,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(wap_client_count{registrationState=\"Approved\"}) by (name)",
-          "format": "time_series",
-          "hide": false,
-          "intervalFactor": 1,
-          "legendFormat": "{{name}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Ruckus Client Count",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "gridPos": {
-        "h": 5,
-        "w": 12,
-        "x": 12,
-        "y": 11
-      },
-      "id": 19,
-      "legend": {
-        "alignAsTable": true,
-        "avg": false,
-        "current": true,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "paceLength": 10,
-      "percentage": false,
-      "pointradius": 5,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(wap_uptime) by (name)",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "{{name}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "WAP Uptime",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "dtdurations",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
@@ -1070,8 +884,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "YTL-PENANG-STAGING",
-          "value": "YTL-PENANG-STAGING"
+          "text": "",
+          "value": ""
         },
         "datasource": "Prometheus",
         "definition": "label_values(network)",

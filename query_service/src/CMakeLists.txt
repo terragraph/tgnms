@@ -18,8 +18,6 @@ find_library(SNAPPY snappy)
 find_library(LIBZ z)
 
 set(QUERY_SRCS
-    AggregatorService.cpp
-    AggregatorService.h
     ApiServiceClient.cpp
     ApiServiceClient.h
     CurlUtil.cpp
@@ -44,8 +42,6 @@ set(QUERY_SRCS
     TopologyFetcher.h
     TopologyStore.cpp
     TopologyStore.h
-    WirelessController.cpp
-    WirelessController.h
     consts/PrometheusConsts.cpp
     consts/PrometheusConsts.h
 )
