@@ -278,12 +278,12 @@ class NetworkMap extends React.Component<Props, State> {
             {...routes}
             onUpdateRoutes={this.updateRoutes}
             resetRoutes={this.resetRoutes}>
-            <MapContextProvider
-              defaultMapMode={MAPMODE.DEFAULT}
-              mapboxRef={mapRef}
-              mapProfiles={mapProfiles}>
-              <MapAnnotationContextProvider>
-                <PlannedSiteContextProvider>
+            <PlannedSiteContextProvider>
+              <MapContextProvider
+                defaultMapMode={MAPMODE.DEFAULT}
+                mapboxRef={mapRef}
+                mapProfiles={mapProfiles}>
+                <MapAnnotationContextProvider>
                   <TgMapboxNavigation
                     accessToken={MAPBOX_ACCESS_TOKEN}
                     mapRef={mapRef}
@@ -368,9 +368,9 @@ class NetworkMap extends React.Component<Props, State> {
                       </div>
                     )}
                   </div>
-                </PlannedSiteContextProvider>
-              </MapAnnotationContextProvider>
-            </MapContextProvider>
+                </MapAnnotationContextProvider>
+              </MapContextProvider>
+            </PlannedSiteContextProvider>
           </RoutesContextProvider>
         )}
       </NetworkContext.Consumer>

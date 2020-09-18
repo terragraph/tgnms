@@ -8,6 +8,9 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as turf from '@turf/turf';
 import McsEstimateLayer, {SOURCE_ID} from '../McsEstimateLayer';
+import PlannedSiteCtx, {
+  defaultValue as PlannedSiteContextDefaultValue,
+} from '../../../../contexts/PlannedSiteContext';
 import {
   MapContextWrapper,
   NetworkContextWrapper,
@@ -21,6 +24,8 @@ import {cleanup, render} from '@testing-library/react';
 import {getSourceFeatureCollection} from '../../../../tests/mapHelpers';
 import type {MapContext} from '../../../../contexts/MapContext';
 import type {NetworkContextType} from '../../../../contexts/NetworkContext';
+import type {PlannedSite} from '../../../../components/mappanels/MapPanelTypes';
+import type {PlannedSiteContext} from '../../../../contexts/PlannedSiteContext';
 
 afterEach(cleanup);
 
@@ -193,14 +198,52 @@ test('if a site without wireless links is selected, renders nothing', async () =
   expect(labels.length).toBe(0);
 });
 
+test(
+  'if a planned site is selected, ' +
+    ' renders MCS estimate as continuous rings',
+  async () => {
+    const {container} = await render(
+      <Wrapper
+        mapVals={{
+          mapboxRef: ({}: any),
+          selectedOverlays: {
+            nodes: 'mcs_estimate',
+          },
+        }}
+        networkVals={{}}
+        plannedSiteVals={{
+          plannedSite: ({
+            name: '',
+            latitude: 0,
+            longitude: 0,
+          }: $Shape<PlannedSite>),
+        }}>
+        <McsEstimateLayer />
+      </Wrapper>,
+    );
+    const sourceData = getSourceFeatureCollection(container, SOURCE_ID);
+    expect(sourceData.type).toBe('FeatureCollection');
+    const polygons = sourceData.features.filter(
+      feat => turf.getType(feat) === 'Polygon',
+    );
+    const labels = sourceData.features.filter(
+      feat => turf.getType(feat) === 'Point',
+    );
+    expect(polygons.length).toBe(12);
+    expect(labels.length).toBe(12);
+  },
+);
+
 function Wrapper({
   children,
   networkVals,
   mapVals,
+  plannedSiteVals,
 }: {
   children: React.Node,
   networkVals?: $Shape<NetworkContextType>,
   mapVals?: $Shape<MapContext>,
+  plannedSiteVals?: $Shape<PlannedSiteContext>,
 }) {
   const topology = mockFig0();
   // node with no links to ensure no crashy business
@@ -220,7 +263,12 @@ function Wrapper({
           ...topologyMaps,
           ...(networkVals || {}: $Shape<NetworkContextType>),
         }}>
-        <MapContextWrapper contextValue={mapVals}>{children}</MapContextWrapper>
+        <PlannedSiteCtx.Provider
+          value={plannedSiteVals || PlannedSiteContextDefaultValue}>
+          <MapContextWrapper contextValue={mapVals}>
+            {children}
+          </MapContextWrapper>
+        </PlannedSiteCtx.Provider>
       </NetworkContextWrapper>
     </TestApp>
   );

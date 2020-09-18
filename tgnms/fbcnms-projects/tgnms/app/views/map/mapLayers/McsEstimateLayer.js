@@ -19,6 +19,7 @@ import {TopologyElementType} from '../../../constants/NetworkConstants';
 import {getEstimatedNodeBearing} from '../../../helpers/TopologyHelpers';
 import {useMapContext} from '../../../contexts/MapContext';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {usePlannedSiteContext} from '../../../contexts/PlannedSiteContext';
 import type {GeoCoord, GeoFeature} from '@turf/turf';
 import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
 import type {NodeType} from '../../../../shared/types/Topology';
@@ -53,6 +54,7 @@ export default function McsEstimateOverlay() {
   });
   const selectedElementRef = React.useRef(selectedElement);
   selectedElementRef.current = selectedElement;
+  const {plannedSite} = usePlannedSiteContext();
   const geoJson = React.useMemo(() => {
     if (!isMcsEstimateSelected) {
       return turf.featureCollection([]);
@@ -121,13 +123,36 @@ export default function McsEstimateOverlay() {
       });
       return segments.concat(labels);
     });
+
+    if (plannedSite != null) {
+      const coords = [
+        plannedSite.longitude,
+        plannedSite.latitude,
+        plannedSite.altitude,
+      ];
+      const labels = labelsTemplate({
+        position: coords,
+        bearing: 0,
+        mcsTable,
+      });
+      const plannedSiteFeatures = mcsRingsTemplate(coords, mcsTable);
+      features.push(plannedSiteFeatures);
+      features.push(labels);
+    }
+
     // filters out null and flattens feature arrays into one array
     const flattened = [].concat.apply(
       [],
       features.filter(x => x),
     );
     return turf.featureCollection(flattened);
-  }, [topologyMapsRef, selectedElement, isMcsEstimateSelected, mcsTable]);
+  }, [
+    topologyMapsRef,
+    selectedElement,
+    isMcsEstimateSelected,
+    mcsTable,
+    plannedSite,
+  ]);
 
   React.useEffect(() => {
     if (!mapboxRef) {
@@ -160,6 +185,7 @@ export default function McsEstimateOverlay() {
     topologyMapsRef,
     setSelected,
     selectedElementRef,
+    plannedSite,
   ]);
   return (
     <>

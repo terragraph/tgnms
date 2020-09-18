@@ -17,7 +17,7 @@ export type PlannedSiteContext = {|
 |};
 
 const empty = () => {};
-const defaultValue: PlannedSiteContext = {
+export const defaultValue: PlannedSiteContext = {
   plannedSite: null,
   setLocation: empty,
   update: empty,
