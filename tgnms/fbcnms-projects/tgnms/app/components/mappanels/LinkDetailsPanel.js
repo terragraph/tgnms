@@ -19,7 +19,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import RouterIcon from '@material-ui/icons/Router';
-import StatsIcon from '@material-ui/icons/BarChart';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import StatusText from '../common/StatusText';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
@@ -154,16 +153,6 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     });
   }
 
-  onShowStats() {
-    // Take user to the stats page with pre-populated link
-    const {link, history, networkName} = this.props;
-
-    history.push({
-      pathname: '/stats/' + networkName,
-      search: `?${STATS_LINK_QUERY_PARAM}=${link.name}`,
-    });
-  }
-
   onShowDashboards() {
     // Take user to the dashboard page with pre-populated link
     const {link, history, networkName} = this.props;
@@ -278,11 +267,6 @@ class LinkDetailsPanel extends React.Component<Props, State> {
       {
         heading: 'Topology',
         actions: [
-          {
-            label: 'Show Stats',
-            icon: <StatsIcon />,
-            func: () => this.onShowStats(),
-          },
           {
             label: 'View in Grafana',
             icon: <GrafanaIcon gray={true} />,
