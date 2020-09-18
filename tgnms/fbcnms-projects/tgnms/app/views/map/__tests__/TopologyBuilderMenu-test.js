@@ -29,9 +29,7 @@ jest.mock('mapbox-gl/dist/mapbox-gl', () => ({
 }));
 
 const defaultProps = {
-  plannedSiteProps: {
-    plannedSite: null,
-    onUpdatePlannedSite: jest.fn(),
+  siteProps: {
     hideSite: jest.fn(),
     unhideSite: jest.fn(),
   },

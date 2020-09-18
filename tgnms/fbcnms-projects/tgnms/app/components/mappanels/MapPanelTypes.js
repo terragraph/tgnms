@@ -44,9 +44,7 @@ export type PlannedSite = {
   ...$Shape<LocationType>,
 };
 
-export type PlannedSiteProps = {
-  plannedSite: ?$Shape<PlannedSite>,
-  onUpdatePlannedSite: (site: ?$Shape<PlannedSite>) => void,
+export type SiteProps = {
   hideSite: string => void,
   unhideSite: string => void,
 };

@@ -33,9 +33,7 @@ afterEach(cleanup);
 
 const commonProps: Props = {
   context: mockNetworkContext(),
-  plannedSite: null,
   nearbyNodes: {},
-  onPlannedSiteMoved: jest.fn(),
   hiddenSites: new Set(),
 };
 

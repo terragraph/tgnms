@@ -20,17 +20,15 @@ import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
 import {useMapContext} from '../../../contexts/MapContext';
+import {usePlannedSiteContext} from '../../../contexts/PlannedSiteContext';
 import {useRouteContext} from '../../../contexts/RouteContext';
 
 import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
 import type {NetworkContextType} from '../../../contexts/NetworkContext';
-import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
 
 export type Props = {|
   context: NetworkContextType,
-  plannedSite: ?PlannedSite,
   nearbyNodes: NearbyNodes,
-  onPlannedSiteMoved: Object => any,
   hiddenSites: Set<string>,
 |};
 
@@ -79,13 +77,16 @@ export default function MapLayers(props: Props) {
     NmsOptionsContext,
   );
 
-  const {
-    context,
-    plannedSite,
-    nearbyNodes,
-    onPlannedSiteMoved,
-    hiddenSites,
-  } = props;
+  const {context, nearbyNodes, hiddenSites} = props;
+  const {plannedSite, setLocation} = usePlannedSiteContext();
+  const onPlannedSiteMoved = React.useCallback(
+    mapEvent => {
+      // Update planned site location (based on map event)
+      const {lat, lng} = mapEvent.lngLat;
+      setLocation({latitude: lat, longitude: lng});
+    },
+    [setLocation],
+  );
 
   const {
     site_icons,

@@ -33,14 +33,15 @@ import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {usePlannedSiteContext} from '../../contexts/PlannedSiteContext';
 
 import type {
   EditLinkParams,
   EditNodeParams,
-  PlannedSiteProps,
 } from '../../components/mappanels/MapPanelTypes';
 import type {LocationType, SiteType} from '../../../shared/types/Topology';
 import type {PanelStateControl} from './usePanelControl';
+import type {SiteProps} from '../../components/mappanels/MapPanelTypes';
 
 const useStyles = makeStyles(theme => ({
   addButton: {
@@ -56,10 +57,10 @@ export type EditTopologyElementParams =
   | EditLinkParams
   | $Shape<SiteType>;
 type Props = {|
-  plannedSiteProps: PlannedSiteProps,
   mapRef: ?mapboxgl.Map,
   panelControl: PanelStateControl,
   panelForm: TopologyBuilderState<EditTopologyElementParams>,
+  siteProps: SiteProps,
 |};
 
 export type PanelForm<T> = {|
@@ -97,13 +98,18 @@ export function useTopologyBuilderForm<T>(): TopologyBuilderState<T> {
 
 export default function TopologyBuilderMenu(props: Props) {
   // Render the FAB with topology builder actions (add node/link/site)
-  const {panelControl, panelForm, plannedSiteProps, mapRef} = props;
+  const {panelControl, panelForm, mapRef} = props;
   const {params, formType, updateForm} = panelForm;
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const plannedSitePropsRef = useLiveRef(plannedSiteProps);
   const panelControlRef = useLiveRef(panelControl);
   const context = useContext(NetworkContext);
+  const {
+    plannedSite,
+    setLocation,
+    update: updatePlannedSite,
+  } = usePlannedSiteContext();
+  const {unhideSite} = props.siteProps;
   const {networkConfig, networkName, selectedElement, setSelected} = context;
   const {controller_version, topology} = networkConfig;
   const menuAnchorEl = React.useRef<?HTMLElement>(null);
@@ -118,14 +124,13 @@ export default function TopologyBuilderMenu(props: Props) {
   );
 
   const onRemovePlannedSite = useCallback(() => {
-    const {unhideSite, onUpdatePlannedSite} = plannedSitePropsRef.current;
     // Stop editing the previous site
     if (siteName) {
       unhideSite(siteName);
       setSiteName(null);
     }
-    onUpdatePlannedSite(null);
-  }, [plannedSitePropsRef, siteName]);
+    updatePlannedSite(null);
+  }, [updatePlannedSite, siteName, unhideSite]);
 
   const handleTopologyChangeSnackbar = useCallback(
     (changeMessage: ?string) => {
@@ -215,11 +220,6 @@ export default function TopologyBuilderMenu(props: Props) {
   const onAddPlannedSite = React.useCallback(
     (location?: LocationType) => {
       // Add a planned site to the map
-      const {
-        plannedSite,
-        onUpdatePlannedSite,
-        unhideSite,
-      } = plannedSitePropsRef.current;
 
       // If there's already a planned site...
       if (plannedSite && formType === FormType.EDIT && siteName) {
@@ -243,9 +243,17 @@ export default function TopologyBuilderMenu(props: Props) {
         const longitude = minLng + (maxLng - minLng) / 2;
         initialPosition = {latitude, longitude};
       }
-      onUpdatePlannedSite(initialPosition);
+      setLocation(initialPosition);
     },
-    [mapRef, plannedSitePropsRef, formType, siteName, networkConfig.bounds],
+    [
+      mapRef,
+      formType,
+      siteName,
+      networkConfig.bounds,
+      setLocation,
+      plannedSite,
+      unhideSite,
+    ],
   );
 
   const handleUploadTopologyPanelClose = React.useCallback(
@@ -384,9 +392,9 @@ export default function TopologyBuilderMenu(props: Props) {
             name: siteParams?.name ?? '',
           }}
           networkName={networkName}
-          plannedSite={plannedSiteProps.plannedSite}
-          onUpdatePlannedSite={plannedSiteProps.onUpdatePlannedSite}
           topology={topology}
+          plannedSite={plannedSite}
+          onUpdatePlannedSite={updatePlannedSite}
         />
       </Slide>
       <Slide

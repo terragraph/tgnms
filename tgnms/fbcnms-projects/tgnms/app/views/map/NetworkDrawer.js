@@ -26,7 +26,6 @@ import TopologyBuilderMenu, {
   useTopologyBuilderForm,
 } from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '../../components/mappanels/UpgradeProgressPanel';
-import useLiveRef from '../../hooks/useLiveRef';
 import useUnmount from '../../hooks/useUnmount';
 import {
   FormType,
@@ -40,15 +39,13 @@ import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Co
 import {get} from 'lodash';
 import {makeStyles, useTheme} from '@material-ui/styles';
 import {useNetworkContext} from '../../contexts/NetworkContext';
+import {usePlannedSiteContext} from '../../contexts/PlannedSiteContext';
 import {useRouteContext} from '../../contexts/RouteContext';
 
 import type {EditTopologyElementParams} from './TopologyBuilderMenu';
 import type {Element} from '../../contexts/NetworkContext';
 import type {Props as MapLayersProps} from '../../components/mappanels/MapLayersPanel';
-import type {
-  NearbyNodes,
-  PlannedSiteProps,
-} from '../../components/mappanels/MapPanelTypes';
+import type {NearbyNodes} from '../../components/mappanels/MapPanelTypes';
 import type {PanelStateControl} from './usePanelControl';
 
 export const NetworkDrawerConstants = {
@@ -87,7 +84,10 @@ type Props = {|
   onNetworkDrawerResize: number => *,
   mapLayersProps: MapLayersProps,
   searchNearbyProps: SearchNearbyProps,
-  plannedSiteProps: PlannedSiteProps,
+  siteProps: {
+    hideSite: string => void,
+    unhideSite: string => void,
+  },
   networkTestId?: ?string,
   scanId?: ?string,
 |};
@@ -96,10 +96,10 @@ export default function NetworkDrawerFn({
   networkDrawerWidth,
   mapLayersProps,
   searchNearbyProps,
-  plannedSiteProps,
   networkTestId,
   onNetworkDrawerResize,
   scanId,
+  siteProps,
 }: Props) {
   const classes = useStyles();
   const drawerDimensions = {
@@ -125,8 +125,8 @@ export default function NetworkDrawerFn({
     wireless_controller,
     wireless_controller_stats,
   } = context.networkConfig;
-  const plannedSitePropsRef = useLiveRef(plannedSiteProps);
   const routesProps = useRouteContext();
+  const {setLocation} = usePlannedSiteContext();
 
   const topologyElements: Array<Element> = [];
   if (selectedElement) {
@@ -234,9 +234,7 @@ export default function NetworkDrawerFn({
           typeof params?.location !== 'undefined' &&
           params?.location != null
         ) {
-          plannedSitePropsRef.current.onUpdatePlannedSite({
-            ...params.location,
-          });
+          setLocation({...params.location});
         }
         setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
       } else if (type === TopologyElement.node) {
@@ -245,7 +243,7 @@ export default function NetworkDrawerFn({
         setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
       }
     },
-    [collapseAll, updateForm, setPanelState, plannedSitePropsRef],
+    [collapseAll, updateForm, setPanelState, setLocation],
   );
   const handleAddTopology = React.useCallback(
     (
@@ -397,8 +395,8 @@ export default function NetworkDrawerFn({
         <TopologyBuilderMenu
           panelControl={panelControl}
           panelForm={topologyBuilderForm}
-          plannedSiteProps={plannedSiteProps}
           mapRef={mapboxRef}
+          siteProps={siteProps}
         />
         <DrawerToggleButton
           drawerWidth={networkDrawerWidth}
@@ -462,7 +460,7 @@ function RenderTopologyElement({
   React.useEffect(() => {
     collapseAll();
     setPanelState(panelKey, PANEL_STATE.OPEN);
-  }, [setPanelState, panelKey]);
+  }, [setPanelState, panelKey, collapseAll]);
   useUnmount(() => {
     removePanel(panelKey);
   });
