@@ -51,6 +51,20 @@ export async function saveAnnotationGroup({
   return response.data;
 }
 
+export async function setAnnotationGroupProperties({
+  groupId,
+  name,
+}: {|
+  groupId: number,
+  name: string,
+|}) {
+  const response = await axios.put<
+    SaveAnnotationGroupRequest,
+    MapAnnotationGroup,
+  >(`/map/annotations/group/${groupId}`, {name});
+  return response.data;
+}
+
 export async function deleteAnnotationGroup({
   networkName,
   group,

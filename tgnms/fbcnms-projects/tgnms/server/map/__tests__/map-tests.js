@@ -360,6 +360,31 @@ describe('DELETE /annotations/:network/:group/:annotationId', () => {
   });
 });
 
+describe('PUT /annotations/group/:groupId', () => {
+  test('if name param is in the body, renames the annotation group', async () => {
+    const topology = await seedTopology();
+    const group = await map_annotation_group.create(
+      ({
+        name: 'test_group',
+        topology_id: topology.id,
+        geojson: makeGeojson([makeAnnotation({id: 'test-1'})]),
+      }: $Shape<MapAnnotationGroupAttributes>),
+    );
+    const response = await request(setupApp())
+      .put(`/map/annotations/group/${group.id}`)
+      .send({name: 'test-group-renamed'})
+      .expect(200);
+
+    expect(response.body).toMatchObject({name: 'test-group-renamed'});
+    const updatedRow = await map_annotation_group.findByPk(group.id);
+    if (updatedRow == null) {
+      throw new Error();
+    }
+    const updatedGroup = updatedRow.toJSON();
+    expect(updatedGroup).toMatchObject({name: 'test-group-renamed'});
+  });
+});
+
 function makeGeojson(features: Array<GeoFeature>): string {
   return JSON.stringify(turf.featureCollection(features));
 }

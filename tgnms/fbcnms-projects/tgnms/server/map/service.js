@@ -148,6 +148,24 @@ export async function duplicateAnnotationGroup({
   });
 }
 
+export async function setAnnotationGroupProperties({
+  id,
+  name,
+}: {
+  id: number,
+  name: string,
+}): Promise<?MapAnnotationGroup> {
+  const row = await map_annotation_group.findByPk(id);
+  if (row == null) {
+    return null;
+  }
+  if (typeof name === 'string') {
+    row.name = name;
+  }
+  await row.save();
+  return attrToAnnotationGroup(row.toJSON());
+}
+
 export async function saveAnnotation({
   network,
   group,

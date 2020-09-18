@@ -40,6 +40,21 @@ router.put('/annotations/:network', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.put('/annotations/group/:groupId', (req, res) => {
+  const {groupId} = req.params;
+  if (groupId == null) {
+    return res.status(400).send();
+  }
+  const {name} = req.body;
+  if (name == null) {
+    return res.status(400).send();
+  }
+  return mapService
+    .setAnnotationGroupProperties({id: groupId, name})
+    .then(x => res.json(x))
+    .catch(createErrorHandler(res));
+});
+
 router.delete('/annotations/:network/:group', (req, res) => {
   const {network, group} = req.params;
   return mapService

@@ -16,6 +16,7 @@ import ImportAnnotationKMLForm from './ImportAnnotationKMLForm';
 import MenuIconButton from '../../common/MenuIconButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import RenameAnnotationGroupForm from './RenameAnnotationGroupForm';
 import Typography from '@material-ui/core/Typography';
 import {
   ANNOTATION_DEFAULT_GROUP,
@@ -31,6 +32,7 @@ const MODE = {
   DEFAULT: 'default',
   NEW_LAYER: 'new_layer',
   IMPORT: 'import',
+  RENAME_LAYER: 'rename_layer',
 };
 const useStyles = makeStyles(theme => ({
   root: {
@@ -43,11 +45,20 @@ export default function AnnotationGroupsForm() {
   const {networkName} = useNetworkContext();
   const {current} = useMapAnnotationContext();
   const {groups, loadGroup, loadGroups} = useAnnotationGroups();
-
   const [mode, setMode] = React.useState(MODE.DEFAULT);
+  // group currently being edited. not necessarily the "current" group
+  const [
+    groupMenuTarget,
+    setgroupMenuTarget,
+  ] = React.useState<?MapAnnotationGroupIdent>(null);
   React.useEffect(() => {
     loadGroups();
   }, [networkName, loadGroups]);
+
+  const resetMode = React.useCallback(() => {
+    setMode(MODE.DEFAULT);
+    setgroupMenuTarget(null);
+  }, []);
 
   const handleGroupSelect = React.useCallback(
     async (ident: MapAnnotationGroupIdent) => {
@@ -73,12 +84,13 @@ export default function AnnotationGroupsForm() {
     },
     [loadGroup, current, mapboxRef],
   );
-
-  const handleCreateLayer = React.useCallback(
-    () => setMode(MODE.NEW_LAYER),
-    [],
+  const handleRenameGroup = React.useCallback(
+    group => {
+      setgroupMenuTarget(group);
+      setMode(MODE.RENAME_LAYER);
+    },
+    [setgroupMenuTarget],
   );
-  const handleImportKML = React.useCallback(() => setMode(MODE.IMPORT), []);
 
   return (
     <Grid container direction="column" wrap="nowrap" className={classes.root}>
@@ -88,7 +100,7 @@ export default function AnnotationGroupsForm() {
             <Button
               variant="contained"
               disableElevation
-              onClick={handleCreateLayer}
+              onClick={() => setMode(MODE.NEW_LAYER)}
               fullWidth>
               New Layer
             </Button>
@@ -97,7 +109,7 @@ export default function AnnotationGroupsForm() {
             <Button
               variant="contained"
               disableElevation
-              onClick={handleImportKML}
+              onClick={() => setMode(MODE.IMPORT)}
               fullWidth>
               Import KML
             </Button>
@@ -105,11 +117,15 @@ export default function AnnotationGroupsForm() {
         </Grid>
       )}
       {mode === MODE.NEW_LAYER && (
-        <CreateAnnotationGroupForm onClose={() => setMode(MODE.DEFAULT)} />
+        <CreateAnnotationGroupForm onClose={resetMode} />
       )}
-      {mode === MODE.IMPORT && (
-        <ImportAnnotationKMLForm onClose={() => setMode(MODE.DEFAULT)} />
+      {mode === MODE.RENAME_LAYER && (
+        <RenameAnnotationGroupForm
+          onClose={resetMode}
+          group={groupMenuTarget}
+        />
       )}
+      {mode === MODE.IMPORT && <ImportAnnotationKMLForm onClose={resetMode} />}
       <Box mb={1} mt={3}>
         <Grid container item direction="column" xs={12} wrap="nowrap">
           {groups.map(group => (
@@ -118,6 +134,7 @@ export default function AnnotationGroupsForm() {
               group={group}
               isSelected={current?.name === group.name}
               onSelect={handleGroupSelect}
+              onRename={handleRenameGroup}
             />
           ))}
         </Grid>
@@ -130,6 +147,7 @@ type GroupLayerProps = {|
   group: MapAnnotationGroupIdent,
   isSelected: boolean,
   onSelect: MapAnnotationGroupIdent => void | Promise<void>,
+  onRename: MapAnnotationGroupIdent => void | Promise<void>,
 |};
 const useGroupLayerStyles = makeStyles(theme => ({
   group: {
@@ -145,13 +163,16 @@ const useGroupLayerStyles = makeStyles(theme => ({
     textTransform: 'capitalize',
   },
 }));
-function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
+function GroupLayer({group, isSelected, onSelect, onRename}: GroupLayerProps) {
   const {name, topologyName} = group ?? {};
   const {loadGroups, loadGroup} = useAnnotationGroups();
   const classes = useGroupLayerStyles({isSelected});
   const handleSelect = React.useCallback(() => {
     onSelect(group);
   }, [group, onSelect]);
+  const handleRenameLayer = React.useCallback(() => {
+    onRename(group);
+  }, [onRename, group]);
   const handleDeleteLayer = React.useCallback(async () => {
     await mapApi.deleteAnnotationGroup({
       networkName: topologyName,
@@ -197,9 +218,14 @@ function GroupLayer({group, onSelect, isSelected}: GroupLayerProps) {
             size="small"
             edge="end"
             icon={<MoreVertIcon fontSize="small" />}>
-            {group.name !== ANNOTATION_DEFAULT_GROUP && (
-              <MenuItem onClick={handleDeleteLayer}>Delete Layer</MenuItem>
-            )}
+            {group.name !== ANNOTATION_DEFAULT_GROUP && [
+              <MenuItem key="delete" onClick={handleDeleteLayer}>
+                Delete Layer
+              </MenuItem>,
+              <MenuItem key="rename" onClick={handleRenameLayer}>
+                Rename Layer
+              </MenuItem>,
+            ]}
             <MenuItem onClick={handleDuplicateLayer}>Duplicate Layer</MenuItem>
           </MenuIconButton>
         </Box>
