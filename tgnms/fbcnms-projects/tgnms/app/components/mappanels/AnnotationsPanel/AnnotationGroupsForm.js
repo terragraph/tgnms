@@ -57,10 +57,13 @@ export default function AnnotationGroupsForm() {
           return;
         }
         const [lon1, lat1, lon2, lat2] = bbox;
-        mapboxRef?.fitBounds([
-          [lon1, lat1],
-          [lon2, lat2],
-        ]);
+        mapboxRef?.fitBounds(
+          [
+            [lon1, lat1],
+            [lon2, lat2],
+          ],
+          {maxZoom: 15},
+        );
       }
     },
     [loadGroup, current, mapboxRef],
