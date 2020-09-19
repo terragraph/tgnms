@@ -56,11 +56,11 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
         ops.abs(base_query), f"{period_s - 1}s:{hold_time}s", 0.75
     )
 
-    base_query = PrometheusClient.format_query("drs_cn_egress_routes_total", labels)
+    base_query = PrometheusClient.format_query("drs_cn_egress_routes_count", labels)
     hold_time = min(
-        Metrics.prometheus_hold_time, Metrics.drs_cn_egress_routes_total.interval_s
+        Metrics.prometheus_hold_time, Metrics.drs_cn_egress_routes_count.interval_s
     )
-    queries["drs_cn_egress_routes_total"] = ops.quantile_over_time(
+    queries["drs_cn_egress_routes_count"] = ops.quantile_over_time(
         ops.max_by(base_query, consts.link_name), f"{period_s - 1}s:{hold_time}s", 0.75
     )
 

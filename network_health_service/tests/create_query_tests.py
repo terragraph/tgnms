@@ -33,9 +33,9 @@ class CreateQueryTests(unittest.TestCase):
                 "quantile_over_time(0.75, "
                 'abs(analytics_foliage_factor{network="network_A"}) [3599s:30s])'
             ),
-            "drs_cn_egress_routes_total": (
+            "drs_cn_egress_routes_count": (
                 "quantile_over_time(0.75, max by (linkName) "
-                '(drs_cn_egress_routes_total{network="network_A"}) [3599s:30s])'
+                '(drs_cn_egress_routes_count{network="network_A"}) [3599s:30s])'
             ),
             "tx_ok": (
                 "quantile_over_time(0.75, sum by (linkName) "

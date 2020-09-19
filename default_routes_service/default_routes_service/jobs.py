@@ -60,13 +60,13 @@ async def process_default_routes(
             }
             metrics += [
                 PrometheusMetric(
-                    name="drs_max_wireless_hop_total",
+                    name="drs_max_wireless_hop_count",
                     labels=labels,
                     value=max_hop_count,
                     time=start_time_ms,
                 ),
                 PrometheusMetric(
-                    name="drs_default_routes_total",
+                    name="drs_default_routes_count",
                     labels=labels,
                     value=len(default_routes),
                     time=start_time_ms,
@@ -137,7 +137,7 @@ async def process_congested_cn_egress_links(
             }
             metrics.append(
                 PrometheusMetric(
-                    name="drs_cn_egress_routes_total",
+                    name="drs_cn_egress_routes_count",
                     labels=link_labels,
                     value=len({r[0] for r in curr_routes[network_name][link_name]}),
                     time=start_time_ms,

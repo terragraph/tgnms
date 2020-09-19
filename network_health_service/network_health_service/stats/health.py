@@ -123,16 +123,16 @@ def get_link_stats_health(  # noqa: C901
         foliage_label = int(foliage > Metrics.analytics_foliage_factor.higher_threshold)
     link_labels_bitmap += f"{foliage_label}"
 
-    # Evaluate link importance using 'drs_cn_egress_routes_total'
+    # Evaluate link importance using 'drs_cn_egress_routes_count'
     link_importance_label = 0
-    link_imp = link_stats_map.get("drs_cn_egress_routes_total")
+    link_imp = link_stats_map.get("drs_cn_egress_routes_count")
     if link_imp is not None:
-        stats_health["stats"]["drs_cn_egress_routes_total"] = {
-            "health": get_health(link_imp, Metrics.drs_cn_egress_routes_total),
+        stats_health["stats"]["drs_cn_egress_routes_count"] = {
+            "health": get_health(link_imp, Metrics.drs_cn_egress_routes_count),
             "value": link_imp,
         }
         link_importance_label = int(
-            link_imp > Metrics.drs_cn_egress_routes_total.higher_threshold
+            link_imp > Metrics.drs_cn_egress_routes_count.higher_threshold
         )
     link_labels_bitmap += f"{link_importance_label}"
 

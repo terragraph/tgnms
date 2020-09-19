@@ -23,7 +23,7 @@ class Metrics:
     link_avail_for_data: Metric
     tx_byte: Metric
     analytics_foliage_factor: Metric
-    drs_cn_egress_routes_total: Metric
+    drs_cn_egress_routes_count: Metric
     tx_ok: Metric
     link_avail: Metric
     mcs: Metric
@@ -79,10 +79,10 @@ class Metrics:
             metrics["analytics_foliage_factor"]["higher_threshold"],
             True,
         )
-        cls.drs_cn_egress_routes_total = Metric(
-            metrics["drs_cn_egress_routes_total"]["interval_s"],
-            metrics["drs_cn_egress_routes_total"]["lower_threshold"],
-            metrics["drs_cn_egress_routes_total"]["higher_threshold"],
+        cls.drs_cn_egress_routes_count = Metric(
+            metrics["drs_cn_egress_routes_count"]["interval_s"],
+            metrics["drs_cn_egress_routes_count"]["lower_threshold"],
+            metrics["drs_cn_egress_routes_count"]["higher_threshold"],
             True,
         )
         cls.tx_ok = Metric(

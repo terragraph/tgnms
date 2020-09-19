@@ -95,7 +95,7 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     - in: query
       name: end_dt
       description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
-      required: true
+      required: false
       type: string
     responses:
       "200":
@@ -206,7 +206,7 @@ async def handle_get_cn_routes(request: web.Request) -> web.Response:
     - in: query
       name: end_dt
       description: The end UTC offset-naive datetime of the query in ISO 8601 format. Defaults to current datetime if not provided.
-      required: true
+      required: false
       type: string
     responses:
       "200":

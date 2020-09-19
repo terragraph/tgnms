@@ -22,8 +22,8 @@ database.
 ### Node Stats
 | Metric Name                  | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
-| `drs_max_wireless_hop_total` | The maximum number of wireless hops across all default routes |
-| `drs_default_routes_total`   | The total number of default routes                            |
+| `drs_max_wireless_hop_count` | The maximum number of wireless hops across all default routes |
+| `drs_default_routes_count`   | The total number of default routes                            |
 
 ### `process_congested_cn_egress_links`
 This job uses the latest default routes for all client nodes (CNs) in order to
@@ -37,4 +37,4 @@ database.
 ### Link Stats
 | Metric Name                  | Description                                                             |
 | ---------------------------- | ----------------------------------------------------------------------- |
-| `drs_cn_egress_routes_total` | The total number of CNs that have a default route egressing on the link |
+| `drs_cn_egress_routes_count` | The total number of CNs that have a default route egressing on the link |
