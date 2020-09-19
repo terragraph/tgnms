@@ -38,6 +38,10 @@ class Topology:
             if isinstance(topology, ClientRuntimeError):
                 logging.error(f"Failed to fetch topology for {name}")
                 continue
+            if not topology:
+                logging.debug(f"Topology for {name} is empty")
+                continue
+
             cls.topology[name] = topology
             cls.get_node_maps(name)
             cls.get_link_maps(name)

@@ -7,6 +7,7 @@ import unittest
 from tests.adjacent_beam_index_tests import AdjacentBeamIndexTests
 from tests.connectivity_tests import ConnectivityTests
 from tests.data_loader import DataLoaderTests
+from tests.topology_tests import TopologyTests
 
 
 if __name__ == "__main__":
