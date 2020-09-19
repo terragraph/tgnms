@@ -43,7 +43,7 @@
       "lower_threshold": 0.5,
       "higher_threshold": 0.85
     },
-    "drs_cn_egress_routes_total": {
+    "drs_cn_egress_routes_count": {
       "interval_s": 60,
       "lower_threshold": 0.5,
       "higher_threshold": 10.0
