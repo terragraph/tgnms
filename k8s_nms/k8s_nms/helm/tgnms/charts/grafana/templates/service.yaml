@@ -1,0 +1,16 @@
+{{- if .Values.grafanaCreate }}
+{{- with .Values.tgnms.grafana.service }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
+spec:
+  ports:
+    - port: {{ .port }}
+  selector:
+    app: {{ .name }}
+  type: {{ .type }}
+{{- end }}
+{{- end }}

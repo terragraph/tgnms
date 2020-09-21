@@ -15,3 +15,11 @@ dependencies:
     version: 0.0.1
     repository: ""
     condition: e2eControllerCreate
+  - name: stats
+    version: 0.0.1
+    repository: ""
+    condition: statsCreate
+  - name: grafana
+    version: 0.0.1
+    repository: ""
+    condition: grafanaCreate

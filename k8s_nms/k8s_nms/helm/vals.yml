@@ -62,14 +62,6 @@ tgnms:
 
   # Database service
   database:
-    manifests:
-      deployment: true
-      service: true
-      pv: true
-      pvc: true
-      configmap: true
-      secret: true
-
     env:
       host: db.tg.svc.cluster.local
       port: 3306
@@ -152,7 +144,7 @@ tgnms:
       e2eCtl: files/e2e_controller.start
       startAgg: files/nms_aggregator.start
       topologyConf: files/e2e_topology.conf
-      defaultEnv: files/default.env
+      defaultEnv: files/defaults.env
 
     service:
       name: e2e-controller
@@ -177,3 +169,129 @@ tgnms:
       affinity: {}
       tolerations: []
       resources: {}
+
+  # grafana service
+  grafana:
+    image:
+      repository: grafana/grafana
+      tag: latest
+      pullPolicy: Always
+
+    env:
+      #enableAnonymous: true
+      #gfServerUrl: %(protocol)s://%(domain)s/grafana/
+      #ebableIFrame: true
+      dbType: mysql
+      usersTheme: light
+      dataSourceName: MySQL
+      orgId: 1
+      usersOrgRole: Editor
+      gfMysqlDbUrl: "db.tg.svc.cluster.local:3306"
+      gfMysqlDbName: grafana
+      gfAdminPass: test
+      gfMysqlReader: grafanaReader
+      gfMysqlReaderPass: uMDC36aagIUR
+      gfMysqlWriter: grafanaWriter
+      gfMysqlWriterPass: guHXwEDduo78
+
+    configmap:
+      dashboards: files/config.yml
+      docker: files/docker_monitoring.json
+      mysqlds: files/mysql.yml
+      promds: files/prometheus.yml
+      linker: files/link_dashboard_prometheus.json
+      network: files/network_health.json
+      udppinger: files/udp_pinger_dashboard.json
+
+    service:
+      name: grafana
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      nodeSelector: {}
+      affinity: {}
+      resources: {}
+
+  # stats service
+  stats:
+    env:
+      promCacheLimit: "1000000"
+      alertMgrPort: 9100
+      rulesDir: /etc/configs/alert_rules
+      promUrl: "prometheus:9090"
+      alertMrgConfPort: 9101
+      alertMrgConfPath: /etc/prometheus/alertmanager.yml
+      alertMrgUrl: "alertmanager:9093"
+      multitenant: false
+      # stats configmap content not used
+#      HTTP_THREADS: 8
+#      KAFKA_BROKER_LIST: "PLAINTEXT://kafka:9092"
+#      KAFKA_STATS_ENABLED: true
+
+    images:
+      pullPolicy: IfNotPresent
+      prom:
+        repository: prom/prometheus
+        tag: latest
+      alertmgr:
+        repository: prom/alertmanager
+        tag: latest
+      cache:
+        repository: secure.cxl-terragraph.com:443/prometheus_cache
+        tag: stable
+      promconf:
+        repository: facebookincubator/prometheus-configurer
+        tag: 1.0.0
+      alertmgrconf:
+        repository: facebookincubator/alertmanager-configurer
+        tag: 1.0.0
+
+    configmap:
+      alertmgr: files/alertmanager.yml
+      promconf: files/prometheus.yml
+
+    service:
+      type: ClusterIP
+      annotations: {}
+      labels: {}
+      alertmgr:
+        name: alertmanager
+        port: 9093
+        targetPort: 9093
+      alertmgrconf:
+        name: alertmanager-configurer
+        port: 9101
+        targetPort: 9101
+      prom:
+        name: prometheus
+        port: 9090
+        targetPort: 9090
+      promconf:
+        name: prometheus-configurer
+        port: 9100
+        targetPort: 9100
+      cache:
+        name: prometheus-cache
+        port: 9091
+        targetPort: 9091
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      livenessProbe:
+        initWait: 10
+        period: 30
+        promPath: /graph
+        rootPath: /
+      nodeSelector: {}
+      tolerations: []
+      resources: {}
+      podLabels: {}

@@ -33,4 +33,3 @@ To connect to your database directly from outside the K8s cluster:
     {{- end }}
 
     mysql -h ${MYSQL_HOST} -P${MYSQL_PORT} -u root -p${MYSQL_ROOT_PASSWORD}
-    

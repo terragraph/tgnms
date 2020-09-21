@@ -194,3 +194,141 @@ tgnms:
       affinity: {}
       tolerations: []
       resources: {}
+
+  # grafana service
+  grafana:
+    # Docker image repository and tag variables to use
+    image:
+      repository: grafana/grafana
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    # Environment variables to use in k8s manifests
+    env:
+      #enableAnonymous: true
+      #gfServerUrl: /grafana/
+      #ebableIFrame: true
+      dbType: mysql
+      usersTheme: light
+      dataSourceName: MySQL
+      orgId: 1
+      usersOrgRole: Editor
+      gfMysqlDbUrl: "localhost:3306"
+      gfMysqlDbName:
+      gfAdminPass:
+      gfMysqlReader:
+      gfMysqlReaderPass:
+      gfMysqlWriter:
+      gfMysqlWriterPass:
+
+    # Placeholder used to load Grafana dashboard and data sources
+    # configuration files into k8s ConfigMap manifests
+    configmap:
+      dashboards:
+      docker:
+      mysqlds:
+      promds:
+      linker:
+      network:
+      udppinger:
+
+    # Placeholder used in k8s Service manifest
+    service:
+      name: grafana
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+
+    # Placeholder used in k8s Deployment manifest
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      nodeSelector: {}
+      affinity: {}
+      resources: {}
+
+  # stats service
+  stats:
+    # Environment variables to use in k8s manifests
+    env:
+      promCacheLimit:
+      alertMgrPort:
+      rulesDir:
+      promUrl:
+      alertMrgConfPort:
+      alertMrgConfPath:
+      alertMrgUrl:
+      multitenant: false
+      # stats configmap content not used
+#      HTTP_THREADS:
+#      KAFKA_BROKER_LIST:
+#      KAFKA_STATS_ENABLED:
+
+    # Docker image repositories and tags variables to use
+    images:
+      pullPolicy: IfNotPresent
+      prom:
+        repository: prom/prometheus
+        tag: latest
+      alertmgr:
+        repository: prom/alertmanager
+        tag: latest
+      cache:
+        repository:
+        tag:
+      promconf:
+        repository:
+        tag:
+      alertmgrconf:
+        repository:
+        tag:
+
+    # Placeholder used to load Grafana dashboard and data sources
+    # configuration files into k8s ConfigMap manifests
+    configmap:
+      alertmgr:
+      promconf:
+
+    # Placeholder used in k8s Service manifests
+    service:
+      type: ClusterIP
+      annotations: {}
+      labels: {}
+      alertmgr:
+        name: alertmanager
+        port: 9093
+        targetPort: 9093
+      alertmgrconf:
+        name: alertmanager-configurer
+        port: 9101
+        targetPort: 9101
+      prom:
+        name: prometheus
+        port: 9090
+        targetPort: 9090
+      promconf:
+        name: prometheus-configurer
+        port: 9100
+        targetPort: 9100
+      cache:
+        name: prometheus-cache
+        port: 9091
+        targetPort: 9091
+
+    # Placeholder used in k8s Deployment manifests
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      livenessProbe:
+        initWait: 10
+        period: 30
+        promPath: /graph
+        rootPath: /
+      nodeSelector: {}
+      tolerations: []
+      resources: {}
+      podLabels: {}

@@ -1,5 +1,5 @@
 ### Terragraph e2e-controller service helm chart
-This chart for `Terragraph E2E Controller service`
+This is a chart for the `Terragraph E2E Controller service`
 
 ### Prerequisites
 - Kubernetes 1.10+ with Beta APIs enabled
@@ -9,14 +9,14 @@ To install the chart with the release name `<release name>` in namespace `<names
 Replace `<release name>` and `<namespace>` with your values, the namespace should exist in the target cluster.
 ```bash
 $ helm upgrade --install <release name> --namespace <namespace> ./tgnms/charts/e2e-ctl -f vals.yml
-``` 
+```
 
 ### Uninstalling the Chart
 To uninstall/delete the `e2e` deployment from `tg` namespace:
 ```bash
 $ helm delete e2e --namespace tg
 ```
-The command removes all the Kubernetes components associated with the `e2e-ctl helm chart` and 
+The command removes all the Kubernetes components associated with the `e2e-ctl helm chart` and
 deletes the `e2e release` completely from `tg` namespace.
 
 ### Configuration
@@ -73,4 +73,3 @@ The following table lists the configurable parameters of the `e2e-controller` he
 | `tgnms.e2ectl.deployment.affinity`           | `Affinity` rules for pod assignment                                        | `{}`                                           |
 | `tgnms.e2ectl.deployment.resources`          | CPU/Memory `resource` requests/limits                                      | `{}`                                           |
 | `tgnms.e2ectl.deployment.podLabels`          | Map of `labels` to add to the pods                                         | `{}`                                           |
-

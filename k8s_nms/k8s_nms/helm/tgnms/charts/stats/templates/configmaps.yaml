@@ -1,0 +1,25 @@
+{{- if .Values.statsCreate }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.tgnms.stats.service.alertmgr.name }}-config
+  labels:
+    app: {{ .Values.tgnms.stats.service.prom.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.stats.configmap.alertmgr).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.tgnms.stats.service.prom.name }}-config
+  labels:
+    app: {{ .Values.tgnms.stats.service.prom.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.stats.configmap.promconf).AsConfig) . | nindent 2 }}
+
+---
+{{- end }}

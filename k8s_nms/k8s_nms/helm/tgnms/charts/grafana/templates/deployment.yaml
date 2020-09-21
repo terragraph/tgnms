@@ -1,0 +1,144 @@
+{{- if .Values.grafanaCreate }}
+{{- $root := . -}}
+{{- with .Values.tgnms.grafana }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.name }}
+  labels:
+    app: {{ .service.name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  replicas: {{ .deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.name }}
+  strategy:
+    type: {{ .deployment.strategy.type }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.name }}
+      annotations:
+        {{- with .deployment.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
+    spec:
+      {{- with .deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      volumes:
+        - name: gf-datasources-mysql
+          configMap:
+            name: gf-datasources-mysql
+        - name: gf-datasources-prometheus
+          configMap:
+            name: gf-datasources-prometheus
+        - name: gf-dashboards-config
+          configMap:
+            name: gf-dashboards-config
+        - name: gf-udp-pinger
+          configMap:
+            name: gf-udp-pinger
+        - name: gf-link-dashboard-prometheus
+          configMap:
+            name: gf-link-dashboard-prometheus
+        - name: gf-docker-monitoring
+          configMap:
+            name: gf-docker-monitoring
+        - name: gf-network-health
+          configMap:
+            name: gf-network-health
+      containers:
+        - name: {{ .service.name }}
+          image: {{ .image.repository }}:{{ .image.tag }}
+          imagePullPolicy: {{ .image.pullPolicy }}
+          # command: ["/bin/sh", "-c", "sleep 3600"]
+          ports:
+            - containerPort: {{ .service.targetPort }}
+              name: {{ .service.name }}
+          env:
+            - name: GF_DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfDbUrl
+            - name: GF_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfDbName
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfAdminPass
+            - name: GF_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfDbWriter
+            - name: GF_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfDbWriterPass
+            - name: GRAFANA_MYSQL_READER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfDbReader
+            - name: GRAFANA_MYSQL_READER_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .service.name }}
+                  key: gfDbReaderPass
+            - name: GF_DB_TYPE
+              value: {{ .env.dbType }}
+            - name: GF_SERVER_ROOT_URL
+              value: {{ .env.gfrootUri }}
+            - name: GF_USERS_DEFAULT_THEME
+              value: {{ .env.usersTheme }}
+            - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
+              value: {{ .env.usersOrgRole }}
+            - name: PROMETHEUS_HOST
+              value: {{ $root.Values.tgnms.stats.service.name | quote }}
+            - name: PROMETHEUS_PORT
+              value: {{ $root.Values.tgnms.stats.service.port | quote }}
+          volumeMounts:
+            - name: gf-datasources-mysql
+              mountPath: /etc/grafana/provisioning/datasources/mysql.yml
+              subPath: mysql.yml
+            - name: gf-datasources-prometheus
+              mountPath: /etc/grafana/provisioning/datasources/prometheus.yml
+              subPath: prometheus.yml
+            - name: gf-dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards/config.yml
+              subPath: config.yml
+            - name: gf-udp-pinger
+              mountPath: /etc/grafana/dashboards/udp_pinger_dashboard.json
+              subPath: udp_pinger_dashboard.json
+            - name: gf-link-dashboard-prometheus
+              mountPath: /etc/grafana/dashboards/link_dashboard_prometheus.json
+              subPath: link_dashboard_prometheus.json
+            - name: gf-docker-monitoring
+              mountPath: /etc/grafana/dashboards/docker_monitoring.json
+              subPath: docker_monitoring.json
+            - name: gf-network-health
+              mountPath: /etc/grafana/dashboards/network_health.json
+              subPath: network_health.json
+{{- end }}
+{{- end }}

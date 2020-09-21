@@ -1,5 +1,5 @@
 ### Terragraph services helm charts
-This is the chart for `Terragraph services`
+These are charts for `Terragraph services`
 
 ### Prerequisites
 - Kubernetes 1.10+ with Beta APIs enabled
@@ -9,23 +9,28 @@ This is the chart for `Terragraph services`
 To install the chart with the release name `<release name>` in namespace `<namespace>`:
 Replace `<release name>` and `<namespace>` with your values, the namespace should exist in the target cluster.
 ```bash
-$ helm upgrade --install cm --namespace <namespace> ./tgnms/charts/database -f vals.yml
+$ helm upgrade --install cm --namespace <namespace> ./tgnms/charts/common -f vals.yml
 $ helm upgrade --install db --namespace <namespace> ./tgnms/charts/database -f vals.yml
-$ helm upgrade --install ch --namespace <namespace> ./tgnms/charts/database -f vals.yml
-$ helm upgrade --install e2e --namespace <namespace> ./tgnms/charts/database -f vals.yml
-``` 
+$ helm upgrade --install ch --namespace <namespace> ./tgnms/charts/chihaya -f vals.yml
+$ helm upgrade --install e2e --namespace <namespace> ./tgnms/charts/e2e-ctl -f vals.yml
+$ helm upgrade --install sts --namespace <namespace> ./tgnms/charts/stats -f vals.yml
+$ helm upgrade --install gf --namespace <namespace> ./tgnms/charts/grafana -f vals.yml
+```
 
 ### Uninstalling the Chart
-To uninstall/delete the `db` deployment from `tg` namespace:
+To uninstall/delete the `<release name>` deployment from `tg` namespace:
 ```bash
 $ helm delete cm --namespace tg
 $ helm delete db --namespace tg
 $ helm delete ch --namespace tg
 $ helm delete e2e --namespace tg
+$ helm delete sts --namespace tg
+$ helm delete gf --namespace tg
 ```
 The command removes all the Kubernetes components associated with the
-`common, database, chihaya`and `e2e-ctl` helm charts and deletes the
-`cm, db, ch` and `e2e` releases completely from `tg` namespace.
+`common, database, chihaya`, `e2e-ctl`, `stats` and `grafana` helm charts
+ and deletes the `cm, db, ch`, `e2e`, `sts` and `gf` releases completely
+ from `tg` namespace.
 
 ### Common chart configuration
 The following table lists the configurable parameters of the `Common` helm chart and their default values.
@@ -153,3 +158,106 @@ The following table lists the configurable parameters of the `e2e-ctl` helm char
 | `tgnms.e2ectl.deployment.affinity`           | `Affinity` rules for pod assignment                                        | `{}`                                           |
 | `tgnms.e2ectl.deployment.resources`          | CPU/Memory `resource` requests/limits                                      | `{}`                                           |
 | `tgnms.e2ectl.deployment.podLabels`          | Map of `labels` to add to the pods                                         | `{}`                                           |
+
+### Stats chart Configuration
+The following table lists the configurable parameters of the `stats` helm chart and their default values.
+
+| Parameter                                      | Description                                                       | Default                   |
+| ---------------------------------------------- | ----------------------------------------------------------------- | ------------------------- |
+| `imagePullSecrets`                             | Hold names of `Docker registry` k8s manifest secrets              | `[]`                      |
+| `statsCreate`                                  | Frag if true installs `stats chart`, otherwise it's not installed | `false`                   |
+| `tgnms.stats.env.promCacheLimit`                | `Prometheus` cache limit                                          | `nil`                     |
+| `tgnms.stats.env.alertMgrPort`                  | `Alert manager` port                                              | `nil`                     |
+| `tgnms.stats.env.rulesDir`                      | Rules directory path                                              | `nil`                     |
+| `tgnms.stats.env.promUrl`                       | `Prometheus` URL                                                  | `nil`                     |
+| `tgnms.stats.env.alertMrgConfPort`              | `Alert manager configurer` port                                   | `nil`                     |
+| `tgnms.stats.env.alertMrgConfPath`              |`Alert manager configurer` path                                    | `nil`                     |
+| `tgnms.stats.env.alertMrgUrl`                   | `Alert manager configurer` URL                                    | `nil`                     |
+| `tgnms.stats.env.multitenant`                   | `Multitenant` enabler                                             | `false`                   |
+| `tgnms.stats.images.pullPolicy`                 | `stats` images pull policy                                        | `IfNotPresent`            |
+| `tgnms.stats.image.prom.repository`             | `prometheus` image repository.                                    | `prom/prometheus`         |
+| `tgnms.stats.image.prom.tag`                    | `prometheus` image tag.                                           | `latest`                  |
+| `tgnms.stats.image.alertmgr.repository`         | `alert manager` image repository.                                 | `prom/alertmanager`       |
+| `tgnms.stats.image.alertmgr.tag`                | `alert manager` image tag.                                        | `latest`                  |
+| `tgnms.stats.image.cache.repository`            | `prometheus cache` image repository.                              | `nil`                     |
+| `tgnms.stats.image.cache.tag`                   | `prometheus cache` image tag.                                     | `nil`                     |
+| `tgnms.stats.image.promconf.repository`         | `prometheus configurer` image repository.                         | `nil`                     |
+| `tgnms.stats.image.promconf.tag`                | `prometheus configurer` image tag.                                | `nil`                     |
+| `tgnms.stats.image.alertmgrconf.repository`     | `alert manager configurer` image repository.                      | `nil`                     |
+| `tgnms.stats.image.alertmgrconf.tag`            | `alert manager configurer` image tag.                             | `nil`                     |
+| `tgnms.stats.configmap.alertmgr`                | Path of `alert manager` configuration file                        | `nil`                     |
+| `tgnms.stats.configmap.promconf`                | Path of `prometheus` configuration file                           | `nil`                     |
+| `tgnms.stats.service.type`                      | Kubernetes service type                                           | `ClusterIP`               |
+| `tgnms.stats.service.annotations`               | Kubernetes annotations for stats                                  | `{}`                      |
+| `tgnms.stats.service.labels`                    | Kubernetes labels for stats                                       | `{}`                      |
+| `tgnms.stats.service.alertmgr.name`             | `alert manager` service name                                      | `alertmanager`            |
+| `tgnms.stats.service.alertmgr.port`             | `alert manager` service exposed port                              | `9093`                    |
+| `tgnms.stats.service.alertmgr.targetPort`       | `alert manager` service target port in container                  | `9093`                    |
+| `tgnms.stats.service.alertmgrconf.name`         | `alert manager configurer` service name                           | `alertmanager-configurer` |
+| `tgnms.stats.service.alertmgrconf.port`         | `alert manager configurer` service exposed port                   | `9101`                    |
+| `tgnms.stats.service.alertmgrconf.targetPort`   | `alert manager configurer` service target port in container       | `9101`                    |
+| `tgnms.stats.service.prom.name`                 | `prometheus` service name                                         | `prometheus`              |
+| `tgnms.stats.service.prom.port`                 | `prometheus` service exposed port                                 | `9090`                    |
+| `tgnms.stats.service.prom.targetPort`           | `prometheus` service target port in container                     | `9090`                    |
+| `tgnms.stats.service.promconf.name`             | `prometheus configurer` service name                              | `prometheus configurer`   |
+| `tgnms.stats.service.promconf.port`             | `prometheus configurer` service exposed port                      | `9100`                    |
+| `tgnms.stats.service.promconf.targetPort`       | `prometheus configurer` service target port in container          | `9100`                    |
+| `tgnms.stats.service.cache.name`                | `prometheus cache` service name                                   | `prometheus cache`        |
+| `tgnms.stats.service.cache.port`                | `prometheus cache` service exposed port                           | `9091`                    |
+| `tgnms.stats.service.cache.targetPort`          | `prometheus cache` service target port in container               | `9091`                    |
+| `tgnms.stats.deployment.replicas`               | Pods number to assure running                                     | `1`                       |
+| `tgnms.stats.deployment.strategy.type`          | Update `strategy` policy                                          | `Recreate`                |
+| `tgnms.stats.deployment.livenessProbe.initWait` | Initial wait time in seconds                                      | `10`                      |
+| `tgnms.stats.deployment.livenessProbe.period`   | Waiting period for next test                                      | `30`                      |
+| `tgnms.stats.deployment.livenessProbe.promPath` | `prometheus` path to call                                         | `/graph`                  |
+| `tgnms.stats.deployment.livenessProbe.rootPath` | `root` path to call                                               | `/graph`                  |
+| `tgnms.stats.deployment.podAnnotations`         | Map of `annotations` to add to the pods                           | `{}`                      |
+| `tgnms.stats.deployment.nodeSelector`           | Node labels for pod assignment                                    | `{}`                      |
+| `tgnms.stats.deployment.tolerations`            | Pod taint `tolerations` for deployment                            | `{}`                      |
+| `tgnms.stats.deployment.affinity`               | `Affinity` rules for pod assignment                               | `{}`                      |
+| `tgnms.stats.deployment.resources`              | CPU/Memory `resource` requests/limits                             | `{}`                      |
+| `tgnms.stats.deployment.podLabels`              | Map of `labels` to add to the pods                                | `{}`                      |
+
+### Grafana chart Configuration
+The following table lists the configurable parameters of the `grafana` helm chart and their default values.
+
+| Parameter                                | Description                                                         | Default           |
+| ---------------------------------------- | ------------------------------------------------------------------- | ----------------- |
+| `imagePullSecrets`                       | Hold names of `Docker registry` k8s manifest secrets                | `[]`              |
+| `grafanaCreate`                          | Frag if true installs `grafana chart`, otherwise it's not installed | `false`           |
+| `tgnms.grafana.image.repository`          | `grafana` image repository.                                         | `grafana/grafana` |
+| `tgnms.grafana.image.tag`                 | `grafana` image tag.                                                | `latest`          |
+| `tgnms.grafana.image.pullPolicy`          | `grafana` image pull policy                                         | `Always`          |
+| `tgnms.grafana.env.dbType`                | Database type                                                       | `mysql`           |
+| `tgnms.grafana.env.usersTheme`            | Users them                                                          | `light`           |
+| `tgnms.grafana.env.dataSourceName`        | Data source name                                                    | `MySQL`           |
+| `tgnms.grafana.env.orgId`                 | Organization identifier                                             | `Editor`          |
+| `tgnms.grafana.env.usersOrgRole`          | Users organization role                                             | `1`               |
+| `tgnms.grafana.env.gfMysqlDbUrl`          | Database `hostname:portnumber`                                      | `localhost:3306`  |
+| `tgnms.grafana.env.gfMysqlDbName`         | Database name                                                       | `nil`             |
+| `tgnms.grafana.env.gfAdminPass`           | `Grafana` administrator user password                               | `nil`             |
+| `tgnms.grafana.env.gfMysqlReader`         | Database reader username                                            | `nil`             |
+| `tgnms.grafana.env.gfMysqlReaderPass`     | Database reader password                                            | `nil`             |
+| `tgnms.grafana.env.gfMysqlWriter`         | Database writer username                                            | `nil`             |
+| `tgnms.grafana.env.gfMysqlWriterPass`     | Database writer password                                            | `nil`             |
+| `tgnms.grafana.configmap.dashboards`      | Path of `Grafana dashboard` configuration file                      | `nil`             |
+| `tgnms.grafana.configmap.mysqlds`         | Path of `MySQL datasource` configuration file                       | `nil`             |
+| `tgnms.grafana.configmap.promds`          | Path of `Prometheus datasource` configuration file                  | `nil`             |
+| `tgnms.grafana.configmap.linker`          | Path of `Link prometheus dashboard` configuration file              | `nil`             |
+| `tgnms.grafana.configmap.network`         | Path of `Network health dashboard` configuration file               | `nil`             |
+| `tgnms.grafana.configmap.udppinger`       | Path of `UDP pinger dashboard` configuration file                   | `nil`             |
+| `tgnms.grafana.service.name`              | Kubernetes service name                                             | `grafana`         |
+| `tgnms.grafana.service.annotations`       | Kubernetes annotations for grafana                                  | `{}`              |
+| `tgnms.grafana.service.labels`            | Kubernetes labels for grafana                                       | `{}`              |
+| `tgnms.grafana.service.type`              | Kubernetes service type                                             | `ClusterIP`       |
+| `tgnms.grafana.service.port`              | Kubernetes service exposed port                                     | `3000`            |
+| `tgnms.grafana.service.targetPort`        | Kubernetes service target port in container                         | `3000`            |
+| `tgnms.grafana.deployment.replicas`       | Pods number to assure running                                       | `1`               |
+| `tgnms.grafana.deployment.strategy.type`  | Update `strategy` policy                                            | `Recreate`        |
+| `tgnms.grafana.deployment.configSubPath`  | Sub path of `grafana` configuration file in running container       | `grafana.yml`     |
+| `tgnms.grafana.deployment.podAnnotations` | Map of `annotations` to add to the pods                             | `{}`              |
+| `tgnms.grafana.deployment.nodeSelector`   | Node labels for pod assignment                                      | `{}`              |
+| `tgnms.grafana.deployment.tolerations`    | Pod taint `tolerations` for deployment                              | `{}`              |
+| `tgnms.grafana.deployment.affinity`       | `Affinity` rules for pod assignment                                 | `{}`              |
+| `tgnms.grafana.deployment.resources`      | CPU/Memory `resource` requests/limits                               | `{}`              |
+| `tgnms.grafana.deployment.podLabels`      | Map of `labels` to add to the pods                                  | `{}`              |

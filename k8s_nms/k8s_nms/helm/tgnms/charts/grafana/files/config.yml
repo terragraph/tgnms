@@ -1,0 +1,23 @@
+# See https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+# for details
+apiVersion: 1
+
+providers:
+  # <string> an unique provider name
+- name: 'default tgnms dashboards'
+  # <int> org id. will default to orgId 1 if not specified
+  orgId: 1
+  # <string, required> name of the dashboard folder. Required
+  folder: ''
+  # <string, required> provider type. Required
+  type: file
+  # <bool> disable dashboard deletion
+  disableDeletion: false
+  # <bool> enable dashboard editing
+  editable: true
+  # <int> how often Grafana will scan for changed dashboards
+  updateIntervalSeconds: 10
+  # <bool> allow updating provisioned dashboards from the UI
+  allowUiUpdates: true
+  options:
+    path: /etc/grafana/dashboards

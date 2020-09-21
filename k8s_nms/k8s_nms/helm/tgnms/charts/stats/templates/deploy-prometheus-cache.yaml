@@ -1,0 +1,58 @@
+{{- if .Values.statsCreate }}
+{{ $root := . }}
+{{- with .Values.tgnms.stats }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.cache.name }}
+  labels:
+    app: {{ .service.cache.name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  replicas: {{ .deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.cache.name }}
+{{ include "labels" $root | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.cache.name }}
+{{ include "labels" $root | indent 8 }}
+    spec:
+      {{- with .deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .service.cache.name }}
+          image: {{ required "tgnms.stats.images.cache.repository must be provided" .images.cache.repository }}:{{ .images.cache.tag }}
+          imagePullPolicy: {{ .images.pullPolicy }}
+          args: ["/bin/sh", "-c", "/bin/prometheus-cache -limit=$${PROMETHEUS_CACHE_LIMIT}"]
+          env:
+            - name: PROMETHEUS_CACHE_LIMIT
+              value: {{ .env.promCacheLimit | quote }}
+          ports:
+            - containerPort: {{ .service.cache.port }}
+          resources:
+{{ toYaml .deployment.resources | indent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .deployment.livenessProbe.rootPath }}
+              port: {{ .service.cache.port }}
+            initialDelaySeconds: {{ .deployment.livenessProbe.initWait }}
+            periodSeconds: {{ .deployment.livenessProbe.period }}
+{{- end}}
+{{- end }}

@@ -10,7 +10,7 @@ To install the chart with the release name `<release name>` in namespace `<names
 Replace `<release name>` and `<namespace>` with your values, the namespace should exist in the target cluster.
 ```bash
 $ helm upgrade --install <release name> --namespace <namespace> ./tgnms/charts/database -f vals.yml
-``` 
+```
 
 ### Uninstalling the Chart
 To uninstall/delete the `db` deployment from `tg` namespace:

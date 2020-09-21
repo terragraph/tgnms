@@ -9,14 +9,14 @@ To install the chart with the release name `<release name>` in namespace `<names
 Replace `<release name>` and `<namespace>` with your values, the namespace should exist in the target cluster.
 ```bash
 $ helm upgrade --install <release name> --namespace <namespace> ./tgnms/charts/common -f vals.yml
-``` 
+```
 
 ### Uninstalling the Chart
 To uninstall/delete the `cm` deployment from `tg` namespace:
 ```bash
 $ helm delete cm --namespace tg
 ```
-The command removes all the Kubernetes components associated with the `common helm chart` and 
+The command removes all the Kubernetes components associated with the `common helm chart` and
 deletes the `cm release` completely from `tg` namespace.
 
 ### Configuration

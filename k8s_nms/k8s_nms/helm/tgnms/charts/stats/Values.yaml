@@ -1,0 +1,84 @@
+imagePullSecrets: []
+# - name: tg-secrets-registry
+
+statsCreate: false
+
+tgnms:
+  namespace: tg
+
+  stats:
+    env:
+      promCacheLimit:
+      alertMgrPort:
+      rulesDir:
+      promUrl:
+      alertMrgConfPort:
+      alertMrgConfPath:
+      alertMrgUrl:
+      multitenant: false
+      # stats configmap content not used
+#      HTTP_THREADS:
+#      KAFKA_BROKER_LIST:
+#      KAFKA_STATS_ENABLED:
+
+    images:
+      pullPolicy: IfNotPresent
+      prom:
+        repository: prom/prometheus
+        tag: latest
+      alertmgr:
+        repository: prom/alertmanager
+        tag: latest
+      cache:
+        repository:
+        tag:
+      promconf:
+        repository:
+        tag:
+      alertmgrconf:
+        repository:
+        tag:
+
+    configmap:
+      alertmgr:
+      promconf:
+
+    service:
+      type: ClusterIP
+      annotations: {}
+      labels: {}
+      alertmgr:
+        name: alertmanager
+        port: 9093
+        targetPort: 9093
+      alertmgrconf:
+        name: alertmanager-configurer
+        port: 9101
+        targetPort: 9101
+      prom:
+        name: prometheus
+        port: 9090
+        targetPort: 9090
+      promconf:
+        name: prometheus-configurer
+        port: 9100
+        targetPort: 9100
+      cache:
+        name: prometheus-cache
+        port: 9091
+        targetPort: 9091
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      livenessProbe:
+        initWait: 10
+        period: 30
+        promPath: /graph
+        rootPath: /
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      resources: {}
+      podLabels: {}

@@ -1,0 +1,60 @@
+{{- if .Values.statsCreate }}
+{{ $root := . }}
+{{- with .Values.tgnms.stats }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.alertmgrconf.name }}
+  labels:
+    app: {{ .service.alertmgrconf.name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  replicas: {{ .deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.alertmgrconf.name }}
+{{ include "labels" $root | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.alertmgrconf.name }}
+{{ include "labels" $root | indent 8 }}
+    spec:
+      {{- with .deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .service.alertmgrconf.name }}
+          image: {{ required "tgnms.stats.images.alertmgrconf.repository must be provided" .images.alertmgrconf.repository }}:{{ .images.alertmgrconf.tag }}
+          imagePullPolicy: {{ .images.pullPolicy }}
+          args: [ '-port=9101',
+                  '-alertmanager-conf=/etc/configs/alertmanager.yml',
+                  '-alertmanagerURL=stats_alertmanager:9093',
+                  '-multitenant-label=networkID' ]
+          ports:
+            - containerPort: {{ .service.alertmgrconf.port }}
+          volumeMounts:
+            - name: {{ .service.alertmgr.name }}-config
+              mountPath: /etc/configs/alertmanager.yml
+              subPath: alertmanager.yml
+          resources:
+{{ toYaml .deployment.resources | indent 12 }}
+      volumes:
+        - name: {{ .service.alertmgr.name }}-config
+          configMap:
+            name: {{ .service.alertmgr.name }}-config
+{{- end}}
+{{- end }}
