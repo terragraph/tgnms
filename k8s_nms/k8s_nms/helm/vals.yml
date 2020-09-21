@@ -1,0 +1,179 @@
+imagePullSecrets:
+  - name: tg-docker-registry
+
+kubernetesType: local
+
+databaseCreate: true
+
+statsCreate: true
+grafanaCreate: true
+
+commonCreate: true
+chihayaCreate: true
+e2eControllerCreate: true
+
+tgnms:
+  namespace: tg
+
+  # Docker registry credentials
+  secrets:
+    create: true
+    docker:
+      registry: secure.cxl-terragraph.com:443
+      username: tgdeploy
+      password: 4l5C46xVJ0h74OmRWPK5
+
+  # Common component
+  common:
+    timeZonePath: /usr/share/zoneinfo/America/Los_Angeles
+
+  # Chihaya servcie
+  chihaya:
+    image:
+      repository: quay.io/jzelinskie/chihaya
+      tag: v2.0.0-rc.2
+      pullPolicy: IfNotPresent
+
+    configmap:
+      chihayaConfigFile: files/chihaya.yml
+
+    service:
+      name: chahaya
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 6969
+      targetPort: 6969
+      nodePort: {}
+      externalTrafficPolicy: Cluster
+      loadBalancerIP: {}
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      configSubPath: chihaya.yml
+      podAnnotations: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      resources: {}
+      podLabels: {}
+
+  # Database service
+  database:
+    manifests:
+      deployment: true
+      service: true
+      pv: true
+      pvc: true
+      configmap: true
+      secret: true
+
+    env:
+      host: db.tg.svc.cluster.local
+      port: 3306
+      rootUser: root
+      rootPass: root
+      dbName: cxl
+      dbUser: nms
+      dbPass: o0Oe8G0UrBrT
+      dbDialect: mysql
+
+    persistence:
+      enabled: false
+      type: local
+      storageClass: manual
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      annotations: {}
+      path: /data
+
+    image:
+      repository: mysql
+      tag: 5.7.30
+      pullPolicy: IfNotPresent
+
+    service:
+      name: db
+      annotations: {}
+      type: ClusterIP
+      port: 3306
+
+    configmap:
+      dbInitFile: files/00-cxl.sql
+      dbService: files/service.sql
+      postStartScript: files/create_service_database.sh
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      deployment:
+      podAnnotations: {}
+      podLabels: {}
+      annotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      resources: {}
+
+  # e2e controller service
+  e2ectl:
+    image:
+      repository: secure.cxl-terragraph.com:443/e2e-controller
+      tag: latest
+      pullPolicy: Always
+
+    controllers:
+      name: dev_example_first
+      ctlPort: '7007'
+      aggPort: '8002'
+      appPort: '17077'
+      btSeederPort: '6881'
+
+    env:
+      apiArgs: None
+      e2ePath: /opt/terragraph/gfs/e2e
+      e2eConfigFile: cfg/controller_config.json
+      e2eTopologyFile: cfg/e2e_topology.conf
+      nmsConfigFile: cfg/aggregator_config.json
+      e2eAuditLogsPath: /opt/terragraph/gfs/audit_logs/example_first
+      tgAggregatorHost: nms_aggregator-dev_example_first
+      tgBtAnnounceIP: ""
+      tgBtSeederPort: 6881
+      tgBtTrackerOverride: ""
+      tgControllerHost: e2e_controller-dev_example_first
+      tgLocalBtTrackerOverrride: http://chihaya:6969/announce
+      tgNmsRemoteEndpoint: http://query_service:8086/
+
+    configmap:
+      statsAgent: files/stats_agent.start
+      e2eCtl: files/e2e_controller.start
+      startAgg: files/nms_aggregator.start
+      topologyConf: files/e2e_topology.conf
+      defaultEnv: files/default.env
+
+    service:
+      name: e2e-controller
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 80
+      targetPort: 80
+      nodePort: {}
+      externalTrafficPolicy: Cluster
+      loadBalancerIP: {}
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      deployment:
+      podAnnotations: {}
+      podLabels: {}
+      annotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      resources: {}

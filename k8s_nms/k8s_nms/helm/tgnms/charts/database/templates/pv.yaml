@@ -1,0 +1,18 @@
+{{- if .Values.databaseCreate }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.tgnms.database.service.name }}-pv
+  {{- with .Values.tgnms.database.persistence }}
+  labels:
+    type: {{ .type }}
+spec:
+  storageClassName: {{ .storageClass }}
+  capacity:
+    storage: {{ .size }}
+  accessModes:
+    - {{ .accessMode }}
+  hostPath:
+    path: {{ .path }}
+  {{- end }}
+{{- end }}

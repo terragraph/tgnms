@@ -1,0 +1,45 @@
+{{- if .Values.e2ectlCreate }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.tgnms.e2ectl.service.name }}
+  labels:
+    app: {{ .Values.tgnms.e2ectl.service.name }}
+    {{- with .Values.tgnms.e2ectl.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- if eq .Values.kubernetesType "eks"}}
+  {{- with .Values.tgnms.e2ectl.service.annotations }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-internal: '0.0.0.0/0'
+{{ toYaml . | indent 4}}
+  {{- end}}
+  {{- end }}
+spec:
+  selector:
+    app: {{ .Values.tgnms.e2ectl.service.name }}
+  {{- with .Values.tgnms.e2ectl.service }}
+  type: {{ .type }}
+    {{- if eq .type "LoadBalancer" }}
+    {{- if .loadBalancerIP }}
+  loadBalancerIP: {{ .loadBalancerIP }}
+    {{- end }}
+    {{- end }}
+    {{- if (or (eq .type "LoadBalancer") (eq .type "NodePort")) }}
+  externalTrafficPolicy: {{ .externalTrafficPolicy | quote }}
+    {{- end }}
+  ports:
+    - name: http
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+
+      {{- if (and (eq .type "NodePort") (not (empty .nodePort)))}}
+      nodePort: {{ .nodePort }}
+      {{- else if eq .type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+  {{- end }}
+{{- end }}
+
+
+

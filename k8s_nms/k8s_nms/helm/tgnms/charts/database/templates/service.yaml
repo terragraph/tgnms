@@ -1,0 +1,16 @@
+{{- if .Values.databaseCreate }}
+{{- with .Values.tgnms.database.service }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
+spec:
+  ports:
+    - port: {{ .port }}
+  selector:
+    app: {{ .name }}
+  clusterIP: {{ .clusterIP }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,15 @@
+{{- if .Values.databaseCreate }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.tgnms.database.service.name }}-pvc
+spec:
+  {{- with .Values.tgnms.database.persistence }}
+  storageClassName: {{ .storageClass }}
+  accessModes:
+    - {{ .accessMode }}
+  resources:
+    requests:
+      storage: {{ .size }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,10 @@
+{{- if .Values.chihayaCreate }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chihaya-config
+  labels:
+    app: {{ .Values.tgnms.chihaya.service.name }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.chihaya.configmap.chihayaConfigFile).AsConfig) . | nindent 2 }}
+{{- end }}

@@ -1,0 +1,136 @@
+{{- if .Values.e2eControllerCreate }}
+{{ $ctlNameDNS :=  .Values.tgnms.e2ectl.controllers.name | trim | lower | replace " " "-" | replace "_" "-" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.tgnms.e2ectl.service.name }}
+  labels:
+    app: {{ .Values.tgnms.e2ectl.service.name }}
+spec:
+  replicas: {{ .Values.tgnms.e2ectl.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.tgnms.e2ectl.service.name }}
+  strategy:
+    type: {{ .Values.tgnms.e2ectl.deployment.strategy.type }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.tgnms.e2ectl.service.name }}
+      annotations:
+        {{- with .Values.tgnms.e2ectl.deployment.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.tgnms.e2ectl.deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tgnms.e2ectl.deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tgnms.e2ectl.deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: e2e-controller
+          image: {{ .Values.tgnms.e2ectl.image.repository }}:{{ .Values.tgnms.e2ectl.image.tag }}
+          imagePullPolicy: {{ .Values.tgnms.e2ectl.image.pullPolicy }}
+          command: ["/bin/sh", "-c", "echo /data > /.current && /data/scripts/e2e_controller.start"]
+          ports:
+            - containerPort: 17009
+            - containerPort: 17008
+          env:
+            - name: E2E_TOPOLOGY_FILE
+              value: {{ .Values.tgnms.e2ectl.env.e2eTopologyFile }}
+            - name: E2E_CONFIG_FILE
+              value: {{ .Values.tgnms.e2ectl.env.e2eConfigFile }}
+            - name: TG_BT_SEEDER_PORT
+              value: {{ .Values.tgnms.e2ectl.env.tgBtSeederPort | quote }}
+            - name: TG_BT_ANNOUNCE_IP
+              value: {{ .Values.tgnms.e2ectl.env.tgBtAnnounceIP }}
+            - name: TG_BT_TRACKER_OVERRIDE
+              value: {{ .Values.tgnms.e2ectl.env.tgBtTrackerOverride }}
+            - name: TG_LOCAL_BT_TRACKER_OVERRIDE
+              value: {{ .Values.tgnms.e2ectl.env.tgLocalBtTrackerOverrride }}
+            - name: CONFIG_ARGS
+              value: {{ .Values.tgnms.e2ectl.env.apiArgs }}
+          volumeMounts:
+            - name: e2e-controller-start
+              mountPath: /data/scripts/e2e_controller.start
+              subPath: e2e_controller.start
+            - name: e2e-topology-conf
+              mountPath: /data/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+        - name: nms-aggregator
+          image: {{ .Values.tgnms.e2ectl.image.repository }}:{{ .Values.tgnms.e2ectl.image.tag }}
+          imagePullPolicy: {{ .Values.tgnms.e2ectl.image.pullPolicy }}
+          command: ["/data/scripts/nms_aggregator.start"]
+          env:
+            - name: NMS_CONFIG_FILE
+              value: {{ .Values.tgnms.e2ectl.env.nmsConfigFile }}
+            - name: TG_CONTROLLER_HOST
+              value: {{ .Values.tgnms.e2ectl.env.tgControllerHost }}
+            - name: CONFIG_ARGS
+              value: {{ .Values.tgnms.e2ectl.env.apiArgs }}
+          volumeMounts:
+            - name: e2e-nms-aggregator-start
+              mountPath: /data/scripts/nms_aggregator.start
+              subPath: nms_aggregator.start
+            - name: e2e-topology-conf
+              mountPath: /data/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+        - name: stats-agent
+          image: {{ .Values.tgnms.e2ectl.image.repository }}:{{ .Values.tgnms.e2ectl.image.tag }}
+          imagePullPolicy: {{ .Values.tgnms.e2ectl.image.pullPolicy }}
+          command: ["/data/scripts/stats_agent.start"]
+          ports:
+            - containerPort: 17009
+          env:
+            - name: E2E_TOPOLOGY_FILE
+              value: {{ .Values.tgnms.e2ectl.env.e2eTopologyFile }}
+            - name: E2E_CONFIG_FILE
+              value: {{ .Values.tgnms.e2ectl.env.e2eConfigFile }}
+          volumeMounts:
+            - name: e2e-stats-agent-start
+              mountPath: /data/scripts/stats_agent.start
+              subPath: stats_agent.start
+            - name: e2e-topology-conf
+              mountPath: /data/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+        - name: api-service
+          image: {{ .Values.tgnms.e2ectl.image.repository }}:{{ .Values.tgnms.e2ectl.image.tag }}
+          imagePullPolicy: {{ .Values.tgnms.e2ectl.image.pullPolicy }}
+          command: ["/bin/sh", "-c", "/usr/sbin/api_service -aggregator_host $${TG_AGGREGATOR_HOST}  -controller_host $${TG_CONTROLLER_HOST} $${API_ARGS}"]
+          env:
+            - name: TG_AGGREGATOR_HOST
+              value: {{ .Values.tgnms.e2ectl.env.tgAggregatorHost }}
+            - name: TG_CONTROLLER_HOST
+              value: {{ .Values.tgnms.e2ectl.env.tgControllerHost }}
+            - name: CONFIG_ARGS
+              value: {{ .Values.tgnms.e2ectl.env.apiArgs }}
+          resources:
+{{ toYaml .Values.tgnms.e2ectl.deployment.resources | indent 12 }}
+      volumes:
+        - name: e2e-controller-start
+          configMap:
+            name: e2e-controller-start-{{ $ctlNameDNS }}
+            defaultMode: 0755
+        - name: e2e-nms-aggregator-start
+          configMap:
+            name: e2e-nms-aggregator-start-{{ $ctlNameDNS }}
+            defaultMode: 0755
+        - name: e2e-stats-agent-start
+          configMap:
+            name: e2e-stats-agent-start-{{ $ctlNameDNS }}
+            defaultMode: 0755
+        - name: e2e-topology-conf
+          configMap:
+            name: e2e-topology-conf-{{ $ctlNameDNS }}
+{{- end }}

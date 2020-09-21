@@ -1,0 +1,55 @@
+{{- if .Values.chihayaCreate }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.tgnms.chihaya.service.name }}
+  labels:
+    app: {{ .Values.tgnms.chihaya.service.name }}
+spec:
+  replicas: {{ .Values.tgnms.chihaya.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.tgnms.chihaya.service.name }}
+  strategy:
+    type: {{ .Values.tgnms.chihaya.deployment.strategy.type }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.tgnms.chihaya.service.name }}
+      annotations:
+        {{- with .Values.tgnms.chihaya.deployment.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.tgnms.chihaya.deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tgnms.chihaya.deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tgnms.chihaya.deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      volumes:
+        - name: chihaya-config
+          configMap:
+            name: chihaya-config
+      containers:
+        - name: {{ .Values.tgnms.chihaya.service.name }}
+          image: {{ .Values.tgnms.chihaya.image.repository }}:{{ .Values.tgnms.chihaya.image.tag }}
+          imagePullPolicy: {{ .Values.tgnms.chihaya.image.pullPolicy }}
+          args: ["--config", "/etc/chihaya.yml"]
+          volumeMounts:
+            - name: chihaya-config
+              mountPath: /etc/chihaya.yml
+              subPath: {{ .Values.tgnms.chihaya.deployment.configSubPath}}
+          resources:
+{{ toYaml .Values.tgnms.chihaya.deployment.resources | indent 12 }}
+{{- end }}

@@ -1,0 +1,40 @@
+{{- if .Values.chihayaCreate }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.tgnms.chihaya.service.name }}
+  labels:
+    app: {{ .Values.tgnms.chihaya.service.name }}
+    {{- with .Values.tgnms.chihaya.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.tgnms.chihaya.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app: {{ .Values.tgnms.chihaya.service.name }}
+  {{- with .Values.tgnms.chihaya.service }}
+  type: {{ .type }}
+    {{- if eq .type "LoadBalancer" }}
+    {{- if .loadBalancerIP }}
+  loadBalancerIP: {{ .loadBalancerIP }}
+    {{- end }}
+    {{- end }}
+    {{- if (or (eq .type "LoadBalancer") (eq .type "NodePort")) }}
+  externalTrafficPolicy: {{ .externalTrafficPolicy | quote }}
+    {{- end }}
+  ports:
+    - name: http
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+
+      {{- if (and (eq .type "NodePort") (not (empty .nodePort)))}}
+      nodePort: {{ .nodePort }}
+      {{- else if eq .type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+  {{- end }}
+{{- end }}
+
