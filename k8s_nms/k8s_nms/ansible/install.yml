@@ -40,3 +40,18 @@
     - name: enable scheduling on master node
       shell: "kubectl taint nodes --all node-role.kubernetes.io/master-"
       when: single_node
+      # This may fail if the taint is already removed
+      ignore_errors: yes
+
+    # ElasticSearch crashes in its 'bootstrap checks' phase with the default
+    # map limit
+    - name: Increase mmap limits for elasticsearch
+      sysctl:
+        name: vm.max_map_count
+        value: "262144"
+        state: present
+        sysctl_set: yes
+
+    - name: add MetalLB
+      include_role:
+        name: metallb

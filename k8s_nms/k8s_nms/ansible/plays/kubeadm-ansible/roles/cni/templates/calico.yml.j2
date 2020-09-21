@@ -32,7 +32,14 @@ data:
           "nodename": "__KUBERNETES_NODE_NAME__",
           "mtu": __CNI_MTU__,
           "ipam": {
+{% if pod_network_cidr | ipv6 %}
+              "type": "calico-ipam",
+              "assign_ipv4": "false",
+              "assign_ipv6": "true",
+              "ipv6_pools": ["{{ pod_network_cidr }}", "default-ipv6-ippool"]
+{% else %}
               "type": "calico-ipam"
+{% endif %}
           },
           "policy": {
               "type": "k8s"
@@ -3576,17 +3583,28 @@ spec:
             # The default IPv4 pool to create on startup if none exists. Pod IPs will be
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
+{% if pod_network_cidr | ipv4 %}
             - name: CALICO_IPV4POOL_CIDR
-              value: "{{ pod_network_cidr }}"
+              value: {{ pod_network_cidr }}
+{% else %}
+            - name: CALICO_IPV6POOL_CIDR
+              value: {{ pod_network_cidr }}
+{% endif %}
             # Disable file logging so `kubectl logs` works.
             - name: CALICO_DISABLE_FILE_LOGGING
               value: "true"
             # Set Felix endpoint to host default action to ACCEPT.
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
               value: "ACCEPT"
+{% if pod_network_cidr | ipv4 %}
             # Disable IPv6 on Kubernetes.
             - name: FELIX_IPV6SUPPORT
               value: "false"
+{% else %}
+            # Enable IPv6 on Kubernetes.
+            - name: FELIX_IPV6SUPPORT
+              value: "true"
+{% endif %}
             # Set Felix logging to "info"
             - name: FELIX_LOGSEVERITYSCREEN
               value: "info"

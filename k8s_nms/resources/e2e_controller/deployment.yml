@@ -1,0 +1,146 @@
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+{% set _ = controller.update({'bt_announce_ip': controller.get('bt_announce_ip', '')}) %}
+{% set _ = controller.update({'bt_seeder_port': controller.get('bt_seeder_port', '')}) %}
+{% set _ = controller.update({'bt_tracker_override': controller.get('bt_tracker_override', '')}) %}
+{% set data_folder = "/data" %}
+
+# Everything is all in one file here since all the configs and deployments are per-controller
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-stats-agent-start-{{ controller_name_dns }}
+data:
+  stats_agent.start: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/stats_agent.start') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-controller-start-{{ controller_name_dns }}
+data:
+  e2e_controller.start: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_controller.start') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-nms-aggregator-start-{{ controller_name_dns }}
+data:
+  nms_aggregator.start: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/nms_aggregator.start') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-topology-conf-{{ controller_name_dns }}
+data:
+  e2e_topology.conf: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_topology.conf', { "controller_name": controller.name }) | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-defaults-env-{{ controller_name_dns }}
+data:
+  # api_service
+  API_ARGS: {{ API_ARGS }}
+
+  # e2e_controller
+  E2E_CONFIG_FILE: {{ E2E_CONFIG_FILE }}
+  E2E_TOPOLOGY_FILE: {{ E2E_TOPOLOGY_FILE }}
+  TG_BT_SEEDER_PORT: "{{ controller.bt_seeder_port }}"
+  TG_BT_ANNOUNCE_IP: "{{ controller.bt_announce_ip }}"
+  TG_BT_TRACKER_OVERRIDE: "{{ controller.bt_tracker_override }}"
+  TG_LOCAL_BT_TRACKER_OVERRIDE: http://chihaya:6969/announce
+
+  # nms_aggregator
+  NMS_CONFIG_FILE: {{ NMS_CONFIG_FILE }}
+  TG_CONTROLLER_HOST: e2e_controller-{{ escaped_controller_name }}
+  TG_NMS_REMOTE_ENDPOINT: http://query_service:8086/
+
+  # stats_agent
+  TG_AGGREGATOR_HOST: nms_aggregator-{{ escaped_controller_name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: e2e-controller
+spec:
+  selector:
+    matchLabels:
+      app: e2e-controller
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: e2e-controller
+    spec:
+      volumes:
+        - name: e2e-controller-start
+          configMap:
+            name: e2e-controller-start-{{ controller_name_dns }}
+            defaultMode: 0755
+        - name: e2e-nms-aggregator-start
+          configMap:
+            name: e2e-nms-aggregator-start-{{ controller_name_dns }}
+            defaultMode: 0755
+        - name: e2e-stats-agent-start
+          configMap:
+            name: e2e-stats-agent-start-{{ controller_name_dns }}
+            defaultMode: 0755
+        - name: e2e-topology-conf
+          configMap:
+            name: e2e-topology-conf-{{ controller_name_dns }}
+      containers:
+        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+          command: ["/bin/sh", "-c", "echo {{ data_folder }} > /.current && /data/scripts/e2e_controller.start"]
+          name: e2e-controller
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          volumeMounts:
+            - name: e2e-controller-start
+              mountPath: {{ data_folder }}/scripts/e2e_controller.start
+              subPath: e2e_controller.start
+            - name: e2e-topology-conf
+              mountPath: {{ data_folder }}/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+          command: ["/data/scripts/nms_aggregator.start"]
+          name: nms-aggregator
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          volumeMounts:
+            - name: e2e-nms-aggregator-start
+              mountPath: {{ data_folder }}/scripts/nms_aggregator.start
+              subPath: nms_aggregator.start
+            - name: e2e-topology-conf
+              mountPath: {{ data_folder }}/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+          command: ["/data/scripts/stats_agent.start"]
+          name: stats-agent
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          volumeMounts:
+            - name: e2e-stats-agent-start
+              mountPath: {{ data_folder }}/scripts/stats_agent.start
+              subPath: stats_agent.start
+            - name: e2e-topology-conf
+              mountPath: {{ data_folder }}/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+          command: ["/bin/sh", "-c", "/usr/sbin/api_service -aggregator_host $${TG_AGGREGATOR_HOST} {% if keycloak_enabled %} -public_key_file /keycloak/publickey {% endif %} -controller_host $${TG_CONTROLLER_HOST} $${API_ARGS}"]
+          name: api-service
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+      imagePullSecrets:
+        - name: tg-repo-creds
+{% endfor %}

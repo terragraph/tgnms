@@ -5,6 +5,23 @@ if [ -z "${E2E_CONFIG_FILE}" ]; then
   exit 1
 fi
 
+if [ -z "${E2E_TOPOLOGY_FILE}" ]; then
+  echo "E2E_TOPOLOGY_FILE not set"
+  exit 1
+fi
+
+# read controller config file
+if [ ! -f "/data/${E2E_CONFIG_FILE}" ]; then
+  echo "E2E_CONFIG_FILE not found, copying default file..."
+  cp -v "/etc/e2e_config/controller_config_default.json" "/data/${E2E_CONFIG_FILE}"
+fi
+
+# create empty topology file if needed
+if [ ! -f "/data/${E2E_TOPOLOGY_FILE}" ]; then
+  echo "E2E_TOPOLOGY_FILE not found, creating empty file..."
+  touch "/data/${E2E_TOPOLOGY_FILE}"
+fi
+
 if [ ! -f "/data/${E2E_CONFIG_FILE}" ]; then
   echo "E2E_CONFIG_FILE not found"
   exit 1

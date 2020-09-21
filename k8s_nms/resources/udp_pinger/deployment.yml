@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: udp-pinger-env
+data:
+  COOLDOWN_TIME_S: "1"
+  NUM_PACKETS: "1"
+  PING_INTERVAL_S: "1"
+  PINGER_RATE_PPS: "5"
+  # TODO: move this somewhere else, template out the password
+  MYSQL_USER: nms
+  MYSQL_PASS: o0Oe8G0UrBrT
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: udp-pinger
+spec:
+  ports:
+  - port: 31338
+    protocol: UDP
+  selector:
+    app: udp-pinger
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: udp-pinger
+spec:
+  selector:
+    matchLabels:
+      app: udp-pinger
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: udp-pinger
+    spec:
+      containers:
+      - image: secure.cxl-terragraph.com:443/cpp_backends:stable
+        command: ["/bin/sh", "-c", "bin/udp_ping_client -logtostderr -mysql_url tcp://db:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -cooldown_time_s $${COOLDOWN_TIME_S} -num_packets $${NUM_PACKETS} -ping_interval_s $${PING_INTERVAL_S} -pinger_rate_pps $${PINGER_RATE_PPS} {% if keycloak_enabled %} -keycloak_enabled true -keycloak_host $${KEYCLOAK_HOST} -keycloak_realm $${KEYCLOAK_REALM} -keycloak_client_id $${KEYCLOAK_CLIENT_ID} -keycloak_client_secret $${KEYCLOAK_CLIENT_SECRET} {% endif %}"]
+        name: udp-pinger
+        envFrom:
+        - configMapRef:
+            name: udp-pinger-env
+        ports:
+        - containerPort: 31338
+          name: udp-pinger
+      imagePullSecrets:
+        - name: tg-repo-creds

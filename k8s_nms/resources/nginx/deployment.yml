@@ -1,0 +1,114 @@
+{% if use_metallb %}
+      hostNetwork: true
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      name: port-80
+    - port: 443
+      name: port-443
+    - port: 6969
+      name: port-6969
+    - port: 9200
+      name: port-9200
+    - port: 9108
+      name: port-9108
+    - port: 24224
+      name: port-24224
+    - port: 24231
+      name: port-24231
+{% for controller in controllers_list %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+    - port: {{ controller.ctrlr_port }}
+      name: port-ctrlr-port-{{ controller_name_dns }}
+    - port: {{ controller.agg_port }}
+      name: port-agg-port-{{ controller_name_dns }}
+    - port: {{ controller.app_port }}
+      name: port-app-port-{{ controller_name_dns }}
+    - port: {{ controller.bt_seeder_port }}
+      name: port-bt-seeder-port-{{ controller_name_dns }}
+{% endfor %}
+  selector:
+    app: nginx
+{% endif %}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+{% if not use_metallb %}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+{% endif %}
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
+        - name: http-conf
+          configMap:
+            name: http-conf
+        - name: ssl-key-file
+          configMap:
+            name: ssl-key-file
+        - name: ssl-cert-file
+          configMap:
+            name: ssl-cert-file
+        - name: stream-conf
+          configMap:
+            name: stream-conf
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+        - name: stream-conf-{{ controller_name_dns }}
+          configMap:
+            name: stream-conf-{{ controller_name_dns }}
+{% endfor %}
+      containers:
+        - image: secure.cxl-terragraph.com:443/nms_nginx:latest
+          command: ["/bin/sh", "-c", "mkdir -p /etc/letsencrypt/live/{{ ext_nms_hostname }} && cp /etc/fullchain.pem /etc/letsencrypt/live/{{ ext_nms_hostname }}/fullchain.pem && cp /etc/privkey.pem /etc/letsencrypt/live/{{ ext_nms_hostname }}/privkey.pem && ln -sf $${TZ_FILE} /etc/localtime && init-cert.sh && /usr/sbin/crond && openresty -g 'daemon off;'"]
+          name: nginx
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: time-zone
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+              subPath: nginx.conf
+            - name: http-conf
+              mountPath: /usr/local/openresty/nginx/conf/conf.d/http.conf
+              subPath: http.conf
+            - name: ssl-cert-file
+              mountPath: /etc/fullchain.pem
+              subPath: fullchain.pem
+            - name: ssl-key-file
+              mountPath: /etc/privkey.pem
+              subPath: privkey.pem
+            - name: stream-conf
+              mountPath: /usr/local/openresty/nginx/conf/conf.d/streams/stream.conf
+              subPath: stream.conf
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+            - name: stream-conf-{{ controller_name_dns }}
+              mountPath: /usr/local/openresty/nginx/conf/conf.d/streams/stream-{{ escaped_controller_name }}.conf
+              subPath: stream-{{ escaped_controller_name }}.conf
+{% endfor %}
+      imagePullSecrets:
+        - name: tg-repo-creds

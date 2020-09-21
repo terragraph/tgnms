@@ -16,7 +16,7 @@ ansible_files = [
 
 setup(
     name="k8s_nms",
-    version="2020.07.27",
+    version="2020.08.06",
     description=("k8s_nms cli"),
     packages=["k8s_nms"],
     package_data={"k8s_nms": ansible_files},
@@ -31,5 +31,5 @@ setup(
     ],
     entry_points={"console_scripts": ["k8s_nms = k8s_nms.nms:cli"]},
     python_requires=">=3.7",
-    install_requires=["ansible==2.9.9", "click", "setuptools", "jinja2", "pyyaml"],
+    install_requires=["ansible==2.9", "click", "setuptools", "jinja2", "pyyaml", "pygments"],
 )

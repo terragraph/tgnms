@@ -19,7 +19,7 @@
         url: https://raw.githubusercontent.com/helm/helm/master/scripts/get
         dest: "{{ tmp_dir }}/get_helm.sh"
         mode: 0755
-  
+
     - name: "Run the installer"
       shell: "{{ tmp_dir }}/get_helm.sh"
 

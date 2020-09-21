@@ -5,6 +5,7 @@
     name: "apt-transport-https"
     state: present
     update_cache: yes
+    allow_unauthenticated: yes
 
 - name: Add Docker APT GPG key
   when: ansible_os_family == "Debian"

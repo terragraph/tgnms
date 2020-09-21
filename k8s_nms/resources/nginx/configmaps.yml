@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  nginx.conf: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/nginx.conf') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: http-conf
+data:
+  http.conf: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/http.conf') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssl-cert-file
+data:
+  fullchain.pem: |
+    {{ lookup('template', ssl_cert_path) | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssl-key-file
+data:
+  privkey.pem: |
+    {{ lookup('template', ssl_key_path) | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stream-conf
+data:
+  stream.conf: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/stream.conf') | indent(width=4, indentfirst=False )}}
+
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+{% set env = {
+  "controller_name": controller.name | trim | replace(' ', '_') | lower,
+  "controller_port": controller.ctrlr_port,
+  "aggregator_port": controller.agg_port,
+  "e2e_app_port": controller.app_port,
+  "bt_seeder_port": controller.bt_seeder_port,
+} %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stream-conf-{{ controller_name_dns }}
+data:
+  stream-{{ escaped_controller_name }}.conf: |
+    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/stream-controller.conf', env) | indent(width=4, indentfirst=False )}}
+{% endfor %}

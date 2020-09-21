@@ -1,5 +1,11 @@
 ---
 
+- name: set ipv6 forwarding
+  sysctl:
+    name: net.ipv6.conf.default.forwarding
+    value: '1'
+    sysctl_set: yes
+
 - name: Reset Kubernetes component
   shell: "kubeadm reset --force"
   register: reset_cluster

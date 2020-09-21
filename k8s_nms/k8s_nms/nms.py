@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
+import contextlib
 import glob
-import os
 import io
+import os
 import subprocess
 import tarfile
 import tempfile
@@ -13,6 +14,9 @@ from typing import Any, Dict
 import click
 import pkg_resources
 import yaml
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import YamlLexer
 
 from .config import configure_templates
 
@@ -49,10 +53,10 @@ common_options = {
         "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
     ),
     "verbose": click.option("-v", "--verbose", count=True, default=0),
-    "masters": click.option(
+    "managers": click.option(
         "-m",
-        "--master",
-        "masters",
+        "--manager",
+        "managers",
         default=None,
         multiple=True,
         required=True,
@@ -88,13 +92,13 @@ def run_ansible(playbook, extra_vars_file, inventory, verbose):
         subprocess.check_call(command)
 
 
-def generate_inventory(masters, workers):
+def generate_inventory(managers, workers):
     return {
         "all": {
             "children": {
                 "kube-cluster": {
                     "children": {
-                        "master": {"hosts": {m: "" for m in masters}},
+                        "master": {"hosts": {m: "" for m in managers}},
                         "node": {"hosts": {w: "" for w in workers}},
                     }
                 }
@@ -140,29 +144,29 @@ def cli(ctx, version, short):
 
 
 @cli.command()
-@add_common_options("config-file", "tags", "password", "verbose", "masters", "workers")
+@add_common_options("config-file", "tags", "password", "verbose", "managers", "workers")
 @click.pass_context
-def install(ctx, config_file, tags, verbose, password, workers, masters):
+def install(ctx, config_file, tags, verbose, password, workers, managers):
     """Bootstrap a Kubernetes cluster"""
     run_ansible(
         "install.yml",
         config_file,
-        generate_inventory(masters, workers),
+        generate_inventory(managers, workers),
         verbose=verbose,
     )
 
 
 @cli.command()
-@add_common_options("config-file", "tags", "password", "masters", "workers", "verbose")
+@add_common_options("config-file", "tags", "password", "managers", "workers", "verbose")
 @click.pass_context
-def uninstall(ctx, config_file, verbose, tags, password, masters, workers):
+def uninstall(ctx, config_file, verbose, tags, password, managers, workers):
     """
     Remove a Kubernetes cluster and associated packages
     """
     run_ansible(
         "uninstall.yml",
         config_file,
-        generate_inventory(masters, workers),
+        generate_inventory(managers, workers),
         verbose=verbose,
     )
 
@@ -178,12 +182,16 @@ def get_tar_files(source):
 @cli.command()
 @add_common_options("config-file", "verbose")
 @click.option(
-    "-t", "--template-source", default=None, required=True, help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory"
+    "-t",
+    "--template-source",
+    default=None,
+    required=True,
+    help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
 )
 @click.pass_context
 def configure(ctx, config_file, verbose, template_source):
     """
-    Generate Kubernetes manifest from a template source
+    Generate Kubernetes manifests from a template source
     """
     if template_source.startswith("http"):
         with urllib.request.urlopen(template_source) as f:
@@ -191,11 +199,109 @@ def configure(ctx, config_file, verbose, template_source):
     elif template_source.endswith(".tar.gz"):
         files_map = get_tar_files(open(template_source, "rb"))
     else:
+        if not os.path.exists(template_source):
+            raise RuntimeError(f"{template_source} directory not found")
         files = glob.glob(f"**/{template_source}/**/*.yml", recursive=True)
         files_map = {filename: open(filename, "r").read() for filename in files}
 
     with open(config_file, "r") as f:
         configure_templates(yaml.safe_load(f), files_map)
+
+
+def template_and_run(ctx, config_file, verbose, managers, template_source, command):
+    f = io.StringIO()
+    with contextlib.redirect_stdout(f):
+        ctx.invoke(
+            configure,
+            config_file=config_file,
+            verbose=verbose,
+            template_source=template_source,
+        )
+    k8s_manifest = f.getvalue().encode("utf-8")
+
+    # Pick a manager node 0 arbitrarily
+    command = f"ssh {managers[0]} {command}".split(" ")
+    subprocess.run(command, input=k8s_manifest, check=True)
+
+
+@cli.command()
+@add_common_options("config-file", "verbose", "managers")
+@click.option(
+    "-t",
+    "--template-source",
+    default=None,
+    required=True,
+    help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+)
+@click.pass_context
+def apply(ctx, config_file, verbose, managers, template_source):
+    """
+    Generate Kubernetes manifests from a template source and apply it on an SSH host
+    """
+    template_and_run(
+        ctx, config_file, verbose, managers, template_source, "kubectl apply -f -"
+    )
+
+
+@cli.command()
+@add_common_options("config-file", "verbose", "managers")
+@click.option(
+    "-t",
+    "--template-source",
+    default=None,
+    required=True,
+    help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+)
+@click.pass_context
+def clear(ctx, config_file, verbose, managers, template_source):
+    """
+    Remove Kubernetes configuration without tearing down the cluster
+    """
+    template_and_run(
+        ctx, config_file, verbose, managers, template_source, "kubectl delete -f -"
+    )
+
+
+def quoted_presenter(dumper, data):
+    data = data.replace('"', "")
+    data = data.replace("'", "")
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+
+
+@cli.command()
+@click.option('--options', default='minimal', help="Level of detail for options: 'minimal' (default) or 'all'")
+@click.pass_context
+def show_defaults(ctx, options):
+    """
+    Generate full YAML description of configurable options
+    """
+    minimal_file = minimal_group_vars_file = os.path.join(
+        os.path.dirname(__file__), "ansible", "group_vars", "minimal"
+    )
+
+    with open(minimal_file, "r") as f:
+        content = f.read()
+
+    if options == 'all':
+        all_file = os.path.join(
+            os.path.dirname(__file__), "ansible", "group_vars", "all"
+        )
+
+        with open(all_file, "r") as f:
+            content += "\n" + f.read()
+
+    yaml.add_representer(str, quoted_presenter)
+    click.echo(highlight(content, YamlLexer(), TerminalFormatter()))
+
+    if content is None:
+        click.echo("error: cannot read defaults", err=True)
+        ctx.exit(2)
+
+
+def quoted_presenter(dumper, data):
+    data = data.replace('"', "")
+    data = data.replace("'", "")
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
 
 
 if __name__ == "__main__":

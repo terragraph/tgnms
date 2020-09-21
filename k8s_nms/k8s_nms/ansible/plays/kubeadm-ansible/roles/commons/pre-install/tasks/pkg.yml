@@ -9,9 +9,12 @@
 - name: Add Kubernetes APT repository
   when: ansible_os_family == "Debian"
   apt_repository:
-    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    repo: deb http://packages.cloud.google.com/apt/ kubernetes-xenial main
     state: present
     filename: 'kubernetes'
+  environment:
+    https_proxy: "{{ https_proxy }}"
+    http_proxy: "{{ http_proxy }}"
 
 - name: Add Kubernetes yum repository
   when: ansible_os_family == "RedHat"

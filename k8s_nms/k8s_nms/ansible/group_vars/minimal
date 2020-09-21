@@ -1,0 +1,11 @@
+# Set to the main user that should operate the cluster
+kubernetes_user: root
+
+# Set to `true` if nms will be running on a single host.
+single_node: true
+
+# +--------------------------------------------------------+
+# |           NMS Configuration Options                    |
+# +--------------------------------------------------------+
+
+# n/a yet
