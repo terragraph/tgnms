@@ -1,8 +1,0 @@
-[ptr]
-venv_pkgs =
-  black
-  coverage
-  flake8
-  mypy
-  pip
-  setuptools
