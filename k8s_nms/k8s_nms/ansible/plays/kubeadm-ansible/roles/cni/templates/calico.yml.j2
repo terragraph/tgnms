@@ -3553,9 +3553,16 @@ spec:
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
-            # Auto-detect the BGP IP address.
+            # Set some stuff manually based on https://docs.projectcalico.org/networking/ipv6#enabling-ipv6-support-in-calico
+{% if pod_network_cidr | ipv6 %}
+            - name: IP6
+              value: "autodetect"
+            - name: IP
+              value: "none"
+{% else %}
             - name: IP
               value: "autodetect"
+{% endif %}
             # Enable IPIP
             - name: CALICO_IPV4POOL_IPIP
               value: "Always"
@@ -3604,6 +3611,8 @@ spec:
             # Enable IPv6 on Kubernetes.
             - name: FELIX_IPV6SUPPORT
               value: "true"
+            - name: CALICO_ROUTER_ID
+              value: "hash"
 {% endif %}
             # Set Felix logging to "info"
             - name: FELIX_LOGSEVERITYSCREEN

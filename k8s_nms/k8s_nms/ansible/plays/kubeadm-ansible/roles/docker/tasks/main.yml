@@ -29,3 +29,29 @@
     state: started
     enabled: yes
   register: started_docker
+
+- name: create docker daemon config path
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: configure docker http proxy if needed
+  template:
+    src: docker-http-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: http_proxy is defined
+
+- name: configure docker https proxy if needed
+  template:
+    src: docker-https-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/https-proxy.conf
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: https_proxy is defined

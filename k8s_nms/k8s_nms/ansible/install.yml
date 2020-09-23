@@ -2,6 +2,13 @@
 - name: Bootstrap Python
   import_playbook: bootstrap.yml
 
+- hosts: master
+  tasks:
+    - name: "set proxy if defined"
+      set_fact:
+        http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+
 - name: install kubernetes cluster
   import_playbook: plays/kubeadm-ansible/site.yaml
 

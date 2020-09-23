@@ -85,11 +85,14 @@ def run_ansible(playbook, extra_vars_file, inventory, verbose):
 
         playbook = os.path.join(os.path.dirname(__file__), "ansible", playbook)
 
+        env = os.environ.copy()
+        env["ANSIBLE_STDOUT_CALLBACK"] = env.get("ANSIBLE_STDOUT_CALLBACK", "debug")
+
         command = f"ansible-playbook --extra-vars @{extra_vars_file} --inventory {temp.name} {playbook}"
         command = command.split(" ")
         if verbose > 0:
             command.append(f"-{'v' * verbose}")
-        subprocess.check_call(command)
+        subprocess.check_call(command, env=env)
 
 
 def generate_inventory(managers, workers):

@@ -31,5 +31,13 @@ setup(
     ],
     entry_points={"console_scripts": ["k8s_nms = k8s_nms.nms:cli"]},
     python_requires=">=3.7",
-    install_requires=["ansible==2.9", "click", "setuptools", "jinja2", "pyyaml", "pygments"],
+    install_requires=[
+        "ansible==2.9",
+        "click==7.0",
+        "setuptools",
+        "jinja2==2.11.1",
+        "pyyaml==5.3",
+        "pygments==2.5.2",
+        "netaddr==0.7.19",
+    ],
 )

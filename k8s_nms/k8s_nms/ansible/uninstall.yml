@@ -1,3 +1,10 @@
+- hosts: master
+  tasks:
+    - name: "set proxy if defined"
+      set_fact:
+        http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+
 - name: remove kubernetes cluster
   import_playbook: plays/kubeadm-ansible/reset-site.yaml
 
@@ -54,6 +61,9 @@
         - kubectl
         - docker
         - docker-ce
+    environment:
+      https_proxy: "{{ https_proxy }}"
+      http_proxy: "{{ http_proxy }}"
 
   - name: Remove docker, kubeadm, and kubectl packages
     when: ansible_os_family == 'RedHat'
@@ -66,3 +76,6 @@
         - kubelet
         - kubeadm
         - kubectl
+    environment:
+      https_proxy: "{{ https_proxy }}"
+      http_proxy: "{{ http_proxy }}"
