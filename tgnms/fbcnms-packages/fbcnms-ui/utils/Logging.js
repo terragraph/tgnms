@@ -30,7 +30,7 @@ export const ServerLog = (topic: string) =>
           const {event, level, payload} = e;
           const {timestamp, data, user} = payload;
           return {
-            event,
+            event: {name: event},
             level,
             ts: timestamp / 1000,
             data,
