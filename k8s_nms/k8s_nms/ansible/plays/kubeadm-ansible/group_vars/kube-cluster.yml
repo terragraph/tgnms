@@ -1,3 +1,5 @@
 ---
-
-master_ip: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address | default(groups['master'][0]) }}"
+ipv4: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'] }}"
+ipv6: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'] }}"
+use_ipv6: "{{ 'yes' if ipv4 != {} and ipv4.interface != 'lo' else 'no' }}"
+master_ip: "{{ ipv6.address if use_ipv6 else ipv4.address }}"

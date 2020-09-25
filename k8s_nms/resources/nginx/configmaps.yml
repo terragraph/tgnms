@@ -20,7 +20,7 @@ metadata:
   name: ssl-cert-file
 data:
   fullchain.pem: |
-    {{ lookup('template', ssl_cert_path) | indent(width=4, indentfirst=False )}}
+    {{ ssl_cert_text | indent(width=4, indentfirst=False) }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -28,7 +28,7 @@ metadata:
   name: ssl-key-file
 data:
   privkey.pem: |
-    {{ lookup('template', ssl_key_path) | indent(width=4, indentfirst=False )}}
+    {{ ssl_key_text | indent(width=4, indentfirst=False) }}
 ---
 apiVersion: v1
 kind: ConfigMap

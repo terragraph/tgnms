@@ -21,7 +21,7 @@ Add the system information gathered above into a file called `hosts.ini`. For ex
 [node]
 192.16.35.[10:11]
 
-[kube-cluster:children]
+[kube_cluster:children]
 master
 node
 ```
@@ -34,7 +34,7 @@ If you're working with ubuntu, add the following properties to each host `ansibl
 [node]
 192.16.35.[10:11] ansible_python_interpreter='python3'
 
-[kube-cluster:children]
+[kube_cluster:children]
 master
 node
 

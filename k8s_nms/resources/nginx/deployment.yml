@@ -35,7 +35,6 @@ spec:
   selector:
     app: nginx
 {% endif %}
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -81,6 +80,8 @@ spec:
 {% endfor %}
       containers:
         - image: secure.cxl-terragraph.com:443/nms_nginx:latest
+          # Kubernetes won't mount folders with colons in the name, so we have to mount these files to a temp dir, then
+          # copy them at runtime to where they're actually supposed to be
           command: ["/bin/sh", "-c", "mkdir -p /etc/letsencrypt/live/{{ ext_nms_hostname }} && cp /etc/fullchain.pem /etc/letsencrypt/live/{{ ext_nms_hostname }}/fullchain.pem && cp /etc/privkey.pem /etc/letsencrypt/live/{{ ext_nms_hostname }}/privkey.pem && ln -sf $${TZ_FILE} /etc/localtime && init-cert.sh && /usr/sbin/crond && openresty -g 'daemon off;'"]
           name: nginx
           imagePullPolicy: Always

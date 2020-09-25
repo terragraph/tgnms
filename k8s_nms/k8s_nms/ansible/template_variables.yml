@@ -1,0 +1,15 @@
+- hosts: master
+  # It's a lot slower but we must gather facts in order to get the hosts' IP
+  # addresses
+  gather_facts: yes
+  connection: local
+  tasks:
+    - set_fact:
+        is_ipv6: "{{ 'yes' if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {} else 'no' }}"
+    - set_fact:
+        ipv4_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address if not is_ipv6 else '' }}"
+        ipv6_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'].address if is_ipv6 else '' }}"
+    - name: generated templated variables
+      template:
+        src: "{{ temp_src }}"
+        dest: "{{ temp_dest }}"

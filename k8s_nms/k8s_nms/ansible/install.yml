@@ -60,5 +60,6 @@
         sysctl_set: yes
 
     - name: add MetalLB
+      when: metallb_address_space is defined
       include_role:
         name: metallb

@@ -18,16 +18,12 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
 
-from .config import configure_templates
+from .config import configure_templates, get_template
 
 
 common_options = {
     "config-file": click.option(
-        "-f",
-        "--config-file",
-        default=None,
-        required=True,
-        help="YAML file to load as variable set",
+        "-f", "--config-file", default=None, help="YAML file to load as variable set"
     ),
     "host": click.option(
         "-h",
@@ -40,13 +36,13 @@ common_options = {
         "-k",
         "--ssl-key-file",
         default=None,
-        help="Private key file for Apache Server (e.g. privkey.pem)",
+        help="Private key file for the Nginx Server (e.g. privkey.pem)",
     ),
     "ssl-cert-file": click.option(
         "-C",
         "--ssl-cert-file",
         default=None,
-        help="SSL certificate file for Apache Server (e.g. fullchain.pem)",
+        help="SSL certificate file for the Nginx Server (e.g. fullchain.pem)",
     ),
     "tags": click.option("-t", "--tags", multiple=True, help="Ansible tags to run"),
     "password": click.option(
@@ -70,10 +66,24 @@ common_options = {
         multiple=True,
         help="Worker nodes for Kubernetes",
     ),
+    "templates": click.option(
+        "-t",
+        "--template-source",
+        default=None,
+        required=True,
+        help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+    ),
 }
 
 
-def run_ansible(playbook, extra_vars_file, inventory, verbose):
+def run_ansible(
+    playbook,
+    extra_vars_file,
+    inventory,
+    verbose,
+    more_extra_vars=None,
+    subprocess_kwargs=None,
+):
     """
     Call the ansible-playbook binary, passing in a generated inventory and
     extra variables to set
@@ -83,23 +93,29 @@ def run_ansible(playbook, extra_vars_file, inventory, verbose):
         temp.flush()
         playbook = os.path.join(os.path.dirname(__file__), "ansible", playbook)
 
-        playbook = os.path.join(os.path.dirname(__file__), "ansible", playbook)
-
         env = os.environ.copy()
         env["ANSIBLE_STDOUT_CALLBACK"] = env.get("ANSIBLE_STDOUT_CALLBACK", "debug")
 
-        command = f"ansible-playbook --extra-vars @{extra_vars_file} --inventory {temp.name} {playbook}"
+        command = f"ansible-playbook --inventory {temp.name} {playbook}"
+        if more_extra_vars:
+            for string in more_extra_vars:
+                command += f" --extra-vars {string}"
+        if extra_vars_file:
+            command += f" --extra-vars @{extra_vars_file}"
+
         command = command.split(" ")
         if verbose > 0:
             command.append(f"-{'v' * verbose}")
-        subprocess.check_call(command, env=env)
+        if not subprocess_kwargs:
+            subprocess_kwargs = {}
+        subprocess.check_call(command, env=env, **subprocess_kwargs)
 
 
 def generate_inventory(managers, workers):
     return {
         "all": {
             "children": {
-                "kube-cluster": {
+                "kube_cluster": {
                     "children": {
                         "master": {"hosts": {m: "" for m in managers}},
                         "node": {"hosts": {w: "" for w in workers}},
@@ -151,12 +167,17 @@ def cli(ctx, version, short):
 @click.pass_context
 def install(ctx, config_file, tags, verbose, password, workers, managers):
     """Bootstrap a Kubernetes cluster"""
-    run_ansible(
-        "install.yml",
-        config_file,
-        generate_inventory(managers, workers),
-        verbose=verbose,
-    )
+    variables = get_variables(config_file, managers, verbose)
+
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(yaml.dump(variables).encode("utf-8"))
+        temp_file.flush()
+        run_ansible(
+            "install.yml",
+            temp_file.name,
+            generate_inventory(managers, workers),
+            verbose=verbose,
+        )
 
 
 @cli.command()
@@ -174,6 +195,48 @@ def uninstall(ctx, config_file, verbose, tags, password, managers, workers):
     )
 
 
+def get_variables(user_config_file, managers, verbose):
+    """
+    This takes a user's config yaml file and runs it through ansible for a set
+    of hosts, which runs its templating (with information about the hosts
+    available)
+    """
+    default_variables_file = os.path.join(
+        os.path.dirname(__file__), "ansible", "group_vars", "all"
+    )
+
+    with open(default_variables_file, "r") as defaults:
+        variables = yaml.safe_load(defaults)
+
+    if user_config_file:
+        with open(user_config_file, "r") as user:
+            variables.update(yaml.safe_load(user))
+    names = variables.keys()
+
+    with tempfile.NamedTemporaryFile() as src, tempfile.NamedTemporaryFile() as dest:
+        templates = [f"{name}: {{{{ {name} }}}}" for name in names]
+        templates = "\n".join(templates)
+        src.write(templates.encode("utf-8"))
+        src.flush()
+
+        run_ansible(
+            "template_variables.yml",
+            user_config_file,
+            generate_inventory(managers, workers=[]),
+            verbose=verbose,
+            more_extra_vars=[f"temp_src={src.name}", f"temp_dest={dest.name}"],
+            subprocess_kwargs={"stdout": subprocess.PIPE},
+        )
+        dest.flush()
+
+        all_variables = yaml.safe_load(open(dest.name, "r"))
+
+    if all_variables is None:
+        raise RuntimeError("Could not get variables, check your config-file")
+
+    return all_variables
+
+
 def get_tar_files(source):
     tar = tarfile.open(fileobj=source, mode="r:gz")
     return {
@@ -182,20 +245,42 @@ def get_tar_files(source):
     }
 
 
+
+def read_or_make_certificates(ssl_key_file, ssl_cert_file):
+    if (ssl_cert_file and not ssl_key_file) or (not ssl_cert_file and ssl_key_file):
+        # Check that we have both a certificate and a key
+        raise RuntimeError(
+            "Either both 'ssl-cert-file' and 'ssl-key-file' "
+            "should be provided, or neither. Instead got:\n\tssl-cert-file: "
+            f"{ssl_cert_file}\n\tssl-key-file: {ssl_key_file}"
+        )
+
+    if ssl_key_file and ssl_cert_file:
+        # Certs were provided, return them
+        return open(ssl_key_file, "r").read(), open(ssl_cert_file, "r").read()
+
+    # No certs provided, make them
+    with tempfile.NamedTemporaryFile() as key, tempfile.NamedTemporaryFile() as cert:
+        subject = " -subj /C=US/ST=Placeholder/L=Placeholder/O=Placeholder/OU=Placeholder/CN=Placeholder/emailAddress=Placeholder"
+        generate_certs_command = f"openssl req -newkey rsa:2048 -nodes -keyout {key.name} -x509 -days 3650 -out {cert.name}"
+        generate_certs_command += subject
+        subprocess.run(generate_certs_command.split(" "), stdout=subprocess.PIPE)
+        return open(key.name, "r").read(), open(cert.name, "r").read()
+
+
 @cli.command()
-@add_common_options("config-file", "verbose")
-@click.option(
-    "-t",
-    "--template-source",
-    default=None,
-    required=True,
-    help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+@add_common_options(
+    "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
 )
 @click.pass_context
-def configure(ctx, config_file, verbose, template_source):
+def configure(
+    ctx, config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
+):
     """
     Generate Kubernetes manifests from a template source
     """
+    key, cert = read_or_make_certificates(ssl_key_file, ssl_cert_file)
+
     if template_source.startswith("http"):
         with urllib.request.urlopen(template_source) as f:
             files_map = get_tar_files(io.BytesIO(f.read()))
@@ -207,19 +292,18 @@ def configure(ctx, config_file, verbose, template_source):
         files = glob.glob(f"**/{template_source}/**/*.yml", recursive=True)
         files_map = {filename: open(filename, "r").read() for filename in files}
 
-    with open(config_file, "r") as f:
-        configure_templates(yaml.safe_load(f), files_map)
+    variables = get_variables(config_file, managers, verbose)
+
+    variables["ssl_cert_text"] = cert
+    variables["ssl_key_text"] = key
+
+    configure_templates(variables, files_map)
 
 
-def template_and_run(ctx, config_file, verbose, managers, template_source, command):
+def template_and_run(ctx, command, **configure_kwargs):
     f = io.StringIO()
     with contextlib.redirect_stdout(f):
-        ctx.invoke(
-            configure,
-            config_file=config_file,
-            verbose=verbose,
-            template_source=template_source,
-        )
+        ctx.invoke(configure, **configure_kwargs)
     k8s_manifest = f.getvalue().encode("utf-8")
 
     # Pick a manager node 0 arbitrarily
@@ -228,41 +312,27 @@ def template_and_run(ctx, config_file, verbose, managers, template_source, comma
 
 
 @cli.command()
-@add_common_options("config-file", "verbose", "managers")
-@click.option(
-    "-t",
-    "--template-source",
-    default=None,
-    required=True,
-    help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+@add_common_options(
+    "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
 )
 @click.pass_context
-def apply(ctx, config_file, verbose, managers, template_source):
+def apply(ctx, **configure_kwargs):
     """
     Generate Kubernetes manifests from a template source and apply it on an SSH host
     """
-    template_and_run(
-        ctx, config_file, verbose, managers, template_source, "kubectl apply -f -"
-    )
+    template_and_run(ctx, command="kubectl apply -f -", **configure_kwargs)
 
 
 @cli.command()
-@add_common_options("config-file", "verbose", "managers")
-@click.option(
-    "-t",
-    "--template-source",
-    default=None,
-    required=True,
-    help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+@add_common_options(
+    "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
 )
 @click.pass_context
-def clear(ctx, config_file, verbose, managers, template_source):
+def clear(ctx, **configure_kwargs):
     """
     Remove Kubernetes configuration without tearing down the cluster
     """
-    template_and_run(
-        ctx, config_file, verbose, managers, template_source, "kubectl delete -f -"
-    )
+    template_and_run(ctx, command="kubectl delete -f -", **configure_kwargs)
 
 
 def quoted_presenter(dumper, data):
@@ -272,7 +342,11 @@ def quoted_presenter(dumper, data):
 
 
 @cli.command()
-@click.option('--options', default='minimal', help="Level of detail for options: 'minimal' (default) or 'all'")
+@click.option(
+    "--options",
+    default="minimal",
+    help="Level of detail for options: 'minimal' (default) or 'all'",
+)
 @click.pass_context
 def show_defaults(ctx, options):
     """
@@ -285,7 +359,7 @@ def show_defaults(ctx, options):
     with open(minimal_file, "r") as f:
         content = f.read()
 
-    if options == 'all':
+    if options == "all":
         all_file = os.path.join(
             os.path.dirname(__file__), "ansible", "group_vars", "all"
         )
@@ -299,12 +373,6 @@ def show_defaults(ctx, options):
     if content is None:
         click.echo("error: cannot read defaults", err=True)
         ctx.exit(2)
-
-
-def quoted_presenter(dumper, data):
-    data = data.replace('"', "")
-    data = data.replace("'", "")
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
 
 
 if __name__ == "__main__":
