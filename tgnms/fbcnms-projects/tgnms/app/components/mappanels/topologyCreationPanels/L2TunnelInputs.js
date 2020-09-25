@@ -46,7 +46,6 @@ export default function L2TunnelInputs() {
       node1: '',
       node2: '',
       type: TUNNEL_TYPES.gre,
-      vlanId: '',
       tunnelDest: TUNNEL_DEST.node,
       ipAddress: '',
     },
@@ -61,7 +60,9 @@ export default function L2TunnelInputs() {
 
   const handleTunnelDestChange = React.useCallback(
     target => {
-      updateFormState({tunnelDest: {label: target.label, value: target.value}});
+      updateFormState({
+        tunnelDest: {label: target.label, value: target.value},
+      });
     },
     [updateFormState],
   );
@@ -99,7 +100,9 @@ export default function L2TunnelInputs() {
               enabled: formState.enabled,
               dstNodeName: formState.node2.value,
               tunnelType: formState.type.value,
-              tunnelParams: {vlanId: formState.vlanId},
+              tunnelParams: formState.vlanId
+                ? {vlanId: Number(formState.vlanId)}
+                : {},
             },
           },
         },
@@ -112,7 +115,9 @@ export default function L2TunnelInputs() {
               enabled: formState.enabled,
               dstNodeName: formState.node1.value,
               tunnelType: formState.type.value,
-              tunnelParams: {vlanId: formState.vlanId},
+              tunnelParams: formState.vlanId
+                ? {vlanId: Number(formState.vlanId)}
+                : {},
             },
           },
         },
@@ -129,7 +134,9 @@ export default function L2TunnelInputs() {
               enabled: formState.enabled,
               dstIp: formState.ipAddress,
               tunnelType: formState.type.value,
-              tunnelParams: {vlanId: formState.vlanId},
+              tunnelParams: formState.vlanId
+                ? {vlanId: Number(formState.vlanId)}
+                : {},
             },
           },
         },
@@ -157,13 +164,13 @@ export default function L2TunnelInputs() {
           <TextField
             id="vlanId"
             key="vlanId"
-            label="Vlan Id *"
+            label="Vlan Id"
             type="number"
             InputLabelProps={{shrink: true}}
             margin="dense"
             fullWidth
             value={formState.vlanId}
-            onChange={handleInputChange(val => ({vlanId: val}))}
+            onChange={handleInputChange(val => ({vlanId: Number(val)}))}
           />
         </Grid>
       )}

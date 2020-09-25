@@ -82,9 +82,9 @@ export default function ConfigTaskInput({configField, label}: Props) {
 
   const handleInputChange = React.useCallback(
     e => {
-      if (settingType === 'checkbox') {
+      if (settingType === dataTypeToInputType.BOOLEAN) {
         return setDraftValue(e.target.checked);
-      } else if (settingType === 'number') {
+      } else if (settingType === dataTypeToInputType.INTEGER) {
         return setDraftValue(Number(e.target.value));
       }
       setDraftValue(e.target.value);
@@ -105,7 +105,7 @@ export default function ConfigTaskInput({configField, label}: Props) {
 
   return (
     <Grid item>
-      {settingType === 'checkbox' ? (
+      {settingType === dataTypeToInputType.BOOLEAN ? (
         <>
           <FormLabel>
             <Grid className={classes.inputLabel} item container spacing={1}>
