@@ -245,6 +245,13 @@ export const arrayConfigs = [
     title: 'Work Order New Status',
     enabledByDefault: false,
   },
+  {
+    id: 'projects_bulk_upload',
+    title: 'Project Bulk Upload',
+    enabledByDefault: false,
+    publicAccess: true,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
 ];
 
 export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
