@@ -252,6 +252,11 @@ export const arrayConfigs = [
     publicAccess: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'enable_backplane_connections',
+    title: 'Enable Backplane Connections',
+    enabledByDefault: false,
+  },
 ];
 
 export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
