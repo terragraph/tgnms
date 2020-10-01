@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import asynctest
 from scan_service.utils.topology import Topology
+from tglib.exceptions import ClientRuntimeError
 
 
 class TopologyTests(asynctest.TestCase):
@@ -12,6 +13,15 @@ class TopologyTests(asynctest.TestCase):
         self.maxDiff = None
 
     async def test_update_topologies(self) -> None:
+        # Reset Topology class variables before start of the tests
+        Topology.topology = {}
+        Topology.node_name_to_mac = defaultdict(dict)
+        Topology.node_mac_to_name = defaultdict(dict)
+        Topology.link_name_to_mac = defaultdict(dict)
+        Topology.mac_to_link_name = defaultdict(dict)
+        Topology.node_channel = defaultdict(dict)
+        Topology.node_polarity = defaultdict(dict)
+
         network_A = {
             "name": "network_A",
             "nodes": [
@@ -62,6 +72,31 @@ class TopologyTests(asynctest.TestCase):
                 },
             ],
         }
+        network_C = {
+            "name": "network_C",
+            "nodes": [
+                {"name": "TEST.18-37.S1", "mac_addr": ""},
+                {"name": "TEST.18-36.p2", "mac_addr": ""},
+            ],
+            "links": [
+                {
+                    "name": "link-TEST.18-36.p2-TEST.18-37.S1",
+                    "a_node_name": "TEST.18-36.p2",
+                    "z_node_name": "TEST.18-37.S1",
+                    "a_node_mac": "",
+                    "z_node_mac": "",
+                    "link_type": 1,
+                },
+                {
+                    "name": "link-TEST.18-60.P2-TEST.18-60.S2",
+                    "a_node_name": "TEST.18-60.P2",
+                    "z_node_name": "TEST.18-60.S2",
+                    "a_node_mac": "00:00:00:2f:e6:ea",
+                    "z_node_mac": "",
+                    "link_type": 2,
+                },
+            ],
+        }
 
         node_overrides_config_A = {
             "overrides": "{"
@@ -91,6 +126,19 @@ class TopologyTests(asynctest.TestCase):
             "  }"
             "}"
         }
+
+        with asynctest.patch(
+            "tglib.clients.api_service_client.APIServiceClient.request",
+            return_value=ClientRuntimeError(),
+        ):
+            await Topology.update_topologies("network_A")
+            self.assertDictEqual(Topology.topology, defaultdict(dict))
+            self.assertDictEqual(Topology.node_name_to_mac, defaultdict(dict))
+            self.assertDictEqual(Topology.node_mac_to_name, defaultdict(dict))
+            self.assertDictEqual(Topology.link_name_to_mac, defaultdict(dict))
+            self.assertDictEqual(Topology.mac_to_link_name, defaultdict(dict))
+            self.assertDictEqual(Topology.node_channel, defaultdict(dict))
+            self.assertDictEqual(Topology.node_polarity, defaultdict(dict))
 
         with asynctest.patch(
             "tglib.clients.api_service_client.APIServiceClient.request", return_value={}
@@ -178,14 +226,23 @@ class TopologyTests(asynctest.TestCase):
 
         with asynctest.patch(
             "tglib.clients.api_service_client.APIServiceClient.request_all",
-            return_value={"network_A": network_A, "network_B": network_B},
+            return_value={
+                "network_A": network_A,
+                "network_B": network_B,
+                "network_C": network_C,
+            },
         ), asynctest.patch(
             "tglib.clients.api_service_client.APIServiceClient.request",
             side_effect=[node_overrides_config_A, node_overrides_config_B],
         ):
             await Topology.update_topologies()
             self.assertDictEqual(
-                Topology.topology, {"network_A": network_A, "network_B": network_B}
+                Topology.topology,
+                {
+                    "network_A": network_A,
+                    "network_B": network_B,
+                    "network_C": network_C,
+                },
             )
             self.assertDictEqual(
                 Topology.node_name_to_mac,
@@ -198,6 +255,7 @@ class TopologyTests(asynctest.TestCase):
                         "TEST.18-37.S1": "00:00:00:28:e8:bc",
                         "TEST.18-36.p2": "00:00:00:ca:1d:e5",
                     },
+                    "network_C": {"TEST.18-37.S1": "", "TEST.18-36.p2": ""},
                 },
             )
             self.assertDictEqual(
@@ -211,6 +269,7 @@ class TopologyTests(asynctest.TestCase):
                         "00:00:00:28:e8:bc": "TEST.18-37.S1",
                         "00:00:00:ca:1d:e5": "TEST.18-36.p2",
                     },
+                    "network_C": {"": "TEST.18-36.p2"},
                 },
             )
             self.assertDictEqual(

@@ -19,7 +19,7 @@ def reshape_values(network_name: str, values: Dict) -> DefaultDict:
     other_node: str
     for metric, result in values.items():
         for link_result in result:
-            node_pair = Topology.link_name_to_mac[network_name].get(
+            node_pair = Topology.link_name_to_mac.get(network_name, {}).get(
                 link_result["metric"]["linkName"]
             )
             if node_pair is None:

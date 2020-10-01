@@ -7,6 +7,8 @@ import unittest
 from tests.connectivity_tests import ConnectivityTests
 from tests.data_loader_tests import DataLoaderTests
 from tests.hardware_config_tests import HardwareConfigTests
+from tests.stats_tests import StatsTests
+from tests.time_tests import TimeTests
 from tests.topology_tests import TopologyTests
 
 
