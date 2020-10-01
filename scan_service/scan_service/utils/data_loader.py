@@ -7,8 +7,8 @@ from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 
 from terragraph_thrift.Controller.ttypes import ScanFwStatus, ScanMode
 
-from ..analysis.interference import get_inr_offset
 from .db import fetch_aggregated_responses
+from .hardware_config import HardwareConfig
 
 
 def average_rx_responses(stats: DefaultDict) -> DefaultDict:
@@ -64,7 +64,7 @@ def aggregate_current_responses(
             continue
 
         # Scale all measurements to max tx power index
-        offset = get_inr_offset(ref_pwr_idx=tx_pwr_index)
+        offset = HardwareConfig.get_pwr_offset(ref_pwr_idx=tx_pwr_index)
         for measurement in rx_response["routeInfoList"]:
             key = f"{measurement['route']['tx']}_{measurement['route']['rx']}"
             current_stats[rx_node][key]["count"] += 1

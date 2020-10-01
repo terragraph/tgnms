@@ -4,9 +4,9 @@
 import logging
 import unittest
 
-from tests.adjacent_beam_index_tests import AdjacentBeamIndexTests
 from tests.connectivity_tests import ConnectivityTests
-from tests.data_loader import DataLoaderTests
+from tests.data_loader_tests import DataLoaderTests
+from tests.hardware_config_tests import HardwareConfigTests
 from tests.topology_tests import TopologyTests
 
 

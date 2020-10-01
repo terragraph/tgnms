@@ -3,12 +3,14 @@
 
 import json
 import unittest
+from collections import defaultdict
 from typing import List
 
 import numpy as np
 from bidict import bidict
 from scan_service.analysis.connectivity import (
-    find_routes,
+    convert_order_to_beams,
+    find_routes_all,
     find_routes_compute,
     separate_beams,
 )
@@ -41,13 +43,29 @@ class ConnectivityTests(unittest.TestCase):
         beam_map[10][0] = 11
         beam_map[30][50] = 20
         routes = find_routes_compute(beam_map, 20, 10)
-        self.assertEqual(routes, [(33, 18, 20), (53, 63, 11)])
-
-    def test_find_routes_snr(self) -> None:
-        im_data = {"10_0": {"snr_avg": 11}, "30_50": {"snr_avg": 20}}
-        routes = find_routes(im_data, 10)
         self.assertEqual(routes, [(30, 50, 20), (10, 0, 11)])
 
-        im_data = {"10_0": {"snr_avg": -50}, "30_50": {"snr_avg": -60}}
-        routes = find_routes(im_data, 10)
-        self.assertEqual(routes, [])
+    def test_find_routes_snr(self) -> None:
+
+        im_data = {
+            "10_0": {"snr_avg": 11},
+            "30_20": {"snr_avg": 20},
+            "10_26": {"snr_avg": 15},
+        }
+        routes = find_routes_all(im_data, 10)
+        self.assertEqual(routes, [(10, 0, 11), (10, 26, 15), (30, 20, 20)])
+
+        im_data = {
+            "10_0": {"snr_avg": 11},
+            "30_20": {"snr_avg": 20},
+            "10_7": {"snr_avg": 15},
+        }
+        routes = find_routes_all(im_data, 10)
+        self.assertEqual(routes, [(10, 7, 15), (30, 20, 20)])
+
+    def test_convert_order_to_beams(self) -> None:
+        routes = [(1, 7, 20), (7, 2, 11)]
+        tx_beam_map = HardwareConfig.BEAM_ORDER["1"]["0"]
+        rx_beam_map = HardwareConfig.BEAM_ORDER["0"]["18"]
+        routes = convert_order_to_beams(routes, tx_beam_map, rx_beam_map)
+        self.assertEqual(routes, [(29, 15, 20), (16, 10, 11)])

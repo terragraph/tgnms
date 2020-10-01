@@ -59,36 +59,14 @@ def aggregate_interference_results(interference_results: Iterable) -> Dict:
     return aggregated_results
 
 
-def get_inr_offset(
-    target_pwr_idx: Optional[int] = None,
-    ref_pwr_idx: Optional[int] = None,
-    channel: Optional[str] = None,
-    mcs: Optional[str] = None,
-) -> int:
-    """Estimate inr offset on target power idx, given inr at reference power idx."""
-    if target_pwr_idx is None:
-        target_pwr_idx = HardwareConfig.MAX_PWR_IDX
-    if ref_pwr_idx is None:
-        ref_pwr_idx = HardwareConfig.MAX_PWR_IDX
-    if channel is None or channel not in HardwareConfig.TXPOWERIDX_TO_TXPOWER:
-        channel = "default_channel"
-    if mcs is None or mcs not in HardwareConfig.TXPOWERIDX_TO_TXPOWER[channel]:
-        mcs = "default_mcs"
-
-    return round(
-        HardwareConfig.TXPOWERIDX_TO_TXPOWER[channel][mcs][target_pwr_idx]
-        - HardwareConfig.TXPOWERIDX_TO_TXPOWER[channel][mcs][ref_pwr_idx]
-    )
-
-
 def get_interference_data(
     response: Dict[str, Dict], tx_beam: int, rx_beam: int, use_exact_beam: bool = False
 ) -> Optional[Dict]:
     """Get the INR measurement given a particular tx and rx beam index."""
-    tx_idx_left = HardwareConfig.get_adjacent_beam_index(tx_beam, add=False)
-    tx_idx_right = HardwareConfig.get_adjacent_beam_index(tx_beam, add=True)
-    rx_idx_left = HardwareConfig.get_adjacent_beam_index(rx_beam, add=False)
-    rx_idx_right = HardwareConfig.get_adjacent_beam_index(rx_beam, add=True)
+    tx_idx_left = HardwareConfig.get_adjacent_beam_index(tx_beam, -1)
+    tx_idx_right = HardwareConfig.get_adjacent_beam_index(tx_beam, 1)
+    rx_idx_left = HardwareConfig.get_adjacent_beam_index(rx_beam, -1)
+    rx_idx_right = HardwareConfig.get_adjacent_beam_index(rx_beam, 1)
 
     key = f"{tx_beam}_{rx_beam}"
     key_up = f"{tx_beam}_{rx_idx_left}"
@@ -170,7 +148,7 @@ async def get_interference_from_current_beams(
 
                 inr_curr_power = {}
                 if curr_power_idx is not None:
-                    curr_inr_offset = get_inr_offset(
+                    curr_inr_offset = HardwareConfig.get_pwr_offset(
                         target_pwr_idx=curr_power_idx,
                         channel=tx_channel,
                         mcs=tx_infos.get(tx_to_node, {}).get("mcs"),
@@ -284,7 +262,7 @@ async def get_interference_from_directional_beams(  # noqa: C901
 
                 inr_curr_power = {}
                 if curr_power_idx is not None:
-                    curr_inr_offset = get_inr_offset(
+                    curr_inr_offset = HardwareConfig.get_pwr_offset(
                         target_pwr_idx=curr_power_idx,
                         channel=tx_channel,
                         mcs=tx_info.get("mcs"),

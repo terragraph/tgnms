@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import json
 import unittest
 from unittest.mock import Mock
 
@@ -9,10 +10,16 @@ from scan_service.utils.data_loader import (
     aggregate_current_responses,
     average_rx_responses,
 )
+from scan_service.utils.hardware_config import HardwareConfig
 from terragraph_thrift.Controller.ttypes import ScanFwStatus
 
 
 class DataLoaderTests(unittest.TestCase):
+    def setUp(self) -> None:
+        with open("tests/hardware_config.json") as f:
+            hardware_config = json.load(f)
+            HardwareConfig.set_config(hardware_config)
+
     def test_aggregate_current_responses_no_input(self) -> None:
         responses = {}
         curr_stats, to_db = aggregate_current_responses(responses, "node_A")
@@ -23,7 +30,7 @@ class DataLoaderTests(unittest.TestCase):
         responses = {
             "node_A": {
                 "status": ScanFwStatus.COMPLETE,
-                "txPwrIndex": 21,
+                "txPwrIndex": 7,
                 "routeInfoList": [
                     {"route": {"tx": 0, "rx": 0}, "snrEst": 30},
                     {"route": {"tx": 0, "rx": 2}, "snrEst": 20},
