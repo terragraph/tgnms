@@ -177,7 +177,7 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
         - test_type
         - network_name
     produces:
-    - text/plain
+    - application/json
     responses:
       "200":
         description: Successful operation.
@@ -223,7 +223,13 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
         test = Sequential(network_name, iperf_options, whitelist)
 
     schedule_id = await Scheduler.add_schedule(schedule, test, test_type)
-    return web.Response(text=f"Added network test schedule with ID: {schedule_id}")
+    return web.json_response(
+        {
+            "status": "success",
+            "message": f"Added network test schedule with ID: {schedule_id}",
+            "schedule_id": schedule_id,
+        }
+    )
 
 
 @routes.put("/schedule/{schedule_id:[0-9]+}")
@@ -234,7 +240,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     tags:
     - Network Test
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: path
       name: schedule_id
@@ -305,7 +311,9 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     ):
         raise web.HTTPInternalServerError(text="Failed to modify network test schedule")
 
-    return web.Response(text="Successfully updated network test schedule")
+    return web.json_response(
+        {"status": "success", "message": "Successfully updated network test schedule"}
+    )
 
 
 @routes.delete("/schedule/{schedule_id:[0-9]+}")
@@ -316,7 +324,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     tags:
     - Network Test
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: path
       name: schedule_id
@@ -340,7 +348,9 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     if not await Scheduler.delete_schedule(schedule_id):
         raise web.HTTPInternalServerError(text="Failed to delete network test schedule")
 
-    return web.Response(text="Successfully deleted network test schedule")
+    return web.json_response(
+        {"status": "success", "message": "Successfully deleted network test schedule"}
+    )
 
 
 @routes.get("/execution")
@@ -493,7 +503,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     tags:
     - Network Test
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: body
       name: execution
@@ -563,8 +573,12 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         raise web.HTTPNotFound(text=f"No test assets matched whitelist: {whitelist}")
 
     execution_id = await Scheduler.start_execution(test, test_type, prepare_output)
-    return web.Response(
-        text=f"Started new network test execution with ID: {execution_id}"
+    return web.json_response(
+        {
+            "status": "success",
+            "message": f"Started new network test execution with ID: {execution_id}",
+            "execution_id": execution_id,
+        }
     )
 
 
@@ -576,7 +590,7 @@ async def handle_stop_execution(request: web.Request) -> web.Response:
     tags:
     - Network Test
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: path
       name: execution_id
@@ -600,4 +614,6 @@ async def handle_stop_execution(request: web.Request) -> web.Response:
     if not await Scheduler.stop_execution(execution_id):
         raise web.HTTPInternalServerError(text="Failed to stop network test execution")
 
-    return web.Response(text="Successfully stopped network test execution")
+    return web.json_response(
+        {"status": "success", "message": "Successfully stopped network test execution"}
+    )
