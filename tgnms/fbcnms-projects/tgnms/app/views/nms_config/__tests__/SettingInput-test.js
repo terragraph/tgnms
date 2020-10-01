@@ -173,3 +173,50 @@ describe('secrets', () => {
     expect(getInput().type).toBe('password');
   });
 });
+
+describe('feature flags', () => {
+  test('shows FEATURE_FLAGS isDefaultEnabled value if nothing is set', () => {
+    const {getByLabelText} = render(
+      <TestApp>
+        <SettingsFormContextWrapper
+          settings={[
+            // these are defined in FEATURE_FLAGS
+            {
+              ...defaultSetting,
+              dataType: 'BOOL',
+              key: 'ALERTS_LAYER_ENABLED', // feature disabled by default
+            },
+            {
+              ...defaultSetting,
+              dataType: 'BOOL',
+              key: 'JSON_CONFIG_ENABLED', // feature enabled by default
+            },
+          ]}>
+          <SettingInput
+            {...defaultProps}
+            label={'ALERTS_LAYER_ENABLED'}
+            setting={'ALERTS_LAYER_ENABLED'}
+            isFeatureToggle
+          />
+          <SettingInput
+            {...defaultProps}
+            label={'JSON_CONFIG_ENABLED'}
+            setting={'JSON_CONFIG_ENABLED'}
+            isFeatureToggle
+          />
+        </SettingsFormContextWrapper>
+      </TestApp>,
+    );
+
+    const alertsInput = coerceClass(
+      getByLabelText('ALERTS_LAYER_ENABLED'),
+      HTMLInputElement,
+    );
+    const jsonInput = coerceClass(
+      getByLabelText('JSON_CONFIG_ENABLED'),
+      HTMLInputElement,
+    );
+    expect(alertsInput.checked).toBe(false);
+    expect(jsonInput.checked).toBe(true);
+  });
+});

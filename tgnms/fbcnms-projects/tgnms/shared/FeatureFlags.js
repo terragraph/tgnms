@@ -39,7 +39,7 @@ export const FEATURE_FLAGS: {|[string]: FeatureFlagDef|} = {
   ALARMS_ENABLED: {isDefaultEnabled: false},
   DEFAULT_ROUTES_HISTORY_ENABLED: {isDefaultEnabled: false},
   LINK_BUDGETING_ENABLED: {isDefaultEnabled: false},
-  ALERTS_LAYER_ENABLED: {isDefaultEnabled: true},
+  ALERTS_LAYER_ENABLED: {isDefaultEnabled: false},
 
   //deprecated
   WEBSOCKETS_ENABLED: {isDefaultEnabled: false},

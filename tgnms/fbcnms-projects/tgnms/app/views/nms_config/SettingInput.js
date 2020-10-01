@@ -14,6 +14,7 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 import {DATATYPE, Validators} from '../../../shared/dto/Settings';
+import {FEATURE_FLAGS} from '../../../shared/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useSecretToggle} from './useSecretToggle';
 import {useSettingsFormContext} from './SettingsFormContext';
@@ -88,6 +89,10 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
   );
 
   const settingType = config ? dataTypeToInputType[config.dataType] : 'text';
+
+  const isDefaultEnabled =
+    isFeatureToggle == true &&
+    (FEATURE_FLAGS[setting]?.isDefaultEnabled ?? false);
   return (
     <Grid item>
       {config && settingType === 'checkbox' && (
@@ -95,7 +100,10 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
           control={React.createElement(
             isFeatureToggle === true ? Switch : Checkbox,
             {
-              checked: value === 'true',
+              checked:
+                typeof value !== 'undefined' && value !== ''
+                  ? value === 'true'
+                  : isDefaultEnabled,
               onChange: e => {
                 onChange(e.target.checked ? 'true' : 'false');
               },
