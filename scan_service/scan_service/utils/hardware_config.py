@@ -63,7 +63,6 @@ class HardwareConfig:
         constants = hardware_config["constants"]
         cls.BEAM_ORDER = beam_order
         cls.TXPOWERIDX_TO_TXPOWER = tx_power_idx_to_tx_power
-        cls.BEAMIDX_BEAM_ANGLE = beam_idx_to_beam_angle
         cls.BORESIDE_BW_IDX = constants["BORESIDE_BW_IDX"]
         cls.MINIMUM_SNR_DB = constants["MINIMUM_SNR_DB"]
         cls.SNR_SATURATE_THRESH_DB = constants["SNR_SATURATE_THRESH_DB"]
