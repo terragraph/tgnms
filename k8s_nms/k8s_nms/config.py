@@ -74,10 +74,16 @@ def dns_name(s):
     return s.replace("/", "-").replace("_", "-").replace(" ", "-").replace(".", "-")
 
 
+def is_ipv6(s):
+    # Simplistic check for IPv6 since ipaddress.ip_address doesn't handle CIDRs
+    return ':' in s
+
+
 def get_env(filename, config):
     return {
         "dns_name": dns_name,
         "basename": basename,
+        "is_ipv6": is_ipv6,
         "read": lookup_maker(filename),
         "lookup": lookup_maker(filename, config),
         **config,

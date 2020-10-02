@@ -1,8 +1,20 @@
 - hosts: master
-  # It's a lot slower but we must gather facts in order to get the hosts' IP
-  # addresses
-  gather_facts: yes
+  gather_facts: no
   connection: local
+
+  # This is collects a subset of 'gather_facts', since we really only care about
+  # getting the default IP address of the host.
+  pre_tasks:
+  - setup:
+      gather_subset:
+        # Don't collect the standard set of stats, only the ones we explicitly
+        # list below
+        - '!all'
+        - '!min'
+
+        # Only get the IP addresses
+        - 'default_ipv4'
+        - 'default_ipv6'
   tasks:
     - set_fact:
         is_ipv6: "{{ 'yes' if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {} else 'no' }}"

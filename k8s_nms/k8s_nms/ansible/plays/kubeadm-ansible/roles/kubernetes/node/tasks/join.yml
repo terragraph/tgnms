@@ -8,8 +8,9 @@
   when: reset_cluster is succeeded
   shell: |
     kubeadm join --token {{ token }} \
+                --node-name {{ node_name }} \
                 --discovery-token-unsafe-skip-ca-verification \
-                {{ master_ip }}:6443
+                {{ escaped_master_ip }}:6443
   register: join_cluster
   notify:
     - Recreate kube-dns

@@ -10,6 +10,8 @@
   - name: Install Python
     # TODO: there has to be some better way to figure this out, but it doesn't
     # look like ansible_os_family is set at this point
+    args:
+      executable: /bin/bash
     raw: |
       if [ -x "$(command -v {{ ansible_python_interpreter }})" ]; then
         # Python is already installed

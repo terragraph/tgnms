@@ -6,6 +6,7 @@ import glob
 import io
 import os
 import subprocess
+import sys
 import tarfile
 import tempfile
 import urllib.request
@@ -96,14 +97,22 @@ def run_ansible(
         env = os.environ.copy()
         env["ANSIBLE_STDOUT_CALLBACK"] = env.get("ANSIBLE_STDOUT_CALLBACK", "debug")
 
-        command = f"ansible-playbook --inventory {temp.name} {playbook}"
+        command = f"{os.path.dirname(sys.executable)}/ansible-playbook --inventory {temp.name} {playbook}"
+        command = [
+            f"{os.path.dirname(sys.executable)}/ansible-playbook",
+            "--inventory",
+            temp.name,
+            playbook,
+        ]
+
         if more_extra_vars:
             for string in more_extra_vars:
-                command += f" --extra-vars {string}"
+                command.append("--extra-vars")
+                command.append(string)
         if extra_vars_file:
-            command += f" --extra-vars @{extra_vars_file}"
+            command.append("--extra-vars")
+            command.append(f"@{extra_vars_file}")
 
-        command = command.split(" ")
         if verbose > 0:
             command.append(f"-{'v' * verbose}")
         if not subprocess_kwargs:
@@ -112,18 +121,27 @@ def run_ansible(
 
 
 def generate_inventory(managers, workers):
-    return {
+    managers = {
+        manager: {"node_name": f"manager-{index}"}
+        for index, manager in enumerate(managers)
+    }
+    workers = {
+        worker: {"node_name": f"worker-{index}"} for index, worker in enumerate(workers)
+    }
+    inventory = {
         "all": {
             "children": {
                 "kube_cluster": {
                     "children": {
-                        "master": {"hosts": {m: "" for m in managers}},
-                        "node": {"hosts": {w: "" for w in workers}},
+                        "master": {"hosts": managers},
+                        "node": {"hosts": workers},
                     }
                 }
             }
         }
     }
+
+    return inventory
 
 
 def add_common_options(*args):
@@ -225,7 +243,6 @@ def get_variables(user_config_file, managers, verbose):
             generate_inventory(managers, workers=[]),
             verbose=verbose,
             more_extra_vars=[f"temp_src={src.name}", f"temp_dest={dest.name}"],
-            subprocess_kwargs={"stdout": subprocess.PIPE},
         )
         dest.flush()
 
@@ -243,7 +260,6 @@ def get_tar_files(source):
         filename: tar.extractfile(filename).read().decode("utf-8")
         for filename in tar.getmembers()
     }
-
 
 
 def read_or_make_certificates(ssl_key_file, ssl_cert_file):
@@ -289,8 +305,15 @@ def configure(
     else:
         if not os.path.exists(template_source):
             raise RuntimeError(f"{template_source} directory not found")
-        files = glob.glob(f"**/{template_source}/**/*.yml", recursive=True)
+        if template_source.startswith("/"):
+            search_glob = f"{template_source}/**/*.yml"
+        else:
+            search_glob = f"**/{template_source}/**/*.yml"
+        files = glob.glob(search_glob, recursive=True)
         files_map = {filename: open(filename, "r").read() for filename in files}
+
+    if len(files_map) == 0:
+        raise RuntimeError(f"No .yml files found to configure in {template_source}")
 
     variables = get_variables(config_file, managers, verbose)
 
@@ -307,7 +330,7 @@ def template_and_run(ctx, command, **configure_kwargs):
     k8s_manifest = f.getvalue().encode("utf-8")
 
     # Pick a manager node 0 arbitrarily
-    command = f"ssh {managers[0]} {command}".split(" ")
+    command = f"ssh {configure_kwargs['managers'][0]} {command}".split(" ")
     subprocess.run(command, input=k8s_manifest, check=True)
 
 

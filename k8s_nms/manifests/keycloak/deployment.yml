@@ -69,6 +69,10 @@ spec:
               value: "keycloak"
             - name: DB_PASSWORD
               value: "{{ keycloak_db_password }}"
+{% if is_ipv6(pod_network_cidr) %}
+            - name: JAVA_OPTS
+              value: "-Djava.net.preverIPv6Stack=true"
+{% endif %}
             # use if hosted behind nginx
             - name: PROXY_ADDRESS_FORWARDING
               value: "true"
