@@ -38,8 +38,9 @@ spec:
           configMap:
             name: chihaya-config
       containers:
-      - image: quay.io/jzelinskie/chihaya:v2.0.0-rc.2
+      - image: {{ chihaya_image }}
         name: chihaya
+        imagePullPolicy: "{{ image_pull_policy }}"
         args: ["--config", "/etc/chihaya.yml"]
         volumeMounts:
           - name: chihaya-config

@@ -89,7 +89,8 @@ spec:
               subPath: service.sql
         {% endif %}
       containers:
-        - image: secure.cxl-terragraph.com:443/{{ service.name }}:stable
+        - image: {{ service.image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
           name: {{ service_dns_name }}
           command: ["/bin/sh", "-c", "{{ service.command }}"]
           {% if service.uses_database %}

@@ -29,7 +29,8 @@ spec:
         app: nms
     spec:
       containers:
-        - image: secure.cxl-terragraph.com:443/nmsv2:stable
+        - image: {{ nms_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
           envFrom:
             - configMapRef:
                 name: cxl-database
@@ -38,6 +39,5 @@ spec:
             - configMapRef:
                 name: nms
           name: nms
-          imagePullPolicy: Always
       imagePullSecrets:
         - name: tg-repo-creds

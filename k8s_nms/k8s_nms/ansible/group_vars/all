@@ -117,6 +117,43 @@ enable_dashboard: false
 # Set the Kubernetes version
 kube_version: v1.19.0
 
+# Size to reserve for the database and Kafka
+db_size: 10Gi
+kafka_size: 10Gi
+
+
+# See https://kubernetes.io/docs/concepts/configuration/overview/#container-images
+image_pull_policy: Always
+
+# Terragraph specific images, change these to configure exactly what version of
+# Terragraph you are running
+alarms_image: secure.cxl-terragraph.com:443/tg-alarms:stable
+e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
+efk_fluentd_image: secure.cxl-terragraph.com:443/fluentd:stable
+kafka_image: secure.cxl-terragraph.com:443/kafka:stable
+monitoring_gluster_exporter_image: secure.cxl-terragraph.com:443/gluster_exporter:latest
+msa_analytics_image: secure.cxl-terragraph.com:443/analytics:stable
+msa_jupyter_image: secure.cxl-terragraph.com:443/jupyter:stable
+msa_scan_service_image: secure.cxl-terragraph.com:443/scan_service:stable
+nms_image: secure.cxl-terragraph.com:443/nmsv2:stable
+nginx_image: secure.cxl-terragraph.com:443/nms_nginx:latest
+query_service_image: secure.cxl-terragraph.com:443/cpp_backends:stable
+udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends:stable
+prometheus_cache_image: secure.cxl-terragraph.com:443/prometheus_cache:stable
+
+# Third party images
+chihaya_image: quay.io/jzelinskie/chihaya:v2.0.0-rc.2
+db_image: mysql:5.7
+elasticsearch_image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+elasticsearch_exporter_image: justwatch/elasticsearch_exporter:1.0.2
+kibana_image: docker.elastic.co/kibana/kibana:7.4.0
+grafana_image: grafana/grafana:latest
+keycloak_image: jboss/keycloak:7.0.0
+prometheus_configurer_image: facebookincubator/prometheus-configurer:1.0.1
+alertmanager_configurer_image: facebookincubator/alertmanager-configurer:1.0.1
+alertmanager_image: prom/alertmanager
+prometheus_image: prom/prometheus
+
 # +--------------------------------------------------------+
 # |                 Core NMS  Options                      |
 # +--------------------------------------------------------+
@@ -128,20 +165,25 @@ msa_services:
   - name: topology_service
     uses_database: true
     db_password: 6789
+    image: secure.cxl-terragraph.com:443/topology_service:stable
     command: "alembic upgrade head && topology_service"
   - name: network_test
     uses_database: true
     db_password: 6789
+    image: secure.cxl-terragraph.com:443/network_test:stable
     command: "alembic upgrade head && network_test"
   - name: default_routes_service
     uses_database: true
     db_password: 6789
+    image: secure.cxl-terragraph.com:443/default_routes_service:stable
     command: "alembic upgrade head && default_routes_service"
   - name: analytics
     uses_database: false
+    image: secure.cxl-terragraph.com:443/analytics:stable
     command: "analytics"
   - name: weather_service
     uses_database: false
+    image: secure.cxl-terragraph.com:443/weather_service:stable
     command: "weather_service"
 
 # Listen on IPv6 interface for MSA services

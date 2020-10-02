@@ -37,9 +37,9 @@ spec:
           configMap:
             name: kibana-config
       containers:
-        - image: docker.elastic.co/kibana/kibana:7.4.0
+        - image: {{ kibana_image }}
           name: kibana
-          imagePullPolicy: Always
+          imagePullPolicy: "{{ image_pull_policy }}"
           volumeMounts:
             - name: kibana-config
               mountPath: /usr/share/kibana/config/kibana.yml

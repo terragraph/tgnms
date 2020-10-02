@@ -15,7 +15,7 @@ spec:
         app: elasticsearch-exporter
     spec:
       containers:
-        - image: justwatch/elasticsearch_exporter:1.0.2
+        - image: {{ elasticsearch_exporter_image }}
           args: ['-es.uri=http://elasticsearch:9200', '-es.all=true']
           name: elasticsearch-exporter
-          imagePullPolicy: Always
+          imagePullPolicy: "{{ image_pull_policy }}"

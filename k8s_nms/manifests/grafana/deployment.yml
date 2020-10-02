@@ -58,7 +58,8 @@ spec:
             name: grafana-provisioning-{{ dns_name(f) }}
 {% endfor %}
       containers:
-      - image: grafana/grafana:latest
+      - image: {{ grafana_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: grafana
         envFrom:
           - configMapRef:

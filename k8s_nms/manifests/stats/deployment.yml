@@ -80,7 +80,8 @@ spec:
       imagePullSecrets:
         - name: tg-repo-creds
       containers:
-      - image: prom/prometheus
+      - image: {{ prometheus_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: prometheus
         args: ["--config.file=/etc/prometheus/prometheus.yml",
                   "--storage.tsdb.path=/prometheus",
@@ -93,13 +94,15 @@ spec:
           - name: prometheus-config
             mountPath: /etc/prometheus/prometheus.yml
             subPath: prometheus.yml
-      - image: secure.cxl-terragraph.com:443/prometheus_cache:stable
+      - image: {{ prometheus_cache_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: prometheus-cache
         command: ["/bin/sh", "-c", "/bin/prometheus-cache -limit=$${PROMETHEUS_CACHE_LIMIT}"]
         envFrom:
           - configMapRef:
               name: prometheus-cache-env
-      - image: prom/alertmanager
+      - image: {{ alertmanager_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: alertmanager
         args: ["--config.file=/etc/prometheus/alertmanager.yml"]
         envFrom:
@@ -112,7 +115,8 @@ spec:
           - name: alertmanager-config
             mountPath: /etc/prometheus/alertmanager.yml
             subPath: alertmanager.yml
-      - image: facebookincubator/prometheus-configurer:1.0.0
+      - image: {{ prometheus_configurer_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: prometheus-configurer
         args: ['-port=9100' ,
             '-rules-dir=/etc/configs/alert_rules',
@@ -125,7 +129,8 @@ spec:
           - name: alertmanager-config
             mountPath: /etc/configs/alertmanager.yml
             subPath: alertmanager.yml
-      - image: facebookincubator/alertmanager-configurer:1.0.0
+      - image: {{ alertmanager_configurer_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: alertmanager-configurer
         args: ['-port=9101',
             '-alertmanager-conf=/etc/configs/alertmanager.yml',

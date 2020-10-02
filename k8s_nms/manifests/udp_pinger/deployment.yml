@@ -39,7 +39,8 @@ spec:
         app: udp-pinger
     spec:
       containers:
-      - image: secure.cxl-terragraph.com:443/cpp_backends:stable
+      - image: {{ udp_pinger_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         command: ["/bin/sh", "-c", "bin/udp_ping_client -logtostderr -mysql_url tcp://db:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} -cooldown_time_s $${COOLDOWN_TIME_S} -num_packets $${NUM_PACKETS} -ping_interval_s $${PING_INTERVAL_S} -pinger_rate_pps $${PINGER_RATE_PPS} {% if keycloak_enabled %} -keycloak_enabled true -keycloak_host $${KEYCLOAK_HOST} -keycloak_realm $${KEYCLOAK_REALM} -keycloak_client_id $${KEYCLOAK_CLIENT_ID} -keycloak_client_secret $${KEYCLOAK_CLIENT_SECRET} {% endif %}"]
         name: udp-pinger
         envFrom:

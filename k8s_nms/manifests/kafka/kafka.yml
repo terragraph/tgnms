@@ -17,8 +17,7 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    # TODO: How much storage capacity is needed
-    storage: 10Gi
+    storage: {{ kafka_size }}
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -35,7 +34,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: {{ kafka_size }}
 ---
 apiVersion: v1
 kind: Service

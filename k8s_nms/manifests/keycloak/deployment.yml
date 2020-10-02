@@ -48,10 +48,10 @@ spec:
               mountPath: /usr/local/service.sql
               subPath: service.sql
       containers:
-        - image: jboss/keycloak:7.0.0
+        - image: {{ keycloak_image }}
           name: keycloak
           args: ["-b", "::", "-c=standalone.xml"]
-          imagePullPolicy: Always
+          imagePullPolicy: "{{ image_pull_policy }}"
           env:
             # keycloak root user credentials
             - name: KEYCLOAK_USER

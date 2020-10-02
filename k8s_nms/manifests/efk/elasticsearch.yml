@@ -26,7 +26,7 @@ spec:
     spec:
       hostname: elasticsearch
       containers:
-        - image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+        - image: {{ elasticsearch_image }}
           name: elasticsearch
           env:
             - name: "node.name"
@@ -53,4 +53,4 @@ spec:
               value: "false"
             - name: "TAKE_FILE_OWNERSHIP"
               value: "true"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ image_pull_policy }}

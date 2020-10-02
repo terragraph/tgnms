@@ -96,7 +96,8 @@ spec:
           configMap:
             name: e2e-topology-conf-{{ controller_name_dns }}
       containers:
-        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
           command: ["/bin/sh", "-c", "echo {{ data_folder }} > /.current && /data/scripts/e2e_controller.start"]
           name: e2e-controller
           envFrom:
@@ -109,7 +110,8 @@ spec:
             - name: e2e-topology-conf
               mountPath: {{ data_folder }}/cfg/e2e_topology.conf
               subPath: e2e_topology.conf
-        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
           command: ["/data/scripts/nms_aggregator.start"]
           name: nms-aggregator
           envFrom:
@@ -122,7 +124,8 @@ spec:
             - name: e2e-topology-conf
               mountPath: {{ data_folder }}/cfg/e2e_topology.conf
               subPath: e2e_topology.conf
-        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
           command: ["/data/scripts/stats_agent.start"]
           name: stats-agent
           envFrom:
@@ -135,7 +138,8 @@ spec:
             - name: e2e-topology-conf
               mountPath: {{ data_folder }}/cfg/e2e_topology.conf
               subPath: e2e_topology.conf
-        - image: secure.cxl-terragraph.com:443/e2e-controller:latest
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
           command: ["/bin/sh", "-c", "/usr/sbin/api_service -aggregator_host $${TG_AGGREGATOR_HOST} {% if keycloak_enabled %} -public_key_file /keycloak/publickey {% endif %} -controller_host $${TG_CONTROLLER_HOST} $${API_ARGS}"]
           name: api-service
           envFrom:

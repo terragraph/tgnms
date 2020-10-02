@@ -8,8 +8,7 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    # TODO: How much storage capacity is needed
-    storage: 10Gi
+    storage: {{ db_size }}
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -26,7 +25,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: {{ db_size }}
 ---
 # Expose the db deployment at mysql:3306 with no ClusterIP (so it is only
 # accessible through DNS)
@@ -58,7 +57,8 @@ spec:
         app: db
     spec:
       containers:
-      - image: mysql:5.7
+      - image: {{ db_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
         name: db
         # Grab environment variables from the `db-env` and `time-zone` ConfigMap
         envFrom:

@@ -37,9 +37,9 @@ spec:
           configMap:
             name: fluentd-config
       containers:
-        - image: secure.cxl-terragraph.com:443/fluentd:stable
+        - image: {{ efk_fluentd_image }}
           name: fluentd
-          imagePullPolicy: Always
+          imagePullPolicy: "{{ image_pull_policy }}"
           volumeMounts:
             - name: fluentd-config
               mountPath: /fluentd/etc/fluent.conf
