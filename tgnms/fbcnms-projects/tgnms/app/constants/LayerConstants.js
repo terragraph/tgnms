@@ -358,7 +358,7 @@ export const SITE_TEST_OVERLAYS: Overlays = {
 export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
   node_online: {
     name: 'Node Online',
-    type: 'metric',
+    type: 'health',
     id: 'node_online',
   },
 };
