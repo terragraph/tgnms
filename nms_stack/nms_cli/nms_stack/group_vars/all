@@ -139,6 +139,9 @@ gluster_mount: gfs
 glusterfs_ppa_version: 4.1
 glusterfs_gpg_key_version: 4.1
 
+# Listen on IPv6 interface for MSA services
+msa_listen_on_ipv6: false
+
 # Kafka Config
 # `kafka_log_retention_bytes` is the maximum size of the log for each topic partition before deleting it.
 kafka_log_retention_bytes: 1073741824  # 1GB

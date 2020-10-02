@@ -126,7 +126,8 @@ def init(
     except ImportError:
         pass
 
-    web.run_app(app)
+    host = "::" if config.get("listen_on_ipv6") else "0.0.0.0"
+    web.run_app(app, host=host)
 
 
 def _add_all_routes(

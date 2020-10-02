@@ -144,6 +144,9 @@ msa_services:
     uses_database: false
     command: "weather_service"
 
+# Listen on IPv6 interface for MSA services
+msa_listen_on_ipv6: true
+
 
 E2E_CONFIG_FILE: cfg/controller_config.json
 E2E_TOPOLOGY_FILE: e2e_topology.conf

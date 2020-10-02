@@ -16,5 +16,6 @@
   "prometheus": {
     "host": "prometheus",
     "port": 9090
-  }
+  },
+  "listen_on_ipv6": {{ msa_listen_on_ipv6 | to_json }}
 }
