@@ -71,7 +71,7 @@ export default function HealthHistogram({
           t: 25,
         },
         yaxis: {
-          range: [0, totalLinks],
+          range: [0, totalLinks === 0 ? 1 : totalLinks],
         },
         bargap: 0,
       }}
