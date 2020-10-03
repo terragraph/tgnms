@@ -36,6 +36,7 @@ const useStyles = makeStyles(theme => ({
   resultDivider: {
     marginTop: theme.spacing(),
     marginBottom: theme.spacing(2),
+    width: '100%',
   },
 }));
 export default function ThroughputTestResult(props: Props) {
@@ -103,6 +104,7 @@ export default function ThroughputTestResult(props: Props) {
                 result={executionResult.results[1].iperf_max_throughput}
               />
             </Grid>
+            <Divider className={classes.resultDivider} />
             <Grid item>
               <ResultSummary
                 direction="Upload"

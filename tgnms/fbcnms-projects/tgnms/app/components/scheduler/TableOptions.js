@@ -96,10 +96,10 @@ export default function TableOptions<T>(props: Props<T>) {
               id: 'startTime',
               name: 'startTime',
             }}>
-            <MenuItem value={dateRanges.day}>Last day</MenuItem>
-            <MenuItem value={dateRanges.month}>Last 30 days</MenuItem>
-            <MenuItem value={dateRanges.quarter}>Last 90 days</MenuItem>
-            <MenuItem value={dateRanges.year}>Last Year</MenuItem>
+            <MenuItem value={dateRanges.day}>Yesterday</MenuItem>
+            <MenuItem value={dateRanges.month}>30 days ago</MenuItem>
+            <MenuItem value={dateRanges.quarter}>90 days ago</MenuItem>
+            <MenuItem value={dateRanges.year}>A year ago</MenuItem>
           </Select>
         </FormControl>
         {optionsInput.map(option => (

@@ -23,6 +23,7 @@ const useLinkStyles = makeStyles(theme => ({
   resultDivider: {
     marginTop: theme.spacing(),
     marginBottom: theme.spacing(2),
+    width: '100%',
   },
 }));
 

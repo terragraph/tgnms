@@ -7,7 +7,6 @@
 
 import * as React from 'react';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
-import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../contexts/NetworkContext';
 import NetworkTestAdvancedParams from './NetworkTestAdvancedParams';
 import SchedulerModal from '../../components/scheduler/SchedulerModal';
@@ -17,9 +16,16 @@ import {
   NETWORK_TEST_DEFS,
   NETWORK_TEST_TYPES,
 } from '../../constants/ScheduleConstants';
+import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 import type {IperfOptions as IperfOptionsType} from '../../../shared/dto/NetworkTestTypes';
+
+const useStyles = makeStyles(theme => ({
+  selector: {
+    marginTop: theme.spacing(1.5),
+  },
+}));
 
 type Props = {
   id: number,
@@ -30,6 +36,8 @@ type Props = {
 };
 
 export default function EditNetworkTestScheduleModal(props: Props) {
+  const classes = useStyles();
+
   const {id, onActionClick, initialOptions, type, initialCronString} = props;
   const {networkName} = React.useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -68,20 +76,16 @@ export default function EditNetworkTestScheduleModal(props: Props) {
       onSubmit={handleSubmit}
       initialCronString={initialCronString}
       modalMode={MODAL_MODE.EDIT}
+      type={NETWORK_TEST_TYPES[type].toLowerCase()}
       scheduleParams={{
         typeSelector: (
           <TextField
+            className={classes.selector}
             disabled
-            select
-            variant="outlined"
             value={type}
-            InputLabelProps={{shrink: true}}
-            margin="dense"
-            fullWidth>
-            <MenuItem key={type} value={type}>
-              {NETWORK_TEST_TYPES[type]}
-            </MenuItem>
-          </TextField>
+            InputProps={{disableUnderline: true}}
+            fullWidth
+          />
         ),
         advancedParams: (
           <NetworkTestAdvancedParams

@@ -45,7 +45,7 @@ export default function NetworkTestResults(props: Props) {
   const {setSelected} = React.useContext(NetworkContext);
   const executionResultsRef = React.useRef(executionResults);
 
-  const asset = assetType === TopologyElementType.LINK ? 'Link' : 'Site';
+  const asset = assetType === TopologyElementType.LINK ? 'link' : 'site';
 
   const handleRowSelect = row => {
     setSelected(assetType, row.asset_name);
@@ -91,18 +91,20 @@ export default function NetworkTestResults(props: Props) {
         />
         {statusCount[EXECUTION_STATUS.RUNNING] !== 0 ? (
           <Typography variant="body1">
-            {`${
-              statusCount[EXECUTION_STATUS.RUNNING]
-            } ${asset}s currently being tested`}
+            {`${statusCount[EXECUTION_STATUS.RUNNING]} ${asset}${getPlural(
+              statusCount[EXECUTION_STATUS.RUNNING],
+            )} currently being tested`}
           </Typography>
         ) : null}
         <Typography variant="body1">
-          {`${
-            statusCount[EXECUTION_STATUS.FINISHED]
-          } ${asset}s successfully tested`}
+          {`${statusCount[EXECUTION_STATUS.FINISHED]} ${asset}${getPlural(
+            statusCount[EXECUTION_STATUS.FINISHED],
+          )} successfully tested`}
         </Typography>
         <Typography variant="body1" className={classes.header}>
-          {`${unsuccessfulTestCount} ${asset}s unsuccessfully tested`}
+          {`${unsuccessfulTestCount} ${asset}${getPlural(
+            unsuccessfulTestCount,
+          )} unsuccessfully tested`}
         </Typography>
 
         {healthExecutions.map(assetHealth =>
@@ -115,7 +117,9 @@ export default function NetworkTestResults(props: Props) {
               onRowSelect={handleRowSelect}
               dropDownText={`${
                 assetHealth.executions.length
-              } ${asset}s with ${HEALTH_DEFS[
+              } ${asset}${getPlural(
+                assetHealth.executions.length,
+              )} with ${HEALTH_DEFS[
                 assetHealth.health
               ].name.toLowerCase()} health`}
               health={assetHealth.health}
@@ -125,4 +129,11 @@ export default function NetworkTestResults(props: Props) {
       </>
     )
   );
+}
+
+function getPlural(count) {
+  if (count !== 1) {
+    return 's';
+  }
+  return '';
 }

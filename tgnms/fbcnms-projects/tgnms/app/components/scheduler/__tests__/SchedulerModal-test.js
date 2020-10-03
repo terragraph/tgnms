@@ -15,6 +15,7 @@ import {cleanup, fireEvent, render} from '@testing-library/react';
 afterEach(cleanup);
 
 const defaultProps = {
+  type: '',
   buttonTitle: 'testButtonTitle',
   modalTitle: 'testModalTitle',
   modalSubmitText: 'testSubmit',

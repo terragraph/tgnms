@@ -15,6 +15,7 @@ import {cleanup, fireEvent, render} from '@testing-library/react';
 afterEach(cleanup);
 
 const defaultProps = {
+  type: 'test',
   onCronStringUpdate: jest.fn(),
   onAdHocChange: jest.fn(),
   adHoc: true,
@@ -24,7 +25,6 @@ const defaultProps = {
 test('renders without crashing', () => {
   const {getByText} = render(<ScheduleTime {...defaultProps} />);
   expect(getByText('Start')).toBeInTheDocument();
-  expect(getByText('Frequency')).toBeInTheDocument();
 });
 
 test('clicking later adds date and time pickers and calls onAdHocChange', () => {
@@ -37,13 +37,13 @@ test('clicking later adds date and time pickers and calls onAdHocChange', () => 
 test('frequency selector changes cron string and call onCronStringUpdate ', async () => {
   const {getByText} = await renderAsync(
     <MuiPickersWrapper>
-      <ScheduleTime {...defaultProps} />
+      <ScheduleTime {...defaultProps} adHoc={false} />
     </MuiPickersWrapper>,
   );
-  expect(getByText('Does not repeat')).toBeInTheDocument();
-  fireEvent.mouseDown(getByText('Does not repeat'));
-  expect(getByText('Once a day')).toBeInTheDocument();
-  fireEvent.click(getByText('Once a day'));
+  expect(getByText('Weekly')).toBeInTheDocument();
+  fireEvent.mouseDown(getByText('Weekly'));
+  expect(getByText('Daily')).toBeInTheDocument();
+  fireEvent.click(getByText('Daily'));
   expect(defaultProps.onCronStringUpdate).toHaveBeenCalled();
 });
 

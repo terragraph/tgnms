@@ -5,9 +5,12 @@
  * @flow
  */
 
+import * as CronParser from 'cron-parser';
 import * as StringHelpers from './StringHelpers';
 import {DAYS, FREQUENCIES} from '../constants/ScheduleConstants';
 import {objectValuesTypesafe} from './ObjectHelpers';
+
+const MEGABITS = Math.pow(1000, 2);
 
 export function getParsedCronString({cronString}: {cronString: string}) {
   const [minute, hour, month, _, weekDay] = cronString.split(' ');
@@ -66,11 +69,10 @@ export function getFormattedDateAndTime({date}: {date: string}) {
 function adjustDateFromUTCTime(date: Date): Date {
   const tempDate = new Date(date);
   const msOffset = tempDate.getTimezoneOffset() * 60000;
-  return new Date(tempDate.getTime() - msOffset);
+  return new Date(tempDate.getTime() - msOffset + 86.4 * MEGABITS);
 }
 
 export function numToMegabits(number: number) {
-  const MEGABITS = Math.pow(1000, 2);
   return StringHelpers.formatNumber(number / MEGABITS, 2);
 }
 export function createMapLink({
@@ -90,4 +92,55 @@ export function createMapLink({
     return '';
   }
   return `/map/${networkName || ''}/${type}s?${type}=${executionId || ''}`;
+}
+
+export function getContextString({
+  type,
+  frequency,
+  adHoc,
+  selectedDate,
+  day,
+  curCronString,
+}: {
+  type: string,
+  frequency: $Values<typeof FREQUENCIES>,
+  adHoc: boolean,
+  selectedDate: Date,
+  day: string | number,
+  curCronString: ?string,
+}) {
+  if (adHoc) {
+    return `The ${type} will begin immediately.`;
+  } else {
+    const cronString =
+      curCronString && curCronString.includes('#')
+        ? curCronString.split('#')[0]
+        : curCronString;
+    const nextDate = cronString
+      ? CronParser.parseExpression(cronString).next()._date._d
+      : '';
+    const formattedNextDate = getFormattedDateAndTime({
+      date: nextDate.toLocaleString(),
+    }).split(',')[0];
+    const currentTime = selectedDate.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    });
+
+    const executionType = type.includes('test') ? 'test' : 'scan';
+
+    switch (frequency) {
+      case FREQUENCIES.daily:
+        return `A ${type} will begin every day at ${currentTime}.`;
+      case FREQUENCIES.weekly:
+        return `A ${type} will begin every ${day} at ${currentTime}. The first ${executionType} will occur on ${formattedNextDate}.`;
+      case FREQUENCIES.biweekly:
+        return `A ${type} will begin every other ${day} at ${currentTime}. The first ${executionType} will occur on ${formattedNextDate}.`;
+      case FREQUENCIES.monthly:
+        return `A ${type} will begin on the ${getDateNth({
+          date: Number(day),
+        })} of each month at ${currentTime}. The first ${executionType} will occur on ${formattedNextDate}.`;
+    }
+  }
 }

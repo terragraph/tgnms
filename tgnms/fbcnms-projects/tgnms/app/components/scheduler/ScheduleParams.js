@@ -34,22 +34,25 @@ export default function ScheduleParams(props: Props) {
             </FormLabel>
             {typeSelector}
           </Grid>
-          <Grid item xs={6}>
-            <FormLabel component="legend">
-              <span>Network</span>
-            </FormLabel>
-            <TextField
-              disabled
-              variant="outlined"
-              value={context.networkName}
-              InputLabelProps={{shrink: true}}
-              margin="dense"
-              fullWidth
-            />
+          <Grid item container direction="column" spacing={1} xs={6}>
+            <Grid item>
+              <FormLabel component="legend">
+                <span>Network</span>
+              </FormLabel>
+            </Grid>
+            <Grid item>
+              <TextField
+                disabled
+                value={context.networkName}
+                InputProps={{disableUnderline: true}}
+                margin="dense"
+                fullWidth
+              />
+            </Grid>
           </Grid>
         </Grid>
         <Grid item>
-          <ShowAdvanced children={advancedParams} />
+          <ShowAdvanced title="Advanced Settings" children={advancedParams} />
         </Grid>
       </Grid>
     </FormGroup>

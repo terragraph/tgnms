@@ -42,7 +42,7 @@ declare module '@material-ui/pickers/MuiPickersUtilsProvider' {
 declare module '@material-ui/pickers' {
   declare module.exports: {
     KeyboardDatePicker: $Exports<'@material-ui/pickers/KeyboardDatePicker'>,
-    KeyboardTimePicker: $Exports<'@material-ui/pickers/KeyboardTimePicker'>,
+    TimePicker: $Exports<'@material-ui/pickers/TimePicker'>,
     DateTimePicker: $Exports<'@material-ui/pickers/DateTimePicker'>,
     MuiPickersUtilsProvider: $Exports<
       '@material-ui/pickers/MuiPickersUtilsProvider',

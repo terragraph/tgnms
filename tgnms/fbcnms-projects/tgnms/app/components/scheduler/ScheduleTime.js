@@ -4,8 +4,6 @@
  * @format
  * @flow
  */
-
-import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
@@ -14,8 +12,11 @@ import React, {useCallback, useEffect, useState} from 'react';
 import TabbedButton from '../common/TabbedButton';
 import TextField from '@material-ui/core/TextField';
 import {DAYS, FREQUENCIES, MODAL_MODE} from '../../constants/ScheduleConstants';
-import {KeyboardTimePicker} from '@material-ui/pickers';
-import {getParsedCronString} from '../../helpers/ScheduleHelpers';
+import {TimePicker} from '@material-ui/pickers';
+import {
+  getContextString,
+  getParsedCronString,
+} from '../../helpers/ScheduleHelpers';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
   adHoc: boolean,
   modalMode: $Values<typeof MODAL_MODE>,
   initialCronString?: string,
+  type: string,
 };
 
 export default function ScheduleTime(props: Props) {
@@ -33,6 +35,7 @@ export default function ScheduleTime(props: Props) {
     adHoc,
     modalMode,
     initialCronString,
+    type,
   } = props;
 
   const {initialDay, initialTime, initialFrequency} = initialCronString
@@ -46,6 +49,8 @@ export default function ScheduleTime(props: Props) {
   const [selectedDate, setSelectedDate] = React.useState(
     initialTime ? new Date(initialTime) : new Date(),
   );
+
+  const [curCronString, setCurCronString] = React.useState(null);
 
   const handleFrequencyChange = useCallback(
     (newFrequency: $Values<typeof FREQUENCIES>) => {
@@ -97,6 +102,17 @@ export default function ScheduleTime(props: Props) {
     return adHoc ? adHocDay : scheduledDay;
   }, [adHoc, day, frequency, selectedDate]);
 
+  const context = React.useMemo(() => {
+    return getContextString({
+      type,
+      frequency,
+      adHoc,
+      selectedDate,
+      day,
+      curCronString,
+    });
+  }, [type, frequency, adHoc, selectedDate, day, curCronString]);
+
   useEffect(() => {
     const time =
       selectedDate.getUTCMinutes() + ' ' + selectedDate.getUTCHours();
@@ -119,14 +135,15 @@ export default function ScheduleTime(props: Props) {
         cronString = `${time} ${cronDay} * *`;
         break;
     }
+    setCurCronString(cronString);
     onCronStringUpdate(cronString);
   }, [selectedDate, day, frequency, adHoc, onCronStringUpdate, getDayValue]);
 
   return (
     <FormGroup row={false}>
-      <Grid container direction="column" spacing={2}>
+      <Grid container direction="column" spacing={3}>
         {modalMode === MODAL_MODE.CREATE && (
-          <>
+          <Grid item container spacing={2} direction="column">
             <Grid item>
               <FormLabel component="legend">
                 <span>Start</span>
@@ -140,40 +157,37 @@ export default function ScheduleTime(props: Props) {
                 rightOnclick={handleLaterClick}
               />
             </Grid>
-          </>
-        )}
-        <Grid item container spacing={1}>
-          <Grid
-            item
-            container
-            direction="column"
-            xs={adHoc ? 12 : 6}
-            spacing={1}>
-            <Grid item>
-              <FormLabel component="legend">
-                <span>Frequency</span>
-              </FormLabel>
-            </Grid>
-            <Grid item>
-              <TextField
-                select
-                variant="outlined"
-                value={frequency}
-                InputLabelProps={{shrink: true}}
-                margin="dense"
-                fullWidth
-                onChange={ev => handleFrequencyChange(ev.target.value)}>
-                {objectValuesTypesafe<string>(FREQUENCIES)
-                  .filter(frequency => adHoc || frequency !== FREQUENCIES.never)
-                  .map(name => (
-                    <MenuItem key={name} value={name}>
-                      {name}
-                    </MenuItem>
-                  ))}
-              </TextField>
-            </Grid>
           </Grid>
-          {adHoc ? null : (
+        )}
+        {adHoc ? null : (
+          <Grid item container spacing={1}>
+            <Grid item container direction="column" xs={6} spacing={1}>
+              <Grid item>
+                <FormLabel component="legend">
+                  <span>Frequency</span>
+                </FormLabel>
+              </Grid>
+              <Grid item>
+                <TextField
+                  select
+                  variant="outlined"
+                  value={frequency}
+                  InputLabelProps={{shrink: true}}
+                  margin="dense"
+                  fullWidth
+                  onChange={ev => handleFrequencyChange(ev.target.value)}>
+                  {objectValuesTypesafe<string>(FREQUENCIES)
+                    .filter(
+                      frequency => adHoc || frequency !== FREQUENCIES.never,
+                    )
+                    .map(name => (
+                      <MenuItem key={name} value={name}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                </TextField>
+              </Grid>
+            </Grid>
             <Grid item container xs={6} spacing={1}>
               {frequency === FREQUENCIES.daily ? null : (
                 <Grid item container xs={6} direction="column" spacing={1}>
@@ -225,11 +239,10 @@ export default function ScheduleTime(props: Props) {
                   </FormLabel>
                 </Grid>
                 <Grid item>
-                  <KeyboardTimePicker
+                  <TimePicker
                     margin="dense"
                     inputVariant="outlined"
                     id="time"
-                    keyboardIcon={<AccessTimeIcon />}
                     value={selectedDate}
                     onChange={handleDateChange}
                     KeyboardButtonProps={{
@@ -239,7 +252,12 @@ export default function ScheduleTime(props: Props) {
                 </Grid>
               </Grid>
             </Grid>
-          )}
+          </Grid>
+        )}
+        <Grid item>
+          <FormLabel component="legend">
+            <span>{context}</span>
+          </FormLabel>
         </Grid>
       </Grid>
     </FormGroup>

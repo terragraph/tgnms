@@ -26,7 +26,10 @@ const useStyles = makeStyles(theme => ({
     marginLeft: -theme.spacing(0.75),
     fontSize: theme.spacing(2),
     marginBottom: -theme.spacing(3),
-    paddingRight: 0,
+  },
+  checkBoxItem: {
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   dropDownIcon: {
     padding: theme.spacing(),
@@ -98,7 +101,10 @@ export default function CheckBoxDropDown(props: Props) {
         open={isMenuOpen}
         onClose={handleClose}>
         {menuItems.map(item => (
-          <MenuItem key={item.title} onClick={handleMenuItemClick}>
+          <MenuItem
+            className={classes.checkBoxItem}
+            key={item.title}
+            onClick={handleMenuItemClick}>
             <Checkbox
               data-testid="checkbox"
               checked={formState[item.value]}

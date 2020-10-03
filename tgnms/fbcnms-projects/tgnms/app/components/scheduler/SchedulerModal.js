@@ -43,6 +43,7 @@ export type Props = {
   scheduleParams: ScheduleParamsType,
   modalMode: $Values<typeof MODAL_MODE>,
   initialCronString?: string,
+  type: string,
 };
 
 export default function SchedulerModal(props: Props) {
@@ -55,6 +56,7 @@ export default function SchedulerModal(props: Props) {
     scheduleParams,
     modalMode,
     initialCronString,
+    type,
   } = props;
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -109,6 +111,7 @@ export default function SchedulerModal(props: Props) {
                     onCronStringUpdate={handleCronStringUpdate}
                     modalMode={modalMode || MODAL_MODE.CREATE}
                     initialCronString={initialCronString}
+                    type={type}
                   />
                 </Grid>
               </>

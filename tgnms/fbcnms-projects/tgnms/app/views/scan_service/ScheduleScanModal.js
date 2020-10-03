@@ -20,12 +20,20 @@ import {
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
 } from '../../constants/ScheduleConstants';
+import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useNetworkContext} from '../../contexts/NetworkContext';
+
+const useStyles = makeStyles(theme => ({
+  selector: {
+    marginTop: theme.spacing(1.5),
+  },
+}));
 
 type Props = {onActionClick: () => void};
 
 export default function ScheduleScanModal(props: Props) {
+  const classes = useStyles();
   const {networkName} = useNetworkContext();
   const enqueueSnackbar = useEnqueueSnackbar();
   const scheduleTypes = Object.keys(SCAN_SERVICE_TYPES);
@@ -85,24 +93,16 @@ export default function ScheduleScanModal(props: Props) {
       modalSubmitText="Start Scan"
       modalScheduleText="Schedule Scan"
       onSubmit={handleSubmit}
+      type={SCAN_SERVICE_TYPES[formState.type]}
       scheduleParams={{
         typeSelector: (
-          <>
-            <TextField
-              disabled
-              variant="outlined"
-              value={SCAN_SERVICE_TYPES[formState.type]}
-              InputLabelProps={{shrink: true}}
-              margin="dense"
-              fullWidth
-              onChange={handleInputChange(val => ({type: val}))}>
-              {scheduleTypes.map(name => (
-                <MenuItem key={name} value={name}>
-                  {SCAN_SERVICE_TYPES[name]}
-                </MenuItem>
-              ))}
-            </TextField>
-          </>
+          <TextField
+            className={classes.selector}
+            disabled
+            value={SCAN_SERVICE_TYPES[formState.type]}
+            InputProps={{disableUnderline: true}}
+            fullWidth
+          />
         ),
         advancedParams: (
           <FormGroup row={false}>

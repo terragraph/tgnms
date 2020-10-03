@@ -86,7 +86,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
                 onChange={handleInputChange(val => ({timeSec: val}))}
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="end">Seconds</InputAdornment>
+                    <InputAdornment position="end">seconds</InputAdornment>
                   ),
                 }}
               />
@@ -107,10 +107,12 @@ export default function NetworkTestAdvancedParams(props: Props) {
                 InputLabelProps={{shrink: true}}
                 margin="dense"
                 fullWidth
-                onChange={handleInputChange(val => ({bitrate: val * 1000000}))}
+                onChange={handleInputChange(val => ({
+                  bitrate: val * 1000000,
+                }))}
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="end">MB/second</InputAdornment>
+                    <InputAdornment position="end">Mbps</InputAdornment>
                   ),
                 }}
               />
@@ -168,7 +170,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
                 onChange={handleInputChange(val => ({omitSec: val}))}
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="end">Seconds</InputAdornment>
+                    <InputAdornment position="end">seconds</InputAdornment>
                   ),
                 }}
               />
@@ -192,7 +194,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
                 onChange={handleInputChange(val => ({intervalSec: val}))}
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="end">Seconds</InputAdornment>
+                    <InputAdornment position="end">seconds</InputAdornment>
                   ),
                 }}
               />
@@ -235,7 +237,9 @@ export default function NetworkTestAdvancedParams(props: Props) {
                   InputLabelProps={{shrink: true}}
                   margin="dense"
                   fullWidth
-                  onChange={handleInputChange(val => ({parallelStreams: val}))}
+                  onChange={handleInputChange(val => ({
+                    parallelStreams: val,
+                  }))}
                 />
               </Grid>
             </Grid>

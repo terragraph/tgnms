@@ -24,12 +24,15 @@ afterEach(cleanup);
  *  initialDay:'Monday'
  * }
  */
+
 test('test parsing cron string', () => {
   const parsedResult = ScheduleHelpers.getParsedCronString({
     cronString: '0 3 * * 1',
   });
   expect(parsedResult.initialFrequency).toEqual(FREQUENCIES.weekly);
-  expect(parsedResult.initialTime).toEqual(expectedDate());
+  expect(parsedResult.initialTime.split(',')[1]).toEqual(
+    expectedDate().split(',')[1],
+  );
   expect(parsedResult.initialDay).toEqual(DAYS.MON);
 });
 
@@ -39,7 +42,9 @@ test('test parsing cron string monthly', () => {
   });
 
   expect(parsedResult.initialFrequency).toEqual(FREQUENCIES.monthly);
-  expect(parsedResult.initialTime).toEqual(expectedDate());
+  expect(parsedResult.initialTime.split(',')[1]).toEqual(
+    expectedDate().split(',')[1],
+  );
   expect(parsedResult.initialDay).toEqual('4');
 });
 

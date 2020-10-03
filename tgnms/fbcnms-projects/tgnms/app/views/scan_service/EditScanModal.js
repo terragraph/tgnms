@@ -21,7 +21,14 @@ import {
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
 } from '../../constants/ScheduleConstants';
+import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+
+const useStyles = makeStyles(theme => ({
+  selector: {
+    marginTop: theme.spacing(1.5),
+  },
+}));
 
 type Props = {
   id: number,
@@ -32,6 +39,7 @@ type Props = {
 };
 
 export default function EditScanModal(props: Props) {
+  const classes = useStyles();
   const {id, onActionClick, type, initialCronString} = props;
   const {formState, handleInputChange} = useForm({
     initialState: {mode: props.mode},
@@ -77,19 +85,16 @@ export default function EditScanModal(props: Props) {
       onSubmit={handleSubmit}
       initialCronString={initialCronString}
       modalMode={MODAL_MODE.EDIT}
+      type={SCAN_SERVICE_TYPES[type]}
       scheduleParams={{
         typeSelector: (
           <TextField
+            className={classes.selector}
             disabled
-            variant="outlined"
             value={SCAN_SERVICE_TYPES[type]}
-            InputLabelProps={{shrink: true}}
-            margin="dense"
-            fullWidth>
-            <MenuItem key={type} value={type}>
-              {SCAN_SERVICE_TYPES[type]}
-            </MenuItem>
-          </TextField>
+            InputProps={{disableUnderline: true}}
+            fullWidth
+          />
         ),
         advancedParams: (
           <FormGroup row={false}>

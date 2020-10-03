@@ -414,7 +414,7 @@ export default function NetworkTest(props: Props) {
 }
 
 function filterData(data, filterOptions) {
-  const taco = data?.filter(row => {
+  const filteredData = data?.filter(row => {
     const correctProtocol =
       !filterOptions?.protocol ||
       filterOptions?.protocol.find(
@@ -445,5 +445,5 @@ function filterData(data, filterOptions) {
     return correctProtocol && correctDate && correctType && correctStatus;
   });
 
-  return taco || [];
+  return filteredData || [];
 }

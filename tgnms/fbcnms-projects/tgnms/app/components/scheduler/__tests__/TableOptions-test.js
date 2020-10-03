@@ -24,7 +24,7 @@ test('renders without crashing', () => {
       <TableOptions {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Last 30 days')).toBeInTheDocument();
+  expect(getByText('30 days ago')).toBeInTheDocument();
 });
 
 test('onClick changes value of filter', () => {
@@ -33,11 +33,11 @@ test('onClick changes value of filter', () => {
       <TableOptions {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Last 30 days')).toBeInTheDocument();
-  expect(queryByText('Last Year')).not.toBeInTheDocument();
-  fireEvent.mouseDown(getByText('Last 30 days'));
-  fireEvent.click(getByText('Last Year'));
-  expect(getAllByText('Last Year')[0]).toBeInTheDocument();
+  expect(getByText('30 days ago')).toBeInTheDocument();
+  expect(queryByText('A year ago')).not.toBeInTheDocument();
+  fireEvent.mouseDown(getByText('30 days ago'));
+  fireEvent.click(getByText('A year ago'));
+  expect(getAllByText('A year ago')[0]).toBeInTheDocument();
 });
 
 test('onClick changes value of filter', () => {
@@ -46,8 +46,8 @@ test('onClick changes value of filter', () => {
       <TableOptions {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Last 30 days')).toBeInTheDocument();
-  fireEvent.mouseDown(getByText('Last 30 days'));
-  fireEvent.click(getByText('Last day'));
+  expect(getByText('30 days ago')).toBeInTheDocument();
+  fireEvent.mouseDown(getByText('30 days ago'));
+  fireEvent.click(getByText('Yesterday'));
   expect(defaultProps.onOptionsUpdate).toHaveBeenCalled();
 });

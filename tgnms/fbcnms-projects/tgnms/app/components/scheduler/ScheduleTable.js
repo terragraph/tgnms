@@ -36,7 +36,6 @@ type Props<T> = {
 
 const useStyles = makeStyles(theme => ({
   schedule: {
-    padding: theme.spacing(1),
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
@@ -44,6 +43,7 @@ const useStyles = makeStyles(theme => ({
   header: {
     flexGrow: 0,
     flexShrink: 0,
+    padding: theme.spacing(1),
   },
   executionsTableWrapper: {
     overflow: 'auto',

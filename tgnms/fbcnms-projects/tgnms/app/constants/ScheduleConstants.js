@@ -16,10 +16,10 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import Tooltip from '@material-ui/core/Tooltip';
 
 export const NETWORK_TEST_TYPES = {
-  sequential: 'Sequential Link Test',
-  parallel: 'Parallel Link Test',
-  multihop: 'Multihop Node Test',
-  partial: 'Partial Throughput Test',
+  sequential: 'Sequential link test',
+  parallel: 'Parallel link test',
+  multihop: 'Multihop node test',
+  partial: 'Partial throughput test',
 };
 
 export const NETWORK_TEST_DEFS = {
@@ -74,7 +74,7 @@ export const NETWORK_TEST_DEFS = {
 };
 
 export const SCAN_SERVICE_TYPES = {
-  IM: 'IM Scan',
+  IM: 'IM scan',
 };
 
 export const SCAN_SERVICE_MODE = {
@@ -177,27 +177,15 @@ export const EXECUTION_DEFS = {
     order: 6,
   },
   RUNNING: {
-    icon: (
-      <Tooltip title={TEST_EXECUTION_STATUS.RUNNING} placement="top">
-        <RadioButtonUncheckedIcon />
-      </Tooltip>
-    ),
+    icon: <RadioButtonUncheckedIcon />,
     order: 1,
   },
   PROCESSING: {
-    icon: (
-      <Tooltip title={TEST_EXECUTION_STATUS.RUNNING} placement="top">
-        <RadioButtonUncheckedIcon />
-      </Tooltip>
-    ),
+    icon: <RadioButtonUncheckedIcon />,
     order: 1,
   },
   QUEUED: {
-    icon: (
-      <Tooltip title={SCAN_EXECUTION_STATUS.RUNNING} placement="top">
-        <ScheduleIcon />
-      </Tooltip>
-    ),
+    icon: <ScheduleIcon />,
     order: 1,
   },
 };
@@ -215,10 +203,10 @@ export const TEST_TYPE_CODES = {
 
 export const FREQUENCIES = {
   never: 'Does not repeat',
-  daily: 'Once a day',
-  weekly: 'Once a week',
-  biweekly: 'Once every 2 weeks',
-  monthly: 'Once a month',
+  daily: 'Daily',
+  weekly: 'Weekly',
+  biweekly: 'Every 2 weeks',
+  monthly: 'Monthly',
 };
 
 export const DAYS = {

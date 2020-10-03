@@ -85,6 +85,7 @@ export default function ScheduleNetworkTestModal(props: Props) {
       modalSubmitText="Start Test"
       modalScheduleText="Schedule Test"
       onSubmit={handleSubmit}
+      type={NETWORK_TEST_TYPES[formState.type].toLowerCase()}
       scheduleParams={{
         typeSelector: (
           <TextField
