@@ -12,16 +12,20 @@ import type {
   ExecutionResultsType,
   InputGetType,
   InputStartType,
+  StartResponseType,
 } from '../../shared/dto/NetworkTestTypes';
 import type {TableResultType} from '../views/network_test/NetworkTestTypes';
 
 export const scheduleTest = (inputData: InputStartType) => {
-  return axios.post<InputStartType, string>('/network_test/schedule', {
-    cron_expr: inputData.cronExpr,
-    test_type: inputData.testType,
-    network_name: inputData.networkName,
-    iperf_options: inputData.iperfOptions,
-  });
+  return axios.post<InputStartType, StartResponseType>(
+    '/network_test/schedule',
+    {
+      cron_expr: inputData.cronExpr,
+      test_type: inputData.testType,
+      network_name: inputData.networkName,
+      iperf_options: inputData.iperfOptions,
+    },
+  );
 };
 
 export const editTestSchedule = ({
@@ -44,7 +48,7 @@ export const editTestSchedule = ({
 };
 
 export const startExecution = (inputData: InputStartType) => {
-  return axios.post<InputStartType, string>('/network_test/start', {
+  return axios.post<InputStartType, StartResponseType>('/network_test/start', {
     test_type: inputData.testType,
     network_name: inputData.networkName,
     iperf_options: inputData.iperfOptions,
@@ -52,8 +56,8 @@ export const startExecution = (inputData: InputStartType) => {
 };
 
 export const startThroughputTest = (inputData: InputStartType) => {
-  return axios.post<InputStartType, string>('/network_test/start', {
-    test_type: 'multihop',
+  return axios.post<InputStartType, StartResponseType>('/network_test/start', {
+    test_type: 'sequential_node',
     network_name: inputData.networkName,
     whitelist: inputData.whitelist,
   });

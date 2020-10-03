@@ -21,7 +21,7 @@ const useLoadTestExecutionResultsMock = jest
   .spyOn(networkTestHooks, 'useLoadTestExecutionResults')
   .mockImplementation(() => ({
     loading: false,
-    execution: {id: '1', test_type: 'PARALLEL'},
+    execution: {id: '1', test_type: 'PARALLEL_LINK'},
     results: [{asset_name: 'testLinkName', status: 'FINISHED'}],
   }));
 
@@ -63,7 +63,11 @@ test('renders link details if selected element', async () => {
     <TestApp>
       <NetworkContextWrapper
         contextValue={{
-          selectedElement: {expanded: true, name: 'testLinkName', type: 'link'},
+          selectedElement: {
+            expanded: true,
+            name: 'testLinkName',
+            type: 'link',
+          },
         }}>
         <MaterialTheme>
           <TestExecutionSummary {...defaultProps} />

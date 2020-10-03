@@ -94,11 +94,13 @@ export default function ScheduleTime(props: Props) {
         ? selectedDate.getDate()
         : selectedDate.getDay();
 
-    const scheduledDay =
+    let scheduledDay =
       frequency === FREQUENCIES.monthly
         ? day
         : objectValuesTypesafe<string>(DAYS).indexOf(day);
-
+    if (scheduledDay === -1) {
+      scheduledDay = 0;
+    }
     return adHoc ? adHocDay : scheduledDay;
   }, [adHoc, day, frequency, selectedDate]);
 

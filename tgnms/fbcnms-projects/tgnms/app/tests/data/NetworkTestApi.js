@@ -99,7 +99,7 @@ export function mockExecutions(
             start_dt: new Date().toString(),
             end_dt: new Date().toString(),
             network_name: 'fbtest',
-            test_type: 'PARALLEL',
+            test_type: 'PARALLEL_LINK',
           },
           {
             id: 3,
@@ -107,7 +107,7 @@ export function mockExecutions(
             start_dt: new Date().toString(),
             end_dt: new Date().toString(),
             network_name: 'fbtest',
-            test_type: 'SEQUENTIAL',
+            test_type: 'SEQUENTIAL_LINK',
           },
         ],
   };

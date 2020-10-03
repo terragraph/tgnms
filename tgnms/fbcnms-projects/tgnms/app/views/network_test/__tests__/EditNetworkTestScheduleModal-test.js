@@ -33,7 +33,7 @@ afterEach(() => {
 const defaultProps = {
   onActionClick: jest.fn(),
   id: 1,
-  type: 'sequential',
+  type: 'sequential_link',
   initialOptions: {},
   initialCronString: '',
 };

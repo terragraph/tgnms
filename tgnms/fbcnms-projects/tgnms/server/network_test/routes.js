@@ -18,9 +18,14 @@ router.get('/schedule', (req, res) => {
     params: req.query,
   })
     .then(result => res.status(200).send(result.data.schedules))
-    .catch(error =>
-      res.status(error.response.status).send(error.response.statusMessage),
-    );
+    .catch(error => {
+      if (error.response === undefined) {
+        return res.status(404).send('Response undefined');
+      }
+      return res
+        .status(error.response.status)
+        .send(error.response.statusMessage);
+    });
 });
 
 router.get('/schedule/:scheduleId', (req, res) => {
@@ -88,12 +93,15 @@ router.get('/executions', (req, res) => {
     url: `${NETWORKTEST_HOST}/execution`,
     params: req.query,
   })
-    .then(result => {
-      res.status(200).send(result.data.executions);
-    })
-    .catch(error =>
-      res.status(error.response.status).send(error.response.statusMessage),
-    );
+    .then(result => res.status(200).send(result.data.executions))
+    .catch(error => {
+      if (error.response === undefined) {
+        return res.status(404).send('Response undefined');
+      }
+      return res
+        .status(error.response.status)
+        .send(error.response.statusMessage);
+    });
 });
 
 router.get('/execution_result/:executionId', (req, res) => {

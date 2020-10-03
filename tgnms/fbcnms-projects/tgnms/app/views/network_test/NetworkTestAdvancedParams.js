@@ -19,6 +19,7 @@ import {
   PROTOCOL,
   TEST_TYPE_CODES,
 } from '../../constants/ScheduleConstants';
+import {convertType} from '../../helpers/ObjectHelpers';
 
 import type {IperfOptions} from '../../../shared/dto/NetworkTestTypes';
 
@@ -33,7 +34,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
 
   const {formState, handleInputChange, updateFormState} = useForm({
     initialState: {
-      ...NETWORK_TEST_DEFS[type].iperf_defaults,
+      ...convertType<IperfOptions>(NETWORK_TEST_DEFS[type].iperf_defaults),
       ...initialOptions,
     },
   });
@@ -129,13 +130,15 @@ export default function NetworkTestAdvancedParams(props: Props) {
           <Grid item>
             <TextField
               select
-              disabled={type !== TEST_TYPE_CODES.MULTIHOP}
-              inputProps={{min: 1, max: 500}}
+              disabled={
+                type !== TEST_TYPE_CODES.SEQUENTIAL_NODE &&
+                type !== TEST_TYPE_CODES.PARALLEL_NODE
+              }
               variant="outlined"
               value={
                 formState.protocol === NETWORK_TEST_PROTOCOLS.TCP
-                  ? PROTOCOL.UDP
-                  : PROTOCOL.TCP
+                  ? PROTOCOL.TCP
+                  : PROTOCOL.UDP
               }
               InputLabelProps={{shrink: true}}
               margin="dense"
@@ -221,7 +224,7 @@ export default function NetworkTestAdvancedParams(props: Props) {
               />
             </Grid>
           </Grid>
-          {NETWORK_TEST_DEFS[type] === NETWORK_TEST_DEFS.multihop && (
+          {formState.protocol === NETWORK_TEST_PROTOCOLS.TCP && (
             <Grid item container direction="column" xs={6} spacing={1}>
               <Grid item>
                 <FormLabel component="legend">

@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 500,
   },
   editMenuItem: {
-    marginLeft: -theme.spacing(2),
+    marginLeft: -theme.spacing(1),
     paddingBottom: 0,
     paddingTop: 0,
   },

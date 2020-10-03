@@ -16,7 +16,7 @@ afterEach(cleanup);
 
 const defaultProps = {
   onIperfOptionsUpdate: jest.fn(),
-  type: 'sequential',
+  type: 'sequential_link',
 };
 
 test('renders without crashing', () => {

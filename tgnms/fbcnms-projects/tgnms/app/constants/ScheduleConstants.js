@@ -21,43 +21,61 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import Tooltip from '@material-ui/core/Tooltip';
 
 export const NETWORK_TEST_TYPES = {
-  sequential: 'Sequential link test',
-  parallel: 'Parallel link test',
-  multihop: 'Multihop node test',
+  sequential_link: 'Sequential link test',
+  parallel_link: 'Parallel link test',
+  sequential_node: 'Sequential node test',
+  parallel_node: 'Parallel node test',
   partial: 'Partial throughput test',
 };
 
+export const NETWORK_TEST_PROTOCOLS = {
+  TCP: 6,
+  UDP: 17,
+};
+
 export const NETWORK_TEST_DEFS = {
-  sequential: {
+  sequential_link: {
     title: 'Sequential Link Health Test',
     iperf_defaults: {
       bitrate: 200000000,
       timeSec: 60,
-      protocol: 17,
+      protocol: NETWORK_TEST_PROTOCOLS.UDP,
       omitSec: 0,
       intervalSec: null,
       windowSize: null,
       parallelStreams: null,
     },
   },
-  parallel: {
+  parallel_link: {
     title: 'Parallel Link Health Test',
     iperf_defaults: {
       bitrate: 200000000,
       timeSec: 300,
-      protocol: 17,
+      protocol: NETWORK_TEST_PROTOCOLS.UDP,
       omitSec: 0,
       intervalSec: null,
       windowSize: null,
       parallelStreams: null,
     },
   },
-  multihop: {
-    title: 'Multihop Node Health Test',
+  sequential_node: {
+    title: 'Sequential Node Health Test',
     iperf_defaults: {
       bitrate: 300000000,
       timeSec: 60,
-      protocol: 6,
+      protocol: NETWORK_TEST_PROTOCOLS.TCP,
+      omitSec: 2,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  parallel_node: {
+    title: 'Parallel Node Health Test',
+    iperf_defaults: {
+      bitrate: 3000000,
+      timeSec: 300,
+      protocol: NETWORK_TEST_PROTOCOLS.TCP,
       omitSec: 2,
       intervalSec: null,
       windowSize: null,
@@ -195,15 +213,11 @@ export const EXECUTION_DEFS = {
   },
 };
 
-export const NETWORK_TEST_PROTOCOLS = {
-  TCP: 6,
-  UDP: 17,
-};
-
 export const TEST_TYPE_CODES = {
-  SEQUENTIAL: 'sequential',
-  PARALLEL: 'parallel',
-  MULTIHOP: 'multihop',
+  SEQUENTIAL_LINK: 'sequential_link',
+  PARALLEL_LINK: 'parallel_link',
+  SEQUENTIAL_NODE: 'sequential_node',
+  PARALLEL_NODE: 'parallel_node',
 };
 
 export const FREQUENCIES = {
@@ -229,21 +243,19 @@ export const BUTTON_TYPES = {
   abort: <HighlightOffIcon />,
   delete: (
     <>
-      <DeleteIcon />
+      <DeleteIcon style={{marginRight: '8px'}} />
       Delete
     </>
   ),
   download: <GetAppIcon />,
   disable: (
     <>
-      <PauseIcon />
-      Pause
+      <PauseIcon style={{marginRight: '8px'}} /> Pause
     </>
   ),
   enable: (
     <>
-      <PlayArrowIcon />
-      Resume
+      <PlayArrowIcon style={{marginRight: '8px'}} /> Resume
     </>
   ),
 };

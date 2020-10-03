@@ -63,11 +63,13 @@ describe('/executions - get recent test executions', () => {
       data: mockExecutions(),
     });
     const response = await request(app)
-      .get('/network_test/executions?network_name=fbtest&test_type=PARALLEL')
+      .get(
+        '/network_test/executions?network_name=fbtest&test_type=PARALLEL_LINK',
+      )
       .expect(200);
 
     expect(getMock).toHaveBeenCalled();
-    expect(response.body[0].test_type).toBe('PARALLEL');
+    expect(response.body[0].test_type).toBe('PARALLEL_LINK');
     expect(response.body[0].network_name).toBe('fbtest');
   });
 });

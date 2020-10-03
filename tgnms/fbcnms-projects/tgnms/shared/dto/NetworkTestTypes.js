@@ -23,6 +23,12 @@ export type InputStartType = {
   enabled?: boolean,
 };
 
+export type StartResponseType = {
+  status: string,
+  message: string,
+  execution_id: string,
+};
+
 export type IperfOptions = {
   bitrate?: number,
   timeSec?: number,

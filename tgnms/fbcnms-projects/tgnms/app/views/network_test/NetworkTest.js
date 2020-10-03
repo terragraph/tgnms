@@ -195,7 +195,7 @@ export default function NetworkTest(props: Props) {
     inputData.testType &&
     NETWORK_TEST_TYPES[inputData.testType] === NETWORK_TEST_TYPES.partial
   ) {
-    inputData.testType = 'multihop';
+    inputData.testType = 'sequential_node';
   }
 
   const {loading, data} = useLoadTestTableData({

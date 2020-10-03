@@ -31,6 +31,9 @@ const useModalStyles = makeStyles(theme => ({
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
+  content: {
+    overflow: 'hidden',
+  },
 }));
 
 export type Props = {
@@ -95,7 +98,11 @@ export default function SchedulerModal(props: Props) {
         open={isOpen}
         onClose={() => setIsOpen(false)}
         modalContent={
-          <Grid container direction="column" spacing={2}>
+          <Grid
+            container
+            className={classes.content}
+            direction="column"
+            spacing={2}>
             <Grid item>
               <ScheduleParams scheduleParams={scheduleParams} />
             </Grid>

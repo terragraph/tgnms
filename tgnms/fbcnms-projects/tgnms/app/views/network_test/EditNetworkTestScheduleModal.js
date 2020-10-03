@@ -26,6 +26,9 @@ const useStyles = makeStyles(theme => ({
   selector: {
     marginTop: theme.spacing(1.5),
   },
+  editIcon: {
+    marginRight: theme.spacing(),
+  },
 }));
 
 type Props = {
@@ -73,8 +76,7 @@ export default function EditNetworkTestScheduleModal(props: Props) {
     <SchedulerModal
       buttonTitle={
         <>
-          <EditIcon />
-          Edit
+          <EditIcon className={classes.editIcon} /> Edit
         </>
       }
       modalTitle="Edit Network Test Schedule"
@@ -88,7 +90,7 @@ export default function EditNetworkTestScheduleModal(props: Props) {
           <TextField
             className={classes.selector}
             disabled
-            value={type}
+            value={NETWORK_TEST_TYPES[type]}
             InputProps={{disableUnderline: true}}
             fullWidth
           />

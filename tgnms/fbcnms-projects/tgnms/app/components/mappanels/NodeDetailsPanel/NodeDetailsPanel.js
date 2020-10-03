@@ -189,7 +189,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
         if (!response) {
           throw new Error(response.data.msg);
         }
-        const id = response.data.split(' ').pop();
+        const id = response.data.execution_id;
         const url = new URL(
           createTestMapLink({
             executionId: id,

@@ -39,6 +39,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
+    overflowX: 'hidden !important',
   },
   header: {
     flexGrow: 0,
@@ -108,13 +109,13 @@ export default function ScheduleTable<T>(props: Props<T>) {
     };
 
     const columns = [
-      scheduleColumn('type', {width: 100}),
-      scheduleColumn('start', {width: 190}),
+      scheduleColumn('type', {width: 130}),
+      scheduleColumn('start', {width: 160}),
       scheduleColumn('status', {width: 120}),
       scheduleColumn(mode === SCHEDULE_TABLE_TYPES.SCAN ? 'mode' : 'protocol', {
-        width: 60,
+        width: 70,
       }),
-      scheduleColumn('actions', {width: 130}),
+      scheduleColumn('actions', {width: 70}),
       {
         label: 'rowId',
         key: 'rowId',

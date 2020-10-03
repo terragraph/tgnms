@@ -126,9 +126,10 @@ export function useLoadTestTableData({
       const tempRows = {running: [], schedule: [], executions: []};
       testTableData.forEach(result => {
         if (result.includes('undefined')) {
-          return;
+          return setLoading(false);
         }
         if (typeof result === 'string') {
+          setLoading(false);
           return enqueueSnackbar(result, {
             variant: 'error',
           });
