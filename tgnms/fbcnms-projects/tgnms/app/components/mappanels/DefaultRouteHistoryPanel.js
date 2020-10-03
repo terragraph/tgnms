@@ -24,7 +24,6 @@ import {
 import {mapDefaultRoutes} from '../../helpers/DefaultRouteHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NodeMap, Site} from '../../contexts/NetworkContext';
 import type {NodeType, TopologyType} from '../../../shared/types/Topology';
 import type {RoutesContext as Routes} from '../../contexts/RouteContext';
 
@@ -78,8 +77,6 @@ type Props = {
   networkName: string,
   topology: TopologyType,
   node: NodeType,
-  nodeMap: NodeMap,
-  site: Site,
   onClose: () => any,
   routes: Routes,
   siteNodes: Set<string>,
@@ -187,25 +184,6 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
     });
   }
 
-  cleanRoute(routes) {
-    //clean up the routes that bounce between multiple pops at the end
-    const {nodeMap} = this.props;
-    const processedRoutes = routes.map(route => {
-      for (let i = route.length - 1; i > -1; i--) {
-        if (!nodeMap[route[i]].pop_node) {
-          return route.slice(0, i + 2);
-        }
-      }
-      return [];
-    });
-    return [
-      ...processedRoutes.filter(
-        route => JSON.stringify(route) !== JSON.stringify(processedRoutes[0]),
-      ),
-      processedRoutes[0],
-    ];
-  }
-
   async processRoutes() {
     const {networkName, topology} = this.props;
     const {selectedNode} = this.state;
@@ -253,11 +231,17 @@ class DefaultRouteHistoryPanel extends React.Component<Props, State> {
           routeInstances.find(route => route.max_hop_count !== 0)
             ?.max_hop_count || 0;
 
+        const isCurrent = routeString === currentRouteString;
+
+        if (isCurrent) {
+          this.setState({selectedRoute: index});
+        }
+
         return {
           route,
           hops,
           percent: percents[index],
-          isCurrent: routeString === currentRouteString,
+          isCurrent: isCurrent,
         };
       },
     );

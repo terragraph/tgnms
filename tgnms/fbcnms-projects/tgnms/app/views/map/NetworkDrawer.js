@@ -112,7 +112,6 @@ export default function NetworkDrawerFn({
     networkName,
     networkLinkHealth,
     nodeMap,
-    siteMap,
     siteToNodesMap,
     selectedElement,
     pinnedElements,
@@ -378,8 +377,6 @@ export default function NetworkDrawerFn({
               networkName={networkName}
               topology={topology}
               node={nodeMap[routesProps?.node ?? '']}
-              nodeMap={nodeMap}
-              site={siteMap[nodeMap[routesProps?.node ?? '']?.site_name]}
               siteNodes={
                 siteToNodesMap[nodeMap[routesProps?.node ?? '']?.site_name]
               }
@@ -391,6 +388,7 @@ export default function NetworkDrawerFn({
             />
           </Slide>
         )}
+
         <AnnotationsPanel panelControl={panelControl} />
         <TopologyBuilderMenu
           panelControl={panelControl}
