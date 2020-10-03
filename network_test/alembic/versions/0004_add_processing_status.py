@@ -25,15 +25,15 @@ def upgrade():
     op.alter_column(
         "network_test_execution",
         "status",
-        existing_type=sa.Enum(*old_statuses, name="networkteststatus"),
-        type_=sa.Enum(*new_statuses, name="networkteststatus"),
+        existing_type=sa.Enum(*old_statuses),
+        type_=sa.Enum(*new_statuses),
         existing_nullable=False,
     )
     op.alter_column(
         "network_test_result",
         "status",
-        existing_type=sa.Enum(*old_statuses, name="networkteststatus"),
-        type_=sa.Enum(*new_statuses, name="networkteststatus"),
+        existing_type=sa.Enum(*old_statuses),
+        type_=sa.Enum(*new_statuses),
         existing_nullable=False,
     )
     # ### end Alembic commands ###
@@ -44,15 +44,15 @@ def downgrade():
     op.alter_column(
         "network_test_execution",
         "status",
-        existing_type=sa.Enum(*new_statuses, name="networkteststatus"),
-        type_=sa.Enum(*old_statuses, name="networkteststatus"),
+        existing_type=sa.Enum(*new_statuses),
+        type_=sa.Enum(*old_statuses),
         existing_nullable=False,
     )
     op.alter_column(
         "network_test_result",
         "status",
-        existing_type=sa.Enum(*new_statuses, name="networkteststatus"),
-        type_=sa.Enum(*old_statuses, name="networkteststatus"),
+        existing_type=sa.Enum(*new_statuses),
+        type_=sa.Enum(*old_statuses),
         existing_nullable=False,
     )
     # ### end Alembic commands ###

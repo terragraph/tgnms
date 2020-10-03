@@ -4,72 +4,40 @@
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
-from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
-from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
-from tglib.exceptions import ClientRuntimeError
 
-from .base import LinkTest, TestAsset
+from .base import BaseTest
+from ..models import NetworkTestType
 
 
-class Sequential(LinkTest):
+class SequentialTest(BaseTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
+        self,
+        network_name: str,
+        test_type: NetworkTestType,
+        iperf_options: Dict[str, Any],
+        whitelist: List[str],
     ) -> None:
         # Set default test configurations
-        iperf_options["protocol"] = IperfTransportProtocol.UDP
-        iperf_options["json"] = True
-        if "bitrate" not in iperf_options:
-            iperf_options["bitrate"] = 200000000  # 200 MB/s
         if "timeSec" not in iperf_options:
             iperf_options["timeSec"] = 60  # 1 minute
 
-        super().__init__(network_name, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, whitelist)
 
-    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
-        """Prepare the network test assets.
-
-        The duration is the number of assets, post whitelist filtering, multiplied
-        by the duration of each session as each asset is tested sequentially.
-        """
-        self.session_ids.clear()
-
-        try:
-            client = APIServiceClient(timeout=1)
-            topology = await client.request(self.network_name, "getTopology")
-            whitelist_set = set(self.whitelist)
-            test_assets = []
-            for link in topology["links"]:
-                if link["link_type"] != LinkType.WIRELESS:
-                    continue
-                if self.whitelist and link["name"] not in whitelist_set:
-                    continue
-
-                test_assets.append(
-                    TestAsset(link["name"], link["a_node_mac"], link["z_node_mac"])
-                )
-
-            return (
-                test_assets,
-                timedelta(seconds=len(test_assets) * self.iperf_options["timeSec"]),
-            )
-        except ClientRuntimeError:
-            logging.exception(f"Failed to prepare test assets for {self.network_name}")
-            return None
-
-    async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
-        logging.info(f"Starting sequential link test on {self.network_name}")
+    async def start(self, execution_id: int) -> None:
+        """Start a sequential test (i.e. on each asset, one at a time)."""
+        logging.info(f"Starting sequential test on {self.network_name}")
         logging.debug(f"iperf options: {self.iperf_options}")
 
         loop = asyncio.get_event_loop()
         start_time = loop.time()
         client = APIServiceClient(timeout=1)
-        for i, asset in enumerate(test_assets, 1):
-            logging.info(f"Processing link ({i}/{len(test_assets)})")
+        for i, asset in enumerate(self.assets, 1):
+            logging.info(f"Processing asset ({i}/{len(self.assets)})")
 
-            # Run bidirectional iperf on the current link
+            # Run bidirectional iperf on the current asset
             requests = [
                 client.request(
                     self.network_name,
@@ -106,8 +74,11 @@ class Sequential(LinkTest):
                 },
             ]
 
-            # Sleep before processing the next link if the current link started successfully
+            # Sleep before processing the next link if the current asset started successfully
             if await self.save(requests, values):
                 await asyncio.sleep(self.iperf_options["timeSec"])
 
             logging.debug(f"time: {timedelta(seconds=loop.time() - start_time)}")
+
+    def estimate_duration(self) -> timedelta:
+        return timedelta(seconds=len(self.assets) * self.iperf_options["timeSec"])

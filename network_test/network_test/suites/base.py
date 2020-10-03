@@ -7,13 +7,13 @@ import dataclasses
 import logging
 from contextlib import suppress
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy import insert
 from tglib.clients import APIServiceClient, MySQLClient
 from tglib.exceptions import ClientRuntimeError
 
-from ..models import NetworkTestResult, NetworkTestStatus
+from ..models import NetworkTestResult, NetworkTestStatus, NetworkTestType
 
 
 @dataclasses.dataclass
@@ -29,33 +29,40 @@ class BaseTest(abc.ABC):
     def __init__(
         self,
         network_name: str,
+        test_type: NetworkTestType,
         iperf_options: Dict[str, Any],
         whitelist: Optional[List[str]],
     ) -> None:
         self.network_name = network_name
+        self.test_type = test_type
+        iperf_options["json"] = True
         self.iperf_options = iperf_options
         self.whitelist: List[str] = whitelist or []
+        self.assets: List[TestAsset] = []
         self.session_ids: Set[str] = set()
         self.task: Optional[asyncio.Task] = None
         self.cleanup_handle: Optional[asyncio.Handle] = None
 
     @abc.abstractmethod
-    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
+    async def prepare(self) -> bool:
         """Prepare the information needed to start the test.
 
-        Fetch the network assets needed to start the test from the API service and
-        estimate the time it would take the test to complete (in seconds).
-
-        If provided, use the test's whitelist to test specific assets.
+        Fetch the network assets needed to start the test from the API service. If
+        provided, use the test's whitelist to test specific assets.
         """
         pass
 
     @abc.abstractmethod
-    async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
+    async def start(self, execution_id: int) -> None:
         """Start the test.
 
         Issue "startTraffic" iperf commands to the API service.
         """
+        pass
+
+    @abc.abstractmethod
+    def estimate_duration(self) -> timedelta:
+        """Estimate the test duration."""
         pass
 
     async def stop(self) -> bool:
@@ -111,11 +118,3 @@ class BaseTest(abc.ABC):
             await sa_conn.connection.commit()
 
         return any(value["status"] == NetworkTestStatus.RUNNING for value in values)
-
-
-class NodeTest(BaseTest):
-    pass
-
-
-class LinkTest(BaseTest):
-    pass

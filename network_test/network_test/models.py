@@ -21,9 +21,10 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 class NetworkTestType(enum.Enum):
-    MULTIHOP = "multihop"
-    PARALLEL = "parallel"
-    SEQUENTIAL = "sequential"
+    PARALLEL_LINK = "parallel_link"
+    PARALLEL_NODE = "parallel_node"
+    SEQUENTIAL_LINK = "sequential_link"
+    SEQUENTIAL_NODE = "sequential_node"
 
     @classmethod
     def has_value(cls, value: str) -> bool:

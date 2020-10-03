@@ -13,7 +13,13 @@ from tglib.clients import APIServiceClient
 
 from .models import NetworkTestStatus, NetworkTestType
 from .scheduler import Schedule, Scheduler
-from .suites import BaseTest, Multihop, Parallel, Sequential
+from .suites import (
+    BaseTest,
+    ParallelLinkTest,
+    ParallelNodeTest,
+    SequentialLinkTest,
+    SequentialNodeTest,
+)
 
 
 routes = web.RouteTableDef()
@@ -29,7 +35,7 @@ def custom_serializer(obj: Any) -> str:
 
 
 @routes.get("/schedule")
-async def handle_get_schedules(request: web.Request) -> web.Response:
+async def handle_get_schedules(request: web.Request) -> web.Response:  # noqa: C901
     """
     ---
     description: Return all of the network test schedules and their current params.
@@ -42,7 +48,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
       type: array
       items:
         type: string
-        enum: [multihop, parallel, sequential]
+        enum: [parallel_link, parallel_node, sequential_link, sequential_node]
     - in: query
       name: network_name
       description: The name of the network.
@@ -162,7 +168,7 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
             type: string
           test_type:
             type: string
-            enum: [multihop, parallel, sequential]
+            enum: [parallel_link, parallel_node, sequential_link, sequential_node]
           network_name:
             type: string
           iperf_options:
@@ -215,14 +221,16 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
     whitelist = body.get("whitelist", [])
 
     test: BaseTest
-    if test_type == NetworkTestType.MULTIHOP:
-        test = Multihop(network_name, iperf_options, whitelist)
-    elif test_type == NetworkTestType.PARALLEL:
-        test = Parallel(network_name, iperf_options, whitelist)
-    elif test_type == NetworkTestType.SEQUENTIAL:
-        test = Sequential(network_name, iperf_options, whitelist)
+    if test_type == NetworkTestType.PARALLEL_LINK:
+        test = ParallelLinkTest(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.PARALLEL_NODE:
+        test = ParallelNodeTest(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL_LINK:
+        test = SequentialLinkTest(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL_NODE:
+        test = SequentialNodeTest(network_name, iperf_options, whitelist)
 
-    schedule_id = await Scheduler.add_schedule(schedule, test, test_type)
+    schedule_id = await Scheduler.add_schedule(schedule, test)
     return web.json_response(
         {
             "status": "success",
@@ -367,7 +375,7 @@ async def handle_get_executions(request: web.Request) -> web.Response:  # noqa: 
       type: array
       items:
         type: string
-        enum: [multihop, parallel, sequential]
+        enum: [parallel_link, parallel_node, sequential_link, sequential_node]
     - in: query
       name: network_name
       description: The name of the network.
@@ -513,7 +521,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         properties:
           test_type:
             type: string
-            enum: [multihop, parallel, sequential]
+            enum: [parallel_link, parallel_node, sequential_link, sequential_node]
           network_name:
             type: string
           iperf_options:
@@ -530,8 +538,6 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         description: Successful operation.
       "400":
         description: Invalid or missing parameters.
-      "404":
-        description: Whitelist yielded no matching test assets.
       "409":
         description: A network test is already running on the network.
       "500":
@@ -558,21 +564,19 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     whitelist = body.get("whitelist", [])
 
     test: BaseTest
-    if test_type == NetworkTestType.MULTIHOP:
-        test = Multihop(network_name, iperf_options, whitelist)
-    elif test_type == NetworkTestType.PARALLEL:
-        test = Parallel(network_name, iperf_options, whitelist)
-    elif test_type == NetworkTestType.SEQUENTIAL:
-        test = Sequential(network_name, iperf_options, whitelist)
+    if test_type == NetworkTestType.PARALLEL_LINK:
+        test = ParallelLinkTest(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.PARALLEL_NODE:
+        test = ParallelNodeTest(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL_LINK:
+        test = SequentialLinkTest(network_name, iperf_options, whitelist)
+    elif test_type == NetworkTestType.SEQUENTIAL_NODE:
+        test = SequentialNodeTest(network_name, iperf_options, whitelist)
 
-    prepare_output = await test.prepare()
-    if prepare_output is None:
+    if not await test.prepare():
         raise web.HTTPInternalServerError(text="Failed to prepare network test assets")
-    test_assets, _ = prepare_output
-    if whitelist and not test_assets:
-        raise web.HTTPNotFound(text=f"No test assets matched whitelist: {whitelist}")
 
-    execution_id = await Scheduler.start_execution(test, test_type, prepare_output)
+    execution_id = await Scheduler.start_execution(test)
     return web.json_response(
         {
             "status": "success",

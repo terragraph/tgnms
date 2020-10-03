@@ -4,67 +4,38 @@
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
-from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
-from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
-from tglib.exceptions import ClientRuntimeError
 
-from .base import LinkTest, TestAsset
+from .base import BaseTest
+from ..models import NetworkTestType
 
 
-class Parallel(LinkTest):
+class ParallelTest(BaseTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
+        self,
+        network_name: str,
+        test_type: NetworkTestType,
+        iperf_options: Dict[str, Any],
+        whitelist: List[str],
     ) -> None:
         # Set default test configurations
-        iperf_options["protocol"] = IperfTransportProtocol.UDP
-        iperf_options["json"] = True
-        if "bitrate" not in iperf_options:
-            iperf_options["bitrate"] = 200000000  # 200 MB/s
         if "timeSec" not in iperf_options:
             iperf_options["timeSec"] = 300  # 5 minutes
 
-        super().__init__(network_name, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, whitelist)
 
-    async def prepare(self) -> Optional[Tuple[List[TestAsset], timedelta]]:
-        """Prepare the network test assets.
-
-        The test duration is the duration of one iperf session, as each asset will
-        be tested in parallel.
-        """
-        self.session_ids.clear()
-
-        try:
-            client = APIServiceClient(timeout=1)
-            topology = await client.request(self.network_name, "getTopology")
-            whitelist_set = set(self.whitelist)
-            test_assets = []
-            for link in topology["links"]:
-                if link["link_type"] != LinkType.WIRELESS:
-                    continue
-                if self.whitelist and link["name"] not in whitelist_set:
-                    continue
-
-                test_assets.append(
-                    TestAsset(link["name"], link["a_node_mac"], link["z_node_mac"])
-                )
-
-            return test_assets, timedelta(seconds=self.iperf_options["timeSec"])
-        except ClientRuntimeError:
-            logging.exception(f"Failed to prepare test assets for {self.network_name}")
-            return None
-
-    async def start(self, execution_id: int, test_assets: List[TestAsset]) -> None:
-        logging.info(f"Starting parallel link test on {self.network_name}")
+    async def start(self, execution_id: int) -> None:
+        """Start a parallel test (i.e. on all assets simultaneously)."""
+        logging.info(f"Starting parallel test on {self.network_name}")
         logging.debug(f"iperf options: {self.iperf_options}")
 
         requests: List[asyncio.Future] = []
         values: List[Dict] = []
         client = APIServiceClient(timeout=1)
-        for asset in test_assets:
-            # Run bidirectional iperf on all wireless links simultaneously
+        for asset in self.assets:
+            # Run bidirectional iperf on all assets simultaneously
             requests += [
                 client.request(
                     self.network_name,
@@ -102,3 +73,6 @@ class Parallel(LinkTest):
             ]
 
         await self.save(requests, values)
+
+    def estimate_duration(self) -> timedelta:
+        return timedelta(seconds=self.iperf_options["timeSec"])

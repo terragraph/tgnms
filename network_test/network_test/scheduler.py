@@ -31,11 +31,11 @@ from .stats import (
 from .suites import (
     BaseTest,
     LinkTest,
-    Multihop,
     NodeTest,
-    Parallel,
-    Sequential,
-    TestAsset,
+    ParallelLinkTest,
+    ParallelNodeTest,
+    SequentialLinkTest,
+    SequentialNodeTest,
 )
 
 
@@ -45,9 +45,7 @@ class Schedule:
         self.cron_expr = cron_expr
         self.task: Optional[asyncio.Task] = None
 
-    async def start(
-        self, test: BaseTest, test_type: NetworkTestType, params_id: int
-    ) -> NoReturn:
+    async def start(self, test: BaseTest, params_id: int) -> NoReturn:
         """Start the schedule task.
 
         Loops forever and tries to start a new test execution when the cron
@@ -57,7 +55,7 @@ class Schedule:
 
         while True:
             logging.info(
-                f"A {test_type.value} test is scheduled for "
+                f"A {test.test_type.value} test is scheduled for "
                 f"{iter.get_next(datetime)} on {test.network_name}"
             )
 
@@ -75,19 +73,12 @@ class Schedule:
                 continue
 
             # Skip if the test assets could not be prepared
-            prepare_output = await test.prepare()
-            if prepare_output is None:
+            if not await test.prepare():
                 logging.error("Failed to prepare network test assets")
                 continue
 
-            # Skip if no assets were found using the whitelist
-            test_assets, _ = prepare_output
-            if test.whitelist and not test_assets:
-                logging.error(f"No test assets matched whitelist: {test.whitelist}")
-                continue
-
             # Start the test if all the "skip checks" are negative
-            await Scheduler.start_execution(test, test_type, prepare_output, params_id)
+            await Scheduler.start_execution(test, params_id)
 
     async def stop(self) -> bool:
         """Stop the schedule task.
@@ -235,23 +226,29 @@ class Scheduler:
         # Start all of the schedules in the DB
         for row in await cls.list_schedules():
             test: BaseTest
-            if row.test_type == NetworkTestType.MULTIHOP:
-                test = Multihop(row.network_name, row.iperf_options, row.whitelist)
-            elif row.test_type == NetworkTestType.PARALLEL:
-                test = Parallel(row.network_name, row.iperf_options, row.whitelist)
-            elif row.test_type == NetworkTestType.SEQUENTIAL:
-                test = Sequential(row.network_name, row.iperf_options, row.whitelist)
+            if row.test_type == NetworkTestType.PARALLEL_LINK:
+                test = ParallelLinkTest(
+                    row.network_name, row.iperf_options, row.whitelist
+                )
+            elif row.test_type == NetworkTestType.PARALLEL_NODE:
+                test = ParallelNodeTest(
+                    row.network_name, row.iperf_options, row.whitelist
+                )
+            elif row.test_type == NetworkTestType.SEQUENTIAL_LINK:
+                test = SequentialLinkTest(
+                    row.network_name, row.iperf_options, row.whitelist
+                )
+            elif row.test_type == NetworkTestType.SEQUENTIAL_NODE:
+                test = SequentialNodeTest(
+                    row.network_name, row.iperf_options, row.whitelist
+                )
 
             schedule = Schedule(row.enabled, row.cron_expr)
             cls._schedules[row.id] = schedule
-            schedule.task = asyncio.create_task(
-                schedule.start(test, row.test_type, row.params_id)
-            )
+            schedule.task = asyncio.create_task(schedule.start(test, row.params_id))
 
     @classmethod
-    async def add_schedule(
-        cls, schedule: Schedule, test: BaseTest, test_type: NetworkTestType
-    ) -> int:
+    async def add_schedule(cls, schedule: Schedule, test: BaseTest) -> int:
         """Add a new schedule to the DB and start the internal task."""
         async with MySQLClient().lease() as sa_conn:
             insert_schedule_query = insert(NetworkTestSchedule).values(
@@ -262,7 +259,7 @@ class Scheduler:
 
             insert_params_query = insert(NetworkTestParams).values(
                 schedule_id=schedule_id,
-                test_type=test_type,
+                test_type=test.test_type,
                 network_name=test.network_name,
                 iperf_options=test.iperf_options,
                 whitelist=test.whitelist or None,
@@ -272,7 +269,7 @@ class Scheduler:
             await sa_conn.connection.commit()
 
         cls._schedules[schedule_id] = schedule
-        schedule.task = asyncio.create_task(schedule.start(test, test_type, params_id))
+        schedule.task = asyncio.create_task(schedule.start(test, params_id))
         return schedule_id
 
     @classmethod
@@ -305,13 +302,14 @@ class Scheduler:
             params_id = params_row.id
 
             test: BaseTest
-            test_type = params_row.test_type
-            if test_type == NetworkTestType.MULTIHOP:
-                test = Multihop(network_name, iperf_options, whitelist)
-            elif test_type == NetworkTestType.PARALLEL:
-                test = Parallel(network_name, iperf_options, whitelist)
-            elif test_type == NetworkTestType.SEQUENTIAL:
-                test = Sequential(network_name, iperf_options, whitelist)
+            if params_row.test_type == NetworkTestType.PARALLEL_LINK:
+                test = ParallelLinkTest(network_name, iperf_options, whitelist)
+            elif params_row.test_type == NetworkTestType.PARALLEL_NODE:
+                test = ParallelNodeTest(network_name, iperf_options, whitelist)
+            elif params_row.test_type == NetworkTestType.SEQUENTIAL_LINK:
+                test = SequentialLinkTest(network_name, iperf_options, whitelist)
+            elif params_row.test_type == NetworkTestType.SEQUENTIAL_NODE:
+                test = SequentialNodeTest(network_name, iperf_options, whitelist)
 
             # Insert new params row if the values differ
             if not (
@@ -321,7 +319,7 @@ class Scheduler:
             ):
                 insert_params_query = insert(NetworkTestParams).values(
                     schedule_id=schedule_id,
-                    test_type=test_type,
+                    test_type=params_row.test_type,
                     network_name=test.network_name,
                     iperf_options=test.iperf_options,
                     whitelist=test.whitelist or None,
@@ -339,7 +337,7 @@ class Scheduler:
         # Start the new schedule
         schedule = Schedule(enabled, cron_expr)
         cls._schedules[schedule_id] = schedule
-        schedule.task = asyncio.create_task(schedule.start(test, test_type, params_id))
+        schedule.task = asyncio.create_task(schedule.start(test, params_id))
         return True
 
     @classmethod
@@ -361,17 +359,13 @@ class Scheduler:
 
     @classmethod
     async def start_execution(
-        cls,
-        test: BaseTest,
-        test_type: NetworkTestType,
-        prepare_output: Tuple[List[TestAsset], timedelta],
-        params_id: Optional[int] = None,
+        cls, test: BaseTest, params_id: Optional[int] = None
     ) -> int:
         """Add a new execution to the DB and start the internal task."""
         async with MySQLClient().lease() as sa_conn:
             if params_id is None:
                 insert_params_query = insert(NetworkTestParams).values(
-                    test_type=test_type,
+                    test_type=test.test_type,
                     network_name=test.network_name,
                     iperf_options=test.iperf_options,
                     whitelist=test.whitelist or None,
@@ -388,13 +382,12 @@ class Scheduler:
 
         # Start the test
         cls._executions[execution_id] = test
-        test_assets, estimated_duration = prepare_output
-        test.task = asyncio.create_task(test.start(execution_id, test_assets))
+        test.task = asyncio.create_task(test.start(execution_id))
 
         # Schedule the cleanup task
         loop = asyncio.get_event_loop()
         test.cleanup_handle = loop.call_later(
-            estimated_duration.total_seconds(),
+            test.estimate_duration().total_seconds(),
             asyncio.create_task,
             cls.stop_execution(execution_id, manual=False),
         )
