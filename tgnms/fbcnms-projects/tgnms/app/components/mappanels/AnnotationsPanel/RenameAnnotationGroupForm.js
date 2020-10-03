@@ -25,14 +25,14 @@ export default function RenameAnnotationGroupForm({
   group,
   onClose,
 }: {
-  group: MapAnnotationGroupIdent,
+  group: ?MapAnnotationGroupIdent,
   onClose: () => void,
 }) {
   const {setCurrent} = useMapAnnotationContext();
   const {groups, loadGroups} = useAnnotationGroups();
   const {handleInputChange, formState} = useForm({
     initialState: {
-      name: group.name,
+      name: group?.name,
     },
   });
   const {isLoading, isError, message, setMessage, setState} = useTaskState();
@@ -47,7 +47,7 @@ export default function RenameAnnotationGroupForm({
       }
       try {
         const renamed = await mapApi.setAnnotationGroupProperties({
-          groupId: group.id,
+          groupId: group?.id ?? 0,
           name: formState.name,
         });
         await loadGroups();
