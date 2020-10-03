@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import EditIcon from '@material-ui/icons/Edit';
 import NetworkContext from '../../contexts/NetworkContext';
 import NetworkTestAdvancedParams from './NetworkTestAdvancedParams';
 import SchedulerModal from '../../components/scheduler/SchedulerModal';
@@ -70,7 +71,12 @@ export default function EditNetworkTestScheduleModal(props: Props) {
 
   return (
     <SchedulerModal
-      buttonTitle="Edit"
+      buttonTitle={
+        <>
+          <EditIcon />
+          Edit
+        </>
+      }
       modalTitle="Edit Network Test Schedule"
       modalScheduleText="Save Changes"
       onSubmit={handleSubmit}

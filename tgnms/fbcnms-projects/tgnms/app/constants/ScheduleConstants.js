@@ -8,9 +8,14 @@
 import * as React from 'react';
 import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import CheckCircleOutlineOutlinedIcon from '@material-ui/icons/CheckCircleOutlineOutlined';
+import DeleteIcon from '@material-ui/icons/Delete';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import EventIcon from '@material-ui/icons/Event';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
+import PauseIcon from '@material-ui/icons/Pause';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import RadioButtonUncheckedIcon from '@material-ui/icons/RadioButtonUnchecked';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -221,11 +226,26 @@ export const DAYS = {
 
 export const BUTTON_TYPES = {
   edit: 'Edit',
-  abort: 'Abort',
-  delete: 'Delete',
-  download: 'Download',
-  disable: 'Pause Schedule',
-  enable: 'Resume',
+  abort: <HighlightOffIcon />,
+  delete: (
+    <>
+      <DeleteIcon />
+      Delete
+    </>
+  ),
+  download: <GetAppIcon />,
+  disable: (
+    <>
+      <PauseIcon />
+      Pause
+    </>
+  ),
+  enable: (
+    <>
+      <PlayArrowIcon />
+      Resume
+    </>
+  ),
 };
 
 export const API_TYPE = {

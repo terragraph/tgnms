@@ -30,21 +30,21 @@ const defaultProps = {
 };
 
 test('renders without crashing', () => {
-  const {getByText} = render(
+  const {getByTestId} = render(
     <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
       <ResultExport {...defaultProps} />
     </NetworkContextWrapper>,
   );
-  expect(getByText('Download')).toBeInTheDocument();
+  expect(getByTestId('download-button')).toBeInTheDocument();
 });
 
 test('download triggers api call', () => {
-  const {getByText} = render(
+  const {getByTestId, getByText} = render(
     <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
       <ResultExport {...defaultProps} />
     </NetworkContextWrapper>,
   );
-  expect(getByText('Download')).toBeInTheDocument();
+  expect(getByTestId('download-button')).toBeInTheDocument();
   fireEvent.click(getByText('JSON'));
   expect(getTestExecutionMock).toHaveBeenCalled();
 });

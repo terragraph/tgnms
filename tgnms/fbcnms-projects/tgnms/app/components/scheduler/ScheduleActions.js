@@ -6,10 +6,10 @@
  */
 
 import * as React from 'react';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import {BUTTON_TYPES} from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 
@@ -67,7 +67,7 @@ export default function ScheduleActions(props: Props) {
   return (
     <div className={classes.scheduleActionButtonContainer}>
       <Button onClick={handleClick}>
-        View Actions <ArrowDropDownIcon />
+        <MoreVertIcon />
       </Button>
       <Menu
         anchorEl={anchorEl}

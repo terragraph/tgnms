@@ -12,6 +12,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import RootRef from '@material-ui/core/RootRef';
 import axios from 'axios';
+import {BUTTON_TYPES} from '../../constants/ScheduleConstants';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
@@ -80,8 +81,11 @@ export default function ResultExport(props: Props): React.Node {
   return (
     <>
       <RootRef rootRef={anchorRef}>
-        <Button aria-haspopup="true" onClick={() => setExportMenu(true)}>
-          Download
+        <Button
+          aria-haspopup="true"
+          onClick={() => setExportMenu(true)}
+          data-testid="download-button">
+          {BUTTON_TYPES.download}
         </Button>
       </RootRef>
       <Menu

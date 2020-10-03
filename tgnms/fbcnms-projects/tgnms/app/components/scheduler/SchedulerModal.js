@@ -5,11 +5,11 @@
  * @flow
  */
 
+import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import MaterialModal from '../../components/common/MaterialModal';
-import React, {useCallback, useState} from 'react';
 import ScheduleParams from './ScheduleParams';
 import ScheduleTime from './ScheduleTime';
 import {MODAL_MODE} from '../../constants/ScheduleConstants';
@@ -34,7 +34,7 @@ const useModalStyles = makeStyles(theme => ({
 }));
 
 export type Props = {
-  buttonTitle: string,
+  buttonTitle: React.Node,
   modalTitle: string,
   modalSubmitText?: string,
   modalScheduleText?: string,
@@ -65,19 +65,19 @@ export default function SchedulerModal(props: Props) {
   const editModalMode = modalMode === MODAL_MODE.EDIT;
   const enableTime = props.enableTime === undefined ? true : props.enableTime;
 
-  const [adHoc, setAdHoc] = useState(editModalMode ? false : true);
-  const [cronString, setCronString] = useState(null);
+  const [adHoc, setAdHoc] = React.useState(editModalMode ? false : true);
+  const [cronString, setCronString] = React.useState(null);
 
   const handleCronStringUpdate = (newCronString: ?string) =>
     setCronString(newCronString);
 
   const handleAdHocChange = (newAdHoc: boolean) => setAdHoc(newAdHoc);
 
-  const handleClose = useCallback(() => {
+  const handleClose = React.useCallback(() => {
     setIsOpen(false), setAdHoc(editModalMode ? false : true);
   }, [editModalMode]);
 
-  const handleSubmitButtonPress = useCallback(() => {
+  const handleSubmitButtonPress = React.useCallback(() => {
     onSubmit(cronString, adHoc);
     handleClose();
   }, [onSubmit, cronString, handleClose, adHoc]);

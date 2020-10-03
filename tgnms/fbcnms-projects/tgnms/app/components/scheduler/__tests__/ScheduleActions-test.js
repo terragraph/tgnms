@@ -8,7 +8,6 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ScheduleActions from '../ScheduleActions';
-import {BUTTON_TYPES} from '../../../constants/ScheduleConstants';
 import {TestApp} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 import {mockSchedules} from '../../../tests/data/NetworkTestApi';
@@ -29,8 +28,8 @@ test('renders without crashing', () => {
     </TestApp>,
   );
   expect(getByText('test edit button')).toBeInTheDocument();
-  expect(getByText(BUTTON_TYPES.disable)).toBeInTheDocument();
-  expect(getByText(BUTTON_TYPES.delete)).toBeInTheDocument();
+  expect(getByText('Pause')).toBeInTheDocument();
+  expect(getByText('Delete')).toBeInTheDocument();
 });
 
 test('disable click', () => {
@@ -39,8 +38,8 @@ test('disable click', () => {
       <ScheduleActions {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText(BUTTON_TYPES.disable)).toBeInTheDocument();
-  fireEvent.click(getByText(BUTTON_TYPES.disable));
+  expect(getByText('Pause')).toBeInTheDocument();
+  fireEvent.click(getByText('Pause'));
   expect(defaultProps.onSetDisableSchedule).toHaveBeenCalled();
 });
 
@@ -50,7 +49,7 @@ test('delete click', () => {
       <ScheduleActions {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText(BUTTON_TYPES.delete)).toBeInTheDocument();
-  fireEvent.click(getByText(BUTTON_TYPES.delete));
+  expect(getByText('Delete')).toBeInTheDocument();
+  fireEvent.click(getByText('Delete'));
   expect(defaultProps.onDeleteSchedule).toHaveBeenCalled();
 });
