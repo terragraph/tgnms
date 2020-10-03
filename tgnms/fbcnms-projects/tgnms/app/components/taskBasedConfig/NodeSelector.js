@@ -71,6 +71,7 @@ export default function NodeSelector({
 
     [onSelectNode],
   );
+
   React.useEffect(() => {
     const getNodeOverrides = async () => {
       try {
@@ -92,15 +93,25 @@ export default function NodeSelector({
 
   const nodeList = getTopologyNodeList(networkConfig, nodeOverrides);
 
-  const filteredNodeList = nodeList.filter(node => {
-    const correctMode =
-      configModes[mode] === configModes.POP
-        ? node.isPop
-        : configModes[mode] === configModes.CN
-        ? node.isCn
-        : true;
-    return node.name.includes(searchFilter) && correctMode;
-  });
+  const filteredNodeList = React.useMemo(
+    () =>
+      nodeList.filter(node => {
+        const correctMode =
+          configModes[mode] === configModes.POP
+            ? node.isPop
+            : configModes[mode] === configModes.CN
+            ? node.isCn
+            : true;
+        return node.name.includes(searchFilter) && correctMode;
+      }),
+    [mode, nodeList, searchFilter],
+  );
+
+  React.useEffect(() => {
+    if (selectedNodeName == null && filteredNodeList.length > 0) {
+      onSelectNode(filteredNodeList[0].name);
+    }
+  }, [selectedNodeName, filteredNodeList, onSelectNode]);
 
   return (
     <div>

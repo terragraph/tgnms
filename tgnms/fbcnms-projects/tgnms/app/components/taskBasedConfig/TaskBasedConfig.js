@@ -57,6 +57,7 @@ export default function TaskBasedConfig() {
   const handleConfigChange = React.useCallback(
     (event, newMode) => {
       setConfigMode(newMode);
+      setNodeName(null);
     },
 
     [setConfigMode],
