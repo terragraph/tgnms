@@ -106,7 +106,11 @@ export default function AssetDirectionDetails({
           link
             ? [
                 {val: result.mcs_avg || 0, label: 'MCS Avg'},
-                {val: result.snr_avg || 0, label: 'SNR Avg', metricUnit: 'dBm'},
+                {
+                  val: result.snr_avg || 0,
+                  label: 'SNR Avg',
+                  metricUnit: 'dBm',
+                },
                 {
                   val: result.tx_pwr_avg || 0,
                   label: 'Tx Power',
@@ -196,7 +200,6 @@ export default function AssetDirectionDetails({
       ) : (
         <MetricGroup
           header="Iperf Retransmits"
-          groupUnits="%"
           metrics={[
             {val: result.iperf_avg_retransmits || 0, label: 'Avg'},
             {val: result.iperf_min_retransmits || 0, label: 'Min'},
