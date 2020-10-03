@@ -59,6 +59,11 @@ const useStyles = makeStyles(theme => ({
     top: '5%',
     left: '50%',
   },
+  errorTitle: {
+    textTransform: 'capitalize',
+    fontWeight: theme.typography.fontWeightBold,
+  },
+  errorMessage: {color: theme.palette.grey[600]},
 }));
 
 export default function ScheduleTable<T>(props: Props<T>) {
@@ -172,7 +177,20 @@ export default function ScheduleTable<T>(props: Props<T>) {
               onRowSelect={handleRowSelect}
             />
           ) : (
-            `No executions or schedules with current filters, try starting a ${mode}.`
+            <Grid
+              container
+              item
+              alignItems="center"
+              direction={'column'}
+              spacing={2}>
+              <Grid item className={classes.errorTitle}>
+                No {mode}s found
+              </Grid>
+              <Grid item xs={6} className={classes.errorMessage}>
+                No scheduled or past {mode}s match the filters. Try Selecting a
+                different filter or scheduling a new {mode}.
+              </Grid>
+            </Grid>
           )}
         </Grid>
       </Paper>

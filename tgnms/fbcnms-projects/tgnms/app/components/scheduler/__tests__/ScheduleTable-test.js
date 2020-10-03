@@ -53,11 +53,7 @@ test('renders empty message when no rows', () => {
       <ScheduleTable {...defaultProps} />
     </MaterialTheme>,
   );
-  expect(
-    getByText(
-      'No executions or schedules with current filters, try starting a test.',
-    ),
-  ).toBeInTheDocument();
+  expect(getByText('No tests found')).toBeInTheDocument();
 });
 
 test('renders custom table with rows', () => {
