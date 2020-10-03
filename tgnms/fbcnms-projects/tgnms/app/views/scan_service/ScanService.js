@@ -158,6 +158,7 @@ export default function ScanService(props: Props) {
       const {initialFrequency, initialTime, initialDay} = getParsedCronString({
         cronString: row.cron_expr || '',
       });
+      const time = initialTime.split(',')[1];
       return {
         id: row.id,
         rowId: 'schedule' + row.id,
@@ -175,8 +176,8 @@ export default function ScanService(props: Props) {
               ? initialDay
               : 'monthly on the ' + getDateNth({date: Number(initialDay)})
             : 'day ') +
-          ', ' +
-          initialTime
+          ', at' +
+          time
         ) : (
           <div className={classes.disabledText}>
             <div className={classes.strikeThrough}>
@@ -191,8 +192,8 @@ export default function ScanService(props: Props) {
                     ? initialDay
                     : 'monthly on the ' + getDateNth({date: Number(initialDay)})
                   : 'day ') +
-                ', ' +
-                initialTime}
+                ', at' +
+                time}
             </div>
           </div>
         ),
