@@ -95,6 +95,7 @@ export type Props = {
   offlineWhitelist: ?OfflineWhiteListType,
   metricData: ?{[string]: {}},
   routes: Routes,
+  scanId: ?string,
 };
 
 type CnLinkInfoMap = {
@@ -126,12 +127,13 @@ class LinksLayer extends React.Component<Props> {
       offlineWhitelist,
       temporaryTopology,
       temporarySelectedAsset,
+      scanMode,
     } = this.props;
     const {igCandidates} = ignitionState;
 
     if (routes.links && Object.keys(routes.links).length !== 0) {
       if (routes.links.hasOwnProperty(link.name)) {
-        if (routes.links[link.name] !== 0) {
+        if (routes.links[link.name] !== 0 && scanMode) {
           return LinkInterferenceColors[routes.links[link.name]];
         }
         return LinkOverlayColors.metric.excellent.color;

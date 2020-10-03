@@ -16,6 +16,7 @@ import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
+import {MAPMODE} from '../../../contexts/MapContext';
 import {TopologyElementType} from '../../../constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
@@ -71,6 +72,7 @@ export default function MapLayers(props: Props) {
     selectedOverlays,
     overlays,
     overlayData,
+    mapMode,
   } = useMapContext();
   const routes = useRouteContext();
   const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
@@ -156,6 +158,7 @@ export default function MapLayers(props: Props) {
           temporaryTopology={networkMapOptions.temporaryTopology}
           setTemporaryAssetSelect={handleTemporaryAssetSelect}
           temporarySelectedAsset={networkMapOptions.temporarySelectedAsset}
+          scanMode={mapMode === MAPMODE.SCAN_SERVICE}
         />
       ) : null}
       {site_icons && overlays.site_icons ? (
