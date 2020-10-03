@@ -226,12 +226,16 @@ export default function NmsSettings() {
                       />
                     </SettingsGroup>
                     <SettingsGroup
-                      title="Default Routes History"
+                      title="Historical Stats"
                       tester={
                         <SettingsTester
                           keys={['DEFAULT_ROUTES_HISTORY_HOST']}
                         />
                       }>
+                      <SettingInput
+                        label="Enable Historical Map Stats"
+                        setting="MAP_HISTORY_ENABLED"
+                      />
                       <SettingInput
                         label="Enable Default Routes History"
                         setting="DEFAULT_ROUTES_HISTORY_ENABLED"

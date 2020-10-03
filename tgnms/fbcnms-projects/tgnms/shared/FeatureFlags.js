@@ -21,6 +21,7 @@ export const FEATURE_FLAGS: {|[string]: FeatureFlagDef|} = {
     customFlag: env => typeof env['GRAFANA_URL'] === 'string',
   },
   SERVICE_AVAILABILITY_ENABLED: {isDefaultEnabled: false},
+  MAP_HISTORY_ENABLED: {isDefaultEnabled: true},
 
   //beta features
   NMS_SETTINGS_ENABLED: {isDefaultEnabled: true},
@@ -35,7 +36,6 @@ export const FEATURE_FLAGS: {|[string]: FeatureFlagDef|} = {
   NMS_BACKUP_ENABLED: {isDefaultEnabled: false},
   GET_SYSDUMP_ENABLED: {isDefaultEnabled: false},
   MAP_ANNOTATIONS_ENABLED: {isDefaultEnabled: false},
-  MAP_HISTORY_ENABLED: {isDefaultEnabled: false},
   ALARMS_ENABLED: {isDefaultEnabled: false},
   DEFAULT_ROUTES_HISTORY_ENABLED: {isDefaultEnabled: false},
   LINK_BUDGETING_ENABLED: {isDefaultEnabled: false},
