@@ -1,20 +1,4 @@
 ---
-paths:
-  "/map/annotations/{network}":
-    get:
-      description: Gets a listing of annotation groups
-      tags:
-      - Annotations
-      produces:
-        - application/json
-      parameters:
-        - $ref: "#/components/parameters/network"
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AnnotationGroupIdArray"
 components:
   schemas:
     AnnotationGroupIdArray:
@@ -39,6 +23,59 @@ components:
         - properties:
             geojson:
               type: object
+    AnnotationFeature:
+      allOf:
+      - $ref: "#/components/schemas/GeoJSONFeature"
+      - description: A GeoJSON Feature with the properties added by TGNMS.
+          These properties are used to enable features such as color and naming.
+        properties:
+          properties:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Annotation Name
+                example: "Point 1"
+              showName:
+                type: boolean
+                description: Show the Feature's name on the map
+              color:
+                type: string
+                description: Hexidecimal color
+                example: "#ffffff"
+              opacity:
+                type: number
+                minimum: 0.0
+                maximum: 1.0
+                description: Opacity of the annotation on the map. 0 means the
+                  feature will not be visible.
+                example: 1.0
+    GeoJSONFeature:
+      type: object
+      description: a GeoJSON Feature - https://geojson.org/
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7946
+      allOf:
+        - properties:
+            type:
+              type: string
+            geometry:
+              $ref: "#/components/schemas/Geometry"
+    Geometry:
+      type: array
+      description: GeoJSON geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#geometry-objects
+      minItems: 1
+      items:
+        - $ref: "#/components/schemas/Coord"
+    Coord:
+      type: array
+      description: GeoJSON coordinate
+      minItems: 2
+      maxItems: 3
+      items:
+        type: number
   parameters:
     network:
       name: network
@@ -49,6 +86,19 @@ components:
     group:
       name: group
       description: Annotation Group Name
+      in: path
+      required: true
+      type: string
+    groupId:
+      name: groupId
+      description: Annotation Group Database ID
+      in: path
+      required: true
+      type: string
+    annotationId:
+      name: annotationId
+      description: Annotation Feature ID - This is the GeoJSON Feature ID in the
+        FeatureColection of a group. Should be unique per-network.
       in: path
       required: true
       type: string
