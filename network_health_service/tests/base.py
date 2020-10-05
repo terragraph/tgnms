@@ -5,6 +5,8 @@ import logging
 import unittest
 
 from .create_query_tests import CreateQueryTests
+from .fetch_stats_tests import FetchStatsTests
+from .health_tests import HealthTests
 
 
 if __name__ == "__main__":

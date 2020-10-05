@@ -10,6 +10,7 @@ from network_health_service.stats.metrics import Metrics
 
 class CreateQueryTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.maxDiff = None
         with open("tests/metrics.json") as f:
             metrics = json.load(f)
             Metrics.update_metrics(metrics, prometheus_hold_time=30)
@@ -79,7 +80,7 @@ class CreateQueryTests(unittest.TestCase):
             "udp_pinger_loss_ratio": (
                 "sum_over_time("
                 '(udp_pinger_loss_ratio{network="network_A",intervalSec="30"} '
-                ">= bool 0.9) [3599s:30s])"
+                "< bool 0.9) [3599s:30s])"
             ),
             "node_online": (
                 "sum_over_time("

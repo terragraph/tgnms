@@ -75,7 +75,7 @@
       "higher_threshold": 99.9
     },
     "node_online": {
-      "interval_s": null,
+      "interval_s": 30,
       "lower_threshold": 99.5,
       "higher_threshold": 99.9
     },

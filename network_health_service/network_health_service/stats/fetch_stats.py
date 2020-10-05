@@ -131,7 +131,7 @@ def get_node_queries(network_name: str, period_s: int) -> Dict[str, str]:
 
     base_query = PrometheusClient.format_query("udp_pinger_loss_ratio", labels)
     queries["udp_pinger_loss_ratio"] = ops.sum_over_time(
-        f"({base_query} >= bool 0.9)",
+        f"({base_query} < bool 0.9)",
         f"{period_s - 1}s:{Metrics.udp_pinger_loss_ratio.interval_s}s",
     )
 
@@ -347,6 +347,7 @@ async def fetch_query_link_avail(
                 return None
     except (aiohttp.ClientError, asyncio.TimeoutError):
         logging.exception(f"Request to {url} for {network_name} failed.")
+        return None
 
     for link_name, data in results["events"].items():
         link_name = PrometheusClient.normalize(link_name)
