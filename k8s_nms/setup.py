@@ -16,7 +16,7 @@ ansible_files = [
 
 setup(
     name="k8s_nms",
-    version="2020.08.06",
+    version="2020.09.30",
     description=("k8s_nms cli"),
     packages=["k8s_nms"],
     package_data={"k8s_nms": ansible_files},

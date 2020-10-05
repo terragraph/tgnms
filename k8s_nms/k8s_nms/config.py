@@ -90,14 +90,17 @@ def get_env(filename, config):
     }
 
 
-def configure_templates(config: Dict[str, Any], files: Dict[str, str]):
+def configure_templates(config: Dict[str, Any], files: Dict[str, str]) -> str:
+    result = ""
     try:
         for filename, content in files.items():
             template = get_template(content)
-            print("---")
-            print(template.render(get_env(filename, config)))
+            result += "---\n"
+            result += f"{template.render(get_env(filename, config))}\n"
     except jinja2.exceptions.UndefinedError as e:
         sys.stderr.write(f"Failed on file {filename}\n")
         if current_lookup:
             sys.stderr.write(f"While running lookup on file {current_lookup}\n")
         raise
+
+    return result

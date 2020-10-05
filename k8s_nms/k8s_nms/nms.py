@@ -19,7 +19,10 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
 
-from .config import configure_templates, get_template
+from k8s_nms.config import configure_templates, get_template
+from k8s_nms import rage
+
+RAGE_DIR = os.path.join(os.path.expanduser("~"), ".k8s_nms_logs")
 
 
 common_options = {
@@ -97,6 +100,11 @@ def run_ansible(
         env = os.environ.copy()
         env["ANSIBLE_STDOUT_CALLBACK"] = env.get("ANSIBLE_STDOUT_CALLBACK", "debug")
 
+        if rage._context is not None and rage._context["is_atty"]:
+            # Ansible is running with its stdout passed to Python, so turn on
+            # colors manually if necessary
+            env["ANSIBLE_FORCE_COLOR"] = "true"
+
         command = f"{os.path.dirname(sys.executable)}/ansible-playbook --inventory {temp.name} {playbook}"
         command = [
             f"{os.path.dirname(sys.executable)}/ansible-playbook",
@@ -117,7 +125,7 @@ def run_ansible(
             command.append(f"-{'v' * verbose}")
         if not subprocess_kwargs:
             subprocess_kwargs = {}
-        subprocess.check_call(command, env=env, **subprocess_kwargs)
+        rage.run_subprocess_command(command, env=env, **subprocess_kwargs)
 
 
 def generate_inventory(managers, workers):
@@ -155,24 +163,29 @@ def add_common_options(*args):
     return wrapper
 
 
-@click.group(invoke_without_command=True)
-@click.option("--version", is_flag=True, default=False, help="Show version and exit")
-@click.option("--short", is_flag=True, default=False, help="Short version")
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+@click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
+@click.option("--version", is_flag=True, default=False, help="Show version")
 @click.pass_context
-def cli(ctx, version, short):
-    if version or short:
-        longver = "[work in progress] Terragraph NMS cli utility version: {}"
+def cli(ctx, version):
+    """
+    CLI utility to install Terragraph NMS stack. See usage instructions at
+    <insert URL here>.
+
+    A typical usage will involve starting up a Kubernetes cluster via the
+    'install' command, and then applying the manifests for NMS via the 'apply'
+    command.
+    """
+    if version:
         try:
-            verstr = pkg_resources.get_distribution("k8s_nms").version
+            version = pkg_resources.get_distribution("k8s_nms").version
         except Exception as e:
             click.echo("Cannot find package version, is this in a package?")
             click.echo(f"{e}")
-            verstr = "[unknown]"
+            version = "[unknown]"
 
-        if not short:
-            verstr = longver.format(verstr)
-
-        click.echo(verstr)
+        click.echo(f"Terragraph NMS cli utility version: {version}")
         ctx.exit()
 
     if ctx.invoked_subcommand is None:
@@ -183,8 +196,11 @@ def cli(ctx, version, short):
 @cli.command()
 @add_common_options("config-file", "tags", "password", "verbose", "managers", "workers")
 @click.pass_context
+@rage.log_command(RAGE_DIR)
 def install(ctx, config_file, tags, verbose, password, workers, managers):
-    """Bootstrap a Kubernetes cluster"""
+    """
+    Start up a bare Kubernetes cluster on the provided set of hosts.
+    """
     variables = get_variables(config_file, managers, verbose)
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -201,10 +217,12 @@ def install(ctx, config_file, tags, verbose, password, workers, managers):
 @cli.command()
 @add_common_options("config-file", "tags", "password", "managers", "workers", "verbose")
 @click.pass_context
+@rage.log_command(RAGE_DIR)
 def uninstall(ctx, config_file, verbose, tags, password, managers, workers):
     """
     Remove a Kubernetes cluster and associated packages
     """
+
     run_ansible(
         "uninstall.yml",
         config_file,
@@ -246,6 +264,8 @@ def get_variables(user_config_file, managers, verbose):
         )
         dest.flush()
 
+        rage.log("Full config\n" + open(dest.name, "r").read())
+
         all_variables = yaml.safe_load(open(dest.name, "r"))
 
     if all_variables is None:
@@ -280,7 +300,7 @@ def read_or_make_certificates(ssl_key_file, ssl_cert_file):
         subject = " -subj /C=US/ST=Placeholder/L=Placeholder/O=Placeholder/OU=Placeholder/CN=Placeholder/emailAddress=Placeholder"
         generate_certs_command = f"openssl req -newkey rsa:2048 -nodes -keyout {key.name} -x509 -days 3650 -out {cert.name}"
         generate_certs_command += subject
-        subprocess.run(generate_certs_command.split(" "), stdout=subprocess.PIPE)
+        rage.run_subprocess_command(generate_certs_command.split(" "))
         return open(key.name, "r").read(), open(cert.name, "r").read()
 
 
@@ -289,14 +309,21 @@ def read_or_make_certificates(ssl_key_file, ssl_cert_file):
     "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
 )
 @click.pass_context
+@rage.log_command(RAGE_DIR)
 def configure(
     ctx, config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
 ):
     """
-    Generate Kubernetes manifests from a template source
+    Generate Kubernetes manifests from a template source. This command is only
+    useful to view the manifests with your configuration applied. To send the
+    manifests to a cluster, see the 'apply' command.
     """
-    key, cert = read_or_make_certificates(ssl_key_file, ssl_cert_file)
+    manifests = configure_impl(config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file)
+    print(manifests)
 
+
+def configure_impl(config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file):
+    key, cert = read_or_make_certificates(ssl_key_file, ssl_cert_file)
     if template_source.startswith("http"):
         with urllib.request.urlopen(template_source) as f:
             files_map = get_tar_files(io.BytesIO(f.read()))
@@ -320,18 +347,15 @@ def configure(
     variables["ssl_cert_text"] = cert
     variables["ssl_key_text"] = key
 
-    configure_templates(variables, files_map)
+    return configure_templates(variables, files_map)
 
 
 def template_and_run(ctx, command, **configure_kwargs):
-    f = io.StringIO()
-    with contextlib.redirect_stdout(f):
-        ctx.invoke(configure, **configure_kwargs)
-    k8s_manifest = f.getvalue().encode("utf-8")
+    manifests = configure_impl(**configure_kwargs)
 
     # Pick a manager node 0 arbitrarily
     command = f"ssh {configure_kwargs['managers'][0]} {command}".split(" ")
-    subprocess.run(command, input=k8s_manifest, check=True)
+    subprocess.run(command, input=manifests.encode('utf-8'), check=True)
 
 
 @cli.command()
@@ -339,9 +363,11 @@ def template_and_run(ctx, command, **configure_kwargs):
     "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
 )
 @click.pass_context
+@rage.log_command(RAGE_DIR)
 def apply(ctx, **configure_kwargs):
     """
-    Generate Kubernetes manifests from a template source and apply it on an SSH host
+    Generate Kubernetes manifests from a template source and apply it on a
+    cluster via the control plane node.
     """
     template_and_run(ctx, command="kubectl apply -f -", **configure_kwargs)
 
@@ -396,6 +422,36 @@ def show_defaults(ctx, options):
     if content is None:
         click.echo("error: cannot read defaults", err=True)
         ctx.exit(2)
+
+
+@cli.command(name="rage")
+@click.pass_context
+@click.option("--clean", is_flag=True, help="Remove all rage files")
+@click.option(
+    "--number",
+    required=False,
+    help="Number of most recent log files to include",
+    default=10,
+    type=int,
+)
+def _rage(ctx, clean, number):
+    """
+    Print the logs of recent nms installer runs for debugging purposes
+    """
+    if number <= 0:
+        raise RuntimeError("--number must be a positive integer")
+    if clean:
+        rage.clean(RAGE_DIR)
+    else:
+        files = rage.gather_files(RAGE_DIR, limit=number)
+        if len(files) == 0:
+            click.echo(f"No log files found in {RAGE_DIR}")
+            return
+
+        for filename in files:
+            click.echo(filename)
+            with open(filename, "r") as f:
+                click.echo(f.read())
 
 
 if __name__ == "__main__":
