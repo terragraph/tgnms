@@ -1,0 +1,54 @@
+---
+paths:
+  "/map/annotations/{network}":
+    get:
+      description: Gets a listing of annotation groups
+      tags:
+      - Annotations
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/components/parameters/network"
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnotationGroupIdArray"
+components:
+  schemas:
+    AnnotationGroupIdArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/AnnotationGroupId"
+    AnnotationGroupId:
+      type: object
+      description: Identifiers for an annotation group
+      properties:
+        id:
+          type: string
+        topologyName:
+          type: string
+        name:
+          type: string
+    AnnotationGroup:
+      type: object
+      description: A named group of annotations
+      allOf:
+        - $ref: "#/components/schemas/AnnotationGroupId"
+        - properties:
+            geojson:
+              type: object
+  parameters:
+    network:
+      name: network
+      description: Network Name
+      in: path
+      required: true
+      type: string
+    group:
+      name: group
+      description: Annotation Group Name
+      in: path
+      required: true
+      type: string

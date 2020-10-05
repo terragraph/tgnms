@@ -119,6 +119,7 @@ app.use(
   require('../server/default_route_history/routes'),
 );
 app.use('/sysdump', require('../server/sysdump/routes'));
+app.use('/docs', require('../server/docs/routes'));
 
 // First-time stuff
 topologyPeriodic.startPeriodicTasks();

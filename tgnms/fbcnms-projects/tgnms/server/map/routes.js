@@ -20,6 +20,27 @@ router.get('/annotations/:network', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+/**
+ *  @swagger
+ *  paths:
+ *   "/map/annotations/{network}/{group}":
+ *     get:
+ *       description: "Gets an annotation group, along with all
+ *        GeoJSON features."
+ *       tags:
+ *         - Annotations
+ *       produces:
+ *         - application/json
+ *       parameters:
+ *         - $ref: "#/components/parameters/network"
+ *         - $ref: "#/components/parameters/group"
+ *       responses:
+ *         200:
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: "#/components/schemas/AnnotationGroup"
+ */
 router.get('/annotations/:network/:group', (req, res) => {
   const {network, group} = req.params;
   return mapService

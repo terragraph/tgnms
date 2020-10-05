@@ -1,0 +1,188 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Terragraph NMS",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "paths": {
+    "/docs/msa/{serviceName}": {
+      "get": {
+        "description": "Loads the OpenAPI docs.yml file from the specified Terragraph MSA service, and converts it to JSON for consumption by the Swagger UI. This request is made on the internal overlay network.",
+        "tags": [
+          "Docs"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "serviceName",
+            "description": "MSA Service hostname - The hostname of a service which hosts an OpenAPI docs endpoint at http://{servicename}:8080/docs.yml on the internal docker network.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/openapi_spec"
+          }
+        }
+      }
+    },
+    "/docs/yaml/{fileName}": {
+      "get": {
+        "description": "Serves an OpenAPI yaml file from the /static/docs directory, first transforming it to JSON for consumption by the Swagger UI.",
+        "tags": [
+          "Docs"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "fileName",
+            "description": "The filename of the file stored at /static/docs. For example, /docs/yaml/network_test.yaml",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/openapi_spec"
+          }
+        }
+      }
+    },
+    "/map/annotations/{network}": {
+      "get": {
+        "description": "Gets a listing of annotation groups",
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationGroupId"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/map/annotations/{network}/{group}": {
+      "get": {
+        "description": "Gets a listing of annotation groups",
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/group"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationGroupId"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "openapi_spec": {
+        "description": "JSON OpenAPI spec suitable for consumption by the Swagger UI",
+        "content": {
+          "application/json": {
+            "schema": {
+              "description": "JSON OpenAPI spec",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "AnnotationGroupId": {
+        "type": "object",
+        "description": "Identifiers for an annotation group",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "topologyName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AnnotationGroup": {
+        "type": "object",
+        "description": "A named group of annotations",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AnnotationGroupId"
+          },
+          {
+            "properties": {
+              "geojson": {
+                "type": "object"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "parameters": {
+      "network": {
+        "name": "network",
+        "description": "Network Name",
+        "in": "path",
+        "required": true,
+        "type": "string"
+      },
+      "group": {
+        "name": "group",
+        "description": "Annotation Group Name",
+        "in": "path",
+        "required": true,
+        "type": "string"
+      }
+    }
+  },
+  "tags": []
+}
