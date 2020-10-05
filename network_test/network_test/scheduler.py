@@ -427,11 +427,11 @@ class Scheduler:
             await sa_conn.execute(update_result_query)
             await sa_conn.connection.commit()
 
+        test = cls._executions[execution_id]
         if not manual:
             # Sleep for the processing timeout duration
             await asyncio.sleep(cls.timeout)
 
-            test = cls._executions[execution_id]
             async with MySQLClient().lease() as sa_conn:
                 update_result_query = (
                     update(NetworkTestResult)
