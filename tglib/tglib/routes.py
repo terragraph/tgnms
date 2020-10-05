@@ -59,8 +59,50 @@ async def handle_get_status(request: web.Request) -> web.Response:
     return web.Response(text="Alive")
 
 
-@routes.get("/docs.yml")
+@routes.get("/docs")
 async def handle_get_swagger_docs(request: web.Request) -> web.Response:
+    """Fetch the Swagger documentation in JSON.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        Swagger JSON documentation for the service's API endpoints.
+
+    Raises:
+        web.HTTPServiceUnavailable: Documentation dependencies are missing.
+
+    Example:
+        ::
+
+        # curl -i http://localhost:8080/docs
+        HTTP/1.1 200 OK
+        Content-Type: application/json; charset=utf-8
+        Content-Length: 13832
+        Date: Fri, 02 Oct 2020 19:19:15 GMT
+        Server: Python/3.8 aiohttp/3.6.2
+
+        {"swagger": "2.0", "info": {"description": "Swagger API definition\n", "version": "1.0.0", ...
+
+    ---
+    description: Fetch the Swagger documentation in JSON.
+    tags:
+    - Documentation
+    produces:
+    - application/json
+    responses:
+      "200":
+        description: Successful operation.
+      "503":
+        description: Documentation dependencies are missing.
+    """
+    if not _SWAGGER_ENABLED or "SWAGGER_DEF_CONTENT" not in request.app:
+        raise web.HTTPServiceUnavailable(text="Documentation dependencies are missing")
+    return web.json_response(json.loads(request.app["SWAGGER_DEF_CONTENT"]))
+
+
+@routes.get("/docs.yml")
+async def handle_get_swagger_docs_yml(request: web.Request) -> web.Response:
     """Fetch the raw Swagger YAML documentation.
 
     Args:
@@ -92,7 +134,7 @@ async def handle_get_swagger_docs(request: web.Request) -> web.Response:
     ---
     description: Fetch the raw Swagger YAML documentation.
     tags:
-    - Health
+    - Documentation
     produces:
     - text/plain
     responses:
