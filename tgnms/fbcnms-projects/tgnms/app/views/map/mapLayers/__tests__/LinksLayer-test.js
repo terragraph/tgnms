@@ -66,6 +66,7 @@ const commonProps: Props = {
   offlineWhitelist: {nodes: new Map(), links: new Map()},
   metricTextEnabled: false,
   metricData: mockMetrics,
+  scanMode: false,
 };
 
 test('renders with default props', () => {

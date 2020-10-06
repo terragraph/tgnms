@@ -95,7 +95,7 @@ export type Props = {
   offlineWhitelist: ?OfflineWhiteListType,
   metricData: ?{[string]: {}},
   routes: Routes,
-  scanId: ?string,
+  scanMode: boolean,
 };
 
 type CnLinkInfoMap = {
