@@ -149,7 +149,7 @@ export default function MapOverlayLegend() {
       <Collapse in={showLegend}>
         <Grid container direction="column">
           {linkLegend?.map(({labelName, elementColor}) => (
-            <div className={classes.linkLegendLabel}>
+            <div className={classes.linkLegendLabel} key={labelName}>
               <Grid item container spacing={1} wrap="nowrap">
                 <Grid item>
                   <HealthIndicator
@@ -170,7 +170,7 @@ export default function MapOverlayLegend() {
           ))}
           <Divider className={classes.resultDivider} />
           {nodeLegend.map(({labelName, elementColor}) => (
-            <div className={classes.siteLegendLabel}>
+            <div className={classes.siteLegendLabel} key={labelName}>
               <Grid item container spacing={1} wrap="nowrap">
                 <Grid item>
                   <HealthIndicator
@@ -188,7 +188,7 @@ export default function MapOverlayLegend() {
           ))}
           <Divider className={classes.resultDivider} />
           {siteLegend?.map(({labelName, elementColor}) => (
-            <div className={classes.siteLegendLabel}>
+            <div className={classes.siteLegendLabel} key={labelName}>
               <Grid item container spacing={1} wrap="nowrap">
                 <Grid item>
                   <HealthIndicator
