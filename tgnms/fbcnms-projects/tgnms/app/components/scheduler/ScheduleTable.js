@@ -61,9 +61,12 @@ const useStyles = makeStyles(theme => ({
   },
   errorTitle: {
     textTransform: 'capitalize',
-    fontWeight: theme.typography.fontWeightBold,
+    fontWeight: 700,
   },
-  errorMessage: {color: theme.palette.grey[600]},
+  errorMessage: {
+    color: theme.palette.grey[600],
+    textAlign: 'center',
+  },
 }));
 
 export default function ScheduleTable<T>(props: Props<T>) {

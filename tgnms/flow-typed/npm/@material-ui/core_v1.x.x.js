@@ -2,22 +2,17 @@
 // flow-typed version: 4dffdd0740/@material-ui/core_v1.x.x/flow_>=v0.58.x
 
 declare module "@material-ui/core/AppBar/AppBar" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare type Color = "inherit" | "primary" | "secondary" | "default";
-  declare type Position =
-    | "fixed"
-    | "absolute"
-    | "sticky"
-    | "static"
-    | "relative";
+  declare type Position = "fixed" | "absolute" | "sticky" | "static" | "relative";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
     classes?: Object,
     color?: Color,
-    position?: Position,
+    position?: Position
   }>;
 }
 
@@ -26,7 +21,7 @@ declare module "@material-ui/core/AppBar" {
 }
 
 declare module "@material-ui/core/Avatar/Avatar" {
-  import type { ComponentType, Element, ElementType } from "react";
+  import type {ComponentType, Element, ElementType} from "react";
 
   declare module.exports: ComponentType<{
     alt?: string,
@@ -38,7 +33,7 @@ declare module "@material-ui/core/Avatar/Avatar" {
     imgProps?: Object,
     sizes?: string,
     src?: string,
-    srcSet?: string,
+    srcSet?: string
   }>;
 }
 
@@ -51,7 +46,7 @@ declare module "@material-ui/core/Box" {
 }
 
 declare module "@material-ui/core/Badge/Badge" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare type Color = "default" | "primary" | "secondary" | "error";
   declare type BadgeVariant = "standard" | "dot";
@@ -61,7 +56,7 @@ declare module "@material-ui/core/Badge/Badge" {
     className?: string,
     classes?: Object,
     color?: Color,
-    variant?: BadgeVariant,
+    variant?: BadgeVariant
   }>;
 }
 
@@ -70,7 +65,7 @@ declare module "@material-ui/core/Badge" {
 }
 
 declare module "@material-ui/core/BottomNavigation/BottomNavigation" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children: Node,
@@ -78,12 +73,12 @@ declare module "@material-ui/core/BottomNavigation/BottomNavigation" {
     classes?: Object,
     onChange?: Function,
     showLabels?: boolean,
-    value: any,
+    value: any
   }>;
 }
 
 declare module "@material-ui/core/BottomNavigationAction/BottomNavigationAction" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   declare module.exports: ComponentType<{
     className?: string,
@@ -94,7 +89,7 @@ declare module "@material-ui/core/BottomNavigationAction/BottomNavigationAction"
     onClick?: Function,
     selected?: boolean,
     showLabel?: boolean,
-    value?: any,
+    value?: any
   }>;
 }
 
@@ -111,11 +106,11 @@ declare module "@material-ui/core/BottomNavigationAction" {
 }
 
 declare module "@material-ui/core/Button/Button" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type Color = "default" | "inherit" | "primary" | "secondary";
-  declare type Variant = "text" | "outlined" | "contained" | "extendedFab";
-  declare type Size = "small" | "medium" | "large";
+  declare type Variant = "text" | "outlined" | "contained" | "extendedFab"
+  declare type Size = "small" | "medium" | "large"
 
   declare module.exports: ComponentType<{
     children: Node,
@@ -130,7 +125,7 @@ declare module "@material-ui/core/Button/Button" {
     href?: string,
     mini?: boolean,
     size?: Size,
-    variant?: Variant,
+    variant?: Variant
   }>;
 }
 
@@ -143,7 +138,7 @@ declare module "@material-ui/core/ButtonGroup" {
 }
 
 declare module "@material-ui/core/ButtonBase/ButtonBase" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     centerRipple?: boolean,
@@ -169,7 +164,7 @@ declare module "@material-ui/core/ButtonBase/ButtonBase" {
     role?: string,
     rootRef?: Function,
     tabIndex?: number | string,
-    type?: string,
+    type?: string
   }>;
 }
 
@@ -188,7 +183,7 @@ declare module "@material-ui/core/ButtonBase" {
 }
 
 declare module "@material-ui/core/ButtonBase/Ripple" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<{
     className?: string,
@@ -196,51 +191,51 @@ declare module "@material-ui/core/ButtonBase/Ripple" {
     pulsate?: boolean,
     rippleSize: number,
     rippleX: number,
-    rippleY: number,
+    rippleY: number
   }>;
 }
 
 declare module "@material-ui/core/ButtonBase/TouchRipple" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<{
     center?: boolean,
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 
 declare module "@material-ui/core/Card/Card" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<{
     className?: string,
-    raised?: boolean,
+    raised?: boolean
   }>;
 }
 
 declare module "@material-ui/core/CardActions/CardActions" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
     classes?: Object,
-    disableSpacing?: boolean,
+    disableSpacing?: boolean
   }>;
 }
 
 declare module "@material-ui/core/CardContent/CardContent" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<{
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 
 declare module "@material-ui/core/CardHeader/CardHeader" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     action?: Node,
@@ -248,12 +243,12 @@ declare module "@material-ui/core/CardHeader/CardHeader" {
     className?: string,
     classes?: Object,
     subheader?: Node,
-    title?: Node,
+    title?: Node
   }>;
 }
 
 declare module "@material-ui/core/CardMedia/CardMedia" {
-  import type { ComponentType, ElementType } from "react";
+  import type {ComponentType, ElementType} from "react";
 
   declare module.exports: ComponentType<{
     className?: string,
@@ -261,7 +256,7 @@ declare module "@material-ui/core/CardMedia/CardMedia" {
     component?: ElementType,
     image?: string,
     src?: string,
-    style?: Object,
+    style?: Object
   }>;
 }
 
@@ -282,7 +277,8 @@ declare module "@material-ui/core/CardMedia" {
 }
 
 declare module "@material-ui/core/Checkbox/Checkbox" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
+
 
   declare module.exports: ComponentType<{
     checked?: boolean | string,
@@ -300,7 +296,7 @@ declare module "@material-ui/core/Checkbox/Checkbox" {
     name?: string,
     onChange?: Function,
     tabIndex?: number | string,
-    value?: string,
+    value?: string
   }>;
 }
 
@@ -309,7 +305,7 @@ declare module "@material-ui/core/Checkbox" {
 }
 
 declare module "@material-ui/core/Chip/Chip" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   import typeof Avatar from "@material-ui/core/Avatar/Avatar";
 
@@ -322,7 +318,7 @@ declare module "@material-ui/core/Chip/Chip" {
     onClick?: Function,
     onDelete?: (event: SyntheticEvent<*>) => void,
     onKeyDown?: Function,
-    tabIndex?: number | string,
+    tabIndex?: number | string
   }>;
 }
 
@@ -331,7 +327,7 @@ declare module "@material-ui/core/Chip" {
 }
 
 declare module "@material-ui/core/CssBaseline/CssBaseline" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{ children?: Node }>;
 }
@@ -341,8 +337,8 @@ declare module "@material-ui/core/CssBaseline" {
 }
 
 declare type Hue = {|
-  [string | number]: string,
-|};
+  [string|number]:string
+|}
 
 declare module "@material-ui/core/colors/amber" {
   declare module.exports: Hue;
@@ -363,7 +359,7 @@ declare module "@material-ui/core/colors/brown" {
 declare module "@material-ui/core/colors/common" {
   declare export type CommonColors = {
     black: string,
-    white: string,
+    white: string
   };
 
   declare module.exports: any;
@@ -434,11 +430,11 @@ declare module "@material-ui/core/colors/yellow" {
 }
 
 declare module "@material-ui/core/Dialog/Dialog" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   import type {
     TransitionCallback,
-    TransitionDuration,
+    TransitionDuration
   } from "@material-ui/core/internal/transition";
   declare type MaxWidth = "xs" | "sm" | "md" | "lg" | "xl" | false;
 
@@ -462,66 +458,66 @@ declare module "@material-ui/core/Dialog/Dialog" {
     onExiting?: TransitionCallback,
     open?: boolean,
     transition?: ComponentType<*>,
-    transitionDuration?: TransitionDuration,
+    transitionDuration?: TransitionDuration
   }>;
 }
 
 declare module "@material-ui/core/DialogActions/DialogActions" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 
 declare module "@material-ui/core/DialogContent/DialogContent" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 
 declare module "@material-ui/core/DialogContentText/DialogContentText" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 
 declare module "@material-ui/core/DialogTitle/DialogTitle" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
     classes?: Object,
-    disableTypography?: boolean,
+    disableTypography?: boolean
   }>;
 }
 
 declare module "@material-ui/core/withMobileDialog/withMobileDialog" {
   import type { Breakpoint } from "@material-ui/core/styles/createBreakpoints";
-  import type { WithWidth } from "@material-ui/core/withWidth/withWidth";
+  import type { WithWidth } from '@material-ui/core/withWidth/withWidth';
 
   declare type WithMobileDialog = {
-    fullScreen?: boolean,
-  } & WithWidth;
+    fullScreen?: boolean
+  } & WithWidth
 
-  declare module.exports: (options?: {
-    breakpoint: Breakpoint,
-  }) => <Props: {}, WrappedComponent: React$ComponentType<Props>>(
+  declare module.exports: (
+    options?: {
+      breakpoint: Breakpoint
+    }
+  ) => <Props: {}, WrappedComponent: React$ComponentType<Props>>(
     Component: WrappedComponent
-  ) => React$ComponentType<
-    $Diff<React$ElementConfig<WrappedComponent>, WithMobileDialog>
-  >;
+  ) => React$ComponentType<$Diff<React$ElementConfig<WrappedComponent>, WithMobileDialog>>;
 }
 
 declare module "@material-ui/core/Dialog" {
@@ -557,7 +553,7 @@ declare module "@material-ui/core/withMobileDialog" {
 }
 
 declare module "@material-ui/core/withWidth" {
-  import type { Breakpoint } from "@material-ui/core/styles/createBreakpoints";
+  import type {Breakpoint} from "@material-ui/core/styles/createBreakpoints";
   declare export var isWidthUp: (
     matchWidth: Breakpoint,
     currentWidth: Breakpoint
@@ -570,14 +566,14 @@ declare module "@material-ui/core/withWidth" {
 }
 
 declare module "@material-ui/core/Divider/Divider" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<{
     absolute?: boolean,
     className?: string,
     classes?: Object,
     light?: boolean,
-    variant?: "fullWidth" | "inset" | "middle",
+    variant?: 'fullWidth' | 'inset' | 'middle'
   }>;
 }
 
@@ -586,9 +582,9 @@ declare module "@material-ui/core/Divider" {
 }
 
 declare module "@material-ui/core/Drawer/Drawer" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  import type { TransitionDuration } from "@material-ui/core/internal/transition";
+  import type {TransitionDuration} from "@material-ui/core/internal/transition";
 
   declare type Anchor = "left" | "top" | "right" | "bottom";
   declare type Variant = "permanent" | "persistent" | "temporary";
@@ -613,23 +609,21 @@ declare module "@material-ui/core/Drawer" {
 }
 
 declare module "@material-ui/core/SwipeableDrawer/SwipeableDrawer" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
-  import typeof Drawer from "@material-ui/core/Drawer/Drawer";
-  import type { TransitionDuration } from "@material-ui/core/internal/transition";
+  import typeof Drawer from "@material-ui/core/Drawer/Drawer"
+  import type {TransitionDuration} from "@material-ui/core/internal/transition";
 
-  declare module.exports: ComponentType<
-    {
-      disableBackdropTransition: boolean,
-      disableDiscovery: boolean,
-      disableSwipeToOpen: boolean,
-      onClose?: Function,
-      onOpen?: Function,
-      open?: boolean,
-      swipeAreaWidth: number,
-      transitionDuration?: TransitionDuration,
-    } & Drawer
-  >;
+  declare module.exports: ComponentType<{
+    disableBackdropTransition: boolean,
+    disableDiscovery: boolean,
+    disableSwipeToOpen: boolean,
+    onClose?: Function,
+    onOpen?: Function,
+    open?: boolean,
+    swipeAreaWidth: number,
+    transitionDuration?: TransitionDuration,
+  } & Drawer>;
 }
 
 declare module "@material-ui/core/SwipeableDrawer" {
@@ -638,8 +632,9 @@ declare module "@material-ui/core/SwipeableDrawer" {
   >;
 }
 
+
 declare module "@material-ui/core/ExpansionPanel/ExpansionPanel" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     CollapseProps?: Object,
@@ -649,32 +644,32 @@ declare module "@material-ui/core/ExpansionPanel/ExpansionPanel" {
     defaultExpanded?: boolean,
     disabled?: boolean,
     expanded?: boolean,
-    onChange?: Function,
+    onChange?: Function
   }>;
 }
 
 declare module "@material-ui/core/ExpansionPanelActions/ExpansionPanelActions" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 
 declare module "@material-ui/core/ExpansionPanelDetails/ExpansionPanelDetails" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
-    classes?: Object,
+    classes?: Object
   }>;
 }
 // DEPRECATED
 declare module "@material-ui/core/ExpansionPanelSummary/ExpansionPanelSummary" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -684,7 +679,7 @@ declare module "@material-ui/core/ExpansionPanelSummary/ExpansionPanelSummary" {
     expanded?: boolean,
     expandIcon?: Node,
     onChange?: Function,
-    onClick?: Function,
+    onClick?: Function
   }>;
 }
 // DEPRECATED
@@ -713,7 +708,7 @@ declare module "@material-ui/core/ExpansionPanelSummary" {
 }
 
 declare module "@material-ui/core/AccordionSummary/AccordionSummary" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -723,11 +718,13 @@ declare module "@material-ui/core/AccordionSummary/AccordionSummary" {
     expanded?: boolean,
     expandIcon?: Node,
     onChange?: Function,
-    onClick?: Function,
+    onClick?: Function
   }>;
 }
 declare module "@material-ui/core/Accordion" {
-  declare export default $Exports<"@material-ui/core/Accordion/Accordion">;
+  declare export default $Exports<
+    "@material-ui/core/Accordion/Accordion"
+  >;
 }
 declare module "@material-ui/core/AccordionActions" {
   declare export default $Exports<
@@ -746,11 +743,11 @@ declare module "@material-ui/core/AccordionSummary" {
 }
 
 declare module "@material-ui/core/Fab/Fab" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type Color = "default" | "inherit" | "primary" | "secondary";
-  declare type Variant = "round" | "extended";
-  declare type Size = "small" | "medium" | "large";
+  declare type Variant = "round" | "extended"
+  declare type Size = "small" | "medium" | "large"
 
   declare module.exports: ComponentType<{
     children: Node,
@@ -764,7 +761,7 @@ declare module "@material-ui/core/Fab/Fab" {
     fullWidth?: boolean,
     href?: string,
     size?: Size,
-    variant?: Variant,
+    variant?: Variant
   }>;
 }
 
@@ -772,8 +769,9 @@ declare module "@material-ui/core/Fab" {
   declare module.exports: $Exports<"@material-ui/core/Fab/Fab">;
 }
 
+
 declare module "@material-ui/core/FormControl/FormControl" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type Margin = "none" | "dense" | "normal";
 
@@ -788,12 +786,12 @@ declare module "@material-ui/core/FormControl/FormControl" {
     margin?: Margin,
     onBlur?: Function,
     onFocus?: Function,
-    required?: boolean,
+    required?: boolean
   }>;
 }
 
 declare module "@material-ui/core/FormControlLabel/FormControlLabel" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   declare module.exports: ComponentType<{
     checked?: boolean | string,
@@ -805,23 +803,23 @@ declare module "@material-ui/core/FormControlLabel/FormControlLabel" {
     label: Node,
     name?: string,
     onChange?: Function,
-    value?: string,
+    value?: string
   }>;
 }
 
 declare module "@material-ui/core/FormGroup/FormGroup" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
-    row?: boolean,
+    row?: boolean
   }>;
 }
 
 declare module "@material-ui/core/FormHelperText/FormHelperText" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -829,12 +827,12 @@ declare module "@material-ui/core/FormHelperText/FormHelperText" {
     className?: string,
     disabled?: boolean,
     error?: boolean,
-    margin?: "dense",
+    margin?: "dense"
   }>;
 }
 
 declare module "@material-ui/core/FormLabel/FormLabel" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -844,7 +842,7 @@ declare module "@material-ui/core/FormLabel/FormLabel" {
     disabled?: boolean,
     error?: boolean,
     focused?: boolean,
-    required?: boolean,
+    required?: boolean
   }>;
 }
 
@@ -873,7 +871,7 @@ declare module "@material-ui/core/FormLabel" {
 }
 
 declare module "@material-ui/core/Grid/Grid" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type GridSizes =
     | boolean
@@ -929,8 +927,8 @@ declare module "@material-ui/core/Grid/Grid" {
     sm?: GridSizes,
     md?: GridSizes,
     lg?: GridSizes,
-    xl?: GridSizes,
-  };
+    xl?: GridSizes
+  }
   declare module.exports: ComponentType<GridProps>;
 }
 
@@ -939,7 +937,7 @@ declare module "@material-ui/core/Grid" {
 }
 
 declare module "@material-ui/core/GridList/GridList" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type CellHeight = number | "auto";
 
@@ -951,12 +949,12 @@ declare module "@material-ui/core/GridList/GridList" {
     cols?: number,
     component?: ElementType,
     spacing?: number,
-    style?: Object,
+    style?: Object
   }>;
 }
 
 declare module "@material-ui/core/GridListTile/GridListTile" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -964,12 +962,13 @@ declare module "@material-ui/core/GridListTile/GridListTile" {
     className?: string,
     cols?: number,
     component?: ElementType,
-    rows?: number,
+    rows?: number
   }>;
 }
 
 declare module "@material-ui/core/GridListTileBar/GridListTileBar" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
+
 
   declare type TitlePosition = "top" | "bottom";
   declare type ActionPosition = "left" | "right";
@@ -981,7 +980,7 @@ declare module "@material-ui/core/GridListTileBar/GridListTileBar" {
     className?: string,
     subtitle?: Node,
     title: Node,
-    titlePosition?: TitlePosition,
+    titlePosition?: TitlePosition
   }>;
 }
 
@@ -1001,9 +1000,9 @@ declare module "@material-ui/core/GridListTileBar" {
   >;
 }
 declare module "@material-ui/core/Hidden/Hidden" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  import type { Breakpoint } from "@material-ui/core/styles/createBreakpoints";
+  import type {Breakpoint} from "@material-ui/core/styles/createBreakpoints";
 
   declare module.exports: ComponentType<{
     children: Node,
@@ -1020,12 +1019,12 @@ declare module "@material-ui/core/Hidden/Hidden" {
     lgDown?: boolean,
     xlDown?: boolean,
     implementation?: "js" | "css",
-    initialWidth?: number,
+    initialWidth?: number
   }>;
 }
 
 declare module "@material-ui/core/Hidden/HiddenCss" {
-  import type { ComponentType, ElementProps } from "react";
+  import type {ComponentType, ElementProps} from "react";
 
   import typeof Hidden from "@material-ui/core/Hidden/Hidden";
 
@@ -1033,7 +1032,7 @@ declare module "@material-ui/core/Hidden/HiddenCss" {
 }
 
 declare module "@material-ui/core/Hidden/HiddenJs" {
-  import type { ComponentType, ElementProps } from "react";
+  import type {ComponentType, ElementProps} from "react";
 
   import typeof Hidden from "@material-ui/core/Hidden/Hidden";
 
@@ -1049,7 +1048,7 @@ declare module "@material-ui/core/Hidden/types" {
 }
 
 declare module "@material-ui/core/Icon/Icon" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare type Color =
     | "inherit"
@@ -1064,7 +1063,7 @@ declare module "@material-ui/core/Icon/Icon" {
     children?: Node,
     className?: string,
     classes?: Object,
-    color?: Color,
+    color?: Color
   }>;
 }
 
@@ -1073,9 +1072,13 @@ declare module "@material-ui/core/Icon" {
 }
 
 declare module "@material-ui/core/IconButton/IconButton" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  declare type Color = "default" | "inherit" | "primary" | "secondary";
+  declare type Color =
+    | "default"
+    | "inherit"
+    | "primary"
+    | "secondary";
   declare export type Props = {
     buttonRef?: Function,
     children?: Node,
@@ -1087,8 +1090,8 @@ declare module "@material-ui/core/IconButton/IconButton" {
     rootRef?: Function,
     ref?: ?any,
     edge?: "end" | "start",
-    size?: "small" | "medium",
-  };
+    size?:"small" | "medium",
+  }
   declare module.exports: ComponentType<Props>;
 }
 
@@ -1111,7 +1114,7 @@ declare module "@material-ui/core/InputLabel" {
 }
 
 declare module "@material-ui/core/Input/Input" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     autoComplete?: string,
@@ -1144,12 +1147,12 @@ declare module "@material-ui/core/Input/Input" {
     rowsMax?: string | number,
     startAdornment?: Node,
     type?: string,
-    value?: string | number | Array<string | number>,
+    value?: string | number | Array<string | number>
   }>;
 }
 
 declare module "@material-ui/core/InputAdornment/InputAdornment" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -1157,12 +1160,12 @@ declare module "@material-ui/core/InputAdornment/InputAdornment" {
     className?: string,
     component?: ElementType,
     disableTypography?: boolean,
-    position: "start" | "end",
+    position: "start" | "end"
   }>;
 }
 
 declare module "@material-ui/core/InputLabel/InputLabel" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -1175,12 +1178,12 @@ declare module "@material-ui/core/InputLabel/InputLabel" {
     focused?: boolean,
     margin?: "dense",
     required?: boolean,
-    shrink?: boolean,
+    shrink?: boolean
   }>;
 }
 
 declare module "@material-ui/core/Input/Textarea" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare type Rows = string | number;
 
@@ -1193,7 +1196,7 @@ declare module "@material-ui/core/Input/Textarea" {
     rows: Rows,
     rowsMax?: string | number,
     textareaRef?: Function,
-    value?: string | number,
+    value?: string | number
   }>;
 }
 
@@ -1202,11 +1205,11 @@ declare module "@material-ui/core/internal/dom" {
 }
 
 declare module "@material-ui/core/Portal/Portal" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
-    open?: boolean,
+    open?: boolean
   }>;
 }
 
@@ -1215,7 +1218,7 @@ declare module "@material-ui/core/Portal" {
 }
 
 declare module "@material-ui/core/internal/SwitchBase" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     checked?: boolean | string,
@@ -1235,7 +1238,7 @@ declare module "@material-ui/core/internal/SwitchBase" {
     name?: string,
     onChange?: Function,
     tabIndex?: number | string,
-    value?: string,
+    value?: string
   }>;
 }
 
@@ -1248,7 +1251,7 @@ declare module "@material-ui/core/internal/transition" {
     enter?: string,
     enterActive?: string,
     exit?: string,
-    exitActive?: string,
+    exitActive?: string
   };
 }
 declare module "@material-ui/core/List" {
@@ -1290,7 +1293,7 @@ declare module "@material-ui/core/ListSubheader" {
 }
 
 declare module "@material-ui/core/List/List" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -1300,12 +1303,12 @@ declare module "@material-ui/core/List/List" {
     dense?: boolean,
     disablePadding?: boolean,
     rootRef?: Function,
-    subheader?: Node,
+    subheader?: Node
   }>;
 }
 
 declare module "@material-ui/core/ListItem/ListItem" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     button?: boolean,
@@ -1316,42 +1319,42 @@ declare module "@material-ui/core/ListItem/ListItem" {
     dense?: boolean,
     disabled?: boolean,
     disableGutters?: boolean,
-    divider?: boolean,
+    divider?: boolean
   }>;
 }
 
 declare module "@material-ui/core/ListItemAvatar/ListItemAvatar" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   declare module.exports: ComponentType<{
     children: Element<any>,
     classes?: Object,
-    className?: string,
+    className?: string
   }>;
 }
 
 declare module "@material-ui/core/ListItemIcon/ListItemIcon" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   declare module.exports: ComponentType<{
     children: Element<any>,
     classes?: Object,
-    className?: string,
+    className?: string
   }>;
 }
 
 declare module "@material-ui/core/ListItemSecondaryAction/ListItemSecondaryAction" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
-    className?: string,
+    className?: string
   }>;
 }
 
 declare module "@material-ui/core/ListItemText/ListItemText" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     classes?: Object,
@@ -1359,12 +1362,12 @@ declare module "@material-ui/core/ListItemText/ListItemText" {
     disableTypography?: boolean,
     inset?: boolean,
     primary?: Node,
-    secondary?: Node,
+    secondary?: Node
   }>;
 }
 
 declare module "@material-ui/core/ListSubheader/ListSubheader" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type Color = "default" | "primary" | "inherit";
 
@@ -1375,7 +1378,7 @@ declare module "@material-ui/core/ListSubheader/ListSubheader" {
     component?: ElementType,
     color?: Color,
     disableSticky?: boolean,
-    inset?: boolean,
+    inset?: boolean
   }>;
 }
 
@@ -1392,9 +1395,9 @@ declare module "@material-ui/core/MenuList" {
 }
 
 declare module "@material-ui/core/Menu/Menu" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  import type { TransitionCallback } from "@material-ui/core/internal/transition";
+  import type {TransitionCallback} from "@material-ui/core/internal/transition";
 
   declare type TransitionDuration =
     | number
@@ -1416,12 +1419,12 @@ declare module "@material-ui/core/Menu/Menu" {
     open?: boolean,
     PaperProps?: Object,
     PopoverClasses?: Object,
-    transitionDuration?: TransitionDuration,
+    transitionDuration?: TransitionDuration
   }>;
 }
 
 declare module "@material-ui/core/MenuItem/MenuItem" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -1429,18 +1432,18 @@ declare module "@material-ui/core/MenuItem/MenuItem" {
     className?: string,
     component?: ElementType,
     role?: string,
-    selected?: boolean,
+    selected?: boolean
   }>;
 }
 
 declare module "@material-ui/core/MenuList/MenuList" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     className?: string,
     onBlur?: Function,
-    onKeyDown?: (event: SyntheticUIEvent<*>, key: string) => void,
+    onKeyDown?: (event: SyntheticUIEvent<*>, key: string) => void
   }>;
 }
 
@@ -1451,7 +1454,7 @@ declare module "@material-ui/core/MobileStepper" {
 }
 
 declare module "@material-ui/core/MobileStepper/MobileStepper" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   declare type Position = "bottom" | "top" | "static";
   declare type Variant = "text" | "dots" | "progress";
@@ -1464,18 +1467,18 @@ declare module "@material-ui/core/MobileStepper/MobileStepper" {
     nextButton: Element<any>,
     position?: Position,
     steps: number,
-    variant?: Variant,
+    variant?: Variant
   }>;
 }
 
 declare module "@material-ui/core/Backdrop/Backdrop" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
-    invisible?: boolean,
+    invisible?: boolean
   }>;
 }
 
@@ -1501,11 +1504,11 @@ declare module "@material-ui/core/Backdrop" {
 }
 
 declare module "@material-ui/core/Modal/Modal" {
-  import type { ComponentType, Element, ElementType } from "react";
+  import type {ComponentType, Element, ElementType,} from "react";
 
   import type {
     TransitionDuration,
-    TransitionCallback,
+    TransitionCallback
   } from "@material-ui/core/internal/transition";
 
   declare module.exports: ComponentType<{
@@ -1530,7 +1533,7 @@ declare module "@material-ui/core/Modal/Modal" {
     onExiting?: TransitionCallback,
     onExited?: TransitionCallback,
     onClose?: Function,
-    open: boolean,
+    open: boolean
   }>;
 }
 
@@ -1545,7 +1548,7 @@ declare module "@material-ui/core/NativeSelect" {
 }
 
 declare module "@material-ui/core/NativeSelect/NativeSelect" {
-  import type { ComponentType, Element, ElementType, Node } from "react";
+  import type {ComponentType, Element, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     classes: Object,
@@ -1554,7 +1557,7 @@ declare module "@material-ui/core/NativeSelect/NativeSelect" {
     input?: Element<any>,
     inputProps?: Object,
     onChange?: Function,
-    value?: string | number,
+    value?: string | number
   }>;
 }
 
@@ -1563,7 +1566,7 @@ declare module "@material-ui/core/Paper" {
 }
 
 declare module "@material-ui/core/Paper/Paper" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     classes?: Object,
@@ -1571,7 +1574,7 @@ declare module "@material-ui/core/Paper/Paper" {
     children?: Node,
     component?: ElementType,
     elevation?: number,
-    square?: boolean,
+    square?: boolean
   }>;
 }
 
@@ -1584,21 +1587,21 @@ declare module "@material-ui/core/Popover" {
 }
 
 declare module "@material-ui/core/Popover/Popover" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   import type {
     TransitionCallback,
-    TransitionClasses,
+    TransitionClasses
   } from "@material-ui/core/internal/transition";
 
   declare type Position = {
     top: number,
-    left: number,
+    left: number
   };
 
   declare type Origin = {
     horizontal: "left" | "center" | "right" | number,
-    vertical: "top" | "center" | "bottom" | number,
+    vertical: "top" | "center" | "bottom" | number
   };
 
   declare module.exports: ComponentType<{
@@ -1623,12 +1626,12 @@ declare module "@material-ui/core/Popover/Popover" {
     role?: string,
     transformOrigin?: Origin,
     transitionClasses?: TransitionClasses,
-    transitionDuration?: number | { enter?: number, exit?: number } | "auto",
+    transitionDuration?: number | { enter?: number, exit?: number } | "auto"
   }>;
 }
 
 declare module "@material-ui/core/CircularProgress/CircularProgress" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare type Color = "primary" | "secondary" | "inherit";
   declare type Mode = "determinate" | "indeterminate";
@@ -1645,7 +1648,7 @@ declare module "@material-ui/core/CircularProgress/CircularProgress" {
     style?: Object,
     thickness?: number,
     value?: number,
-    variant?: Variant,
+    variant?: Variant
   }>;
 }
 
@@ -1662,7 +1665,7 @@ declare module "@material-ui/core/LinearProgress" {
 }
 
 declare module "@material-ui/core/LinearProgress/LinearProgress" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare type Color = "primary" | "accent";
   declare type Mode = "determinate" | "indeterminate" | "buffer" | "query";
@@ -1673,7 +1676,7 @@ declare module "@material-ui/core/LinearProgress/LinearProgress" {
     color?: Color,
     mode?: Mode,
     value?: number,
-    valueBuffer?: number,
+    valueBuffer?: number
   }>;
 }
 
@@ -1686,7 +1689,7 @@ declare module "@material-ui/core/RadioGroup" {
 }
 
 declare module "@material-ui/core/Radio/Radio" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     checked?: boolean | string,
@@ -1703,12 +1706,12 @@ declare module "@material-ui/core/Radio/Radio" {
     name?: string,
     onChange?: Function,
     tabIndex?: number | string,
-    value?: string,
+    value?: string
   }>;
 }
 
 declare module "@material-ui/core/RadioGroup/RadioGroup" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -1716,16 +1719,16 @@ declare module "@material-ui/core/RadioGroup/RadioGroup" {
     onBlur?: Function,
     onChange?: Function,
     onKeyDown?: Function,
-    value?: string,
+    value?: string
   }>;
 }
 
 declare module "@material-ui/core/RootRef" {
-  import type { ComponentType, Node, Ref } from "react";
+  import type {ComponentType, Node,Ref} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
-    rootRef?: Function,
+    rootRef?: Function
   }>;
 }
 
@@ -1734,7 +1737,7 @@ declare module "@material-ui/core/Select" {
 }
 
 declare module "@material-ui/core/Select/Select" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   declare module.exports: ComponentType<{
     autoWidth?: boolean,
@@ -1751,12 +1754,12 @@ declare module "@material-ui/core/Select/Select" {
     open?: boolean,
     MenuProps?: Object,
     renderValue?: Function,
-    value?: ?($ReadOnlyArray<string | number> | string | number),
+    value?: ?($ReadOnlyArray<string | number> | string | number)
   }>;
 }
 
 declare module "@material-ui/core/Select/SelectInput" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   declare module.exports: ComponentType<{
     autoWidth: boolean,
@@ -1775,7 +1778,7 @@ declare module "@material-ui/core/Select/SelectInput" {
     readOnly?: boolean,
     renderValue?: Function,
     selectRef?: Function,
-    value?: string | number | $ReadOnlyArray<string | number>,
+    value?: string | number | $ReadOnlyArray<string | number>
   }>;
 }
 
@@ -1793,16 +1796,16 @@ declare module "@material-ui/core/SnackbarContent" {
 }
 
 declare module "@material-ui/core/Snackbar/Snackbar" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   import type {
     TransitionDuration,
-    TransitionCallback,
+    TransitionCallback
   } from "@material-ui/core/internal/transition";
 
   declare export type Origin = {
     horizontal?: "left" | "center" | "right" | number,
-    vertical?: "top" | "center" | "bottom" | number,
+    vertical?: "top" | "center" | "bottom" | number
   };
 
   declare module.exports: ComponentType<{
@@ -1827,18 +1830,18 @@ declare module "@material-ui/core/Snackbar/Snackbar" {
     open: boolean,
     SnackbarContentProps?: Object,
     transition?: ComponentType<*>,
-    transitionDuration?: TransitionDuration,
+    transitionDuration?: TransitionDuration
   }>;
 }
 
 declare module "@material-ui/core/SnackbarContent/SnackbarContent" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     action?: Node,
     classes?: Object,
     className?: string,
-    message: Node,
+    message: Node
   }>;
 }
 
@@ -1867,9 +1870,9 @@ declare module "@material-ui/core/Stepper" {
 }
 
 declare module "@material-ui/core/Step/Step" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
-  import type { Orientation } from "@material-ui/core/Stepper/Stepper";
+  import type {Orientation} from "@material-ui/core/Stepper/Stepper";
 
   declare module.exports: ComponentType<{
     active?: boolean,
@@ -1883,14 +1886,14 @@ declare module "@material-ui/core/Step/Step" {
     index?: number,
     last?: boolean,
     optional?: boolean,
-    orientation?: Orientation,
+    orientation?: Orientation
   }>;
 }
 
 declare module "@material-ui/core/StepButton/StepButton" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
-  import type { Orientation } from "@material-ui/core/Stepper/Stepper";
+  import type {Orientation} from "@material-ui/core/Stepper/Stepper";
 
   declare type Icon = Element<any> | string | number;
 
@@ -1905,28 +1908,28 @@ declare module "@material-ui/core/StepButton/StepButton" {
     icon?: Icon,
     last?: boolean,
     optional?: boolean,
-    orientation?: Orientation,
+    orientation?: Orientation
   }>;
 }
 
 declare module "@material-ui/core/StepConnector/StepConnector" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
-  import type { Orientation } from "@material-ui/core/Stepper/Stepper";
+  import type {Orientation} from "@material-ui/core/Stepper/Stepper";
 
   declare module.exports: ComponentType<{
     alternativeLabel?: boolean,
     classes?: Object,
     className?: string,
-    orientation?: Orientation,
+    orientation?: Orientation
   }>;
 }
 
 declare module "@material-ui/core/StepContent/StepContent" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  import type { TransitionDuration } from "@material-ui/core/Collapse/Collapse";
-  import type { Orientation } from "@material-ui/core/Stepper/Stepper";
+  import type {TransitionDuration} from "@material-ui/core/Collapse/Collapse";
+  import type {Orientation} from "@material-ui/core/Stepper/Stepper";
 
   declare module.exports: ComponentType<{
     active?: boolean,
@@ -1939,28 +1942,28 @@ declare module "@material-ui/core/StepContent/StepContent" {
     optional?: boolean,
     orientation?: Orientation,
     transition?: Function,
-    transitionDuration?: TransitionDuration,
+    transitionDuration?: TransitionDuration
   }>;
 }
 
 declare module "@material-ui/core/StepIcon/StepIcon" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
-  import type { Icon } from "@material-ui/core/StepButton/StepButton";
+  import type {Icon} from "@material-ui/core/StepButton/StepButton";
 
   declare module.exports: ComponentType<{
     active?: boolean,
     classes?: Object,
     completed?: boolean,
-    icon?: Icon,
+    icon?: Icon
   }>;
 }
 
 declare module "@material-ui/core/StepLabel/StepLabel" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  import type { Orientation } from "@material-ui/core/Stepper/Stepper";
-  import type { Icon } from "@material-ui/core/StepButton/StepButton";
+  import type {Orientation} from "@material-ui/core/Stepper/Stepper";
+  import type {Icon} from "@material-ui/core/StepButton/StepButton";
 
   declare module.exports: ComponentType<{
     active?: boolean,
@@ -1973,12 +1976,12 @@ declare module "@material-ui/core/StepLabel/StepLabel" {
     icon?: Icon,
     last?: boolean,
     optional?: boolean,
-    orientation?: Orientation,
+    orientation?: Orientation
   }>;
 }
 
 declare module "@material-ui/core/Stepper/Stepper" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   import typeof StepConnector from "@material-ui/core/StepConnector/StepConnector";
 
@@ -1992,20 +1995,20 @@ declare module "@material-ui/core/Stepper/Stepper" {
     className?: string,
     connector?: Element<StepConnector> | Node,
     nonLinear?: boolean,
-    orientation?: Orientation,
+    orientation?: Orientation
   }>;
 }
 
 declare module "@material-ui/core/StepIcion/StepPositionIcon" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
-  import type { Icon } from "@material-ui/core/StepButton/StepButton";
+  import type {Icon} from "@material-ui/core/StepButton/StepButton";
 
   declare module.exports: ComponentType<{
     active?: boolean,
     classes?: Object,
     className?: string,
-    position?: Icon,
+    position?: Icon
   }>;
 }
 
@@ -2019,7 +2022,7 @@ declare module "@material-ui/core/styles/colorManipulator" {
     emphasize: (color: string, coefficient: number) => any,
     fade: (color: string, value: number) => any,
     darken: (color: string, coefficient: number) => any,
-    lighten: (color: string, coefficient: number) => any,
+    lighten: (color: string, coefficient: number) => any
   };
 }
 
@@ -2034,18 +2037,18 @@ declare module "@material-ui/core/styles/createBreakpoints" {
     down: (key: Breakpoint | number) => string,
     between: (start: Breakpoint, end: Breakpoint) => string,
     only: (key: Breakpoint) => string,
-    width: (key: Breakpoint) => number,
+    width: (key: Breakpoint) => number
   };
   declare export type BreakpointsOptions = $Shape<
     {
-      unit: string,
-      step: number,
+      unit: string;
+      step: number;
     } & Breakpoints
   >;
 
   declare module.exports: {
     keys: Array<Breakpoint>,
-    default: (breakpoints: Object) => any,
+    default: (breakpoints: Object) => any
   };
 }
 
@@ -2054,23 +2057,21 @@ declare module "@material-ui/core/styles/createGenerateClassName" {
 
   declare export type GenerateClassNameOptions = {|
     dangerouslyUseGlobalCSS?: boolean,
-    productionPrefix?: string,
+    productionPrefix?: string
   |};
 
-  declare module.exports: (
-    options?: GenerateClassNameOptions
-  ) => JssGenerateClassName;
+  declare module.exports: (options?: GenerateClassNameOptions) => JssGenerateClassName;
 }
 
 declare module "@material-ui/core/styles/createMixins" {
   declare type CSSProperties = any; // import type {StandardProperties as CSSProperties} from "csstype";
 
-  import type { Breakpoints } from "@material-ui/core/styles/createBreakpoints";
-  import type { Spacing } from "@material-ui/core/styles/spacing";
+  import type {Breakpoints} from "@material-ui/core/styles/createBreakpoints";
+  import type {Spacing} from "@material-ui/core/styles/spacing";
 
   declare export type Mixins = {
     gutters: (styles?: CSSProperties) => CSSProperties,
-    toolbar: CSSProperties,
+    toolbar: CSSProperties
   };
 
   declare export type MixinsOptions = $Shape<Mixins>;
@@ -2083,33 +2084,15 @@ declare module "@material-ui/core/styles/createMixins" {
 }
 
 declare module "@material-ui/core/styles/createMuiTheme" {
-  import type {
-    Palette,
-    PaletteOptions,
-  } from "@material-ui/core/styles/createPalette";
-  import type {
-    Typography,
-    TypographyOptions,
-  } from "@material-ui/core/styles/createTypography";
-  import type {
-    Mixins,
-    MixinsOptions,
-  } from "@material-ui/core/styles/createMixins";
-  import type {
-    Breakpoints,
-    BreakpointsOptions,
-  } from "@material-ui/core/styles/createBreakpoints";
-  import type { Shadows } from "@material-ui/core/styles/shadows";
-  import type { Shape, ShapeOptions } from "@material-ui/core/styles/shape";
-  import type {
-    Transitions,
-    TransitionsOptions,
-  } from "@material-ui/core/styles/transitions";
-  import type {
-    Spacing,
-    SpacingOptions,
-  } from "@material-ui/core/styles/spacing";
-  import type { ZIndex, ZIndexOptions } from "@material-ui/core/styles/zIndex";
+  import type {Palette, PaletteOptions} from "@material-ui/core/styles/createPalette";
+  import type {Typography, TypographyOptions} from "@material-ui/core/styles/createTypography";
+  import type {Mixins, MixinsOptions} from "@material-ui/core/styles/createMixins";
+  import type {Breakpoints, BreakpointsOptions} from "@material-ui/core/styles/createBreakpoints";
+  import type {Shadows} from "@material-ui/core/styles/shadows";
+  import type {Shape, ShapeOptions} from "@material-ui/core/styles/shape";
+  import type {Transitions, TransitionsOptions} from "@material-ui/core/styles/transitions";
+  import type {Spacing, SpacingOptions} from "@material-ui/core/styles/spacing";
+  import type {ZIndex, ZIndexOptions} from "@material-ui/core/styles/zIndex";
 
   declare export type Direction = "ltr" | "rtl";
 
@@ -2124,11 +2107,11 @@ declare module "@material-ui/core/styles/createMuiTheme" {
     palette?: PaletteOptions,
     typography?: TypographyOptions | ((palette: Palette) => TypographyOptions),
     transitions?: TransitionsOptions,
-    zIndex?: ZIndexOptions,
+    zIndex?: ZIndexOptions
   };
 
   declare export type Theme = {
-    breakpoints: Breakpoints,
+    breakpoints: Breakpoints;
     direction: Direction,
     mixins: Mixins,
     overrides?: Object,
@@ -2138,20 +2121,20 @@ declare module "@material-ui/core/styles/createMuiTheme" {
     spacing: Spacing,
     transitions: Transitions,
     typography: Typography,
-    zIndex: ZIndex,
+    zIndex: ZIndex
   };
 
   declare module.exports: (options?: ThemeOptions) => Theme;
 }
 
 declare module "@material-ui/core/styles/createPalette" {
-  import type { CommonColors } from "@material-ui/core/colors/common";
+  import type {CommonColors} from "@material-ui/core/colors/common";
 
   declare export type TypeText = {
     primary: string,
     secondary: string,
     disabled: string,
-    hint: string,
+    hint: string
   };
 
   declare export type TypeAction = {
@@ -2159,51 +2142,51 @@ declare module "@material-ui/core/styles/createPalette" {
     hover: string,
     selected: string,
     disabled: string,
-    disabledBackground: string,
+    disabledBackground: string
   };
 
   declare export type TypeBackground = {
     default: string,
-    paper: string,
+    paper: string
   };
 
   declare export type PaletteType = "light" | "dark";
 
   declare export type Color = {
-    50: string,
-    100: string,
-    200: string,
-    300: string,
-    400: string,
-    500: string,
-    600: string,
-    700: string,
-    800: string,
-    900: string,
-    A100: string,
-    A200: string,
-    A400: string,
-    A700: string,
+    "50": string,
+    "100": string,
+    "200": string,
+    "300": string,
+    "400": string,
+    "500": string,
+    "600": string,
+    "700": string,
+    "800": string,
+    "900": string,
+    "A100": string,
+    "A200": string,
+    "A400": string,
+    "A700": string
   };
 
   declare export type PaletteColor = {
-    light: string,
-    main: string,
-    dark: string,
-    contrastText: string,
+    "light": string,
+    "main": string,
+    "dark": string,
+    "contrastText": string
   };
 
   declare export type TypeObject = {
-    text: TypeText,
-    action: TypeAction,
-    background: TypeBackground,
+    "text": TypeText;
+    "action": TypeAction;
+    "background": TypeBackground;
   };
 
   declare export type SimplePaletteColorOptions = {|
     light?: string,
     main: string,
     dark?: string,
-    contrastText?: string,
+    contrastText?: string
   |};
 
   declare type PaletteColorOptions = SimplePaletteColorOptions | $Shape<Color>;
@@ -2243,7 +2226,7 @@ declare module "@material-ui/core/styles/createPalette" {
       color: SimplePaletteColorOptions,
       mainShade?: number | string,
       lightShade?: number | string,
-      darkShade?: number | string
+      darkShade?: number | string,
     ) => PaletteColor,
     [string]: any,
   };
@@ -2256,7 +2239,7 @@ declare module "@material-ui/core/styles/createPalette" {
 declare module "@material-ui/core/styles/createTypography" {
   declare type CSSProperties = any; // import type {StandardProperties as CSSProperties} from "csstype";
 
-  import type { Palette } from "@material-ui/core/styles/createPalette";
+  import type {Palette} from "@material-ui/core/styles/createPalette";
 
   declare export type TextStyle =
     | "h1"
@@ -2276,7 +2259,7 @@ declare module "@material-ui/core/styles/createTypography" {
     | "button"
     | "overline"
     | "srOnly"
-    | "inherit";
+    | "inherit"
 
   declare type FontStyle = {
     fontFamily: $PropertyType<CSSProperties, "fontFamily">,
@@ -2284,8 +2267,7 @@ declare module "@material-ui/core/styles/createTypography" {
     fontWeightLight: $PropertyType<CSSProperties, "fontWeight">,
     fontWeightRegular: $PropertyType<CSSProperties, "fontWeight">,
     fontWeightMedium: $PropertyType<CSSProperties, "fontWeight">,
-    fontWeightBold: $PropertyType<CSSProperties, "fontWeight">,
-    htmlFontSize?: $PropertyType<CSSProperties, "fontSize">,
+    htmlFontSize?: $PropertyType<CSSProperties, "fontSize">
   };
 
   declare type TypographyStyle = {
@@ -2295,35 +2277,28 @@ declare module "@material-ui/core/styles/createTypography" {
     fontWeight: $PropertyType<CSSProperties, "fontWeight">,
     letterSpacing?: $PropertyType<CSSProperties, "letterSpacing">,
     lineHeight?: $PropertyType<CSSProperties, "lineHeight">,
-    textTransform?: $PropertyType<CSSProperties, "textTransform">,
+    textTransform?: $PropertyType<CSSProperties, "textTransform">
   };
 
   declare type TypographyUtils = {
-    pxToRem: (px: number) => string,
+    pxToRem: (px: number) => string
   };
 
-  declare export type Typography = {
-    [style: TextStyle]: $Shape<TypographyStyle>,
-  } & FontStyle &
-    TypographyUtils;
+  declare export type Typography = { [style: TextStyle]:  $Shape<TypographyStyle> } & FontStyle & TypographyUtils;
 
-  declare export type TypographyOptions = $Shape<
-    {
-      [style: TextStyle]: $Shape<TypographyStyle>,
-      useNextVariants: boolean,
-    } & FontStyle
-  >;
+  declare export type TypographyOptions = $Shape<{
+    [style: TextStyle]:  $Shape<TypographyStyle>,
+    useNextVariants: boolean
+  } & FontStyle>;
 
   declare module.exports: (
     palette: Palette,
-    typography: TypographyOptions | ((palette: Palette) => TypographyOptions)
+    typography: TypographyOptions | ((palette: Palette) => TypographyOptions),
   ) => Typography;
 }
 
 declare module "@material-ui/core/styles/getStylesCreator" {
-  declare module.exports: (
-    stylesOrCreator: Object | ((Object) => Object)
-  ) => any;
+  declare module.exports: (stylesOrCreator: Object | (Object => Object)) => any;
 }
 
 declare module "@material-ui/core/styles/jssPreset" {
@@ -2331,7 +2306,7 @@ declare module "@material-ui/core/styles/jssPreset" {
 }
 
 declare module "@material-ui/core/styles/MuiThemeProvider" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
@@ -2344,19 +2319,19 @@ declare module "@material-ui/core/styles/shadows" {
 
 declare module "@material-ui/core/styles/shape" {
   declare export type Shape = {
-    borderRadius: number,
+    borderRadius: number
   };
 
-  declare export type ShapeOptions = $Shape<Shape>;
+  declare export type ShapeOptions = $Shape<Shape>
 
   declare module.exports: {
-    default: Shape,
+    default: Shape
   };
 }
 
 declare module "@material-ui/core/styles/spacing" {
   declare export type Spacing = {
-    (unit?: number): number,
+    (unit?: number): number
   };
 
   declare export type SpacingOptions = $Shape<Spacing>;
@@ -2374,7 +2349,7 @@ declare module "@material-ui/core/styles/transitions" {
     easeInOut: string,
     easeOut: string,
     easeIn: string,
-    sharp: string,
+    sharp: string
   };
 
   declare export type Duration = {
@@ -2384,7 +2359,7 @@ declare module "@material-ui/core/styles/transitions" {
     standard: number,
     complex: number,
     enteringScreen: number,
-    leavingScreen: number,
+    leavingScreen: number
   };
 
   declare export type Transitions = {
@@ -2392,27 +2367,19 @@ declare module "@material-ui/core/styles/transitions" {
     duration: Duration,
     create(
       props: string | string[],
-      options?: $Shape<{
-        duration: number | string,
-        easing: string,
-        delay: number | string,
-      }>
+      options?: $Shape<{ duration: number | string; easing: string; delay: number | string }>,
     ): string,
-    getAutoHeightDuration(height: number): number,
+    getAutoHeightDuration(height: number): number
   };
 
   declare export type TransitionsOptions = {|
-    easing?: $Shape<Easing>,
-    duration?: $Shape<Duration>,
+    easing?: $Shape<Easing>;
+    duration?: $Shape<Duration>;
     create?: (
       props: string | string[],
-      options?: $Shape<{
-        duration: number | string,
-        easing: string,
-        delay: number | string,
-      }>
-    ) => string,
-    getAutoHeightDuration?: (height: number) => number,
+      options?: $Shape<{ duration: number | string; easing: string; delay: number | string }>,
+    ) => string;
+    getAutoHeightDuration?: (height: number) => number;
   |};
 
   declare export var easing: Easing;
@@ -2424,15 +2391,9 @@ declare module "@material-ui/core/styles/transitions" {
 }
 
 declare module "@material-ui/core/styles/withStyles" {
-  import type {
-    ComponentType,
-    ElementConfig,
-    ElementRef,
-    ElementType,
-    Ref,
-  } from "react";
+  import type {ComponentType, ElementConfig, ElementRef, ElementType, Ref} from "react";
 
-  import type { Theme } from "@material-ui/core/styles/createMuiTheme";
+  import type {Theme} from "@material-ui/core/styles/createMuiTheme"
 
   // import type {StandardProperties as CSSProperties} from "csstype";
 
@@ -2440,17 +2401,11 @@ declare module "@material-ui/core/styles/withStyles" {
   // (StyleRules | StyleRulesCallback). Thus, we limit how much we can nest.
   // This is probably good style design either way.
   declare type CSSProperties = {
-    [string]:
-      | string
-      | number
-      | {
-          [string]:
-            | string
-            | number
-            | {
-                [string]: string | number,
-              },
-        },
+    [string]: string | number | {
+      [string]: string | number | {
+        [string]: string | number
+      }
+    }
   };
 
   declare type CSSCreateStyleSheetOptions = {|
@@ -2471,48 +2426,42 @@ declare module "@material-ui/core/styles/withStyles" {
     ...$Exact<CSSCreateStyleSheetOptions>,
     flip?: boolean,
     withTheme?: boolean,
-    name?: string,
+    name?: string
   |};
 
   declare type ExtractReturnTypeIfFunc = <R>(((theme: Theme) => R) | R) => R;
 
-  declare export type WithStyles<T> = {
-    classes: { [$Keys<$Call<ExtractReturnTypeIfFunc, T>>]: string },
-    innerRef: Ref<any> | { current: ElementRef<any> | null },
+  declare export type  WithStyles<T> = {
+    classes: {[$Keys<$Call<ExtractReturnTypeIfFunc, T>>]: string},
+    innerRef: Ref<any> | {current: ElementRef<any> | null}
   };
 
   declare type WithStylesHOC = {
     classes: void | { +[string]: string },
-    innerRef: void | (Ref<any> | { current: ElementRef<any> } | null),
+    innerRef: void | (Ref<any> | {current: ElementRef<any>} | null)
   };
 
   declare module.exports: (
     stylesOrCreator: StyleRulesCallback | StyleRules,
-    options?: WithStylesOptions
+    options?: WithStylesOptions,
   ) => <WrappedComponent: ComponentType<*>>(
     Component: WrappedComponent
   ) => ComponentType<$Diff<ElementConfig<WrappedComponent>, WithStylesHOC>>;
 }
 
 declare module "@material-ui/core/styles/withTheme" {
-  import type {
-    ComponentType,
-    ElementConfig,
-    ElementRef,
-    ElementType,
-    Ref,
-  } from "react";
+  import type {ComponentType, ElementConfig, ElementRef, ElementType, Ref} from "react";
 
-  import type { Theme } from "@material-ui/core/styles/createMuiTheme";
+  import type {Theme} from "@material-ui/core/styles/createMuiTheme";
 
   declare export type WithTheme = {
     theme: Theme,
-    innerRef: Ref<any> | { current: ElementRef<any> | null },
+    innerRef: Ref<any> | {current: ElementRef<any> | null}
   };
 
   declare type WithThemeHOC = {
     theme: void | Theme,
-    innerRef: void | (Ref<any> | { current: ElementRef<any> | null }),
+    innerRef: void | (Ref<any> | {current: ElementRef<any> | null})
   };
 
   declare module.exports: <Props: {}, WrappedComponent: ComponentType<Props>>(
@@ -2527,7 +2476,7 @@ declare module "@material-ui/core/styles/zIndex" {
     drawer: number,
     modal: number,
     snackbar: number,
-    tooltip: number,
+    tooltip: number
   };
 
   declare export type ZIndexOptions = $Shape<ZIndex>;
@@ -2536,9 +2485,9 @@ declare module "@material-ui/core/styles/zIndex" {
 }
 
 declare module "@material-ui/core/styles" {
-  import type { Theme as MuiTheme } from "@material-ui/core/styles/createMuiTheme";
-  import type { WithStyles as MuiWithStyles } from "@material-ui/core/styles/withStyles";
-  import type { WithTheme as MuiWithTheme } from "@material-ui/core/styles/withTheme";
+  import type {Theme as MuiTheme} from "@material-ui/core/styles/createMuiTheme";
+  import type {WithStyles as MuiWithStyles} from "@material-ui/core/styles/withStyles";
+  import type {WithTheme as MuiWithTheme} from "@material-ui/core/styles/withTheme";
 
   declare export type Theme = MuiTheme;
   declare export type WithStyles<T> = MuiWithStyles<T>;
@@ -2548,76 +2497,74 @@ declare module "@material-ui/core/styles" {
     MuiThemeProvider: $Exports<"@material-ui/core/styles/MuiThemeProvider">,
     withStyles: $Exports<"@material-ui/core/styles/withStyles">,
     withTheme: $Exports<"@material-ui/core/styles/withTheme">,
-    createGenerateClassName: $Exports<
-      "@material-ui/core/styles/createGenerateClassName"
-    >,
+    createGenerateClassName: $Exports<"@material-ui/core/styles/createGenerateClassName">,
     createMuiTheme: $Exports<"@material-ui/core/styles/createMuiTheme">,
-    jssPreset: $Exports<"@material-ui/core/styles/jssPreset">,
+    jssPreset: $Exports<"@material-ui/core/styles/jssPreset">
   };
 }
 
 declare module "@material-ui/core/svg-icons/ArrowDownward" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/ArrowDropDown" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/Cancel" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/CheckBox" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/CheckBoxOutlineBlank" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/CheckCircle" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/IndeterminateCheckBox" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/KeyboardArrowLeft" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/KeyboardArrowRight" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/RadioButtonChecked" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
 
 declare module "@material-ui/core/svg-icons/RadioButtonUnchecked" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<Object>;
 }
@@ -2627,14 +2574,14 @@ declare module "@material-ui/core/SvgIcon" {
 }
 
 declare module "@material-ui/core/SvgIcon/SvgIcon" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children: Node,
     classes?: Object,
     className?: string,
     titleAccess?: string,
-    viewBox?: string,
+    viewBox?: string
   }>;
 }
 
@@ -2643,7 +2590,7 @@ declare module "@material-ui/core/Switch" {
 }
 
 declare module "@material-ui/core/Switch/Switch" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     checked?: boolean | string,
@@ -2659,7 +2606,7 @@ declare module "@material-ui/core/Switch/Switch" {
     name?: string,
     onChange?: Function,
     tabIndex?: number | string,
-    value?: string,
+    value?: string
   }>;
 }
 
@@ -2672,9 +2619,7 @@ declare module "@material-ui/core/TableBody" {
 }
 
 declare module "@material-ui/core/TableContainer" {
-  declare export default $Exports<
-    "@material-ui/core/TableContainer/TableContainer"
-  >;
+  declare export default $Exports<"@material-ui/core/TableContainer/TableContainer">;
 }
 
 declare module "@material-ui/core/TableCell" {
@@ -2706,29 +2651,29 @@ declare module "@material-ui/core/TableSortLabel" {
 }
 
 declare module "@material-ui/core/Table/Table" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
-    component?: ElementType,
+    component?: ElementType
   }>;
 }
 
 declare module "@material-ui/core/TableBody/TableBody" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
-    component?: ElementType,
+    component?: ElementType
   }>;
 }
 
 declare module "@material-ui/core/TableContainer/TableContainer" {
-  import type { ElementType, Node } from "react";
+  import type {ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children: Node,
@@ -2738,7 +2683,7 @@ declare module "@material-ui/core/TableContainer/TableContainer" {
 }
 
 declare module "@material-ui/core/TableCell/TableCell" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type Padding = "default" | "checkbox" | "none";
   declare type Size = "small" | "medium";
@@ -2749,40 +2694,40 @@ declare module "@material-ui/core/TableCell/TableCell" {
     className?: string,
     component?: ElementType,
     padding?: Padding,
-    size?: Size,
+    size?: Size
   }>;
 }
 
 declare module "@material-ui/core/TableFooter/TableFooter" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
-    component?: ElementType,
+    component?: ElementType
   }>;
 }
 
 declare module "@material-ui/core/TableHead/TableHead" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
-    component?: ElementType,
+    component?: ElementType
   }>;
 }
 
 declare module "@material-ui/core/TablePagination/TablePagination" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare type LabelDisplayedRowsArgs = {
     from: number,
     to: number,
     count: number,
-    page: number,
+    page: number
   };
   declare type LabelDisplayedRows = (
     paginationInfo: LabelDisplayedRowsArgs
@@ -2799,12 +2744,12 @@ declare module "@material-ui/core/TablePagination/TablePagination" {
     onChangeRowsPerPage: (event: SyntheticInputEvent<*>) => void,
     page: number,
     rowsPerPage: number,
-    rowsPerPageOptions?: Array<number>,
+    rowsPerPageOptions?: Array<number>
   }>;
 }
 
 declare module "@material-ui/core/TableRow/TableRow" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -2812,12 +2757,12 @@ declare module "@material-ui/core/TableRow/TableRow" {
     className?: string,
     component?: ElementType,
     hover?: boolean,
-    selected?: boolean,
+    selected?: boolean
   }>;
 }
 
 declare module "@material-ui/core/TableSortLabel/TableSortLabel" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare type Direction = "asc" | "desc";
 
@@ -2826,7 +2771,7 @@ declare module "@material-ui/core/TableSortLabel/TableSortLabel" {
     children?: Node,
     classes?: Object,
     className?: string,
-    direction?: Direction,
+    direction?: Direction
   }>;
 }
 
@@ -2839,7 +2784,7 @@ declare module "@material-ui/core/Tab" {
 }
 
 declare module "@material-ui/core/Tab/Tab" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   declare module.exports: ComponentType<{
     classes?: Object,
@@ -2854,30 +2799,30 @@ declare module "@material-ui/core/Tab/Tab" {
     selected?: boolean,
     style?: Object,
     textColor?: "accent" | "primary" | "inherit" | string,
-    value?: any,
+    value?: any
   }>;
 }
 
 declare module "@material-ui/core/Tabs/TabIndicator" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare type IndicatorStyle = {
     left: number,
-    width: number,
+    width: number
   };
 
   declare module.exports: ComponentType<{
     classes?: Object,
     className?: string,
     color: "accent" | "primary" | string,
-    style: IndicatorStyle,
+    style: IndicatorStyle
   }>;
 }
 
 declare module "@material-ui/core/Tabs/Tabs" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
-  import type { IndicatorStyle } from "@material-ui/core/Tabs/TabIndicator";
+  import type {IndicatorStyle} from "@material-ui/core/Tabs/TabIndicator";
 
   declare type IndicatorColor = "accent" | "primary" | string;
   declare type ScrollButtons = "auto" | "on" | "off";
@@ -2895,19 +2840,19 @@ declare module "@material-ui/core/Tabs/Tabs" {
     scrollButtons?: ScrollButtons,
     TabScrollButton?: ComponentType<*>,
     textColor?: TextColor,
-    value: any,
+    value: any
   }>;
 }
 
 declare module "@material-ui/core/Tabs/TabScrollButton" {
-  import type { ComponentType } from "react";
+  import type {ComponentType} from "react";
 
   declare module.exports: ComponentType<{
     classes?: Object,
     className?: string,
     direction: "left" | "right",
     onClick?: Function,
-    visible?: boolean,
+    visible?: boolean
   }>;
 }
 
@@ -2916,9 +2861,7 @@ declare module "@material-ui/core/Link" {
 }
 
 declare module "@material-ui/core/OutlinedInput" {
-  declare module.exports: $Exports<
-    "@material-ui/core/OutlinedInput/OutlinedInput"
-  >;
+  declare module.exports: $Exports<"@material-ui/core/OutlinedInput/OutlinedInput">;
 }
 
 declare module "@material-ui/core/TextField" {
@@ -2926,7 +2869,7 @@ declare module "@material-ui/core/TextField" {
 }
 
 declare module "@material-ui/core/TextField/TextField" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     autoComplete?: string,
@@ -2958,7 +2901,7 @@ declare module "@material-ui/core/TextField/TextField" {
     SelectProps?: Object,
     type?: string,
     value?: string | number | boolean,
-    margin?: "none" | "dense" | "normal",
+    margin?: "none" | "dense" | "normal"
   }>;
 }
 
@@ -2967,13 +2910,13 @@ declare module "@material-ui/core/Toolbar" {
 }
 
 declare module "@material-ui/core/Toolbar/Toolbar" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     classes?: Object,
     children?: Node,
     className?: string,
-    disableGutters?: boolean,
+    disableGutters?: boolean
   }>;
 }
 
@@ -2982,7 +2925,7 @@ declare module "@material-ui/core/Tooltip" {
 }
 
 declare module "@material-ui/core/Tooltip/Tooltip" {
-  import type { ComponentType, Element, Node } from "react";
+  import type {ComponentType, Element, Node} from "react";
 
   declare type Placement =
     | "bottom-end"
@@ -3013,14 +2956,14 @@ declare module "@material-ui/core/Tooltip/Tooltip" {
     enterDelay?: number,
     leaveDelay?: number,
     placement?: Placement,
-    PopperProps?: Object,
+    PopperProps?: Object
   }>;
 }
 
 declare module "@material-ui/core/Collapse/Collapse" {
-  import type { ComponentType, ElementType, Node } from "react";
+  import type {ComponentType, ElementType, Node} from "react";
 
-  import type { TransitionCallback } from "@material-ui/core/internal/transition";
+  import type {TransitionCallback} from "@material-ui/core/internal/transition";
 
   declare type TransitionDuration =
     | number
@@ -3043,16 +2986,16 @@ declare module "@material-ui/core/Collapse/Collapse" {
     onExiting?: TransitionCallback,
     style?: Object,
     timeout?: TransitionDuration,
-    unmountOnExit?: boolean,
+    unmountOnExit?: boolean
   }>;
 }
 
 declare module "@material-ui/core/Fade/Fade" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   import type {
     TransitionDuration,
-    TransitionCallback,
+    TransitionCallback
   } from "@material-ui/core/internal/transition";
 
   declare module.exports: ComponentType<{
@@ -3063,16 +3006,16 @@ declare module "@material-ui/core/Fade/Fade" {
     onEntering?: TransitionCallback,
     onExit?: TransitionCallback,
     style?: Object,
-    timeout?: TransitionDuration,
+    timeout?: TransitionDuration
   }>;
 }
 
 declare module "@material-ui/core/Zoom/Zoom" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   import type {
     TransitionDuration,
-    TransitionCallback,
+    TransitionCallback
   } from "@material-ui/core/internal/transition";
 
   declare module.exports: ComponentType<{
@@ -3081,16 +3024,16 @@ declare module "@material-ui/core/Zoom/Zoom" {
     onEnter?: TransitionCallback,
     onExit?: TransitionCallback,
     style?: Object,
-    timeout?: TransitionDuration,
+    timeout?: TransitionDuration
   }>;
 }
 
 declare module "@material-ui/core/Grow/Grow" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   import type {
     TransitionCallback,
-    TransitionClasses,
+    TransitionClasses
   } from "@material-ui/core/internal/transition";
 
   declare type TransitionDuration =
@@ -3111,7 +3054,7 @@ declare module "@material-ui/core/Grow/Grow" {
     rootRef?: Function,
     style?: Object,
     transitionClasses?: TransitionClasses,
-    timeout?: TransitionDuration,
+    timeout?: TransitionDuration
   }>;
 }
 
@@ -3136,11 +3079,11 @@ declare module "@material-ui/core/Zoom" {
 }
 
 declare module "@material-ui/core/Slide/Slide" {
-  import type { ComponentType, Element } from "react";
+  import type {ComponentType, Element} from "react";
 
   import type {
     TransitionDuration,
-    TransitionCallback,
+    TransitionCallback
   } from "@material-ui/core/internal/transition";
 
   declare type Direction = "left" | "right" | "up" | "down";
@@ -3161,7 +3104,7 @@ declare module "@material-ui/core/Slide/Slide" {
     onExiting?: TransitionCallback,
     onExited?: TransitionCallback,
     style?: Object,
-    timeout?: TransitionDuration,
+    timeout?: TransitionDuration
   }>;
 }
 
@@ -3170,8 +3113,8 @@ declare module "@material-ui/core/Typography" {
 }
 
 declare module "@material-ui/core/Typography/Typography" {
-  import type { ComponentType, ElementType, Node } from "react";
-  import type { TextStyle as Variant } from "@material-ui/core/styles/createTypography";
+  import type {ComponentType, ElementType, Node} from "react";
+  import type {TextStyle as Variant} from "@material-ui/core/styles/createTypography"
 
   declare type Align = "inherit" | "left" | "center" | "right" | "justify";
   declare type Color =
@@ -3194,14 +3137,14 @@ declare module "@material-ui/core/Typography/Typography" {
     variantMapping?: { [key: Variant]: string },
     noWrap?: boolean,
     paragraph?: boolean,
-    variant?: Variant,
-  };
+    variant?: Variant
+  }
 
   declare module.exports: ComponentType<TypographyProps>;
 }
 
 declare module "@material-ui/core/utils/addEventListener" {
-  import type { Node } from "react";
+  import type {Node} from "react";
 
   declare module.exports: (
     node: Node,
@@ -3212,11 +3155,11 @@ declare module "@material-ui/core/utils/addEventListener" {
 }
 
 declare module "@material-ui/core/ClickAwayListener/ClickAwayListener" {
-  import type { ComponentType, Node } from "react";
+  import type {ComponentType, Node} from "react";
 
   declare module.exports: ComponentType<{
     children: Node,
-    onClickAway: (event: Event) => void,
+    onClickAway: (event: Event) => void
   }>;
 }
 
@@ -3239,7 +3182,7 @@ declare module "@material-ui/core/utils/helpers" {
     contains: (obj: Object, pred: Object) => any,
     findIndex: (arr: Array<any>, pred: any) => any,
     find: (arr: Array<any>, pred: any) => any,
-    createChainedFunction: (...funcs: Array<any>) => any,
+    createChainedFunction: (...funcs: Array<any>) => any
   };
 }
 
@@ -3247,7 +3190,7 @@ declare module "@material-ui/core/utils/keyboardFocus" {
   declare module.exports: {
     focusKeyPressed: Function,
     detectKeyboardFocus: Function,
-    listenForFocusKeys: Function,
+    listenForFocusKeys: Function
   };
 }
 
@@ -3255,17 +3198,20 @@ declare module "@material-ui/core/utils/manageAriaHidden" {
   declare module.exports: {
     ariaHidden: Function,
     hideSiblings: Function,
-    showSiblings: Function,
+    showSiblings: Function
   };
 }
 
 declare module "@material-ui/core/utils/reactHelpers" {
-  import type { Node } from "react";
+  import type {Node} from "react";
 
   declare module.exports: {
-    cloneChildrenWithClassName: (children?: Node, className: string) => any,
+    cloneChildrenWithClassName: (
+      children?: Node,
+      className: string
+    ) => any,
     isMuiElement: (element: any, muiNames: Array<string>) => any,
-    isMuiComponent: (element: any, muiNames: Array<string>) => any,
+    isMuiComponent: (element: any, muiNames: Array<string>) => any
   };
 }
 
@@ -3274,26 +3220,24 @@ declare module "@material-ui/core/utils/requirePropFactory" {
 }
 
 declare module "@material-ui/core/withWidth/withWidth" {
-  import type { ComponentType } from "react";
-  import type { Breakpoint } from "@material-ui/core/styles/createBreakpoints";
+  import type {ComponentType} from "react";
+  import type {Breakpoint} from "@material-ui/core/styles/createBreakpoints";
 
   declare export type WithWidth = {
     width?: Breakpoint,
-    innerRef?: React$Ref<any> | { current: React$ElementRef<any> | null },
-  };
+    innerRef?: (React$Ref<any> | {current: React$ElementRef<any> | null})
+  }
 
   declare module.exports: (options?: {|
     withTheme?: boolean,
     noSSR?: boolean,
     initialWidth?: Breakpoint,
-    resizeInterval?: number,
+    resizeInterval?: number
   |}) => <Props: WithWidth>(
     Component: ComponentType<Props>
   ) => <Props: {}, WrappedComponent: React$ComponentType<Props>>(
     Component: WrappedComponent
-  ) => React$ComponentType<
-    $Diff<React$ElementConfig<WrappedComponent>, WithWidth>
-  >;
+  ) => React$ComponentType<$Diff<React$ElementConfig<WrappedComponent>,WithWidth>>;
 }
 
 declare module "@material-ui/core/colors" {
@@ -3587,7 +3531,9 @@ declare module "@material-ui/core/ExpansionPanelSummary/index.js" {
 }
 
 declare module "@material-ui/core/Accordion/Accordion.js" {
-  declare module.exports: $Exports<"@material-ui/core/Accordion/Accordion">;
+  declare module.exports: $Exports<
+    "@material-ui/core/Accordion/Accordion"
+  >;
 }
 declare module "@material-ui/core/Accordion/index.js" {
   declare module.exports: $Exports<"@material-ui/core/Accordion">;
@@ -4087,9 +4033,7 @@ declare module "@material-ui/core/TableContainer/index.js" {
   declare module.exports: $Exports<"@material-ui/core/TableContainer">;
 }
 declare module "@material-ui/core/TableContainer/TableContainer.js" {
-  declare module.exports: $Exports<
-    "@material-ui/core/TableContainer/TableContainer"
-  >;
+  declare module.exports: $Exports<"@material-ui/core/TableContainer/TableContainer">;
 }
 declare module "@material-ui/core/TableCell/index.js" {
   declare module.exports: $Exports<"@material-ui/core/TableCell">;
@@ -4487,7 +4431,7 @@ declare module "@material-ui/core" {
   import type {
     Theme as StylesTheme,
     WithStyles as StylesWithStyles,
-    WithTheme as StylesWithTheme,
+    WithTheme as StylesWithTheme
   } from "@material-ui/core/styles";
 
   declare export type Theme = StylesTheme;
