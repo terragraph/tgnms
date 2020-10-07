@@ -24,7 +24,7 @@ import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '../../../hooks/useForm';
 import useRouter from '../../../hooks/useRouter';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {
   AlertReceiver,
@@ -84,10 +84,9 @@ const CONFIG_TYPES: {
 
 export default function AddEditReceiver(props: Props) {
   const {apiUtil} = useAlarmContext();
-
+  const snackbars = useSnackbars();
   const {isNew, receiver, onExit} = props;
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
 
   const {
     formState,
@@ -120,29 +119,17 @@ export default function AddEditReceiver(props: Props) {
         } else {
           await apiUtil.editReceiver(request);
         }
-        enqueueSnackbar(`Successfully ${isNew ? 'added' : 'saved'} receiver`, {
-          variant: 'success',
-        });
+        snackbars.success(`Successfully ${isNew ? 'added' : 'saved'} receiver`);
       } catch (error) {
-        enqueueSnackbar(
+        snackbars.error(
           `Unable to save receiver: ${
             error.response ? error.response.data.message : error.message
           }.`,
-          {
-            variant: 'error',
-          },
         );
       }
     }
     makeApiCall();
-  }, [
-    apiUtil,
-    enqueueSnackbar,
-    formState,
-    isNew,
-    match.params.networkId,
-    onExit,
-  ]);
+  }, [apiUtil, formState, isNew, match.params.networkId, onExit, snackbars]);
 
   const configEditorSharedProps = {
     receiver,

@@ -19,8 +19,10 @@ import {Route} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, render} from '@testing-library/react';
 
-jest.mock('@fbcnms/alarms/hooks/useSnackbar');
-const useSnackbar = require('@fbcnms/alarms/hooks/useSnackbar');
+const snackbarsMock = {error: jest.fn(), success: jest.fn()};
+jest
+  .spyOn(require('@fbcnms/alarms/hooks/useSnackbar'), 'useSnackbars')
+  .mockReturnValue(snackbarsMock);
 const useMagmaAPIMock = jest
   .spyOn(require('@fbcnms/ui/magma/useMagmaAPI'), 'default')
   .mockReturnValue({response: []});
@@ -81,17 +83,12 @@ describe('Firing Alerts', () => {
       error: {message: 'an error occurred'},
     });
 
-    const enqueueSnackbarMock = jest.fn();
-    jest
-      .spyOn(useSnackbar, 'useEnqueueSnackbar')
-      .mockReturnValueOnce(enqueueSnackbarMock);
-
     render(
       <Wrapper route={'/alerts'}>
         <Alarms />
       </Wrapper>,
     );
 
-    expect(enqueueSnackbarMock).toHaveBeenCalled();
+    expect(snackbarsMock.error).toHaveBeenCalled();
   });
 });

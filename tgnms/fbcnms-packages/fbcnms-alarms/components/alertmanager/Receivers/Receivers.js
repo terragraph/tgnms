@@ -23,7 +23,8 @@ import TableAddButton from '../../table/TableAddButton';
 import useRouter from '../../../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
+
 import type {AlertReceiver} from '../../AlarmAPIType';
 
 const useStyles = makeStyles(theme => ({
@@ -52,7 +53,7 @@ export default function Receivers() {
   );
   const classes = useStyles();
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
   const handleActionsMenuOpen = React.useCallback(
     (row: AlertReceiver, eventTarget: HTMLElement) => {
       setSelectedRow(row);
@@ -82,26 +83,21 @@ export default function Receivers() {
             networkId: match.params.networkId,
             receiverName: selectedRow.name,
           });
-          enqueueSnackbar(`Successfully deleted receiver`, {
-            variant: 'success',
-          });
+          snackbars.success(`Successfully deleted receiver`);
           setIsMenuOpen(false);
         }
       } catch (error) {
-        enqueueSnackbar(
+        snackbars.error(
           `Unable to delete receiver: ${
             error.response ? error.response?.data?.message : error.message
           }. Please try again.`,
-          {
-            variant: 'error',
-          },
         );
       } finally {
         setLastRefreshTime(new Date().toLocaleString());
       }
     }
     makeRequest();
-  }, [apiUtil, enqueueSnackbar, match.params.networkId, selectedRow]);
+  }, [apiUtil, match.params.networkId, selectedRow, snackbars]);
 
   const handleViewDialogOpen = React.useCallback(() => {
     setIsDialogOpen(true);
@@ -119,11 +115,10 @@ export default function Receivers() {
   );
 
   if (error) {
-    enqueueSnackbar(
+    snackbars.error(
       `Unable to load receivers: ${
         error.response ? error.response.data.message : error.message
       }`,
-      {variant: 'error'},
     );
   }
 

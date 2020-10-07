@@ -75,3 +75,43 @@ export function useEnqueueSnackbar() {
     [enqueueSnackbar],
   );
 }
+
+export function useSnackbars() {
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const successSnackbar = React.useCallback(
+    (message: string) =>
+      enqueueSnackbar(message, {
+        variant: 'success',
+      }),
+    [enqueueSnackbar],
+  );
+
+  const errorSnackbar = React.useCallback(
+    (message: string) => {
+      enqueueSnackbar(message, {
+        variant: 'error',
+      });
+    },
+    [enqueueSnackbar],
+  );
+
+  const warningSnackbar = React.useCallback(
+    (message: string) =>
+      enqueueSnackbar(message, {
+        variant: 'warning',
+      }),
+    [enqueueSnackbar],
+  );
+
+  const result = React.useMemo(
+    () => ({
+      success: successSnackbar,
+      error: errorSnackbar,
+      warning: warningSnackbar,
+    }),
+    [errorSnackbar, successSnackbar, warningSnackbar],
+  );
+
+  return result;
+}

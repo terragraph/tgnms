@@ -17,7 +17,7 @@ import TableActionDialog from '../table/TableActionDialog';
 import useRouter from '../../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -46,7 +46,7 @@ export default function Suppressions() {
   const [_isAddEditAlert, _setIsAddEditAlert] = useState<boolean>(false);
   const classes = useStyles();
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
 
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getSuppressions,
@@ -55,11 +55,10 @@ export default function Suppressions() {
   );
 
   if (error) {
-    enqueueSnackbar(
+    snackbars.error(
       `Unable to load suppressions: ${
         error.response ? error.response.data.message : error.message
       }`,
-      {variant: 'error'},
     );
   }
 

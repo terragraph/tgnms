@@ -23,7 +23,7 @@ import Typography from '@material-ui/core/Typography';
 import useForm from '../../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
 import type {Props as EditorProps} from '../../common/Editor';
@@ -52,8 +52,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function GlobalConfig(props: Props) {
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
   const {apiUtil} = useAlarmContext();
+  const snackbars = useSnackbars();
   const [lastRefreshTime, _setLastRefreshTime] = React.useState(new Date());
   const {response, isLoading} = apiUtil.useAlarmsApi(
     apiUtil.getGlobalConfig,
@@ -93,16 +93,15 @@ export default function GlobalConfig(props: Props) {
       await apiUtil.editGlobalConfig({
         config: formStateCleaned,
       });
-      enqueueSnackbar('Successfully saved global config', {variant: 'success'});
+      snackbars.success('Successfully saved global config');
     } catch (error) {
-      enqueueSnackbar(
+      snackbars.error(
         `Unable to save global config: ${
           error.response ? error.response?.data?.message : error.message
         }`,
-        {variant: 'error'},
       );
     }
-  }, [apiUtil, enqueueSnackbar, formState]);
+  }, [apiUtil, formState, snackbars]);
 
   if (isLoading) {
     return (

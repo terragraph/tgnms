@@ -21,8 +21,9 @@ import useRouter from '../hooks/useRouter';
 import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
-import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useLoadRules} from './hooks';
+import {useSnackbars} from '../hooks/useSnackbar';
+
 import type {ColumnData} from './table/SimpleTable';
 import type {GenericRule} from './rules/RuleInterface';
 
@@ -51,8 +52,8 @@ const PROMETHEUS_RULE_TYPE = 'prometheus';
 
 export default function AlertRules<TRuleUnion>() {
   const {apiUtil, ruleMap} = useAlarmContext();
+  const snackbars = useSnackbars();
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
   const {match} = useRouter();
   const [lastRefreshTime, setLastRefreshTime] = React.useState(
     new Date().getTime().toString(),
@@ -131,11 +132,9 @@ export default function AlertRules<TRuleUnion>() {
         setMatchingAlertsCount(response.length);
       }
     } catch (error) {
-      enqueueSnackbar('Could not load matching alerts for rule', {
-        variant: 'error',
-      });
+      snackbars.error('Could not load matching alerts for rule');
     }
-  }, [selectedRow, apiUtil, match.params.networkId, enqueueSnackbar]);
+  }, [selectedRow, apiUtil, match.params.networkId, snackbars]);
   const handleActionsMenuClose = React.useCallback(() => {
     setSelectedRow(null);
     menuAnchorEl.current = null;
@@ -159,24 +158,19 @@ export default function AlertRules<TRuleUnion>() {
           ruleName: selectedRow.name,
           cancelToken: cancelSource.token,
         });
-        enqueueSnackbar(`Successfully deleted alert rule`, {
-          variant: 'success',
-        });
+        snackbars.success(`Successfully deleted alert rule`);
       }
     } catch (error) {
-      enqueueSnackbar(
+      snackbars.error(
         `Unable to delete alert rule: ${
           error.response ? error.response?.data?.message : error.message
         }. Please try again.`,
-        {
-          variant: 'error',
-        },
       );
     } finally {
       setLastRefreshTime(new Date().toLocaleString());
       setIsMenuOpen(false);
     }
-  }, [enqueueSnackbar, match.params.networkId, ruleMap, selectedRow]);
+  }, [match.params.networkId, ruleMap, selectedRow, snackbars]);
 
   const handleViewAlertModalClose = React.useCallback(() => {
     setIsViewAlertModalOpen(false);

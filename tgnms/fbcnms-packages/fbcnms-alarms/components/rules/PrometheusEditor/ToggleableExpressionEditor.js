@@ -24,7 +24,7 @@ import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';
@@ -86,15 +86,15 @@ export default function ToggleableExpressionEditor(props: {
 }) {
   const {apiUtil} = useAlarmContext();
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
   const {response, error} = apiUtil.useAlarmsApi(apiUtil.getMetricSeries, {
     networkId: match.params.networkId,
   });
+
   if (error) {
-    enqueueSnackbar('Error retrieving metrics: ' + error, {
-      variant: 'error',
-    });
+    snackbars.error('Error retrieving metrics: ' + error);
   }
+
   const metricsByName = groupBy(response, '__name__');
 
   return (

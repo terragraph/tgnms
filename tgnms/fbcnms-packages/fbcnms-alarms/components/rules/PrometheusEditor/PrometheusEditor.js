@@ -30,7 +30,7 @@ import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
@@ -182,8 +182,8 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {apiUtil, thresholdEditorEnabled} = useAlarmContext();
   const {isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
   const classes = useStyles();
+  const snackbars = useSnackbars();
 
   /**
    * after the user types into the form, map back from FormState and
@@ -248,18 +248,13 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       } else {
         await apiUtil.editAlertRule(request);
       }
-      enqueueSnackbar(`Successfully ${isNew ? 'added' : 'saved'} alert rule`, {
-        variant: 'success',
-      });
+      snackbars.success(`Successfully ${isNew ? 'added' : 'saved'} alert rule`);
       onExit();
     } catch (error) {
-      enqueueSnackbar(
+      snackbars.error(
         `Unable to create rule: ${
           error.response ? error.response.data.message : error.message
         }.`,
-        {
-          variant: 'error',
-        },
       );
     }
   };
@@ -486,7 +481,6 @@ function useThresholdExpressionEditorState({
   advancedEditorMode: boolean,
   setAdvancedEditorMode: boolean => void,
 } {
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [
     thresholdExpression,
     setThresholdExpression,
@@ -496,6 +490,7 @@ function useThresholdExpressionEditorState({
     value: 0,
     filters: new Labels(),
   });
+  const snackbars = useSnackbars();
 
   const [advancedEditorMode, setAdvancedEditorMode] = React.useState<boolean>(
     !thresholdEditorEnabled,
@@ -527,11 +522,8 @@ function useThresholdExpressionEditorState({
         setAdvancedEditorMode(true);
       }
     } else {
-      enqueueSnackbar(
+      snackbars.error(
         "Error parsing alert expression. You can still edit this using the advanced editor, but you won't be able to use the UI expression editor.",
-        {
-          variant: 'error',
-        },
       );
     }
     // we only want this to run when the parsedExpression changes

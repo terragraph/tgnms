@@ -25,7 +25,7 @@ import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {FiringAlarm} from '../AlarmAPIType';
 
@@ -58,7 +58,7 @@ export default function FiringAlerts() {
   const [alertData, setAlertData] = useState<?Array<FiringAlarm>>(null);
   const classes = useStyles();
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
   const {error, isLoading, response} = apiUtil.useAlarmsApi(
     apiUtil.viewFiringAlerts,
     {networkId: match.params.networkId},
@@ -96,14 +96,15 @@ export default function FiringAlerts() {
     setSelectedRow(null);
   }, [setSelectedRow]);
 
-  if (error) {
-    enqueueSnackbar(
-      `Unable to load firing alerts. ${
-        error.response ? error.response.data.message : error.message || ''
-      }`,
-      {variant: 'error'},
-    );
-  }
+  React.useEffect(() => {
+    if (error) {
+      snackbars.error(
+        `Unable to load firing alerts. ${
+          error.response ? error.response.data.message : error.message || ''
+        }`,
+      );
+    }
+  }, [error, snackbars]);
 
   if (!isLoading && alertData?.length === 0) {
     return (

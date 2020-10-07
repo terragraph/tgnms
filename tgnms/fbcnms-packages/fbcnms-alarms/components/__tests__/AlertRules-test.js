@@ -25,10 +25,10 @@ afterEach(() => {
 
 const {apiUtil, AlarmsWrapper} = alarmTestUtil();
 
-const enqueueSnackbarMock = jest.fn();
+const snackbarsMock = {error: jest.fn(), success: jest.fn()};
 jest
-  .spyOn(require('../../hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+  .spyOn(require('../../hooks/useSnackbar'), 'useSnackbars')
+  .mockReturnValue(snackbarsMock);
 jest
   .spyOn(require('../../hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
@@ -195,11 +195,6 @@ describe('AddEditAlert > Prometheus Editor', () => {
   });
 
   test('a snackbar is enqueued if adding a rule fails', async () => {
-    const enqueueMock = jest.fn();
-    jest
-      .spyOn(require('../../hooks/useSnackbar'), 'useEnqueueSnackbar')
-      .mockReturnValue(enqueueMock);
-
     axiosMock.mockRejectedValueOnce({
       response: {
         status: 500,
@@ -219,6 +214,6 @@ describe('AddEditAlert > Prometheus Editor', () => {
       fireEvent.submit(getByTestId('editor-form'));
     });
 
-    expect(enqueueMock).toHaveBeenCalled();
+    expect(snackbarsMock.success).toHaveBeenCalled();
   });
 });
