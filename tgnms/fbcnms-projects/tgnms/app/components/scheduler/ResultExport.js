@@ -13,7 +13,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import RootRef from '@material-ui/core/RootRef';
 import axios from 'axios';
 import {BUTTON_TYPES} from '../../constants/ScheduleConstants';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 type Props = {
   id: string,
@@ -21,11 +21,9 @@ type Props = {
 
 export default function ResultExport(props: Props): React.Node {
   const {id} = props;
-  const enqueueSnackbar = useEnqueueSnackbar();
-
   const cancelSource = axios.CancelToken.source();
-
   const anchorRef = React.useRef(null);
+  const snackbars = useSnackbars();
   const [exportMenuToggle, setExportMenu] = React.useState(false);
 
   const exportTestResults = (exportType: string) => {
@@ -68,11 +66,7 @@ export default function ResultExport(props: Props): React.Node {
         anchor.click();
         window.URL.revokeObjectURL(url);
       })
-      .catch(_ =>
-        enqueueSnackbar('Unable to fetch file right now.', {
-          variant: 'error',
-        }),
-      )
+      .catch(_ => snackbars.error('Unable to fetch file right now.'))
       .finally(_ => {
         setExportMenu(false);
       });

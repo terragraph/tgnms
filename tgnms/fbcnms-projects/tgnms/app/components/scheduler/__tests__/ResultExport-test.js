@@ -9,7 +9,7 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
 import ResultExport from '../ResultExport';
-import {NetworkContextWrapper} from '../../../tests/testHelpers';
+import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 const getTestExecutionMock = jest
@@ -40,9 +40,12 @@ test('renders without crashing', () => {
 
 test('download triggers api call', () => {
   const {getByTestId, getByText} = render(
-    <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
-      <ResultExport {...defaultProps} />
-    </NetworkContextWrapper>,
+    <TestApp>
+      <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
+        <ResultExport {...defaultProps} />
+      </NetworkContextWrapper>
+      ,
+    </TestApp>,
   );
   expect(getByTestId('download-button')).toBeInTheDocument();
   fireEvent.click(getByText('JSON'));

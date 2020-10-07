@@ -23,12 +23,10 @@ const scheduleTestMock = jest
   .spyOn(networkTestAPIUtil, 'scheduleTest')
   .mockImplementation(() => Promise.resolve());
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
-
-const enqueueSnackbarMock = jest.fn();
+const snackbarsMock = {error: jest.fn(), success: jest.fn()};
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+  .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(snackbarsMock);
 
 afterEach(() => {
   cleanup();

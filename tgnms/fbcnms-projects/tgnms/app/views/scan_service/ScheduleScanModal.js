@@ -21,8 +21,8 @@ import {
   SCAN_TYPES,
 } from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   selector: {
@@ -34,8 +34,8 @@ type Props = {onActionClick: () => void};
 
 export default function ScheduleScanModal(props: Props) {
   const classes = useStyles();
+  const snackbars = useSnackbars();
   const {networkName} = useNetworkContext();
-  const enqueueSnackbar = useEnqueueSnackbar();
   const scheduleTypes = Object.keys(SCAN_SERVICE_TYPES);
   const {onActionClick} = props;
   const {formState, handleInputChange} = useForm({
@@ -53,15 +53,9 @@ export default function ScheduleScanModal(props: Props) {
             mode: SCAN_MODE[formState.mode],
           })
           .then(_ => {
-            enqueueSnackbar('Successfully scheduled scan!', {
-              variant: 'success',
-            });
+            snackbars.success('Successfully scheduled scan!');
           })
-          .catch(err =>
-            enqueueSnackbar('Failed to schedule scan: ' + err, {
-              variant: 'error',
-            }),
-          );
+          .catch(err => snackbars.error('Failed to schedule scan: ' + err));
       }
       if (adhoc) {
         scanApi
@@ -70,20 +64,12 @@ export default function ScheduleScanModal(props: Props) {
             networkName,
             mode: SCAN_MODE[formState.mode],
           })
-          .then(_ =>
-            enqueueSnackbar('Successfully started scan!', {
-              variant: 'success',
-            }),
-          )
-          .catch(err =>
-            enqueueSnackbar('Failed to start scan: ' + err, {
-              variant: 'error',
-            }),
-          );
+          .then(_ => snackbars.success('Successfully started scan!'))
+          .catch(err => snackbars.error('Failed to start scan: ' + err));
       }
       onActionClick();
     },
-    [enqueueSnackbar, networkName, formState, onActionClick],
+    [networkName, formState, onActionClick, snackbars],
   );
 
   return (

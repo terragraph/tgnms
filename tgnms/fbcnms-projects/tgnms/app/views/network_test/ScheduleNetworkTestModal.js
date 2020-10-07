@@ -17,13 +17,13 @@ import {
   MODAL_MODE,
   NETWORK_TEST_TYPES,
 } from '../../constants/ScheduleConstants';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 type Props = {onActionClick: () => void};
 
 export default function ScheduleNetworkTestModal(props: Props) {
   const {networkName} = React.useContext(NetworkContext);
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
   const scheduleTypes = Object.keys(NETWORK_TEST_TYPES);
   const {onActionClick} = props;
   const {formState, handleInputChange, updateFormState} = useForm({
@@ -45,15 +45,9 @@ export default function ScheduleNetworkTestModal(props: Props) {
             iperfOptions: formState.iperfOptions,
           })
           .then(_ => {
-            enqueueSnackbar('Successfully scheduled test!', {
-              variant: 'success',
-            });
+            snackbars.success('Successfully scheduled test!');
           })
-          .catch(err =>
-            enqueueSnackbar('Failed to schedule test: ' + err, {
-              variant: 'error',
-            }),
-          );
+          .catch(err => snackbars.error('Failed to schedule test: ' + err));
       }
       if (adhoc) {
         testApi
@@ -62,20 +56,12 @@ export default function ScheduleNetworkTestModal(props: Props) {
             networkName,
             iperfOptions: formState.iperfOptions,
           })
-          .then(_ =>
-            enqueueSnackbar('Successfully started test!', {
-              variant: 'success',
-            }),
-          )
-          .catch(err =>
-            enqueueSnackbar('Failed to start test: ' + err, {
-              variant: 'error',
-            }),
-          );
+          .then(_ => snackbars.success('Successfully started test!'))
+          .catch(err => snackbars.error('Failed to start test: ' + err));
       }
       onActionClick();
     },
-    [enqueueSnackbar, networkName, formState, onActionClick],
+    [networkName, formState, onActionClick, snackbars],
   );
 
   return (

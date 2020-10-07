@@ -32,8 +32,8 @@ import {UploadTopologyPanel} from '../../components/mappanels/topologyCreationPa
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {usePlannedSiteContext} from '../../contexts/PlannedSiteContext';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {
   EditLinkParams,
@@ -101,9 +101,9 @@ export default function TopologyBuilderMenu(props: Props) {
   const {panelControl, panelForm, mapRef} = props;
   const {params, formType, updateForm} = panelForm;
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
   const panelControlRef = useLiveRef(panelControl);
   const context = useContext(NetworkContext);
+  const snackbars = useSnackbars();
   const {
     plannedSite,
     setLocation,
@@ -135,20 +135,16 @@ export default function TopologyBuilderMenu(props: Props) {
   const handleTopologyChangeSnackbar = useCallback(
     (changeMessage: ?string) => {
       if (changeMessage === 'success') {
-        enqueueSnackbar(
+        snackbars.success(
           'Topology successfully changed! Please wait a few moments for the topology to update.',
-          {variant: 'success'},
         );
       } else {
-        enqueueSnackbar(
+        snackbars.error(
           `Topology change failed${changeMessage ? ':' + changeMessage : ''} `,
-          {
-            variant: 'error',
-          },
         );
       }
     },
-    [enqueueSnackbar],
+    [snackbars],
   );
 
   const handleActionsMenuOpen = useCallback(

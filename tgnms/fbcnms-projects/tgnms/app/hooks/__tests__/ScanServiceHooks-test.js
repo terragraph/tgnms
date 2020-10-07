@@ -12,7 +12,7 @@ import {
   useLoadScanTableData,
 } from '../ScanServiceHooks';
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../useSnackbar');
 jest.mock('../../apiutils/ScanServiceAPIUtil', () => ({
   getSchedules: ({inputData: {}, cancelToken: {}}) =>
     Promise.resolve([{id: 1, status: 'SCHEDULED'}]),

@@ -35,9 +35,9 @@ import {
 } from '../../helpers/ScheduleHelpers';
 import {isTestRunning} from '../../helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory} from 'react-router';
 import {useLoadTestTableData} from '../../hooks/NetworkTestHooks';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {CreateUrl} from '../../components/scheduler/SchedulerTypes';
 import type {
@@ -66,6 +66,7 @@ const useStyles = makeStyles(theme => ({
 export default function NetworkTest(props: Props) {
   const classes = useStyles();
   const history = useHistory();
+  const snackbars = useSnackbars();
 
   const {createTestUrl, selectedExecutionId} = props;
   const [shouldUpdate, setShouldUpdate] = React.useState(false);
@@ -73,7 +74,6 @@ export default function NetworkTest(props: Props) {
     null,
   );
   const {networkName} = React.useContext(NetworkContext);
-  const enqueueSnackbar = useEnqueueSnackbar();
 
   const handleFilterOptions = React.useCallback(query => {
     setFilterOptions({
@@ -114,15 +114,10 @@ export default function NetworkTest(props: Props) {
       })
       .then(_ => {
         handleActionClick();
-        enqueueSnackbar('Successfully stopped test!', {
-          variant: 'success',
-        });
+
+        snackbars.success('Successfully stopped test!');
       })
-      .catch(err =>
-        enqueueSnackbar('Failed to stop test: ' + err, {
-          variant: 'error',
-        }),
-      );
+      .catch(err => snackbars.error('Failed to stop test: ' + err));
   };
 
   const deleteSchedule = async id => {
@@ -134,13 +129,9 @@ export default function NetworkTest(props: Props) {
         scheduleId: id,
       });
       handleActionClick();
-      enqueueSnackbar('Successfully deleted test schedule!', {
-        variant: 'success',
-      });
+      snackbars.success('Successfully deleted test schedule!');
     } catch (err) {
-      enqueueSnackbar('Failed to delete test schedule: ' + err, {
-        variant: 'error',
-      });
+      snackbars.error('Failed to delete test schedule: ' + err);
     }
   };
 
@@ -159,18 +150,12 @@ export default function NetworkTest(props: Props) {
         scheduleId: input.id,
       });
       handleActionClick();
-      enqueueSnackbar(
+      snackbars.success(
         `Successfully ${input.enabled ? 'resumed' : 'paused'} test schedule!`,
-        {
-          variant: 'success',
-        },
       );
     } catch (err) {
-      enqueueSnackbar(
+      snackbars.error(
         `Failed to ${input.enabled ? 'resume' : 'pause'} test schedule: ` + err,
-        {
-          variant: 'error',
-        },
       );
     }
   };

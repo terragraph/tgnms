@@ -19,8 +19,8 @@ import {
   setNetworkOverridesConfig,
   setNodeOverridesConfig,
 } from '../../apiutils/ConfigAPIUtil';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useNodeConfig} from '../../hooks/useNodeConfig';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {NodeConfigType} from '../../../shared/types/NodeConfig';
 
@@ -48,29 +48,23 @@ export default function ConfigTaskForm({
   const {loading, configData, configParams} = useNodeConfig({nodeName});
   const {networkName} = React.useContext(NetworkContext);
   const [resetLoading, setResetLoading] = React.useState(false);
-  const enqueueSnackbar = useEnqueueSnackbar();
   const draftsRef = React.useRef({});
   const configDataRef = React.useRef(configData);
+  const snackbars = useSnackbars();
 
   const handleSubmitConfig = React.useCallback(() => {
     if (mode === formConfigModes.Node && nodeName == null) {
-      enqueueSnackbar('Config change failed, please double check the form', {
-        variant: 'error',
-      });
+      snackbars.error('Config change failed, please double check the form');
       return;
     }
 
     const drafts = draftsRef.current;
 
     const onSuccess = () =>
-      enqueueSnackbar(
+      snackbars.success(
         'Config successfully changed! Please wait a few moments for the config to update.',
-        {variant: 'success'},
       );
-    const onError = err =>
-      enqueueSnackbar('Config change failed: ' + err, {
-        variant: 'error',
-      });
+    const onError = err => snackbars.error('Config change failed: ' + err);
 
     if (mode === formConfigModes.Network) {
       const draftConfig = GetDraftConfig({
@@ -119,11 +113,11 @@ export default function ConfigTaskForm({
   }, [
     onClose,
     configParams,
-    enqueueSnackbar,
     draftsRef,
     networkName,
     nodeName,
     mode,
+    snackbars,
   ]);
 
   const resetForm = React.useCallback(() => {

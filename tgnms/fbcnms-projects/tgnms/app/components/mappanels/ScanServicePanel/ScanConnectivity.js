@@ -21,7 +21,7 @@ import {NodeTypeValueMap} from '../../../../shared/types/Topology';
 import {makeStyles} from '@material-ui/styles';
 import {sendTopologyBuilderRequest} from '../../../helpers/MapPanelHelpers';
 import {uploadTopologyBuilderRequest} from '../../../helpers/TopologyTemplateHelpers';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {ExecutionResultDataType} from '../../../../shared/dto/ScanServiceTypes';
 
@@ -49,7 +49,6 @@ const useStyles = makeStyles(theme => ({
 
 export default function ScanConnectivity(props: Props) {
   const {onBack, results} = props;
-  const enqueueSnackbar = useEnqueueSnackbar();
   const classes = useStyles();
   const {updateNetworkMapOptions, networkMapOptions} = React.useContext(
     NmsOptionsContext,
@@ -58,6 +57,7 @@ export default function ScanConnectivity(props: Props) {
   const {macToNodeMap, networkName, nodeMap, siteMap} = React.useContext(
     NetworkContext,
   );
+  const snackbars = useSnackbars();
 
   const [selectedLink, setSelectedLink] = React.useState(null);
 
@@ -149,20 +149,16 @@ export default function ScanConnectivity(props: Props) {
   const handleTopologyChangeClose = React.useCallback(
     (changeMessage: ?string) => {
       if (changeMessage === 'success') {
-        enqueueSnackbar(
+        snackbars.success(
           'Topology successfully changed! Please wait a few moments for the topology to update.',
-          {variant: 'success'},
         );
       } else {
-        enqueueSnackbar(
+        snackbars.error(
           `Topology change failed${changeMessage ? ':' + changeMessage : ''} `,
-          {
-            variant: 'error',
-          },
         );
       }
     },
-    [enqueueSnackbar],
+    [snackbars],
   );
 
   const handleAddAllBackupLinks = React.useCallback(

@@ -10,7 +10,7 @@ import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function NmsExportForm() {
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
 
   const handleExport = () => {
     return axios
@@ -45,11 +45,7 @@ export default function NmsExportForm() {
         anchor.click();
         window.URL.revokeObjectURL(url);
       })
-      .catch(_ =>
-        enqueueSnackbar('Unable to export NMS data right now', {
-          variant: 'error',
-        }),
-      );
+      .catch(_ => snackbars.error('Unable to export NMS data right now'));
   };
 
   return (

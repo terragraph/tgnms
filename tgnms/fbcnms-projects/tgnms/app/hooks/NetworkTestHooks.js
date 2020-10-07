@@ -11,7 +11,7 @@ import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
 import {TEST_EXECUTION_STATUS} from '../constants/ScheduleConstants';
 import {isTestRunning} from '../helpers/NetworkTestHelpers';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../../fbcnms-packages/fbcnms-ui/hooks/useSnackbar';
 
 import type {
   ExecutionDetailsType,
@@ -86,12 +86,11 @@ export function useLoadTestTableData({
   inputData: InputGetType,
   actionUpdate: boolean,
 }) {
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [shouldUpdate, setShouldUpdate] = React.useState(actionUpdate);
   const runningTestTimeoutRef = React.useRef<?TimeoutID>(null);
   const [loading, setLoading] = React.useState(true);
   const [data, setData] = React.useState(null);
-
+  const snackbars = useSnackbars();
   const filterOptionsRef = useLiveRef(filterOptions);
   const inputDataRef = useLiveRef(inputData);
 
@@ -130,10 +129,9 @@ export function useLoadTestTableData({
         }
         if (typeof result === 'string') {
           setLoading(false);
-          return enqueueSnackbar(result, {
-            variant: 'error',
-          });
+          return snackbars.error(result);
         }
+
         result.forEach(newRow => {
           if (newRow.status === undefined) {
             tempRows.schedule.push(newRow);
@@ -163,13 +161,7 @@ export function useLoadTestTableData({
     loadData();
 
     return () => cancelSource.cancel();
-  }, [
-    enqueueSnackbar,
-    filterOptionsRef,
-    inputDataRef,
-    shouldUpdate,
-    actionUpdate,
-  ]);
+  }, [filterOptionsRef, inputDataRef, shouldUpdate, snackbars]);
 
   useUnmount(() => {
     if (runningTestTimeoutRef.current != null) {

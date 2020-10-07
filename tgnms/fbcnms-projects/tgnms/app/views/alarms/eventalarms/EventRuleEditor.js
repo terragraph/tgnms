@@ -27,7 +27,7 @@ import {Severity} from './EventAlarmsTypes';
 import {TgEventAlarmsApiUtil} from '../TgAlarmApi';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {EventRule} from './EventAlarmsTypes';
 import type {
@@ -56,8 +56,7 @@ const useStyles = makeStyles(theme => ({
 export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
   const {isNew, onRuleUpdated, onExit, rule} = props;
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
-
+  const snackbars = useSnackbars();
   const handleFormUpdated = React.useCallback(
     (state: EventRule) => {
       onRuleUpdated({
@@ -95,16 +94,12 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
       if (isNew) {
         await TgEventAlarmsApiUtil.createAlertRule(formState);
       }
-      enqueueSnackbar(`Successfully saved alert rule`, {
-        variant: 'success',
-      });
+      snackbars.success(`Successfully saved alert rule`);
       onExit();
     } catch (error) {
-      enqueueSnackbar(`Could not create alert rule: ${error.message}`, {
-        variant: 'error',
-      });
+      snackbars.error(`Could not create alert rule: ${error.message}`);
     }
-  }, [isNew, enqueueSnackbar, onExit, formState]);
+  }, [isNew, onExit, formState, snackbars]);
 
   return (
     <RuleEditorBase

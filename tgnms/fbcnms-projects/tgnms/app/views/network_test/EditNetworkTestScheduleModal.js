@@ -18,7 +18,7 @@ import {
   NETWORK_TEST_TYPES,
 } from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {IperfOptions as IperfOptionsType} from '../../../shared/dto/NetworkTestTypes';
 
@@ -41,10 +41,10 @@ type Props = {
 
 export default function EditNetworkTestScheduleModal(props: Props) {
   const classes = useStyles();
+  const snackbars = useSnackbars();
 
   const {id, onActionClick, initialOptions, type, initialCronString} = props;
   const {networkName} = React.useContext(NetworkContext);
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [iperfOptions, setIperfOptions] = React.useState(initialOptions);
 
   const handleSubmit = React.useCallback(
@@ -57,19 +57,13 @@ export default function EditNetworkTestScheduleModal(props: Props) {
           inputData: {cronExpr, networkName, iperfOptions},
           scheduleId: id,
         })
-        .then(_ =>
-          enqueueSnackbar('Successfully edited test schedule!', {
-            variant: 'success',
-          }),
-        )
+        .then(_ => snackbars.success('Successfully edited test schedule!'))
         .catch(err =>
-          enqueueSnackbar('Failed to edit test schedule: ' + err.message, {
-            variant: 'error',
-          }),
+          snackbars.error('Failed to edit test schedule: ' + err.message),
         );
       onActionClick();
     },
-    [enqueueSnackbar, id, networkName, iperfOptions, onActionClick],
+    [id, networkName, iperfOptions, onActionClick, snackbars],
   );
 
   return (

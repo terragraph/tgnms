@@ -16,7 +16,7 @@ import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
 import useTaskState, {TASK_STATE} from '../../hooks/useTaskState';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -35,7 +35,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function NmsImportForm() {
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const snackbars = useSnackbars();
   const {isLoading, isSuccess, setState} = useTaskState();
   const [summary, setSummary] = React.useState(null);
 
@@ -51,9 +51,7 @@ export default function NmsImportForm() {
         setSummary(response.data);
       });
     } else {
-      enqueueSnackbar('Unable to load backup file', {
-        variant: 'error',
-      });
+      snackbars.error('Unable to load backup file');
     }
   };
 

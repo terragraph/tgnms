@@ -22,7 +22,7 @@ import {
   SCAN_TYPES,
 } from '../../constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   selector: {
@@ -40,12 +40,12 @@ type Props = {
 
 export default function EditScanModal(props: Props) {
   const classes = useStyles();
+  const snackbars = useSnackbars();
   const {id, onActionClick, type, initialCronString} = props;
   const {formState, handleInputChange} = useForm({
     initialState: {mode: props.mode},
   });
   const {networkName} = React.useContext(NetworkContext);
-  const enqueueSnackbar = useEnqueueSnackbar();
 
   const handleSubmit = React.useCallback(
     (cronExpr: ?string, _adhoc: boolean) => {
@@ -62,19 +62,13 @@ export default function EditScanModal(props: Props) {
           },
           scheduleId: id,
         })
-        .then(_ =>
-          enqueueSnackbar('Successfully edited scan schedule!', {
-            variant: 'success',
-          }),
-        )
+        .then(_ => snackbars.success('Successfully edited scan schedule!'))
         .catch(err =>
-          enqueueSnackbar('Failed to edit scan schedule: ' + err.message, {
-            variant: 'error',
-          }),
+          snackbars.error('Failed to edit scan schedule: ' + err.message),
         );
       onActionClick();
     },
-    [enqueueSnackbar, id, networkName, onActionClick, formState, type],
+    [id, networkName, onActionClick, formState, type, snackbars],
   );
 
   return (

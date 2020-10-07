@@ -26,8 +26,9 @@ import {
   useAnnotationFeatures,
   useMapAnnotationContext,
 } from '../../../contexts/MapAnnotationContext';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {useSnackbars} from '../../../hooks/useSnackbar';
+
 import type {GeoFeature} from '@turf/turf';
 import type {
   LinkType,
@@ -131,7 +132,8 @@ function AnnotationsPanelActions({}: ActionsProps) {
   const {networkName} = useNetworkContext();
   const {selectedFeature} = useMapAnnotationContext();
   const {deleteFeature} = useAnnotationFeatures();
-  const {success: onChangeSuccess} = useTopologyChangeSnackbar();
+  const snackbars = useSnackbars();
+
   const handleConvertToSite = async () => {
     reset();
     if (selectedFeature && selectedFeature) {
@@ -150,7 +152,9 @@ function AnnotationsPanelActions({}: ActionsProps) {
           });
           await deleteFeature(selectedFeature.id);
           setState(TASK_STATE.SUCCESS);
-          onChangeSuccess();
+          snackbars.success(
+            'Topology successfully changed! Please wait a few moments for the topology to update.',
+          );
         } catch (err) {
           setState(TASK_STATE.ERROR);
           setMessage(err.message);
@@ -240,17 +244,4 @@ function validateFeature(feature: GeoFeature): Array<string> {
     errs.push('Name is required');
   }
   return errs;
-}
-
-function useTopologyChangeSnackbar() {
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const success = React.useCallback(() => {
-    enqueueSnackbar(
-      'Topology successfully changed! Please wait a few moments for the topology to update.',
-      {variant: 'success'},
-    );
-  }, [enqueueSnackbar]);
-  return {
-    success,
-  };
 }

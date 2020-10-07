@@ -12,7 +12,7 @@ import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
 import {SCAN_EXECUTION_STATUS} from '../constants/ScheduleConstants';
 import {objectValuesTypesafe} from '../helpers/ObjectHelpers';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useSnackbars} from '../hooks/useSnackbar';
 
 import type {
   ExecutionDetailsType,
@@ -68,11 +68,11 @@ export function useLoadScanTableData({
   inputData: InputGetType,
   actionUpdate: boolean,
 }) {
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [shouldUpdate, setShouldUpdate] = React.useState(actionUpdate);
   const runningTestTimeoutRef = React.useRef<?TimeoutID>(null);
   const [loading, setLoading] = React.useState(true);
   const [data, setData] = React.useState(null);
+  const snackbars = useSnackbars();
 
   const filterOptionsRef = useLiveRef(filterOptions);
   const inputDataRef = useLiveRef(inputData);
@@ -112,9 +112,7 @@ export function useLoadScanTableData({
           return;
         }
         if (typeof result === 'string') {
-          return enqueueSnackbar(result, {
-            variant: 'error',
-          });
+          return snackbars.error(result);
         }
         result.forEach(newRow => {
           if (newRow.status === undefined) {
@@ -150,13 +148,7 @@ export function useLoadScanTableData({
     loadData();
 
     return () => cancelSource.cancel();
-  }, [
-    enqueueSnackbar,
-    filterOptionsRef,
-    inputDataRef,
-    shouldUpdate,
-    actionUpdate,
-  ]);
+  }, [filterOptionsRef, inputDataRef, shouldUpdate, actionUpdate, snackbars]);
 
   useUnmount(() => {
     if (runningTestTimeoutRef.current != null) {

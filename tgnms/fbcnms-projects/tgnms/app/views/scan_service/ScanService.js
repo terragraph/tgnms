@@ -32,8 +32,8 @@ import {
   getParsedCronString,
 } from '../../helpers/ScheduleHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useLoadScanTableData} from '../../hooks/ScanServiceHooks';
+import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {CreateUrl} from '../../components/scheduler/SchedulerTypes';
 import type {FilterOptionsType} from '../../../shared/dto/ScanServiceTypes';
@@ -58,14 +58,13 @@ const useStyles = makeStyles(theme => ({
 
 export default function ScanService(props: Props) {
   const classes = useStyles();
-
+  const snackbars = useSnackbars();
   const {createScanUrl, selectedExecutionId} = props;
   const [shouldUpdate, setShouldUpdate] = React.useState(false);
   const [filterOptions, setFilterOptions] = React.useState<?FilterOptionsType>(
     null,
   );
   const {networkName} = React.useContext(NetworkContext);
-  const enqueueSnackbar = useEnqueueSnackbar();
 
   const handleFilterOptions = React.useCallback(query => {
     setFilterOptions({
@@ -102,13 +101,9 @@ export default function ScanService(props: Props) {
         scheduleId: id,
       });
       handleDataUpdate();
-      enqueueSnackbar('Successfully deleted scan schedule!', {
-        variant: 'success',
-      });
+      snackbars.success('Successfully deleted scan schedule!');
     } catch (err) {
-      enqueueSnackbar('Failed to delete scan schedule: ' + err, {
-        variant: 'error',
-      });
+      snackbars.error('Failed to delete scan schedule: ' + err);
     }
   };
 
@@ -125,18 +120,12 @@ export default function ScanService(props: Props) {
         scheduleId: input.id,
       });
       handleDataUpdate();
-      enqueueSnackbar(
+      snackbars.success(
         `Successfully ${input.enabled ? 'resumed' : 'paused'} scan schedule!`,
-        {
-          variant: 'success',
-        },
       );
     } catch (err) {
-      enqueueSnackbar(
+      snackbars.error(
         `Failed to ${input.enabled ? 'resume' : 'pause'} scan schedule: ` + err,
-        {
-          variant: 'error',
-        },
       );
     }
   };
