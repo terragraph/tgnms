@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
 from terragraph_thrift.Topology.ttypes import LinkType

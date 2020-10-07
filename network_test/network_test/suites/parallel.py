@@ -28,8 +28,7 @@ class ParallelTest(BaseTest):
 
     async def start(self, execution_id: int) -> None:
         """Start a parallel test (i.e. on all assets simultaneously)."""
-        logging.info(f"Starting parallel test on {self.network_name}")
-        logging.debug(f"iperf options: {self.iperf_options}")
+        await super().start(execution_id)
 
         requests: List[asyncio.Future] = []
         values: List[Dict] = []

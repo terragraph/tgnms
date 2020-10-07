@@ -28,8 +28,7 @@ class SequentialTest(BaseTest):
 
     async def start(self, execution_id: int) -> None:
         """Start a sequential test (i.e. on each asset, one at a time)."""
-        logging.info(f"Starting sequential test on {self.network_name}")
-        logging.debug(f"iperf options: {self.iperf_options}")
+        await super().start(execution_id)
 
         loop = asyncio.get_event_loop()
         start_time = loop.time()

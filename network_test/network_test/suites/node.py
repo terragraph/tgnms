@@ -3,7 +3,7 @@
 
 import logging
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
 from tglib.clients import APIServiceClient
