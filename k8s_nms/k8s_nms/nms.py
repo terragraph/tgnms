@@ -23,6 +23,7 @@ from k8s_nms.config import configure_templates, get_template
 from k8s_nms import rage
 
 RAGE_DIR = os.path.join(os.path.expanduser("~"), ".k8s_nms_logs")
+DEFAULT_MANIFESTS_DIR = os.path.join(os.path.dirname(__file__), 'manifests')
 
 
 common_options = {
@@ -73,8 +74,8 @@ common_options = {
     "templates": click.option(
         "-t",
         "--template-source",
-        default=None,
-        required=True,
+        default=DEFAULT_MANIFESTS_DIR,
+        required=False,
         help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
     ),
 }
@@ -377,6 +378,7 @@ def apply(ctx, **configure_kwargs):
     "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
 )
 @click.pass_context
+@rage.log_command(RAGE_DIR)
 def clear(ctx, **configure_kwargs):
     """
     Remove Kubernetes configuration without tearing down the cluster

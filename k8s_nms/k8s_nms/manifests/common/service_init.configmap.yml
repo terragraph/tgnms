@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-sql-config
+data:
+  service.sql: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/database/templates/service.sql') | indent(width=4, indentfirst=False )}}

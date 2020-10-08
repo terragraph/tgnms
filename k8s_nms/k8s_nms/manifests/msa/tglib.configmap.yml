@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tglib-service-config
+data:
+  config.json: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/msa/templates/config.json') | indent(width=4, indentfirst=False )}}

@@ -4,7 +4,7 @@ metadata:
   name: kibana-config
 data:
   kibana.yml: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/efk/templates/kibana.yml') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/efk/templates/kibana.yml') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: Service

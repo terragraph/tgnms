@@ -18,7 +18,7 @@ metadata:
   name: {{ service_dns_name }}-init-sql
 data:
   service.sql: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/database/templates/service.sql') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/database/templates/service.sql') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -26,7 +26,7 @@ metadata:
   name: {{ service_dns_name }}-alembic
 data:
   alembic.ini: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/msa/templates/alembic.ini', {"service": service, "db_service_password": db_service_password}) | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/msa/templates/alembic.ini', {"service": service, "db_service_password": db_service_password}) | indent(width=4, indentfirst=False )}}
 ---
 {% endif %}
 # Service Config
@@ -36,7 +36,7 @@ metadata:
   name: {{ service_dns_name }}-service-config
 data:
   service_config.json: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/msa/templates/' + service.name + '/service_config.json') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/msa/templates/' + service.name + '/service_config.json') | indent(width=4, indentfirst=False )}}
 ---
 # Deployment
 apiVersion: v1

@@ -4,7 +4,7 @@ metadata:
   name: nginx-conf
 data:
   nginx.conf: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/nginx.conf') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/nginx.conf') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -12,7 +12,7 @@ metadata:
   name: http-conf
 data:
   http.conf: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/http.conf') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/http.conf') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -36,7 +36,7 @@ metadata:
   name: stream-conf
 data:
   stream.conf: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/stream.conf') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/stream.conf') | indent(width=4, indentfirst=False )}}
 
 {% for controller in controllers_list %}
 {% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
@@ -55,5 +55,5 @@ metadata:
   name: stream-conf-{{ controller_name_dns }}
 data:
   stream-{{ escaped_controller_name }}.conf: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/stream-controller.conf', env) | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/proxy/templates/stream-controller.conf', env) | indent(width=4, indentfirst=False )}}
 {% endfor %}

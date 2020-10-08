@@ -4,7 +4,7 @@ metadata:
   name: keycloak-conf
 data:
   tgnms-realm.json: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/keycloak/templates/tgnms-realm.json') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/keycloak/templates/tgnms-realm.json') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: Service

@@ -4,7 +4,7 @@ metadata:
   name: fluentd-config
 data:
   fluent.conf: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/efk/templates/fluent.conf') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/efk/templates/fluent.conf') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: Service

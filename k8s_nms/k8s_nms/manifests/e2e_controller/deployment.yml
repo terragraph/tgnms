@@ -14,7 +14,7 @@ metadata:
   name: e2e-stats-agent-start-{{ controller_name_dns }}
 data:
   stats_agent.start: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/stats_agent.start') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/stats_agent.start') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -22,7 +22,7 @@ metadata:
   name: e2e-controller-start-{{ controller_name_dns }}
 data:
   e2e_controller.start: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_controller.start') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_controller.start') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -30,7 +30,7 @@ metadata:
   name: e2e-nms-aggregator-start-{{ controller_name_dns }}
 data:
   nms_aggregator.start: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/nms_aggregator.start') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/nms_aggregator.start') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -38,7 +38,7 @@ metadata:
   name: e2e-topology-conf-{{ controller_name_dns }}
 data:
   e2e_topology.conf: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_topology.conf', { "controller_name": controller.name }) | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_topology.conf', { "controller_name": controller.name }) | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap

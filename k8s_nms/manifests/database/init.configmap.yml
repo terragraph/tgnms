@@ -1,8 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: db-init-config
-data:
-  cxl.sql: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/database/templates/00-cxl.sql') | indent(width=4, indentfirst=False )}}

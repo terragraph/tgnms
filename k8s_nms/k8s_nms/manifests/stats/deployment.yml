@@ -5,7 +5,7 @@ metadata:
   name: alertmanager-config
 data:
   alertmanager.yml: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/stats/templates/alertmanager.yml') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/stats/templates/alertmanager.yml') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -13,7 +13,7 @@ metadata:
   name: prometheus-config
 data:
   prometheus.yml: |
-    {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/stats/templates/prometheus.yml') | indent(width=4, indentfirst=False )}}
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/stats/templates/prometheus.yml') | indent(width=4, indentfirst=False )}}
 ---
 apiVersion: v1
 kind: ConfigMap

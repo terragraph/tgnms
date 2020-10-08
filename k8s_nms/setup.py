@@ -13,14 +13,21 @@ ansible_files = [
     str(p.relative_to(package_dir)) for p in package_dir.rglob("ansible/**/*")
 ]
 
+# Bundle the current version of the Kubernetes manifests into the installer so
+# there is always a default set of manifests available (can still be configured
+# when running the installer via the --template-source flag)
+manifest_files = [
+    str(p.relative_to(package_dir)) for p in package_dir.rglob("manifests/**/*")
+]
+
 
 setup(
     name="k8s_nms",
     version="2020.09.30",
     description=("k8s_nms cli"),
     packages=["k8s_nms"],
-    package_data={"k8s_nms": ansible_files},
-    url="http://github.com/facebookexternal/terragraph-ansible/",
+    package_data={"k8s_nms": ansible_files + manifest_files},
+    url="http://github.com/facebookexternal/terragraph-apps/",
     author="Terragraph Team",
     author_email="email@example.com",
     classifiers=[

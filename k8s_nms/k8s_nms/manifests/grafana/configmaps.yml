@@ -16,6 +16,6 @@ metadata:
   name: grafana-provisioning-{{ dns_name(f) }}
 data:
   {{ basename(f) }}: |
-    {{ lookup(lookup_type, '../../nms_stack/nms_cli/nms_stack/roles/nms/grafana/' + f) | indent(width=4, indentfirst=False )}}
+    {{ lookup(lookup_type, '../../../nms_stack/nms_cli/nms_stack/roles/nms/grafana/' + f) | indent(width=4, indentfirst=False )}}
 ---
 {% endfor %}
