@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
-import contextlib
 import glob
 import io
 import os
@@ -10,21 +9,19 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
-from typing import Any, Dict
 
 import click
 import pkg_resources
 import yaml
+from k8s_nms import rage
+from k8s_nms.config import configure_templates
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
 
-from k8s_nms.config import configure_templates, get_template
-from k8s_nms import rage
 
 RAGE_DIR = os.path.join(os.path.expanduser("~"), ".k8s_nms_logs")
-DEFAULT_MANIFESTS_DIR = os.path.join(os.path.dirname(__file__), 'manifests')
-
+DEFAULT_MANIFESTS_DIR = os.path.join(os.path.dirname(__file__), "manifests")
 
 common_options = {
     "config-file": click.option(
@@ -164,7 +161,10 @@ def add_common_options(*args):
     return wrapper
 
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = {
+    "help_option_names": ["-h", "--help"]
+}
+
 
 @click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
 @click.option("--version", is_flag=True, default=False, help="Show version")
@@ -319,11 +319,15 @@ def configure(
     useful to view the manifests with your configuration applied. To send the
     manifests to a cluster, see the 'apply' command.
     """
-    manifests = configure_impl(config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file)
+    manifests = configure_impl(
+        config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
+    )
     print(manifests)
 
 
-def configure_impl(config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file):
+def configure_impl(
+    config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
+):
     key, cert = read_or_make_certificates(ssl_key_file, ssl_cert_file)
     if template_source.startswith("http"):
         with urllib.request.urlopen(template_source) as f:
@@ -356,7 +360,7 @@ def template_and_run(ctx, command, **configure_kwargs):
 
     # Pick a manager node 0 arbitrarily
     command = f"ssh {configure_kwargs['managers'][0]} {command}".split(" ")
-    subprocess.run(command, input=manifests.encode('utf-8'), check=True)
+    subprocess.run(command, input=manifests.encode("utf-8"), check=True)
 
 
 @cli.command()
@@ -403,7 +407,7 @@ def show_defaults(ctx, options):
     """
     Generate full YAML description of configurable options
     """
-    minimal_file = minimal_group_vars_file = os.path.join(
+    minimal_file = os.path.join(
         os.path.dirname(__file__), "ansible", "group_vars", "minimal"
     )
 

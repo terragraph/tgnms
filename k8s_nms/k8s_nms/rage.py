@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
-import contextlib
 import functools
-import io
 import logging
 import os
 import re
@@ -184,7 +182,7 @@ def log_command(base_dir):
             # Restore the real stdout/stderr
             sys.stdout = stdout_logger.terminal
             sys.stderr = stderr_logger.terminal
-            _context = None
+            _context = None  # noqa
             return result
 
         return wrapper

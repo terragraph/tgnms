@@ -101,6 +101,6 @@ def configure_templates(config: Dict[str, Any], files: Dict[str, str]) -> str:
         sys.stderr.write(f"Failed on file {filename}\n")
         if current_lookup:
             sys.stderr.write(f"While running lookup on file {current_lookup}\n")
-        raise
+        raise e
 
     return result
