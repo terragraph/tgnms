@@ -169,13 +169,15 @@ class LinkDetailsPanel extends React.Component<Props, State> {
 
     async function makeRequests() {
       try {
-        const linkAutoIgnite = {
-          [link.name]: 'false',
-        };
-        await apiRequest<{[string]: boolean}, any>({
+        await apiRequest({
           networkName,
           endpoint: 'setIgnitionState',
-          data: linkAutoIgnite,
+          data: {
+            enable: true,
+            linkAutoIgnite: {
+              [link.name]: false,
+            },
+          },
         });
       } catch (error) {
         console.error(error);
