@@ -8,10 +8,10 @@
  * @format
  */
 const webpackConfig = require('@fbcnms/webpack-config/production-webpack');
-const paths = require('@fbcnms/webpack-config/paths');
+const paths = require('./paths');
 
 const config = webpackConfig.createProductionWebpackConfig({
-  extraPaths: [paths.resolveApp('shared')],
+  extraPaths: paths.extraPaths,
 });
 
 module.exports = config;

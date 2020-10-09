@@ -5,19 +5,12 @@
  * @flow
  */
 
-const fs = require('fs');
-const path = require('path');
-
-const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = (relativePath: string) =>
-  path.resolve(appDirectory, relativePath);
+const paths = require('@fbcnms/webpack-config/paths');
 
 module.exports = {
-  appIndexJs: resolveApp('app/main.js'),
-  loginIndexJs: resolveApp('app/views/login/login.js'),
-  appSrc: resolveApp('app'),
-  distPath: resolveApp('dist'),
-  sharedSrc: resolveApp('shared'),
-  sharedPackages: resolveApp('../../fbcnms-packages'),
-  resolveApp,
+  ...paths,
+  extraPaths: [
+    paths.resolveApp('shared'),
+    paths.resolveApp('../../node_modules/@fbcnms'), //transform fbcnms-packages
+  ],
 };

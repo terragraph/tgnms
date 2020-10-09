@@ -9,10 +9,10 @@
  */
 
 const webpackConfig = require('@fbcnms/webpack-config/dev-webpack');
-const paths = require('@fbcnms/webpack-config/paths');
+const paths = require('./paths');
 
 const config = webpackConfig.createDevWebpackConfig({
-  extraPaths: [paths.resolveApp('shared')],
+  extraPaths: paths.extraPaths,
   hot: true,
 });
 
