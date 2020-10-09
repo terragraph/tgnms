@@ -19,11 +19,9 @@ const editTestScheduleMock = jest
   .spyOn(networkTestAPIUtil, 'editTestSchedule')
   .mockImplementation(() => Promise.resolve());
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
-
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 afterEach(() => {

@@ -12,7 +12,7 @@ import {
   useLoadTestTableData,
 } from '../NetworkTestHooks';
 
-jest.mock('@fbcnms/ui/hooks/useSnackbar');
+jest.mock('../../hooks/useSnackbar');
 jest.mock('../../apiutils/NetworkTestAPIUtil', () => ({
   getSchedules: ({inputData: {}, cancelToken: {}}) =>
     Promise.resolve([{id: 1, status: 'SCHEDULED'}]),

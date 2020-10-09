@@ -9,6 +9,7 @@ import * as React from 'react';
 import PriorityHighIcon from '@material-ui/icons/PriorityHigh';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
+import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {Popup} from 'react-mapbox-gl';
 import {SEVERITY} from '@fbcnms/alarms/components/severity/Severity';
 import {TgApiUtil} from '../../alarms/TgAlarmApi';
@@ -16,7 +17,6 @@ import {convertType} from '../../../helpers/ObjectHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
-import {useRouter} from '../../../../../../fbcnms-packages/fbcnms-ui/hooks/index';
 
 import type {LinkType, NodeType} from '../../../../shared/types/Topology';
 

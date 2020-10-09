@@ -2,16 +2,16 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
-/* eslint-disable */
 
 const fs = require('fs');
 const path = require('path');
 
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+const resolveApp = (relativePath: string) =>
+  path.resolve(appDirectory, relativePath);
 
-// config after eject: we're in ./config/
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),
   loginIndexJs: resolveApp('app/views/login/login.js'),
@@ -19,4 +19,5 @@ module.exports = {
   distPath: resolveApp('dist'),
   sharedSrc: resolveApp('shared'),
   sharedPackages: resolveApp('../../fbcnms-packages'),
+  resolveApp,
 };

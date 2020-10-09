@@ -9,7 +9,7 @@ import 'jest-dom/extend-expect';
 import ModalFullUpgrade from '../ModalFullUpgrade';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   act,
   cleanup,

@@ -9,11 +9,11 @@
 
 import React, {useCallback} from 'react';
 import ScanService from '../scan_service/ScanService';
+import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {MAPMODE, useMapContext} from '../../contexts/MapContext';
 import {SCHEDULE_TABLE_TYPES} from '../../constants/ScheduleConstants';
 import {createMapLink} from '../../helpers/ScheduleHelpers';
 import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
-import {useRouter} from '../../../../../fbcnms-packages/fbcnms-ui/hooks/index';
 
 export default function ScanTable() {
   const {match, location} = useRouter();

@@ -11,7 +11,7 @@ import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
 import {TEST_EXECUTION_STATUS} from '../constants/ScheduleConstants';
 import {isTestRunning} from '../helpers/NetworkTestHelpers';
-import {useSnackbars} from '../../../../fbcnms-packages/fbcnms-ui/hooks/useSnackbar';
+import {useSnackbars} from '../hooks/useSnackbar';
 
 import type {
   ExecutionDetailsType,

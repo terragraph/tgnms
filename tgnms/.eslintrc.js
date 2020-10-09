@@ -34,19 +34,6 @@ module.exports.overrides = [
     },
   },
   {
-    files: ['*.mdx'],
-    extends: ['plugin:mdx/overrides'],
-    rules: {
-      'flowtype/require-valid-file-annotation': 'off',
-      'prettier/prettier': [
-        2,
-        {
-          parser: 'mdx',
-        },
-      ],
-    },
-  },
-  {
     files: ['.eslintrc.js'],
     rules: {
       quotes: ['warn', 'single'],
@@ -92,7 +79,7 @@ module.exports.overrides = [
       'fbcnms-packages/fbcnms-ui/stories/**/*.js',
       'fbcnms-packages/fbcnms-util/**/*.js',
       'fbcnms-packages/fbcnms-webpack-config/**/*.js',
-      'fbcnms-projects/*/config/webpack.*.js',
+      'fbcnms-projects/*/config/*.js',
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
       'scripts/fb/fbt/*.js',
