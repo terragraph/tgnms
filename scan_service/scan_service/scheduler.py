@@ -267,7 +267,9 @@ class Scheduler:
             cursor = await sa_conn.execute(get_execution_query)
             execution_row = await cursor.first()
         if execution_row and execution_row.status == ScanTestStatus.RUNNING:
-            await cls.update_execution_status(execution_id, ScanTestStatus.FAILED)
+            await cls.update_execution_status(
+                execution_id, ScanTestStatus.FAILED, datetime.utcnow()
+            )
 
     @classmethod
     async def update_execution_status(

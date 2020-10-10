@@ -24,7 +24,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.09.30",
+    version="2020.10.10",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     install_requires=[
