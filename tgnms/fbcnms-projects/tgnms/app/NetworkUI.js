@@ -492,7 +492,7 @@ class NetworkUI extends React.Component<Props, State> {
             )}
             <Route
               path={`/dashboards/:networkName`}
-              render={() => <NetworkDashboards networkName={networkName} />}
+              render={() => <NetworkDashboards />}
             />
             <Route
               path={`/tables/:networkName`}
