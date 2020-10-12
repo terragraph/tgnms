@@ -19,6 +19,10 @@ export default function PopKvstoreParams() {
         configField="kvstoreParams.e2e-ctrl-url"
       />
       <ConfigTaskInput
+        label="e2e-ctrl-url-backup"
+        configField="kvstoreParams.e2e-ctrl-url-backup"
+      />
+      <ConfigTaskInput
         label="e2e-network-prefix"
         configField="kvstoreParams.e2e-network-prefix"
       />
