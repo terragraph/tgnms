@@ -2,8 +2,8 @@
 # Copyright (c) 2014-present, Facebook, Inc.
 
 import io
-import json
 import logging
+import yaml
 import os
 import subprocess
 import unittest
@@ -46,14 +46,13 @@ class FakeLogger:
 
 def mock_subprocess(*args, **kwargs):
     print("Running fake subprocess", args)
-    pass
 
 
 def mock_get_variables(*args, **kwargs):
-    mock_variables_path = os.path.join(os.path.dirname(__file__), "variables.json")
+    default_variables_file = os.path.join(os.path.dirname(__file__), "..", "k8s_nms", "ansible", "group_vars", "all")
 
-    with open(mock_variables_path, "r") as f:
-        variables = json.load(f)
+    with open(default_variables_file, "r") as defaults:
+        variables = yaml.safe_load(defaults)
 
     return variables
 

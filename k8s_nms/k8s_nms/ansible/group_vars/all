@@ -120,6 +120,7 @@ kube_version: v1.19.0
 # Size to reserve for the database and Kafka
 db_size: 10Gi
 kafka_size: 10Gi
+elasticsearch_size: 5Gi
 
 
 # See https://kubernetes.io/docs/concepts/configuration/overview/#container-images
