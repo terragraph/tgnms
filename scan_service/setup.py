@@ -9,13 +9,13 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 600,
     "required_coverage": {
-        "scan_service/analysis/connectivity.py": 72,
+        "scan_service/analysis/connectivity.py": 100,
         "scan_service/utils/data_loader.py": 63,
         "scan_service/utils/hardware_config.py": 100,
         "scan_service/utils/stats.py": 100,
         "scan_service/utils/time.py": 100,
         "scan_service/utils/topology.py": 100,
-        "TOTAL": 33,
+        "TOTAL": 35,
     },
     "run_flake8": True,
     "run_black": True,
@@ -24,7 +24,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2020.10.10",
+    version="2020.10.13",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     install_requires=[

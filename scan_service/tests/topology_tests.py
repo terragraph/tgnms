@@ -58,7 +58,7 @@ class TopologyTests(asynctest.TestCase):
                     "name": "link-TEST.18-36.p2-TEST.18-37.S1",
                     "a_node_name": "TEST.18-36.p2",
                     "z_node_name": "TEST.18-37.S1",
-                    "a_node_mac": "",
+                    "a_node_mac": "00:00:00:ca:1d:e5",
                     "z_node_mac": "00:00:00:28:e8:bc",
                     "link_type": 1,
                 },

@@ -62,27 +62,20 @@ class Topology:
             if link["link_type"] != LinkType.WIRELESS:
                 continue
 
-            a_node_mac = (
-                link["a_node_mac"]
-                if link["a_node_mac"]
-                else cls.node_name_to_mac[network_name][link["a_node_name"]]
-            )
-            z_node_mac = (
-                link["z_node_mac"]
-                if link["z_node_mac"]
-                else cls.node_name_to_mac[network_name][link["z_node_name"]]
-            )
-
-            if not a_node_mac or not z_node_mac:
+            if not link["a_node_mac"] or not link["z_node_mac"]:
                 logging.error(f"Node MAC missing in {link['name']} of {network_name}")
                 continue
 
             cls.link_name_to_mac[network_name][
                 PrometheusClient.normalize(link["name"])
-            ] = (a_node_mac, z_node_mac)
+            ] = (link["a_node_mac"], link["z_node_mac"])
 
-            cls.mac_to_link_name[network_name][(a_node_mac, z_node_mac)] = link["name"]
-            cls.mac_to_link_name[network_name][(z_node_mac, a_node_mac)] = link["name"]
+            cls.mac_to_link_name[network_name][
+                (link["a_node_mac"], link["z_node_mac"])
+            ] = link["name"]
+            cls.mac_to_link_name[network_name][
+                (link["z_node_mac"], link["a_node_mac"])
+            ] = link["name"]
 
     @classmethod
     async def get_auto_node_overrides_config(
@@ -95,23 +88,14 @@ class Topology:
         overrides = json.loads(node_overrides_config["overrides"])
 
         for node_name, override_info in overrides.items():
-            node_mac = cls.node_name_to_mac[network_name][node_name]
-            if (
-                override_info.get("radioParamsOverride", {})
-                .get(node_mac, {})
-                .get("fwParams")
-                is None
-            ):
-                logging.debug(
-                    f"Unable to get overrides config for {node_name} of {network_name}"
-                )
-                continue
-
-            if "channel" in override_info["radioParamsOverride"][node_mac]["fwParams"]:
-                cls.node_channel[network_name][node_mac] = override_info[
-                    "radioParamsOverride"
-                ][node_mac]["fwParams"]["channel"]
-            if "polarity" in override_info["radioParamsOverride"][node_mac]["fwParams"]:
-                cls.node_polarity[network_name][node_mac] = override_info[
-                    "radioParamsOverride"
-                ][node_mac]["fwParams"]["polarity"]
+            for node_mac, node_overrides in override_info.get(
+                "radioParamsOverride", {}
+            ).items():
+                if "channel" in node_overrides.get("fwParams", {}):
+                    cls.node_channel[network_name][node_mac] = node_overrides[
+                        "fwParams"
+                    ]["channel"]
+                if "polarity" in node_overrides.get("fwParams", {}):
+                    cls.node_polarity[network_name][node_mac] = node_overrides[
+                        "fwParams"
+                    ]["polarity"]
