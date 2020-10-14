@@ -8,14 +8,8 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TaskBasedConfig from '../TaskBasedConfig';
-import {TestApp} from '../../../tests/testHelpers';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  waitForElement,
-} from '@testing-library/react';
+import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {act, cleanup, fireEvent, waitForElement} from '@testing-library/react';
 
 afterEach(() => {
   cleanup();
@@ -38,8 +32,8 @@ jest
   .spyOn(require('../../../helpers/ConfigHelpers'), 'getTopologyNodeList')
   .mockReturnValue([{name: 'testNode'}, {name: 'mock filter node'}]);
 
-test('renders', () => {
-  const {getByText} = render(
+test('renders', async () => {
+  const {getByText} = await renderAsync(
     <TestApp>
       <TaskBasedConfig />
     </TestApp>,
@@ -48,7 +42,7 @@ test('renders', () => {
 });
 
 test('clicking tab renders new config form for that tab', async () => {
-  const {getByText, queryByText} = render(
+  const {getByText, queryByText} = await renderAsync(
     <TestApp>
       <TaskBasedConfig />
     </TestApp>,

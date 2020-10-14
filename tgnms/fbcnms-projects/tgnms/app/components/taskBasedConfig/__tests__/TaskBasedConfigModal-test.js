@@ -8,7 +8,11 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TaskBasedConfigModal from '../TaskBasedConfigModal';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+  renderAsync,
+} from '../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(() => {
@@ -50,7 +54,7 @@ test('renders', () => {
 });
 
 test('clicking close closes modal', async () => {
-  const {getByText} = render(
+  const {getByText} = await renderAsync(
     <TestApp>
       <NetworkContextWrapper>
         <TaskBasedConfigModal {...defaultProps} />

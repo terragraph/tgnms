@@ -8,7 +8,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ConfigTaskForm from '../ConfigTaskForm';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp, renderAsync} from '../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {configModes} from '../../../constants/ConfigConstants';
 
@@ -46,8 +46,8 @@ test('renders loading initially', () => {
   expect(getByTestId('loading')).toBeInTheDocument();
 });
 
-test('renders without props without crashing', () => {
-  const {getByText} = render(
+test('renders without props without crashing', async () => {
+  const {getByText} = await renderAsync(
     <TestApp>
       <ConfigTaskForm>test</ConfigTaskForm>
     </TestApp>,
@@ -55,8 +55,8 @@ test('renders without props without crashing', () => {
   expect(getByText('test')).toBeInTheDocument();
 });
 
-test('renders with network props', () => {
-  const {getByText} = render(
+test('renders with network props', async () => {
+  const {getByText} = await renderAsync(
     <TestApp>
       <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
     </TestApp>,
@@ -64,8 +64,8 @@ test('renders with network props', () => {
   expect(getByText('test')).toBeInTheDocument();
 });
 
-test('renders with node props', () => {
-  const {getByText} = render(
+test('renders with node props', async () => {
+  const {getByText} = await renderAsync(
     <TestApp>
       <ConfigTaskForm
         {...defaultProps}
@@ -78,8 +78,8 @@ test('renders with node props', () => {
   expect(getByText('test')).toBeInTheDocument();
 });
 
-test('cancel calls onClose if its a modal', () => {
-  const {getByText} = render(
+test('cancel calls onClose if its a modal', async () => {
+  const {getByText} = await renderAsync(
     <TestApp>
       <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
     </TestApp>,

@@ -133,12 +133,10 @@ export default function ConfigTaskForm({
   }, [resetForm, onClose]);
 
   React.useEffect(() => {
-    if (!configDataRef.current) {
-      configDataRef.current = configData;
-      draftsRef.current = {};
-    }
+    configDataRef.current = configData;
+    draftsRef.current = {};
     setResetLoading(false);
-  }, [configData, mode]);
+  }, [mode, configData]);
 
   const handleInputUpdate = React.useCallback(({configField, draftValue}) => {
     draftsRef.current = {...draftsRef.current, [configField]: draftValue};
