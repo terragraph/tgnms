@@ -215,61 +215,43 @@ class ModalFullUpgrade extends React.Component<Props, State> {
 
     const requestId = 'NMS' + new Date().getTime();
 
-    const prepareData = {
-      limit,
-      nodes,
-      retryLimit: formParseInt(this.state.retryLimit),
-      skipFailure: this.state.skipFailure,
-      skipLinks: [],
-      timeout: formParseInt(this.state.timeout),
+    const data = {
       ugType,
+      nodes,
+      excludeNodes,
       urReq: {
-        hardwareBoardIds:
-          selectedImage.hardwareBoardIds &&
-          selectedImage.hardwareBoardIds.length
-            ? selectedImage.hardwareBoardIds
-            : [],
-        imageUrl: selectedImage.magnetUri,
+        urType: UpgradeReqType.FULL_UPGRADE,
+        upgradeReqId: requestId,
         md5: selectedImage.md5,
+        imageUrl: selectedImage.magnetUri,
+        scheduleToCommit: formParseInt(this.state.commitDelay),
         torrentParams: {
           downloadLimit: formParseInt(downloadLimit),
           downloadTimeout: formParseInt(downloadTimeout),
           maxConnections: formParseInt(maxConnections),
           uploadLimit: formParseInt(uploadLimit),
         },
-        upgradeReqId: requestId + '.1',
-        urType: UpgradeReqType.PREPARE_UPGRADE,
+        hardwareBoardIds:
+          selectedImage.hardwareBoardIds &&
+          selectedImage.hardwareBoardIds.length
+            ? selectedImage.hardwareBoardIds
+            : [],
       },
-      version: '',
-    };
-
-    const commitData = {
-      excludeNodes,
-      limit,
-      nodes,
-      retryLimit: formParseInt(this.state.retryLimit),
+      timeout: formParseInt(this.state.timeout),
       skipFailure: this.state.skipFailure,
       skipPopFailure: this.state.skipPopFailure,
-      skipLinks: [],
-      timeout: formParseInt(this.state.timeout),
-      ugType,
-      urReq: {
-        scheduleToCommit: formParseInt(this.state.commitDelay),
-        upgradeReqId: requestId + '.2',
-        urType: UpgradeReqType.COMMIT_UPGRADE,
-      },
       version: '',
+      skipLinks: [],
+      limit,
+      retryLimit: formParseInt(this.state.retryLimit),
     };
 
-    Promise.all([
-      this.submitApiServiceRequest(prepareData),
-      this.submitApiServiceRequest(commitData),
-    ])
-      .then(() => {
+    this.submitApiServiceRequest(data)
+      .then(_ => {
         swal({
           type: 'info',
           title: 'Full Upgrade Submitted',
-          text: `You have initiated the "Full Upgrade" process with requestId ${requestId}.1 and ${requestId}.2.\n\nThe status of your request can be found in in the "Node Upgrade Status" table.`,
+          text: `You have initiated the "Full Upgrade" process with requestId ${requestId}.\n\nThe status of your request can be found in in the "Node Upgrade Status" table.`,
         });
       })
       .catch(error => {

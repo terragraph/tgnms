@@ -354,11 +354,13 @@ export type UpgradeStatusType = {|
 export type UpgradeReqTypeType =
   | "PREPARE_UPGRADE"
   | "COMMIT_UPGRADE"
-  | "RESET_STATUS";
+  | "RESET_STATUS"
+  | "FULL_UPGRADE";
 export const UpgradeReqTypeValueMap = {
   PREPARE_UPGRADE: 10,
   COMMIT_UPGRADE: 20,
-  RESET_STATUS: 30
+  RESET_STATUS: 30,
+  FULL_UPGRADE: 40
 };
 
 export type UpgradeTorrentParamsType = {|

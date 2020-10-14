@@ -114,26 +114,35 @@ test('submit success', async () => {
     fireEvent.click(getByText('Submit'));
   });
   await waitForElement(() => getByText('Full Upgrade Submitted'));
-  expect(apiServiceRequestMock).toHaveBeenCalledTimes(2);
+  expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
     'Tower C',
     'sendUpgradeRequest',
     {
-      excludeNodes: [],
-      limit: 0,
-      nodes: [],
-      retryLimit: 3,
-      skipFailure: true,
-      skipLinks: [],
-      skipPopFailure: false,
-      timeout: 180,
       ugType: 20,
+      nodes: [],
+      excludeNodes: [],
       urReq: {
+        urType: 40,
+        upgradeReqId: 'NMS1557831718135',
+        md5: 'testImage',
+        imageUrl: 'testImage',
         scheduleToCommit: 0,
-        upgradeReqId: 'NMS1557831718135.2',
-        urType: 20,
+        torrentParams: {
+          downloadLimit: -1,
+          downloadTimeout: 180,
+          maxConnections: -1,
+          uploadLimit: -1,
+        },
+        hardwareBoardIds: ['testImage'],
       },
+      timeout: 180,
+      skipFailure: true,
+      skipPopFailure: false,
       version: '',
+      skipLinks: [],
+      limit: 0,
+      retryLimit: 3,
     },
   );
   expect(getByText('Full Upgrade Submitted')).toBeInTheDocument();
