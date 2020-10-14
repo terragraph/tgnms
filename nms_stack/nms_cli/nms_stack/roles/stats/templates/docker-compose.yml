@@ -3,9 +3,10 @@ version: '3.6'
 services:
   query_service:
     image: {{ query_service_image }}
-    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && mysql -u$${MYSQL_USER} -p$${MYSQL_PASS} < /mysql-scripts/00-cxl.sql; bin/query_service -http_port 8086 -threads $${HTTP_THREADS} -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} {% if keycloak_enabled %} -keycloak_enabled true -keycloak_host $${KEYCLOAK_HOST} -keycloak_realm $${KEYCLOAK_REALM} -keycloak_client_id $${KEYCLOAK_CLIENT_ID} -keycloak_client_secret $${KEYCLOAK_CLIENT_SECRET} {% endif %} -logtostderr -enable_kafka_stats=$${KAFKA_STATS_ENABLED} -kafka_broker_endpoint_list=$${KAFKA_BROKER_LIST}"]
+    command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z db 3306; do sleep 1; done && mysql -u$${MYSQL_USER} -p$${MYSQL_PASS} < /mysql-scripts/00-cxl.sql; bin/query_service -http_port 8086 -threads $${HTTP_THREADS} -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} {% if keycloak_enabled %} -keycloak_enabled true -keycloak_host $${KEYCLOAK_HOST} -keycloak_realm $${KEYCLOAK_REALM} -keycloak_client_id $${KEYCLOAK_CLIENT_ID} -keycloak_client_secret $${KEYCLOAK_CLIENT_SECRET} {% endif %} -logtostderr -enable_kafka_stats=$${KAFKA_STATS_ENABLED} -kafka_broker_endpoint_list=$${KAFKA_BROKER_LIST} -enable_kafka_hf_stats=$${KAFKA_HF_STATS_ENABLED}"]
     env_file:
       - {{ stats_gfs_path }}/env/stats.env
+      - {{ stats_gfs_path }}/env/stats_hf.env
       - {{ stats_gfs_path }}/env/time.env
 {% if keycloak_enabled %}
       - {{ stats_gfs_path }}/env/qs_auth.env

@@ -23,6 +23,7 @@
   with_items:
     - time.env
     - stats.env
+    - stats_hf.env
     - prometheus.env
     - qs_auth.env
 
