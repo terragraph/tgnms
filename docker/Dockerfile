@@ -1,5 +1,5 @@
 # pull base image.for build
-FROM alpine:3.11 AS builder
+FROM alpine:3.12 AS builder
 
 # fixed versions where possible
 ARG CPPKAFKA_VERSION=0.3.1
@@ -20,10 +20,8 @@ COPY query_service $WORKDIR/query_service/
 COPY udp_pinger $WORKDIR/udp_pinger/
 
 # some packages aren't in mainline
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-RUN apk update
-RUN apk add bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev autoconf automake libtool libevent-dev gmock gtest-dev binutils-gold bison flex gperf lz4-dev xz-dev mariadb-connector-c-dev snappy-dev git double-conversion-dev glog-dev python2
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing glog-dev
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev autoconf automake libtool libevent-dev gmock gtest-dev binutils-gold bison flex gperf lz4-dev xz-dev mariadb-connector-c-dev snappy-dev git double-conversion-dev python2
 
 WORKDIR /tmp
 
@@ -119,7 +117,7 @@ RUN cmake .. && \
 RUN rm -rf /tmp/*
 
 # dev build
-FROM alpine:3.11 AS dev
+FROM alpine:3.12 AS dev
 
 ENV WORKDIR /usr/local/nms
 
@@ -132,11 +130,10 @@ COPY query_service $WORKDIR/query_service/
 COPY udp_pinger $WORKDIR/udp_pinger/
 
 # some packages aren't in mainline
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
 RUN apk update
 # install most of the same packages from builder
-RUN apk add bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev libtool libevent-dev gmock gtest-dev vim curl mariadb-connector-c-dev snappy-dev git lz4-dev xz-dev double-conversion-dev glog-dev
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing glog-dev
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev libtool libevent-dev gmock gtest-dev vim curl mariadb-connector-c-dev snappy-dev git lz4-dev xz-dev double-conversion-dev
 
 # copy thrift binary
 COPY --from=builder /usr/local/facebook/bin/thrift1 /usr/local/facebook/bin/thrift1
@@ -164,12 +161,11 @@ COPY --from=builder /usr/local/nms/build/bin/query_service bin/
 COPY --from=builder /usr/local/nms/build/bin/udp_ping_client bin/
 COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test bin/
 
-FROM alpine:3.11
+FROM alpine:3.12
 
 # some packages aren't in mainline
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-RUN apk add --no-cache boost-context gflags libcrypto1.1 libcurl libevent libgcc libssl1.1 libstdc++ lz4-libs mariadb-connector-c musl nghttp2-libs snappy xz-libs zlib mysql-client double-conversion glog
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing glog
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community --no-cache boost-context gflags libcrypto1.1 libcurl libevent libgcc libssl1.1 libstdc++ lz4-libs mariadb-connector-c musl nghttp2-libs snappy xz-libs zlib mysql-client double-conversion
 
 # copy the libraries we just built
 COPY --from=builder /usr/local/lib64/librdkafka.so.1 /usr/local/lib64/
