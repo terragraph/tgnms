@@ -205,6 +205,7 @@ def install(ctx, config_file, tags, verbose, password, workers, managers):
     variables = get_variables(config_file, managers, verbose)
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        variables["config_file_path"] = temp_file.name
         temp_file.write(yaml.dump(variables).encode("utf-8"))
         temp_file.flush()
         run_ansible(

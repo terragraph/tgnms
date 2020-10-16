@@ -9,6 +9,18 @@
         http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
         https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
 
+- hosts: master
+  gather_facts: no
+  tasks:
+    - name: Create {{ terragraph_docker_path }}
+      file:
+        path: "{{ terragraph_docker_path }}"
+        state: directory
+    - name: Backup installation config file to {{ terragraph_docker_path }}
+      template:
+        src: "{{ config_file_path }}"
+        dest: "{{ terragraph_docker_path }}/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
+
 - name: install kubernetes cluster
   import_playbook: plays/kubeadm-ansible/site.yaml
 

@@ -83,6 +83,14 @@ spec:
       - image: {{ prometheus_image }}
         imagePullPolicy: "{{ image_pull_policy }}"
         name: prometheus
+        readinessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9000
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9000
         args: ["--config.file=/etc/prometheus/prometheus.yml",
                   "--storage.tsdb.path=/prometheus",
                   "--web.console.libraries=/usr/share/prometheus/console_libraries",

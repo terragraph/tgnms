@@ -65,6 +65,14 @@ spec:
       - image: {{ grafana_image }}
         imagePullPolicy: "{{ image_pull_policy }}"
         name: grafana
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
         envFrom:
           - configMapRef:
               name: grafana-env

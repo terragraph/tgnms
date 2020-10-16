@@ -31,6 +31,14 @@ spec:
       containers:
         - image: {{ nms_image }}
           imagePullPolicy: "{{ image_pull_policy }}"
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
           envFrom:
             - configMapRef:
                 name: cxl-database

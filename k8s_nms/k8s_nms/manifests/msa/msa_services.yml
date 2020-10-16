@@ -93,6 +93,14 @@ spec:
           imagePullPolicy: "{{ image_pull_policy }}"
           name: {{ service_dns_name }}
           command: ["/bin/sh", "-c", "{{ service.command }}"]
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
           {% if service.uses_database %}
           envFrom:
             - configMapRef:
