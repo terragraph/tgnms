@@ -1,0 +1,65 @@
+version: '3.4'
+
+services:
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+    volumes:
+      - ./cxl:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"
+  nms:
+    build:
+      context: .
+      dockerfile: Dockerfile.nms
+    image: terragraph/nms:2796
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASS=12345
+      - BERINGEI_HOST=beringei
+      - BQS=http://bqs:8086/query
+    command: ["/bin/sh", "-c", "sleep 60; npm start"]
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+  beringei:
+    build:
+      context: .
+      dockerfile: Dockerfile.beringei
+    image: terragraph/beringei:latest
+    environment:
+      - BERINGEI_HOST=beringei
+    cap_add:
+      - SYS_NICE
+    ports:
+      - "9999:9999"
+    depends_on:
+      - db
+    command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei && beringei/service/beringei_main -beringei_configuration_path beringei.json -create_directories -sleep_between_bucket_finalization_secs 60 -allowed_timestamp_behind 300 -bucket_size 600 -buckets 144 -logtostderr -v=2"]
+  bqs:
+    build:
+      context: .
+      dockerfile: Dockerfile.beringei
+    image: terragraph/beringei:latest
+    environment:
+      - BERINGEI_HOST=beringei_query_service
+    cap_add:
+      - SYS_NICE
+    ports:
+      - "8086:8086"
+    depends_on:
+      - db
+    command: ["/bin/sh", "-c", "beringei/tools/beringei_configuration_generator --file_path beringei.json --host_names beringei && sleep 30 && beringei/tools/query_service/beringei_query_service -beringei_configuration_path beringei.json -http_port 8086 -threads 4 -writer_queue_size 500000 -logtostderr -v=2 -mysql_url tcp://db:3306 --mysql_pass 12345"]
+  sshd:
+    build:
+      context: .
+      dockerfile: Dockerfile.sshd
+    image: terragraph/sshd:latest
+    volumes:
+      - ./sshd:/etc/ssh
+    command: ["/bin/sh", "-c", "chown -R root:root /etc/ssh && chmod 700 /etc/ssh && chmod 600 /etc/ssh/authorized_keys && chmod 600 /etc/ssh/ssh_host_ed25519_key && ls -lah /etc/ssh && /usr/sbin/sshd -D -f /etc/ssh/sshd_config -h /etc/ssh/ssh_host_ed25519_key"]
+    ports:
+      - "2222:22"

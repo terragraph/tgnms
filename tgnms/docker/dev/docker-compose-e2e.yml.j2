@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  ssh-client:
+    restart: unless-stopped
+    image: terragraph/ssh-client
+    volumes:
+      - ./ssh:/ssh
+    command: "ssh -vv -Ng -o StrictHostKeyChecking=no -i /ssh/nms_connection -R*:17077:e2e:17078 root@{{ tmpl_nmshost }} -p 2222"
+# localhost ^ -> e2e when e2e: exists
+  e2e:
+    image: terragraph/e2e
+    command: "/usr/sbin/e2e_controller"

@@ -1,0 +1,116 @@
+version: '3.6'
+
+services:
+  default_routes_service:
+    image: secure.cxl-terragraph.com:443/default_routes_service:latest
+    env_file:
+      - ./env/default_routes_service.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/default_routes_service/config.json
+      - ./docker_volumes/default_routes_service/alembic.ini:/usr/local/default_routes_service/alembic.ini
+      - ./docker_volumes/default_routes_service/service_config.json:/usr/local/default_routes_service/service_config.json
+      - ./mysql_init_scripts/default_routes_service.sql:/usr/local/default_routes_service/default_routes_service.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < default_routes_service.sql && alembic upgrade head && default_routes_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  network_health_service:
+    image: secure.cxl-terragraph.com:443/network_health_service:latest
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/network_health_service/config.json
+      - ./docker_volumes/network_health_service/service_config.json:/usr/local/network_health_service/service_config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < network_health_service.sql && network_health_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  network_test:
+    image: secure.cxl-terragraph.com:443/network_test:latest
+    env_file:
+      - ./env/network_test.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/network_test/config.json
+      - ./docker_volumes/network_test/alembic.ini:/usr/local/network_test/alembic.ini
+      - ./docker_volumes/network_test/service_config.json:/usr/local/network_test/service_config.json
+      - ./mysql_init_scripts/network_test.sql:/usr/local/network_test/network_test.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < network_test.sql && alembic upgrade head && network_test"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  optimizer_service:
+    image: secure.cxl-terragraph.com:443/optimizer_service:latest
+    env_file:
+      - ./env/optimizer_service.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/optimizer_service/config.json
+      - ./docker_volumes/optimizer_service/service_config.json:/usr/local/optimizer_service/service_config.json
+      - ./mysql_init_scripts/optimizer_service.sql:/usr/local/optimizer_service/optimizer_service.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < optimizer_service.sql && optimizer_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  scan_service:
+    image: secure.cxl-terragraph.com:443/scan_service:latest
+    env_file:
+      - ./env/scan_service.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/scan_service/config.json
+      - ./docker_volumes/scan_service/alembic.ini:/usr/local/scan_service/alembic.ini
+      - ./docker_volumes/hardware_config/hardware_config.json:/usr/local/scan_service/hardware_config.json
+      - ./docker_volumes/scan_service/service_config.json:/usr/local/scan_service/service_config.json
+      - ./mysql_init_scripts/scan_service.sql:/usr/local/scan_service/scan_service.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < scan_service.sql && alembic upgrade head && scan_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  topology_service:
+    image: secure.cxl-terragraph.com:443/topology_service:latest
+    env_file:
+      - ./env/topology_service.env
+    restart: always
+    volumes:
+      - ./docker_volumes/tglib/config.json:/usr/local/topology_service/config.json
+      - ./docker_volumes/topology_service/alembic.ini:/usr/local/topology_service/alembic.ini
+      - ./docker_volumes/topology_service/service_config.json:/usr/local/topology_service/service_config.json
+      - ./mysql_init_scripts/topology_service.sql:/usr/local/topology_service/topology_service.sql
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "apk add mysql-client && mysql -hdb -uroot -p12345 < topology_service.sql && alembic upgrade head && topology_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+networks:
+  terragraph_net:
+    external: true

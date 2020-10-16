@@ -1,0 +1,203 @@
+- name: keygen
+  hosts: localhost
+  tasks:
+    - name: make sshd dir
+      local_action:
+        module: file
+        path: sshd
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0775
+    - name: generate connection key if non-existant
+      local_action: 
+        module: command ssh-keygen -t ed25519 -f sshd/nms_connection -N ''
+        creates: sshd/nms_connection
+    - name: generate host key if non-existant
+      local_action: 
+        module: command ssh-keygen -t ed25519 -f sshd/ssh_host_ed25519_key -N ''
+        creates: sshd/ssh_host_ed25519_key
+
+- hosts: nms
+  become_user: root
+  become: yes
+  roles:
+    - role: docker-ce-ansible-role
+  tasks:
+    - name: Adding existing ubuntu user to docker group
+      user: 
+        name: ubuntu
+        groups: docker
+        append: yes
+    
+    - name: Install python3-pip
+      apt:
+        name: python3-pip
+        state: present
+    
+    - name: pip3 install docker
+      pip:
+        name: docker
+        state: present
+    
+    - name: pip3 install docker-compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: mkdir sshd
+      file:
+        path: sshd
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0775
+
+    - name: copy ssh public
+      template:
+        src: sshd/nms_connection.pub
+        dest: ./sshd/authorized_keys
+        owner: ubuntu
+        group: ubuntu
+        mode: 0600
+    
+    - name: copy sshd_config
+      template:
+        src: sshd/sshd_config
+        dest: ./sshd/sshd_config
+        owner: ubuntu
+        group: ubuntu
+        mode: 0600
+
+    - name: copy host private key
+      template:
+        src: sshd/ssh_host_ed25519_key
+        dest: ./sshd/ssh_host_ed25519_key
+        owner: ubuntu
+        group: ubuntu
+        mode: 0600
+
+    - name: copy host public key
+      template:
+        src: sshd/ssh_host_ed25519_key.pub
+        dest: ./sshd/ssh_host_ed25519_key.pub
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+
+    - name: mkdir cxl
+      file:
+        path: cxl
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0775
+    
+    - name: copy cxl.sql
+      template:
+        src: cxl.sql
+        dest: ./cxl/cxl.sql
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+    
+    - name: copy compose
+      template:
+        src: docker-compose-nms.yml
+        dest: ./docker-compose.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+    
+    - name: log into dockerhub
+      docker_login:
+        username: tgdeploy
+        password: placeholder
+        email: tgdeploy18@illuminatus.org
+        reauthorize: yes
+    
+    - name: run nms
+      docker_service:
+        project_src: .
+        build: no
+        state: present
+        pull: yes
+        stopped: no
+        debug: yes
+
+- hosts: e2e
+  become_user: root
+  become: yes
+  vars:
+    tmpl_nmshost: "{{ groups['nms'][0] }}"
+  roles:
+    - role: docker-ce-ansible-role
+  tasks:
+    - name: Adding existing ubuntu user to docker group
+      user: 
+        name: ubuntu
+        groups: docker
+        append: yes
+    
+    - name: Install python3-pip
+      apt:
+        name: python3-pip
+        state: present
+    
+    - name: pip3 install docker
+      pip:
+        name: docker
+        state: present
+    
+    - name: pip3 install docker-compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: mkdir ssh
+      file:
+        path: ssh
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0775
+
+    - name: copy ssh private
+      template:
+        src: sshd/nms_connection
+        dest: ./ssh/nms_connection
+        owner: ubuntu
+        group: ubuntu
+        mode: 0600
+
+    - name: copy host public key
+      template:
+        src: sshd/ssh_host_ed25519_key.pub
+        dest: ./ssh/ssh_host_ed25519_key.pub
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+    
+    - name: copy compose
+      template:
+        src: docker-compose-e2e.yml.j2
+        dest: ./docker-compose.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+
+    - name: log into dockerhub
+      docker_login:
+        username: tgdeploy
+        password: placeholder
+        email: tgdeploy18@illuminatus.org
+        reauthorize: yes
+    
+    - name: run compose
+      docker_service:
+        project_src: .
+        build: no
+        state: present
+        pull: yes
+        stopped: no
+        debug: yes

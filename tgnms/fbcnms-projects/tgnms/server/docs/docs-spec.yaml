@@ -1,0 +1,52 @@
+---
+paths:
+  "/docs/msa/{serviceName}":
+    get:
+      description: "Loads the OpenAPI docs.yml file from the specified
+      Terragraph MSA service, and converts it to JSON for consumption
+      by the Swagger UI.
+      This request is made on the internal overlay network."
+      tags:
+      - Docs
+      produces:
+        - application/json
+      parameters:
+        - name: serviceName
+          description:
+            "MSA Service hostname - The hostname of a service which hosts an
+            OpenAPI docs endpoint at http://{servicename}:8080/docs.yml on
+            the internal docker network."
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          $ref: "#/components/responses/openapi_spec"
+  "/docs/yaml/{fileName}":
+    get:
+      description: "Serves an OpenAPI yaml file from the /static/docs directory,
+      first transforming it to JSON for consumption by the Swagger UI."
+      tags:
+      - Docs
+      produces:
+        - application/json
+      parameters:
+        - name: fileName
+          description:
+            "The filename of the file stored at /static/docs.
+            For example, /docs/yaml/network_test.yaml"
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          $ref: "#/components/responses/openapi_spec"
+components:
+  responses:
+    openapi_spec:
+      description: JSON OpenAPI spec suitable for consumption by the Swagger UI
+      content:
+        application/json:
+          schema:
+            description: JSON OpenAPI spec
+            type: object
