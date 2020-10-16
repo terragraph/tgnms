@@ -57,6 +57,10 @@ spec:
           configMap:
             name: grafana-provisioning-{{ dns_name(f) }}
 {% endfor %}
+        - name: grafana-ini-files
+          configMap:
+            name: grafana-ini-files
+
       containers:
       - image: {{ grafana_image }}
         imagePullPolicy: "{{ image_pull_policy }}"
@@ -70,6 +74,10 @@ spec:
             mountPath: /etc/grafana/{{ f }}
             subPath: {{ basename(f) }}
 {% endfor %}
+          - name: grafana-ini-files
+            mountPath: /usr/share/grafana/conf/custom.ini
+            subPath: "custom.ini"
+
         ports:
         - containerPort: 30000
           name: grafana

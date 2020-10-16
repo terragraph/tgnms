@@ -19,3 +19,12 @@ data:
     {{ lookup(lookup_type, '../../../nms_stack/nms_cli/nms_stack/roles/nms/grafana/' + f) | indent(width=4, indentfirst=False )}}
 ---
 {% endfor %}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ini-files
+data:
+  custom.ini: |
+    [auth.basic]
+    enabled = false
