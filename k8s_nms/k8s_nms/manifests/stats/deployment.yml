@@ -10,14 +10,6 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prometheus-config
-data:
-  prometheus.yml: |
-    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/stats/templates/prometheus.yml') | indent(width=4, indentfirst=False )}}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: prometheus-cache-env
 data:
   PROMETHEUS_CACHE_LIMIT: "1000000"
@@ -51,6 +43,17 @@ metadata:
 spec:
   ports:
   - port: 3306
+  selector:
+    app: prometheus
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-cache
+spec:
+  ports:
+  - port: 9091
   selector:
     app: prometheus
   clusterIP: None
