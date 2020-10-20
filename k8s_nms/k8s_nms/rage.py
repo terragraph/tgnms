@@ -36,6 +36,8 @@ def run_subprocess_command(*args, **kwargs):
     This runs a shell command using the 'subprocess' module, capturing its
     output to a log.
     """
+    redirect_to_stderr = kwargs.pop("redirect_to_stderr", False)
+
     # Capture the stdout and stderr to Python instead of the terminal
     kwargs["stdout"] = subprocess.PIPE
     kwargs["stderr"] = subprocess.PIPE
@@ -63,7 +65,10 @@ def run_subprocess_command(*args, **kwargs):
                 del readable[fd]
             else:
                 if fd == p.stdout.fileno():
-                    sys.stdout.write(data)
+                    if redirect_to_stderr:
+                        sys.stderr.write(data)
+                    else:
+                        sys.stdout.write(data)
                 else:
                     sys.stderr.write(data)
 

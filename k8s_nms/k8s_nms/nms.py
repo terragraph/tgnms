@@ -263,6 +263,7 @@ def get_variables(user_config_file, managers, verbose):
             generate_inventory(managers, workers=[]),
             verbose=verbose,
             more_extra_vars=[f"temp_src={src.name}", f"temp_dest={dest.name}"],
+            subprocess_kwargs={"redirect_to_stderr": True}
         )
         dest.flush()
 
@@ -302,7 +303,7 @@ def read_or_make_certificates(ssl_key_file, ssl_cert_file):
         subject = " -subj /C=US/ST=Placeholder/L=Placeholder/O=Placeholder/OU=Placeholder/CN=Placeholder/emailAddress=Placeholder"
         generate_certs_command = f"openssl req -newkey rsa:2048 -nodes -keyout {key.name} -x509 -days 3650 -out {cert.name}"
         generate_certs_command += subject
-        rage.run_subprocess_command(generate_certs_command.split(" "))
+        rage.run_subprocess_command(generate_certs_command.split(" "), redirect_to_stderr=True)
         return open(key.name, "r").read(), open(cert.name, "r").read()
 
 
