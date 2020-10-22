@@ -24,11 +24,16 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
   [TESTER.MYSQL]: async config => {
     const {MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, MYSQL_DB} = config;
     const Sequelize = require('sequelize').default;
-    const sequelize = new Sequelize(MYSQL_DB, MYSQL_USER, MYSQL_PASS, {
-      host: MYSQL_HOST,
-      port: parseInt(MYSQL_PORT),
-      dialect: 'mysql',
-    });
+    const sequelize = new Sequelize(
+      MYSQL_DB ?? '',
+      MYSQL_USER ?? '',
+      MYSQL_PASS ?? '',
+      {
+        host: MYSQL_HOST ?? '',
+        port: parseInt(MYSQL_PORT),
+        dialect: 'mysql',
+      },
+    );
     await sequelize.authenticate();
     return {
       success: true,
@@ -42,7 +47,7 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
       SOFTWARE_PORTAL_API_ID,
     } = config;
     const response = await axios.post<{}, string>(
-      `${SOFTWARE_PORTAL_URL}/list`,
+      `${SOFTWARE_PORTAL_URL ?? ''}/list`,
       {
         api_token: SOFTWARE_PORTAL_API_TOKEN,
         api_id: SOFTWARE_PORTAL_API_ID,
@@ -70,19 +75,19 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
     } = _config;
     const results = await Promise.all([
       testResult(
-        () => axios.get(`${ALERTMANAGER_CONFIG_URL}/v1/tg/route`),
+        () => axios.get(`${ALERTMANAGER_CONFIG_URL ?? ''}/v1/tg/route`),
         'Alertmanager Configurer',
       ),
       testResult(
-        () => axios.get(`${PROMETHEUS_CONFIG_URL}/v1/tg/alert`),
+        () => axios.get(`${PROMETHEUS_CONFIG_URL ?? ''}/v1/tg/alert`),
         'Prometheus Configurer',
       ),
       testResult(
-        () => axios.get(`${ALERTMANAGER_URL}/api/v1/alerts`),
+        () => axios.get(`${ALERTMANAGER_URL ?? ''}/api/v1/alerts`),
         'Alertmanager',
       ),
       testResult(
-        () => axios.get(`${TG_ALARM_URL}/rules`),
+        () => axios.get(`${TG_ALARM_URL ?? ''}/rules`),
         'Terragraph Event Alarms',
       ),
     ]);
@@ -110,8 +115,8 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
     const {Issuer: OpenidIssuer} = require('openid-client');
     const {makeKeycloakURL} = require('../user/oidc');
     const issuerUrl = makeKeycloakURL({
-      KEYCLOAK_HOST,
-      KEYCLOAK_REALM,
+      KEYCLOAK_HOST: KEYCLOAK_HOST ?? '',
+      KEYCLOAK_REALM: KEYCLOAK_REALM ?? '',
     }).toString();
     /**
      * TODO: test KEYCLOAK_HTTP_PROXY T63546077
@@ -120,8 +125,8 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
      */
     const issuer = await OpenidIssuer.discover(issuerUrl);
     const openidClient: OpenidClient = new issuer.Client({
-      client_id: KEYCLOAK_CLIENT_ID,
-      client_secret: KEYCLOAK_CLIENT_SECRET,
+      client_id: KEYCLOAK_CLIENT_ID ?? '',
+      client_secret: KEYCLOAK_CLIENT_SECRET ?? '',
     });
 
     const grant = await openidClient.grant({
@@ -137,7 +142,9 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
   },
   [TESTER.PROMETHEUS]: async config => {
     const {PROMETHEUS} = config;
-    const response = await axios.get(`${PROMETHEUS}/api/v1/query?query=up`);
+    const response = await axios.get(
+      `${PROMETHEUS ?? ''}/api/v1/query?query=up`,
+    );
     if (!response.data || response.data?.status !== 'success') {
       return {success: false, message: 'Invalid Prometheus response'};
     }
@@ -145,7 +152,9 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
   },
   [TESTER.GRAFANA]: async config => {
     const {GRAFANA_URL} = config;
-    const response = await axios.get(`${GRAFANA_URL}/api/dashboards/home`);
+    const response = await axios.get(
+      `${GRAFANA_URL ?? ''}/api/dashboards/home`,
+    );
     if (!response.data || !response.data.meta) {
       return {success: false, message: 'Invalid Grafana response'};
     }
@@ -153,17 +162,17 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
   },
   [TESTER.NETWORK_TEST]: async config => {
     const {NETWORKTEST_HOST} = config;
-    await axios.get(`${NETWORKTEST_HOST}/schedule`);
+    await axios.get(`${NETWORKTEST_HOST ?? ''}/schedule`);
     return {success: true, message: 'Success!'};
   },
   [TESTER.SCANSERVICE]: async config => {
     const {SCANSERVICE_HOST} = config;
-    await axios.get(`${SCANSERVICE_HOST}/status`);
+    await axios.get(`${SCANSERVICE_HOST ?? ''}/status`);
     return {success: true, message: 'Success!'};
   },
   [TESTER.DEFAULT_ROUTES_HISTORY]: async config => {
     const {DEFAULT_ROUTES_HISTORY_HOST} = config;
-    await axios.get(`${DEFAULT_ROUTES_HISTORY_HOST}/status`);
+    await axios.get(`${DEFAULT_ROUTES_HISTORY_HOST ?? ''}/status`);
     return {success: true, message: 'Success!'};
   },
 };

@@ -231,6 +231,7 @@ export function SettingsFormContextWrapper({
       getInput={k => ({
         config: settingLookup[k],
         value: values ? values[k] : '',
+        fallbackValue: '',
         isOverridden: false,
         onChange: jest.fn(),
       })}
