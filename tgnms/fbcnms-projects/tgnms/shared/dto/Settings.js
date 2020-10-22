@@ -25,9 +25,8 @@ type ValidationType = $Values<typeof VALIDATION>;
 export type SettingDefinition = Int | Str | Bool | SecretStr | StrArray;
 export type Int = {|
   dataType: 'INT',
-  defaultValue?: number,
+  defaultValue?: string,
   key: string,
-  required: boolean,
   requiresRestart?: boolean, // defaults to true
   validations?: Array<ValidationType>,
   tester?: string,
@@ -36,16 +35,14 @@ export type Str = {|
   dataType: 'STRING',
   defaultValue?: string,
   key: string,
-  required: boolean,
   requiresRestart?: boolean, // defaults to true
   validations?: Array<ValidationType>,
   tester?: string,
 |};
 export type Bool = {|
   dataType: 'BOOL',
-  defaultValue?: boolean,
+  defaultValue?: string,
   key: string,
-  required: boolean,
   requiresRestart?: boolean, // defaults to true
   validations?: Array<ValidationType>,
   tester?: string,
@@ -54,16 +51,14 @@ export type SecretStr = {|
   dataType: 'SECRET_STRING',
   defaultValue?: string,
   key: string,
-  required: boolean,
   requiresRestart?: boolean, // defaults to true
   validations?: Array<ValidationType>,
   tester?: string,
 |};
 export type StrArray = {|
   dataType: 'STRING_ARRAY',
-  defaultValue?: Array<string>,
+  defaultValue?: string,
   key: string,
-  required: boolean,
   requiresRestart?: boolean, // defaults to true
   validations?: Array<ValidationType>,
   tester?: string,
@@ -74,7 +69,7 @@ export type SettingsMap = {[string]: SettingDefinition};
  * Values which come from the environment and the settings file. These are
  * always strings.
  */
-export type EnvMap = {[string]: string};
+export type EnvMap = {[string]: ?string};
 
 /**
  * The final settings state after all merging is complete. "current" contains
@@ -84,6 +79,7 @@ export type SettingsState = {|
   current: EnvMap,
   registeredSettings: SettingsMap,
   envMaps: {
+    defaults: EnvMap,
     initialEnv: EnvMap,
     dotenvEnv: EnvMap,
     settingsFileEnv: EnvMap,
@@ -130,5 +126,5 @@ function validateRequired(val: ?string) {
 export const EMPTY_SETTINGS_STATE: SettingsState = {
   current: {},
   registeredSettings: {},
-  envMaps: {initialEnv: {}, dotenvEnv: {}, settingsFileEnv: {}},
+  envMaps: {defaults: {}, initialEnv: {}, dotenvEnv: {}, settingsFileEnv: {}},
 };

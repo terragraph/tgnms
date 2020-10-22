@@ -49,7 +49,6 @@ const CLIENT_ROOT_URL = process.env.CLIENT_ROOT_URL;
 const PROMETHEUS_URL = process.env.PROMETHEUS || 'http://prometheus:9090';
 // default data source interval to use
 const DS_INTERVAL_SEC = 30;
-const GRAFANA_URL = process.env.GRAFANA_URL || '/grafana';
 
 // fix to a stable docker api version (https://docs.docker.com/engine/api/v1.37/)
 const DOCKER_API_VERSION = '1.37';
@@ -105,7 +104,6 @@ module.exports = {
   API_REQUEST_TIMEOUT,
   PROMETHEUS_URL,
   DS_INTERVAL_SEC,
-  GRAFANA_URL,
   DEFAULT_API_SERVICE_PORT: '8080',
   DOCKER_API_VERSION,
   LINK_HEALTH_TIME_WINDOW_HOURS,

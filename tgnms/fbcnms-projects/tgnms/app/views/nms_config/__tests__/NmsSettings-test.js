@@ -158,6 +158,7 @@ function makeSettings(env: EnvMap): SettingsState {
   const state = settingsEngine._makeSettings({
     registeredSettings: settingsEngine._makeSettingsMap(SETTINGS),
     envMaps: {
+      defaults: {},
       initialEnv: {},
       dotenvEnv: {},
       settingsFileEnv: env,

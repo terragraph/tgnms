@@ -330,11 +330,25 @@ export function useSettingsForm() {
     (key: string) => {
       const isOverridden =
         typeof settingsState?.envMaps.initialEnv[key] === 'string';
+
+      const {dotenvEnv, initialEnv, defaults} = settingsState?.envMaps || {};
+      let fallbackValue;
+      for (const env of [dotenvEnv, initialEnv, defaults]) {
+        if (!env) {
+          continue;
+        }
+        const _val = env[key];
+        if (_val != null) {
+          fallbackValue = _val;
+        }
+      }
+
       return ({
         isOverridden,
         config: settingsState?.registeredSettings[key],
         value: formState[key],
-        onChange: (value: string) => {
+        fallbackValue,
+        onChange: (value: ?string) => {
           updateFormState({[key]: value});
         },
       }: $Shape<InputData>);

@@ -17,8 +17,7 @@ export const FEATURE_FLAGS: {|[string]: FeatureFlagDef|} = {
   // needs certain configs
   LOGIN_ENABLED: {isDefaultEnabled: false},
   GRAFANA_ENABLED: {
-    isDefaultEnabled: false,
-    customFlag: env => typeof env['GRAFANA_URL'] === 'string',
+    isDefaultEnabled: true,
   },
   SERVICE_AVAILABILITY_ENABLED: {isDefaultEnabled: false},
   MAP_HISTORY_ENABLED: {isDefaultEnabled: true},

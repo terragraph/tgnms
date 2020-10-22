@@ -101,7 +101,7 @@ describe('Settings Engine', () => {
       expect(processEnvBefore['API_REQUEST_TIMEOUT']).toBe(undefined);
       settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
-      expect(processEnvAfter['API_REQUEST_TIMEOUT']).toBe(undefined);
+      expect(processEnvAfter['API_REQUEST_TIMEOUT']).toBe('5000');
       expect(warnLogSpy).toHaveBeenCalled();
     });
     test('NMS_SETTINGS_ENABLED=false disables loading from the settings file', () => {
@@ -111,7 +111,7 @@ describe('Settings Engine', () => {
       expect(processEnvBefore['MYSQL_USER']).toBe(undefined);
       settings.initialize(SETTINGS);
       const processEnvAfter = {...process.env};
-      expect(processEnvAfter['MYSQL_USER']).toBe(undefined);
+      expect(processEnvAfter['MYSQL_USER']).toBe('');
     });
     test('values from .env file are loaded into process.env', () => {
       writeEnvFile(`
@@ -127,13 +127,13 @@ describe('Settings Engine', () => {
       writeSettingsFile(`{"API_REQUEST_TIMEOUT":"invalid", bad json...}`);
       expect(errorLogSpy).not.toHaveBeenCalled();
       settings.initialize(SETTINGS);
-      expect(process.env['API_REQUEST_TIMEOUT']).toBe(undefined);
+      expect(process.env['API_REQUEST_TIMEOUT']).toBe('5000');
       expect(errorLogSpy).toHaveBeenCalled();
     });
     test('invalid settings file does not affect settings from env file', () => {
       writeSettingsFile(`{"API_REQUEST_TIMEOUT":"invalid", bad json...}`);
       settings.initialize(SETTINGS);
-      expect(process.env['API_REQUEST_TIMEOUT']).toBe(undefined);
+      expect(process.env['API_REQUEST_TIMEOUT']).toBe('5000');
     });
     test('values from settings file are loaded into process.env', () => {
       const processEnvBefore = {...process.env};
@@ -172,9 +172,8 @@ describe('Settings Engine', () => {
         registeredSettings: {
           PORT: {
             key: 'PORT',
-            required: true,
             dataType: 'INT',
-            defaultValue: 8080,
+            defaultValue: '8080',
           },
         },
         envMaps: {
@@ -245,6 +244,18 @@ describe('Settings Engine', () => {
       expect(fileContents).toBeInstanceOf(Buffer);
       expect(JSON.parse(fileContents.toString())).toEqual({
         MYSQL_PORT: '3390',
+        API_REQUEST_TIMEOUT: '5000',
+        PORT: '8080',
+      });
+    });
+    test('does not write to settings json if value is null', () => {
+      settings.initialize(SETTINGS);
+      settings.update({
+        MYSQL_PORT: null,
+      });
+      const fileContents = fsMock.readFileSync('settings.json');
+      expect(fileContents).toBeInstanceOf(Buffer);
+      expect(JSON.parse(fileContents.toString())).toEqual({
         API_REQUEST_TIMEOUT: '5000',
         PORT: '8080',
       });
@@ -340,13 +351,11 @@ describe('Settings Engine', () => {
         const settingsMap = settings._makeSettingsMap([
           {
             key: 'PORT',
-            required: true,
             dataType: 'INT',
-            defaultValue: 8080,
+            defaultValue: '8080',
           },
           {
             key: 'PORT',
-            required: true,
             dataType: 'STRING',
             defaultValue: '',
           },
@@ -354,7 +363,6 @@ describe('Settings Engine', () => {
         expect(settingsMap).toEqual({
           PORT: {
             key: 'PORT',
-            required: true,
             dataType: 'STRING',
             defaultValue: '',
           },
@@ -393,6 +401,25 @@ describe('Settings Engine', () => {
           settings._mergeKeys([envFile, cliArg], ['KEY1', 'KEY2']),
         ).toEqual({
           KEY1: 'VAL1-cli',
+          KEY2: 'VAL2',
+        });
+      });
+      test('null values are ignored', () => {
+        const envFile: EnvMap = {
+          KEY1: 'VAL1',
+          KEY2: 'VAL2',
+        };
+        /**
+         * though cli has higher precedence, it is explicitly null
+         * and will be ignored.
+         */
+        const cliArg: EnvMap = {
+          KEY1: null,
+        };
+        expect(
+          settings._mergeKeys([envFile, cliArg], ['KEY1', 'KEY2']),
+        ).toEqual({
+          KEY1: 'VAL1',
           KEY2: 'VAL2',
         });
       });

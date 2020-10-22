@@ -15,7 +15,8 @@ import type {
 
 export type InputData = {|
   value: ?string,
-  onChange: string => void,
+  fallbackValue: ?string,
+  onChange: (?string) => void,
   config: ?SettingDefinition,
   isOverridden: boolean,
 |};

@@ -20,10 +20,6 @@ const defaultProps: $Shape<SettingInputProps> = {
   label: '',
 };
 
-const defaultSetting = {
-  required: true,
-};
-
 describe('data type', () => {
   test('renders a text input if the data type is STRING', () => {
     const {getByLabelText} = render(
@@ -31,7 +27,6 @@ describe('data type', () => {
         <SettingsFormContextWrapper
           settings={[
             {
-              ...defaultSetting,
               dataType: 'STRING',
               key: 'SETTING_KEY',
             },
@@ -54,7 +49,6 @@ describe('data type', () => {
         <SettingsFormContextWrapper
           settings={[
             {
-              ...defaultSetting,
               dataType: 'BOOL',
               key: 'SETTING_KEY',
             },
@@ -77,7 +71,6 @@ describe('data type', () => {
         <SettingsFormContextWrapper
           settings={[
             {
-              ...defaultSetting,
               dataType: 'SECRET_STRING',
               key: 'SETTING_KEY',
             },
@@ -103,7 +96,6 @@ describe('secrets', () => {
         <SettingsFormContextWrapper
           settings={[
             {
-              ...defaultSetting,
               dataType: 'SECRET_STRING',
               key: 'SETTING_KEY',
             },
@@ -119,11 +111,10 @@ describe('secrets', () => {
       <TestApp>
         <SettingsFormContextWrapper
           settings={[
-            {...defaultSetting, dataType: 'STRING', key: 'SETTING_KEY'},
-            {...defaultSetting, dataType: 'INT', key: 'SETTING_KEY_2'},
-            {...defaultSetting, dataType: 'BOOL', key: 'SETTING_KEY_2'},
+            {dataType: 'STRING', key: 'SETTING_KEY'},
+            {dataType: 'INT', key: 'SETTING_KEY_2'},
+            {dataType: 'BOOL', key: 'SETTING_KEY_2'},
             {
-              ...defaultSetting,
               dataType: 'STRING_ARRAY',
               key: 'SETTING_KEY_2',
             },
@@ -145,7 +136,6 @@ describe('secrets', () => {
         <SettingsFormContextWrapper
           settings={[
             {
-              ...defaultSetting,
               dataType: 'SECRET_STRING',
               key: 'SETTING_KEY',
             },
@@ -182,12 +172,10 @@ describe('feature flags', () => {
           settings={[
             // these are defined in FEATURE_FLAGS
             {
-              ...defaultSetting,
               dataType: 'BOOL',
               key: 'ALERTS_LAYER_ENABLED', // feature disabled by default
             },
             {
-              ...defaultSetting,
               dataType: 'BOOL',
               key: 'JSON_CONFIG_ENABLED', // feature enabled by default
             },

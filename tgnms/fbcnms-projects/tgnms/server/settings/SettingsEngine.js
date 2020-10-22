@@ -36,6 +36,7 @@ export default class SettingsEngine {
     const processEnvStarting = {...process.env};
     const settings = this._makeSettingsMap(SETTINGS);
     const settingsKeys = Object.keys(settings);
+    const defaultSettings = this._makeDefaultSettings(settings);
     /**
      * The registered settings which already exist in the environment. These are
      * mainly args passed from the commandline like `LOG_LEVEL=debug yarn start`
@@ -69,6 +70,7 @@ export default class SettingsEngine {
     const settingsState = this._makeSettings({
       registeredSettings: settings,
       envMaps: {
+        defaults: defaultSettings,
         initialEnv: cliSettings,
         dotenvEnv: envFileSettings,
         settingsFileEnv: settingsFileSettings,
@@ -163,7 +165,13 @@ export default class SettingsEngine {
     if (!fs.existsSync(dirname)) {
       fs.mkdirSync(dirname, {recursive: true});
     }
-    const fileData = JSON.stringify(settings.envMaps.settingsFileEnv, null, 2);
+    const env = settings.envMaps.settingsFileEnv;
+    for (const k of Object.keys(env)) {
+      if (env[k] == null) {
+        delete env[k];
+      }
+    }
+    const fileData = JSON.stringify(env, null, 2);
     fs.writeFileSync(filePath, fileData, {encoding: 'utf8'});
     logger.debug('settings file successfully written');
   };
@@ -299,12 +307,23 @@ export default class SettingsEngine {
    */
   _createMergedEnvMap = (state: SettingsState): EnvMap => {
     const settingsKeys = Object.keys(state.registeredSettings);
-    const {dotenvEnv, settingsFileEnv, initialEnv} = state.envMaps;
+    const {defaults, dotenvEnv, settingsFileEnv, initialEnv} = state.envMaps;
     const finalizedSettings = this._mergeKeys(
-      [dotenvEnv, initialEnv, settingsFileEnv],
+      [defaults, dotenvEnv, initialEnv, settingsFileEnv],
       settingsKeys,
     );
     return finalizedSettings;
+  };
+
+  _makeDefaultSettings = (settings: SettingsMap): EnvMap => {
+    const map: EnvMap = {};
+    for (const s of Object.keys(settings)) {
+      const setting = settings[s];
+      if (typeof setting.defaultValue !== 'undefined') {
+        map[setting.key] = setting.defaultValue;
+      }
+    }
+    return map;
   };
 
   /**
@@ -316,10 +335,8 @@ export default class SettingsEngine {
     for (let i = list.length - 1; i >= 0; i--) {
       const map = list[i];
       for (const key of keys) {
-        if (
-          typeof settings[key] === 'undefined' &&
-          typeof map[key] !== 'undefined'
-        ) {
+        // values explicitly set to null are ignored
+        if (typeof settings[key] === 'undefined' && map[key] !== null) {
           settings[key] = map[key];
         }
       }
@@ -345,7 +362,7 @@ export default class SettingsEngine {
 
   _copySettingsToEnvironment = (settings: EnvMap) => {
     for (const key in settings) {
-      process.env[key] = settings[key];
+      process.env[key] = settings[key] ?? '';
     }
   };
 
@@ -388,9 +405,8 @@ export function mapFromFeatureFlags(flags: {|
 |}): Array<SettingDefinition> {
   return Object.keys(flags).map(key => ({
     key,
-    required: true,
     dataType: 'BOOL',
-    defaultValue: flags[key].isDefaultEnabled,
+    defaultValue: flags[key]?.isDefaultEnabled?.toString(),
     requiresRestart: true,
   }));
 }
