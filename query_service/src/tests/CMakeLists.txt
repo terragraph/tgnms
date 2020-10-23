@@ -51,7 +51,29 @@ target_link_libraries(
 )
 
 add_test(
-  NAME query_service_lib_tests
+  NAME health_datapoints_test
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/health_datapoints_test
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+add_executable(
+    prometheus_metrics_test
+    PrometheusMetricsTest.cpp
+)
+
+target_link_libraries(
+    prometheus_metrics_test
+    query_lib
+    query_service_test_util
+    gtest_main
+    ${FOLLY_LIBRARIES}
+    ${GTEST_HARNESS_LIBS}
+    ${LIBGLOG_LIBRARY}
+    ${GFLAGS_LIBRARIES}
+)
+
+add_test(
+  NAME prometheus_metrics_test
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/prometheus_metrics_test
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

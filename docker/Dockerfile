@@ -112,7 +112,8 @@ RUN cmake .. && \
     make -j $(nproc) && \
     strip bin/query_service && \
     strip bin/udp_ping_client && \
-    strip bin/health_datapoints_test
+    strip bin/health_datapoints_test && \
+    strip bin/prometheus_metrics_test
 
 RUN rm -rf /tmp/*
 
@@ -160,6 +161,7 @@ WORKDIR /usr/local/nms/build
 COPY --from=builder /usr/local/nms/build/bin/query_service bin/
 COPY --from=builder /usr/local/nms/build/bin/udp_ping_client bin/
 COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test bin/
+COPY --from=builder /usr/local/nms/build/bin/prometheus_metrics_test bin/
 
 FROM alpine:3.12
 
@@ -179,3 +181,4 @@ WORKDIR /usr/local/nms/build
 COPY --from=builder /usr/local/nms/build/bin/query_service bin/
 COPY --from=builder /usr/local/nms/build/bin/udp_ping_client bin/
 COPY --from=builder /usr/local/nms/build/bin/health_datapoints_test bin/
+COPY --from=builder /usr/local/nms/build/bin/prometheus_metrics_test bin/

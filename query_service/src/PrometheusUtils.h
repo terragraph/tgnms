@@ -46,8 +46,18 @@ class PrometheusUtils {
       const std::string& jobName,
       const std::vector<Metric>& metricList);
 
-  // format key/label names by removing characters disallowed by prometheus
-  static std::string formatPrometheusKeyName(const std::string& keyName);
+
+  // format label names by removing characters disallowed by prometheus
+  static std::string formatPrometheusLabelName(const std::string& labelName);
+
+  // format metric names by removing characters disallowed by prometheus
+  static std::string formatPrometheusMetricName(const std::string& metricName);
+
+  // format prometheus metric/label name with a given character validation
+  // function
+  static std::string formatPrometheusName(
+    const std::string& metricName,
+    const std::function<int(char c)>& isValidPrometheusChar);
 };
 
 } // namespace stats

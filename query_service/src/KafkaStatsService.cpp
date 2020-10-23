@@ -220,6 +220,8 @@ void KafkaStatsService::start(const std::string& topicName) {
       int writeAttempts = 0;
       while (!wroteStats) {
         writeAttempts++;
+        // writeNodeStats only reports failure when we fail to receive a response
+        // any HTTP response reports a success so we don't need to retry
         wroteStats = PrometheusUtils::writeNodeStats(
             FLAGS_prometheus_job_name_node_stats, intervalSec_, statQueue);
         if (!wroteStats) {

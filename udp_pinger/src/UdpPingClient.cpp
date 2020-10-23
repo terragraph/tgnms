@@ -196,7 +196,7 @@ std::vector<std::string> getMetricLabels(
          folly::sformat(
              PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_NODE_NAME,
-             PrometheusUtils::formatPrometheusKeyName(target.name)),
+             PrometheusUtils::formatPrometheusLabelName(target.name)),
          folly::sformat(
              PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_NODE_IS_POP,
@@ -208,7 +208,7 @@ std::vector<std::string> getMetricLabels(
          folly::sformat(
              PrometheusConsts::METRIC_FORMAT,
              PrometheusConsts::LABEL_SITE_NAME,
-             PrometheusUtils::formatPrometheusKeyName(target.site))});
+             PrometheusUtils::formatPrometheusLabelName(target.site))});
   }
 
   return labels;

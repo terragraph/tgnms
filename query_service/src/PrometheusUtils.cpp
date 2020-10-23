@@ -42,16 +42,31 @@ namespace facebook {
 namespace terragraph {
 namespace stats {
 
-std::string PrometheusUtils::formatPrometheusKeyName(
-    const std::string& keyName) {
-  // replace non-alphanumeric characters that prometheus doesn't allow
-  std::string keyNameCopy{keyName};
-  std::replace(keyNameCopy.begin(), keyNameCopy.end(), '.', '_');
-  std::replace(keyNameCopy.begin(), keyNameCopy.end(), '-', '_');
-  std::replace(keyNameCopy.begin(), keyNameCopy.end(), '/', '_');
-  std::replace(keyNameCopy.begin(), keyNameCopy.end(), '[', '_');
-  std::replace(keyNameCopy.begin(), keyNameCopy.end(), ']', '_');
-  return keyNameCopy;
+std::string PrometheusUtils::formatPrometheusLabelName(
+    const std::string& labelName) {
+  auto isValidPrometheusLabelChar = [](char c) {
+    return !std::isalnum(c) && c != '_';
+  };
+  return formatPrometheusName(labelName, isValidPrometheusLabelChar);
+}
+
+std::string PrometheusUtils::formatPrometheusMetricName(
+    const std::string& metricName) {
+  auto isValidPrometheusMetricChar = [](char c) {
+    return !std::isalnum(c) && c != ':' && c != '_';
+  };
+  return formatPrometheusName(metricName, isValidPrometheusMetricChar);
+}
+
+std::string PrometheusUtils::formatPrometheusName(
+    const std::string& metricName,
+    const std::function<int(char c)>& isValidPrometheusChar) {
+  std::string metricNameCopy{metricName};
+  // replace all characters prometheus doesn't like with an underscore
+  // https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
+  std::replace_if(
+      metricNameCopy.begin(), metricNameCopy.end(), isValidPrometheusChar, '_');
+  return metricNameCopy;
 }
 
 bool PrometheusUtils::writeNodeStats(
@@ -101,7 +116,7 @@ bool PrometheusUtils::writeNodeStats(
             PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_SITE_NAME,
             nodeInfo->second.site_name)};
-    std::string prometheusKeyName = formatPrometheusKeyName(keyName);
+    std::string prometheusMetricName = formatPrometheusMetricName(keyName);
     // extra meta-data for short keys
     auto nodeKeyCache =
         metricCacheInstance->getKeyDataByNodeKey(macAddr, keyName);
@@ -115,7 +130,10 @@ bool PrometheusUtils::writeNodeStats(
           labelTags.push_back(folly::sformat(
               PrometheusConsts::METRIC_FORMAT,
               PrometheusConsts::LABEL_LINK_NAME,
-              formatPrometheusKeyName(*(nodeKeyCache->linkName_ref()))));
+              // TODO (T78292848) - we do not need to do this, but NMS is
+              // already accounting for it so we need a way of rolling this out
+              // without breaking everyone
+              formatPrometheusLabelName(*(nodeKeyCache->linkName_ref()))));
           labelTags.push_back(folly::sformat(
               PrometheusConsts::METRIC_FORMAT,
               PrometheusConsts::LABEL_LINK_DIRECTION,
@@ -125,14 +143,14 @@ bool PrometheusUtils::writeNodeStats(
         }
         // has short-name, add it after all tagging
         metricList.emplace_back(Metric(
-            formatPrometheusKeyName(*(nodeKeyCache->shortName_ref())),
+            formatPrometheusLabelName(*(nodeKeyCache->shortName_ref())),
             stat.timestamp * 1000,
             labelTags,
             stat.value));
       }
     }
     metricList.emplace_back(Metric(
-        prometheusKeyName, stat.timestamp * 1000, labelTags, stat.value));
+        prometheusMetricName, stat.timestamp * 1000, labelTags, stat.value));
   }
   if (droppedMetrics > 0) {
     LOG(ERROR) << "Dropped " << droppedMetrics << "/" << statQueue.size()
@@ -151,7 +169,7 @@ bool PrometheusUtils::enqueueMetrics(
   }
 
   // build curl request from metrics list
-  std::string jobNameLabel = "job=\"" + formatPrometheusKeyName(jobName) + "\"";
+  std::string jobNameLabel = "job=\"" + formatPrometheusLabelName(jobName) + "\"";
   for (const auto& metric : metricList) {
     // format all metrics to prometheus string format
     std::string labelsString{};
@@ -170,9 +188,16 @@ bool PrometheusUtils::enqueueMetrics(
   // make curl request to prometheus cache service
   auto resp = CurlUtil::makeHttpRequest(
       5 /* timeoutSeconds */, FLAGS_prometheus_cache_uri, postData);
-  if (!resp || resp->code != 200) {
-    LOG(ERROR) << "Failed to publish metrics to prometheus cache";
+
+  // curl failed, no response headers/body
+  if (!resp) {
     return false;
+  }
+  // log the http response error
+  if (resp && resp->code != 200) {
+    LOG(ERROR) << "Failed to publish metrics to prometheus cache. HTTP code: "
+               << resp->code;
+    LOG(ERROR) << "HTTP response: " << resp->body;
   }
 
   return true;
