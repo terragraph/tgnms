@@ -432,6 +432,7 @@ function RenderTopologyElement({
     networkLinkHealth,
     networkLinkMetrics,
     nodeMap,
+    nodeToLinksMap,
     linkMap,
     siteMap,
     siteToNodesMap,
@@ -511,13 +512,13 @@ function RenderTopologyElement({
             statusReport: node
               ? status_dump.statusReports[node.mac_addr]
               : null,
-            networkNodeHealth: networkNodeHealth,
+            networkNodeHealth,
             networkConfig: networkConfig,
             onSelectLink: linkName =>
               setSelected(TopologyElementType.LINK, linkName),
             onSelectSite: siteName =>
               setSelected(TopologyElementType.SITE, siteName),
-            topology: topology,
+            topology,
           }}
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
@@ -526,6 +527,8 @@ function RenderTopologyElement({
           {...searchNearbyProps}
           {...routesPropsWithoutNode}
           node={node}
+          nodeToLinksMap={nodeToLinksMap}
+          linkMap={linkMap}
         />
       </Slide>
     );
@@ -553,6 +556,7 @@ function RenderTopologyElement({
             setSelected(TopologyElementType.NODE, nodeName)
           }
           pinned={pinned}
+          topology={topology}
           onPin={() => togglePin(type, name, !pinned)}
         />
       </Slide>

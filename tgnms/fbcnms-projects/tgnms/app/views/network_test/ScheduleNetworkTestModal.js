@@ -16,7 +16,9 @@ import useForm from '../../hooks/useForm';
 import {
   MODAL_MODE,
   NETWORK_TEST_TYPES,
+  TEST_TYPE_CODES,
 } from '../../constants/ScheduleConstants';
+import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {useSnackbars} from '../../hooks/useSnackbar';
 
 type Props = {onActionClick: () => void};
@@ -24,7 +26,7 @@ type Props = {onActionClick: () => void};
 export default function ScheduleNetworkTestModal(props: Props) {
   const {networkName} = React.useContext(NetworkContext);
   const snackbars = useSnackbars();
-  const scheduleTypes = Object.keys(NETWORK_TEST_TYPES);
+  const scheduleTypes = objectValuesTypesafe<string>(TEST_TYPE_CODES);
   const {onActionClick} = props;
   const {formState, handleInputChange, updateFormState} = useForm({
     initialState: {type: scheduleTypes[0], iperfOptions: {}},
@@ -82,14 +84,11 @@ export default function ScheduleNetworkTestModal(props: Props) {
             margin="dense"
             fullWidth
             onChange={handleInputChange(val => ({type: val}))}>
-            {scheduleTypes.map(
-              name =>
-                NETWORK_TEST_TYPES[name] !== NETWORK_TEST_TYPES.partial && (
-                  <MenuItem key={name} value={name}>
-                    {NETWORK_TEST_TYPES[name]}
-                  </MenuItem>
-                ),
-            )}
+            {scheduleTypes.map(name => (
+              <MenuItem key={name} value={name}>
+                {NETWORK_TEST_TYPES[name]}
+              </MenuItem>
+            ))}
           </TextField>
         ),
         advancedParams: (

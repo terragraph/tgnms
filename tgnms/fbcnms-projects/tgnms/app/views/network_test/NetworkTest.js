@@ -191,7 +191,8 @@ export default function NetworkTest(props: Props) {
 
   const rows = filterData(data, filterOptions).map(row => {
     {
-      const throughputTestMode = row.whitelist?.length === 1;
+      const partialMode = getPartialMode(row);
+
       const protocol =
         row.iperf_options.protocol === NETWORK_TEST_PROTOCOLS.UDP
           ? PROTOCOL.UDP
@@ -289,8 +290,8 @@ export default function NetworkTest(props: Props) {
         return {
           id: row.id,
           rowId: 'execution' + row.id,
-          type: throughputTestMode
-            ? NETWORK_TEST_TYPES.partial
+          type: partialMode
+            ? partialMode
             : NETWORK_TEST_TYPES[row.test_type.toLowerCase()],
           filterStatus: row.status,
           start: getFormattedDateAndTime({date: row.start_dt || ''}),
@@ -321,8 +322,8 @@ export default function NetworkTest(props: Props) {
           id: row.id,
           rowId: 'execution' + row.id,
           filterStatus,
-          type: throughputTestMode
-            ? NETWORK_TEST_TYPES.partial
+          type: partialMode
+            ? partialMode
             : NETWORK_TEST_TYPES[row.test_type.toLowerCase()],
           start: getFormattedDateAndTime({date: row.start_dt || ''}),
           status: (
@@ -413,13 +414,17 @@ function filterData(data, filterOptions) {
         new Date(row.start_dt).getTime() >
           new Date(filterOptions?.startTime || '').getTime());
 
-    const rowTestType = row.whitelist
-      ? 'partial'
-      : TEST_TYPE_CODES[row.test_type];
+    const partialmode = getPartialMode(row);
+
+    const rowTestType = partialmode
+      ? partialmode
+      : NETWORK_TEST_TYPES[TEST_TYPE_CODES[row.test_type]];
 
     const correctType =
       !filterOptions?.testType ||
-      filterOptions?.testType.find(type => type === rowTestType);
+      filterOptions?.testType.find(
+        type => NETWORK_TEST_TYPES[type] === rowTestType,
+      );
 
     const scheduleStatus = row.enabled ? 'SCHEDULED' : 'PAUSED';
     const rowStatus = row.status ?? scheduleStatus;
@@ -432,4 +437,31 @@ function filterData(data, filterOptions) {
   });
 
   return filteredData || [];
+}
+
+function getPartialMode(row) {
+  let partialMode = null;
+  if (row.whitelist?.length === 1) {
+    partialMode = NETWORK_TEST_TYPES.partial;
+  } else if (
+    row.whitelist?.length > 1 &&
+    NETWORK_TEST_TYPES[row.test_type.toLowerCase()] ===
+      NETWORK_TEST_TYPES.sequential_node
+  ) {
+    partialMode = NETWORK_TEST_TYPES.incremental_route;
+  } else if (
+    row.whitelist?.length > 1 &&
+    NETWORK_TEST_TYPES[row.test_type.toLowerCase()] ===
+      NETWORK_TEST_TYPES.parallel_link
+  ) {
+    partialMode = NETWORK_TEST_TYPES.p2mp;
+  } else if (
+    row.whitelist?.length > 1 &&
+    NETWORK_TEST_TYPES[row.test_type.toLowerCase()] ===
+      NETWORK_TEST_TYPES.parallel_node
+  ) {
+    partialMode = NETWORK_TEST_TYPES.congestion;
+  }
+
+  return partialMode;
 }

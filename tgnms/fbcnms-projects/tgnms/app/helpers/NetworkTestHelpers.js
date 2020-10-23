@@ -5,16 +5,20 @@
  * @flow
  */
 
+import * as testApi from '../apiutils/NetworkTestAPIUtil';
 import {
   EXECUTION_DEFS,
+  NETWORK_TEST_TYPES,
   TEST_EXECUTION_STATUS,
 } from '../constants/ScheduleConstants';
 import {HEALTH_CODES} from '../constants/HealthConstants';
+import {MAPMODE} from '../contexts/MapContext';
 import {generatePath} from 'react-router';
 import {getUrlSearchParam} from './NetworkUrlHelpers';
 
 import type {AssetTestResultType} from '../views/network_test/NetworkTestTypes';
 import type {Location} from 'react-router-dom';
+import type {RouterHistory} from 'react-router-dom';
 
 /**
  * Gets the currently selected test execution from the query string.
@@ -85,4 +89,43 @@ export function isTestRunning(status: $Keys<typeof TEST_EXECUTION_STATUS>) {
     TEST_EXECUTION_STATUS[status] === TEST_EXECUTION_STATUS.RUNNING ||
     TEST_EXECUTION_STATUS[status] === TEST_EXECUTION_STATUS.PROCESSING
   );
+}
+
+export function startPartialTest({
+  networkName,
+  whitelist,
+  testType,
+  history,
+}: {
+  networkName: string,
+  whitelist: Array<string>,
+  testType: $Keys<typeof NETWORK_TEST_TYPES>,
+  history: RouterHistory,
+}) {
+  testApi
+    .startPartialExecution({
+      networkName,
+      whitelist,
+      testType,
+    })
+    .then(response => {
+      if (!response) {
+        throw new Error(response.data.msg);
+      }
+      const id = response.data.execution_id;
+      const url = new URL(
+        createTestMapLink({
+          executionId: id,
+          networkName,
+        }),
+        window.location.origin,
+      );
+      url.search = location.search;
+      if (id) {
+        url.searchParams.set('test', id);
+        url.searchParams.set('mapMode', MAPMODE.NETWORK_TEST);
+      }
+      // can't use an absolute url in react-router
+      history.push(`${url.pathname}${url.search}`);
+    });
 }
