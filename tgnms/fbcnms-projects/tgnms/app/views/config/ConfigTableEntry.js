@@ -148,9 +148,9 @@ class ConfigTableEntry extends React.Component<Props, State> {
     // Set the local input value (which will get saved as the draft value).
     // If there is no override, the actual draft value will initially be null,
     // but we initialize this field to a lower config layer for rendering.
-    const {layers} = this.props;
+    const {layers, metadata} = this.props;
     this.state = {
-      localInputValue: this.getFieldValue(layers, ''),
+      localInputValue: this.getFieldValue(layers, metadata.defaultValue),
       localParsedInputValue: null,
 
       // Don't render the details row until it's selected for the first time.
@@ -271,11 +271,11 @@ class ConfigTableEntry extends React.Component<Props, State> {
 
   handleRemoveOverride = () => {
     // Remove the override value
-    const {field, layers, onDraftChange} = this.props;
+    const {field, layers, metadata, onDraftChange} = this.props;
 
     onDraftChange(field, null);
     this.setState({
-      localInputValue: this.getUnderlyingValue(layers, ''),
+      localInputValue: this.getUnderlyingValue(layers, metadata.defaultValue),
       localParsedInputValue: null,
     });
   };
@@ -293,10 +293,10 @@ class ConfigTableEntry extends React.Component<Props, State> {
 
   handleDiscardChanges = () => {
     // Discard local input value changes
-    const {layers} = this.props;
+    const {layers, metadata} = this.props;
 
     this.setState({
-      localInputValue: this.getFieldValue(layers, ''),
+      localInputValue: this.getFieldValue(layers, metadata.defaultValue),
       localParsedInputValue: null,
     });
   };
@@ -369,13 +369,14 @@ class ConfigTableEntry extends React.Component<Props, State> {
 
   renderInputActions() {
     // Render the actions (when selected)
-    const {classes, layers, hasTopLevelOverride} = this.props;
+    const {classes, layers, hasTopLevelOverride, metadata} = this.props;
     const {localInputValue} = this.state;
     const draftValueExists = this.hasDraftValue(layers);
     const localEqualsDraft =
       String(localInputValue) === String(this.getDraftValue(layers, ''));
     const localEqualsField =
-      String(localInputValue) === String(this.getFieldValue(layers, ''));
+      String(localInputValue) ===
+      String(this.getFieldValue(layers, metadata.defaultValue));
 
     const actions = [
       {
@@ -444,6 +445,9 @@ class ConfigTableEntry extends React.Component<Props, State> {
 
     // Get the config value
     const value = this.getFieldValue(layers);
+    const defaultValue = metadata.hasOwnProperty('defaultValue')
+      ? metadata.defaultValue
+      : null;
     const overrideValue = this.getOverrideValue(layers);
     const draftValueExists = this.hasDraftValue(layers);
     const deletedOverrideLayerId = this.isOverrideDeleted(layers)
@@ -512,7 +516,11 @@ class ConfigTableEntry extends React.Component<Props, State> {
             {draftValueExists ? <span className={classes.red}> *</span> : null}
           </TableCell>
           <TableCell classes={{root: classes.noWrap}} {...mainTdProps}>
-            {hasOverride ? 'modified ' : value !== null ? 'default' : 'unset'}
+            {hasOverride
+              ? 'modified '
+              : value !== null || defaultValue !== null
+              ? 'default'
+              : 'unset'}
             {hasOverride && this.renderStatusIcons(renderedLayers)}
           </TableCell>
           <TableCell {...mainTdProps}>
@@ -529,6 +537,8 @@ class ConfigTableEntry extends React.Component<Props, State> {
               </div>
             ) : value !== null ? (
               truncate(String(value), {length: 256})
+            ) : defaultValue !== null ? (
+              defaultValue
             ) : null}
           </TableCell>
         </TableRow>
