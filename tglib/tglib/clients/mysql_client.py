@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 
 import aiomysql
 from aiomysql.sa import Engine, create_engine
+from sqlalchemy import exc, select
 
 from ..exceptions import (
     ClientRestartError,
@@ -68,6 +69,24 @@ class MySQLClient(BaseClient):
         cls._engine.close()
         await cls._engine.wait_closed()
         cls._engine = None
+
+    @classmethod
+    async def healthcheck(cls) -> bool:
+        """Ping the database with a 'SELECT 1' query.
+
+        Returns:
+            True if the database connection is alive, False otherwise.
+        """
+        if cls._engine is None:
+            return False
+
+        try:
+            async with cls._engine.acquire() as sa_conn:
+                await sa_conn.scalar(select([1]))
+
+            return True
+        except exc.DBAPIError:
+            return False
 
     def lease(self):
         """Get a connection from the connection pool.

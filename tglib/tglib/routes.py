@@ -24,6 +24,50 @@ except ImportError:
 routes = web.RouteTableDef()
 
 
+@routes.get("/health")
+async def handle_get_health(request: web.Request) -> web.Response:
+    """Check the health of all the running clients.
+
+    Args:
+        request: Request context injected by :mod:`aiohttp`.
+
+    Returns:
+        JSON response with client health information.
+
+    Example:
+        ::
+
+            # curl -i http://localhost:8080/health
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=utf-8
+            Content-Length: 135
+            Date: Fri, 23 Oct 2020 20:34:56 GMT
+            Server: Python/3.8 aiohttp/3.6.2
+
+            {"success": false, "healthy": ["KafkaConsumer", "KafkaProducer", "MySQLClient", "PrometheusClient"], "unhealthy": ["APIServiceClient"]}
+
+    ---
+    description: Check the health of all the running clients.
+    tags:
+    - Health
+    produces:
+    - application/json
+    responses:
+      "200":
+        description: Successful operation. Return health of all running clients.
+    """
+    coros = [client.healthcheck() for client in request.app["clients"]]
+
+    good, bad = [], []
+    for client, healthy in zip(request.app["clients"], await asyncio.gather(*coros)):
+        if healthy:
+            good.append(client.__name__)
+        else:
+            bad.append(client.__name__)
+
+    return web.json_response({"success": not bad, "healthy": good, "unhealthy": bad})
+
+
 @routes.get("/status")
 async def handle_get_status(request: web.Request) -> web.Response:
     """Check if the webserver is responsive.

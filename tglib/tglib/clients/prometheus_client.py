@@ -132,6 +132,23 @@ class PrometheusClient(BaseClient):
         await cls._session.close()
         cls._session = None
 
+    @classmethod
+    async def healthcheck(cls) -> bool:
+        """Fetch the scrape targets from Prometheus.
+
+        Returns:
+            True if the Prometheus targets were fetched successfully, False otherwise.
+        """
+        if cls._session is None:
+            return False
+
+        url = f"http://{cls._addr}/api/v1/targets"
+        try:
+            async with cls._session.get(url) as resp:
+                return resp.status == 200
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            return False
+
     @staticmethod
     def duration2seconds(duration: str) -> int:
         """Convert a duration string into the equivalent number of seconds.

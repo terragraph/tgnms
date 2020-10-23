@@ -19,3 +19,8 @@ class BaseClient(abc.ABC):
     async def stop(cls) -> None:
         """Cleanly stop the resources for the client."""
         pass
+
+    @abc.abstractclassmethod
+    async def healthcheck(cls) -> bool:
+        """Evaluate the health of the client."""
+        pass

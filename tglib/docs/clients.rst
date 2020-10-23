@@ -10,7 +10,8 @@ BaseClient
    :members:
 
 All clients must inherit from :class:`BaseClient`, an abstract base class, and
-override the :meth:`~.BaseClient.start` and :meth:`~.BaseClient.stop` asynchronous methods.
+override the :meth:`~.BaseClient.start`, :meth:`~.BaseClient.stop`, and
+:meth:`~.BaseClient.healthcheck` asynchronous methods.
 
 APIServiceClient
 ================

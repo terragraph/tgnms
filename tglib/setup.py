@@ -25,11 +25,11 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 300,
     "required_coverage": {
-        "tglib/clients/prometheus_client.py": 83,
+        "tglib/clients/prometheus_client.py": 80,
         "tglib/utils/dict.py": 100,
         "tglib/utils/ip.py": 100,
         "tglib/utils/thrift.py": 94,
-        "TOTAL": 48,
+        "TOTAL": 46,
     },
     "run_flake8": True,
     "run_black": True,

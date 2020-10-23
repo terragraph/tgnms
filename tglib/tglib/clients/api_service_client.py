@@ -110,6 +110,23 @@ class APIServiceClient(BaseClient):
         cls._session = None
 
     @classmethod
+    async def healthcheck(cls) -> bool:
+        """Request the 'isCtrlAlive' endpoint for all known networks.
+
+        Returns:
+            True if all of the controllers are responsive, False otherwise.
+        """
+        if cls._session is None:
+            return False
+
+        instance = cls(timeout=1)
+        try:
+            await instance.request_all("isCtrlAlive")
+            return True
+        except ClientRuntimeError:
+            return False
+
+    @classmethod
     def network_names(cls) -> Collection[str]:
         """Return a collection of the network names managed by the NMS.
 

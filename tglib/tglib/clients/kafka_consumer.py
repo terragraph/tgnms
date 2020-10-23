@@ -2,7 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaError
@@ -65,6 +65,22 @@ class KafkaConsumer(BaseClient):
             raise ClientStoppedError()
 
         await cls._consumer.stop()
+
+    @classmethod
+    async def healthcheck(cls) -> bool:
+        """Check if the broker is available.
+
+        Returns:
+            True if a connection to the broker can be created/attained, False otherwise.
+        """
+        if cls._consumer is None:
+            return False
+
+        try:
+            node_id = cls._consumer._client.get_random_node()
+            return cast(bool, await cls._consumer._client.ready(node_id))
+        except KafkaError:
+            return False
 
     @property
     def consumer(self) -> AIOKafkaConsumer:

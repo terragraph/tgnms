@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaError
@@ -70,6 +70,22 @@ class KafkaProducer(BaseClient):
             raise ClientStoppedError()
 
         await cls._producer.stop()
+
+    @classmethod
+    async def healthcheck(cls) -> bool:
+        """Check if the broker is available.
+
+        Returns:
+            True if a connection to the broker can be created/attained, False otherwise.
+        """
+        if cls._producer is None:
+            return False
+
+        try:
+            node_id = cls._producer.client.get_random_node()
+            return cast(bool, await cls._producer.client.ready(node_id))
+        except KafkaError:
+            return False
 
     async def send_data(self, topic: str, data: bytes) -> bool:
         """Log a record to the specified ``topic``.
