@@ -5,37 +5,41 @@
  * @flow
  */
 
-import * as testApi from '../../../apiutils/NetworkTestAPIUtil';
 import ActionsMenu from '../ActionsMenu';
 import CustomAccordion from '../../common/CustomAccordion';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Divider from '@material-ui/core/Divider';
 import EditIcon from '@material-ui/icons/Edit';
 import GetAppIcon from '@material-ui/icons/GetApp';
+import LinearScaleIcon from '@material-ui/icons/LinearScale';
 import NearMeIcon from '@material-ui/icons/NearMe';
 import NodeDetails from './NodeDetails';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import RouterIcon from '@material-ui/icons/Router';
+import ShareIcon from '@material-ui/icons/Share';
 import SyncIcon from '@material-ui/icons/Sync';
 import TaskBasedConfigModal from '../../taskBasedConfig/TaskBasedConfigModal';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import TimerIcon from '@material-ui/icons/Timer';
 import swal from 'sweetalert2';
-import {MAPMODE} from '../../../contexts/MapContext';
 import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
 import {
   SYSDUMP_PATH,
   SYSDUMP_RESULT,
   sysdumpExists,
 } from '../../../apiutils/SysdumpAPIUtil';
+import {TEST_TYPE_CODES} from '../../../constants/ScheduleConstants';
 import {
   apiServiceRequest,
   apiServiceRequestWithConfirmation,
   requestWithConfirmation,
 } from '../../../apiutils/ServiceAPIUtil';
-import {createTestMapLink} from '../../../helpers/NetworkTestHelpers';
+import {currentDefaultRouteRequest} from '../../../apiutils/DefaultRouteHistoryAPIUtil';
+import {getNodesInRoute} from '../../../helpers/DefaultRouteHelpers';
+import {getWirelessLinkNames} from '../../../helpers/TopologyHelpers';
 import {isFeatureEnabled} from '../../../constants/FeatureFlags';
+import {startPartialTest} from '../../../helpers/NetworkTestHelpers';
 import {supportsTopologyScan} from '../../../helpers/TgFeatures';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
@@ -44,6 +48,7 @@ import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
 import type {EditNodeParams, NearbyNodes} from '../MapPanelTypes';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
+import type {LinkMap, NodeToLinksMap} from '../../../contexts/NetworkContext';
 import type {Props as NodeDetailsProps} from './NodeDetails';
 import type {NodeType} from '../../../../shared/types/Topology';
 import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
@@ -70,6 +75,8 @@ type Props = {
   ...ContextRouter,
   ...Routes,
   node: NodeType,
+  nodeToLinksMap: NodeToLinksMap,
+  linkMap: LinkMap,
 } & WithStyles<typeof styles> &
   ForwardRef;
 
@@ -78,10 +85,13 @@ type State = {configModalOpen: boolean};
 class NodeDetailsPanel extends React.Component<Props, State> {
   state = {configModalOpen: false};
   actionItems;
+  P2MPLinkNames;
 
   constructor(props) {
     super(props);
-    const {nodeDetailsProps} = props;
+    const {nodeDetailsProps, node, linkMap, nodeToLinksMap} = props;
+
+    this.P2MPLinkNames = getWirelessLinkNames({node, linkMap, nodeToLinksMap});
 
     this.actionItems = [
       {
@@ -163,6 +173,20 @@ class NodeDetailsPanel extends React.Component<Props, State> {
                   icon: <TimerIcon />,
                   func: this.onStartThroughputTest,
                 },
+                {
+                  label: 'Start Incremental Route Test',
+                  icon: <LinearScaleIcon />,
+                  func: this.onStartIncrementalRouteTest,
+                },
+                ...(this.P2MPLinkNames.length > 1
+                  ? [
+                      {
+                        label: 'Start P2MP Node Test',
+                        icon: <ShareIcon />,
+                        func: this.onStartP2MPTest,
+                      },
+                    ]
+                  : []),
               ],
             },
           ]
@@ -178,33 +202,42 @@ class NodeDetailsPanel extends React.Component<Props, State> {
       search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
     });
   };
+
   onStartThroughputTest = () => {
     const {networkName, node, history} = this.props;
-    testApi
-      .startThroughputTest({
-        networkName: networkName,
-        whitelist: [node.name],
-      })
-      .then(response => {
-        if (!response) {
-          throw new Error(response.data.msg);
-        }
-        const id = response.data.execution_id;
-        const url = new URL(
-          createTestMapLink({
-            executionId: id,
-            networkName,
-          }),
-          window.location.origin,
-        );
-        url.search = location.search;
-        if (id) {
-          url.searchParams.set('test', id);
-          url.searchParams.set('mapMode', MAPMODE.NETWORK_TEST);
-        }
-        // can't use an absolute url in react-router
-        history.push(`${url.pathname}${url.search}`);
-      });
+
+    startPartialTest({
+      networkName,
+      whitelist: [node.name],
+      history,
+      testType: TEST_TYPE_CODES.SEQUENTIAL_NODE,
+    });
+  };
+
+  onStartIncrementalRouteTest = async () => {
+    const {networkName, node, history} = this.props;
+    const currentRoute = await currentDefaultRouteRequest({
+      networkName,
+      selectedNode: node.name,
+    });
+
+    startPartialTest({
+      networkName,
+      whitelist: [...getNodesInRoute({mapRoutes: currentRoute})],
+      history,
+      testType: TEST_TYPE_CODES.SEQUENTIAL_NODE,
+    });
+  };
+
+  onStartP2MPTest = () => {
+    const {networkName, history} = this.props;
+
+    startPartialTest({
+      networkName,
+      whitelist: this.P2MPLinkNames,
+      history,
+      testType: TEST_TYPE_CODES.PARALLEL_LINK,
+    });
   };
 
   onRebootNode = () => {

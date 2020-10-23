@@ -114,3 +114,25 @@ export function getWirelessPeers(
 
   return peers;
 }
+
+/*
+ * Get the nodes on the other side of this node's wireless links */
+export function getWirelessLinkNames({
+  node,
+  linkMap,
+  nodeToLinksMap,
+}: {
+  node: NodeType,
+  linkMap: LinkMap,
+  nodeToLinksMap: NodeToLinksMap,
+}): Array<string> {
+  const links: Array<string> = [];
+  for (const linkName of Array.from(nodeToLinksMap[node.name] || [])) {
+    const link = linkMap[linkName];
+    if (link.link_type === LinkTypeValueMap.WIRELESS) {
+      links.push(linkName);
+    }
+  }
+
+  return links;
+}

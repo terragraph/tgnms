@@ -23,10 +23,12 @@ import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import StatusText from '../common/StatusText';
 import SyncDisabledIcon from '@material-ui/icons/SyncDisabled';
 import SyncIcon from '@material-ui/icons/Sync';
+import TimerIcon from '@material-ui/icons/Timer';
 import Typography from '@material-ui/core/Typography';
 import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Controller';
 import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
+import {TEST_TYPE_CODES} from '../../constants/ScheduleConstants';
 import {
   apiRequest,
   apiServiceRequestWithConfirmation,
@@ -34,11 +36,15 @@ import {
 } from '../../apiutils/ServiceAPIUtil';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
+import {getCongestionNodes} from '../../helpers/DefaultRouteHelpers';
 import {
   hasLinkEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
 } from '../../helpers/NetworkHelpers';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {startPartialTest} from '../../helpers/NetworkTestHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
@@ -48,6 +54,7 @@ import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {
   LinkType as Link,
   NodeType as Node,
+  TopologyType,
 } from '../../../shared/types/Topology';
 import type {
   NetworkHealth,
@@ -90,6 +97,7 @@ type Props = {
   onPin: () => any,
   onSelectNode: string => any,
   pinned: boolean,
+  topology: TopologyType,
 } & ForwardRef;
 
 type State = {};
@@ -233,6 +241,23 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     );
   }
 
+  onStartCongestionTest = async () => {
+    const {networkName, link, nodeMap, history, topology} = this.props;
+    const nodesToTest = await getCongestionNodes({
+      networkName,
+      selectedLink: link.name,
+      nodeList: objectValuesTypesafe<Node>(nodeMap),
+      topology,
+    });
+
+    startPartialTest({
+      networkName,
+      whitelist: [...nodesToTest],
+      history,
+      testType: TEST_TYPE_CODES.PARALLEL_NODE,
+    });
+  };
+
   renderActions() {
     // Render actions
     const {link} = this.props;
@@ -281,6 +306,20 @@ class LinkDetailsPanel extends React.Component<Props, State> {
           },
         ],
       },
+      ...(isFeatureEnabled('NETWORKTEST_ENABLED')
+        ? [
+            {
+              heading: 'Tests',
+              actions: [
+                {
+                  label: 'Start Congestion Test',
+                  icon: <TimerIcon />,
+                  func: this.onStartCongestionTest,
+                },
+              ],
+            },
+          ]
+        : []),
     ];
 
     return (

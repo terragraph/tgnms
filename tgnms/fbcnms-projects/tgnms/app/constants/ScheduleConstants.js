@@ -26,6 +26,9 @@ export const NETWORK_TEST_TYPES = {
   sequential_node: 'Sequential node test',
   parallel_node: 'Parallel node test',
   partial: 'Partial throughput test',
+  p2mp: 'Point to multipoint test',
+  incremental_route: 'Incremental route test',
+  congestion: 'Link congestion test',
 };
 
 export const NETWORK_TEST_PROTOCOLS = {

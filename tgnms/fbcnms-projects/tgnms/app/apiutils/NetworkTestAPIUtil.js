@@ -55,9 +55,9 @@ export const startExecution = (inputData: InputStartType) => {
   });
 };
 
-export const startThroughputTest = (inputData: InputStartType) => {
+export const startPartialExecution = (inputData: InputStartType) => {
   return axios.post<InputStartType, StartResponseType>('/network_test/start', {
-    test_type: 'sequential_node',
+    test_type: inputData.testType,
     network_name: inputData.networkName,
     whitelist: inputData.whitelist,
   });

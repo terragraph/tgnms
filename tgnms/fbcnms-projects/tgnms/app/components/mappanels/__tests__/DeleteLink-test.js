@@ -9,7 +9,7 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import LinkDetailsPanel from '../LinkDetailsPanel';
 import axios from 'axios';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp, mockTopology} from '../../../tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
 import {
@@ -49,6 +49,7 @@ const commonProps = {
   onPin: jest.fn(),
   onSelectNode: jest.fn(),
   pinned: false,
+  topology: mockTopology(),
 };
 
 afterEach(() => {

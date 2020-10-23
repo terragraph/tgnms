@@ -47,6 +47,8 @@ const commonProps = {
   onUpdateRoutes: _ => {},
   resetRoutes: jest.fn(),
   pinned: true,
+  nodeToLinksMap: {},
+  linkMap: {},
 };
 
 test('renders', () => {
