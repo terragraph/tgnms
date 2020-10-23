@@ -53,16 +53,12 @@ class BaseTest(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def start(self, execution_id: int) -> None:
+    async def start(self, execution_id: int, use_link_local: bool) -> None:
         """Start the test.
 
         Issue "startTraffic" iperf commands to the API service.
         """
-        logging.info(
-            f"Starting {self.test_type.value} test on {self.network_name} (ID={execution_id})"
-        )
-        logging.debug(f"iperf options: {self.iperf_options}")
-        logging.debug(f"whitelist: {self.whitelist}")
+        pass
 
     @abc.abstractmethod
     def estimate_duration(self) -> timedelta:

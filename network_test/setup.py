@@ -14,7 +14,7 @@ ptr_params = {
 
 setup(
     name="network_test",
-    version="2020.10.07",
+    version="2020.10.23",
     packages=find_packages(),
     python_requires=">=3.7",
     install_requires=[

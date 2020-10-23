@@ -39,6 +39,9 @@ class LinkTest(BaseTest):
         try:
             client = APIServiceClient(timeout=1)
             topology = await client.request(self.network_name, "getTopology")
+            node_name_to_mac = {
+                node["name"]: node["mac_addr"] for node in topology["nodes"]
+            }
             whitelist_set = set(self.whitelist)
             self.assets = []
             for link in topology["links"]:
@@ -48,7 +51,11 @@ class LinkTest(BaseTest):
                     continue
 
                 self.assets.append(
-                    TestAsset(link["name"], link["a_node_mac"], link["z_node_mac"])
+                    TestAsset(
+                        link["name"],
+                        node_name_to_mac[link["a_node_name"]],
+                        node_name_to_mac[link["z_node_name"]],
+                    ),
                 )
 
             return True

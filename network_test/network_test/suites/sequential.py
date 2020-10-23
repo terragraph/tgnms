@@ -26,9 +26,13 @@ class SequentialTest(BaseTest):
 
         super().__init__(network_name, test_type, iperf_options, whitelist)
 
-    async def start(self, execution_id: int) -> None:
+    async def start(self, execution_id: int, use_link_local: bool) -> None:
         """Start a sequential test (i.e. on each asset, one at a time)."""
-        await super().start(execution_id)
+        logging.info(
+            f"Starting {self.test_type.value} test on {self.network_name} (ID={execution_id})"
+        )
+        logging.debug(f"iperf options: {self.iperf_options}")
+        logging.debug(f"whitelist: {self.whitelist}")
 
         loop = asyncio.get_event_loop()
         start_time = loop.time()
@@ -45,6 +49,7 @@ class SequentialTest(BaseTest):
                         "srcNodeId": asset.src_node_mac,
                         "dstNodeId": asset.dst_node_mac,
                         "options": self.iperf_options,
+                        "useLinkLocal": use_link_local,
                     },
                 ),
                 client.request(
@@ -54,6 +59,7 @@ class SequentialTest(BaseTest):
                         "srcNodeId": asset.dst_node_mac,
                         "dstNodeId": asset.src_node_mac,
                         "options": self.iperf_options,
+                        "useLinkLocal": use_link_local,
                     },
                 ),
             ]

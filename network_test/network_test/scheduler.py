@@ -382,7 +382,9 @@ class Scheduler:
 
         # Start the test
         cls._executions[execution_id] = test
-        test.task = asyncio.create_task(test.start(execution_id))
+        test.task = asyncio.create_task(
+            test.start(execution_id, use_link_local=isinstance(test, LinkTest))
+        )
 
         # Schedule the cleanup task
         loop = asyncio.get_event_loop()
