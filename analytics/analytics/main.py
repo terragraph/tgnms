@@ -9,7 +9,8 @@ import sys
 import time
 from typing import Any, Dict, NoReturn
 
-from tglib import ClientType, init
+from tglib import init
+from tglib.clients import APIServiceClient, PrometheusClient
 
 from . import jobs
 
@@ -96,6 +97,5 @@ def main() -> None:
         sys.exit(1)
 
     init(
-        lambda: async_main(config),
-        {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
+        lambda: async_main(config), {APIServiceClient, PrometheusClient},
     )

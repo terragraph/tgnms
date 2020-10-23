@@ -2,44 +2,19 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
-import enum
 import json
 import logging
 import os
 import signal
-from typing import Callable, Optional, Set, cast
+from typing import Callable, Optional, Set, Type, cast
 
 import uvloop
 from aiohttp import web
 
-from .clients import (
-    APIServiceClient,
-    KafkaConsumer,
-    KafkaProducer,
-    MySQLClient,
-    PrometheusClient,
-)
+from .clients import BaseClient
 from .exceptions import ConfigError, DuplicateRouteError, TGLibError
 from .routes import routes
 from .utils.dict import deep_update
-
-
-class ClientType(enum.Enum):
-    """Enumerate client options.
-
-    Attributes:
-        API_SERVICE_CLIENT
-        KAFKA_CONSUMER
-        KAFKA_PRODUCER
-        MYSQL_CLIENT
-        PROMETHEUS_CLIENT
-    """
-
-    API_SERVICE_CLIENT = 1
-    KAFKA_CONSUMER = 2
-    KAFKA_PRODUCER = 3
-    MYSQL_CLIENT = 4
-    PROMETHEUS_CLIENT = 5
 
 
 @web.middleware
@@ -59,7 +34,7 @@ async def error_middleware(request: web.Request, handler: Callable) -> web.Respo
 
 def init(
     main: Callable,
-    clients: Set[ClientType],
+    clients: Set[Type[BaseClient]],
     extra_routes: Optional[web.RouteTableDef] = None,
 ) -> None:
     """Start the webserver and the entrypoint logic passed in as ``main``.
@@ -98,23 +73,11 @@ def init(
     app = web.Application(middlewares=[error_middleware])
     app["main"] = main
     app["config"] = config
+    app["clients"] = clients
     app["shutdown_event"] = asyncio.Event()
 
     # Initialize routes for the HTTP server
     _add_all_routes(app, routes, extra_routes)
-
-    # Initialize the clients
-    app["clients"] = []
-    if ClientType.API_SERVICE_CLIENT in clients:
-        app["clients"].append(APIServiceClient)
-    if ClientType.KAFKA_CONSUMER in clients:
-        app["clients"].append(KafkaConsumer)
-    if ClientType.KAFKA_PRODUCER in clients:
-        app["clients"].append(KafkaProducer)
-    if ClientType.MYSQL_CLIENT in clients:
-        app["clients"].append(MySQLClient)
-    if ClientType.PROMETHEUS_CLIENT in clients:
-        app["clients"].append(PrometheusClient)
 
     app.on_startup.append(_start_background_tasks)
     app.on_cleanup.append(_stop_background_tasks)

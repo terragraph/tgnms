@@ -9,8 +9,8 @@ import sys
 import time
 from typing import Any, Dict, List, NoReturn, Optional
 
-from tglib import ClientType, init
-from tglib.clients import APIServiceClient
+from tglib import init
+from tglib.clients import APIServiceClient, MySQLClient, PrometheusClient
 from tglib.exceptions import ClientRuntimeError
 from tglib.utils.dict import deep_update
 
@@ -157,10 +157,6 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {
-            ClientType.API_SERVICE_CLIENT,
-            ClientType.MYSQL_CLIENT,
-            ClientType.PROMETHEUS_CLIENT,
-        },
+        {APIServiceClient, MySQLClient, PrometheusClient},
         routes,
     )

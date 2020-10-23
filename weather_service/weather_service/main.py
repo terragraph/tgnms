@@ -8,7 +8,7 @@ import sys
 from typing import Any, Awaitable, Dict, List, NoReturn
 
 from aiohttp import web
-from tglib import ClientType, init
+from tglib import init
 from tglib.clients import APIServiceClient, PrometheusClient
 from tglib.clients.prometheus_client import PrometheusMetric, consts
 from tglib.exceptions import ClientRuntimeError
@@ -131,7 +131,7 @@ def main() -> None:
 
     init(
         lambda: async_main(service_config),
-        {ClientType.API_SERVICE_CLIENT, ClientType.PROMETHEUS_CLIENT},
+        {APIServiceClient, PrometheusClient},
         web.RouteTableDef(),
     )
 

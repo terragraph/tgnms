@@ -119,14 +119,14 @@ async def handle_get_swagger_docs(request: web.Request) -> web.Response:
     Example:
         ::
 
-        # curl -i http://localhost:8080/docs
-        HTTP/1.1 200 OK
-        Content-Type: application/json; charset=utf-8
-        Content-Length: 13832
-        Date: Fri, 02 Oct 2020 19:19:15 GMT
-        Server: Python/3.8 aiohttp/3.6.2
+            # curl -i http://localhost:8080/docs
+            HTTP/1.1 200 OK
+            Content-Type: application/json; charset=utf-8
+            Content-Length: 13832
+            Date: Fri, 02 Oct 2020 19:19:15 GMT
+            Server: Python/3.8 aiohttp/3.6.2
 
-        {"swagger": "2.0", "info": {"description": "Swagger API definition\n", "version": "1.0.0", ...
+            {"swagger": "2.0", "info": {"description": "Swagger API definition\\n", "version": "1.0.0", ...
 
     ---
     description: Fetch the Swagger documentation in JSON.

@@ -23,7 +23,7 @@ ptr_params = {
 
 setup(
     name="optimizer_service",
-    version="2020.08.20",
+    version="2020.10.23",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "cvxpy>=1.0.<2", "networkx>=2.4,<3.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},

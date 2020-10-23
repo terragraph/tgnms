@@ -11,8 +11,8 @@ from typing import List
 from uuid import uuid4
 
 from terragraph_thrift.Event.ttypes import EventId
-from tglib import ClientType, init
-from tglib.clients import KafkaConsumer
+from tglib import init
+from tglib.clients import APIServiceClient, KafkaConsumer, MySQLClient, PrometheusClient
 
 from .analysis.connectivity import analyze_connectivity
 from .analysis.interference import analyze_interference
@@ -154,11 +154,6 @@ def main() -> None:
 
     init(
         lambda: async_main(topics, scan_results_dir, n_days, use_real_links),
-        {
-            ClientType.API_SERVICE_CLIENT,
-            ClientType.KAFKA_CONSUMER,
-            ClientType.MYSQL_CLIENT,
-            ClientType.PROMETHEUS_CLIENT,
-        },
+        {APIServiceClient, KafkaConsumer, MySQLClient, PrometheusClient},
         routes,
     )

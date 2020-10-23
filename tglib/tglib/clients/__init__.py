@@ -3,6 +3,7 @@
 
 __all__ = [
     "APIServiceClient",
+    "BaseClient",
     "KafkaConsumer",
     "KafkaProducer",
     "MySQLClient",
@@ -10,6 +11,7 @@ __all__ = [
 ]
 
 from .api_service_client import APIServiceClient
+from .base_client import BaseClient
 from .kafka_consumer import KafkaConsumer
 from .kafka_producer import KafkaProducer
 from .mysql_client import MySQLClient

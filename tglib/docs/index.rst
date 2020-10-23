@@ -13,9 +13,6 @@ can be safely deployed as microservices in the Terragraph Docker Swarm. Out of
 the box, :mod:`tglib` provides :doc:`clients<./clients>` to access all first-class
 Terragraph services and datastores.
 
-.. autoclass:: tglib.main.ClientType
-   :show-inheritance:
-
 In addition, :mod:`tglib` creates an HTTP server with
 :doc:`preinstalled endpoints<./routes>` for getting/setting configuration and
 Prometheus metric exposition among others. Developers can add their own endpoints to
@@ -43,7 +40,7 @@ consuming and printing records from Kafka. Assume the following service configur
    }
 
 A ``lambda`` wrapper of ``async_main``, the entrypoint for the service's business logic,
-and its parameters are supplied with a set of clients (only the :attr:`~.KAFKA_CONSUMER`
+and its parameters are supplied with a set of clients (only the :class:`~.KafkaConsumer`
 is needed in this example) to the :func:`~.init` function.
 
 Then, to use the :class:`~.KafkaConsumer` object, simply create one using its constructor.
@@ -53,7 +50,7 @@ Then, to use the :class:`~.KafkaConsumer` object, simply create one using its co
    import json
    from typing import Dict, NoReturn
 
-   from tglib import ClientType, init
+   from tglib import init
    from tglib.clients import KafkaConsumer
 
 
@@ -73,7 +70,7 @@ Then, to use the :class:`~.KafkaConsumer` object, simply create one using its co
       with open("./service_config.json") as f:
          config = json.load(f)
 
-      init(lambda: async_main(config), {ClientType.KAFKA_CONSUMER})
+      init(lambda: async_main(config), {KafkaConsumer})
 
 See the :doc:`Advanced Usage<./advanced>` page for more in-depth examples of the
 framework.

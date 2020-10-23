@@ -7,8 +7,8 @@ import logging
 import sys
 from typing import Any, Dict
 
-from tglib import ClientType, init
-from tglib.clients import KafkaConsumer
+from tglib import init
+from tglib.clients import APIServiceClient, KafkaConsumer, MySQLClient, PrometheusClient
 
 from .routes import routes
 from .scheduler import Scheduler
@@ -38,11 +38,6 @@ def main() -> None:
 
     init(
         lambda: async_main(config),
-        {
-            ClientType.API_SERVICE_CLIENT,
-            ClientType.KAFKA_CONSUMER,
-            ClientType.MYSQL_CLIENT,
-            ClientType.PROMETHEUS_CLIENT,
-        },
+        {APIServiceClient, KafkaConsumer, MySQLClient, PrometheusClient},
         routes,
     )

@@ -54,7 +54,8 @@ field in the service configuration.
     import json
     from typing import Dict
 
-    from tglib import ClientType, init
+    from tglib import init
+    from tglib.clients import PrometheusClient
 
 
     async def async_main(config: Dict) -> None:
@@ -78,7 +79,7 @@ field in the service configuration.
         with open("./service_config.json") as f:
             config = json.load(f)
 
-        init(lambda: async_main(config), {ClientType.PROMETHEUS_CLIENT})
+        init(lambda: async_main(config), {PrometheusClient})
 
 Each ``produce`` coroutine creates a ``Job`` object for each job in its configuration
 and pushes them all to the shared queue. The producer then sleeps until it’s time to
@@ -300,7 +301,8 @@ Finally, the routes need to be supplied to the :func:`~.init` function.
 
     import json
 
-    from tglib import ClientType, init
+    from tglib import init
+    from tglib.clients import APIServiceClient, MySQLClient
 
     from .routes import routes
 
@@ -314,6 +316,6 @@ Finally, the routes need to be supplied to the :func:`~.init` function.
 
         init(
             lambda: async_main(config),
-            {ClientType.API_SERVICE_CLIENT, ClientType.MYSQL_CLIENT},
+            {APIServiceClient, MySQLClient},
             routes,
         )
