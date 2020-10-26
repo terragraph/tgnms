@@ -1,5 +1,33 @@
-# Expose the mysql deployment at mysql:3306 with no ClusterIP (so it is only
-# accessible through DNS)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nms-settings-pv
+  labels:
+    type: local
+spec:
+  storageClassName: local
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "{{ gfs_path }}/nms"
+    type: DirectoryOrCreate
+---
+# Claim the volume we just created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nms-settings-claim
+spec:
+  storageClassName: local
+  volumeName: nms-settings-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -28,8 +56,13 @@ spec:
       labels:
         app: nms
     spec:
+      volumes:
+        - name: settings
+          persistentVolumeClaim:
+            claimName: nms-settings-claim
       containers:
         - image: {{ nms_image }}
+          name: nms
           imagePullPolicy: "{{ image_pull_policy }}"
           readinessProbe:
             httpGet:
@@ -46,6 +79,8 @@ spec:
                 name: time-zone
             - configMapRef:
                 name: nms
-          name: nms
+          volumeMounts:
+            - name: settings
+              mountPath: /app/fbcnms-projects/tgnms/.settings
       imagePullSecrets:
         - name: tg-repo-creds
