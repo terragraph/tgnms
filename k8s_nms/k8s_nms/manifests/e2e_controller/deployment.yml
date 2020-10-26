@@ -21,13 +21,6 @@ data:
   e2e_topology.conf: |
     {{ lookup('template', '../../nms_stack/nms_cli/nms_stack/roles/e2e_controller/templates/e2e_topology.conf', { "controller_name": controller.name }) | indent(width=4, indentfirst=False )}}
 ---
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: local
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
----
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -51,6 +44,7 @@ metadata:
   name: e2e-{{ controller_name_dns }}-pv-claim
 spec:
   storageClassName: local
+  volumeName: e2e-{{ controller_name_dns }}-pv
   accessModes:
     - ReadWriteOnce
   resources:

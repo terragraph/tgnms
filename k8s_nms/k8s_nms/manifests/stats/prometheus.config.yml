@@ -1,11 +1,9 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
 data:
   prometheus.yml: |
-    # my global config
     global:
       scrape_interval:     30s # Set the scrape interval to every 30 seconds. Default is every 1 minute.
       evaluation_interval: 30s # Evaluate rules every 30 seconds. The default is every 1 minute.
@@ -25,16 +23,6 @@ data:
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
-
-      - job_name: 'cadvisor'
-        # metrics_path defaults to '/metrics'
-        # scheme defaults to 'http'.
-        # honor_labels: true
-        dns_sd_configs:
-          - names:
-            - 'tasks.cadvisor'
-            type: 'A'
-            port: 8080
 
       - job_name: 'default_routes_service'
         metrics_path: /metrics
@@ -58,7 +46,7 @@ data:
       - job_name: 'kafka'
         dns_sd_configs:
           - names:
-            - 'tasks.kafka'
+            - 'kafka'
             type: 'A'
             port: 9876
 
@@ -73,3 +61,17 @@ data:
         metrics_path: /metrics
         static_configs:
           - targets: ['topology-service:8080']
+
+  alertmanager-default.yml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      receiver: 'default'
+      routes:
+      - receiver: tg_tenant_base_route
+        match:
+          networkID: "tg"
+    receivers:
+    - name: 'default'
+    - name: tg_tenant_base_route

@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stats-env
+data:
+  HTTP_THREADS: "8"
+  KAFKA_BROKER_LIST: PLAINTEXT://kafka:9092
+  KAFKA_STATS_ENABLED: "true"

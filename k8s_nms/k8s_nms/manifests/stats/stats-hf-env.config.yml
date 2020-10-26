@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stats-hf-env
+data:
+  KAFKA_HF_STATS_ENABLED: "true"
