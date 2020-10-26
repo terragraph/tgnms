@@ -9,8 +9,7 @@
         http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
         https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
 
-- hosts: master
-  gather_facts: no
+- hosts: all
   tasks:
     - name: Create {{ terragraph_docker_path }}
       file:
@@ -20,6 +19,30 @@
       template:
         src: "{{ config_file_path }}"
         dest: "{{ terragraph_docker_path }}/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
+
+# Create the gfs and bricks dirs even if gluster is not installed
+- name: create terragraph dirs
+  hosts: all
+  tasks:
+    - name: "warn user about disabling gluster with multiple nodes"
+      fail:
+        msg: "Gluster disabled, but multiple nodes detected. You must manually provision replicated storage after installation."
+      ignore_errors: true
+      when: not (use_glusterfs or single_node)
+    - name: make terragraph directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
+      loop:
+        - "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        - "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+
+- name: install and mount glusterfs
+  import_playbook: plays/tg-glusterfs/site.yaml
+  when: use_glusterfs and not single_node
 
 - name: install kubernetes cluster
   import_playbook: plays/kubeadm-ansible/site.yaml

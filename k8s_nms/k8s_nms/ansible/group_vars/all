@@ -216,10 +216,11 @@ terragraph_hostpath: /opt/terragraph
 # TODO: Remove these and re-name the template variables once we copy over the
 # config files from nms_stack. Until then we need to keep the sames the same
 # so those templates work correctly.
+use_glusterfs: true
 terragraph_docker_path: "{{ terragraph_hostpath }}"
+gluster_bricks: bricks
 gluster_mount: gfs
 sysdump_gfs_path: "{{ terragraph_hostpath }}/{{ gluster_mount }}/sysdump"
-
 
 # Nginx worker config
 # `nginx_worker_processes` is the number of worker processes to run. "auto" spawns 1 per core.
