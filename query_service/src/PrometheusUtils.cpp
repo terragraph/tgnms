@@ -62,10 +62,18 @@ std::string PrometheusUtils::formatPrometheusName(
     const std::string& metricName,
     const std::function<int(char c)>& isValidPrometheusChar) {
   std::string metricNameCopy{metricName};
+
   // replace all characters prometheus doesn't like with an underscore
   // https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
   std::replace_if(
       metricNameCopy.begin(), metricNameCopy.end(), isValidPrometheusChar, '_');
+
+  // first char must be a letter
+  const char& firstChar = metricNameCopy.front();
+  if (!std::isalpha(firstChar) && firstChar != '_') {
+    // prefix with underscore
+    metricNameCopy = '_' + metricNameCopy;
+  }
   return metricNameCopy;
 }
 
@@ -198,6 +206,10 @@ bool PrometheusUtils::enqueueMetrics(
     LOG(ERROR) << "Failed to publish metrics to prometheus cache. HTTP code: "
                << resp->code;
     LOG(ERROR) << "HTTP response: " << resp->body;
+    int i = 0;
+    for (const auto& promDataPoint : prometheusDataPoints) {
+      LOG(ERROR) << "Failed prometheus push [" << ++i << "]: " << promDataPoint;
+    }
   }
 
   return true;

@@ -70,3 +70,17 @@ TEST_F(PrometheusMetricsTest, LabelNames) {
       PrometheusUtils::formatPrometheusLabelName("link-link:1-link:2"),
       expectedLabel);
 }
+
+// Metric and label names must start with a letter or underscore
+TEST_F(PrometheusMetricsTest, FirstCharInvalid) {
+  std::string expectedLabel = "_1abcd_mdio_5_temp1_crit_alarm";
+  // verify first character replacements
+  ASSERT_EQ(
+      PrometheusUtils::formatPrometheusLabelName(
+          "1abcd-mdio-5_temp1_crit_alarm"),
+      expectedLabel);
+  ASSERT_EQ(
+      PrometheusUtils::formatPrometheusLabelName(
+          "_1abcd-mdio-5_temp1_crit_alarm"),
+      expectedLabel);
+}
