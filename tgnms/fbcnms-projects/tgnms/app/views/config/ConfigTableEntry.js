@@ -500,7 +500,8 @@ class ConfigTableEntry extends React.Component<Props, State> {
               ),
             }}
             {...mainTdProps}>
-            {description}
+            {fieldName}
+            {draftValueExists ? <span className={classes.red}> *</span> : null}
           </TableCell>
           <TableCell
             component="th"
@@ -512,8 +513,7 @@ class ConfigTableEntry extends React.Component<Props, State> {
               ),
             }}
             {...mainTdProps}>
-            {fieldName}
-            {draftValueExists ? <span className={classes.red}> *</span> : null}
+            {description}
           </TableCell>
           <TableCell classes={{root: classes.noWrap}} {...mainTdProps}>
             {hasOverride

@@ -43,8 +43,8 @@ const styles = theme => ({
 });
 
 const columns = Object.freeze([
-  {label: 'Description', orderBy: ['field']},
   {label: 'Field', orderBy: ['field']},
+  {label: 'Description'},
   {label: 'Status', orderBy: ['hasTopLevelOverride', 'hasOverride', 'field']},
   {
     label: 'Type',
@@ -177,7 +177,7 @@ class ConfigTable extends React.Component<Props, State> {
                           </TableSortLabel>
                         </Tooltip>
                       ) : (
-                        <TableSortLabel active={false}>
+                        <TableSortLabel active={false} hideSortIcon={true}>
                           {col.label}
                         </TableSortLabel>
                       )}
