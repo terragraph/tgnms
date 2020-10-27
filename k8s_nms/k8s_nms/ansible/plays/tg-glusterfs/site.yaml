@@ -12,6 +12,7 @@
         regexp: 'transport.address-family inet6'
         line: "    option transport.address-family inet6"
       register: setip6_result
+      when: is_ipv6
 
     - name: restart glusterd service
       systemd:
@@ -25,10 +26,23 @@
         name: glusterfs
         bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
         replicas: "{{ groups.all | length }}"
+        cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv4') | map(attribute='address') | list }}"
+        host: "{{ ansible_default_ipv4.address }}"
+        force: yes
+      run_once: true
+      when: not is_ipv6
+
+    - name: Configure replicated gluster volume
+      gluster_volume:
+        state: present
+        name: glusterfs
+        bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        replicas: "{{ groups.all | length }}"
         cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv6') | map(attribute='address') | list }}"
         host: "{{ ansible_default_ipv6.address }}"
         force: yes
       run_once: true
+      when: is_ipv6
 
     - name: Start replicated gluster volume
       gluster_volume:

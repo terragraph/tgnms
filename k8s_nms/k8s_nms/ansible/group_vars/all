@@ -229,3 +229,8 @@ sysdump_gfs_path: "{{ terragraph_hostpath }}/{{ gluster_mount }}/sysdump"
 # `nginx_worker_connections` is the number of allowed connections per nginx worker.
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
+
+# These are set automatically by the installer
+is_ipv6: 
+ipv4_address: 
+ipv6_address: 
