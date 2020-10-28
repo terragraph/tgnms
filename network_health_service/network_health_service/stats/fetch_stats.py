@@ -22,7 +22,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     labels: Dict[str, Any] = {consts.network: network_name}
 
     base_query = PrometheusClient.format_query("analytics_alignment_status", labels)
-    hold_time = min(  # type: ignore
+    hold_time = min(
         Metrics.prometheus_hold_time, Metrics.analytics_alignment_status.interval_s
     )
     queries["analytics_alignment_status"] = ops.sum_over_time(
@@ -34,7 +34,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     )
 
     base_query = PrometheusClient.format_query("topology_link_is_online", labels)
-    hold_time = min(  # type: ignore
+    hold_time = min(
         Metrics.prometheus_hold_time, Metrics.topology_link_is_online.interval_s
     )
     queries["topology_link_is_online"] = ops.sum_over_time(
@@ -49,7 +49,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     )
 
     base_query = PrometheusClient.format_query("analytics_foliage_factor", labels)
-    hold_time = min(  # type: ignore
+    hold_time = min(
         Metrics.prometheus_hold_time, Metrics.analytics_foliage_factor.interval_s
     )
     queries["analytics_foliage_factor"] = ops.quantile_over_time(
@@ -57,7 +57,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     )
 
     base_query = PrometheusClient.format_query("drs_cn_egress_routes_count", labels)
-    hold_time = min(  # type: ignore
+    hold_time = min(
         Metrics.prometheus_hold_time, Metrics.drs_cn_egress_routes_count.interval_s
     )
     queries["drs_cn_egress_routes_count"] = ops.quantile_over_time(
@@ -115,7 +115,7 @@ def get_node_queries(network_name: str, period_s: int) -> Dict[str, str]:
     labels: Dict[str, Any] = {consts.network: network_name}
 
     base_query = PrometheusClient.format_query("analytics_cn_power_status", labels)
-    hold_time = min(  # type: ignore
+    hold_time = min(
         Metrics.prometheus_hold_time, Metrics.analytics_cn_power_status.interval_s
     )
     queries["analytics_cn_power_status"] = ops.sum_over_time(

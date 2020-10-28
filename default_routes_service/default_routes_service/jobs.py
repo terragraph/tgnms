@@ -27,7 +27,7 @@ async def process_default_routes(
     if not network_info:
         return
 
-    metrics = []
+    metrics: List[PrometheusMetric] = []
     curr_routes: Dict[str, Dict[str, Tuple[List[List[str]], int]]] = {}
     for network_name, info in network_info.items():
         if "defaultRoutes" not in info:

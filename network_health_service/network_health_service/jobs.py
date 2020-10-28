@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import DefaultDict, Dict
+from typing import DefaultDict, Dict, List, Any
 
 import aiohttp
 from tglib.clients import APIServiceClient
@@ -23,7 +23,7 @@ from .utils.db import save_stats_health
 
 async def generate_network_health_labels(time_s: int, period_s: int) -> None:
     network_names = APIServiceClient.network_names()
-    coros = []
+    coros = []  # type: ignore
     link_stats: Dict[str, DefaultDict] = {}
     node_stats: Dict[str, DefaultDict] = {}
     async with aiohttp.ClientSession() as session:
@@ -40,8 +40,8 @@ async def generate_network_health_labels(time_s: int, period_s: int) -> None:
         await asyncio.gather(*coros, return_exceptions=True)
 
     time = int(round(time_s * 1e3))
-    to_db = []
-    metrics = []
+    to_db: List[Dict[str, Any]] = []
+    metrics: List[PrometheusMetric] = []
 
     # Process all link stats
     for network_name, link_name_map in link_stats.items():

@@ -31,7 +31,7 @@ def compute_routes_utilization(
     takes for each node.
     """
     # Group raw routes data by node name
-    node_routes_changes = defaultdict(list)
+    node_routes_changes = defaultdict(list)  # type: ignore
     for row in raw_routes_data:
         node_routes_changes[row.node_name].append((row.routes, row.last_updated))
 

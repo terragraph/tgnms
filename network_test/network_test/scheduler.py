@@ -189,7 +189,7 @@ class Scheduler:
     async def restart(cls) -> None:
         """Clean up any stray sessions and restart the schedules in the DB."""
         # Stop all stale running tests
-        coros = []
+        coros = []  # type: ignore
         client = APIServiceClient(timeout=1)
         statuses = await client.request_all("statusTraffic", return_exceptions=True)
         for network_name, sessions in statuses.items():
