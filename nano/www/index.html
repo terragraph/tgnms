@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NANO</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+
+    <link rel="shortcut icon" href="favicon.ico?" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
+       integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+       crossorigin=""/>
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="styles/jquery.dataTables.min.css" />
+
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/style.css" />
+
+</head>
+<body>
+    <div id="sidebar" class="sidebar collapsed">
+        <!-- Nav tabs -->
+        <div class="sidebar-tabs">
+            <ul role="tablist">
+                <li><a href="#summary" role="tab"><i class="fa fa-bars"></i></a></li>
+                <li><a href="#details" role="tab"><i class="fa fa-connectdevelop"></i></a></li>
+                <li><a href="#tests" role="tab"><i class="fa fa-gear"></i></a></li>
+                <li><a href="#history" role="tab"><i class="fa fa-history"></i></a></li>
+                <li><a href="#optimize" role="tab"><i class="fa fa-pencil"></i></a></li>
+                <li><a href="#viewer" role="tab"><i class="fa fa-eye"></i></a></li>
+            </ul>
+
+            <ul role="tablist">
+                <li><a href="#about" role="tab"><i class="fa fa-info"></i></a></li>
+                <li class="disabled"><a href="#feedback" role="tab"><i class="fa fa-envelope"></i></a></li>
+            </ul>
+        </div>
+
+        <!-- Tab panes -->
+        <div class="sidebar-content">
+            <div class="sidebar-pane" id="summary">
+                <h1 class="sidebar-header">
+                    <span class="sidebar-header-text">NANO<span>
+                    <span class="sidebar-close"><i class="fa fa-times"></i></span>
+                </h1>
+                <div class="container">
+                  <div class="card mt-3" id="greetings" style="display:none">
+                  </div>
+                  <div class="card text-center mt-3">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active"
+                                    id="overview-histo-tab"
+                                    data-toggle="tab"
+                                    data-target="#overview-histo"
+                                    role="tab">Overview
+                                    <!--{zh}总结报告-->
+                                    <!--{jp}摘要--></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                    id="linkview-histo-tab"
+                                    data-toggle="tab"
+                                    data-target="#linkview-histo"
+                                    role="tab">Link
+                                    <!--{zh}链路-->
+                                    <!--{jp}リンク--></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                    id="nodeview-histo-tab"
+                                    data-toggle="tab"
+                                    data-target="#nodeview-histo"
+                                    role="tab">Node
+                                    <!--{zh}节点-->
+                                    <!--{jp}ノード--></a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab-content">
+                      <div
+                          class="card-body tab-pane fade show active"
+                          id="overview-histo"
+                          role="tabpanel"></div>
+                      <div
+                          class="card-body tab-pane fade"
+                          id="linkview-histo"
+                          role="tabpanel"></div>
+                      <div
+                          class="card-body tab-pane fade"
+                          id="nodeview-histo"
+                          role="tabpanel"></div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div class="sidebar-pane" id="details">
+                <h1 class="sidebar-header">
+                    Details
+                    <!--{zh}细节-->
+                    <!--{jp}詳細-->
+                    <span class="sidebar-close">
+                        <i class="fa fa-times"></i>
+                    </span>
+                </h1>
+                <div class="container">
+                    <div class="card mt-3 text-center">
+                        <div class="card-body" id="link-details-container">
+                            ～(￣▽￣～)  (～￣▽￣)～
+                        </div>
+                    </div>
+                </div>
+                <div class="container mt-3">
+                    <table
+                        id="details_table"
+                        class="table table-bordered table-hover"
+                        style="display:none">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                  From&rarr;To
+                                  <!--{zh}始→终-->
+                                  <!--{jp}から→の--></th>
+                                <th scope="col">
+                                  Health Tag (latest)
+                                  <!--{zh}健康标签 (新)-->
+                                  <!--{jp}ヘルスタグ (新)--></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table_data">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="sidebar-pane" id="tests">
+                <h1 class="sidebar-header">
+                    Test Configs
+                    <!--{zh}测试安排-->
+                    <!--{jp}テスト配置-->
+                    <span class="sidebar-close">
+                        <i class="fa fa-times"></i>
+                    </span>
+                </h1>
+                <div class="container" id="tests-content"></div>
+            </div>
+
+            <div class="sidebar-pane" id="history">
+                <h1 class="sidebar-header">
+                    Load History
+                    <!--{zh}加载历史-->
+                    <!--{jp}読み込み履歴-->
+                    <span class="sidebar-close">
+                        <i class="fa fa-times"></i>
+                    </span>
+                </h1>
+                <div class="container" id="history-content"></div>
+            </div>
+
+            <div class="sidebar-pane" id="optimize">
+                <h1 class="sidebar-header">
+                    Optimization
+                    <!--{zh}优化-->
+                    <!--{jp}適化-->
+                    <span class="sidebar-close">
+                        <i class="fa fa-times"></i>
+                    </span>
+                </h1>
+                <div class="container" id="optimize-content"></div>
+            </div>
+
+            <div class="sidebar-pane" id="viewer">
+                <h1 class="sidebar-header">
+                    Offline Viewer
+                    <!--{zh}离线查看器-->
+                    <!--{jp}オフラインビューア-->
+                    <span class="sidebar-close"><i class="fa fa-times"></i></span>
+                </h1>
+                <div class="container">
+                    <div class="card mt-3">
+                      <div class="card-body">
+                        <p class="card-text">
+                            Offline viewer provides easiness to view
+                            a topology file without ignition and to view
+                            geoJSON generated offline
+                            for debugging.
+                        </p>
+                        <p class="card-text">
+                            To find more historical topology, connectivity, and
+                            interference analysis about the current network,
+                            please go to the <a href="#history">history panel</a>.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="card mt-3">
+                      <div class="card-body">
+                        <div class="input-group mt-3 mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Topology</span>
+                            </div>
+                            <div class="custom-file" id="upload-topology-file">
+                                <input
+                                  type="file"
+                                  class="custom-file-input"/>
+                                <label
+                                  class="custom-file-label"
+                                  for="upload_topology">
+                                  select..
+                                </label>
+                            </div>
+                        </div>
+                        <button
+                          type="button"
+                          id="upload-topology"
+                          class="btn btn-primary btn-block">
+                          Upload</button>
+                        <button
+                          type="button"
+                          id="upload-topology-predict"
+                          class="btn btn-secondary btn-block">
+                          Upload & Predict</button>
+                      </div>
+                    </div>
+                    <div class="card mt-3">
+                      <div class="card-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">GeoJSON</span>
+                            </div>
+                            <div class="custom-file">
+                                <input
+                                  type="file"
+                                  class="custom-file-input"
+                                  id="add_geojson_to_map" />
+                                <label
+                                  class="custom-file-label"
+                                  for="add_geojson_to_map">select...
+                                </label>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-pane" id="about">
+                <h1 class="sidebar-header">
+                    About NANO
+                    <!--{zh}关于NANO-->
+                    <!--{jp}についてNANO-->
+                    <span class="sidebar-close"><i class="fa fa-times"></i></span>
+                </h1>
+                <div class="container" id="about-html">
+                </div>
+            </div>
+
+            <div class="sidebar-pane" id="feedback">
+                <h1 class="sidebar-header">
+                    Feedback
+                    <!--{zh}反馈-->
+                    <!--{jp}フィードバック-->
+                    <span class="sidebar-close"><i class="fa fa-times"></i></span>
+                </h1>
+                <div class="container">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map" class="sidebar-map"></div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/translater.js/1.0.9/translater.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="scripts/leaflet-sidebar.min.js"></script>
+    <script src="scripts/jquery.dataTables.min.js"></script>
+    <script src="scripts/initialComponents.js"></script>
+    <script src="scripts/leafletBasis.js"></script>
+    <script src="scripts/dataHandler.js"></script>
+    <script src="scripts/network-analyzer.js"></script>
+</body>
+</html>

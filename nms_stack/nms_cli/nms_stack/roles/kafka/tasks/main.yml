@@ -1,0 +1,69 @@
+---
+- name: set facts
+  set_fact:
+    zoo_id: "{{ groups['all'].index(inventory_hostname) + 1 }}"
+    zookeeper_servers: "{{ range(1, groups['all']|length + 1) | map('regex_replace', '^(.*)$', 'server.\\1=zoo\\1:2888:3888;2181') | join(' ') }}"
+    zookeeper_clients: "{{ range(1, groups['all']|length + 1) | map('regex_replace', '^(.*)$', 'zoo\\1:2181') | join(',') }}"
+
+- name: create path
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ kafka_path }}"
+    - "{{ zookeeper_path }}/conf"
+    - "{{ zookeeper_path }}/data"
+    - "{{ zookeeper_path }}/datalog"
+
+- name: Write host's ipv6 address to file
+  template:
+    src: myip
+    dest: "{{ kafka_path }}"
+    force: yes
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+
+- name: Write zookeeper id to file
+  template:
+    src: myid
+    dest: "{{ zookeeper_path }}/data"
+    force: yes
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+
+- name: copy zookeeper config
+  template:
+    src: "{{ item }}"
+    dest: "{{ zookeeper_path }}/conf"
+    force: no
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+  loop:
+    - zoo.cfg
+    - configuration.xsl
+    - log4j.properties
+
+- name: copy compose
+  template:
+    src: docker-compose.yml
+    dest: "{{ kafka_path }}"
+    force: yes
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+
+- name: run compose
+  run_once: true
+  shell: "docker stack deploy -c {{ kafka_path }}/docker-compose.yml --with-registry-auth --prune kafka"
+
+- name: clean compose
+  file:
+    path: "{{ kafka_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode

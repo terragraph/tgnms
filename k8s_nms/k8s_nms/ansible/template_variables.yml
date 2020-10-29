@@ -1,0 +1,27 @@
+- hosts: master
+  gather_facts: no
+  connection: local
+
+  # This is collects a subset of 'gather_facts', since we really only care about
+  # getting the default IP address of the host.
+  pre_tasks:
+  - setup:
+      gather_subset:
+        # Don't collect the standard set of stats, only the ones we explicitly
+        # list below
+        - '!all'
+        - '!min'
+
+        # Only get the IP addresses
+        - 'default_ipv4'
+        - 'default_ipv6'
+  tasks:
+    - set_fact:
+        is_ipv6: "{{ 'yes' if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {} else 'no' }}"
+    - set_fact:
+        ipv4_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address if not is_ipv6 else '' }}"
+        ipv6_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'].address if is_ipv6 else '' }}"
+    - name: generated templated variables
+      template:
+        src: "{{ temp_src }}"
+        dest: "{{ temp_dest }}"

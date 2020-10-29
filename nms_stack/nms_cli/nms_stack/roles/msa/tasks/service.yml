@@ -1,0 +1,62 @@
+---
+- name: create service path
+  file:
+    path: "{{ msa_gfs_path }}/config/{{ service.name }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: copy service config file
+  template:
+    src: "{{ service.name }}/service_config.json"
+    dest: "{{ msa_gfs_path }}/config/{{ service.name }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+
+- name: generate service db password
+  set_fact:
+    db_service_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits') }}"
+  when: service.has_database
+
+- name: copy db files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+  loop:
+    - { src: "alembic.ini", dest: "{{ msa_gfs_path }}/config/{{ service.name }}"}
+    - { src: "msa_db.env", dest: "{{ msa_gfs_path }}/env/{{ service.name }}.env"}
+  when: service.has_database
+
+- name: create database and user
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ db_gfs_path }}/scripts,target=/scripts
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ msa_gfs_path }}/env/{{ service.name }}.env
+    -e DB_HOST={{ db_host }}
+    -e DB_ROOT_USER={{ db_root_user }}
+    -e DB_ROOT_PASSWORD={{ db_root_password }}
+    mysql:5 /scripts/create_service_database.sh
+  when: service.has_database
+
+- name: create keycloak client
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --mount type=bind,source={{ msa_gfs_path }}/env,target=/output
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    -u root
+    jboss/keycloak:7.0.0 /scripts/create-service-account-client.sh {{ service.name }} /output/{{ service.name }}_auth.env {{ service.roles }}
+  when:
+    - keycloak_enabled
+    - service.roles is defined

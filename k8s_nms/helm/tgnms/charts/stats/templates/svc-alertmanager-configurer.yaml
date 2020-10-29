@@ -1,0 +1,20 @@
+{{- if .Values.statsCreate }}
+{{ $root := . }}
+{{- with .Values.tgnms.stats.service.alertmgrconf }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  ports:
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+  selector:
+    app: {{ .name }}
+  type: {{ $root.Values.tgnms.stats.service.type }}
+{{- end }}
+{{- end }}

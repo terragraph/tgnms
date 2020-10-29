@@ -1,0 +1,81 @@
+- hosts: master
+  tasks:
+    - name: "set proxy if defined"
+      set_fact:
+        http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+
+- name: remove kubernetes cluster
+  import_playbook: plays/kubeadm-ansible/reset-site.yaml
+
+- hosts: all
+  tasks:
+  # Stash this in a fact so we know where the home directory is even during
+  # tasks running as root. There is no built in way to do this apparently:
+  # https://github.com/ansible/ansible/issues/15901
+  - name: find home directory
+    become: yes
+    become_user: "{{ kubernetes_user }}"
+    become_method: sudo
+    shell: "echo $HOME"
+    register: kubernetes_user_home_dir
+
+  - name: clear .kube directory
+    become: true
+    become_user: root
+    become_method: sudo
+    file:
+      state: absent
+      path: "{{ kubernetes_user_home_dir.stdout }}/.kube"
+
+  - name: clean CNI configuration
+    become: true
+    become_user: root
+    become_method: sudo
+    file:
+      state: absent
+      path: "/etc/cni/net.d"
+
+  - name: Remove hold on Kubernetes packages
+    when: ansible_distribution == 'Ubuntu'
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: install
+    loop:
+      - kubelet
+      - kubeadm
+      - kubectl
+      - docker
+      - docker-ce
+
+  - name: Remove docker, kubeadm, and kubectl packages
+    when: ansible_distribution == 'Ubuntu'
+    apt:
+      name: "{{ packages }}"
+      state: absent
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+        - docker
+        - docker-ce
+    environment:
+      https_proxy: "{{ https_proxy }}"
+      http_proxy: "{{ http_proxy }}"
+
+  - name: Remove docker, kubeadm, and kubectl packages
+    when: ansible_os_family == 'RedHat'
+    yum:
+      name: "{{ packages }}"
+      state: absent
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+    environment:
+      https_proxy: "{{ https_proxy }}"
+      http_proxy: "{{ http_proxy }}"

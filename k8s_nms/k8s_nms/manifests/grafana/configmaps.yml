@@ -1,0 +1,30 @@
+# There doesn't really seem to be a good way to do this aside from
+# creating a separate configmap for every file...
+{% set grafana_provisioning_files = [
+  ('template', 'provisioning/datasources/mysql.yml'),
+  ('read', 'provisioning/datasources/prometheus.yml'),
+  ('read', 'provisioning/dashboards/config.yml'),
+  ('read', 'dashboards/udp_pinger_dashboard.json'),
+  ('read', 'dashboards/link_dashboard_prometheus.json'),
+  ('read', 'dashboards/docker_monitoring.json'),
+  ('read', 'dashboards/network_health.json'),
+] %}
+{% for lookup_type, f in grafana_provisioning_files %}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning-{{ dns_name(f) }}
+data:
+  {{ basename(f) }}: |
+    {{ lookup(lookup_type, '../../../nms_stack/nms_cli/nms_stack/roles/nms/grafana/' + f) | indent(width=4, indentfirst=False )}}
+---
+{% endfor %}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ini-files
+data:
+  custom.ini: |
+    [auth.basic]
+    enabled = false

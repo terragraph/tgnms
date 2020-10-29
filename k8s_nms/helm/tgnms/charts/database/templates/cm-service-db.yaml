@@ -1,0 +1,12 @@
+{{- if .Values.databaseCreate }}
+{{- with .Values.tgnms.database.service }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .name }}-service-config
+  labels:
+    app: {{ .name }}
+{{- end }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.database.configmap.dbService).AsConfig) . | nindent 2 }}
+{{- end }}

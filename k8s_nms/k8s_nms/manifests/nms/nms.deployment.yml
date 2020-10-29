@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nms-settings-pv
+  labels:
+    type: local
+spec:
+  storageClassName: local
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "{{ gfs_path }}/nms"
+    type: DirectoryOrCreate
+---
+# Claim the volume we just created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nms-settings-claim
+spec:
+  storageClassName: local
+  volumeName: nms-settings-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nms
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nms
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nms
+spec:
+  selector:
+    matchLabels:
+      app: nms
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nms
+    spec:
+      volumes:
+        - name: settings
+          persistentVolumeClaim:
+            claimName: nms-settings-claim
+      containers:
+        - image: {{ nms_image }}
+          name: nms
+          imagePullPolicy: "{{ image_pull_policy }}"
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+          envFrom:
+            - configMapRef:
+                name: cxl-database
+            - configMapRef:
+                name: time-zone
+            - configMapRef:
+                name: nms
+          volumeMounts:
+            - name: settings
+              mountPath: /app/fbcnms-projects/tgnms/.settings
+      imagePullSecrets:
+        - name: tg-repo-creds

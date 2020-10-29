@@ -1,0 +1,179 @@
+Last update: 09/13/2017
+
+= Pre-Ignition Golay Code Assignment Tool =
+
+Check help via: `python tool/golay_pre_ignition.py -h` or `ifbpy3 tool/golay_pre_ignition.py -- -h`
+
+  usage: tool/golay_pre_ignition.py [-h] [--outfolder OUTFOLDER] [--num NUM]
+                                    [--no-ystreet] [--no-gps] [--weight WEIGHT]
+                                    topology_fp
+
+  positional arguments:
+    topology_fp           topology file path
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --outfolder OUTFOLDER, -o OUTFOLDER
+                          output folder path
+    --num NUM             number of golay code
+    --no-ystreet          Whether assuming Y-street
+    --no-gps              Whether assuming accurate GPS
+    --weight WEIGHT       Tuning parameter for improving assignment
+    -i                    Whether based on interference prediction (w/ GPS)
+
+
+########################################################################
+############################ Self-Test Tool ############################
+########################################################################
+
+# Self Test Tool
+
+$ python tool/self_test.py -h
+OR
+$ ifbpy3 tool/self_test.py -- -h
+
+  usage: tool/self_test.py [-h] [--topology TOPOLOGY] [--outfolder OUTFOLDER]
+                           [--devserver] [--controller] [--ping] [--iperf]
+                           [--no_tcp] [--im_scan] [--fast] [--pnum PNUM]
+                           [--tx TX [TX ...]] [--email EMAIL [EMAIL ...]]
+                           [--duration DURATION] [--analyze]
+                           name
+
+  positional arguments:
+    name                  network name
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --topology TOPOLOGY, -tp TOPOLOGY
+                          topology file path, if not set, will automatically
+                          fetch it from controller
+    --outfolder OUTFOLDER, -o OUTFOLDER
+                          output folder path, default is /tmp/
+    --devserver           run the script on devserver
+    --controller          run the script on controller (make sure you can run
+                          `ssh -i localhost`)
+    --ping                run ping test (terra0)
+    --iperf               run iperf test (terra0)
+    --no_tcp              disable tcp iperf
+    --im_scan             run tg scan im test
+    --fast                run test in parallel mode (beta, must set
+                          `MaxStartups` in remote file `/etc/ssh/sshd_config` to
+                          be more than number of sectors in the topology, e.g.,
+                          `MaxStartups 1000:20:2000`)
+    --pnum PNUM           number of parallel processes; default infinity
+    --tx TX [TX ...]      if set, specify node name(s) to test (as tx);
+                          otherwise test all nodes that are linked
+    --email EMAIL [EMAIL ...], -e EMAIL [EMAIL ...]
+                          email self-test running status to whom(s)
+    --duration DURATION   specify length of ping/iperf test (in seconds);
+                          default 30sec
+    --analyze             run analysis
+    --visualize           visualize results in a geographical view
+
+
+# Config Modification Tool
+
+# python tool/config_mod.py -h
+OR
+# ifbpy3 tool/config_mod.py -- -h
+
+  usage: tool/config_mod.py [-h] [--outfolder OUTFOLDER] [--devserver]
+                            [--controller] [--tar] [--pnum PNUM]
+                            name
+
+  positional arguments:
+    name                  network name
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --outfolder OUTFOLDER, -o OUTFOLDER
+                          log folder path, default is /tmp/
+    --devserver           run the script on devserver
+    --controller          run the script on controller (make sure you can run
+                          `ssh localhost` there)
+    --tar                 tar the result folder and remove the folder to save
+                          space
+    --pnum PNUM           number of parallel processes; default infinity
+
+
+########################################################################
+########################## Analyzer (Offline) ##########################
+########################################################################
+
+# Analyzer (Offline) Tool
+
+$ python tool/analyzer.py -h
+OR
+$ ifbpy3 tool/analyzer.py -- -h
+
+  usage: tool/analyzer.py [-h] [--folder FOLDER] [--ping PING]
+                          [--boxalignment BOXALIGNMENT] [--iperf IPERF]
+                          [--im_scan IM_SCAN] [--email EMAIL [EMAIL ...]]
+                          [--topology TOPOLOGY]
+                          name
+
+  positional arguments:
+    name                  network name
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --folder FOLDER, -f FOLDER
+                          folder path for analysis result, default is /tmp/
+    --ping PING, -p PING  Specify ping test (terra0) json path; (beta) if not
+                          set, will try to find it from -f
+    --boxalignment BOXALIGNMENT, -b BOXALIGNMENT
+                          Specify topology extra json path; (beta) if not set,
+                          will try to find it from -f
+    --iperf IPERF, -i IPERF
+                          Specify iperf test (terra0) json path; (beta) if not
+                          set, will try to find it from -f
+    --im_scan IM_SCAN     Specify IM scan result path; (beta) if not set, will
+                          try to find it from -f
+    --target_snr TARGET_SNR
+                          Specify target SNR for connectivity graph analysis
+    --email EMAIL [EMAIL ...], -e EMAIL [EMAIL ...]
+                          Email result to whom
+    --topology TOPOLOGY, -tp TOPOLOGY
+                          Specify topology json path; (beta) if not set, will
+                          try to find it from -f
+    --visualize           visualize results in a geographical view
+
+########################################################################
+############################ Data Fetching #############################
+########################################################################
+
+# Data Fetching Tool
+
+$ python tool/data_fetcher.py -h
+OR
+$ ifbpy3 tool/data_fetcher.py -- -h
+
+  usage: tool/data_fetcher.py [-h] [--outfolder OUTFOLDER]
+                              [--targets TARGETS [TARGETS ...]] [--start START]
+                              [--end END] [--pnum PNUM] [--tar] [--no_stapkt]
+                              [--no_beams] [--no_phy] [--no_phy_data]
+                              [--no_link]
+                              name topology
+
+  positional arguments:
+    name                  network name
+    topology              topology file path
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --outfolder OUTFOLDER, -o OUTFOLDER
+                          output folder path, default is /tmp/
+    --targets TARGETS [TARGETS ...]
+                          if set, specify node name(s) to fetch data; otherwise
+                          fetch all nodes data
+    --start START         start time; default `-1 day`
+    --end END             end time; default `now`
+    --pnum PNUM           number of parallel processes; default 20; do NOT set
+                          too high
+    --tar                 tar the result folder and remove the folder to save
+                          space
+    --no_stapkt           Do NOT get stapkt
+    --no_beams            Do NOT get beams
+    --no_phy              Do NOT get phy
+    --no_phy_data         Do NOT get phy_data
+    --no_link             Do NOT get link

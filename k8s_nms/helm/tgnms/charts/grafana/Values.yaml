@@ -1,0 +1,54 @@
+imagePullSecrets: []
+# - name: tg-secrets-registry
+
+grafanaCreate: false
+
+tgnms:
+  grafana:
+    image:
+      repository: grafana/grafana
+      tag: latest
+      pullPolicy: Always
+
+    env:
+      #enableAnonymous: true
+      #gfServerUrl: /grafana/
+      #ebableIFrame: true
+      dbType: mysql
+      usersTheme: light
+      dataSourceName: MySQL
+      orgId: 1
+      usersOrgRole: Editor
+      gfMysqlDbUrl: "localhost:3306"
+      gfMysqlDbName:
+      gfAdminPass:
+      gfMysqlReader:
+      gfMysqlReaderPass:
+      gfMysqlWriter:
+      gfMysqlWriterPass:
+
+    configmap:
+      dashboards:
+      docker:
+      mysqlds:
+      promds:
+      linker:
+      network:
+      udppinger:
+
+    service:
+      name: grafana
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      resources: {}

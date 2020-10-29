@@ -1,0 +1,209 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-cache-env
+data:
+  PROMETHEUS_CACHE_LIMIT: "1000000"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-configurer-env
+data:
+  PROM_ALERTCONFIG_PORT: "9100"
+  RULES_DIR: /etc/configs/alert_rules
+  PROMETHEUS_URL: prometheus:9090
+  ALERTMANAGER_CONFIG_PORT: "9101"
+  ALERTMANAGER_CONF_PATH: /etc/prometheus/alertmanager.yml
+  ALERTMANAGER_URL: alertmanager:9093
+  MULTITENANT: "false"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stats-config
+  labels:
+    type: local
+spec:
+  storageClassName: local
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "{{ gfs_path }}/stats"
+    type: DirectoryOrCreate
+---
+# Claim the volume we just created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stats-config-claim
+spec:
+  storageClassName: local
+  volumeName: stats-config
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  ports:
+  - port: 9090
+  selector:
+    app: prometheus
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-cache
+spec:
+  ports:
+  - port: 9091
+  selector:
+    app: prometheus
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+spec:
+  ports:
+  - port: 9093
+  selector:
+    app: prometheus
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-configurer
+spec:
+  ports:
+  - port: 9100
+  selector:
+    app: prometheus
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-configurer
+spec:
+  ports:
+  - port: 9101
+  selector:
+    app: prometheus
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: stats-config
+          persistentVolumeClaim:
+            claimName: stats-config-claim
+      imagePullSecrets:
+        - name: tg-repo-creds
+      initContainers:
+        - name: init-stats-dir
+          image: k8s.gcr.io/busybox
+          command: [
+            "/bin/sh", "-c",
+            # don't overwrite alertmanager.yml
+            "false | cp -i /etc/prometheus/alertmanager-default.yml /var/stats/alertmanager.yml 2>/dev/null",
+            "&&",
+            "/bin/sh", "-c",
+            # do overwrite prometheus.yml
+            "cp -f /etc/prometheus/prometheus.yml /var/stats/prometheus.yml",
+            "&&",
+            "echo \"Copied default configs\"",
+          ]
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+            - name: stats-config
+              mountPath: /var/stats/
+      containers:
+      - image: {{ prometheus_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: prometheus
+        readinessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+        args: ["--config.file=/etc/prometheus/prometheus.yml",
+                  "--storage.tsdb.path=/prometheus",
+                  "--web.console.libraries=/usr/share/prometheus/console_libraries",
+                  "--web.console.templates=/usr/share/prometheus/consoles",
+                  "--web.external-url=https://prometheus/prometheus/",
+                  "--web.route-prefix=/",
+                  "--web.enable-lifecycle"]
+        volumeMounts:
+          - name: stats-config
+            mountPath: /etc/configs
+      - image: {{ prometheus_cache_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: prometheus-cache
+        command: ["/bin/sh", "-c", "/bin/prometheus-cache -limit=$${PROMETHEUS_CACHE_LIMIT}"]
+        envFrom:
+          - configMapRef:
+              name: prometheus-cache-env
+      - image: {{ alertmanager_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: alertmanager
+        args: ["--config.file=/etc/prometheus/alertmanager.yml"]
+        envFrom:
+          - configMapRef:
+              name: prometheus-cache-env
+        volumeMounts:
+          - name: stats-config
+            mountPath: /etc/prometheus/
+      - image: {{ prometheus_configurer_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: prometheus-configurer
+        args: ['-port=9100' ,
+            '-rules-dir=/etc/configs/alert_rules',
+            '-prometheusURL=prometheus:9090',
+            '-multitenant-label=networkID']
+        volumeMounts:
+          - name: stats-config
+            mountPath: /etc/configs
+      - image: {{ alertmanager_configurer_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: alertmanager-configurer
+        args: ['-port=9101',
+            '-alertmanager-conf=/etc/configs/alertmanager.yml',
+            '-alertmanagerURL=alertmanager:9093',
+            '-multitenant-label=networkID']
+        volumeMounts:
+          - name: stats-config
+            mountPath: /etc/configs

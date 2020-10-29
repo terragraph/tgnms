@@ -1,0 +1,75 @@
+{{- if .Values.statsCreate }}
+{{ $root := . }}
+{{- with .Values.tgnms.stats }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.promconf.name }}
+  labels:
+    app: {{ .service.promconf.name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  replicas: {{ .deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.promconf.name }}
+{{ include "labels" $root | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.promconf.name }}
+{{ include "labels" $root | indent 8 }}
+    spec:
+      {{- with .deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .service.promconf.name }}
+          image: {{ required "tgnms.stats.images.promconf.repository must be provided" .images.promconf.repository }}:{{ .images.promconf.tag }}
+          imagePullPolicy: {{ .images.pullPolicy }}
+          args: [ '-port=9100' ,
+                  '-rules-dir=/etc/configs/alert_rules',
+                  '-prometheusURL=stats_prometheus:9090',
+                  '-multitenant-label=networkID' ]
+          env:
+            - name: PROM_ALERTCONFIG_PORT
+              value: {{ .env.alertMgrPort | quote }}
+            - name: RULES_DIR
+              value: {{ .env.rulesDir }}
+            - name: PROMETHEUS_URL
+              value: {{ .env.promUrl }}
+            - name: ALERTMANAGER_CONFIG_PORT
+              value: {{ .env.alertMrgConfPort | quote }}
+            - name: ALERTMANAGER_CONF_PATH
+              value: {{ .env.alertMrgConfPath }}
+            - name: ALERTMANAGER_URL
+              value: {{ .env.alertMrgUrl }}
+            - name: MULTITENANT
+              value: {{ .env.multitenant | quote }}
+          ports:
+            - containerPort: {{ .service.promconf.port }}
+          volumeMounts:
+            - name: {{ $root.Values.tgnms.stats.service.prom.name }}-config
+              mountPath: /etc/configs/prometheus.yml
+              subPath: prometheus.yml
+          resources:
+{{ toYaml .deployment.resources | indent 12 }}
+      volumes:
+        - name: {{ $root.Values.tgnms.stats.service.prom.name }}-config
+          configMap:
+            name: {{ $root.Values.tgnms.stats.service.prom.name }}-config
+{{- end}}
+{{- end }}

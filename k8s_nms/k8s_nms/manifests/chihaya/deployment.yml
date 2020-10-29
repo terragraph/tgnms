@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chihaya-config
+data:
+  chihaya.yml: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/chihaya/templates/chihaya.yml') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chihaya
+spec:
+  ports:
+  - port: 6969
+  selector:
+    app: chihaya
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chihaya
+spec:
+  selector:
+    matchLabels:
+      app: chihaya
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: chihaya
+    spec:
+      volumes:
+        - name: chihaya-config
+          configMap:
+            name: chihaya-config
+      containers:
+      - image: {{ chihaya_image }}
+        name: chihaya
+        imagePullPolicy: "{{ image_pull_policy }}"
+        args: ["--config", "/etc/chihaya.yml"]
+        volumeMounts:
+          - name: chihaya-config
+            mountPath: /etc/chihaya.yml
+            subPath: chihaya.yml

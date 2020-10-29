@@ -1,0 +1,69 @@
+{{- if .Values.statsCreate }}
+{{ $root := . }}
+{{- with .Values.tgnms.stats }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.prom.name }}
+  labels:
+    app: {{ .service.prom.name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  replicas: {{ .deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.prom.name }}
+{{ include "labels" $root | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.prom.name }}
+{{ include "labels" $root | indent 8 }}
+    spec:
+      {{- with .deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .service.prom.name }}
+          image: {{ required "tgnms.stats.images.prom.repository must be provided" .images.prom.repository }}:{{ .images.prom.tag }}
+          imagePullPolicy: {{ .images.pullPolicy }}
+          args: ["--config.file=/etc/prometheus/prometheus.yml",
+                 "--storage.tsdb.path=/prometheus",
+                 "--web.console.libraries=/usr/share/prometheus/console_libraries",
+                 "--web.console.templates=/usr/share/prometheus/consoles",
+                 "--web.external-url=https://prometheus/prometheus/",
+                 "--web.route-prefix=/",
+                 "--web.enable-lifecycle"]
+          volumeMounts:
+            - name: {{ .service.prom.name }}-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+          ports:
+            - containerPort: {{ .service.prom.port }}
+          resources:
+{{ toYaml .deployment.resources | indent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .deployment.livenessProbe.promPath }}
+              port: {{ .service.prom.port }}
+            initialDelaySeconds: {{ .deployment.livenessProbe.initWait }}
+            periodSeconds: {{ .deployment.livenessProbe.period }}
+      volumes:
+        - name: {{ .service.prom.name }}-config
+          configMap:
+            name: {{ .service.prom.name }}-config
+{{- end}}
+{{- end }}

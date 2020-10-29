@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+data:
+  fluent.conf: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/efk/templates/fluent.conf') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluentd
+spec:
+  clusterIP: None
+  ports:
+    - port: 5170
+  selector:
+    app: fluentd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluentd
+spec:
+  selector:
+    matchLabels:
+      app: fluentd
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      volumes:
+        - name: fluentd-config
+          configMap:
+            name: fluentd-config
+      containers:
+        - image: {{ efk_fluentd_image }}
+          name: fluentd
+          imagePullPolicy: "{{ image_pull_policy }}"
+          volumeMounts:
+            - name: fluentd-config
+              mountPath: /fluentd/etc/fluent.conf
+              subPath: fluent.conf
+      imagePullSecrets:
+        - name: tg-repo-creds

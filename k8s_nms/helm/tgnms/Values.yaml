@@ -1,0 +1,334 @@
+# Hold names of Docker registry k8s manifest secrets
+imagePullSecrets: []
+# - name: tg-secrets-registry
+
+# K8S provider: local, bar metal, EKS, ...
+kubernetesType: local
+
+# If true install or upgrade database helm chat
+databaseCreate: false
+# If true install or upgrade stats helm chat
+statsCreate: false
+# If true install or upgrade grafana helm chat
+grafanaCreate: false
+# If true install or upgrade common helm chat
+commonCreate: false
+# If true install or upgrade chahaya helm chat
+chihayaCreate: false
+# If true install or upgrade e2e-controller helm chat
+e2eControllerCreate: false
+
+# Terragraph root variables of services
+tgnms:
+  # The target namespace to use, must exists
+  namespace: tg
+
+  # Docker registry credential variables used for authentication to pull images
+  secrets:
+    create: false
+    docker:
+      registry:
+      username:
+      password:
+
+  # Common component helm chart variables
+  common:
+    # Time some to use
+    timeZonePath: /usr/share/zoneinfo/America/Los_Angeles
+
+  # Chihaya service helm chart variables
+  chihaya:
+    # Docker image repository and tag variables to use
+    image:
+      repository: quay.io/jzelinskie/chihaya
+      tag: v2.0.0-rc.2
+      pullPolicy: IfNotPresent
+
+    # Placeholder used to load Chihaya configuration file in k8s ConfigMap manifest
+    configmap:
+      chihayaConfigFile: {}
+
+    # Placeholder used in k8s Service manifest
+    service:
+      name: chahaya
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 6969
+      targetPort: 6969
+      nodePort: {}
+      externalTrafficPolicy: Cluster
+      loadBalancerIP: {}
+
+    # Placeholder used in k8s Deployment manifest
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      configSubPath: chihaya.yml
+      podAnnotations: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      resources: {}
+      podLabels: {}
+
+  # Database service helm chart variables
+  database:
+    # Environment variables to use in k8s Deployment manifest
+    env:
+      host: {}
+      port: 3306
+      rootUser: {}
+      rootPass: {}
+      dbName: {}
+      dbUser: {}
+      dbPass: {}
+      dbDialect: mysql
+
+    # Placeholders used in k8s PersistentVolume and
+    # PersistentVolumeClaim manifest
+    persistence:
+      enabled: false
+      type: local
+      storageClass: manual
+      accessMode: ReadWriteOnce
+      size: 8Gi
+      annotations: {}
+      path: /data
+
+    # Docker image repository and tag variables to use
+    image:
+      repository: mysql
+      tag: 5.7.30
+      pullPolicy: IfNotPresent
+
+    # Placeholder used in k8s Service manifest
+    service:
+      name: db
+      annotations: {}
+      type: ClusterIP
+      port: 3306
+
+    # Placeholder used to load database configuration files in k8s ConfigMap manifests
+    configmap:
+      dbInitFile: {}
+      dbService: {}
+      postStartScript: {}
+
+    # Placeholder used in k8s Deployment manifest
+    deployment:
+      replicas: 1
+      podAnnotations: {}
+      podLabels: {}
+      annotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      strategy:
+        type: Recreate
+      resources: {}
+
+  # e2e-controller service helm chart variables
+  e2eCtl:
+    # Docker image repository and tag variables to use
+    image:
+      repository: secure.cxl-terragraph.com:443/e2e-controller
+      tag: latest
+      pullPolicy: Always
+
+    # Environment variables to use in k8s manifests
+    env:
+      apiArgs:
+      e2ePath: /opt/terragraph/gfs/e2e
+      e2eConfigFile: cfg/controller_config.json
+      e2eTopologyFile: e2e_topology.conf
+      nmsConfigFile: cfg/aggregator_config.json
+      e2eAuditLogsPath: /opt/terragraph/gfs/audit_logs/example_first
+      tgAggregatorHost: nms_aggregator-{{ escaped_controller_name }}
+      tgBtAnnounceIP: 2600:1f13:b95:6400:0:0:0:0
+      tgBtSeederPort: 6881
+      tgBtTrackerOverride: http://[2600:1f13:b95:6400:0:0:0:0]:6969/announce
+      tgControllerHost: e2e_controller-example_first
+      tgLocalBtTrackerOverrride: http://chihaya:6969/announce
+      tgNmsRemoteEndpoint: http://query_service:8086/
+
+   # Controller server variables
+    controllers:
+      name: dev_example_first
+      ctlPort: '7007'
+      aggPort: '8002'
+      appPort: '17077'
+      btSeederPort: '6881'
+
+    # Placeholder used to load e2e-controller configuration files in k8s ConfigMap manifests
+    configmap:
+      startAgent: {}
+      startCtl: {}
+      startAgg: {}
+      topologyConf: {}
+      defaultEnv: {}
+
+    # Placeholder used in k8s Service manifest
+    service:
+      name: e2e-controller
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 80
+      targetPort: 80
+      nodePort: {}
+      externalTrafficPolicy: Cluster
+      loadBalancerIP: {}
+
+    # Placeholder used in k8s Deployment manifest
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      deployment:
+      podAnnotations: {}
+      podLabels: {}
+      annotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      resources: {}
+
+  # grafana service
+  grafana:
+    # Docker image repository and tag variables to use
+    image:
+      repository: grafana/grafana
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    # Environment variables to use in k8s manifests
+    env:
+      #enableAnonymous: true
+      #gfServerUrl: /grafana/
+      #ebableIFrame: true
+      dbType: mysql
+      usersTheme: light
+      dataSourceName: MySQL
+      orgId: 1
+      usersOrgRole: Editor
+      gfMysqlDbUrl: "localhost:3306"
+      gfMysqlDbName:
+      gfAdminPass:
+      gfMysqlReader:
+      gfMysqlReaderPass:
+      gfMysqlWriter:
+      gfMysqlWriterPass:
+
+    # Placeholder used to load Grafana dashboard and data sources
+    # configuration files into k8s ConfigMap manifests
+    configmap:
+      dashboards:
+      docker:
+      mysqlds:
+      promds:
+      linker:
+      network:
+      udppinger:
+
+    # Placeholder used in k8s Service manifest
+    service:
+      name: grafana
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+
+    # Placeholder used in k8s Deployment manifest
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      nodeSelector: {}
+      affinity: {}
+      resources: {}
+
+  # stats service
+  stats:
+    # Environment variables to use in k8s manifests
+    env:
+      promCacheLimit:
+      alertMgrPort:
+      rulesDir:
+      promUrl:
+      alertMrgConfPort:
+      alertMrgConfPath:
+      alertMrgUrl:
+      multitenant: false
+      # stats configmap content not used
+#      HTTP_THREADS:
+#      KAFKA_BROKER_LIST:
+#      KAFKA_STATS_ENABLED:
+
+    # Docker image repositories and tags variables to use
+    images:
+      pullPolicy: IfNotPresent
+      prom:
+        repository: prom/prometheus
+        tag: latest
+      alertmgr:
+        repository: prom/alertmanager
+        tag: latest
+      cache:
+        repository:
+        tag:
+      promconf:
+        repository:
+        tag:
+      alertmgrconf:
+        repository:
+        tag:
+
+    # Placeholder used to load Grafana dashboard and data sources
+    # configuration files into k8s ConfigMap manifests
+    configmap:
+      alertmgr:
+      promconf:
+
+    # Placeholder used in k8s Service manifests
+    service:
+      type: ClusterIP
+      annotations: {}
+      labels: {}
+      alertmgr:
+        name: alertmanager
+        port: 9093
+        targetPort: 9093
+      alertmgrconf:
+        name: alertmanager-configurer
+        port: 9101
+        targetPort: 9101
+      prom:
+        name: prometheus
+        port: 9090
+        targetPort: 9090
+      promconf:
+        name: prometheus-configurer
+        port: 9100
+        targetPort: 9100
+      cache:
+        name: prometheus-cache
+        port: 9091
+        targetPort: 9091
+
+    # Placeholder used in k8s Deployment manifests
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      livenessProbe:
+        initWait: 10
+        period: 30
+        promPath: /graph
+        rootPath: /
+      nodeSelector: {}
+      tolerations: []
+      resources: {}
+      podLabels: {}

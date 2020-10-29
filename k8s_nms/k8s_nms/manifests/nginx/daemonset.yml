@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
+        - name: http-conf
+          configMap:
+            name: http-conf
+        - name: ssl-key-file
+          configMap:
+            name: ssl-key-file
+        - name: ssl-cert-file
+          configMap:
+            name: ssl-cert-file
+        - name: stream-conf
+          configMap:
+            name: stream-conf
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+        - name: stream-conf-{{ controller_name_dns }}
+          configMap:
+            name: stream-conf-{{ controller_name_dns }}
+{% endfor %}
+      containers:
+        - image: {{ nginx_image }}
+          # Kubernetes won't mount folders with colons in the name, so we have to mount these files to a temp dir, then
+          # copy them at runtime to where they're actually supposed to be
+          command: ["/bin/sh", "-c", "mkdir -p /etc/letsencrypt/live/{{ ext_nms_hostname }} && cp /etc/fullchain.pem /etc/letsencrypt/live/{{ ext_nms_hostname }}/fullchain.pem && cp /etc/privkey.pem /etc/letsencrypt/live/{{ ext_nms_hostname }}/privkey.pem && ln -sf $${TZ_FILE} /etc/localtime && init-cert.sh && /usr/sbin/crond && openresty -g 'daemon off;'"]
+          name: nginx
+          imagePullPolicy: "{{ image_pull_policy }}"
+          envFrom:
+            - configMapRef:
+                name: time-zone
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+              subPath: nginx.conf
+            - name: http-conf
+              mountPath: /usr/local/openresty/nginx/conf/conf.d/http.conf
+              subPath: http.conf
+            - name: ssl-cert-file
+              mountPath: /etc/fullchain.pem
+              subPath: fullchain.pem
+            - name: ssl-key-file
+              mountPath: /etc/privkey.pem
+              subPath: privkey.pem
+            - name: stream-conf
+              mountPath: /usr/local/openresty/nginx/conf/conf.d/streams/stream.conf
+              subPath: stream.conf
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+            - name: stream-conf-{{ controller_name_dns }}
+              mountPath: /usr/local/openresty/nginx/conf/conf.d/streams/stream-{{ escaped_controller_name }}.conf
+              subPath: stream-{{ escaped_controller_name }}.conf
+{% endfor %}
+      imagePullSecrets:
+        - name: tg-repo-creds

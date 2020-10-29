@@ -1,0 +1,9 @@
+name: e2ectl
+description: A Helm Chart for terragraph E2E Controoler service
+version: 0.0.1
+apiVersion: v1
+keywords:
+  - e2e-controller
+  - e2ectl
+sources:
+home:

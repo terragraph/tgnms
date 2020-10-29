@@ -1,0 +1,356 @@
+<div class="card mt-3">
+    <div class="card-header text-center">
+        Analysis from Probing
+        <!--{zh}测试分析结果-->
+        <!--{jp}テスト分析結果-->
+    </div>
+    <div id="accordion-probing">
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#overview-history"
+            id="get-overview-history"
+            class="list-group-item list-group-item-action">
+            Overview
+            <!--{zh}总结报告-->
+            <!--{jp}摘要--></button>
+        <div
+            id="overview-history"
+            class="collapse m-2 ml-4 overview-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#link-thrpt-history"
+            id="get-link-thrpt-history"
+            class="list-group-item list-group-item-action">
+            Link Throughput (UDP)
+            <!--{zh}链路吞吐量 (UDP)-->
+            <!--{jp}リンクスループット (UDP)--></button>
+        <div
+            id="link-thrpt-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#link-thrpt-tcp-history"
+            id="get-link-thrpt-tcp-history"
+            class="list-group-item list-group-item-action">
+            Link Throughput (TCP)
+            <!--{zh}链路吞吐量 (TCP)-->
+            <!--{jp}リンクスループット (TCP)--></button>
+        <div
+            id="link-thrpt-tcp-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#link-thrpt-weather-udp-history"
+            id="get-link-thrpt-weather-udp-history"
+            class="list-group-item list-group-item-action">
+            Weather-Driven Link Throughput (UDP)</button>
+        <div
+            id="link-thrpt-weather-udp-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#multihop-udp-history"
+            id="get-multihop-udp-history"
+            class="list-group-item list-group-item-action">
+            Multihop (UDP)
+            <!--{zh}多跳 (UDP)-->
+            <!--{jp}マルチホップ (UDP)--></button>
+        <div
+            id="multihop-udp-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#multihop-tcp-history"
+            id="get-multihop-tcp-history"
+            class="list-group-item list-group-item-action">
+            Multihop (TCP)
+            <!--{zh}多跳 (TCP)-->
+            <!--{jp}マルチホップ (TCP)--></button>
+        <div
+            id="multihop-tcp-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#multihop-tcp-reno-history"
+            id="get-multihop-tcp-reno-history"
+            class="list-group-item list-group-item-action">
+            Multihop TCP with Reno</button>
+        <div
+            id="multihop-tcp-reno-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#multihop-tcp-cubic-history"
+            id="get-multihop-tcp-cubic-history"
+            class="list-group-item list-group-item-action">
+            Multihop TCP with Cubic</button>
+        <div
+            id="multihop-tcp-cubic-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#multihop-tcp-westwood-history"
+            id="get-multihop-tcp-westwood-history"
+            class="list-group-item list-group-item-action">
+            Multihop TCP with Westwood</button>
+        <div
+            id="multihop-tcp-westwood-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#multihop-tcp-vegas-history"
+            id="get-multihop-tcp-vegas-history"
+            class="list-group-item list-group-item-action">
+            Multihop TCP with Vegas</button>
+        <div
+            id="multihop-tcp-vegas-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-probing"></div>
+    </div>
+</div>
+<div class="card mt-3">
+    <div class="card-header text-center">
+        Analysis from IM Scans
+        <!--{zh}扫描分析结果-->
+        <!--{jp}スキャン分析結果-->
+    </div>
+    <div id="accordion-im">
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#connectivity-history"
+            id="get-connectivity-history"
+            class="list-group-item list-group-item-action">
+            Connectivity (> 12dB)
+            <!--{zh}潜在拓扑 (> 12dB)-->
+            <!--{jp}潜在的な接続トポロジ (> 12dB)--></button><div
+            id="connectivity-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-im">
+        </div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#interference-history"
+            id="get-interference-history"
+            class="list-group-item list-group-item-action">
+            Interference (when idle)
+            <!--{zh}无线干扰 (闲时)-->
+            <!--{jp}ワイヤレス干渉 (余暇)--></button>
+        <div
+            id="interference-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-im"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#interference-active-history"
+            id="get-interference-active-history"
+            class="list-group-item list-group-item-action">
+            Interference (when active)
+            <!--{zh}无线干扰 (忙时)-->
+            <!--{jp}ワイヤレス干渉 (ビジー)--></button>
+        <div
+            id="interference-active-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-im"></div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#interference-max-history"
+            id="get-interference-max-history"
+            class="list-group-item list-group-item-action">
+            Interference (worst)
+            <!--{zh}无线干扰 (最差情况)-->
+            <!--{jp}ワイヤレス干渉 (最悪の場合)--></button>
+        <div
+            id="interference-max-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-im"></div>
+    </div>
+</div>
+<div class="card mt-3">
+    <div class="card-header text-center">
+        Topology History
+        <!--{zh}拓扑历史-->
+        <!--{jp}トポロジ履歴-->
+    </div>
+    <div id="accordion-topo">
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#topology-link-history"
+            id="get-topology-link-history"
+            class="list-group-item list-group-item-action">
+            Topology Link
+            <!--{zh}拓扑链路-->
+            <!--{jp}トポロジリンク--></button>
+        <div
+            id="topology-link-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-topo">
+        </div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#topology-node-history"
+            id="get-topology-node-history"
+            class="list-group-item list-group-item-action">
+            Topology Node
+            <!--{zh}拓扑节点-->
+            <!--{jp}トポロジノード--></button>
+        <div
+            id="topology-node-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-topo">
+        </div>
+        <button
+            type="button"
+            data-toggle="collapse"
+            data-target="#topology-site-history"
+            id="get-topology-site-history"
+            class="list-group-item list-group-item-action">
+            Topology Site
+            <!--{zh}拓扑站点-->
+            <!--{jp}トポロジサイト--></button>
+        <div
+            id="topology-site-history"
+            class="collapse m-2 ml-4 history-list"
+            data-parent="#accordion-topo">
+        </div>
+    </div>
+</div>
+
+<script>
+$("#get-connectivity-history").click(function () {
+  var snr = 12;  // for now this is not configurable
+  getTestHistoryTime(
+    "geojson_connectivity_targetSNR_" + snr + "dB",
+    "#connectivity-history"
+  );
+});
+$("#get-interference-history").click(function () {
+  getTestHistoryTime(
+    "geojson_interference_idle",
+    "#interference-history"
+  );
+});
+$("#get-interference-active-history").click(function () {
+  getTestHistoryTime(
+    "geojson_interference_active",
+    "#interference-active-history"
+  );
+});
+$("#get-interference-max-history").click(function () {
+  getTestHistoryTime(
+    "geojson_interference_max",
+    "#interference-max-history"
+  );
+});
+$("#get-link-thrpt-history").click(function () {
+  getTestHistoryTime(
+    "geojson_iperf_p2p_udp",
+    "#link-thrpt-history",
+    true
+  );
+});
+$("#get-link-thrpt-tcp-history").click(function () {
+  getTestHistoryTime(
+    "geojson_iperf_p2p_tcp",
+    "#link-thrpt-tcp-history",
+    true
+  );
+});
+$("#get-link-thrpt-weather-udp-history").click(function () {
+  getTestHistoryTime(
+    "geojson_weather_iperf_p2p_udp",
+    "#link-thrpt-weather-udp-history",
+    true
+  );
+});
+$("#get-multihop-udp-history").click(function () {
+  getTestHistoryTime(
+    "geojson_multihop_udp",
+    "#multihop-udp-history",
+    true
+  );
+});
+$("#get-multihop-tcp-history").click(function () {
+  getTestHistoryTime(
+    "geojson_multihop_tcp",
+    "#multihop-tcp-history",
+    true
+  );
+});
+$("#get-multihop-tcp-reno-history").click(function () {
+  getTestHistoryTime(
+    "geojson_multihop_tcp_reno",
+    "#multihop-tcp-reno-history",
+    true
+  );
+});
+$("#get-multihop-tcp-cubic-history").click(function () {
+  getTestHistoryTime(
+    "geojson_multihop_tcp_cubic",
+    "#multihop-tcp-cubic-history",
+    true
+  );
+});
+$("#get-multihop-tcp-westwood-history").click(function () {
+  getTestHistoryTime(
+    "geojson_multihop_tcp_westwood",
+    "#multihop-tcp-westwood-history",
+    true
+  );
+});
+$("#get-multihop-tcp-vegas-history").click(function () {
+  getTestHistoryTime(
+    "geojson_multihop_tcp_vegas",
+    "#multihop-tcp-vegas-history",
+    true
+  );
+});
+$("#get-topology-link-history").click(function () {
+  getTestHistoryTime(
+    "geojson_topology_link",
+    "#topology-link-history"
+  );
+});
+$("#get-topology-node-history").click(function () {
+  getTestHistoryTime(
+    "geojson_topology_node",
+    "#topology-node-history"
+  );
+});
+$("#get-topology-site-history").click(function () {
+  getTestHistoryTime(
+    "geojson_topology_site",
+    "#topology-site-history"
+  );
+});
+$("#get-overview-history").click(function () {
+  getTestHistoryTime(
+    "geojson_overview_labels",
+    "#overview-history"
+  );
+});
+</script>

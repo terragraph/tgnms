@@ -1,0 +1,8 @@
+---
+- name: Check if NMS username and password are set
+  assert:
+    that: not("{{ item }}" == '')
+    msg: "NMS username and password must be set"
+  with_items:
+   - "{{ nms_username }}"
+   - "{{ nms_password }}"

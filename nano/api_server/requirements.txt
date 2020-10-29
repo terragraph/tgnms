@@ -1,0 +1,10 @@
+flask
+pymongo
+python-dateutil
+numpy
+parallel-ssh
+requests
+pexpect
+gevent
+paramiko
+scikit-learn

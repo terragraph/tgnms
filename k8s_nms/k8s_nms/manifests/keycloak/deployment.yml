@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-conf
+data:
+  tgnms-realm.json: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/keycloak/templates/tgnms-realm.json') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+spec:
+  clusterIP: None
+  ports:
+    - port: 8080
+  selector:
+    app: keycloak
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  selector:
+    matchLabels:
+      app: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      volumes:
+        - name: keycloak-conf
+          configMap:
+            name: keycloak-conf
+        - name: init-sql-config
+          configMap:
+            name: init-sql-config
+      initContainers:
+        - name: keycloak-init
+          image: mysql:5.7
+          command: ["/bin/sh", "-c", "mysql -v -hdb -u{{ db_root_user }} -p{{ db_root_password }} -e \"set @db_name='keycloak'; set @db_user='keycloak'; set @db_password='{{ keycloak_db_password }}'; source /usr/local/service.sql;\""]
+          volumeMounts:
+            - name: init-sql-config
+              mountPath: /usr/local/service.sql
+              subPath: service.sql
+      containers:
+        - image: {{ keycloak_image }}
+          name: keycloak
+          args: ["-b", "::", "-c=standalone.xml"]
+          imagePullPolicy: "{{ image_pull_policy }}"
+          env:
+            # keycloak root user credentials
+            - name: KEYCLOAK_USER
+              value: "{{ keycloak_root_user }}"
+            - name: KEYCLOAK_PASSWORD
+              value: "{{ keycloak_root_password }}"
+            # mysql connection params
+            - name: DB_VENDOR
+              value: "mysql"
+            - name: DB_ADDR
+              value: "{{ db_host }}"
+            - name: DB_DATABASE
+              value: "keycloak"
+            - name: DB_USER
+              value: "keycloak"
+            - name: DB_PASSWORD
+              value: "{{ keycloak_db_password }}"
+{% if is_ipv6 %}
+            - name: JAVA_OPTS
+              value: "-Djava.net.preverIPv6Stack=true"
+{% endif %}
+            # use if hosted behind nginx
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+
+            # import a default keycloak realm
+            - name: KEYCLOAK_IMPORT
+              value: "/tmp/tgnms-realm.json"
+          volumeMounts:
+            - name: keycloak-conf
+              mountPath: /tmp/tgnms-realm.json
+              subPath: tgnms-realm.json

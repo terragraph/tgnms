@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  cadvisor:
+    image: google/cadvisor:latest
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /:/rootfs:ro
+     - /var/run:/var/run:rw
+     - /sys:/sys:ro
+     - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+     - terragraph_net
+    deploy:
+      mode: global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  gluster_exporter:
+    image: {{ monitoring_gluster_exporter_image }}
+    deploy:
+      mode: global
+    volumes:
+      - /var/lib/glusterd:/var/lib/glusterd
+      - "{{ terragraph_docker_path }}/{{ gluster_bricks }}:{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+      - {{ monitoring_gfs_path }}/gluster_exporter/config:/usr/local/etc/gluster-exporter
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+networks:
+  terragraph_net:
+    external: true

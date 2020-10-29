@@ -1,0 +1,158 @@
+{
+  "//": "Network analyzer url",
+  "network_analyzer_url": "http://[2620:10d:c089:e001:250:56ff:feb4:d1fd]",
+  "//": "Network name where Network Analyzer is running for",
+  "network_name": "reg",
+  "//": "Wheather we need to patch threading to suppress multithreading errors",
+  "gevent_monkey_patch_thread": true,
+  "//": "Location of Network Analyzer running at (vm/devserver)",
+  "run_location": "vm",
+  "//": "API server config parameters",
+  "api_server_params": {
+    "//": "Network name",
+    "name": "reg",
+    "//": "Host ip",
+    "host": "::",
+    "//": "Running port of api server",
+    "port": 5025,
+    "//": "Query limit",
+    "query_limit": 150,
+    "//": "Time gap (seconds) between every state-machine check",
+    "time_gap": 10
+  },
+  "//": "Prometheus related config",
+  "targets": {
+    "folder_name": "prometheus/",
+    "json_file_name": "targets.json"
+  },
+  "//": "Controller login information",
+  "controller": {
+    "ip": "2620:10d:c089:e001:250:56ff:feb4:3ee9",
+    "api_ip": "[2620:10d:c089:e001:250:56ff:feb4:3ee9]",
+    "api_port": 8080,
+    "username": "root",
+    "password": "facebook",
+    "authkey_fp": null,
+    "ssl_verify": false,
+    "http_secure": "http",
+    "docker_swarm_api_url_prefix": "",
+    "tg_cli": "tg"
+  },
+  "//": "Default information to log onto each node",
+  "node": {
+    "username": "root",
+    "password": null,
+    "authkey_fp": "../keys/id_ed25519"
+  },
+  "//": "Server login information",
+  "server": {
+    "ip": "2620:10d:c089:e001:250:56ff:feb4:3ee9",
+    "username": "root",
+    "password": "facebook",
+    "authkey_fp": null
+  },
+  "//": "Enable Variable traffic loading based on DOF in P2MP configuration",
+  "variable_traffic_loading": false,
+  "//": "Specify global email list, set to null to disable emailing results",
+  "global_email_lists": ["fsun@fb.com", "nishitay@fb.com"],
+  "//": "Set to true to enable specific emailing list per test",
+  "//": "This will ignore the global email list",
+  "enable_per_test_emailing": true,
+  "//": "Specify tests to perform",
+  "tests": {
+    "//": "PHY layer tests",
+    "alignment": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com", "ahmedghelmy@fb.com",
+        "mahakar@fb.com", "aoladapo@fb.com", "dlampie@fb.com"]
+    },
+    "im_scan": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com",
+        "ahmedghelmy@fb.com", "dunn@fb.com"]
+    },
+    "monitoring_r2d2": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "fetching_fw_config": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "//": "Network layer tests",
+    "ping_p2p": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "ping_sa": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "iperf_p2p": {
+      "//": "Specify iPerf layer (link or network)",
+      "layer": "network",
+      "//": "Specify iperf data rate",
+      "rate": "100M",
+      "//": "Specify iperf duration",
+      "duration": 300,
+      "//": "Specify a list of tx to test; set to null to test all",
+      "tx": null,
+      "//": "Fix power during the test; set to null to disable",
+      "fixpower": null,
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com", "ahmedghelmy@fb.com",
+         "dlampie@fb.com"]
+    },
+    "iperf_multihop": {
+      "//": "Multihop iPerf tests",
+      "do_it": false,
+      "//": "Server location: pop or vm",
+      "server_location": "pop",
+      "//": "Specify tests types (in a list, supporting tcp/udp)",
+      "type": ["tcp"],
+      "//": "Specify iperf data rate",
+      "rate": "500M",
+      "//": "Specify TCP congestion control algorithm, default: reno, options: westwood, cubic, htcp, vegas",
+      "congest_ctrl_algo": "reno",
+      "//": "Config traffic direction for multihop: southbound, northbound or bidirection",
+      "direction": "southbound",
+      "//": "Specify iperf duration",
+      "duration": 120,
+      "//": "Specify a list of sectors to test for triplet based multihop tests",
+      "sector": null,
+      "//": "Limit iperf multihop sessions that run sequentially",
+      "sessions": "all",
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com",
+        "dlampie@fb.com", "mahakar@fb.com"]
+    }
+  },
+  "//": "If doing analysis, whether do it immediately after each test",
+  "perform_analysis_immediate": true,
+  "//": "Analysis configs (feed in configs in tests as data source)",
+  "analysis": {
+    "//": "Whether run analysis on data from database or from local filepath",
+    "//": "currently not implemented yet",
+    "data_from_database": false,
+    "//": "Run box alignment analysis",
+    "box_alignment": true,
+    "//": "Run reciprocal analysis based on IM scans",
+    "reciprocal_im": true,
+    "//": "Run interference analysis base on IM scans",
+    "interference": true,
+    "//": "Run monitoring analysis",
+    "monitoring": true,
+    "//": "Run iperf p2p analysis",
+    "iperf_p2p": true,
+    "//": "Run ping p2p analysis",
+    "ping_p2p": true,
+    "//": "Run multihop analysis",
+    "multihop": true,
+    "//": "Run sector availability analysis",
+    "sector_availability": true,
+    "//": "Run connectivity graph analysis based on IM scans",
+    "connectivity": true,
+    "//": "If run connectivity graph analysis, what is the target snr",
+    "connectivity_target_snr": 12
+  }
+}

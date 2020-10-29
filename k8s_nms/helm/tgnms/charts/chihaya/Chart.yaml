@@ -1,0 +1,9 @@
+name: chihaya
+description: A Helm Chart for terragraph chihaya service
+version: 0.0.1
+apiVersion: v1
+keywords:
+  - chihaya
+  - tg-chihaya
+sources:
+home:

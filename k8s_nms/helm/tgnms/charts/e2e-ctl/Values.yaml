@@ -1,0 +1,72 @@
+imagePullSecrets: []
+# - name: tg-secrets-registry
+
+kubernetesType: local
+e2eControllerCreate: false
+
+tgnms:
+  e2ectl:
+    image:
+      repository: secure.cxl-terragraph.com:443/e2e-controller
+      tag: latest
+      pullPolicy: Always
+
+    controllers:
+      name: dev_example_first
+      ctlPort: 7007
+      aggPort: 8002
+      appPort: 17077
+      btSeederPort: 6881
+
+    persistence:
+      type: local
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      storageClass: manual
+      path: /tmp/data
+
+    env:
+      apiArgs: None
+      e2ePath: /opt/terragraph/gfs/e2e
+      e2eConfigFile: cfg/controller_config.json
+      e2eTopologyFile: e2e_topology.conf
+      nmsConfigFile: cfg/aggregator_config.json
+      e2eAuditLogsPath: /opt/terragraph/gfs/audit_logs/example_first
+      tgAggregatorHost: nms_aggregator-{{ escaped_controller_name }}
+      tgBtAnnounceIP: 2600:1f13:b95:6400:0:0:0:0
+      tgBtSeederPort: 6881
+      tgBtTrackerOverride: http://[2600:1f13:b95:6400:0:0:0:0]:6969/announce
+      tgControllerHost: e2e_controller-example_first
+      tgLocalBtTrackerOverrride: http://chihaya:6969/announce
+      tgNmsRemoteEndpoint: http://query_service:8086/
+
+    configmap:
+      startAgent: {}
+      startCtl: {}
+      startAgg: {}
+      topologyConf: {}
+      defaultEnv: {}
+
+    service:
+      name: e2e-controller
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 80
+      targetPort: 80
+      nodePort: {}
+      externalTrafficPolicy: Cluster
+      loadBalancerIP: {}
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      deployment:
+      podAnnotations: {}
+      podLabels: {}
+      annotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      resources: {}

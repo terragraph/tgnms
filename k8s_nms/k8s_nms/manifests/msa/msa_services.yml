@@ -1,0 +1,124 @@
+{% for service in msa_services %}
+{% set service_dns_name = service.name.replace('_', '-') %}
+{% if service.uses_database %}
+{% set db_service_password = service.db_password if 'db_password' in service else lookup("password") %}
+# ConfigMaps for database access
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ service_dns_name }}-db-env
+data:
+    DB_NAME: {{ service.name }}
+    DB_USER: {{ service.name }}_user
+    DB_PASSWORD: "{{ db_service_password }}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ service_dns_name }}-init-sql
+data:
+  service.sql: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/database/templates/service.sql') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ service_dns_name }}-alembic
+data:
+  alembic.ini: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/msa/templates/alembic.ini', {"service": service, "db_service_password": db_service_password}) | indent(width=4, indentfirst=False )}}
+---
+{% endif %}
+# Service Config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ service_dns_name }}-service-config
+data:
+  service_config.json: |
+    {{ lookup('template', '../../../nms_stack/nms_cli/nms_stack/roles/msa/templates/' + service.name + '/service_config.json') | indent(width=4, indentfirst=False )}}
+---
+# Deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ service_dns_name }}
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: {{ service_dns_name }}
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ service_dns_name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ service_dns_name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ service_dns_name }}
+    spec:
+      volumes:
+        - name: service-config
+          configMap:
+            name: {{ service_dns_name }}-service-config
+        - name: tglib-config
+          configMap:
+            name: tglib-service-config
+        {% if service.uses_database %}
+        - name: alembic-config
+          configMap:
+            name: {{ service_dns_name }}-alembic
+        - name: init-sql-config
+          configMap:
+            name: {{ service_dns_name }}-init-sql
+      initContainers:
+        - name: {{ service_dns_name }}-init
+          image: mysql:5.7
+          command: ["/bin/sh", "-c", "mysql -v -hdb -u{{ db_root_user }} -p{{ db_root_password }} -e \"set @db_name='{{ service.name }}'; set @db_user='{{ service.name }}_user'; set @db_password='{{ db_service_password }}'; source /usr/local/service.sql;\""]
+          volumeMounts:
+            - name: init-sql-config
+              mountPath: /usr/local/service.sql
+              subPath: service.sql
+        {% endif %}
+      containers:
+        - image: {{ service.image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          name: {{ service_dns_name }}
+          command: ["/bin/sh", "-c", "{{ service.command }}"]
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+          {% if service.uses_database %}
+          envFrom:
+            - configMapRef:
+                name: {{ service_dns_name }}-db-env
+          {% endif %}
+          volumeMounts:
+            - name: service-config
+              mountPath: /usr/local/{{ service.name }}/service_config.json
+              subPath: service_config.json
+            - name: tglib-config
+              mountPath: /usr/local/{{ service.name }}/config.json
+              subPath: config.json
+            {% if service.uses_database %}
+            - name: alembic-config
+              mountPath: /usr/local/{{ service.name }}/alembic.ini
+              subPath: alembic.ini
+            {% endif %}
+      imagePullSecrets:
+        - name: tg-repo-creds
+---
+{% endfor %}

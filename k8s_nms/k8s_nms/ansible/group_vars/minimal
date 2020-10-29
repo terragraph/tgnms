@@ -1,0 +1,65 @@
+# +--------------------------------------------------------+
+# |           NMS Configuration Options                    |
+# +--------------------------------------------------------+
+# Certbot args to get free SSL Certificate from letsencrypt.org
+# Both `ext_nms_hostname` and `certbot_user_email` must be changed from the
+# placeholder values in order to be valid.
+#
+# If passing pre-generated certificates to the installer, set
+# `certbot_user_email` to empty string ("") to disable certbot.
+#
+# `ext_nms_hostname` is the DNS name for the host. The name should resolve to
+# the publically reachable IP address for the server if certbot is enabled.
+# `certbot_user_email` is an email to receive certbot notifications.
+# ext_nms_hostname: host.example.com
+ext_nms_hostname: "{{ ipv6_address if is_ipv6 else ipv4_address }}"
+# certbot_user_email: admin@example.com
+# certbot_args: --staging
+
+# Keycloak admin portal credentials
+keycloak_enabled: false
+keycloak_root_user: root
+keycloak_root_password: 7I*xUF9PGpI5W*ig
+keycloak_db_user: keycloak
+keycloak_db_password: 8^ib0L5lvSF9gC5a
+
+# Database Config
+db_host: db
+db_root_user: root
+db_root_password: 12345
+
+# NMS Web Login
+# Set desired username and password below to login to the NMS.
+nms_username: admin
+nms_password:
+
+# Terragraph Software Portal credentials
+# Set api_id and api_key to authenticate NMS with the official Terragraph
+# Software portal.
+nms_software_portal_api_id:
+nms_software_portal_api_key:
+
+# List of controllers
+#
+# All port numbers must be unique.
+# `controller_list.name` may only contain alphabets, numbers, spaces and
+#  underscores
+controllers_list: []
+# controllers_list:
+# - name: my_example_controller
+#   ctrlr_port: '7007'
+#   agg_port: '8002'
+#   app_port: '17077'
+#   bt_seeder_port: '6881'
+
+# +--------------------------------------------------------+
+# |        Bootstrapping the Kubernetes Cluster            |
+# +--------------------------------------------------------+
+# Set to the main user that should operate the cluster
+# `ansible_user` is the user for ssh'ing to the hosts. If this user does not
+# have passwordless ssh and passwordless sudo access, make sure to pass the `-p`
+# flag to the installer.
+# `docker_user` is the user that has access to docker and its various services.
+kubernetes_user: root
+ansible_user: root
+docker_user: root

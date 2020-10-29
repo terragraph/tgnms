@@ -1,0 +1,74 @@
+{{- if .Values.databaseCreate }}
+{{- $root := . -}}
+{{- with .Values.tgnms.database.service }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+    spec:
+      containers:
+        - image: {{ $root.Values.tgnms.database.image.repository }}:{{ $root.Values.tgnms.database.image.tag }}
+          name: {{ .name }}
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: host
+            - name: MYSQL_TCP_PORT
+              value: {{ .port | quote }}
+            - name: MYSQL_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: rootUser
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: rootPass
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: dbName
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: dbUser
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: dbPass
+          envFrom:
+            - configMapRef:
+                name: time-zone
+          ports:
+            - containerPort: {{ .port }}
+              name: {{ .name }}
+          volumeMounts:
+            - name: {{ .name }}-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: {{ .name }}-initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: {{ .name }}-persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ .name }}-pvc
+        - name: {{ .name }}-initdb
+          configMap:
+            name: {{ .name }}-init-config
+{{- end }}
+{{- end }}

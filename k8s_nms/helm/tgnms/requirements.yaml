@@ -1,0 +1,25 @@
+dependencies:
+  - name: common
+    version: 0.0.1
+    repository: ""
+    condition: commonCreate
+  - name: chihaya
+    version: 0.0.1
+    repository: ""
+    condition: chihayaCreate
+  - name: database
+    version: 0.0.1
+    repository: ""
+    condition: databaseCreate
+  - name: e2e-ctl
+    version: 0.0.1
+    repository: ""
+    condition: e2eControllerCreate
+  - name: stats
+    version: 0.0.1
+    repository: ""
+    condition: statsCreate
+  - name: grafana
+    version: 0.0.1
+    repository: ""
+    condition: grafanaCreate

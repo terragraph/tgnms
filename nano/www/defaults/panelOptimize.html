@@ -1,0 +1,173 @@
+<div class="card mt-3">
+    <div class="card-header text-center">
+        Hybrid Polarity
+    </div>
+    <div class="card-body">
+      <form>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="optimize-polarity-objective">
+              Objective</label>
+            <input type="text" name="polarity-objective"
+              placeholder="SINR (dB)" class="form-control"
+              id="optimize-polarity-objective" disabled>
+          </div>
+          <div class="form-group col-6">
+            <label for="optimize-polarity-sinr-goal">
+              Goal</label>
+            <input type="number" min="0" max="20"
+              name="sinrgoal" value="18"
+              class="form-control" id="optimize-polarity-sinr-goal">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-12">
+            <label for="optimize-polarity-method">
+              Algorithm</label>
+            <select class="form-control" id="optimize-polarity-method">
+              <option value="greedy" selected="">
+                Greedy (Recommended)</option>
+              <option value="montecarlo">
+                Monte Carlo (Long wait)</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" onclick="optimizePolarity(this)"
+          class="col btn btn-outline-primary">
+          Go for it!</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header text-center">
+        Path Replacement (beta, with Hybrid Polarity)
+    </div>
+    <div class="card-body">
+      <form>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="optimize-pathreplace-objective">
+              Objective</label>
+            <input type="text" name="pathreplace-objective"
+              placeholder="SINR (dB)" class="form-control"
+              id="optimize-pathreplace-objective" disabled>
+          </div>
+          <div class="form-group col-6">
+            <label for="optimize-pathreplace-sinr-goal">
+              Goal</label>
+            <input type="number" min="0" max="20"
+              name="sinrgoal" value="18"
+              class="form-control" id="optimize-pathreplace-sinr-goal">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="optimize-pathreplace-linkcount">
+              # of Links to Optimize</label>
+            <input type="number" min="1" max="30"
+              name="linkcount" value="5"
+              class="form-control" id="optimize-pathreplace-linkcount">
+          </div>
+          <div class="form-group col-6">
+            <label for="optimize-pathreplace-criteria">
+              Criteria</label>
+            <select class="form-control" id="optimize-pathreplace-criteria">
+              <option value="overallsinr" selected="">
+                Overall SINR</option>
+              <option value="linkhealth" disabled="">
+                Link Healthiness</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" onclick="optimizePathreplace(this);"
+          class="col btn btn-outline-primary">
+          Go for it!</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function optimizePolarity(elm) {
+  // validate inputs
+  var objective = $('#optimize-polarity-objective').val();  // not in use now
+  var goal = $('#optimize-polarity-sinr-goal').val();
+  var algorithm = $('#optimize-polarity-method').val();
+  // backup to show progress bar
+  var oriContent = $(elm).html();
+  $(elm).prop("disabled", true);
+  showProgress($(elm), 30);
+  // call API
+  $.ajax({
+    type: 'POST',
+    url: apiServerIP + ':' + apiServerPort + '/perform_optimization',
+    dataType: 'json',
+    data: JSON.stringify({
+      'polarity': true, 'sinrgoal': goal,
+      'golay': true, 'algorithm': algorithm}),
+    async: true,
+    timeout: 3600000,  // TODO: one hour timeout
+    success: function(response) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      var a = document.createElement("a");
+      var file = new Blob(
+        [JSON.stringify(response, null, 2)], {type: 'text/plain'});
+      a.href = URL.createObjectURL(file);
+      a.download = 'topology_optimized.json';
+      a.click();
+    },
+    error: function (e) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      console.error('ERROR in optimize polarity!' + e.text);
+    },
+  });
+}
+
+function optimizePathreplace(elm) {
+  // validate inputs
+  var objective = $('#optimize-polarity-objective').val();  // not in use now
+  var goal = $('#optimize-polarity-sinr-goal').val();
+  var max_num_links = $('#optimize-pathreplace-linkcount').val();
+  var criteria = $('#optimize-pathreplace-criteria').val();
+  // backup to show progress bar
+  var oriContent = $(elm).html();
+  $(elm).prop("disabled", true);
+  showProgress($(elm), 30);
+  // call API
+  $.ajax({
+    type: 'POST',
+    url: apiServerIP + ':' + apiServerPort + '/do_optimization',
+    dataType: 'json',
+    data: JSON.stringify({
+      'pathreplace': true, 'sinrgoal': goal,
+      'criteria': criteria, 'max_num_links': max_num_links}),
+    async: true,
+    timeout: 3600000,  // TODO: one hour timeout
+    success: function(response) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      var a = document.createElement("a");
+      var file = new Blob(
+        [JSON.stringify(response, null, 2)], {type: 'text/plain'});
+      a.href = URL.createObjectURL(file);
+      a.download = 'topology_optimized.json';
+      a.click();
+      if (response.extrainfo != null) {
+        alert(
+          "added links: " + response.extrainfo.added_links + "\n\n" +
+          "removed links: " + response.extrainfo.removed_links
+        );
+      }
+    },
+    error: function (e) {
+      $(elm).html(oriContent);
+      $(elm).prop("disabled", false);
+      console.error('ERROR in optimize polarity!' + e.text);
+    },
+  });
+}
+</script>

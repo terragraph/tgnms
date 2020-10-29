@@ -1,0 +1,8 @@
+{{- if .Values.commonCreate }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: time-zone
+data:
+  TZ_FILE: {{ .Values.tgnms.common.timeZonePath }}
+{{- end}}

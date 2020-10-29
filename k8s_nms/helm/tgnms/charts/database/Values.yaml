@@ -1,0 +1,55 @@
+imagePullSecrets: []
+# - name: tg-docker-registry
+
+databaseCreate: false
+
+tgnms:
+  database:
+    env:
+      host: {}
+      port: 3306
+      rootUser: {}
+      rootPass: {}
+      dbName: {}
+      dbUser: {}
+      dbPass: {}
+      dbDialect: mysql
+
+    persistence:
+      enabled: false
+      type: local
+      storageClass: manual
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      annotations: {}
+      path: /data
+
+
+    image:
+      repository: mysql
+      tag: 5.7.30
+      pullPolicy: IfNotPresent
+
+    service:
+      name: db
+      annotations: {}
+      type: ClusterIP
+      port: 3306
+
+    configmap:
+      dbInitFile: {}
+      dbService: {}
+      postStartScript: {}
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      deployment:
+      podAnnotations: {}
+      podLabels: {}
+      annotations: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
+      resources: {}

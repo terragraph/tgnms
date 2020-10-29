@@ -1,0 +1,45 @@
+---
+- name: Check if controller list exists
+  assert:
+    that: controllers_list is defined
+    msg: "controllers_list is not defined"
+
+- name: Check if Controller attributes are unique
+  assert:
+    that: >
+          controllers_list | map(attribute="{{ item }}") | list | count
+          ==
+          controllers_list | map(attribute="{{ item }}") | list | unique | count
+    msg: "Controller {{ item }}s are not unique"
+  loop:
+  - name
+  - ctrlr_port
+  - agg_port
+  - app_port
+  - bt_seeder_port
+  loop_control:
+    index_var: index
+
+- name: Check controllers_list is overridden
+  assert:
+    that:
+      - not(controllers_list | map(attribute='name') | list == ['example_first', 'example_second'])
+    fail_msg: controllers_list must be overridden in config.
+
+- name: Check if Controller name, port and api_port are valid
+  assert:
+    that:
+      - not("{{ item.name }}" == '')
+      - item.name is match('^[a-zA-Z0-9][a-zA-Z0-9\s_]*$')
+      - "{{ item.ctrlr_port }} >= 1025"
+      - "{{ item.ctrlr_port  }} <= 65535"
+      - "{{ item.agg_port }} >= 1025"
+      - "{{ item.agg_port  }} <= 65535"
+      - "{{ item.app_port }} >= 1025"
+      - "{{ item.app_port  }} <= 65535"
+      - "{{ item.bt_seeder_port }} >= 1025"
+      - "{{ item.bt_seeder_port  }} <= 65535"
+    msg: >
+         Controller name cannot be blank and should only contain letters, numbers, spaces and underscores.
+         Controller ports must be between 1025 and 65535.
+  with_items: "{{ controllers_list }}"

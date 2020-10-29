@@ -1,0 +1,104 @@
+---
+- name: Bootstrap Python
+  import_playbook: bootstrap.yml
+
+- hosts: master
+  tasks:
+    - name: "set proxy if defined"
+      set_fact:
+        http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+
+- hosts: all
+  tasks:
+    - name: Create {{ terragraph_docker_path }}
+      file:
+        path: "{{ terragraph_docker_path }}"
+        state: directory
+    - name: Create {{ terragraph_docker_path }}/config-backups
+      file:
+        path: "{{ terragraph_docker_path }}/config-backups"
+        state: directory
+    - name: Backup installation config file to {{ terragraph_docker_path }}/config-backups
+      template:
+        src: "{{ config_file_path }}"
+        dest: "{{ terragraph_docker_path }}/config-backups/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
+
+# Create the gfs and bricks dirs even if gluster is not installed
+- name: create terragraph dirs
+  hosts: all
+  tasks:
+    - name: "warn user about disabling gluster with multiple nodes"
+      fail:
+        msg: "Gluster disabled, but multiple nodes detected. You must manually provision replicated storage after installation."
+      ignore_errors: true
+      when: not (use_glusterfs or single_node)
+    - name: make terragraph directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0755
+      loop:
+        - "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        - "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+
+- name: install and mount glusterfs
+  import_playbook: plays/tg-glusterfs/site.yaml
+  when: use_glusterfs and not single_node
+
+- name: install kubernetes cluster
+  import_playbook: plays/kubeadm-ansible/site.yaml
+
+- hosts: master
+  gather_facts: yes
+  tasks:
+    # Stash this in a fact so we know where the home directory is even during
+    # tasks running as root. There is no built in way to do this apparently:
+    # https://github.com/ansible/ansible/issues/15901
+    - name: find home directory
+      become: yes
+      become_user: "{{ kubernetes_user }}"
+      become_method: sudo
+      shell: "echo $HOME"
+      register: kubernetes_user_home_dir
+
+    - name: create ~/.kube directory
+      become: yes
+      become_user: "{{ kubernetes_user }}"
+      become_method: sudo
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy admin.conf to user's kube config
+      become: yes
+      become_user: root
+      become_method: sudo
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ kubernetes_user_home_dir.stdout }}/.kube/config"
+        remote_src: yes
+        owner: "{{ kubernetes_user }}"
+
+    - name: enable scheduling on master node
+      shell: "kubectl taint nodes --all node-role.kubernetes.io/master-"
+      when: single_node
+      # This may fail if the taint is already removed
+      ignore_errors: yes
+
+    # ElasticSearch crashes in its 'bootstrap checks' phase with the default
+    # map limit
+    - name: Increase mmap limits for elasticsearch
+      sysctl:
+        name: vm.max_map_count
+        value: "262144"
+        state: present
+        sysctl_set: yes
+
+    - name: add MetalLB
+      when: metallb_address_space is defined
+      include_role:
+        name: metallb

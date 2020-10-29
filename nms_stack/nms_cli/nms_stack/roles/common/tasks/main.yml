@@ -1,0 +1,155 @@
+---
+- name: run ubuntu common
+  include: ubuntu.yml
+  when: ansible_distribution == 'Ubuntu'
+
+- name: run rhel family common
+  include: redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: install docker
+  include_role:
+    name: ansible-role-docker
+
+- name: install glusterfs
+  include_role:
+    name: ansible-role-glusterfs
+  when: groups.all | length > 1
+
+- name: upgrade pip, setuptools
+  pip:
+    name:
+      - pip
+      - setuptools
+    state: latest
+
+- name: pip install docker dependencies
+  pip:
+    name:
+      - docker
+      - docker-compose
+      - json-diff
+      - passlib
+    state: present
+
+- name: create docker daemon config path
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: configure docker http proxy if needed
+  template:
+    src: docker-http-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: http_proxy is defined
+
+- name: configure docker https proxy if needed
+  template:
+    src: docker-https-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/https-proxy.conf
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: https_proxy is defined
+
+- name: restart docker to use proxy
+  systemd:
+    daemon_reload: yes
+    state: restarted
+    name: docker
+  when: http_proxy is defined or https_proxy is defined
+
+- name: Adding existing user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+
+- name: make terragraph directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+    - "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+
+- name: Configure replicated gluster volume
+  gluster_volume:
+    state: present
+    name: glusterfs
+    bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+    replicas: "{{ groups.all | length }}"
+    cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv4') | map(attribute='address') | list }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    force: yes
+  run_once: true
+  when: groups.all | length > 1
+
+- name: Start replicated gluster volume
+  gluster_volume:
+    state: started
+    name: glusterfs
+  when: groups.all | length > 1
+
+- name: Ensure replicated gluster volume is mounted
+  mount:
+    name: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+    src: "{{ ansible_default_ipv4.address }}:/glusterfs"
+    fstype: glusterfs
+    opts: "defaults,_netdev"
+    state: mounted
+  when: groups.all | length > 1
+
+- name: Set ownership for replicated gluster mount
+  file:
+    path: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    recurse: yes
+
+- name: Create directory for secrets
+  file:
+    path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/secrets"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0700
+  run_once: true
+
+- name: Generate ssh keys (for management & upgrades)
+  command: ssh-keygen -q -b 4096 -t rsa -f "{{ terragraph_docker_path }}/{{ gluster_mount }}/secrets/id_ssh_rsa" -C "" -N ""
+  args:
+    creates: "{{ terragraph_docker_path }}/{{ gluster_mount }}/secrets/id_ssh_rsa"
+  run_once: true
+
+- name: Load ssh public key
+  command: cat "{{ terragraph_docker_path }}/{{ gluster_mount }}/secrets/id_ssh_rsa.pub"
+  register: ssh_public_key
+  retries: 3
+  delay: 5
+
+- name: Set authorized key from generated ssh keys
+  authorized_key:
+    user: "{{ docker_user }}"
+    state: present
+    key: "{{ ssh_public_key.stdout }}"
+
+- name: docker login
+  docker_login:
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+    registry_url: "{{ docker_registry_url }}"
+    reauthorize: yes
+  register: result
+  until: result is success
+  retries: 5
+  delay: 60

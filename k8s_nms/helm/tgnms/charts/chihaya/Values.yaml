@@ -1,0 +1,37 @@
+imagePullSecrets: []
+# - name: tg-secrets-registry
+
+chihayaCreate: false
+
+tgnms:
+  chihaya:
+    image:
+      repository: quay.io/jzelinskie/chihaya
+      tag: v2.0.0-rc.2
+      pullPolicy: IfNotPresent
+
+    configmap:
+      chihayaConfigFile: {}
+
+    service:
+      name: chahaya
+      annotations: {}
+      labels: {}
+      type: ClusterIP
+      port: 6969
+      targetPort: 6969
+      nodePort: {}
+      externalTrafficPolicy: Cluster
+      loadBalancerIP: {}
+
+    deployment:
+      replicas: 1
+      strategy:
+        type: Recreate
+      configSubPath: chihaya.yml
+      podAnnotations: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      resources: {}
+      podLabels: {}

@@ -1,0 +1,76 @@
+<div class="card border-light mb-3">
+  <div class="card-header bg-primary text-white">
+    Your input is valuable to our data analysis!</div>
+  <div class="card-body">
+    <h5 class="card-title">If you know it, %LINKNAME% is...</h5>
+
+      <div class="btn-group btn-group-toggle btn-block" data-toggle="buttons">
+        <label class="btn btn-outline-success col-3"
+          onclick="collect_groundtruth(this);">
+          <input
+            type="radio" data-linkname="%LINKNAME%" data-surveyname="foliage"
+            data-data="foliage_heavy" autocomplete="off">
+          <i class="fa fa-tree"></i>
+          <i class="fa fa-tree"></i>
+          <i class="fa fa-tree"></i>
+        </label>
+        <label class="btn btn-outline-success col-3"
+          onclick="collect_groundtruth(this);">
+          <input
+            type="radio" data-linkname="%LINKNAME%" data-surveyname="foliage"
+            data-data="foliage_med" autocomplete="off">
+          <i class="fa fa-tree"></i>
+          <i class="fa fa-tree"></i>
+        </label>
+        <label class="btn btn-outline-success col-2"
+          onclick="collect_groundtruth(this);">
+          <input
+            type="radio" data-linkname="%LINKNAME%" data-surveyname="foliage"
+            data-data="foliage_light" autocomplete="off">
+          <i class="fa fa-tree"></i>
+        </label>
+        <label class="btn btn-outline-success col-2"
+          onclick="collect_groundtruth(this);">
+          <input
+            type="radio" data-linkname="%LINKNAME%" data-surveyname="foliage"
+            data-data="blockage" autocomplete="off">
+          <i class="fa fa-eye-slash"></i>
+        </label>
+        <label class="btn btn-outline-success col-2"
+          onclick="collect_groundtruth(this);">
+          <input
+            type="radio" data-linkname="%LINKNAME%" data-surveyname="foliage"
+            data-data="clean" autocomplete="off">
+          <i class="fa fa-thumbs-up"></i>
+        </label>
+      </div>
+  </div>
+  <div class="card-footer bg-primary text-white">Waiting for selection..</div>
+</div>
+
+<script>
+function collect_groundtruth(elm) {
+  $.ajax({
+    type: 'POST',
+    url: apiServerIP + ':' + apiServerPort + '/survey_data',
+    dataType: 'json',
+    data: JSON.stringify({
+      "surveyname": $(elm).children('input').attr('data-surveyname'),
+      "key": $(elm).children('input').attr('data-linkname'),
+      "value": $(elm).children('input').attr('data-data')
+    }),
+    async: true,
+    success: function() {
+      $(elm).parent().parent().parent().children('.card-footer')
+      .html('Thank you! Your data is uploaded!')
+      .removeClass('bg-dark').addClass('bg-success');
+    },
+    error: function () {
+      $(elm).parent().parent().parent().children('.card-footer')
+      .html('Thank you! But it fails to upload..')
+      .removeClass('bg-success').addClass('bg-dark');
+      console.error('Cannot connect to survey api!');
+    },
+  });
+}
+</script>

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-exporter
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch-exporter
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch-exporter
+    spec:
+      containers:
+        - image: {{ elasticsearch_exporter_image }}
+          args: ['-es.uri=http://elasticsearch:9200', '-es.all=true']
+          name: elasticsearch-exporter
+          imagePullPolicy: "{{ image_pull_policy }}"

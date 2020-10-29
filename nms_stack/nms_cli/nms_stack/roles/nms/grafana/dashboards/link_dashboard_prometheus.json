@@ -1,0 +1,2535 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "iteration": 1565020317018,
+  "links": [],
+  "panels": [
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeA]]_phystatus_ssnrest{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_phystatus_ssnrest",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeA]]_phystatus_spostsnrdb{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_phystatus_spostsnrdb",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "SNR A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1c:c5_phystatus_ssnrest",
+          "yaxis": 1
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_phystatus_ssnrest{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_phystatus_ssnrest",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeZ]]_phystatus_spostsnrdb{nodeMac=\"[[nodeA]]\" ,intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_phystatus_spostsnrdb",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "SNR Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "based on PERE6",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_pere6{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_stapkt_pere6",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeA]]_stapkt_rxpere6{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_stapkt_rxpere6",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "PER A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "based on PERE6",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 6,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeA]]_stapkt_pere6{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_stapkt_pere6",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_rxpere6{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_stapkt_rxpere6",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "PER Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_mcs{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_stapkt_mcs",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "MCS A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 7,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeA]]_stapkt_mcs{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_stapkt_mcs",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "MCS Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "mgmtlinkup - linkavailable --> if this changes, indicates LINK_UP_DATADOWN state",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 2
+        },
+        {
+          "alias": "delta(mgmtlinkup, linkavailable)",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_stapkt_mgmtlinkup",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}-tgf_[[nodeZ]]_stapkt_linkavailable{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(mgmtlinkup, linkavailable)",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "mgmtlinkup/linkavailable A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "mgmtlinkup - linkavailable --> if this changes, indicates LINK_UP_DATADOWN state",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 9,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 2
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "delta(mgmtlinkup,linkavailable)",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_stapkt_mgmtlinkup",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeA]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}-tgf_[[nodeA]]_stapkt_linkavailable{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(mgmtlinkup,linkavailable)",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "mgmtlinkup/linkavailable Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 11,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_stapkt_txpowerindex{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_stapkt_txpowerindex",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "tx power index A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 10,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeA]]_stapkt_txpowerindex{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_stapkt_txpowerindex",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "tx power index Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 13,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeA]]_phystatus_srssi{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_phystatus_srssi",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeA]]_phystatusdata_srssi{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_phystatusdata_srssi",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "RSSI A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 12,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_phystatus_srssi{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_phystatus_srssi",
+          "refId": "A"
+        },
+        {
+          "expr": "tgf_[[nodeZ]]_phystatusdata_srssi{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_phystatusdata_srssi",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "RSSI Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "if delta(txppdu) >> delta(rxppdu) indicates missing PPDUs\n\nplots tx (rx) PPDU count (i) - tx(rx) PPDU count (i-60s)",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 48
+      },
+      "id": 15,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "delta(tgf_[[nodeA]]_stapkt_rxppdu{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeA]]_stapkt_rxppdu)",
+          "refId": "A"
+        },
+        {
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txppdu{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeZ]]_stapkt_txppdu)",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "PPDU A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "if delta(txppdu) >> delta(rxppdu) indicates missing PPDUs\n\nplots tx (rx) PPDU count (i) - tx(rx) PPDU count (i-60s)",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 48
+      },
+      "id": 14,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_rxppdu{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeZ]]_stapkt_rxppdu)",
+          "refId": "A"
+        },
+        {
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txppdu{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeA]]_stapkt_txppdu)",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "PPDU Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "if delta(txBA) >> delta(rxBA) indicates missing block acks\n\nplots tx (rx) BA count (i) - tx(rx) BA count (i-60s)",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "id": 17,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "delta(tgf_[[nodeA]]_stapkt_rxba{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeA]]_stapkt_rxba)",
+          "refId": "A"
+        },
+        {
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txba{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeZ]]_stapkt_txba)",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "BA A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "if delta(txBA) >> delta(rxBA) indicates missing block acks\n\nplots tx (rx) BA count (i) - tx(rx) BA count (i-60s)",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "id": 16,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_rxba{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeZ]]_stapkt_rxba)",
+          "refId": "A"
+        },
+        {
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txba{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeA]]_stapkt_txba)",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "BA Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 64
+      },
+      "id": 19,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txok{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeZ]]_stapkt_txok)",
+          "refId": "B"
+        },
+        {
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txfail{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeZ]]_stapkt_txfail)",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "MPDU count per minute A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 64
+      },
+      "id": 18,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txok{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeA]]_stapkt_txok)",
+          "refId": "B"
+        },
+        {
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txfail{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "delta(tgf_[[nodeA]]_stapkt_txfail)",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "MPDU count per minute Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "tx beam is at nodeA and rx beam is at nodeZ",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 72
+      },
+      "id": 20,
+      "interval": "30s",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": true,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeZ]]_phyperiodic_txbeamidx{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_phyperiodic_txbeamidx",
+          "refId": "B"
+        },
+        {
+          "expr": "tgf_[[nodeA]]_phyperiodic_rxbeamidx{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_phyperiodic_rxbeamidx",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "beam indices A->Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "tx beam is at nodeZ and rx beam is at nodeA",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 72
+      },
+      "id": 21,
+      "interval": "30s",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": true,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "tgf_[[nodeA]]_phyperiodic_txbeamidx{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeA]]_phyperiodic_txbeamidx",
+          "refId": "B"
+        },
+        {
+          "expr": "tgf_[[nodeZ]]_phyperiodic_rxbeamidx{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "tgf_[[nodeZ]]_phyperiodic_rxbeamidx",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "beam indices Z->A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 80
+      },
+      "id": 23,
+      "interval": "30s",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "e2e_minion_uptime{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "e2e_minion_uptime",
+          "refId": "B"
+        },
+        {
+          "expr": "uptime{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "uptime",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "E2E Minion Uptime at Node A",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 80
+      },
+      "id": 22,
+      "interval": "30s",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "paceLength": 10,
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "tgf_74:6f:f7:ca:1a:13_stapkt_mgmtlinkup",
+          "yaxis": 2
+        },
+        {
+          "alias": "mgmtlinkup-linkavailable",
+          "yaxis": 1
+        },
+        {
+          "alias": "tgf_2c:dc:ad:2f:e6:ea_stapkt_mgmtlinkup",
+          "yaxis": 2
+        }
+      ],
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "e2e_minion_uptime{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "e2e_minion_uptime",
+          "refId": "B"
+        },
+        {
+          "expr": "uptime{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "uptime",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "E2E Minion Uptime at Node Z",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 18,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "text": "SELECT-NETWORK",
+          "value": "SELECT-NETWORK"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(network)",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "network",
+        "options": [],
+        "query": "label_values(network)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "link_2933_PRI_1_4034_SEC_1",
+          "value": "link_2933_PRI_1_4034_SEC_1"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(snr{network=\"$network\"}, linkName)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "select link name",
+        "multi": false,
+        "name": "link_name",
+        "options": [],
+        "query": "label_values(snr{network=\"$network\"}, linkName)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "2933_PRI_1",
+          "value": "2933_PRI_1"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\"}, nodeName)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "select nodeA",
+        "multi": false,
+        "name": "nodeA_name",
+        "options": [],
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\"}, nodeName)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "4034_SEC_1",
+          "value": "4034_SEC_1"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName!=\"$nodeA_name\"}, nodeName)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "nodeZ (no select)",
+        "multi": false,
+        "name": "nodeZ_name",
+        "options": [],
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName!=\"$nodeA_name\"}, nodeName)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "2c:dc:ad:ff:ff:18",
+          "value": "2c:dc:ad:ff:ff:18"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "nodeA (no select)",
+        "multi": false,
+        "name": "nodeA",
+        "options": [],
+        "query": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "b8:9f:09:61:d5:67",
+          "value": "b8:9f:09:61:d5:67"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "nodeZ (no select)",
+        "multi": false,
+        "name": "nodeZ",
+        "options": [],
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "30",
+          "value": "30"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "write interval (sec)",
+        "multi": false,
+        "name": "intervalSec",
+        "options": [
+          {
+            "selected": false,
+            "text": "1",
+            "value": "1"
+          },
+          {
+            "selected": true,
+            "text": "30",
+            "value": "30"
+          },
+          {
+            "selected": false,
+            "text": "900",
+            "value": "900"
+          }
+        ],
+        "query": "1,30,900",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "Link Dashboard Prometheus",
+  "uid": "link_prom",
+  "version": 20
+}

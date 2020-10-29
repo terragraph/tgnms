@@ -1,0 +1,13 @@
+{
+  "initMapCenter": [37.334452126, -121.890949747],
+  "initZoomIdx": 15,
+  "networkName": "",
+  "apiServerIP": "//[]",
+  "apiServerPort": "9999",
+  "initEmailList": [],
+  "leafletToken": "pk.eyJ1IjoiaGFwcHl6eXoiLCJhIjoiY2o3OXg4djF6MDhjaTJ3cGx0bzJrMXRxdSJ9.cHelRODDJmZA9tb_K51RyA",
+  "localStorageExpireDays": 1,
+  "queryLimit": 50,
+  "apiServerStateStep": 10,
+  "defaultLayers": []
+}

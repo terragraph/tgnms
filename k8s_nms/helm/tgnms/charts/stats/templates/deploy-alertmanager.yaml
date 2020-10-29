@@ -1,0 +1,63 @@
+{{- if .Values.statsCreate }}
+{{ $root := . }}
+{{- with .Values.tgnms.stats }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.alertmgr.name }}
+  labels:
+    app: {{ .service.alertmgr.name }}
+{{ include "labels" $root | indent 4 }}
+spec:
+  replicas: {{ .deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.alertmgr.name }}
+{{ include "labels" $root | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.alertmgr.name }}
+{{ include "labels" $root | indent 8 }}
+    spec:
+      {{- with .deployment.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .deployment.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - image: {{ .images.alertmgr.repository }}:{{ .images.alertmgr.tag }}
+          imagePullPolicy: {{ .images.pullPolicy }}
+          name: {{ .service.alertmgr.name }}
+          args: ["--config.file=/etc/prometheus/alertmanager.yml"]
+          volumeMounts:
+            - name: {{ .service.alertmgr.name }}-config
+              mountPath: /etc/prometheus/alertmanager.yml
+              subPath: alertmanager.yml
+          ports:
+            - containerPort: {{ .service.alertmgr.port }}
+          resources:
+{{ toYaml .deployment.resources | indent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .deployment.livenessProbe.rootPath }}
+              port: {{ .service.alertmgr.port }}
+            initialDelaySeconds: {{ .deployment.livenessProbe.initWait }}
+            periodSeconds: {{ .deployment.livenessProbe.period }}
+      volumes:
+        - name: {{ .service.alertmgr.name }}-config
+          configMap:
+            name: {{ .service.alertmgr.name }}-config
+{{- end}}
+{{- end }}

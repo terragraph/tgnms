@@ -1,0 +1,143 @@
+{
+  "//": "Network analyzer url",
+  "network_analyzer_url": "http://112.215.248.122:9088/",
+  "//": "Network name where Network Analyzer is running for",
+  "network_name": "xl",
+  "//": "Wheather we need to patch threading to suppress multithreading errors",
+  "gevent_monkey_patch_thread": true,
+  "//": "Location of Network Analyzer running at (vm/devserver)",
+  "run_location": "vm",
+  "//": "Controller login information",
+  "controller": {
+    "ip": "2002:cafe:babe:2::2",
+    "api_ip": "[2002:cafe:babe:2::2]",
+    "api_port": 8080,
+    "username": "root",
+    "password": "F@c3B00k@123",
+    "authkey_fp": null
+  },
+  "//": "Default information to log onto each node",
+  "node": {
+    "username": "root",
+    "password": null,
+    "authkey_fp": "/root/.ssh/id_ed25519"
+  },
+  "//": "Server login information",
+  "server": {
+    "ip": "2002:cafe:babe:2::3",
+    "username": "root",
+    "password": "F@c3B00k@123",
+    "authkey_fp": null
+  },
+  "//": "Enable Variable traffic loading based on DOF in P2MP configuration",
+  "variable_traffic_loading": true,
+  "//": "Specify global email list, set to null to disable emailing results",
+  "global_email_lists": ["fsun@fb.com", "nishitay@fb.com"],
+  "//": "Set to true to enable specific emailing list per test",
+  "//": "This will ignore the global email list",
+  "enable_per_test_emailing": true,
+  "//": "Specify tests to perform",
+  "tests": {
+    "//": "PHY layer tests",
+    "alignment": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com",
+          "sunilg@fb.com", "abpathak@fb.com"]
+    },
+    "im_scan": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "monitoring_r2d2": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "fetching_fw_config": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "//": "Network layer tests",
+    "ping_p2p": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "ping_sa": {
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com"]
+    },
+    "iperf_p2p": {
+      "//": "Specify iperf data rate",
+      "rate": "100M",
+      "//": "Specify iperf duration",
+      "duration": 300,
+      "//": "Specify a list of tx to test; set to null to test all",
+      "tx": null,
+      "//": "Fix power during the test; set to null to disable",
+      "fixpower": null,
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com", "sunilg@fb.com", "abpathak@fb.com"]
+    },
+    "iperf_p2mp": {
+      "//": "Specify iperf data rate",
+      "rate": "100M",
+      "//": "Config traffic direction for p2mp: BIDIRECTIONAL=1, DN_TO_PEER = 2, PEER_TO_DN = 3",
+      "direction": 1,
+      "//": "Specify iperf duration",
+      "duration": 300,
+      "//": "Specify a list of tx to test; set to null to test all",
+      "tx": null,
+      "//": "Fix power during the test; set to null to disable",
+      "fixpower": null,
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com", "sunilg@fb.com", "abpathak@fb.com"]
+    },
+    "iperf_multihop": {
+      "//": "Multihop iPerf tests",
+      "do_it": false,
+      "//": "Server location: pop or vm",
+      "server_location": "pop",
+      "//": "Specify tests types (in a list, supporting tcp/udp)",
+      "type": ["tcp"],
+      "//": "Specify iperf data rate",
+      "rate": "500M",
+      "//": "Config traffic direction for multihop: southbound, northbound or bidirection",
+      "direction": "southbound",
+      "//": "Specify iperf duration",
+      "duration": 120,
+      "//": "Specify a list of sectors to test for triplet based multihop tests",
+      "sector": null,
+      "//": "Limit iperf multihop sessions that run sequentially",
+      "sessions": "all",
+      "//": "Specify email list, set to null to disable emailing results",
+      "emails": ["fsun@fb.com", "nishitay@fb.com"]
+    }
+  },
+  "//": "If doing analysis, whether do it immediately after each test",
+  "perform_analysis_immediate": true,
+  "//": "Analysis configs (feed in configs in tests as data source)",
+  "analysis": {
+    "//": "Whether run analysis on data from database or from local filepath",
+    "//": "currently not implemented yet",
+    "data_from_database": false,
+    "//": "Run box alignment analysis",
+    "box_alignment": true,
+    "//": "Run reciprocal analysis based on IM scans",
+    "reciprocal_im": true,
+    "//": "Run interference analysis base on IM scans",
+    "interference": true,
+    "//": "Run monitoring analysis",
+    "monitoring": true,
+    "//": "Run iperf p2p analysis",
+    "iperf_p2p": true,
+    "//": "Run ping p2p analysis",
+    "ping_p2p": true,
+    "//": "Run multihop analysis",
+    "multihop": true,
+    "//": "Run sector availability analysis",
+    "sector_availability": true,
+    "//": "Run connectivity graph analysis based on IM scans",
+    "connectivity": true,
+    "//": "If run connectivity graph analysis, what is the target snr",
+    "connectivity_target_snr": 12
+  }
+}

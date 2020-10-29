@@ -1,0 +1,8 @@
+imagePullSecrets: []
+# - name: tg-secrets-registry
+
+commonCreate: false
+
+tgnms:
+  common:
+    timeZonePath: /usr/share/zoneinfo/America/Los_Angeles

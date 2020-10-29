@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ -z "${E2E_CONFIG_FILE}" ]; then
+  echo "E2E_CONFIG_FILE not set"
+  exit 1
+fi
+
+if [ -z "${E2E_TOPOLOGY_FILE}" ]; then
+  echo "E2E_TOPOLOGY_FILE not set"
+  exit 1
+fi
+
+# read controller config file
+if [ ! -f "/data/${E2E_CONFIG_FILE}" ]; then
+  echo "E2E_CONFIG_FILE not found, copying default file..."
+  cp -v "/etc/e2e_config/controller_config_default.json" "/data/${E2E_CONFIG_FILE}"
+fi
+
+# create empty topology file if needed
+if [ ! -f "/data/${E2E_TOPOLOGY_FILE}" ]; then
+  echo "E2E_TOPOLOGY_FILE not found, creating empty file..."
+  touch "/data/${E2E_TOPOLOGY_FILE}"
+fi
+
+if [ ! -f "/data/${E2E_CONFIG_FILE}" ]; then
+  echo "E2E_CONFIG_FILE not found"
+  exit 1
+fi
+
+SA_FLAGS="-use_local_stats_fetcher=false"
+
+# Read controller config
+SA_FLAGS="${SA_FLAGS} -node_config_file /data/${E2E_CONFIG_FILE}"
+
+SA_FLAGS="${SA_FLAGS} -mac_addr 0:0:0:0:0:0 -aggregator_host ${TG_AGGREGATOR_HOST}"
+
+eval /usr/sbin/stats_agent -v 2 ${SA_FLAGS} -logtostderr

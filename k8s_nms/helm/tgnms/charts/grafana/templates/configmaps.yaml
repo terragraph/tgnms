@@ -1,0 +1,80 @@
+{{- if .Values.grafanaCreate }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-dashboards-config
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.dashboards).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-docker-monitoring
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.docker).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-datasources-mysql
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.mysqlds).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-datasources-prometheus
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.promds).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-link-dashboard-prometheus
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.linker).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-network-health
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.network).AsConfig) . | nindent 2 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gf-udp-pinger
+  labels:
+    app: {{ .Values.tgnms.grafana.service.name }}
+{{ include "labels" . | indent 4 }}
+data:
+  {{- tpl ((.Files.Glob .Values.tgnms.grafana.configmap.udppinger).AsConfig) . | nindent 2 }}
+
+---
+{{- end }}

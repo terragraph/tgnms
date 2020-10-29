@@ -1,0 +1,105 @@
+version: '3.7'
+
+services:
+  e2e_controller:
+    image: {{ controller_image }}
+    deploy:
+      labels:
+        - "com.terragraph.type=e2e_controller"
+        - "com.terragraph.network={{ controller_name }}"
+    environment:
+      - fluentd.topology_name={{ controller_name }}
+    env_file:
+      - "{{ e2e_controller_path }}/env/defaults.env"
+      - "{{ e2e_controller_path }}/env/overrides.env"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    networks:
+      terragraph_net:
+        aliases:
+          - e2e_controller-{{ escaped_controller_name }}
+    command: ["/bin/sh", "-c", "echo {{ data_folder }} > /.current && /data/scripts/e2e_controller.start"]
+    volumes:
+      - "{{ data_folder }}:/data"
+      - "{{ e2e_controller_path }}/.current:/.current"
+
+  nms_aggregator:
+    image: {{ controller_image }}
+    deploy:
+      labels:
+        - "com.terragraph.type=nms_aggregator"
+        - "com.terragraph.network={{ controller_name }}"
+    environment:
+      - fluentd.topology_name={{ controller_name }}
+    env_file:
+      - "{{ e2e_controller_path }}/env/defaults.env"
+      - "{{ e2e_controller_path }}/env/overrides.env"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    networks:
+      terragraph_net:
+        aliases:
+          - nms_aggregator-{{ escaped_controller_name }}
+    command: ["/data/scripts/nms_aggregator.start"]
+    volumes:
+      - "{{ data_folder }}:/data"
+      - "{{ e2e_controller_path }}/env:/env"
+
+  stats_agent:
+    image: {{ controller_image }}
+    deploy:
+      labels:
+        - "com.terragraph.type=stats_agent"
+        - "com.terragraph.network={{ controller_name }}"
+    environment:
+      - fluentd.topology_name={{ controller_name }}
+    env_file:
+      - "{{ e2e_controller_path }}/env/defaults.env"
+      - "{{ e2e_controller_path }}/env/overrides.env"
+    networks:
+      terragraph_net:
+        aliases:
+          - stats_agent-{{ escaped_controller_name }}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    command: ["/data/scripts/stats_agent.start"]
+    volumes:
+      - "{{ data_folder }}:/data"
+
+  api_service:
+    image: {{ controller_image }}
+    deploy:
+      labels:
+        - "com.terragraph.type=api_service"
+        - "com.terragraph.network={{ controller_name }}"
+    environment:
+      - fluentd.topology_name={{ controller_name }}
+    env_file:
+      - "{{ e2e_controller_path }}/env/defaults.env"
+      - "{{ e2e_controller_path }}/env/overrides.env"
+    networks:
+      terragraph_net:
+        aliases:
+          - api_service-{{ escaped_controller_name }}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    command: ["/bin/sh", "-c", "/usr/sbin/api_service -aggregator_host $${TG_AGGREGATOR_HOST} {% if keycloak_enabled %} -public_key_file /keycloak/publickey {% endif %} -controller_host $${TG_CONTROLLER_HOST} $${API_ARGS}"]
+    volumes:
+      - "{{ e2e_path }}/keycloak:/keycloak"
+      - "{{ e2e_audit_logs_path }}:/data/audit_logs"
+
+networks:
+  terragraph_net:
+    external: true

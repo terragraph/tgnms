@@ -1,0 +1,89 @@
+---
+- name: create keycloak paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ keycloak_path }}/env"
+    - "{{ keycloak_path }}/docker_volumes"
+    - "{{ keycloak_path }}/docker_volumes/keycloak"
+    - "{{ keycloak_path }}/docker_volumes/keycloak/scripts"
+    - "{{ keycloak_path }}/docker_volumes/keycloak/realms"
+
+- name: copy keycloak configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ keycloak_path }}" }
+    - { src: "tgnms-realm.json", dest: "{{ keycloak_path }}/docker_volumes/keycloak/realms" }
+
+- name: copy keycloak scripts
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0755"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "scripts/configure-keycloak.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/copy-public-key.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/generate-keycloak-client.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/create-default-realm-user.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+    - { src: "scripts/create-service-account-client.sh", dest: "{{ keycloak_path }}/docker_volumes/keycloak/scripts" }
+
+- name: generate keycloak db password
+  set_fact:
+    keycloak_db_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits') }}"
+
+- name: copy keycloak env files
+  template:
+    src: "keycloak.env"
+    dest: "{{ keycloak_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+
+- name: create keycloak database and user
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ db_gfs_path }}/scripts,target=/scripts
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    -e DB_NAME=keycloak
+    -e DB_HOST={{ db_host }}
+    -e DB_ROOT_USER={{ db_root_user }}
+    -e DB_ROOT_PASSWORD={{ db_root_password }}
+    mysql:5 /scripts/create_service_database.sh
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc > 1
+  until: result.rc == 0
+
+- name: run compose
+  shell: "docker stack deploy -c {{ keycloak_path }}/docker-compose.yml --with-registry-auth --prune keycloak"
+
+- name: wait for keycloak to come up
+  command: docker run --network=terragraph_net alpine nc -zv keycloak_keycloak 8080
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc > 1
+  until: result.rc == 0
+
+- name: clean compose
+  file:
+    path: "{{ keycloak_path }}/docker-compose.yml"
+    state: absent
+  when: not dev_mode
