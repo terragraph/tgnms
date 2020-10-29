@@ -14,7 +14,7 @@ export const SETTINGS: Array<SettingDefinition> = [
   {
     key: 'PORT',
     dataType: 'INT',
-    defaultValue: '8080',
+    defaultValue: '80',
     requiresRestart: true,
   },
   {
@@ -31,7 +31,6 @@ export const SETTINGS: Array<SettingDefinition> = [
   },
   {
     key: 'MYSQL_DB',
-
     dataType: 'STRING',
     defaultValue: 'cxl',
     requiresRestart: true,
