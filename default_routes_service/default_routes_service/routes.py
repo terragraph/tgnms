@@ -8,7 +8,7 @@ from functools import partial
 from typing import Any, DefaultDict, List, Tuple
 
 from aiohttp import web
-from sqlalchemy import select
+from sqlalchemy import func, select
 from tglib.clients import APIServiceClient, MySQLClient
 
 from .models import CnEgressRoutesHistory, DefaultRoutesHistory
@@ -127,29 +127,23 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     out_qry = (
         select(
             [
-                DefaultRoutesHistory.routes,
-                DefaultRoutesHistory.last_updated,
-                DefaultRoutesHistory.max_hop_count,
                 DefaultRoutesHistory.node_name,
+                func.max(DefaultRoutesHistory.last_updated).label("last_updated"),
+                func.any_value(DefaultRoutesHistory.routes).label("routes"),
+                func.any_value(DefaultRoutesHistory.max_hop_count).label("max_hc"),
             ]
         )
         .where(
             (DefaultRoutesHistory.network_name == network_name)
             & (DefaultRoutesHistory.last_updated < start_dt_obj)
         )
-        .order_by(DefaultRoutesHistory.last_updated.desc())
-        .group_by(
-            DefaultRoutesHistory.routes,
-            DefaultRoutesHistory.last_updated,
-            DefaultRoutesHistory.max_hop_count,
-            DefaultRoutesHistory.node_name,
-        )
+        .group_by(DefaultRoutesHistory.node_name)
     )
 
     # If node name is provided, fetch info for that specific node
     if node_name is not None:
         in_qry = in_qry.where(DefaultRoutesHistory.node_name == node_name)
-        out_qry = out_qry.where(DefaultRoutesHistory.node_name == node_name).limit(1)
+        out_qry = out_qry.where(DefaultRoutesHistory.node_name == node_name)
 
     # Merge both queries
     query = out_qry.union_all(in_qry)
@@ -164,8 +158,8 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
         routes_history[row.node_name].append(
             {
                 "last_updated": row.last_updated,
-                "routes": row.routes,
-                "max_hop_count": row.max_hop_count,
+                "routes": json.loads(row.routes),
+                "max_hop_count": int(row.max_hc),
             }
         )
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import json
 from collections import defaultdict
 from datetime import datetime
 from typing import DefaultDict, List, Optional, Tuple
@@ -33,7 +34,9 @@ def compute_routes_utilization(
     # Group raw routes data by node name
     node_routes_changes = defaultdict(list)  # type: ignore
     for row in raw_routes_data:
-        node_routes_changes[row.node_name].append((row.routes, row.last_updated))
+        node_routes_changes[row.node_name].append(
+            (json.loads(row.routes), row.last_updated)
+        )
 
     total_time_window: float = (end_dt - start_dt).total_seconds()
     routes_utilization: DefaultDict[str, List] = defaultdict(list)

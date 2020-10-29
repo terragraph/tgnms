@@ -28,7 +28,7 @@ class RoutesUtilizationTests(unittest.TestCase):
 
     def test_no_routes_in_window(self) -> None:
         last_updated = datetime.fromisoformat("2019-12-31T00:00:00")
-        input = [Mock(node_name="A", routes=[], last_updated=last_updated)]
+        input = [Mock(node_name="A", routes="[]", last_updated=last_updated)]
         expected_output = {"A": [{"routes": [], "percentage": 100}]}
         actual_output = compute_routes_utilization(
             raw_routes_data=input, start_dt=self.start_dt, end_dt=self.end_dt
@@ -37,7 +37,7 @@ class RoutesUtilizationTests(unittest.TestCase):
 
     def test_one_routes_in_window_no_previous_entry(self) -> None:
         last_updated = datetime.fromisoformat("2020-01-01T14:00:00")
-        input = [Mock(node_name="A", routes=[], last_updated=last_updated)]
+        input = [Mock(node_name="A", routes="[]", last_updated=last_updated)]
         expected_output = {
             "A": [
                 {"routes": None, "percentage": 58.333},
@@ -53,8 +53,10 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_0 = datetime.fromisoformat("2019-12-31T00:00:00")
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
-            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_1),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
+            Mock(
+                node_name="A", routes='[["X", "Y", "Z"]]', last_updated=last_updated_1
+            ),
         ]
         expected_output = {
             "A": [
@@ -71,10 +73,10 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_0 = datetime.fromisoformat("2019-12-31T00:00:00")
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="A",
-                routes=[["X", "Y", "Z"], ["A", "G", "H"]],
+                routes='[["X", "Y", "Z"], ["A", "G", "H"]]',
                 last_updated=last_updated_1,
             ),
         ]
@@ -94,9 +96,13 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
-            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_1),
-            Mock(node_name="A", routes=[["D", "G", "H"]], last_updated=last_updated_2),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
+            Mock(
+                node_name="A", routes='[["X", "Y", "Z"]]', last_updated=last_updated_1
+            ),
+            Mock(
+                node_name="A", routes='[["D", "G", "H"]]', last_updated=last_updated_2
+            ),
         ]
         expected_output = {
             "A": [
@@ -115,15 +121,15 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_1 = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="A",
-                routes=[["X", "Y", "Z"], ["X", "V", "Z"]],
+                routes='[["X", "Y", "Z"], ["X", "V", "Z"]]',
                 last_updated=last_updated_1,
             ),
             Mock(
                 node_name="A",
-                routes=[["D", "G", "H"], ["D", "F", "H"]],
+                routes='[["D", "G", "H"], ["D", "F", "H"]]',
                 last_updated=last_updated_2,
             ),
         ]
@@ -145,16 +151,18 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_2 = datetime.fromisoformat("2020-01-01T18:00:00")
         last_updated_3 = datetime.fromisoformat("2020-01-01T19:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="A",
-                routes=[["X", "Y", "Z"], ["X", "V", "Z"]],
+                routes='[["X", "Y", "Z"], ["X", "V", "Z"]]',
                 last_updated=last_updated_1,
             ),
-            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_2),
+            Mock(
+                node_name="A", routes='[["X", "Y", "Z"]]', last_updated=last_updated_2
+            ),
             Mock(
                 node_name="A",
-                routes=[["X", "Y", "Z"], ["X", "V", "Z"]],
+                routes='[["X", "Y", "Z"], ["X", "V", "Z"]]',
                 last_updated=last_updated_3,
             ),
         ]
@@ -173,8 +181,8 @@ class RoutesUtilizationTests(unittest.TestCase):
     def test_multi_node_no_routes_in_window_two_nodes(self) -> None:
         last_updated = datetime.fromisoformat("2019-12-31T00:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated),
-            Mock(node_name="B", routes=[], last_updated=last_updated),
+            Mock(node_name="A", routes="[]", last_updated=last_updated),
+            Mock(node_name="B", routes="[]", last_updated=last_updated),
         ]
         expected_output = {
             "A": [{"routes": [], "percentage": 100}],
@@ -188,8 +196,8 @@ class RoutesUtilizationTests(unittest.TestCase):
     def test_multi_node_one_routes_in_window_no_previous_entry(self) -> None:
         last_updated = datetime.fromisoformat("2020-01-01T14:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated),
-            Mock(node_name="B", routes=[], last_updated=last_updated),
+            Mock(node_name="A", routes="[]", last_updated=last_updated),
+            Mock(node_name="B", routes="[]", last_updated=last_updated),
         ]
         expected_output = {
             "A": [
@@ -211,10 +219,10 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_A = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_B = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated),
-            Mock(node_name="A", routes=[], last_updated=last_updated_A),
-            Mock(node_name="B", routes=[], last_updated=last_updated),
-            Mock(node_name="B", routes=[], last_updated=last_updated_B),
+            Mock(node_name="A", routes="[]", last_updated=last_updated),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_A),
+            Mock(node_name="B", routes="[]", last_updated=last_updated),
+            Mock(node_name="B", routes="[]", last_updated=last_updated_B),
         ]
         expected_output = {
             "A": [{"routes": [], "percentage": 100}],
@@ -230,10 +238,14 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_A = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_B = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
-            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_A),
-            Mock(node_name="B", routes=[], last_updated=last_updated_0),
-            Mock(node_name="B", routes=[["G", "H", "I"]], last_updated=last_updated_B),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
+            Mock(
+                node_name="A", routes='[["X", "Y", "Z"]]', last_updated=last_updated_A
+            ),
+            Mock(node_name="B", routes="[]", last_updated=last_updated_0),
+            Mock(
+                node_name="B", routes='[["G", "H", "I"]]', last_updated=last_updated_B
+            ),
         ]
         expected_output = {
             "A": [
@@ -255,16 +267,16 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_A = datetime.fromisoformat("2020-01-01T14:00:00")
         last_updated_B = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="A",
-                routes=[["X", "Y", "Z"], ["X", "G", "Z"]],
+                routes='[["X", "Y", "Z"], ["X", "G", "Z"]]',
                 last_updated=last_updated_A,
             ),
-            Mock(node_name="B", routes=[], last_updated=last_updated_0),
+            Mock(node_name="B", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="B",
-                routes=[["G", "T", "H"], ["G", "U", "H"]],
+                routes='[["G", "T", "H"], ["G", "U", "H"]]',
                 last_updated=last_updated_B,
             ),
         ]
@@ -290,12 +302,20 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_B1 = datetime.fromisoformat("2020-01-01T16:00:00")
         last_updated_B2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
-            Mock(node_name="A", routes=[["X", "Y", "Z"]], last_updated=last_updated_A1),
-            Mock(node_name="A", routes=[["D", "G", "H"]], last_updated=last_updated_A2),
-            Mock(node_name="B", routes=[], last_updated=last_updated_0),
-            Mock(node_name="B", routes=[["H", "U", "I"]], last_updated=last_updated_B1),
-            Mock(node_name="B", routes=[["E", "T", "M"]], last_updated=last_updated_B2),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
+            Mock(
+                node_name="A", routes='[["X", "Y", "Z"]]', last_updated=last_updated_A1
+            ),
+            Mock(
+                node_name="A", routes='[["D", "G", "H"]]', last_updated=last_updated_A2
+            ),
+            Mock(node_name="B", routes="[]", last_updated=last_updated_0),
+            Mock(
+                node_name="B", routes='[["H", "U", "I"]]', last_updated=last_updated_B1
+            ),
+            Mock(
+                node_name="B", routes='[["E", "T", "M"]]', last_updated=last_updated_B2
+            ),
         ]
         expected_output = {
             "A": [
@@ -321,26 +341,26 @@ class RoutesUtilizationTests(unittest.TestCase):
         last_updated_B1 = datetime.fromisoformat("2020-01-01T16:00:00")
         last_updated_B2 = datetime.fromisoformat("2020-01-01T18:00:00")
         input = [
-            Mock(node_name="A", routes=[], last_updated=last_updated_0),
+            Mock(node_name="A", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="A",
-                routes=[["X", "Y", "Z"], ["X", "Y", "V"]],
+                routes='[["X", "Y", "Z"], ["X", "Y", "V"]]',
                 last_updated=last_updated_A1,
             ),
             Mock(
                 node_name="A",
-                routes=[["D", "G", "H"], ["D", "G", "F"]],
+                routes='[["D", "G", "H"], ["D", "G", "F"]]',
                 last_updated=last_updated_A2,
             ),
-            Mock(node_name="B", routes=[], last_updated=last_updated_0),
+            Mock(node_name="B", routes="[]", last_updated=last_updated_0),
             Mock(
                 node_name="B",
-                routes=[["H", "U", "I"], ["H", "U", "D"]],
+                routes='[["H", "U", "I"], ["H", "U", "D"]]',
                 last_updated=last_updated_B1,
             ),
             Mock(
                 node_name="B",
-                routes=[["E", "T", "M"], ["E", "T", "R"]],
+                routes='[["E", "T", "M"], ["E", "T", "R"]]',
                 last_updated=last_updated_B2,
             ),
         ]
