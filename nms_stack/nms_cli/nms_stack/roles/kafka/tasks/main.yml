@@ -61,9 +61,3 @@
 - name: run compose
   run_once: true
   shell: "docker stack deploy -c {{ kafka_path }}/docker-compose.yml --with-registry-auth --prune kafka"
-
-- name: clean compose
-  file:
-    path: "{{ kafka_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode

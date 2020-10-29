@@ -77,11 +77,6 @@ weather_service:
 #
 # Are you really sure you want to change this?
 
-# Developer mode
-# Leaves docker_compose.yml files under relevant directories within
-# `terragraph_docker_path`. Only enable if you know what you are doing.
-dev_mode: no
-
 # SSH strict host key checking
 # Remove next line to make ansible validate ssh key fingerprints.
 ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'

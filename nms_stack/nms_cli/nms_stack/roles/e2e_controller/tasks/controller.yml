@@ -108,9 +108,3 @@
 
 - name: run compose
   shell: "docker stack deploy -c {{ e2e_path }}/docker-compose-e2e-{{ escaped_controller_name }}.yml --with-registry-auth --prune e2e-{{ escaped_controller_name }}"
-
-- name: clean compose
-  file:
-    path: "{{ e2e_path }}/docker-compose-e2e-{{ escaped_controller_name }}.yml"
-    state: absent
-  when: not dev_mode

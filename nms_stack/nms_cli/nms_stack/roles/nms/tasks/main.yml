@@ -113,15 +113,3 @@
 
 - name: Restart nms
   command: docker service update --force nms_nms
-
-- name: clean add_controllers.sql
-  file:
-    path: "{{ nms_path }}/add_controllers.sql"
-    state: absent
-  when: not dev_mode
-
-- name: clean compose
-  file:
-    path: "{{ nms_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode

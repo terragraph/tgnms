@@ -28,9 +28,3 @@
     state: present
     pull: no
     stopped: no
-
-- name: clean compose
-  file:
-    path: "{{ terragraph_docker_path }}/v6up/docker-compose.yml"
-    state: absent
-  when: not dev_mode

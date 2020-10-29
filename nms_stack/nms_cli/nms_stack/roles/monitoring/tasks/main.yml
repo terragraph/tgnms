@@ -24,9 +24,3 @@
 
 - name: run compose
   shell: "docker stack deploy -c {{ monitoring_gfs_path }}/docker-compose.yml --with-registry-auth --prune monitoring"
-
-- name: clean compose
-  file:
-    path: "{{ monitoring_gfs_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode

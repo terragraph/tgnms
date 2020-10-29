@@ -81,9 +81,3 @@
   delay: "{{ nms_start_delay }}"
   failed_when: result.rc > 1
   until: result.rc == 0
-
-- name: clean compose
-  file:
-    path: "{{ keycloak_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode

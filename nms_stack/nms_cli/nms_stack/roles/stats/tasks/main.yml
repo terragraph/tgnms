@@ -68,9 +68,3 @@
 
 - name: run compose
   command: "docker stack deploy -c {{ stats_gfs_path }}/docker-compose.yml --with-registry-auth --prune stats"
-
-- name: clean compose
-  file:
-    path: "{{ stats_gfs_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode

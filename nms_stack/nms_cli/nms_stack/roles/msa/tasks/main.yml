@@ -44,9 +44,3 @@
   # so if it is missing scale it down to 0
   shell: "docker service update --replicas=0 msa_weather_service"
   when: not weather_service["enabled"]
-
-- name: clean compose
-  file:
-    path: "{{ msa_gfs_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode

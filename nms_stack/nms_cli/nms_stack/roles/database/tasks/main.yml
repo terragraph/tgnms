@@ -58,9 +58,3 @@
 
 - name: run compose
   shell: "docker stack deploy -c {{ db_gfs_path }}/docker-compose.yml --with-registry-auth --prune database"
-
-- name: clean compose
-  file:
-    path: "{{ db_gfs_path }}/docker-compose.yml"
-    state: absent
-  when: not dev_mode
