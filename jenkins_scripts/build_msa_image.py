@@ -1,9 +1,9 @@
-import os
-import subprocess
 import argparse
-import re
 import logging
-from typing import Tuple
+import os
+import re
+import subprocess
+from typing import Dict
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -11,33 +11,29 @@ logging.basicConfig(level=logging.DEBUG)
 
 def run(cmd: str) -> None:
     logging.info(f"Running: {cmd}")
-
-    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(cmd, shell=True, check=True)
 
 
 def read(cmd: str) -> str:
     logging.info(f"Reading: {cmd}")
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True, check=True)
     return p.stdout.decode("utf-8").strip()
 
 
-def get_commit_info() -> Tuple[str, str]:
+def get_commit_info() -> Dict[str, str]:
     commit_body = read("git log -1 --pretty='%b'")
-    match = re.search("Differential Revision: D(\d+)", commit_body)
+    match = re.search(r"Differential Revision: D(\d+)", commit_body)
     if match is None:
         diff_num = "<unknown>"
     else:
-        diff_num = match.groups()[0]
+        diff_num = f"D{match.groups()[0]}"
 
-    # a string with more information about the commit
-    # (e.g.): [2020-10-08 12:12:07 -0700] aa78800: Add lint / unit tests
-    full_commit_info = read("git log -1 --pretty='[%ci] %h: %s'")
-    full_commit_info = f"{full_commit_info} (D{diff_num})"
-
-    # just the short hash, e.g.: aa78800
-    commit_hash = read("git log -1 --pretty='%h'")
-
-    return commit_hash, full_commit_info
+    return {
+        "commit_date": read("git log -1 --pretty='%ci'"),
+        "commit_subject": read("git log -1 --pretty='%s'"),
+        "commit_hash": read("git log -1 --pretty='%h'"),
+        "commit_diff": diff_num
+    }
 
 
 def env(key: str) -> str:
@@ -68,17 +64,17 @@ if __name__ == "__main__":
         f"Building package {args.docker_package_name} to {args.docker_registry}")
 
     # build image
-    commit_hash, full_commit_info = get_commit_info()
-    logging.info(f"Commit: {full_commit_info}")
+    commit_labels = get_commit_info()
+    logging.info(f"Commit: {commit_labels}")
 
     release = get_release()
     logging.info(f"Release: {release}")
 
+    labels = " ".join([f'--label "{name}={value}"' for name, value in commit_labels.items()])
     run(
         f"docker build -f {args.docker_package_name}/Dockerfile"
         f" --tag '{args.docker_registry}/{args.docker_package_name}:{release}'"
-        f' --label "commit_info={full_commit_info}"'
-        f' --label "commit_hash={commit_hash}"'
+        f" {labels}"
         " ."
     )
 
