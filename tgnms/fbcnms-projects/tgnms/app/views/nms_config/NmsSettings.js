@@ -154,11 +154,7 @@ export default function NmsSettings() {
                     </SettingsGroup>
                     <SettingsGroup
                       title="Stats"
-                      tester={
-                        <SettingsTester
-                          keys={['PROMETHEUS', 'GRAFANA_URL', 'KIBANA_URL']}
-                        />
-                      }>
+                      tester={<SettingsTester keys={['PROMETHEUS']} />}>
                       <SettingInput
                         label="Prometheus URL"
                         setting="PROMETHEUS"

@@ -180,7 +180,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     key: 'GRAFANA_URL',
     dataType: 'STRING',
     requiresRestart: true,
-    tester: TESTER.GRAFANA,
     defaultValue: '/grafana',
   },
   {
@@ -192,7 +191,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     key: 'KIBANA_URL',
     dataType: 'STRING',
     requiresRestart: true,
-    tester: TESTER.KIBANA,
     defaultValue: '/kibana',
   },
   {
