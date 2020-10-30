@@ -127,6 +127,8 @@ def run_ansible(
 
 
 def generate_inventory(managers, workers):
+    managers = sorted(managers)
+    workers = sorted(workers)
     managers = {
         manager: {"node_name": f"manager-{index}"}
         for index, manager in enumerate(managers)
@@ -161,9 +163,7 @@ def add_common_options(*args):
     return wrapper
 
 
-CONTEXT_SETTINGS = {
-    "help_option_names": ["-h", "--help"]
-}
+CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
 @click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
@@ -202,7 +202,7 @@ def install(ctx, config_file, tags, verbose, password, workers, managers):
     """
     Start up a bare Kubernetes cluster on the provided set of hosts.
     """
-    variables = get_variables(config_file, managers, verbose)
+    variables = get_variables(config_file, managers, workers, verbose)
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         variables["config_file_path"] = temp_file.name
@@ -233,7 +233,7 @@ def uninstall(ctx, config_file, verbose, tags, password, managers, workers):
     )
 
 
-def get_variables(user_config_file, managers, verbose):
+def get_variables(user_config_file, managers, workers, verbose):
     """
     This takes a user's config yaml file and runs it through ansible for a set
     of hosts, which runs its templating (with information about the hosts
@@ -260,10 +260,10 @@ def get_variables(user_config_file, managers, verbose):
         run_ansible(
             "template_variables.yml",
             user_config_file,
-            generate_inventory(managers, workers=[]),
+            generate_inventory(managers, workers),
             verbose=verbose,
             more_extra_vars=[f"temp_src={src.name}", f"temp_dest={dest.name}"],
-            subprocess_kwargs={"redirect_to_stderr": True}
+            subprocess_kwargs={"redirect_to_stderr": True},
         )
         dest.flush()
 
@@ -303,32 +303,42 @@ def read_or_make_certificates(ssl_key_file, ssl_cert_file):
         subject = " -subj /C=US/ST=Placeholder/L=Placeholder/O=Placeholder/OU=Placeholder/CN=Placeholder/emailAddress=Placeholder"
         generate_certs_command = f"openssl req -newkey rsa:2048 -nodes -keyout {key.name} -x509 -days 3650 -out {cert.name}"
         generate_certs_command += subject
-        rage.run_subprocess_command(generate_certs_command.split(" "), redirect_to_stderr=True)
+        rage.run_subprocess_command(
+            generate_certs_command.split(" "), redirect_to_stderr=True
+        )
         return open(key.name, "r").read(), open(cert.name, "r").read()
 
 
 @cli.command()
 @add_common_options(
-    "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
+    "config-file",
+    "verbose",
+    "managers",
+    "workers",
+    "ssl-cert-file",
+    "ssl-key-file",
+    "templates",
 )
 @click.pass_context
 @rage.log_command(RAGE_DIR)
-def configure(
-    ctx, config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
-):
+def configure(ctx, **kwargs):
     """
     Generate Kubernetes manifests from a template source. This command is only
     useful to view the manifests with your configuration applied. To send the
     manifests to a cluster, see the 'apply' command.
     """
-    manifests = configure_impl(
-        config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
-    )
+    manifests = configure_impl(**kwargs)
     print(manifests)
 
 
 def configure_impl(
-    config_file, managers, verbose, template_source, ssl_key_file, ssl_cert_file
+    config_file,
+    managers,
+    workers,
+    verbose,
+    template_source,
+    ssl_key_file,
+    ssl_cert_file,
 ):
     key, cert = read_or_make_certificates(ssl_key_file, ssl_cert_file)
     if template_source.startswith("http"):
@@ -349,7 +359,7 @@ def configure_impl(
     if len(files_map) == 0:
         raise RuntimeError(f"No .yml files found to configure in {template_source}")
 
-    variables = get_variables(config_file, managers, verbose)
+    variables = get_variables(config_file, managers, workers, verbose)
 
     variables["ssl_cert_text"] = cert
     variables["ssl_key_text"] = key
@@ -367,7 +377,13 @@ def template_and_run(ctx, command, **configure_kwargs):
 
 @cli.command()
 @add_common_options(
-    "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
+    "config-file",
+    "verbose",
+    "managers",
+    "workers",
+    "ssl-cert-file",
+    "ssl-key-file",
+    "templates",
 )
 @click.pass_context
 @rage.log_command(RAGE_DIR)
@@ -381,7 +397,13 @@ def apply(ctx, **configure_kwargs):
 
 @cli.command()
 @add_common_options(
-    "config-file", "verbose", "managers", "ssl-cert-file", "ssl-key-file", "templates"
+    "config-file",
+    "verbose",
+    "managers",
+    "workers",
+    "ssl-cert-file",
+    "ssl-key-file",
+    "templates",
 )
 @click.pass_context
 @rage.log_command(RAGE_DIR)

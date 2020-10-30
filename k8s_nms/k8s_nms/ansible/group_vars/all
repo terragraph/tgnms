@@ -231,6 +231,4 @@ nginx_worker_processes: auto
 nginx_worker_connections: 1024
 
 # These are set automatically by the installer
-is_ipv6: 
-ipv4_address: 
-ipv6_address: 
+is_ipv6:

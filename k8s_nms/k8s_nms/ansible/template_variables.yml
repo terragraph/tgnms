@@ -1,6 +1,5 @@
 - hosts: master
   gather_facts: no
-  connection: local
 
   # This is collects a subset of 'gather_facts', since we really only care about
   # getting the default IP address of the host.
@@ -17,11 +16,27 @@
         - 'default_ipv6'
   tasks:
     - set_fact:
-        is_ipv6: "{{ 'yes' if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {} else 'no' }}"
+        is_ipv6: "{{ 'yes' if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {}
+          or hostvars[groups['master'][0]]['ansible_default_ipv4']['interface'] == 'lo' else 'no' }}"
     - set_fact:
         ipv4_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address if not is_ipv6 else '' }}"
         ipv6_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'].address if is_ipv6 else '' }}"
+    - name: Create temporary file
+      tempfile:
+        state: file
+        suffix: temp
+      register: tempfile
     - name: generated templated variables
       template:
         src: "{{ temp_src }}"
+        dest: "{{ tempfile.path }}"
+    - name: Specifying a path directly
+      fetch:
+        src: "{{ tempfile.path }}"
         dest: "{{ temp_dest }}"
+        flat: yes
+    - name: Use the registered var and the file module to remove the temporary file
+      file:
+        path: "{{ tempfile_1.path }}"
+        state: absent
+      when: tempfile_1.path is defined
