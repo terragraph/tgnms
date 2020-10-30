@@ -14,6 +14,7 @@ import {
   OVERLAY_NONE,
   SCAN_CONNECTIVITY_LINK_OVERLAYS,
   SITE_METRIC_OVERLAYS,
+  ScanOverlayColors,
   SiteOverlayColors,
 } from '../../../constants/LayerConstants';
 import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
@@ -31,28 +32,42 @@ const defaultOverlays = {
 export default function ScanServiceOverlayPanel() {
   const {setOverlaysConfig, selectedOverlays, setOverlayData} = useMapContext();
   const {networkMapOptions} = React.useContext(NmsOptionsContext);
-  const {scanLinkData} = networkMapOptions;
+  const {scanLinkData, temporaryTopology} = networkMapOptions;
+
+  const link_lines = React.useMemo(() => {
+    let linkLines = {
+      layerId: 'link_lines',
+      overlays: objectValuesTypesafe(LINK_METRIC_OVERLAYS),
+      legend: LinkOverlayColors,
+      defaultOverlayId: defaultOverlays.initial_link_lines,
+    };
+    if (scanLinkData) {
+      linkLines = {
+        layerId: 'link_lines',
+        overlays: objectValuesTypesafe<Overlay>(
+          SCAN_CONNECTIVITY_LINK_OVERLAYS,
+        ),
+        legend: ScanOverlayColors,
+        defaultOverlayId: defaultOverlays.link_lines,
+      };
+    } else if (temporaryTopology) {
+      linkLines = {
+        layerId: 'link_lines',
+        overlays: objectValuesTypesafe(LINK_METRIC_OVERLAYS),
+        legend: ScanOverlayColors,
+        defaultOverlayId: defaultOverlays.initial_link_lines,
+      };
+    }
+    return linkLines;
+  }, [scanLinkData, temporaryTopology]);
+
   /**
    * when component first mounts, change the available overlays and select
    * the default overlays
    */
   React.useEffect(() => {
     setOverlaysConfig({
-      link_lines: scanLinkData
-        ? {
-            layerId: 'link_lines',
-            overlays: objectValuesTypesafe<Overlay>(
-              SCAN_CONNECTIVITY_LINK_OVERLAYS,
-            ),
-            legend: LinkOverlayColors,
-            defaultOverlayId: defaultOverlays.link_lines,
-          }
-        : {
-            layerId: 'link_lines',
-            overlays: objectValuesTypesafe(LINK_METRIC_OVERLAYS),
-            legend: LinkOverlayColors,
-            defaultOverlayId: defaultOverlays.initial_link_lines,
-          },
+      link_lines,
       site_icons: {
         layerId: 'site_icons',
         overlays: objectValuesTypesafe<Overlay>(SITE_METRIC_OVERLAYS),
@@ -66,7 +81,7 @@ export default function ScanServiceOverlayPanel() {
         legend: SiteOverlayColors,
       },
     });
-  }, [setOverlaysConfig, scanLinkData]);
+  }, [setOverlaysConfig, scanLinkData, link_lines]);
 
   React.useEffect(() => {
     if (scanLinkData) {

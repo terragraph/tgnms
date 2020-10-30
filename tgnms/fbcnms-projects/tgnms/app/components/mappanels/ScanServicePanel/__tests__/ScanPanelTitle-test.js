@@ -6,7 +6,7 @@
  */
 import 'jest-dom/extend-expect';
 import React from 'react';
-import ScanConnectivity from '../ScanConnectivity';
+import ScanPanelTitle from '../ScanPanelTitle';
 import {TestApp} from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
@@ -14,15 +14,15 @@ afterEach(cleanup);
 
 const defaultProps = {
   onBack: jest.fn(),
-  results: [],
   startDate: new Date(),
+  title: 'Test Title',
 };
 
 test('renders', () => {
   const {getByText} = render(
     <TestApp>
-      <ScanConnectivity {...defaultProps} />
+      <ScanPanelTitle {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Search')).toBeInTheDocument();
+  expect(getByText('Test Title')).toBeInTheDocument();
 });

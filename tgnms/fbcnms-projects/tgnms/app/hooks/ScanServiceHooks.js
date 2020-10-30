@@ -15,6 +15,7 @@ import {objectValuesTypesafe} from '../helpers/ObjectHelpers';
 import {useSnackbars} from '../hooks/useSnackbar';
 
 import type {
+  AggregatedInrType,
   ExecutionDetailsType,
   ExecutionResultDataType,
   FilterOptionsType,
@@ -25,6 +26,9 @@ export function useLoadScanExecutionResults({scanId}: {scanId: string}) {
   const [loading, setLoading] = React.useState(true);
   const [execution, setExecution] = React.useState<?ExecutionDetailsType>(null);
   const [results, setResults] = React.useState<?Array<ExecutionResultDataType>>(
+    null,
+  );
+  const [aggregatedInr, setAggregatedInr] = React.useState<?AggregatedInrType>(
     null,
   );
 
@@ -42,6 +46,7 @@ export function useLoadScanExecutionResults({scanId}: {scanId: string}) {
         });
         setLoading(false);
         setExecution(scanExecutionData.execution);
+        setAggregatedInr(scanExecutionData.aggregated_inr);
         setResults(
           objectValuesTypesafe<ExecutionResultDataType>(
             scanExecutionData.results,
@@ -56,7 +61,7 @@ export function useLoadScanExecutionResults({scanId}: {scanId: string}) {
     return () => cancelSource.cancel();
   }, [scanId]);
 
-  return {loading, execution, results};
+  return {loading, execution, aggregatedInr, results};
 }
 
 export function useLoadScanTableData({

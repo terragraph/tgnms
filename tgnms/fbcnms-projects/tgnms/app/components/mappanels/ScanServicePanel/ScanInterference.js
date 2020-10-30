@@ -5,16 +5,15 @@
  * @flow
  */
 
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import HealthGroupDropDown from '../../common/HealthGroupDropDown';
-import IconButton from '@material-ui/core/IconButton';
 import LinkInterference from './LinkInterference';
 import NetworkContext from '../../../contexts/NetworkContext';
 import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import ScanPanelTitle from './ScanPanelTitle';
 import useLiveRef from '../../../hooks/useLiveRef';
-import {HEALTH_DEFS} from '../../../constants/HealthConstants';
+import {HEALTH_CODES, HEALTH_DEFS} from '../../../constants/HealthConstants';
+import {LinkTypeValueMap} from '../../../../shared/types/Topology';
 import {
   convertType,
   objectValuesTypesafe,
@@ -22,6 +21,7 @@ import {
 import {useRouteContext} from '../../../contexts/RouteContext';
 
 import type {
+  AggregatedInrType,
   ExecutionResultDataType,
   InterferenceGroupType,
 } from '../../../../shared/dto/ScanServiceTypes';
@@ -32,10 +32,15 @@ export const SCAN_INTERFERENCE_CUTOFFS = {
   WEAK: -10,
 };
 
-type Props = {onBack: () => void, results: Array<ExecutionResultDataType>};
+type Props = {
+  onBack: () => void,
+  results: Array<ExecutionResultDataType>,
+  aggregatedInr: ?AggregatedInrType,
+  startDate: Date,
+};
 
 export default function ScanInterference(props: Props) {
-  const {onBack, results} = props;
+  const {onBack, results, aggregatedInr, startDate} = props;
   const [selectedLink, setSelectedLink] = React.useState(null);
   const {
     selectedElement,
@@ -51,8 +56,8 @@ export default function ScanInterference(props: Props) {
   const routesRef = useLiveRef(routes);
 
   const interferenceGroups = React.useMemo(
-    () => parseInterference(results, topologyMaps),
-    [results, topologyMaps],
+    () => parseInterference(results, aggregatedInr, topologyMaps),
+    [results, topologyMaps, aggregatedInr],
   );
 
   React.useEffect(() => {
@@ -123,16 +128,11 @@ export default function ScanInterference(props: Props) {
 
   return (
     <>
-      <Typography variant="body1">
-        <IconButton
-          size="small"
-          data-testid="back-button"
-          onClick={handleBack}
-          color="secondary">
-          <ChevronLeftIcon />
-        </IconButton>
-        Interference
-      </Typography>
+      <ScanPanelTitle
+        title="Interference"
+        startDate={startDate}
+        onBack={handleBack}
+      />
       {selectedLink ? (
         <LinkInterference linkInterference={selectedLink} />
       ) : (
@@ -156,7 +156,7 @@ export default function ScanInterference(props: Props) {
   );
 }
 
-function parseInterference(scanData, topologyMaps) {
+function parseInterference(scanData, aggregatedInr, topologyMaps) {
   const {macToNodeMap, nodeToLinksMap, linkMap} = topologyMaps.current;
 
   const networkInterference = scanData.reduce((result, scanResult) => {
@@ -169,13 +169,15 @@ function parseInterference(scanData, topologyMaps) {
     interferenceResults.forEach(interference => {
       //tx_node - tx_to_node is link transmitting
       //rx_from_node - rx_node is link recieving interference from tx link
-      //inr_curr_power.snr_est is the INR interference
+      //inr_curr_power.snr_avg is the INR interference
       //  for current power measured in dB
 
       //get link lists from nodes
-      const aNodeLinks =
-        nodeToLinksMap[macToNodeMap[interference.rx_from_node]];
-      const zNodeLinks = nodeToLinksMap[macToNodeMap[interference.rx_node]];
+      const aNode = macToNodeMap[interference.rx_from_node];
+      const zNode = macToNodeMap[interference.rx_node];
+      const tempDirection = `${aNode},${zNode}`;
+      const aNodeLinks = nodeToLinksMap[aNode];
+      const zNodeLinks = nodeToLinksMap[zNode];
 
       const aInterferenceNodeLinks =
         nodeToLinksMap[macToNodeMap[interference.tx_node]];
@@ -190,28 +192,64 @@ function parseInterference(scanData, topologyMaps) {
       ) {
         // find the link that both nodes are on
         const linkName =
-          [...aNodeLinks.values()].find(link => zNodeLinks.has(link)) ?? '';
+          [...aNodeLinks.values()].find(link => zNodeLinks.has(link)) ?? null;
         const interferenceLinkName =
           [...aInterferenceNodeLinks.values()].find(link =>
             zInterferenceNodeLinks.has(link),
-          ) ?? '';
+          ) ?? null;
 
-        const currentINR = interference.inr_curr_power.snr_est ?? 0;
+        const currentINR = interference.inr_curr_power.snr_avg ?? 0;
+        const totalInrDirections = linkName
+          ? aggregatedInr?.current[linkName]
+          : null;
+
+        const totalInr =
+          totalInrDirections?.find(
+            inrDirection =>
+              inrDirection.rx_from_node === interference.rx_from_node &&
+              inrDirection.rx_node === interference.rx_node,
+          )?.inr_curr_power ?? 0;
+
+        let health = HEALTH_CODES.EXCELLENT;
+        if (totalInr > SCAN_INTERFERENCE_CUTOFFS.STRONG) {
+          health = HEALTH_CODES.GOOD;
+        } else if (totalInr > SCAN_INTERFERENCE_CUTOFFS.WEAK) {
+          health = HEALTH_CODES.MARGINAL;
+        }
 
         // if the link already has been processed,
         // add this link to the INR list otherwise add it
         const currentLink = result.find(link => link.assetName === linkName);
-        if (currentLink) {
-          currentLink.interference.push({
-            interferenceLinkName,
-            INR: currentINR,
-          });
-          currentLink.totalINR += currentINR;
-        } else {
+
+        if (currentLink && interferenceLinkName !== null) {
+          //check if there is data for current direction
+          const currentDirection = currentLink.directions.findIndex(
+            direction => direction.label === tempDirection,
+          );
+          if (currentDirection !== -1) {
+            currentLink.directions[currentDirection].interference.push({
+              interferenceLinkName,
+              INR: currentINR,
+            });
+          } else {
+            currentLink.directions.push({
+              label: tempDirection,
+              interference: [{interferenceLinkName, INR: currentINR}],
+              totalINR: totalInr,
+              health,
+            });
+          }
+        } else if (linkName !== null) {
           result.push({
             assetName: linkName,
-            interference: [{interferenceLinkName, INR: currentINR}],
-            totalINR: currentINR,
+            directions: [
+              {
+                label: tempDirection,
+                interference: [{interferenceLinkName, INR: currentINR}],
+                totalINR: totalInr,
+                health,
+              },
+            ],
           });
         }
       }
@@ -222,7 +260,9 @@ function parseInterference(scanData, topologyMaps) {
   const remainingLinks = Object.keys(linkMap).filter(
     link =>
       networkInterference.find(
-        interferenceLink => interferenceLink.assetName === link,
+        interferenceLink =>
+          interferenceLink.assetName === link &&
+          linkMap[link].link_type === LinkTypeValueMap.WIRELESS,
       ) === undefined,
   );
 
@@ -230,40 +270,42 @@ function parseInterference(scanData, topologyMaps) {
     strong: {
       name: 'strong',
       links: [],
-      health: 3,
+      health: HEALTH_CODES.POOR,
     },
     weak: {
       name: 'weak',
       links: [],
-      health: 2,
+      health: HEALTH_CODES.MARGINAL,
     },
     none: {
       name: 'no',
       links: remainingLinks.map(link => ({
         assetName: link,
-        interference: [],
+        directions: [
+          {interference: [], label: link, totalINR: -100, health: 0},
+        ],
         totalINR: -100,
-        health: 0,
       })),
-      health: 0,
+      health: HEALTH_CODES.EXCELLENT,
     },
   };
   networkInterference.forEach(linkInterference => {
-    if (linkInterference.totalINR > SCAN_INTERFERENCE_CUTOFFS.STRONG) {
-      interferenceHealthGroups.strong.links.push({
-        ...linkInterference,
-        health: 1,
-      });
-    } else if (linkInterference.totalINR > SCAN_INTERFERENCE_CUTOFFS.WEAK) {
-      interferenceHealthGroups.weak.links.push({
-        ...linkInterference,
-        health: 2,
-      });
+    const worstTotalInr = linkInterference.directions.reduce(
+      (final, direction) => {
+        if (direction?.totalINR > final) {
+          return direction.totalINR;
+        }
+        return final;
+      },
+      -100,
+    );
+
+    if (worstTotalInr > SCAN_INTERFERENCE_CUTOFFS.STRONG) {
+      interferenceHealthGroups.strong.links.push(linkInterference);
+    } else if (worstTotalInr > SCAN_INTERFERENCE_CUTOFFS.WEAK) {
+      interferenceHealthGroups.weak.links.push(linkInterference);
     } else {
-      interferenceHealthGroups.none.links.push({
-        ...linkInterference,
-        health: 0,
-      });
+      interferenceHealthGroups.none.links.push(linkInterference);
     }
   });
 

@@ -7,6 +7,7 @@
 import 'jest-dom/extend-expect';
 import React from 'react';
 import ScanInterference from '../ScanInterference';
+import {TestApp} from '../../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
@@ -14,9 +15,15 @@ afterEach(cleanup);
 const defaultProps = {
   onBack: jest.fn(),
   results: [],
+  startDate: new Date(),
+  aggregatedInr: {current: {}, n_day_avg: {}},
 };
 
 test('renders', () => {
-  const {getByText} = render(<ScanInterference {...defaultProps} />);
+  const {getByText} = render(
+    <TestApp>
+      <ScanInterference {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('Interference')).toBeInTheDocument();
 });

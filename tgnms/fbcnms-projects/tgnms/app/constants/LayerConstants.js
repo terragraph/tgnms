@@ -547,6 +547,19 @@ export const SCAN_INTERFERENCE_LINK_OVERLAYS: Overlays = {
   },
 };
 
+export const ScanOverlayColors = {
+  health: {
+    strong_interference: {color: HEALTH_DEFS[HEALTH_CODES.POOR].color},
+    weak_interference: {color: HEALTH_DEFS[HEALTH_CODES.MARGINAL].color},
+    no_interference: {color: HEALTH_DEFS[HEALTH_CODES.EXCELLENT].color},
+    emitting_interference: {color: HEALTH_DEFS[HEALTH_CODES.GOOD].color},
+  },
+  ignition_status: {
+    potential: {color: HEALTH_DEFS[HEALTH_CODES.MARGINAL].color},
+    current: {color: grey[500]},
+  },
+};
+
 export const NODE_OVERLAYS: Overlays = {
   [OVERLAY_NONE.id]: OVERLAY_NONE,
   bearing: {

@@ -57,6 +57,7 @@ export type ExecutionDetailsType = {
 export type ExecutionResultsType = {
   execution: ExecutionDetailsType,
   results: {[string]: ExecutionResultDataType},
+  aggregated_inr: AggregatedInrType,
 };
 
 export type ConnectivityResultsType = {
@@ -66,8 +67,8 @@ export type ConnectivityResultsType = {
 };
 
 export type InterferenceResultsType = {
-  inr_curr_power: {rssi: number, snr_est: number, post_snr: number},
-  inr_max_power: {rssi: number, snr_est: number, post_snr: number},
+  inr_curr_power: {rssi: number, snr_avg: number, post_snr: number},
+  inr_max_power: {rssi: number, snr_avg: number, post_snr: number},
   rx_from_node: string,
   rx_node: string,
   tx_node: string,
@@ -99,7 +100,26 @@ export type InterferenceGroupType = {
 
 export type LinkInterferenceType = {
   assetName: string,
-  interference: Array<{interferenceLinkName: string, INR: number}>,
-  totalINR: number,
-  health: number,
+  totalINR?: number,
+  directions: Array<{
+    label: string,
+    interference: Array<{interferenceLinkName: ?string, INR: number}>,
+    totalINR: number,
+    health: number,
+  }>,
+};
+
+export type LinkAggregatedInr = {
+  inr_curr_power: number,
+  rx_from_node: string,
+  rx_node: string,
+};
+
+export type AggregatedInrType = {
+  current: {
+    [string]: Array<LinkAggregatedInr>,
+  },
+  n_day_avg: {
+    [string]: Array<LinkAggregatedInr>,
+  },
 };

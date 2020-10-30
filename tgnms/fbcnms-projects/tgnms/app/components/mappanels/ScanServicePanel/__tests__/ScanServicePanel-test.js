@@ -30,5 +30,5 @@ test('renders table if there is a scan ID', () => {
       <ScanServicePanel {...defaultProps} scanId={'1'} />
     </TestApp>,
   );
-  expect(getByText('Scan Service')).toBeInTheDocument();
+  expect(getByText('IM Scan Results')).toBeInTheDocument();
 });

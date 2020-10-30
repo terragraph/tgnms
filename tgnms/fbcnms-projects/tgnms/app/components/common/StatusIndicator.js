@@ -20,7 +20,7 @@ const styles = {
     borderRadius: '50%',
     display: 'inline-block',
     height: '17px',
-    margin: '3px 8px 3px 3px',
+    margin: '1px 8px 3px 3px',
     verticalAlign: 'middle',
     width: '17px',
     background: ({color, clearIndicator}: Props) =>

@@ -195,7 +195,7 @@ export default function ScheduleTime(props: Props) {
                 <Grid item container xs={6} direction="column" spacing={1}>
                   <Grid item>
                     <FormLabel component="legend">
-                      <span>On</span>
+                      <span>Day</span>
                     </FormLabel>
                   </Grid>
                   <Grid item>
@@ -237,7 +237,7 @@ export default function ScheduleTime(props: Props) {
                 spacing={1}>
                 <Grid item>
                   <FormLabel component="legend">
-                    <span>At</span>
+                    <span>Time</span>
                   </FormLabel>
                 </Grid>
                 <Grid item>

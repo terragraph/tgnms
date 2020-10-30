@@ -67,7 +67,7 @@ export default withRouter(function ScanServicePanel(props: Props) {
 
   return (
     <CustomAccordion
-      title="Scan Service"
+      title="IM Scan Results"
       expanded={expanded}
       onClose={handleScanServiceClose}
       details={<ScanServiceSummary scanId={scanId} />}

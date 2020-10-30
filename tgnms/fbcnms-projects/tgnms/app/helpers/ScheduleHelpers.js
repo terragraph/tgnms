@@ -57,7 +57,7 @@ export function getDateNth({date}: {date: number}) {
 
 export function getFormattedDateAndTime({date}: {date: string}) {
   return adjustDateFromUTCTime(new Date(date)).toLocaleString([], {
-    year: '2-digit',
+    year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -69,7 +69,7 @@ export function getFormattedDateAndTime({date}: {date: string}) {
 function adjustDateFromUTCTime(date: Date): Date {
   const tempDate = new Date(date);
   const msOffset = tempDate.getTimezoneOffset() * 60000;
-  return new Date(tempDate.getTime() - msOffset + 86.4 * MEGABITS);
+  return new Date(tempDate.getTime() - msOffset);
 }
 
 export function numToMegabits(number: number) {
@@ -119,9 +119,16 @@ export function getContextString({
     const nextDate = cronString
       ? CronParser.parseExpression(cronString).next()._date._d
       : '';
-    const formattedNextDate = getFormattedDateAndTime({
-      date: nextDate.toLocaleString(),
-    }).split(',')[0];
+
+    const formattedNextDate = new Date(nextDate).toLocaleString([], {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
     const currentTime = selectedDate.toLocaleString('en-US', {
       hour: 'numeric',
       minute: 'numeric',
@@ -134,13 +141,19 @@ export function getContextString({
       case FREQUENCIES.daily:
         return `A ${type} will begin every day at ${currentTime}.`;
       case FREQUENCIES.weekly:
-        return `A ${type} will begin every ${day} at ${currentTime}. The first ${executionType} will occur on ${formattedNextDate}.`;
+        return `A ${type} will begin every ${day} at ${currentTime}. The first ${executionType} will occur on ${
+          formattedNextDate.split(',')[0]
+        }, ${currentTime}.`;
       case FREQUENCIES.biweekly:
-        return `A ${type} will begin every other ${day} at ${currentTime}. The first ${executionType} will occur on ${formattedNextDate}.`;
+        return `A ${type} will begin every other ${day} at ${currentTime}. The first ${executionType} will occur on ${
+          formattedNextDate.split(',')[0]
+        }, ${currentTime}.`;
       case FREQUENCIES.monthly:
         return `A ${type} will begin on the ${getDateNth({
           date: Number(day),
-        })} of each month at ${currentTime}. The first ${executionType} will occur on ${formattedNextDate}.`;
+        })} day of each month at ${currentTime}. The first ${executionType} will occur on ${
+          formattedNextDate.split(',')[0]
+        }, ${currentTime}.`;
     }
   }
 }

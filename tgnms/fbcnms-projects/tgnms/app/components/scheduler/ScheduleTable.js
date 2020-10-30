@@ -189,8 +189,8 @@ export default function ScheduleTable<T>(props: Props<T>) {
               <Grid item className={classes.errorTitle}>
                 No {mode}s found
               </Grid>
-              <Grid item xs={6} className={classes.errorMessage}>
-                No scheduled or past {mode}s match the filters. Try Selecting a
+              <Grid item xs={4} className={classes.errorMessage}>
+                No scheduled or past {mode}s match the filters. Try selecting a
                 different filter or scheduling a new {mode}.
               </Grid>
             </Grid>

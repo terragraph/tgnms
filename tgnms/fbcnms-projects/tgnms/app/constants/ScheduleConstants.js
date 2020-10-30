@@ -39,6 +39,8 @@ export const NETWORK_TEST_PROTOCOLS = {
 export const NETWORK_TEST_DEFS = {
   sequential_link: {
     title: 'Sequential Link Health Test',
+    description:
+      'Sends traffic through links one at a time with little network disruption. Highly accurate results.',
     iperf_defaults: {
       bitrate: 200000000,
       timeSec: 60,
@@ -51,6 +53,8 @@ export const NETWORK_TEST_DEFS = {
   },
   parallel_link: {
     title: 'Parallel Link Health Test',
+    description:
+      'Sends traffic through all links at once. Faster test with more network disruption. Less accurate results.',
     iperf_defaults: {
       bitrate: 200000000,
       timeSec: 300,
@@ -63,6 +67,8 @@ export const NETWORK_TEST_DEFS = {
   },
   sequential_node: {
     title: 'Sequential Node Health Test',
+    description:
+      'Sends traffic through nodes one at a time with little network disruption. Highly accurate results.',
     iperf_defaults: {
       bitrate: 300000000,
       timeSec: 60,
@@ -75,6 +81,8 @@ export const NETWORK_TEST_DEFS = {
   },
   parallel_node: {
     title: 'Parallel Node Health Test',
+    description:
+      'Sends traffic through all nodes at once. Faster test with more network disruption. Less accurate results.',
     iperf_defaults: {
       bitrate: 3000000,
       timeSec: 300,
@@ -86,7 +94,47 @@ export const NETWORK_TEST_DEFS = {
     },
   },
   partial: {
-    title: 'Partial Node Throughput Test',
+    title: 'Partial throughput test',
+    description: 'Tests upload and download speeds for one node.',
+    iperf_defaults: {
+      bitrate: 300000000,
+      timeSec: 60,
+      protocol: 6,
+      omitSec: 2,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  p2mp: {
+    title: 'Point to multipoint test',
+    description: 'Tests all links of one node at once',
+    iperf_defaults: {
+      bitrate: 300000000,
+      timeSec: 60,
+      protocol: 6,
+      omitSec: 2,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  incremental_route: {
+    title: 'Incremental route test',
+    description: 'Incrementally tests the default route of one node.',
+    iperf_defaults: {
+      bitrate: 300000000,
+      timeSec: 60,
+      protocol: 6,
+      omitSec: 2,
+      intervalSec: null,
+      windowSize: null,
+      parallelStreams: null,
+    },
+  },
+  congestion: {
+    title: 'Link congestion test',
+    description: 'Tests all CN routes that include a particular link.',
     iperf_defaults: {
       bitrate: 300000000,
       timeSec: 60,

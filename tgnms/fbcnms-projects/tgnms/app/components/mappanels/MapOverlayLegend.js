@@ -41,6 +41,10 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(0.75),
     textTransform: 'capitalize',
   },
+  linkLabelName: {
+    marginTop: theme.spacing(0.5),
+    textTransform: 'capitalize',
+  },
   siteLegendLabel: {
     margin: `-${theme.spacing(0.375)}px ${theme.spacing(2)}px`,
     marginLeft: 0,
@@ -158,9 +162,12 @@ export default function MapOverlayLegend() {
                   />
                 </Grid>
                 <Grid item>
-                  <Typography className={classes.labelName} variant="body2">
+                  <Typography className={classes.linkLabelName} variant="body2">
                     {labelName +
-                      (!labelName.includes('link') && !labelName.match(/\d+/g)
+                      (!(
+                        labelName.includes('link') ||
+                        labelName.includes('interference')
+                      ) && !labelName.match(/\d+/g)
                         ? ' link'
                         : '')}
                   </Typography>

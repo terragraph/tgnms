@@ -5,14 +5,14 @@
  * @flow
  */
 
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CustomTable from '../../common/CustomTable';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import NetworkContext from '../../../contexts/NetworkContext';
 import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import React from 'react';
+import ScanPanelTitle from './ScanPanelTitle';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import UploadTopologyConfirmationModal from '../topologyCreationPanels/UploadTopologyConfirmationModal';
@@ -24,6 +24,7 @@ import {uploadTopologyBuilderRequest} from '../../../helpers/TopologyTemplateHel
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {ExecutionResultDataType} from '../../../../shared/dto/ScanServiceTypes';
+import type {LinkMap, MacToNodeMap} from '../../../contexts/NetworkContext';
 
 type NewLinkType = {
   name: string,
@@ -34,7 +35,11 @@ type NewLinkType = {
   zNodeMac: string,
 };
 
-type Props = {onBack: () => void, results: Array<ExecutionResultDataType>};
+type Props = {
+  onBack: () => void,
+  results: Array<ExecutionResultDataType>,
+  startDate: Date,
+};
 
 const useStyles = makeStyles(theme => ({
   customTableWrapper: {
@@ -43,20 +48,25 @@ const useStyles = makeStyles(theme => ({
     marginLeft: -theme.spacing(3),
     marginRight: -theme.spacing(3),
     height: theme.spacing(40),
+    fontSize: '14px',
   },
   addAllButton: {},
 }));
 
 export default function ScanConnectivity(props: Props) {
-  const {onBack, results} = props;
+  const {onBack, results, startDate} = props;
   const classes = useStyles();
   const {updateNetworkMapOptions, networkMapOptions} = React.useContext(
     NmsOptionsContext,
   );
   const {temporarySelectedAsset} = networkMapOptions;
-  const {macToNodeMap, networkName, nodeMap, siteMap} = React.useContext(
-    NetworkContext,
-  );
+  const {
+    macToNodeMap,
+    networkName,
+    nodeMap,
+    siteMap,
+    linkMap,
+  } = React.useContext(NetworkContext);
   const snackbars = useSnackbars();
 
   const [selectedLink, setSelectedLink] = React.useState(null);
@@ -69,8 +79,8 @@ export default function ScanConnectivity(props: Props) {
   });
 
   const connectivityLinks = React.useMemo(
-    () => parseConnectivity(results, macToNodeMap),
-    [results, macToNodeMap],
+    () => parseConnectivity(results, macToNodeMap, linkMap),
+    [results, macToNodeMap, linkMap],
   );
 
   const potentialLinks = React.useMemo(
@@ -78,7 +88,7 @@ export default function ScanConnectivity(props: Props) {
       connectivityLinks.filter(
         connectivityLink =>
           connectivityLink.name.includes(formState.filterString) &&
-          connectivityLink.snr > formState.filterSNR,
+          connectivityLink.snr >= formState.filterSNR,
       ),
     [connectivityLinks, formState.filterSNR, formState.filterString],
   );
@@ -264,128 +274,149 @@ export default function ScanConnectivity(props: Props) {
   }, [tableProps, temporarySelectedAsset]);
 
   return (
-    <>
-      <Typography variant="body1">
-        <IconButton
-          size="small"
-          data-testid="back-button"
-          onClick={handleBack}
-          color="secondary">
-          <ChevronLeftIcon />
-        </IconButton>
-        Connectivity
-      </Typography>
-      {selectedLink ? (
-        <>
-          <Typography variant="h6">{selectedLink.link_name}</Typography>
-          <Typography variant="button">SNR: {selectedLink.snr}</Typography>
-          <UploadTopologyConfirmationModal
-            disabled={false}
-            onSubmit={handleAddLink}
-            uploadTopology={{
-              sites: [],
-              nodes: [],
-              links: [{a_node_name: '', z_node_name: ''}],
-            }}
-            customText={`Add Link To ${networkName}`}
-          />
-          <UploadTopologyConfirmationModal
-            disabled={false}
-            onSubmit={handleAddBackupLink}
-            uploadTopology={{
-              sites: [],
-              nodes: [],
-              links: [{a_node_name: '', z_node_name: ''}],
-            }}
-            customText={`Add Link As CN backup link To ${networkName}`}
-          />
-        </>
-      ) : (
-        <>
-          <Grid item container direction="column" spacing={1}>
-            <Grid item>
-              <FormLabel component="legend">
-                <span>Search:</span>
-              </FormLabel>
-            </Grid>
-            <Grid item>
-              <TextField
-                id="filterString"
-                variant="outlined"
-                value={formState.filterString}
-                InputLabelProps={{shrink: true}}
-                margin="dense"
-                fullWidth
-                onChange={handleInputChange(val => ({filterString: val}))}
-              />
-            </Grid>
-          </Grid>
-          <Grid item container direction="column" spacing={1}>
-            <Grid item>
-              <FormLabel component="legend">
-                <span>Minimum SNR in dB:</span>
-              </FormLabel>
-            </Grid>
-            <Grid item>
-              <TextField
-                id="filterSNR"
-                variant="outlined"
-                value={formState.filterSNR}
-                InputLabelProps={{shrink: true}}
-                margin="dense"
-                fullWidth
-                onChange={handleInputChange(val => ({filterSNR: val}))}
-              />
-            </Grid>
-          </Grid>
-
-          <Typography variant="button">
-            {`${potentialLinks.length} Potential Links Found`}
-          </Typography>
-          <div
-            className={classes.customTableWrapper}
-            data-testid="drop-down-table">
-            <Grid container>
-              <Grid item xs={1} />
-              <Grid item xs={8}>
-                Link
+    <Grid container spacing={2}>
+      <Grid item>
+        <ScanPanelTitle
+          title="Connectivity"
+          startDate={startDate}
+          onBack={handleBack}
+        />
+      </Grid>
+      <Grid item>
+        {selectedLink ? (
+          <>
+            <Typography variant="h6">{selectedLink.link_name}</Typography>
+            <Typography variant="button">SNR: {selectedLink.snr}</Typography>
+            <UploadTopologyConfirmationModal
+              disabled={false}
+              onSubmit={handleAddLink}
+              uploadTopology={{
+                sites: [],
+                nodes: [],
+                links: [{a_node_name: '', z_node_name: ''}],
+              }}
+              customText={`Add Link To ${networkName}`}
+            />
+            <UploadTopologyConfirmationModal
+              disabled={false}
+              onSubmit={handleAddBackupLink}
+              uploadTopology={{
+                sites: [],
+                nodes: [],
+                links: [{a_node_name: '', z_node_name: ''}],
+              }}
+              customText={`Add Link As CN backup link To ${networkName}`}
+            />
+          </>
+        ) : (
+          <>
+            <Grid item container direction="column" spacing={1}>
+              <Grid item>
+                <FormLabel component="legend">
+                  <span>Search</span>
+                </FormLabel>
+                <TextField
+                  id="filterString"
+                  variant="outlined"
+                  value={formState.filterString}
+                  InputLabelProps={{shrink: true}}
+                  margin="dense"
+                  fullWidth
+                  onChange={handleInputChange(val => ({filterString: val}))}
+                />
               </Grid>
-              <Grid item xs={3}>
-                SNR (dB)
+              <Grid item>
+                <FormLabel component="legend">
+                  <span>Minimum SNR</span>
+                </FormLabel>
+                <TextField
+                  id="filterSNR"
+                  variant="outlined"
+                  value={formState.filterSNR}
+                  InputLabelProps={{shrink: true}}
+                  margin="dense"
+                  fullWidth
+                  onChange={handleInputChange(val => ({filterSNR: val}))}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">dB</InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item />
+              <Grid item>
+                <Typography variant="button">
+                  {`${potentialLinks.length} Potential Links Found`}
+                </Typography>
               </Grid>
             </Grid>
-            <CustomTable {...tableProps} onRowSelect={handleRowSelect} />
-          </div>
-          <UploadTopologyConfirmationModal
-            disabled={false}
-            onSubmit={handleAddAllBackupLinks}
-            uploadTopology={potentialTopologyAddition}
-            customText="Add All Possible Backup Links"
-          />
-        </>
-      )}
-    </>
+            {potentialLinks.length > 0 && (
+              <>
+                <div
+                  className={classes.customTableWrapper}
+                  data-testid="drop-down-table">
+                  <Grid container>
+                    <Grid item xs={1} />
+                    <Grid item xs={8}>
+                      Link
+                    </Grid>
+                    <Grid item xs={3}>
+                      SNR (dB)
+                    </Grid>
+                  </Grid>
+                  <CustomTable {...tableProps} onRowSelect={handleRowSelect} />
+                </div>
+                <UploadTopologyConfirmationModal
+                  disabled={false}
+                  onSubmit={handleAddAllBackupLinks}
+                  uploadTopology={potentialTopologyAddition}
+                  customText="Add All Possible Backup Links"
+                />
+              </>
+            )}
+          </>
+        )}
+      </Grid>
+    </Grid>
   );
 }
 
-function parseConnectivity(scanData, macToNodeMap): Array<NewLinkType> {
+function parseConnectivity(
+  scanData: Array<ExecutionResultDataType>,
+  macToNodeMap: MacToNodeMap,
+  linkMap: LinkMap,
+): Array<NewLinkType> {
   return scanData.reduce((result: Array<NewLinkType>, scanResult) => {
     const scanConnectivity = scanResult.connectivity;
     if (scanResult.tx_node === null || !scanConnectivity) {
       return result;
     }
-    const potentialLinks = scanConnectivity.map(scanLink => {
-      const aNodeName = macToNodeMap[scanLink.tx_node];
-      const zNodeName = macToNodeMap[scanLink.rx_node];
-      return {
-        name: `link-${aNodeName}-${zNodeName}`,
-        snr: scanLink.routes[0][2],
-        aNodeName,
-        aNodeMac: scanLink.tx_node,
-        zNodeName,
-        zNodeMac: scanLink.rx_node,
-      };
-    });
+    const potentialLinks = scanConnectivity
+      .map(scanLink => {
+        const aNodeName = macToNodeMap[scanLink.tx_node];
+        const zNodeName = macToNodeMap[scanLink.rx_node];
+
+        const linkNames = Object.keys(linkMap);
+
+        if (
+          linkNames.includes(`link-${aNodeName}-${zNodeName}`) ||
+          linkNames.includes(`link-${zNodeName}-${aNodeName}`) ||
+          aNodeName === aNodeName
+        ) {
+          return {};
+        }
+
+        return {
+          name: `link-${aNodeName}-${zNodeName}`,
+          snr: scanLink.routes[0][2],
+          aNodeName,
+          aNodeMac: scanLink.tx_node,
+          zNodeName,
+          zNodeMac: scanLink.rx_node,
+        };
+      })
+      .filter(potentialLink => Object.keys(potentialLink).length !== 0);
     result.push(...potentialLinks);
 
     return result;

@@ -43,7 +43,7 @@ const useSummaryStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(2),
   },
   networkTestType: {
-    fontStyle: 'italic',
+    fontWeight: theme.typography.fontWeightMedium,
   },
 }));
 
@@ -126,22 +126,22 @@ export default function TestExecutionSummary(props: Props) {
 
   return (
     <Grid container direction="column">
-      <Typography className={classes.header} variant="subtitle1">
-        results from{' '}
-        {startDate.toLocaleString('default', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        })}
-      </Typography>
       <Typography
         className={classes.networkTestType}
-        variant="body1"
+        variant="subtitle1"
         gutterBottom>
         {throughputTestMode
           ? NETWORK_TEST_DEFS.partial.title
           : NETWORK_TEST_DEFS[execution.test_type.toLowerCase()].title ||
             execution.test_type}
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        Results from{' '}
+        {startDate.toLocaleString('default', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })}
       </Typography>
       <Divider className={classes.resultDivider} />
       {throughputTestMode && (

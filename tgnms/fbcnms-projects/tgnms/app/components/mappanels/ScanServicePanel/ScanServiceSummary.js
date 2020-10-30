@@ -13,6 +13,7 @@ import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
 import React from 'react';
 import ScanConnectivity from './ScanConnectivity';
 import ScanInterference from './ScanInterference';
+import ScanPanelTitle from './ScanPanelTitle';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 import {useLoadScanExecutionResults} from '../../../hooks/ScanServiceHooks';
@@ -46,7 +47,12 @@ const useSummaryStyles = makeStyles(theme => ({
 export default function ScanServiceSummary(props: Props) {
   const {scanId} = props;
   const classes = useSummaryStyles();
-  const {loading, execution, results} = useLoadScanExecutionResults({scanId});
+  const {
+    loading,
+    execution,
+    results,
+    aggregatedInr,
+  } = useLoadScanExecutionResults({scanId});
   const [scanMode, setScanMode] = React.useState(scanModes.SUMMARY);
   const {updateNetworkMapOptions} = React.useContext(NmsOptionsContext);
 
@@ -67,24 +73,16 @@ export default function ScanServiceSummary(props: Props) {
 
   return (
     <Grid container direction="column">
-      <Typography className={classes.header} variant="subtitle1">
-        results from
-        {startDate.toLocaleString('default', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        })}
-      </Typography>
-      <Typography className={classes.scanTitle} variant="body1" gutterBottom>
-        IM Scan Result
-      </Typography>
-      <Divider className={classes.resultDivider} />
       {scanMode === scanModes.SUMMARY && (
         <Grid item container>
+          <ScanPanelTitle startDate={startDate} />
+          <Divider className={classes.resultDivider} />
           <Button onClick={() => setScanMode(scanModes.CONNECTIVITY)}>
             <Grid item container>
               <Grid item xs={12}>
-                <Typography variant="subtitle2">Connectivity</Typography>
+                <Typography align="left" variant="subtitle2">
+                  Connectivity
+                </Typography>
               </Grid>
               <Grid item xs={12}>
                 <Typography
@@ -101,7 +99,9 @@ export default function ScanServiceSummary(props: Props) {
           <Button onClick={() => setScanMode(scanModes.INTERFERENCE)}>
             <Grid item container>
               <Grid item xs={12}>
-                <Typography variant="subtitle2">Interference</Typography>
+                <Typography align="left" variant="subtitle2">
+                  Interference
+                </Typography>
               </Grid>
               <Grid item xs={12}>
                 <Typography
@@ -117,10 +117,19 @@ export default function ScanServiceSummary(props: Props) {
         </Grid>
       )}
       {scanMode === scanModes.CONNECTIVITY && (
-        <ScanConnectivity onBack={handleBack} results={results} />
+        <ScanConnectivity
+          onBack={handleBack}
+          results={results}
+          startDate={startDate}
+        />
       )}
       {scanMode === scanModes.INTERFERENCE && (
-        <ScanInterference onBack={handleBack} results={results} />
+        <ScanInterference
+          onBack={handleBack}
+          results={results}
+          aggregatedInr={aggregatedInr}
+          startDate={startDate}
+        />
       )}
     </Grid>
   );

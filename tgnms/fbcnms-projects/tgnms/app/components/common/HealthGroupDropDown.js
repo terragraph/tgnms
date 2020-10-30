@@ -9,6 +9,7 @@ import * as React from 'react';
 import Collapse from '@material-ui/core/Collapse';
 import CustomTable from '../../components/common/CustomTable';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
 import HealthIndicator from '../../components/common/HealthIndicator';
 import IconButton from '@material-ui/core/IconButton';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
@@ -39,9 +40,8 @@ type Props = {
 
 const useStyles = makeStyles(theme => ({
   healthIndicator: {
-    margin: theme.spacing(0.5),
     width: theme.spacing(0.5),
-    height: theme.spacing(3),
+    height: theme.spacing(3.5),
   },
   customTableWrapper: {
     marginTop: -theme.spacing(2),
@@ -67,6 +67,11 @@ const useStyles = makeStyles(theme => ({
   transition: {
     transition: 'all 0.3s',
   },
+  label: {
+    marginBottom: -theme.spacing(2.5),
+    marginTop: theme.spacing(2),
+    marginLeft: theme.spacing(3),
+  },
 }));
 
 export default function HealthGroupDropDown(props: Props) {
@@ -77,7 +82,7 @@ export default function HealthGroupDropDown(props: Props) {
   const tableProps = React.useMemo(() => {
     const tableDimensions = {
       rowHeight,
-      headerHeight: 40,
+      headerHeight: 60,
       overscanRowCount: 10,
     };
 
@@ -169,6 +174,10 @@ export default function HealthGroupDropDown(props: Props) {
         <div
           className={classes.customTableWrapper}
           data-testid="drop-down-table">
+          <FormLabel className={classes.label} component="legend">
+            Search
+          </FormLabel>
+
           <CustomTable {...tableProps} onRowSelect={onRowSelect} />
         </div>
       </Collapse>
