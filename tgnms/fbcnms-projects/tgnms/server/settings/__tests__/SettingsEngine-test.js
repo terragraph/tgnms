@@ -173,11 +173,13 @@ describe('Settings Engine', () => {
           PORT: {
             key: 'PORT',
             dataType: 'INT',
-            defaultValue: '8080',
+            defaultValue: '80',
           },
         },
         envMaps: {
-          initialEnv: {},
+          initialEnv: {
+            NMS_SETTINGS_ENABLED: 'true',
+          },
           dotenvEnv: {
             PORT: '8081',
             API_REQUEST_TIMEOUT: '100',
