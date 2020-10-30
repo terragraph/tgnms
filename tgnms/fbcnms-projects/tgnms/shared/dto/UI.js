@@ -13,6 +13,7 @@ export type UIFeatureFlags = {|
 
 export type UIEnv = $Shape<{
   GRAFANA_URL: string,
+  KIBANA_URL: string,
   MAPBOX_ACCESS_TOKEN: string,
   ISSUES_URL: string,
   TILE_STYLE: string,

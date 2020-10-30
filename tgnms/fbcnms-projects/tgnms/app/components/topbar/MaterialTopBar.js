@@ -36,6 +36,7 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TableChartIcon from '@material-ui/icons/TableChart';
+import TimelineIcon from '@material-ui/icons/Timeline';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
@@ -152,6 +153,12 @@ const VIEWS = [
     icon: <DashboardIcon />,
     viewName: 'dashboards',
     hideCondition: () => !isFeatureEnabled('GRAFANA_ENABLED'),
+  },
+  {
+    name: 'Troubleshooting',
+    icon: <TimelineIcon />,
+    viewName: 'troubleshooting',
+    hideCondition: () => !isFeatureEnabled('TROUBLESHOOTING_ENABLED'),
   },
   {
     name: 'Alarms',

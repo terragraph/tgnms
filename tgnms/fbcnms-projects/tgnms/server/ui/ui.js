@@ -15,6 +15,7 @@ import type {UIConfig, UIEnv, UIFeatureFlags} from '../../shared/dto/UI';
 // define which env keys to add to config
 const envKeys: Array<$Keys<UIEnv>> = [
   'GRAFANA_URL',
+  'KIBANA_URL',
   'MAPBOX_ACCESS_TOKEN',
   'ISSUES_URL',
   'TILE_STYLE',

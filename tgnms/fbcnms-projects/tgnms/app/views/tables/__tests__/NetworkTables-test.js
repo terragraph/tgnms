@@ -20,6 +20,7 @@ beforeEach(() => {
   cleanup();
   jest.clearAllMocks();
 });
+
 const defaultProps = {
   selectedElement: null,
   isEmbedded: false,

@@ -20,9 +20,10 @@ import NmsAlarms from './views/alarms/NmsAlarms';
 import NmsOptionsContext from './contexts/NmsOptionsContext';
 import NodeSysdumps from './views/sysdumps/NodeSysdumps';
 import React from 'react';
+import Troubleshooting from './views/troubleshooting/Troubleshooting';
 import axios from 'axios';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {TopologyElementType} from './constants/NetworkConstants.js';
+import {TopologyElementType} from './constants/NetworkConstants';
 import {buildTopologyMaps} from './helpers/TopologyHelpers';
 import {createQuery, increase} from './apiutils/PrometheusAPIUtil';
 import {withRouter} from 'react-router-dom';
@@ -493,6 +494,10 @@ class NetworkUI extends React.Component<Props, State> {
             <Route
               path={`/dashboards/:networkName`}
               render={() => <NetworkDashboards />}
+            />
+            <Route
+              path={`/troubleshooting/:networkName`}
+              render={() => <Troubleshooting />}
             />
             <Route
               path={`/tables/:networkName`}

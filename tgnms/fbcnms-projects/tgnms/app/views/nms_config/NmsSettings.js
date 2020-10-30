@@ -155,13 +155,16 @@ export default function NmsSettings() {
                     <SettingsGroup
                       title="Stats"
                       tester={
-                        <SettingsTester keys={['PROMETHEUS', 'GRAFANA_URL']} />
+                        <SettingsTester
+                          keys={['PROMETHEUS', 'GRAFANA_URL', 'KIBANA_URL']}
+                        />
                       }>
                       <SettingInput
                         label="Prometheus URL"
                         setting="PROMETHEUS"
                       />
                       <SettingInput label="Grafana URL" setting="GRAFANA_URL" />
+                      <SettingInput label="Kibana URL" setting="KIBANA_URL" />
                       <SettingInput
                         label="Stats Max Delay (Seconds)"
                         setting="STATS_ALLOWED_DELAY_SEC"
@@ -354,6 +357,11 @@ export default function NmsSettings() {
                         isFeatureToggle
                         label="Alerts Map Layer"
                         setting="ALERTS_LAYER_ENABLED"
+                      />
+                      <SettingInput
+                        isFeatureToggle
+                        label="Troubleshooting Tab"
+                        setting="TROUBLESHOOTING_ENABLED"
                       />
                     </SettingsGroup>
                   </SettingsForm>

@@ -189,6 +189,13 @@ export const SETTINGS: Array<SettingDefinition> = [
     requiresRestart: true,
   },
   {
+    key: 'KIBANA_URL',
+    dataType: 'STRING',
+    requiresRestart: true,
+    tester: TESTER.KIBANA,
+    defaultValue: '/kibana',
+  },
+  {
     key: 'NETWORKTEST_HOST',
     dataType: 'STRING',
     requiresRestart: true,

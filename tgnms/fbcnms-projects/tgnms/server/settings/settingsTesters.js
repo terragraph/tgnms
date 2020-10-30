@@ -15,6 +15,7 @@ export const TESTER = {
   KEYCLOAK: 'KEYCLOAK',
   PROMETHEUS: 'PROMETHEUS',
   GRAFANA: 'GRAFANA',
+  KIBANA: 'KIBANA',
   NETWORK_TEST: 'NETWORK_TEST',
   SCANSERVICE: 'SCANSERVICE',
   DEFAULT_ROUTES_HISTORY: 'DEFAULT_ROUTES_HISTORY',
@@ -157,6 +158,16 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
     );
     if (!response.data || !response.data.meta) {
       return {success: false, message: 'Invalid Grafana response'};
+    }
+    return {success: true, message: 'Success!'};
+  },
+  [TESTER.KIBANA]: async config => {
+    const {KIBANA_URL} = config;
+    const response = await axios.get(
+      `${KIBANA_URL ?? ''}/kibana/app/kibana#/discover?_g=(filters:!())`,
+    );
+    if (!response.data || !response.data.meta) {
+      return {success: false, message: 'Invalid Kibana response'};
     }
     return {success: true, message: 'Success!'};
   },
