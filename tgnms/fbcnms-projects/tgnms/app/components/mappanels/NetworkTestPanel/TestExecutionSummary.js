@@ -114,7 +114,7 @@ export default function TestExecutionSummary(props: Props) {
 
   const throughputTestMode = isThroughputTestMode(execution);
 
-  if ((loading && !throughputTestMode) || !execution) {
+  if ((loading && !throughputTestMode && !execution) || !execution) {
     return <LoadingBox fullScreen={false} />;
   }
 
