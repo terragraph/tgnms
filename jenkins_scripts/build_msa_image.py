@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def run(cmd: str) -> None:
     logging.info(f"Running: {cmd}")
-    subprocess.check_call(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True)
 
 
 def read(cmd: str) -> str:
