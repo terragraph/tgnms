@@ -399,9 +399,10 @@ class NmsConfig extends React.Component {
             <ListItemText primary="Edit Network" />
           </MenuItem>
           <MenuItem
-            onClick={() =>
-              this.handleKMLSiteExport(networkList[menuNetworkName])
-            }>
+            onClick={() => {
+              this.handleKMLSiteExport(networkList[menuNetworkName]);
+              this.handleMenuClose();
+            }}>
             <ListItemIcon>
               <FileDownloadIcon />
             </ListItemIcon>
