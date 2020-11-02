@@ -37,7 +37,13 @@ export type OverlayConfig = {|
   layerId: string,
   overlays: Array<Overlay>,
   defaultOverlayId?: string,
-  legend: {},
+  legend: {
+    [overlayid: string]: {
+      [metricval: string]: {
+        color: string,
+      },
+    },
+  },
 |};
 
 export type OverlayComponentProps = {|
@@ -55,7 +61,7 @@ export type Overlay = {|
   bounds?: Array<number>,
   overlayLegendType?: string,
   aggregate?: any => number,
-  formatText?: (link: any, value: any) => string,
+  formatText?: (link: any, value: any, index: number) => string,
   /**
    * Render MapboxGL Sources, Layers, Features to construct this overlay. This
    * will completely override the default logic of the layer.

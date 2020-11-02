@@ -12,6 +12,7 @@ import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import McsTableEditor from './McsTableEditor';
 import NetworkSelect from '../../../components/common/NetworkSelect';
+import RemoteOverlaysEditor from './RemoteOverlaysEditor';
 import SettingsGroup from '../SettingsGroup';
 import TextField from '@material-ui/core/TextField';
 import useForm from '../../../hooks/useForm';
@@ -19,13 +20,8 @@ import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
 import type {MapProfile} from '../../../../shared/dto/MapProfile';
 import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
+import type {RemoteOverlay} from '../../../../shared/dto/RemoteOverlay';
 
-export type MapProfileUpdate = {
-  id: number,
-  name: string,
-  mcsTable: {[string]: McsLinkBudget},
-  networks: Array<string>,
-};
 export type HandleRangeChange = {
   (mcs: number, rangeMeters: number): void,
 };
@@ -91,6 +87,15 @@ export default function MapProfileForm({
     [updateFormState],
   );
 
+  const handleOverlaysChange = React.useCallback(
+    (overlays: Array<RemoteOverlay>) => {
+      updateFormState({
+        remoteOverlays: overlays,
+      });
+    },
+    [updateFormState],
+  );
+
   return (
     <Grid item container direction="column" spacing={4}>
       <SettingsGroup title={profile.name}>
@@ -126,9 +131,23 @@ export default function MapProfileForm({
         onRangeChange={handleRangeChange}
         disabled={isDefault}
       />
+      {!isDefault && (
+        <RemoteOverlaysEditor
+          overlays={formState.remoteOverlays}
+          onChange={handleOverlaysChange}
+        />
+      )}
     </Grid>
   );
 }
+
+export type MapProfileUpdate = {
+  id: number,
+  name: string,
+  mcsTable: {[string]: McsLinkBudget},
+  remoteOverlays: Array<RemoteOverlay>,
+  networks: Array<string>,
+};
 
 function fromMapProfile(profile: MapProfile): MapProfileUpdate {
   const {id, name, networks} = profile;
@@ -140,6 +159,7 @@ function fromMapProfile(profile: MapProfile): MapProfileUpdate {
       lookup[def.mcs] = def;
       return lookup;
     }, {}),
+    remoteOverlays: profile.data.remoteOverlays ?? [],
   };
 }
 function toMapProfile(update: MapProfileUpdate): MapProfile {
@@ -150,6 +170,7 @@ function toMapProfile(update: MapProfileUpdate): MapProfile {
     networks,
     data: {
       mcsTable: objectValuesTypesafe(update.mcsTable),
+      remoteOverlays: update.remoteOverlays,
     },
   };
 }

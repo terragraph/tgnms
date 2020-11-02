@@ -397,7 +397,10 @@ export function attrToMapProfile({
   return {
     id,
     name,
-    data: safeJsonParse<MapProfileData>(json) ?? {mcsTable: null},
+    data: safeJsonParse<MapProfileData>(json) ?? {
+      mcsTable: [],
+      remoteOverlays: [],
+    },
     networks: networks ? networks.map(network => network.name) : [],
   };
 }

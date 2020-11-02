@@ -366,6 +366,24 @@ export function mockOverlay(overrides?: $Shape<Overlay>): Overlay {
   };
 }
 
+export function mockSingleLink() {
+  const topology = mockTopology();
+  topology.__test
+    .addNode({
+      name: 'node1',
+      site_name: 'site1',
+    })
+    .addNode({
+      name: 'node2',
+      site_name: 'site2',
+    })
+    .addLink({
+      a_node_name: 'node1',
+      z_node_name: 'node2',
+    });
+  return topology;
+}
+
 /**
  * Creates a mock figure 0 like:
  * (site2)---(site3)

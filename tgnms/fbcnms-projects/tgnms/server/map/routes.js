@@ -7,6 +7,7 @@
 
 import * as mapService from './service';
 import {createApi, createErrorHandler} from '../helpers/apiHelpers';
+import {makeOverlayRequest} from './remoteOverlays';
 const {reloadInstanceConfig} = require('../topology/model');
 const logger = require('../log')(module);
 
@@ -312,6 +313,12 @@ router.delete('/profile/:id', (req, res) => {
     .deleteProfile(id)
     .then(x => res.json(x))
     .catch(createErrorHandler(res));
+});
+
+router.post('/overlay', (req, res) => {
+  return makeOverlayRequest(req.body).then(result => {
+    return res.json(result);
+  });
 });
 
 module.exports = router;

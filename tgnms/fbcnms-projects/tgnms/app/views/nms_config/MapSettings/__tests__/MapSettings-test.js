@@ -99,7 +99,7 @@ describe('duplicate profile button', () => {
     });
     expect(createProfileMock).toHaveBeenCalledWith({
       name: 'Default - Copy',
-      data: {mcsTable: DEFAULT_MCS_TABLE},
+      data: {mcsTable: DEFAULT_MCS_TABLE, remoteOverlays: []},
     });
   });
 });

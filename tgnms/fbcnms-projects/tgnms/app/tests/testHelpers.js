@@ -22,7 +22,7 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
 import {Provider as SettingsFormContextProvider} from '../views/nms_config/SettingsFormContext';
 import {SnackbarProvider} from 'notistack';
-import {act, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockNetworkContext} from './data/NetworkContext';
 import {mockNmsOptionsContext} from './data/NmsOptionsContext';
@@ -33,6 +33,7 @@ import type {
 } from '../../shared/dto/Settings';
 import type {MapContext as MapContextType} from '../contexts/MapContext';
 import type {MapboxDraw} from '@mapbox/mapbox-gl-draw';
+import type {Map as MapboxMap} from 'react-mapbox-gl';
 import type {NetworkContextType} from '../contexts/NetworkContext';
 import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
 import type {PanelStateControl} from '../views/map/usePanelControl';
@@ -336,7 +337,7 @@ export function mockPanelControl(
  *  {container: document.body?.appendChild(__baseElement)},
  * );
  */
-export function mockMapboxRef() {
+export function mockMapboxRef(): MapboxMap {
   const EventEmitter = require('events');
   const emitter = new EventEmitter();
   const baseElement = document.createElement('div');
@@ -417,4 +418,14 @@ export function getSelectMenu(): ?HTMLElement {
  */
 export function getOptions(el: ?HTMLElement): ?Array<HTMLElement> {
   return el ? [...el.querySelectorAll('[role="option"]')] : null;
+}
+
+export async function clickPanel(panel: HTMLElement) {
+  act(() => {
+    const btn = panel.querySelector('[role="button"]');
+    if (!btn) {
+      throw new Error('element not found');
+    }
+    fireEvent.click(btn);
+  });
 }

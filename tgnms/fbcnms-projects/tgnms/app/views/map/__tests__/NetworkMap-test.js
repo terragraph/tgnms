@@ -13,10 +13,11 @@ import {
   NetworkContextWrapper,
   NmsOptionsContextWrapper,
   TestApp,
+  clickPanel,
   getIsExpanded,
   initWindowConfig,
   mockNetworkConfig,
-  mockTopology,
+  mockSingleLink,
   renderWithRouter,
 } from '../../../tests/testHelpers';
 import {Router} from 'react-router-dom';
@@ -65,7 +66,7 @@ test('renders without crashing with minimal props ', () => {
 });
 
 test('renders with some sites and links', () => {
-  const topology = basicTopology();
+  const topology = mockSingleLink();
   const topologyMaps = buildTopologyMaps(topology);
 
   renderWithRouter(
@@ -117,7 +118,7 @@ describe('NetworkDrawer', () => {
   });
 
   test('all panels close if an element is selected', async () => {
-    const topology = basicTopology();
+    const topology = mockSingleLink();
     const topologyMaps = buildTopologyMaps(topology);
     const selectedElement = {
       name: 'site1',
@@ -215,7 +216,7 @@ describe('TopologyBuilderMenu', () => {
     expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
   });
   test('clicking edit node opens the panel', async () => {
-    const topology = basicTopology();
+    const topology = mockSingleLink();
     const topologyMaps = buildTopologyMaps(topology);
     const selectedElement = {
       name: 'node1',
@@ -259,32 +260,4 @@ function MapWrapper({children, ...contextProps}: {children: React.Node}) {
       </Router>
     </TestApp>
   );
-}
-
-function basicTopology() {
-  const topology = mockTopology();
-  topology.__test
-    .addNode({
-      name: 'node1',
-      site_name: 'site1',
-    })
-    .addNode({
-      name: 'node2',
-      site_name: 'site2',
-    })
-    .addLink({
-      a_node_name: 'node1',
-      z_node_name: 'node2',
-    });
-  return topology;
-}
-
-async function clickPanel(panel: HTMLElement) {
-  act(() => {
-    const btn = panel.querySelector('[role="button"]');
-    if (!btn) {
-      throw new Error('element not found');
-    }
-    fireEvent.click(btn);
-  });
 }

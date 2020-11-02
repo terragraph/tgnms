@@ -5,6 +5,8 @@
  * @flow
  */
 
+import type {RemoteOverlay} from './RemoteOverlay';
+
 export type McsLinkBudget = {|
   mcs: number,
   rate: string,
@@ -18,6 +20,7 @@ export type McsLinkBudget = {|
  */
 export type MapProfileData = {|
   mcsTable: ?Array<McsLinkBudget>,
+  remoteOverlays: ?Array<RemoteOverlay>,
 |};
 
 export type MapProfile = {|

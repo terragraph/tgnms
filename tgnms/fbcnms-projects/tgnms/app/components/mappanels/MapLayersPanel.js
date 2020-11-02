@@ -7,6 +7,7 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomAccordion from '../common/CustomAccordion';
+import CustomOverlayPanel from './overlayPanels/CustomOverlayPanel';
 import DefaultOverlayPanel from './overlayPanels/DefaultOverlayPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -25,6 +26,7 @@ import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {mapLayers} from '../../constants/LayerConstants';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {useShowCustomOverlayPanel} from '../../views/map/useMapProfile';
 
 import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
 
@@ -52,17 +54,16 @@ const styles = theme => ({
   },
   tabsRoot: {
     borderBottom: '1px solid #e8e8e8',
-    flex: '0 1 auto',
     marginBottom: theme.spacing(2),
     paddingTop: theme.spacing(),
-    paddingLeft: theme.spacing(),
+    paddingLeft: 0,
   },
   tabsIndicator: {
     backgroundColor: '#1890ff',
   },
   tabRoot: {
-    width: '50%',
     textTransform: 'initial',
+    flex: 1,
     minWidth: 72,
     fontWeight: theme.typography.fontWeightRegular,
     fontSize: 16,
@@ -119,6 +120,7 @@ export default function MapLayersPanel({
 function OverlaySection() {
   const classes = useStyles();
   const {mapMode, setMapMode} = useMapContext();
+  const showCustomOverlaysTab = useShowCustomOverlayPanel();
   const handleTabChange = React.useCallback(
     (_event, value) => {
       setMapMode(value);
@@ -151,6 +153,19 @@ function OverlaySection() {
                 label="Historical"
                 value={MAPMODE.HISTORICAL}
               />
+              {
+                /** Removing tab from dom causes race condition. MUI logs
+              some errors. Errors stop once useExitCustomOverlayMode
+              in CustomOverlayPanel finishes. */
+                showCustomOverlaysTab && (
+                  <Tab
+                    classes={{root: classes.tabRoot}}
+                    disableRipple
+                    label="Custom"
+                    value={MAPMODE.CUSTOM_OVERLAYS}
+                  />
+                )
+              }
             </Tabs>
           </>
         )}
@@ -159,6 +174,7 @@ function OverlaySection() {
         {mapMode === MAPMODE.HISTORICAL && <MapHistoryOverlayPanel />}
         {mapMode === MAPMODE.NETWORK_TEST && <NetworkTestOverlayPanel />}
         {mapMode === MAPMODE.SCAN_SERVICE && <ScanServiceOverlayPanel />}
+        {mapMode === MAPMODE.CUSTOM_OVERLAYS && <CustomOverlayPanel />}
         <div>
           <OverlaysForm />
         </div>

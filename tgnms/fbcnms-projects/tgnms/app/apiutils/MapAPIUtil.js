@@ -11,7 +11,11 @@ import type {
   MapAnnotationGroupIdent,
   SaveAnnotationGroupRequest,
 } from '../../shared/dto/MapAnnotations';
-import type {MapProfile} from '../../shared/dto/MapProfile';
+import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
+import type {
+  OverlayRequest,
+  OverlayResponse,
+} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 
 export async function getAnnotationGroups({
   networkName,
@@ -150,4 +154,14 @@ export async function saveProfile(body: $Shape<MapProfile>) {
 
 export async function deleteProfile(id: number): Promise<void> {
   await axios.delete<void, void>(`/map/profile/${id}`);
+}
+
+export async function queryRemoteOverlay(
+  req: OverlayRequest,
+): Promise<OverlayResponse> {
+  const response = await axios.post<OverlayRequest, OverlayResponse>(
+    `/map/overlay`,
+    req,
+  );
+  return response.data;
 }

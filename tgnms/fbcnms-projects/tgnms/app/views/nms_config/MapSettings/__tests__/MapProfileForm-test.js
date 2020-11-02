@@ -26,6 +26,7 @@ const commonProps = {
     name: 'testprofile',
     data: {
       mcsTable: DEFAULT_MCS_TABLE,
+      remoteOverlays: [],
     },
     networks: ['test_network'],
   },

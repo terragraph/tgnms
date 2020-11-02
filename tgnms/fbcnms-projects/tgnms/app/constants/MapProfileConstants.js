@@ -101,6 +101,7 @@ export const DEFAULT_MAP_PROFILE: $Shape<MapProfile> = {
   name: 'Default',
   data: {
     mcsTable: [...DEFAULT_MCS_TABLE],
+    remoteOverlays: [],
   },
   networks: [],
 };

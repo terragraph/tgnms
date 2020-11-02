@@ -48,7 +48,7 @@ declare module "axios" {
     paramsSerializer?: (params: Object) => string;
     onUploadProgress?: (progressEvent: ProgressEvent) => void;
     onDownloadProgress?: (progressEvent: ProgressEvent) => void;
-    proxy?: ProxyConfig | false;
+    proxy?: boolean | ProxyConfig;
     responseType?:
       | "arraybuffer"
       | "blob"
@@ -100,13 +100,13 @@ declare module "axios" {
   declare type AxiosPromise<T,R = T> = Promise<AxiosXHR<T,R>>;
   declare class Axios {
     <T,R>(
-      config: AxiosXHRConfig<T,R> | string, 
+      config: AxiosXHRConfig<T,R> | string,
       config?: AxiosXHRConfig<T,R>,
     ): AxiosPromise<T,R>;
     constructor<T,R>(config?: AxiosXHRConfigBase<T,R>): void;
     request<T,R>(config: AxiosXHRConfig<T,R>): AxiosPromise<T,R>;
     delete<T,R>(
-      url: string, 
+      url: string,
       config?: AxiosXHRConfigBase<T,R>,
     ): AxiosPromise<T,R>;
     get<T,R>(url: string, config?: AxiosXHRConfigBase<T,R>): AxiosPromise<T,R>;

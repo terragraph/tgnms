@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -18,25 +18,35 @@ type FormUpdate<TFormState, TVal = string> = (
   event: SyntheticInputEvent<HTMLElement>,
 ) => $Shape<TFormState>;
 
+type ListItem<TFormState> = $ElementType<
+  $ElementType<TFormState, $Keys<TFormState>>,
+  0,
+>;
+
+export type FormControl<TFormState> = {|
+  formState: TFormState,
+  updateFormState: (update: $Shape<TFormState>) => TFormState,
+  handleInputChange: InputChangeFunc<TFormState, *>,
+  updateListItem: <T: $Keys<TFormState>>(
+    listName: T,
+    idx: number,
+    update: $Shape<ListItem<TFormState>>,
+  ) => void,
+  addListItem: <T: $Keys<TFormState>>(
+    listName: T,
+    item: ListItem<TFormState>,
+  ) => void,
+  removeListItem: <T: $Keys<TFormState>>(listName: T, idx: number) => void,
+  setFormState: (f: TFormState) => void,
+|};
+
 export default function useForm<TFormState: {}>({
   initialState,
   onFormUpdated,
 }: {
   initialState: $Shape<TFormState>,
   onFormUpdated?: (state: TFormState) => void,
-}): {|
-  formState: TFormState,
-  updateFormState: (update: $Shape<TFormState>) => TFormState,
-  handleInputChange: InputChangeFunc<TFormState, *>,
-  updateListItem: (
-    listName: $Keys<TFormState>,
-    idx: number,
-    update: $ElementType<TFormState, $Keys<TFormState>>,
-  ) => void,
-  addListItem: (listName: $Keys<TFormState>, item: {}) => void,
-  removeListItem: (listName: $Keys<TFormState>, idx: number) => void,
-  setFormState: (f: TFormState) => void,
-|} {
+}): FormControl<TFormState> {
   const [formState, setFormState] = React.useState<TFormState>(initialState);
   const formUpdatedRef = React.useRef(onFormUpdated);
   React.useEffect(() => {
@@ -65,11 +75,7 @@ export default function useForm<TFormState: {}>({
    * //formState: {{list: [{x:0},{x:2}]}}
    */
   const updateListItem = React.useCallback(
-    (
-      listName: $Keys<TFormState>,
-      idx: number,
-      update: $ElementType<TFormState, $Keys<TFormState>>,
-    ) => {
+    (listName, idx, update: $Shape<ListItem<TFormState>>) => {
       updateFormState({
         [listName]: immutablyUpdateArray(
           formState[listName] || [],
@@ -82,7 +88,7 @@ export default function useForm<TFormState: {}>({
   );
 
   const removeListItem = React.useCallback(
-    (listName: $Keys<TFormState>, idx: number) => {
+    (listName, idx: number) => {
       if (!formState[listName]) {
         return;
       }
@@ -94,7 +100,7 @@ export default function useForm<TFormState: {}>({
   );
 
   const addListItem = React.useCallback(
-    <TItem>(listName: $Keys<TFormState>, item: TItem) => {
+    (listName, item: ListItem<TFormState>) => {
       updateFormState({
         [listName]: [...(formState[listName] || []), item],
       });

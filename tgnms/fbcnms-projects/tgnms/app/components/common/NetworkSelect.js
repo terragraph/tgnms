@@ -13,7 +13,7 @@ import useLiveRef from '../../hooks/useLiveRef';
 import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
 import {useNetworkListContext} from '../../contexts/NetworkListContext';
 
-export default function NetworkMultiSelect({
+export default function NetworkSelect({
   value,
   onChange,
 }: {
@@ -35,7 +35,9 @@ export default function NetworkMultiSelect({
       value={Array.isArray(value) ? value : [value]}
       onChange={handleChange}>
       {networks.map(([name, _network]) => (
-        <MenuItem value={name}>{name}</MenuItem>
+        <MenuItem key={name} value={name}>
+          {name}
+        </MenuItem>
       ))}
     </Select>
   );

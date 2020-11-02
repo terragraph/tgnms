@@ -11,8 +11,14 @@ import type {GeoFeatureCollection} from '@turf/turf';
 /**
  * Get the mapbox gl layer with the specified id
  */
-export function getLayerById(container: HTMLElement, id: string): ?HTMLElement {
-  return container.querySelector(`[data-mapbox-type="layer"][data-id="${id}"]`);
+export function getLayerById(container: HTMLElement, id: string): HTMLElement {
+  const layer = container.querySelector(
+    `[data-mapbox-type="layer"][data-id="${id}"]`,
+  );
+  if (layer == null) {
+    throw new Error(`Layer: ${id} not found in container`);
+  }
+  return layer;
 }
 
 export function getSourceById(

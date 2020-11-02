@@ -130,7 +130,6 @@ export default function MapLayers(props: Props) {
       temporarySelectedAsset,
     });
   };
-
   return (
     <>
       {buildings_3d ? <BuildingsLayer key="3d-buildings-layer" /> : null}

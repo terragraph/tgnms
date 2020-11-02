@@ -29,6 +29,7 @@ export const MAPMODE = {
   HISTORICAL: 'HISTORICAL',
   NETWORK_TEST: 'NETWORK_TEST',
   SCAN_SERVICE: 'SCAN_SERVICE',
+  CUSTOM_OVERLAYS: 'CUSTOM_OVERLAYS',
 };
 
 export type MapContext = {|
@@ -184,7 +185,7 @@ export function MapContextProvider({
       const selectedOverlayId: string = selectedOverlays[layer_id];
       const overlayConfig = overlaysConfig[layer_id];
       if (overlayConfig) {
-        const overlay = overlayConfig.overlays.find(
+        const overlay = overlayConfig?.overlays?.find(
           o => o.id === selectedOverlayId,
         );
         map[layer_id] = overlay;

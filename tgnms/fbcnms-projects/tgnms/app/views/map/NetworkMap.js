@@ -201,20 +201,6 @@ class NetworkMap extends React.Component<Props, State> {
     });
   };
 
-  // onPlannedSiteMoved = mapEvent => {
-  //   // Update planned site location (based on map event)
-  //   const {lat, lng} = mapEvent.lngLat;
-  //   this.setState(prevState => ({
-  //     plannedSite: {
-  //       latitude: lat,
-  //       longitude: lng,
-  //       name: prevState.plannedSite?.name || '',
-  //       altitude: prevState.plannedSite?.altitude || -1,
-  //       accuracy: prevState.plannedSite?.accuracy || -1,
-  //     },
-  //   }));
-  // };
-
   onGeocoderEvent = feature => {
     // Move to a location returned by the geocoder
     const {mapRef} = this.state;

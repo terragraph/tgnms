@@ -40,20 +40,9 @@ export default function MapSettings() {
     if (curr != null) {
       return curr;
     }
-
-    const assignedNetworks = new Set();
-    for (const p of profiles) {
-      for (const n of p.networks) {
-        assignedNetworks.add(n);
-      }
-    }
-    const unassignedNetworks = [];
-    for (const net of networkNames) {
-      if (!assignedNetworks.has(net)) {
-        unassignedNetworks.push(net);
-      }
-    }
+    const unassignedNetworks = getUnassignedNetworks(networkNames, profiles);
     const defaultCurr = {...DEFAULT_MAP_PROFILE, networks: unassignedNetworks};
+    // if no profile is selected, show the default profile
     return defaultCurr;
   }, [selectedName, profiles, networkNames]);
   const [dirtyProfile, setDirtyProfile] = React.useState<?MapProfile>(null);
@@ -200,7 +189,7 @@ export default function MapSettings() {
               </Grid>
             )}
             {isLoading && (
-              <Grid item alignContent="center">
+              <Grid item>
                 <CircularProgress size={24} />
               </Grid>
             )}
@@ -215,6 +204,25 @@ export default function MapSettings() {
       </Grid>
     </MapSettingsLayout>
   );
+}
+
+function getUnassignedNetworks(
+  networkNames: Array<string>,
+  profiles: Array<MapProfile>,
+): Array<string> {
+  const assignedNetworks = new Set();
+  for (const p of profiles) {
+    for (const n of p.networks) {
+      assignedNetworks.add(n);
+    }
+  }
+  const unassignedNetworks = [];
+  for (const net of networkNames) {
+    if (!assignedNetworks.has(net)) {
+      unassignedNetworks.push(net);
+    }
+  }
+  return unassignedNetworks;
 }
 
 type ProfileButtonProps = {
