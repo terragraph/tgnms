@@ -26,6 +26,7 @@ import {RESPONSE_TYPE} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 import {act, cleanup, fireEvent} from '@testing-library/react';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
+  getFeatureBySiteName,
   getLayerById,
   getLineByLinkName,
   getPropValue,
@@ -120,7 +121,20 @@ const topologyResponse: OverlayResponse = {
         },
       },
     },
-    sites: {},
+    sites: {
+      site1: {
+        value: 0,
+      },
+      site2: {
+        value: 5,
+      },
+      site3: {
+        value: 8,
+      },
+      site4: {
+        value: 10,
+      },
+    },
     nodes: {},
   },
   legend: defaultLegend,
@@ -378,6 +392,33 @@ describe('LinksLayer', () => {
       text: 'Link 3 Z Text',
     });
   });
+});
+
+describe('SitesLayer', () => {
+  test(
+    'colors sites based on legend and' + ' LERPs between color stops',
+    async () => {
+      queryRemoteOverlayMock.mockResolvedValueOnce(topologyResponse);
+      const {container} = await renderAsync(<FigureZeroMapTest />);
+      const layer = getLayerById(container, 'site-layer');
+      const site1 = getFeatureBySiteName(layer, 'site1');
+      const site2 = getFeatureBySiteName(layer, 'site2');
+      const site3 = getFeatureBySiteName(layer, 'site3');
+      const site4 = getFeatureBySiteName(layer, 'site4');
+      expect(getPropValue(site1, 'properties')).toMatchObject({
+        siteColor: RGB_BLACK,
+      });
+      expect(getPropValue(site2, 'properties')).toMatchObject({
+        siteColor: RGB_GREY,
+      });
+      expect(getPropValue(site3, 'properties')).toMatchObject({
+        siteColor: `rgb(202, 202, 202)`,
+      });
+      expect(getPropValue(site4, 'properties')).toMatchObject({
+        siteColor: RGB_WHITE,
+      });
+    },
+  );
 });
 
 describe('CustomOverlayPanel', () => {

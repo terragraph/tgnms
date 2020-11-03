@@ -27,7 +27,23 @@ const towerGResponse: OverlayResponse = {
       },
     },
     nodes: {},
-    sites: {},
+    sites: {
+      '12L56': {
+        value: '60',
+      },
+      '11L746': {
+        value: '80',
+      },
+      '12L394': {
+        value: '100',
+      },
+      '12L212': {
+        value: '95',
+      },
+      '11L917': {
+        value: '88',
+      },
+    },
   },
   legend: {
     links: {
@@ -40,9 +56,10 @@ const towerGResponse: OverlayResponse = {
     },
     sites: {
       items: [
-        {color: '#ffffff', label: 'Test', value: 1},
-        {color: '#ffffff', label: 'Test', value: 2},
-        {color: '#ffffff', label: 'Test', value: 3},
+        {color: '#ffeeee', label: 'Healthy Site', value: 100},
+        {color: '#cccccc', label: 'Happy Site', value: 80},
+        {color: '#999999', label: 'Marginal Site', value: 50},
+        {color: '#333333', label: 'Bad Site', value: 0},
       ],
     },
     nodes: {

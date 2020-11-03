@@ -51,10 +51,14 @@ export function getLineByLinkName(
 export function getFeatureBySiteName(
   layer: HTMLElement,
   siteName: string,
-): ?HTMLElement {
-  return layer.querySelector(
+): HTMLElement {
+  const feature = layer.querySelector(
     `[data-mapbox-type="feature"][data-test-site-name="${siteName}"]`,
   );
+  if (!feature) {
+    throw new Error(`Feature with site-name: ${siteName} not found in layer`);
+  }
+  return feature;
 }
 
 /**

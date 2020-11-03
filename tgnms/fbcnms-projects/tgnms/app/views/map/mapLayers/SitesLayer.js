@@ -20,6 +20,7 @@ import {
   mapboxShouldAcceptClick,
 } from '../../../helpers/NetworkHelpers';
 import {isNodeAlive, renderSnrWithIcon} from '../../../helpers/NetworkHelpers';
+import {makeRangeColorFunc} from '../../../helpers/MapLayerHelpers';
 import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -32,9 +33,10 @@ import type {
   OfflineWhiteListType,
   TopologyConfig,
 } from '../../../../shared/dto/NetworkState';
+import type {Overlay} from '../NetworkMapTypes';
 import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
 import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
-import type {TopologyType} from '../../../../shared/types/Topology';
+import type {SiteType, TopologyType} from '../../../../shared/types/Topology';
 
 const styles = {
   iconBottom: {
@@ -68,6 +70,8 @@ const SEARCH_NEARBY_SITE_COLOR = '#eee';
 const SEARCH_NEARBY_STROKE_COLOR = '#aec6cf';
 const SEARCH_NEARBY_STROKE_WIDTH = 5;
 
+export type SiteMapStyles = {|[siteName: string]: string|};
+
 export type Props = {
   classes: {[string]: string},
   onSiteMouseEnter?: Object => any,
@@ -82,10 +86,10 @@ export type Props = {
   siteToNodesMap?: SiteToNodesMap,
   plannedSite?: ?PlannedSite,
   onPlannedSiteMoved?: Object => any,
-  overlay: string,
+  overlay: Overlay,
   nearbyNodes: NearbyNodes,
   hiddenSites: Set<string>,
-  siteMapOverrides: ?{[string]: string},
+  siteMapOverrides: ?SiteMapStyles,
   routes: Routes,
 };
 
@@ -159,7 +163,7 @@ class SitesLayer extends React.Component<Props> {
     }
   }
 
-  getSiteColor(site) {
+  getSiteColor(site: SiteType): string {
     const {
       overlay,
       nodeMap,
@@ -170,7 +174,20 @@ class SitesLayer extends React.Component<Props> {
     } = this.props;
 
     if (siteMapOverrides) {
-      return siteMapOverrides[site.name];
+      const val = siteMapOverrides[site.name];
+      if (typeof val === 'undefined' || val === '') {
+        return SiteOverlayColors.health.planned.color;
+      }
+      // val is a metric value and must be interpolated
+      //TODO switch on overlay.type === metric instead
+      if (overlay.id === 'custom') {
+        const rangeFunc = makeRangeColorFunc(
+          overlay.range ?? [],
+          overlay.colorRange ?? [],
+        );
+        return rangeFunc(typeof val === 'string' ? parseFloat(val) : val);
+      }
+      return val; //val is just the color
     }
 
     const siteNodes =
@@ -192,7 +209,7 @@ class SitesLayer extends React.Component<Props> {
     }
 
     let siteColor;
-    switch (overlay) {
+    switch (overlay.id) {
       case 'polarity':
         siteColor = this.getSitePolarityColor(siteNodes);
         break;

@@ -67,13 +67,7 @@ function getSelectedSites(selectedElement, siteMap, nodeMap, linkMap) {
 }
 
 export default function MapLayers(props: Props) {
-  const {
-    selectedLayers,
-    selectedOverlays,
-    overlays,
-    overlayData,
-    mapMode,
-  } = useMapContext();
+  const {selectedLayers, overlays, overlayData, mapMode} = useMapContext();
   const routes = useRouteContext();
   const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
     NmsOptionsContext,
@@ -176,7 +170,7 @@ export default function MapLayers(props: Props) {
           siteToNodesMap={siteToNodesMap}
           plannedSite={plannedSite}
           onPlannedSiteMoved={onPlannedSiteMoved}
-          overlay={selectedOverlays['site_icons']}
+          overlay={overlays.site_icons}
           nearbyNodes={nearbyNodes}
           hiddenSites={hiddenSites}
           offlineWhitelist={offline_whitelist}

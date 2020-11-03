@@ -20,7 +20,6 @@ import {
   LinkInterferenceColors,
   LinkOverlayColors,
   LinkRenderType,
-  METRIC_COLOR_RANGE,
   SEARCH_NEARBY_FILL_PAINT,
   SEARCH_NEARBY_LINE_PAINT,
   SUPERFRAME_COLORS,
@@ -44,12 +43,11 @@ import {
   hasLinkEverGoneOnline,
   mapboxShouldAcceptClick,
 } from '../../../helpers/NetworkHelpers';
-import {interpolateHcl} from 'd3-interpolate';
+import {makeRangeColorFunc} from '../../../helpers/MapLayerHelpers';
 import {
   objectEntriesTypesafe,
   objectValuesTypesafe,
 } from '../../../helpers/ObjectHelpers';
-import {scaleLinear} from 'd3-scale';
 import {withStyles} from '@material-ui/core/styles';
 import type {Element} from '../../../contexts/NetworkContext';
 import type {
@@ -214,9 +212,9 @@ class LinksLayer extends React.Component<Props> {
       return;
     }
     const {overlay} = this.props;
-    const rangeColorFunc = this.getRangeColorFunc(
-      overlay.range,
-      overlay.colorRange,
+    const rangeColorFunc = makeRangeColorFunc(
+      overlay.range ?? [],
+      overlay.colorRange ?? [],
     );
     return metricValues.map(metricValue =>
       metricValue !== null
@@ -267,13 +265,6 @@ class LinksLayer extends React.Component<Props> {
       return undefined;
     }
   }
-
-  getRangeColorFunc = (domain, customColorRange) => {
-    return scaleLinear()
-      .domain(domain)
-      .range(customColorRange || METRIC_COLOR_RANGE)
-      .interpolate(interpolateHcl);
-  };
 
   mapLinksToRenderType() {
     // Map some links to a render type (for special cases)

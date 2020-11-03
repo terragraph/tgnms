@@ -30,7 +30,11 @@ afterEach(cleanup);
 const defaultTopology = basicTopology();
 const commonProps: Props = {
   topology: defaultTopology,
-  overlay: 'mock',
+  overlay: {
+    id: 'mock',
+    type: 'mock',
+    name: 'mock',
+  },
   selectedSites: {},
   nearbyNodes: {},
   topologyConfig: ({}: $Shape<TopologyConfig>),

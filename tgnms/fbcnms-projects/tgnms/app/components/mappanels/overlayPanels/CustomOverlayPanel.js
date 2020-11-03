@@ -28,6 +28,7 @@ import type {
   Legend,
   LinkMetrics,
   RemoteOverlay,
+  SiteMetrics,
   TopologyOverlayResponse,
 } from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 import type {
@@ -35,6 +36,7 @@ import type {
   OverlayConfig,
   OverlaysConfig,
 } from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {SiteMapStyles} from '@fbcnms/tg-nms/app/views/map/mapLayers/SitesLayer';
 
 // Interval at which link overlay metrics are refreshed (in ms)
 const LINK_OVERLAY_METRIC_REFRESH_INTERVAL_MS = 10000;
@@ -164,8 +166,10 @@ export default function CustomOverlayPanel() {
         }
         if (response.type === 'topology') {
           const linkData = linksToOverlayData(response?.data?.links ?? {});
+          const siteData = sitesToOverlayData(response?.data?.sites ?? {});
           setOverlayData({
             link_lines: linkData,
+            site_icons: siteData,
           });
         }
         setState(TASK_STATE.SUCCESS);
@@ -245,11 +249,24 @@ function linksToOverlayData(
   }, {});
 }
 
+/**
+ * SitesLayer only supports simple linkName:color mapping so the color
+ * interpolation must be done here.
+ */
+function sitesToOverlayData(siteMetrics: SiteMetrics): SiteMapStyles {
+  const siteMapOverrides = {};
+  for (const key of Object.keys(siteMetrics)) {
+    siteMapOverrides[key] = siteMetrics[key]?.value;
+  }
+  return siteMapOverrides;
+}
+
 function makeDynamicOverlaysConfig(
   def: RemoteOverlay,
   response: TopologyOverlayResponse,
 ): OverlaysConfig {
   const linksLegend = mapLegendToOverlayConfig(response?.legend?.links);
+  const sitesLegend = mapLegendToOverlayConfig(response?.legend?.sites);
   const formatLinkText = (link, value, valIdx) => {
     if (value == null) {
       return '';
@@ -271,8 +288,8 @@ function makeDynamicOverlaysConfig(
       layerId: 'link_lines',
       overlays: [
         {
-          name: 'custom',
-          id: 'custom',
+          name: OVERLAY_ID,
+          id: OVERLAY_ID,
           type: 'metric',
           range: linksLegend.range,
           colorRange: linksLegend.colorRange,
@@ -282,9 +299,25 @@ function makeDynamicOverlaysConfig(
       legend: {
         metric: linksLegend.legendConfig,
       },
-      defaultOverlayId: 'custom',
+      defaultOverlayId: OVERLAY_ID,
     },
-    site_icons: makeOverlayConfig('site_icons', response?.legend?.sites),
+    site_icons: {
+      layerId: 'site_icons',
+      overlays: [
+        {
+          name: OVERLAY_ID,
+          id: OVERLAY_ID,
+          type: 'metric',
+          range: sitesLegend.range,
+          colorRange: sitesLegend.colorRange,
+          // formatText: formatLinkText,
+        },
+      ],
+      legend: {
+        metric: sitesLegend.legendConfig,
+      },
+      defaultOverlayId: OVERLAY_ID,
+    },
     nodes: makeOverlayConfig('nodes', response?.legend?.nodes),
   };
 }
@@ -311,7 +344,6 @@ function mapLegendToOverlayConfig(
   return {range, colorRange, legendConfig};
 }
 
-// DEPRECATE
 function makeOverlayConfig(layerId: string, legend: Legend): OverlayConfig {
   const range = [];
   const colorRange = [];
