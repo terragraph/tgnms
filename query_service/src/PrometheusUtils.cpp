@@ -111,6 +111,10 @@ bool PrometheusUtils::writeNodeStats(
         folly::sformat(
             PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_NODE_MAC,
+            nodeInfo->second.mac_addr),
+        folly::sformat(
+            PrometheusConsts::METRIC_FORMAT,
+            PrometheusConsts::LABEL_RADIO_MAC,
             macAddr),
         folly::sformat(
             PrometheusConsts::METRIC_FORMAT,
@@ -124,6 +128,7 @@ bool PrometheusUtils::writeNodeStats(
             PrometheusConsts::METRIC_FORMAT,
             PrometheusConsts::LABEL_SITE_NAME,
             nodeInfo->second.site_name)};
+
     std::string prometheusMetricName = formatPrometheusMetricName(keyName);
     // extra meta-data for short keys
     auto nodeKeyCache =

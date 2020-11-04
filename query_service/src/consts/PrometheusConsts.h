@@ -22,6 +22,7 @@ class PrometheusConsts {
   const static std::string LABEL_NODE_NAME;
   const static std::string LABEL_NODE_IS_POP;
   const static std::string LABEL_NODE_IS_CN;
+  const static std::string LABEL_RADIO_MAC;
   // site labels
   const static std::string LABEL_SITE_NAME;
   // link labels

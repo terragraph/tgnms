@@ -18,6 +18,7 @@ const std::string PrometheusConsts::LABEL_NODE_MAC{"nodeMac"};
 const std::string PrometheusConsts::LABEL_NODE_NAME{"nodeName"};
 const std::string PrometheusConsts::LABEL_NODE_IS_POP{"pop"};
 const std::string PrometheusConsts::LABEL_NODE_IS_CN{"cn"};
+const std::string PrometheusConsts::LABEL_RADIO_MAC{"radioMac"};
 // site labels
 const std::string PrometheusConsts::LABEL_SITE_NAME{"siteName"};
 // link labels
