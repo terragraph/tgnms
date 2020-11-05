@@ -23,7 +23,7 @@ manifest_files = [
 
 setup(
     name="k8s_nms",
-    version="2020.09.30",
+    version="2020.11.02",
     description=("k8s_nms cli"),
     packages=["k8s_nms"],
     package_data={"k8s_nms": ansible_files + manifest_files},
@@ -39,7 +39,7 @@ setup(
     entry_points={"console_scripts": ["k8s_nms = k8s_nms.nms:cli"]},
     python_requires=">=3.7",
     install_requires=[
-        "ansible==2.9",
+        "ansible==2.9.*",
         "click==7.0",
         "setuptools",
         "jinja2==2.11.1",

@@ -75,7 +75,7 @@ docker_user: root
 
 
 # Set to `true` if nms will be running on a single host.
-single_node: true
+single_node: "{{ groups['all']|length == 1 }}"
 
 # If the machine running the cluster is behind a proxy, enable these options
 # http_proxy: http://[2620:10d:c0bf:1800:20c:29ff:fe0f:8758]:2831

@@ -2,7 +2,7 @@
 - name: Bootstrap Python
   import_playbook: bootstrap.yml
 
-- hosts: master
+- hosts: all
   tasks:
     - name: "set proxy if defined"
       set_fact:
@@ -23,6 +23,12 @@
       template:
         src: "{{ config_file_path }}"
         dest: "{{ terragraph_docker_path }}/config-backups/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
+
+- name: install kubernetes cluster
+  import_playbook: plays/kubeadm-ansible/site.yaml
+  vars:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
 
 # Create the gfs and bricks dirs even if gluster is not installed
 - name: create terragraph dirs
@@ -47,9 +53,6 @@
 - name: install and mount glusterfs
   import_playbook: plays/tg-glusterfs/site.yaml
   when: use_glusterfs and not single_node
-
-- name: install kubernetes cluster
-  import_playbook: plays/kubeadm-ansible/site.yaml
 
 - hosts: master
   gather_facts: yes
