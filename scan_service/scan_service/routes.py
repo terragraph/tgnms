@@ -6,7 +6,7 @@ import functools
 import json
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, DefaultDict, Iterable
+from typing import Any, DefaultDict, Iterable, Optional
 
 from aiohttp import web
 from croniter import croniter
@@ -64,19 +64,25 @@ async def handle_get_schedules(request: web.Request) -> web.Response:
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
-    type = request.rel_url.query.get("type")
-    if type is not None:
-        type = int(type)
-        if not ScanType.has_value(type):
-            raise web.HTTPBadRequest(text=f"Invalid 'type': {type}")
-        type = ScanType(type)
+    type: Optional[ScanType]
+    type_str = request.rel_url.query.get("type")
+    if type_str is not None:
+        type_int = int(type_str)
+        if not ScanType.has_value(type_int):
+            raise web.HTTPBadRequest(text=f"Invalid 'type': {type_int}")
+        type = ScanType(type_int)
+    else:
+        type = None
 
-    mode = request.rel_url.query.get("mode")
-    if mode is not None:
-        mode = int(mode)
-        if not ScanMode.has_value(mode):
-            raise web.HTTPBadRequest(text=f"Invalid 'mode': {mode}")
-        mode = ScanMode(mode)
+    mode: Optional[ScanMode]
+    mode_str = request.rel_url.query.get("mode")
+    if mode_str is not None:
+        mode_int = int(mode_str)
+        if not ScanMode.has_value(mode_int):
+            raise web.HTTPBadRequest(text=f"Invalid 'mode': {mode_int}")
+        mode = ScanMode(mode_int)
+    else:
+        mode = None
 
     return web.json_response(
         {
@@ -373,34 +379,46 @@ async def handle_get_executions(request: web.Request) -> web.Response:
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
-    type = request.rel_url.query.get("type")
-    if type is not None:
-        type = int(type)
-        if not ScanType.has_value(type):
-            raise web.HTTPBadRequest(text=f"Invalid 'type': {type}")
-        type = ScanType(type)
+    type: Optional[ScanType]
+    type_str = request.rel_url.query.get("type")
+    if type_str is not None:
+        type_int: int = int(type_str)
+        if not ScanType.has_value(type_int):
+            raise web.HTTPBadRequest(text=f"Invalid 'type': {type_int}")
+        type = ScanType(type_int)
+    else:
+        type = None
 
-    mode = request.rel_url.query.get("mode")
-    if mode is not None:
-        mode = int(mode)
-        if not ScanMode.has_value(mode):
-            raise web.HTTPBadRequest(text=f"Invalid 'mode': {mode}")
-        mode = ScanMode(mode)
+    mode: Optional[ScanMode]
+    mode_str = request.rel_url.query.get("mode")
+    if mode_str is not None:
+        mode_int = int(mode_str)
+        if not ScanMode.has_value(mode_int):
+            raise web.HTTPBadRequest(text=f"Invalid 'mode': {mode_int}")
+        mode = ScanMode(mode_int)
+    else:
+        mode = None
 
-    status = request.rel_url.query.get("status")
-    if status is not None:
-        if not ScanTestStatus.has_value(status):
-            raise web.HTTPBadRequest(text=f"Invalid 'status': {status}")
-        status = ScanTestStatus(status)
+    status: Optional[ScanTestStatus]
+    status_str = request.rel_url.query.get("status")
+    if status_str is not None:
+        if not ScanTestStatus.has_value(status_str):
+            raise web.HTTPBadRequest(text=f"Invalid 'status': {status_str}")
+        status = ScanTestStatus(status_str)
+    else:
+        status = None
 
-    start_dt = request.rel_url.query.get("start_dt")
-    if start_dt is not None:
+    start_dt: Optional[datetime]
+    dt_str = request.rel_url.query.get("start_dt")
+    if dt_str is not None:
         try:
-            start_dt = datetime.fromisoformat(start_dt)
+            start_dt = datetime.fromisoformat(dt_str)
         except ValueError:
             raise web.HTTPBadRequest(
-                text=f"'start_dt' must be valid ISO 8601 format: {start_dt}"
+                text=f"'start_dt' must be valid ISO 8601 format: {dt_str}"
             )
+    else:
+        start_dt = None
 
     return web.json_response(
         {

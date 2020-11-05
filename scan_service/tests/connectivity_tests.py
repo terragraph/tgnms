@@ -48,7 +48,6 @@ class ConnectivityTests(unittest.TestCase):
         self.assertEqual(routes, [(30, 50, 20), (10, 0, 11)])
 
     def test_find_routes_all(self) -> None:
-
         im_data = {
             "10_0": {"snr_avg": 11},
             "30_20": {"snr_avg": 20},
@@ -73,7 +72,6 @@ class ConnectivityTests(unittest.TestCase):
         self.assertEqual(routes, [(29, 15, 20), (16, 10, 11)])
 
     def test_get_connectivity_data(self) -> None:
-
         im_data = {
             "group_id": 5,
             "token": 10,
