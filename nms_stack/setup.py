@@ -109,7 +109,7 @@ setup(
     entry_points={"console_scripts": ["nms = nms_cli.nms:cli"]},
     python_requires=">=3.7",
     install_requires=[
-        "ansible==2.9",
+        "ansible==2.9.*",
         "click",
         "configparser",
         "oyaml",
