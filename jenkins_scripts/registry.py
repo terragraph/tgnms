@@ -44,7 +44,7 @@ def build(args: argparse.Namespace) -> None:
             release = "dev"
         else:
             release = "latest"
-    elif m := re.search(r"origin/(lts-nms-\d{2}\.\d{1,2})", args.branch):
+    elif m := re.search(r"origin/releases/(lts-nms-\d{2}\.\d{1,2})", args.branch):
         if args.stage:
             raise RuntimeError(f"Cannot build '{args.stage}' stage for {args.branch}")
         release = m.group(0)
