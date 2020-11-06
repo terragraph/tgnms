@@ -73,3 +73,8 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ['topology_service:8080']
+
+  - job_name: 'weather_service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['weather_service:8080']
