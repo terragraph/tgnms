@@ -101,7 +101,7 @@
   shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth --prune nms"
 
 - name: wait for nms to come up
-  command: docker run --network=terragraph_net byrnedo/alpine-curl curl nms_nms/healthcheck:80
+  command: docker run --network=terragraph_net byrnedo/alpine-curl nms_nms/healthcheck:80
   register: result
   retries: "{{ nms_start_retry }}"
   delay: "{{ nms_start_delay }}"
