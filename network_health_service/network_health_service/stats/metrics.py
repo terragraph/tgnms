@@ -4,7 +4,7 @@
 import dataclasses
 from typing import Dict, Optional
 
-from ..models import NetworkTestHealth
+from ..models import Health
 
 
 @dataclasses.dataclass
@@ -115,9 +115,7 @@ class Metrics:
             metrics["tx_power_diff"]["higher_threshold"],
             True,
         )
-        cls.link_health = Metric(
-            None, NetworkTestHealth.EXCELLENT.value, NetworkTestHealth.GOOD.value, True
-        )
+        cls.link_health = Metric(None, Health.EXCELLENT.value, Health.GOOD.value, True)
         cls.interference = Metric(
             metrics["interference"]["interval_s"],
             metrics["interference"]["lower_threshold"],
@@ -154,6 +152,4 @@ class Metrics:
             metrics["udp_pinger_rtt_avg"]["higher_threshold"],
             True,
         )
-        cls.node_health = Metric(
-            None, NetworkTestHealth.EXCELLENT.value, NetworkTestHealth.GOOD.value, True
-        )
+        cls.node_health = Metric(None, Health.EXCELLENT.value, Health.GOOD.value, True)

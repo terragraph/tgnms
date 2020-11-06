@@ -12,7 +12,7 @@ import aiohttp
 from tglib.clients.prometheus_client import PrometheusClient, consts, ops
 from tglib.exceptions import ClientRuntimeError
 
-from ..models import NodeAlignmentStatus, NodePowerStatus
+from ..models import NodeAlignmentStatus, NodePowerStatus, Health
 from .metrics import Metrics
 
 
@@ -160,17 +160,21 @@ async def fetch_prometheus_stats(
         metrics.append(metric)
         coros.append(client.query_latest(query, time_s))
 
-    logging.info(f"Fetching Prometheus stats for {network_name}...")
     for metric, response in zip(
         metrics, await asyncio.gather(*coros, return_exceptions=True)
     ):
         if isinstance(response, ClientRuntimeError) or response["status"] != "success":
-            logging.error(f"Failed to fetch {metric} data for {network_name}")
+            logging.error(
+                f"Prometheus - Failed to fetch {metric} data "
+                f"for {network_name}: {response}"
+            )
             continue
 
         results = response["data"]["result"]
         if not results:
-            logging.info(f"Found no {metric} results for {network_name}")
+            logging.warning(
+                f"Prometheus - Found no {metric} results for {network_name}"
+            )
             continue
 
         for result in results:
@@ -197,7 +201,7 @@ async def fetch_network_link_health(
         end_dt_iso = datetime.fromtimestamp(time_s).isoformat()
         params = {
             "network_name": network_name,
-            "test_type": "parallel,sequential",
+            "test_type": "parallel_link,sequential_link",
             "partial": "false",
             "status": "finished",
             "start_dt": start_dt_iso,
@@ -210,7 +214,7 @@ async def fetch_network_link_health(
             executions = json.loads(await resp.read())
             if not executions or not executions["executions"]:
                 logging.error(
-                    f"No network test execution data for {network_name} "
+                    f"Network test - No network test execution data for {network_name} "
                     + f"between {start_dt_iso} and {end_dt_iso}."
                 )
                 return None
@@ -224,10 +228,18 @@ async def fetch_network_link_health(
 
             results = json.loads(await resp.read())
             for result in results["results"]:
+                if result["health"] is None or result["health"] == "MISSING":
+                    logging.warning(
+                        f'Network test - Link health of {result["asset_name"]} '
+                        f'for {network_name} is {result["health"]}.'
+                    )
+                    continue
                 link_name = PrometheusClient.normalize(result["asset_name"])
-                link_stats[network_name][link_name]["link_health"] = result["health"]
-    except (aiohttp.ClientError, asyncio.TimeoutError):
-        logging.exception(f"Request to {url} for {network_name} failed.")
+                link_stats[network_name][link_name]["link_health"] = Health[
+                    result["health"]
+                ].value
+    except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        logging.error(f"Request to {url} for {network_name} failed: {err}")
 
 
 async def fetch_network_node_health(
@@ -244,7 +256,7 @@ async def fetch_network_node_health(
         end_dt_iso = datetime.fromtimestamp(time_s).isoformat()
         params = {
             "network_name": network_name,
-            "test_type": "multihop",
+            "test_type": "sequential_node",
             "partial": "false",
             "status": "finished",
             "start_dt": start_dt_iso,
@@ -257,7 +269,7 @@ async def fetch_network_node_health(
             executions = json.loads(await resp.read())
             if not executions or not executions["executions"]:
                 logging.error(
-                    f"No network test execution data for {network_name} "
+                    f"Network test - No network test execution data for {network_name} "
                     + f"between {start_dt_iso} and {end_dt_iso}."
                 )
                 return None
@@ -271,10 +283,18 @@ async def fetch_network_node_health(
 
             results = json.loads(await resp.read())
             for result in results["results"]:
+                if result["health"] is None or result["health"] == "MISSING":
+                    logging.warning(
+                        f'Network test - Node health of {result["asset_name"]} '
+                        f'for {network_name} is {result["health"]}.'
+                    )
+                    continue
                 node_name = PrometheusClient.normalize(result["asset_name"])
-                node_stats[network_name][node_name]["node_health"] = result["health"]
-    except (aiohttp.ClientError, asyncio.TimeoutError):
-        logging.exception(f"Request to {url} for {network_name} failed.")
+                node_stats[network_name][node_name]["node_health"] = Health[
+                    result["health"]
+                ].value
+    except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        logging.error(f"Request to {url} for {network_name} failed: {err}")
 
 
 async def fetch_scan_stats(
@@ -302,7 +322,7 @@ async def fetch_scan_stats(
             executions = json.loads(await resp.read())
             if not executions or not executions["executions"]:
                 logging.error(
-                    f"No scan execution data found for {network_name} "
+                    f"Scan service - No scan execution data found for {network_name} "
                     + f"between {start_dt_iso} and {end_dt_iso}."
                 )
                 return None
@@ -316,15 +336,17 @@ async def fetch_scan_stats(
 
             results = json.loads(await resp.read())
             if "n_day_avg" not in results["aggregated_inr"]:
-                logging.error(f"No interference data found for {network_name}.")
+                logging.warning(
+                    f"Scan service - No interference data found for {network_name}."
+                )
                 return None
 
             for link_name, directions in results["aggregated_inr"]["n_day_avg"].items():
                 inr_max = max(d["inr_curr_power"] for d in directions)
                 link_name = PrometheusClient.normalize(link_name)
                 link_stats[network_name][link_name]["interference"] = inr_max
-    except (aiohttp.ClientError, asyncio.TimeoutError):
-        logging.exception(f"Request to {url} for {network_name} failed.")
+    except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        logging.error(f"Request to {url} for {network_name} failed: {err}")
 
 
 async def fetch_query_link_avail(
@@ -343,10 +365,10 @@ async def fetch_query_link_avail(
 
             results = json.loads(await resp.read())
             if not results or not results["events"]:
-                logging.error(f"No data found for {network_name} in query service.")
+                logging.warning(f"Query service - No data found for {network_name}.")
                 return None
-    except (aiohttp.ClientError, asyncio.TimeoutError):
-        logging.exception(f"Request to {url} for {network_name} failed.")
+    except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        logging.error(f"Request to {url} for {network_name} failed: {err}")
         return None
 
     for link_name, data in results["events"].items():

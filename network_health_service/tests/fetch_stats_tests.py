@@ -150,135 +150,171 @@ class FetchStatsTests(asynctest.TestCase):
         )
 
     @asynctest.patch("aiohttp.ClientSession.get")
-    async def test_fetch_network_link_health(self, mock_get) -> None:
+    async def test_fetch_network_link_health(self, get) -> None:
         link_stats = {"network_A": defaultdict(lambda: defaultdict())}
 
         async with aiohttp.ClientSession() as session:
-            mock_get.return_value.__aenter__.return_value.status = 500
-            await fetch_network_link_health("network_A", 0, 3600, link_stats, session),
+            get.return_value.__aenter__.return_value.status = 500
+            await fetch_network_link_health("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.return_value.__aenter__.return_value.status = 200
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.return_value.__aenter__.return_value.status = 200
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 return_value="{}"
             )
-            await fetch_network_link_health("network_A", 0, 3600, link_stats, session),
+            await fetch_network_link_health("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = aiohttp.ClientError()
-            await fetch_network_link_health("network_A", 0, 3600, link_stats, session),
+            get.side_effect = aiohttp.ClientError()
+            await fetch_network_link_health("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = None
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.side_effect = None
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 side_effect=[
                     '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
-                    '{"results": [{"asset_name": "link", "health": 1}]}',
+                    '{"results": [{"asset_name": "link", "health": null}]}',
                 ]
             )
-            await fetch_network_link_health("network_A", 0, 3600, link_stats, session),
+            await fetch_network_link_health("network_A", 0, 3600, link_stats, session)
+            self.assertDictEqual(link_stats, {"network_A": defaultdict()})
+
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+                side_effect=[
+                    '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
+                    '{"results": [{"asset_name": "link", "health": "MISSING"}]}',
+                ]
+            )
+            await fetch_network_link_health("network_A", 0, 3600, link_stats, session)
+            self.assertDictEqual(link_stats, {"network_A": defaultdict()})
+
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+                side_effect=[
+                    '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
+                    '{"results": [{"asset_name": "link", "health": "EXCELLENT"}]}',
+                ]
+            )
+            await fetch_network_link_health("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(
                 link_stats, {"network_A": {"link": {"link_health": 1.0}}}
             )
 
     @asynctest.patch("aiohttp.ClientSession.get")
-    async def test_fetch_network_node_health(self, mock_get) -> None:
+    async def test_fetch_network_node_health(self, get) -> None:
         node_stats = {"network_A": defaultdict(lambda: defaultdict())}
 
         async with aiohttp.ClientSession() as session:
-            mock_get.return_value.__aenter__.return_value.status = 500
-            await fetch_network_node_health("network_A", 0, 3600, node_stats, session),
+            get.return_value.__aenter__.return_value.status = 500
+            await fetch_network_node_health("network_A", 0, 3600, node_stats, session)
             self.assertDictEqual(node_stats, {"network_A": defaultdict()})
 
-            mock_get.return_value.__aenter__.return_value.status = 200
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.return_value.__aenter__.return_value.status = 200
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 return_value="{}"
             )
-            await fetch_network_node_health("network_A", 0, 3600, node_stats, session),
+            await fetch_network_node_health("network_A", 0, 3600, node_stats, session)
             self.assertDictEqual(node_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = aiohttp.ClientError()
-            await fetch_network_node_health("network_A", 0, 3600, node_stats, session),
+            get.side_effect = aiohttp.ClientError()
+            await fetch_network_node_health("network_A", 0, 3600, node_stats, session)
             self.assertDictEqual(node_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = None
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.side_effect = None
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 side_effect=[
                     '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
-                    '{"results": [{"asset_name": "node", "health": 2}]}',
+                    '{"results": [{"asset_name": "node", "health": null}]}',
                 ]
             )
-            await fetch_network_node_health("network_A", 0, 3600, node_stats, session),
+            await fetch_network_node_health("network_A", 0, 3600, node_stats, session)
+            self.assertDictEqual(node_stats, {"network_A": defaultdict()})
+
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+                side_effect=[
+                    '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
+                    '{"results": [{"asset_name": "node", "health": "MISSING"}]}',
+                ]
+            )
+            await fetch_network_node_health("network_A", 0, 3600, node_stats, session)
+            self.assertDictEqual(node_stats, {"network_A": defaultdict()})
+
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+                side_effect=[
+                    '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
+                    '{"results": [{"asset_name": "node", "health": "GOOD"}]}',
+                ]
+            )
+            await fetch_network_node_health("network_A", 0, 3600, node_stats, session)
             self.assertDictEqual(
                 node_stats, {"network_A": {"node": {"node_health": 2.0}}}
             )
 
     @asynctest.patch("aiohttp.ClientSession.get")
-    async def test_fetch_scan_stats(self, mock_get) -> None:
+    async def test_fetch_scan_stats(self, get) -> None:
         link_stats = {"network_A": defaultdict(lambda: defaultdict())}
 
         async with aiohttp.ClientSession() as session:
-            mock_get.return_value.__aenter__.return_value.status = 500
-            await fetch_scan_stats("network_A", 0, 3600, link_stats, session),
+            get.return_value.__aenter__.return_value.status = 500
+            await fetch_scan_stats("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.return_value.__aenter__.return_value.status = 200
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.return_value.__aenter__.return_value.status = 200
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 return_value="{}"
             )
-            await fetch_scan_stats("network_A", 0, 3600, link_stats, session),
+            await fetch_scan_stats("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 side_effect=[
                     '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
                     '{"aggregated_inr": {}}',
                 ]
             )
-            await fetch_scan_stats("network_A", 0, 3600, link_stats, session),
+            await fetch_scan_stats("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = aiohttp.ClientError()
-            await fetch_scan_stats("network_A", 0, 3600, link_stats, session),
+            get.side_effect = aiohttp.ClientError()
+            await fetch_scan_stats("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = None
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.side_effect = None
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 side_effect=[
                     '{"executions": [{"id": 0}, {"id": 1}, {"id": 2}]}',
                     '{"aggregated_inr": {"n_day_avg": {"link": [{"inr_curr_power": 2}, {"inr_curr_power": 4}]}}}',
                 ]
             )
-            await fetch_scan_stats("network_A", 0, 3600, link_stats, session),
+            await fetch_scan_stats("network_A", 0, 3600, link_stats, session)
             self.assertDictEqual(
                 link_stats, {"network_A": {"link": {"interference": 4.0}}}
             )
 
     @asynctest.patch("aiohttp.ClientSession.get")
-    async def test_fetch_query_link_avail(self, mock_get) -> None:
+    async def test_fetch_query_link_avail(self, get) -> None:
         link_stats = {"network_A": defaultdict(lambda: defaultdict())}
 
         async with aiohttp.ClientSession() as session:
-            mock_get.return_value.__aenter__.return_value.status = 500
-            await fetch_query_link_avail("network_A", 3600, link_stats, session),
+            get.return_value.__aenter__.return_value.status = 500
+            await fetch_query_link_avail("network_A", 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.return_value.__aenter__.return_value.status = 200
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.return_value.__aenter__.return_value.status = 200
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 return_value="{}"
             )
-            await fetch_query_link_avail("network_A", 3600, link_stats, session),
+            await fetch_query_link_avail("network_A", 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = aiohttp.ClientError()
-            await fetch_query_link_avail("network_A", 3600, link_stats, session),
+            get.side_effect = aiohttp.ClientError()
+            await fetch_query_link_avail("network_A", 3600, link_stats, session)
             self.assertDictEqual(link_stats, {"network_A": defaultdict()})
 
-            mock_get.side_effect = None
-            mock_get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
+            get.side_effect = None
+            get.return_value.__aenter__.return_value.read = asynctest.CoroutineMock(
                 return_value='{"events": {"link": {"linkAlive": 2, "linkAvailForData": 3}}}'
             )
-            await fetch_query_link_avail("network_A", 3600, link_stats, session),
+            await fetch_query_link_avail("network_A", 3600, link_stats, session)
             self.assertDictEqual(
                 link_stats,
                 {

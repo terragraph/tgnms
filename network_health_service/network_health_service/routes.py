@@ -26,7 +26,7 @@ def custom_serializer(obj: Any) -> str:
         return str(obj)
 
 
-@routes.get("/health")
+@routes.get("/health/network")
 async def handle_get_network_health(request: web.Request) -> web.Response:
     """
     ---

@@ -23,7 +23,7 @@ from .utils.db import save_stats_health
 
 async def generate_network_health_labels(time_s: int, period_s: int) -> None:
     network_names = APIServiceClient.network_names()
-    coros = []  # type: ignore
+    coros: List = []
     link_stats: Dict[str, DefaultDict] = {}
     node_stats: Dict[str, DefaultDict] = {}
     async with aiohttp.ClientSession() as session:

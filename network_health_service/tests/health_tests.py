@@ -4,7 +4,7 @@
 import json
 import unittest
 
-from network_health_service.models import StatHealth
+from network_health_service.models import Health
 from network_health_service.stats.health import (
     get_health,
     get_link_stats_health,
@@ -22,18 +22,18 @@ class HealthTests(unittest.TestCase):
 
     def test_get_health(self) -> None:
         poor_health = get_health(0, Metrics.analytics_alignment_status)
-        self.assertEqual(poor_health, StatHealth.POOR.value)
+        self.assertEqual(poor_health, Health.POOR.value)
         good_health = get_health(97, Metrics.analytics_alignment_status)
-        self.assertEqual(good_health, StatHealth.GOOD.value)
+        self.assertEqual(good_health, Health.GOOD.value)
         excellent_health = get_health(100, Metrics.analytics_alignment_status)
-        self.assertEqual(excellent_health, StatHealth.EXCELLENT.value)
+        self.assertEqual(excellent_health, Health.EXCELLENT.value)
 
         poor_health = get_health(1.3, Metrics.tx_byte)
-        self.assertEqual(poor_health, StatHealth.POOR.value)
+        self.assertEqual(poor_health, Health.POOR.value)
         good_health = get_health(1.0, Metrics.tx_byte)
-        self.assertEqual(good_health, StatHealth.GOOD.value)
+        self.assertEqual(good_health, Health.GOOD.value)
         excellent_health = get_health(0.8, Metrics.tx_byte)
-        self.assertEqual(excellent_health, StatHealth.EXCELLENT.value)
+        self.assertEqual(excellent_health, Health.EXCELLENT.value)
 
     def test_get_link_stats_health(self) -> None:
         link_stats_map = {
@@ -57,25 +57,25 @@ class HealthTests(unittest.TestCase):
         self.assertDictEqual(
             link_health,
             {
-                "overall_health": "poor",
+                "overall_health": 4,
                 "stats": {
-                    "analytics_alignment_status": {"health": "poor", "value": 0.0},
-                    "analytics_foliage_factor": {"health": "poor", "value": 3.0},
-                    "drs_cn_egress_routes_count": {"health": "good", "value": 4.0},
-                    "interference": {"health": "poor", "value": 13.0},
-                    "link_alive": {"health": "poor", "value": 10.0},
-                    "link_avail": {"health": "excellent", "value": 6.0},
-                    "link_avail_for_data": {"health": "poor", "value": 11.0},
-                    "link_health": {"health": "poor", "value": 12.0},
-                    "mcs": {"health": "good", "value": 7.0},
-                    "mcs_diff": {"health": "poor", "value": 8.0},
+                    "analytics_alignment_status": {"health": 4, "value": 0.0},
+                    "analytics_foliage_factor": {"health": 4, "value": 3.0},
+                    "drs_cn_egress_routes_count": {"health": 2, "value": 4.0},
+                    "interference": {"health": 4, "value": 13.0},
+                    "link_alive": {"health": 4, "value": 10.0},
+                    "link_avail": {"health": 1, "value": 6.0},
+                    "link_avail_for_data": {"health": 4, "value": 11.0},
+                    "link_health": {"health": 4, "value": 12.0},
+                    "mcs": {"health": 2, "value": 7.0},
+                    "mcs_diff": {"health": 4, "value": 8.0},
                     "topology_link_is_online": {
-                        "health": "poor",
+                        "health": 4,
                         "value": 0.8333333333333334,
                     },
-                    "tx_byte": {"health": "excellent", "value": 5.333333333333334e-10},
-                    "tx_ok": {"health": "excellent", "value": 5.0},
-                    "tx_power_diff": {"health": "poor", "value": 9.0},
+                    "tx_byte": {"health": 1, "value": 5.333333333333334e-10},
+                    "tx_ok": {"health": 1, "value": 5.0},
+                    "tx_power_diff": {"health": 4, "value": 9.0},
                 },
             },
         )
@@ -90,11 +90,11 @@ class HealthTests(unittest.TestCase):
         self.assertDictEqual(
             link_health,
             {
-                "overall_health": "excellent",
+                "overall_health": 1,
                 "stats": {
-                    "link_avail": {"health": "excellent", "value": 0.0},
-                    "link_avail_for_data": {"health": "excellent", "value": 100.0},
-                    "link_health": {"health": "excellent", "value": 1.0},
+                    "link_avail": {"health": 1, "value": 0.0},
+                    "link_avail_for_data": {"health": 1, "value": 100.0},
+                    "link_health": {"health": 1, "value": 1.0},
                 },
             },
         )
@@ -109,11 +109,11 @@ class HealthTests(unittest.TestCase):
         self.assertDictEqual(
             link_health,
             {
-                "overall_health": "good",
+                "overall_health": 2,
                 "stats": {
-                    "link_avail": {"health": "excellent", "value": 0.0},
-                    "link_avail_for_data": {"health": "good", "value": 99.8},
-                    "link_health": {"health": "excellent", "value": 1.0},
+                    "link_avail": {"health": 1, "value": 0.0},
+                    "link_avail_for_data": {"health": 2, "value": 99.8},
+                    "link_health": {"health": 1, "value": 1.0},
                 },
             },
         )
@@ -132,20 +132,20 @@ class HealthTests(unittest.TestCase):
         self.assertDictEqual(
             node_health,
             {
-                "overall_health": "poor",
+                "overall_health": 4,
                 "stats": {
                     "analytics_cn_power_status": {
-                        "health": "poor",
+                        "health": 4,
                         "value": 83.33333333333334,
                     },
-                    "node_health": {"health": "poor", "value": 15.0},
-                    "node_online": {"health": "poor", "value": 10.833333333333334},
+                    "node_health": {"health": 4, "value": 15.0},
+                    "node_online": {"health": 4, "value": 10.833333333333334},
                     "topology_node_is_online": {
-                        "health": "poor",
+                        "health": 4,
                         "value": 9.166666666666666,
                     },
-                    "udp_pinger_loss_ratio": {"health": "poor", "value": 10.0},
-                    "udp_pinger_rtt_avg": {"health": "excellent", "value": 14.0},
+                    "udp_pinger_loss_ratio": {"health": 4, "value": 10.0},
+                    "udp_pinger_rtt_avg": {"health": 1, "value": 14.0},
                 },
             },
         )
@@ -160,11 +160,11 @@ class HealthTests(unittest.TestCase):
         self.assertDictEqual(
             node_health,
             {
-                "overall_health": "excellent",
+                "overall_health": 1,
                 "stats": {
-                    "node_health": {"health": "excellent", "value": 1.0},
-                    "udp_pinger_loss_ratio": {"health": "excellent", "value": 100.0},
-                    "udp_pinger_rtt_avg": {"health": "excellent", "value": 0.0},
+                    "node_health": {"health": 1, "value": 1.0},
+                    "udp_pinger_loss_ratio": {"health": 1, "value": 100.0},
+                    "udp_pinger_rtt_avg": {"health": 1, "value": 0.0},
                 },
             },
         )
@@ -179,11 +179,11 @@ class HealthTests(unittest.TestCase):
         self.assertDictEqual(
             node_health,
             {
-                "overall_health": "good",
+                "overall_health": 2,
                 "stats": {
-                    "node_health": {"health": "good", "value": 2.0},
-                    "udp_pinger_loss_ratio": {"health": "excellent", "value": 100.0},
-                    "udp_pinger_rtt_avg": {"health": "excellent", "value": 0.0},
+                    "node_health": {"health": 2, "value": 2.0},
+                    "udp_pinger_loss_ratio": {"health": 1, "value": 100.0},
+                    "udp_pinger_rtt_avg": {"health": 1, "value": 0.0},
                 },
             },
         )

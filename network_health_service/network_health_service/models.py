@@ -16,18 +16,12 @@ class NodeAlignmentStatus(IntEnum):
     TX_RX_HEALTHY = 1
 
 
-class NetworkTestHealth(Enum):
+class Health(Enum):
     EXCELLENT = 1
     GOOD = 2
     MARGINAL = 3
     POOR = 4
-
-
-class StatHealth(Enum):
-    EXCELLENT = "excellent"
-    GOOD = "good"
-    POOR = "poor"
-    UNKNOWN = "unknown"
+    UNKNOWN = 5
 
 
 Base: Any = declarative_base()

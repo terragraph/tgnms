@@ -3,30 +3,30 @@
 
 from typing import DefaultDict, Dict, Tuple
 
-from ..models import NetworkTestHealth, StatHealth
+from ..models import Health
 from .metrics import Metric, Metrics
 
 
-def get_health(value: float, metric: Metric) -> str:
+def get_health(value: float, metric: Metric) -> int:
     if metric.reverse:
         if value <= metric.lower_threshold:
-            return StatHealth.EXCELLENT.value
+            return Health.EXCELLENT.value
         elif value <= metric.higher_threshold:
-            return StatHealth.GOOD.value
-        return StatHealth.POOR.value
+            return Health.GOOD.value
+        return Health.POOR.value
 
     if value >= metric.higher_threshold:
-        return StatHealth.EXCELLENT.value
+        return Health.EXCELLENT.value
     elif value >= metric.lower_threshold:
-        return StatHealth.GOOD.value
-    return StatHealth.POOR.value
+        return Health.GOOD.value
+    return Health.POOR.value
 
 
 def get_link_stats_health(  # noqa: C901
     link_stats_map: DefaultDict, period_s: int
 ) -> Tuple[str, Dict]:
     """Evaluate health of link stats and generate corresponding bitmap."""
-    stats_health: Dict = {"overall_health": StatHealth.UNKNOWN.value, "stats": {}}
+    stats_health: Dict = {"overall_health": Health.UNKNOWN.value, "stats": {}}
     link_labels_bitmap = ""
 
     # Evaluate analytics alignment status
@@ -203,7 +203,7 @@ def get_link_stats_health(  # noqa: C901
             "health": get_health(link_health, Metrics.link_health),
             "value": link_health,
         }
-        link_health_label = int(link_health >= NetworkTestHealth.POOR.value)
+        link_health_label = int(link_health >= Health.POOR.value)
     link_labels_bitmap += f"{link_health_label}"
 
     # Evaluate link interference using 'inr_curr_power'
@@ -226,22 +226,21 @@ def get_link_stats_health(  # noqa: C901
         and stats_health["stats"].get("link_health") is not None
     ):
         if (
-            stats_health["stats"]["link_avail"]["health"] == StatHealth.POOR.value
+            stats_health["stats"]["link_avail"]["health"] == Health.POOR.value
             or stats_health["stats"]["link_avail_for_data"]["health"]
-            == StatHealth.POOR.value
-            or stats_health["stats"]["link_health"]["health"] == StatHealth.POOR.value
+            == Health.POOR.value
+            or stats_health["stats"]["link_health"]["health"] == Health.POOR.value
         ):
-            stats_health["overall_health"] = StatHealth.POOR.value
+            stats_health["overall_health"] = Health.POOR.value
         elif (
-            stats_health["stats"]["link_avail"]["health"] == StatHealth.EXCELLENT.value
+            stats_health["stats"]["link_avail"]["health"] == Health.EXCELLENT.value
             and stats_health["stats"]["link_avail_for_data"]["health"]
-            == StatHealth.EXCELLENT.value
-            and stats_health["stats"]["link_health"]["health"]
-            == StatHealth.EXCELLENT.value
+            == Health.EXCELLENT.value
+            and stats_health["stats"]["link_health"]["health"] == Health.EXCELLENT.value
         ):
-            stats_health["overall_health"] = StatHealth.EXCELLENT.value
+            stats_health["overall_health"] = Health.EXCELLENT.value
         else:
-            stats_health["overall_health"] = StatHealth.GOOD.value
+            stats_health["overall_health"] = Health.GOOD.value
 
     return link_labels_bitmap, stats_health
 
@@ -250,7 +249,7 @@ def get_node_stats_health(
     node_stats_map: DefaultDict, period_s: int
 ) -> Tuple[str, Dict]:
     """Evaluate health of node stats and generate corresponding bitmap."""
-    stats_health: Dict = {"overall_health": StatHealth.UNKNOWN.value, "stats": {}}
+    stats_health: Dict = {"overall_health": Health.UNKNOWN.value, "stats": {}}
     node_labels_bitmap = ""
 
     # Evaluate analytics cn powered off count
@@ -354,7 +353,7 @@ def get_node_stats_health(
             "health": get_health(node_health, Metrics.node_health),
             "value": node_health,
         }
-        node_health_label = int(node_health >= NetworkTestHealth.POOR.value)
+        node_health_label = int(node_health >= Health.POOR.value)
     node_labels_bitmap += f"{node_health_label}"
 
     # Calculate overall node health
@@ -365,22 +364,21 @@ def get_node_stats_health(
     ):
         if (
             stats_health["stats"]["udp_pinger_loss_ratio"]["health"]
-            == StatHealth.POOR.value
+            == Health.POOR.value
             or stats_health["stats"]["udp_pinger_rtt_avg"]["health"]
-            == StatHealth.POOR.value
-            or stats_health["stats"]["node_health"]["health"] == StatHealth.POOR.value
+            == Health.POOR.value
+            or stats_health["stats"]["node_health"]["health"] == Health.POOR.value
         ):
-            stats_health["overall_health"] = StatHealth.POOR.value
+            stats_health["overall_health"] = Health.POOR.value
         elif (
             stats_health["stats"]["udp_pinger_loss_ratio"]["health"]
-            == StatHealth.EXCELLENT.value
+            == Health.EXCELLENT.value
             and stats_health["stats"]["udp_pinger_rtt_avg"]["health"]
-            == StatHealth.EXCELLENT.value
-            and stats_health["stats"]["node_health"]["health"]
-            == StatHealth.EXCELLENT.value
+            == Health.EXCELLENT.value
+            and stats_health["stats"]["node_health"]["health"] == Health.EXCELLENT.value
         ):
-            stats_health["overall_health"] = StatHealth.EXCELLENT.value
+            stats_health["overall_health"] = Health.EXCELLENT.value
         else:
-            stats_health["overall_health"] = StatHealth.GOOD.value
+            stats_health["overall_health"] = Health.GOOD.value
 
     return node_labels_bitmap, stats_health

@@ -21,7 +21,7 @@ ptr_params = {
 
 setup(
     name="network_health_service",
-    version="2020.10.23",
+    version="2020.11.06",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=["aiohttp", "aiomysql", "sqlalchemy"],
