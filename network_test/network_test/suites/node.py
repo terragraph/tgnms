@@ -19,7 +19,7 @@ class NodeTest(BaseTest):
         network_name: str,
         test_type: NetworkTestType,
         iperf_options: Dict[str, Any],
-        whitelist: List[str],
+        allowlist: List[str],
     ) -> None:
         # Set default test configurations
         if "bitrate" not in iperf_options:
@@ -28,12 +28,12 @@ class NodeTest(BaseTest):
             iperf_options["protocol"] = IperfTransportProtocol.TCP
             iperf_options["omitSec"] = 2  # 2 seconds
 
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)
 
     async def prepare(self) -> bool:  # noqa: C901
         """Prepare the network test assets.
 
-        Using the whitelist provided, or after selecting one node per site (excluding
+        Using the allowlist provided, or after selecting one node per site (excluding
         PoPs), gather the node names and MAC address information.
         """
         self.session_ids.clear()
@@ -43,12 +43,12 @@ class NodeTest(BaseTest):
             topology = await client.request(self.network_name, "getTopology")
             nodes: List[str] = []
             name_to_mac: Dict[str, str] = {}
-            if self.whitelist:
-                whitelist_set = set(self.whitelist)
+            if self.allowlist:
+                allowlist_set = set(self.allowlist)
                 for node in topology["nodes"]:
                     if node["pop_node"]:
                         name_to_mac[node["name"]] = node["mac_addr"]
-                    elif node["name"] in whitelist_set:
+                    elif node["name"] in allowlist_set:
                         name_to_mac[node["name"]] = node["mac_addr"]
                         nodes.append(node["name"])
             else:

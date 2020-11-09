@@ -19,19 +19,19 @@ class LinkTest(BaseTest):
         network_name: str,
         test_type: NetworkTestType,
         iperf_options: Dict[str, Any],
-        whitelist: List[str],
+        allowlist: List[str],
     ) -> None:
         # Set default test configurations
         iperf_options["protocol"] = IperfTransportProtocol.UDP
         if "bitrate" not in iperf_options:
             iperf_options["bitrate"] = 200000000  # 200 MB/s
 
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)
 
     async def prepare(self) -> bool:
         """Prepare the network test assets.
 
-        Using the whitelist provided, or after selecting every wireless link in the
+        Using the allowlist provided, or after selecting every wireless link in the
         network, gather the link names and MAC address information.
         """
         self.session_ids.clear()
@@ -42,12 +42,12 @@ class LinkTest(BaseTest):
             node_name_to_mac = {
                 node["name"]: node["mac_addr"] for node in topology["nodes"]
             }
-            whitelist_set = set(self.whitelist)
+            allowlist_set = set(self.allowlist)
             self.assets = []
             for link in topology["links"]:
                 if link["link_type"] != LinkType.WIRELESS:
                     continue
-                if self.whitelist and link["name"] not in whitelist_set:
+                if self.allowlist and link["name"] not in allowlist_set:
                     continue
 
                 self.assets.append(

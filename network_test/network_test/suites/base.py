@@ -31,13 +31,13 @@ class BaseTest(abc.ABC):
         network_name: str,
         test_type: NetworkTestType,
         iperf_options: Dict[str, Any],
-        whitelist: Optional[List[str]],
+        allowlist: Optional[List[str]],
     ) -> None:
         self.network_name = network_name
         self.test_type = test_type
         iperf_options["json"] = True
         self.iperf_options = iperf_options
-        self.whitelist: List[str] = whitelist or []
+        self.allowlist: List[str] = allowlist or []
         self.assets: List[TestAsset] = []
         self.session_ids: Set[str] = set()
         self.task: Optional[asyncio.Task] = None
@@ -48,7 +48,7 @@ class BaseTest(abc.ABC):
         """Prepare the information needed to start the test.
 
         Fetch the network assets needed to start the test from the API service. If
-        provided, use the test's whitelist to test specific assets.
+        provided, use the test's allowlist to test specific assets.
         """
         pass
 

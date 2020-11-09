@@ -173,7 +173,7 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
             type: string
           iperf_options:
             type: object
-          whitelist:
+          allowlist:
             type: array
             items:
               type: string
@@ -218,17 +218,17 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
     iperf_options = body.get("iperf_options", {})
-    whitelist = body.get("whitelist", [])
+    allowlist = body.get("allowlist", [])
 
     test: BaseTest
     if test_type == NetworkTestType.PARALLEL_LINK:
-        test = ParallelLinkTest(network_name, iperf_options, whitelist)
+        test = ParallelLinkTest(network_name, iperf_options, allowlist)
     elif test_type == NetworkTestType.PARALLEL_NODE:
-        test = ParallelNodeTest(network_name, iperf_options, whitelist)
+        test = ParallelNodeTest(network_name, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_LINK:
-        test = SequentialLinkTest(network_name, iperf_options, whitelist)
+        test = SequentialLinkTest(network_name, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_NODE:
-        test = SequentialNodeTest(network_name, iperf_options, whitelist)
+        test = SequentialNodeTest(network_name, iperf_options, allowlist)
 
     schedule_id = await Scheduler.add_schedule(schedule, test)
     return web.json_response(
@@ -269,7 +269,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
             type: string
           iperf_options:
             type: object
-          whitelist:
+          allowlist:
             type: array
             items:
               type: string
@@ -312,10 +312,10 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
     iperf_options = body.get("iperf_options", {})
-    whitelist = body.get("whitelist", [])
+    allowlist = body.get("allowlist", [])
 
     if not await Scheduler.modify_schedule(
-        schedule_id, enabled, cron_expr, network_name, iperf_options, whitelist
+        schedule_id, enabled, cron_expr, network_name, iperf_options, allowlist
     ):
         raise web.HTTPInternalServerError(text="Failed to modify network test schedule")
 
@@ -526,7 +526,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             type: string
           iperf_options:
             type: object
-          whitelist:
+          allowlist:
             type: array
             items:
               type: string
@@ -561,17 +561,17 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         raise web.HTTPConflict(text=f"A test is already running on '{network_name}'")
 
     iperf_options = body.get("iperf_options", {})
-    whitelist = body.get("whitelist", [])
+    allowlist = body.get("allowlist", [])
 
     test: BaseTest
     if test_type == NetworkTestType.PARALLEL_LINK:
-        test = ParallelLinkTest(network_name, iperf_options, whitelist)
+        test = ParallelLinkTest(network_name, iperf_options, allowlist)
     elif test_type == NetworkTestType.PARALLEL_NODE:
-        test = ParallelNodeTest(network_name, iperf_options, whitelist)
+        test = ParallelNodeTest(network_name, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_LINK:
-        test = SequentialLinkTest(network_name, iperf_options, whitelist)
+        test = SequentialLinkTest(network_name, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_NODE:
-        test = SequentialNodeTest(network_name, iperf_options, whitelist)
+        test = SequentialNodeTest(network_name, iperf_options, allowlist)
 
     if not await test.prepare():
         raise web.HTTPInternalServerError(text="Failed to prepare network test assets")

@@ -18,13 +18,13 @@ class SequentialTest(BaseTest):
         network_name: str,
         test_type: NetworkTestType,
         iperf_options: Dict[str, Any],
-        whitelist: List[str],
+        allowlist: List[str],
     ) -> None:
         # Set default test configurations
         if "timeSec" not in iperf_options:
             iperf_options["timeSec"] = 60  # 1 minute
 
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)
 
     async def start(self, execution_id: int, use_link_local: bool) -> None:
         """Start a sequential test (i.e. on each asset, one at a time)."""
@@ -32,7 +32,7 @@ class SequentialTest(BaseTest):
             f"Starting {self.test_type.value} test on {self.network_name} (ID={execution_id})"
         )
         logging.debug(f"iperf options: {self.iperf_options}")
-        logging.debug(f"whitelist: {self.whitelist}")
+        logging.debug(f"allowlist: {self.allowlist}")
 
         loop = asyncio.get_event_loop()
         start_time = loop.time()

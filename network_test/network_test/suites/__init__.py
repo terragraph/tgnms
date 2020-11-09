@@ -15,31 +15,31 @@ from ..models import NetworkTestType
 
 class ParallelLinkTest(LinkTest, ParallelTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
+        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
     ) -> None:
         test_type = NetworkTestType.PARALLEL_LINK
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)
 
 
 class ParallelNodeTest(NodeTest, ParallelTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
+        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
     ) -> None:
         test_type = NetworkTestType.PARALLEL_NODE
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)
 
 
 class SequentialLinkTest(LinkTest, SequentialTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
+        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
     ) -> None:
         test_type = NetworkTestType.SEQUENTIAL_LINK
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)
 
 
 class SequentialNodeTest(NodeTest, SequentialTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], whitelist: List[str]
+        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
     ) -> None:
         test_type = NetworkTestType.SEQUENTIAL_NODE
-        super().__init__(network_name, test_type, iperf_options, whitelist)
+        super().__init__(network_name, test_type, iperf_options, allowlist)

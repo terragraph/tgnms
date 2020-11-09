@@ -228,19 +228,19 @@ class Scheduler:
             test: BaseTest
             if row.test_type == NetworkTestType.PARALLEL_LINK:
                 test = ParallelLinkTest(
-                    row.network_name, row.iperf_options, row.whitelist
+                    row.network_name, row.iperf_options, row.allowlist
                 )
             elif row.test_type == NetworkTestType.PARALLEL_NODE:
                 test = ParallelNodeTest(
-                    row.network_name, row.iperf_options, row.whitelist
+                    row.network_name, row.iperf_options, row.allowlist
                 )
             elif row.test_type == NetworkTestType.SEQUENTIAL_LINK:
                 test = SequentialLinkTest(
-                    row.network_name, row.iperf_options, row.whitelist
+                    row.network_name, row.iperf_options, row.allowlist
                 )
             elif row.test_type == NetworkTestType.SEQUENTIAL_NODE:
                 test = SequentialNodeTest(
-                    row.network_name, row.iperf_options, row.whitelist
+                    row.network_name, row.iperf_options, row.allowlist
                 )
 
             schedule = Schedule(row.enabled, row.cron_expr)
@@ -262,7 +262,7 @@ class Scheduler:
                 test_type=test.test_type,
                 network_name=test.network_name,
                 iperf_options=test.iperf_options,
-                whitelist=test.whitelist or None,
+                allowlist=test.allowlist or None,
             )
             params_row = await sa_conn.execute(insert_params_query)
             params_id = params_row.lastrowid
@@ -280,7 +280,7 @@ class Scheduler:
         cron_expr: str,
         network_name: str,
         iperf_options: Dict[str, Any],
-        whitelist: List[str],
+        allowlist: List[str],
     ) -> bool:
         """Stop the running schedule, update the DB, and restart."""
         async with MySQLClient().lease() as sa_conn:
@@ -303,26 +303,26 @@ class Scheduler:
 
             test: BaseTest
             if params_row.test_type == NetworkTestType.PARALLEL_LINK:
-                test = ParallelLinkTest(network_name, iperf_options, whitelist)
+                test = ParallelLinkTest(network_name, iperf_options, allowlist)
             elif params_row.test_type == NetworkTestType.PARALLEL_NODE:
-                test = ParallelNodeTest(network_name, iperf_options, whitelist)
+                test = ParallelNodeTest(network_name, iperf_options, allowlist)
             elif params_row.test_type == NetworkTestType.SEQUENTIAL_LINK:
-                test = SequentialLinkTest(network_name, iperf_options, whitelist)
+                test = SequentialLinkTest(network_name, iperf_options, allowlist)
             elif params_row.test_type == NetworkTestType.SEQUENTIAL_NODE:
-                test = SequentialNodeTest(network_name, iperf_options, whitelist)
+                test = SequentialNodeTest(network_name, iperf_options, allowlist)
 
             # Insert new params row if the values differ
             if not (
                 params_row.network_name == test.network_name
                 and params_row.iperf_options == test.iperf_options
-                and set(params_row.whitelist or []) == set(test.whitelist)
+                and set(params_row.allowlist or []) == set(test.allowlist)
             ):
                 insert_params_query = insert(NetworkTestParams).values(
                     schedule_id=schedule_id,
                     test_type=params_row.test_type,
                     network_name=test.network_name,
                     iperf_options=test.iperf_options,
-                    whitelist=test.whitelist or None,
+                    allowlist=test.allowlist or None,
                 )
                 params_row = await sa_conn.execute(insert_params_query)
                 params_id = params_row.lastrowid
@@ -368,7 +368,7 @@ class Scheduler:
                     test_type=test.test_type,
                     network_name=test.network_name,
                     iperf_options=test.iperf_options,
-                    whitelist=test.whitelist or None,
+                    allowlist=test.allowlist or None,
                 )
                 params_row = await sa_conn.execute(insert_params_query)
                 params_id = params_row.lastrowid
@@ -487,7 +487,7 @@ class Scheduler:
                     NetworkTestParams.test_type,
                     NetworkTestParams.network_name,
                     NetworkTestParams.iperf_options,
-                    NetworkTestParams.whitelist,
+                    NetworkTestParams.allowlist,
                     NetworkTestExecution,
                 ]
             ).select_from(
@@ -521,7 +521,7 @@ class Scheduler:
                         NetworkTestParams.test_type,
                         NetworkTestParams.network_name,
                         NetworkTestParams.iperf_options,
-                        NetworkTestParams.whitelist,
+                        NetworkTestParams.allowlist,
                     ]
                 )
                 .select_from(
@@ -551,9 +551,9 @@ class Scheduler:
                 )
             if partial is not None:
                 if partial:
-                    query = query.where(NetworkTestParams.whitelist.isnot(None))
+                    query = query.where(NetworkTestParams.allowlist.isnot(None))
                 else:
-                    query = query.where(NetworkTestParams.whitelist.is_(None))
+                    query = query.where(NetworkTestParams.allowlist.is_(None))
 
             cursor = await sa_conn.execute(query)
             return await cursor.fetchall()
@@ -571,7 +571,7 @@ class Scheduler:
                         NetworkTestParams.test_type,
                         NetworkTestParams.network_name,
                         NetworkTestParams.iperf_options,
-                        NetworkTestParams.whitelist,
+                        NetworkTestParams.allowlist,
                     ]
                 )
                 .select_from(
@@ -615,7 +615,7 @@ class Scheduler:
                     NetworkTestParams.test_type,
                     NetworkTestParams.network_name,
                     NetworkTestParams.iperf_options,
-                    NetworkTestParams.whitelist,
+                    NetworkTestParams.allowlist,
                 ]
             ).select_from(
                 join(
@@ -636,9 +636,9 @@ class Scheduler:
                 )
             if partial is not None:
                 if partial:
-                    query = query.where(NetworkTestParams.whitelist.isnot(None))
+                    query = query.where(NetworkTestParams.allowlist.isnot(None))
                 else:
-                    query = query.where(NetworkTestParams.whitelist.is_(None))
+                    query = query.where(NetworkTestParams.allowlist.is_(None))
             if status is not None:
                 query = query.where(NetworkTestExecution.status.in_(status))
             if start_dt is not None:
