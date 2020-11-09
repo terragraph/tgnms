@@ -229,7 +229,7 @@ paths:
               - sequential
               - multihop
               type: string
-            whitelist:
+            allowlist:
               items:
                 type: string
               type: array
@@ -245,7 +245,7 @@ paths:
         '400':
           description: Invalid or missing parameters.
         '404':
-          description: Whitelist yielded no matching test assets.
+          description: allowlist yielded no matching test assets.
         '409':
           description: A network test is already running on the network.
         '500':
@@ -468,7 +468,7 @@ paths:
               - sequential
               - multihop
               type: string
-            whitelist:
+            allowlist:
               items:
                 type: string
               type: array
@@ -564,7 +564,7 @@ paths:
               type: object
             network_name:
               type: string
-            whitelist:
+            allowlist:
               items:
                 type: string
               type: array

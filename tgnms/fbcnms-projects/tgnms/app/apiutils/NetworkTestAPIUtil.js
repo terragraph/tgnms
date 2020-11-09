@@ -59,7 +59,7 @@ export const startPartialExecution = (inputData: InputStartType) => {
   return axios.post<InputStartType, StartResponseType>('/network_test/start', {
     test_type: inputData.testType,
     network_name: inputData.networkName,
-    whitelist: inputData.whitelist,
+    allowlist: inputData.allowlist,
   });
 };
 

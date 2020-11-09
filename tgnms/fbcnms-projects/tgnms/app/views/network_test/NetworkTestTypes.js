@@ -26,7 +26,7 @@ export type TableResultType = {
   test_type: $Keys<typeof TEST_TYPE_CODES>,
   network_name: string,
   iperf_options: IperfOptions,
-  whitelist: Array<string>,
+  allowlist: Array<string>,
 };
 
 export type AssetTestResultType = {|

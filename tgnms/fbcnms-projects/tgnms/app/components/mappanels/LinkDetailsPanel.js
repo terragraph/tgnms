@@ -252,7 +252,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
 
     startPartialTest({
       networkName,
-      whitelist: [...nodesToTest],
+      allowlist: [...nodesToTest],
       history,
       testType: TEST_TYPE_CODES.PARALLEL_NODE,
     });

@@ -208,7 +208,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
 
     startPartialTest({
       networkName,
-      whitelist: [node.name],
+      allowlist: [node.name],
       history,
       testType: TEST_TYPE_CODES.SEQUENTIAL_NODE,
     });
@@ -223,7 +223,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
 
     startPartialTest({
       networkName,
-      whitelist: [...getNodesInRoute({mapRoutes: currentRoute})],
+      allowlist: [...getNodesInRoute({mapRoutes: currentRoute})],
       history,
       testType: TEST_TYPE_CODES.SEQUENTIAL_NODE,
     });
@@ -234,7 +234,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
 
     startPartialTest({
       networkName,
-      whitelist: this.P2MPLinkNames,
+      allowlist: this.P2MPLinkNames,
       history,
       testType: TEST_TYPE_CODES.PARALLEL_LINK,
     });

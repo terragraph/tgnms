@@ -16,7 +16,7 @@ import {HEALTH_CODES} from '../../app/constants/HealthConstants';
 
 export type InputStartType = {
   cronExpr?: string,
-  whitelist?: Array<string>,
+  allowlist?: Array<string>,
   testType?: $Keys<typeof NETWORK_TEST_TYPES>,
   networkName: string,
   iperfOptions?: IperfOptions,
@@ -70,7 +70,7 @@ export type ExecutionDetailsType = {
   test_type: $Keys<typeof TEST_TYPE_CODES>,
   network_name: string,
   iperf_options: IperfOptions,
-  whitelist: Array<string>,
+  allowlist: Array<string>,
 };
 
 export type ExecutionResultsType = {

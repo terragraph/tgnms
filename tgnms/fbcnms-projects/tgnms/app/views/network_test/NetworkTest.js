@@ -441,22 +441,22 @@ function filterData(data, filterOptions) {
 
 function getPartialMode(row) {
   let partialMode = null;
-  if (row.whitelist?.length === 1) {
+  if (row.allowlist?.length === 1) {
     partialMode = NETWORK_TEST_TYPES.partial;
   } else if (
-    row.whitelist?.length > 1 &&
+    row.allowlist?.length > 1 &&
     NETWORK_TEST_TYPES[row.test_type.toLowerCase()] ===
       NETWORK_TEST_TYPES.sequential_node
   ) {
     partialMode = NETWORK_TEST_TYPES.incremental_route;
   } else if (
-    row.whitelist?.length > 1 &&
+    row.allowlist?.length > 1 &&
     NETWORK_TEST_TYPES[row.test_type.toLowerCase()] ===
       NETWORK_TEST_TYPES.parallel_link
   ) {
     partialMode = NETWORK_TEST_TYPES.p2mp;
   } else if (
-    row.whitelist?.length > 1 &&
+    row.allowlist?.length > 1 &&
     NETWORK_TEST_TYPES[row.test_type.toLowerCase()] ===
       NETWORK_TEST_TYPES.parallel_node
   ) {

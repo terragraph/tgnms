@@ -93,19 +93,19 @@ export function isTestRunning(status: $Keys<typeof TEST_EXECUTION_STATUS>) {
 
 export function startPartialTest({
   networkName,
-  whitelist,
+  allowlist,
   testType,
   history,
 }: {
   networkName: string,
-  whitelist: Array<string>,
+  allowlist: Array<string>,
   testType: $Keys<typeof NETWORK_TEST_TYPES>,
   history: RouterHistory,
 }) {
   testApi
     .startPartialExecution({
       networkName,
-      whitelist,
+      allowlist,
       testType,
     })
     .then(response => {

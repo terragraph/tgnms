@@ -177,5 +177,5 @@ function isValidAssetSelected(
 }
 
 function isThroughputTestMode(execution: ?ExecutionDetailsType) {
-  return execution?.whitelist?.length === 1;
+  return execution?.allowlist?.length === 1;
 }
