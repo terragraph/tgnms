@@ -142,7 +142,7 @@ function OverlayForm({overlay, onChange}: OverlayFormProps) {
 
   const handleTestClicked = React.useCallback(async () => {
     const response = await mapApi.queryRemoteOverlay({
-      networkName: networkName,
+      network_name: networkName,
       overlay,
     });
     setTestResponse(response);

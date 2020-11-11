@@ -17,7 +17,7 @@ export type RemoteOverlay = {|
 |};
 
 export type OverlayRequest = {|
-  networkName: string,
+  network_name: string,
   /**
    * send overlay metadata to the API so that one API can serve multiple
    * overlays if desired.

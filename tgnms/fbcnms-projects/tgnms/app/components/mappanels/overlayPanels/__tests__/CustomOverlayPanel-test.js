@@ -211,7 +211,7 @@ describe('Data fetching', () => {
       </MapWrapper>,
     );
     expect(queryRemoteOverlayMock).toHaveBeenCalledWith({
-      networkName,
+      network_name: networkName,
       overlay: {
         id: 'test',
         name: 'test',
@@ -412,6 +412,25 @@ describe('LinksLayer', () => {
       text: 'Link 4 Text',
     });
   });
+
+  test(
+    'renders with topology as default ' + 'remote overlay response type',
+    async () => {
+      expect(topologyResponse.type).toBe('topology');
+      // remove the type from the response, ensure layer still renders
+      const {type: _, ...response} = topologyResponse;
+      // $FlowIgnore purposely breaking flow
+      expect(response.type).toBe(undefined);
+      queryRemoteOverlayMock.mockResolvedValueOnce(response);
+      const {container} = await renderAsync(<FigureZeroMapTest />);
+      const layer = getLayerById(container, 'link-normal');
+      const [link1Seg1] = getLineByLinkName(layer, link1);
+      expect(getPropValue(link1Seg1, 'properties')).toMatchObject({
+        text: 'Link 1 A Text',
+        linkColor: RGB_BLACK,
+      });
+    },
+  );
 });
 
 describe('SitesLayer', () => {

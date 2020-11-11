@@ -23,12 +23,11 @@ export async function makeOverlayRequest(
 
   try {
     const httpMethod = (req.overlay?.httpMethod ?? 'POST').toUpperCase();
-
     const response = await axios<OverlayRequest, OverlayResponse>({
       method: httpMethod,
       url: apiURL,
       params: {
-        networkName: req.networkName,
+        network_name: req.network_name,
       },
       data: req,
       timeout: 2000,

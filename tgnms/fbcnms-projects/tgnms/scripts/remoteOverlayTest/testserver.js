@@ -154,20 +154,20 @@ const networkResponses: {[string]: OverlayResponse} = {
 app.use(express.json());
 app.get('/', (req, res) => {
   console.dir(req.query);
-  const {networkName} = req.query;
-  const response = networkResponses[networkName.toLowerCase()];
+  const {network_name} = req.query;
+  const response = networkResponses[network_name.toLowerCase()];
   if (response) {
     return res.json(response);
   }
-  return res.status(404).send({error: `Network not found: ${networkName}`});
+  return res.status(404).send({error: `Network not found: ${network_name}`});
 });
 app.post('/', (req, res) => {
-  const {networkName} = req.body;
-  const response = networkResponses[networkName.toLowerCase()];
+  const {network_name} = req.body;
+  const response = networkResponses[network_name.toLowerCase()];
   if (response) {
     return res.json(response);
   }
-  return res.status(404).send({error: `Network not found: ${networkName}`});
+  return res.status(404).send({error: `Network not found: ${network_name}`});
 });
 const port = 8081 || parseInt(process.env.HTTP_PORT);
 app.listen(port, () => {

@@ -149,7 +149,7 @@ export default function CustomOverlayPanel() {
           return;
         }
         const response = await mapApiUtil.queryRemoteOverlay({
-          networkName: networkName,
+          network_name: networkName,
           overlay: selectedOverlay,
         });
         if (response == null || response.type === RESPONSE_TYPE.error) {
@@ -166,7 +166,7 @@ export default function CustomOverlayPanel() {
           );
           setOverlaysConfigRef.current(overlayConfig);
         }
-        if (response.type === 'topology') {
+        if (response.type === RESPONSE_TYPE.topology || !response.type) {
           const {
             overlayData: linkData,
             overlayMetadata: linkMetadata,
