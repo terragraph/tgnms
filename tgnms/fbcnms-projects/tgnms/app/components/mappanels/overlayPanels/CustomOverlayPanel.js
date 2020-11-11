@@ -59,6 +59,7 @@ export default function CustomOverlayPanel() {
     mapMode,
     setOverlaysConfig,
     setOverlayData,
+    setOverlayMetadata,
     setSelectedOverlays,
   } = useMapContext();
   const {networkName} = useNetworkContext();
@@ -135,6 +136,7 @@ export default function CustomOverlayPanel() {
     overlays,
   ]);
 
+  // Fetch remote overlay data and configure the legend
   React.useEffect(() => {
     async function fetchCustomOverlayData() {
       try {
@@ -165,11 +167,22 @@ export default function CustomOverlayPanel() {
           setOverlaysConfigRef.current(overlayConfig);
         }
         if (response.type === 'topology') {
-          const linkData = linksToOverlayData(response?.data?.links ?? {});
-          const siteData = sitesToOverlayData(response?.data?.sites ?? {});
+          const {
+            overlayData: linkData,
+            overlayMetadata: linkMetadata,
+          } = processLinkMetrics(response?.data?.links ?? {});
+          const {
+            overlayData: siteData,
+            overlayMetadata: siteMetadata,
+          } = processSiteMetrics(response?.data?.sites ?? {});
+
           setOverlayData({
             link_lines: linkData,
             site_icons: siteData,
+          });
+          setOverlayMetadata({
+            link_lines: linkMetadata,
+            site_icons: siteMetadata,
           });
         }
         setState(TASK_STATE.SUCCESS);
@@ -184,6 +197,7 @@ export default function CustomOverlayPanel() {
     networkName,
     selectedCustomOverlay,
     setOverlaysConfigRef,
+    setOverlayMetadata,
     setOverlayData,
     lastRefreshDate,
     setState,
@@ -232,12 +246,17 @@ export default function CustomOverlayPanel() {
   );
 }
 
-function linksToOverlayData(
+function processLinkMetrics(
   linkMetrics: LinkMetrics,
-): {[string]: {A: number, Z: number}} {
-  return Object.keys(linkMetrics).reduce((map, key) => {
-    const metric = linkMetrics[key];
-    map[key] = {
+): {
+  overlayData: {[string]: number},
+  overlayMetadata: {[string]: {}},
+} {
+  const overlayData = {};
+  const overlayMetadata = {};
+  for (const linkName of Object.keys(linkMetrics)) {
+    const metric = linkMetrics[linkName];
+    overlayData[linkName] = {
       A: {
         [OVERLAY_ID]: metric?.A?.value,
       },
@@ -245,20 +264,26 @@ function linksToOverlayData(
         [OVERLAY_ID]: metric?.Z?.value,
       },
     };
-    return map;
-  }, {});
+    if (metric?.A?.metadata != null || metric?.Z?.metadata != null) {
+      overlayMetadata[linkName] = {
+        A: metric?.A?.metadata,
+        Z: metric?.Z?.metadata,
+      };
+    }
+  }
+  return {overlayData, overlayMetadata};
 }
 
-/**
- * SitesLayer only supports simple linkName:color mapping so the color
- * interpolation must be done here.
- */
-function sitesToOverlayData(siteMetrics: SiteMetrics): SiteMapStyles {
-  const siteMapOverrides = {};
+function processSiteMetrics(
+  siteMetrics: SiteMetrics,
+): {overlayData: SiteMapStyles, overlayMetadata: {[string]: {}}} {
+  const overlayData = {};
+  const overlayMetadata = {};
   for (const key of Object.keys(siteMetrics)) {
-    siteMapOverrides[key] = siteMetrics[key]?.value;
+    overlayData[key] = siteMetrics[key]?.value;
+    overlayMetadata[key] = siteMetrics[key]?.metadata;
   }
-  return siteMapOverrides;
+  return {overlayData, overlayMetadata};
 }
 
 function makeDynamicOverlaysConfig(
@@ -310,7 +335,6 @@ function makeDynamicOverlaysConfig(
           type: 'metric',
           range: sitesLegend.range,
           colorRange: sitesLegend.colorRange,
-          // formatText: formatLinkText,
         },
       ],
       legend: {

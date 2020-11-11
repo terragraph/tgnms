@@ -53,6 +53,9 @@ export type MapContext = {|
   // data to overlay
   overlayData: LayerData<{}>,
   setOverlayData: (LayerData<{}>) => void,
+  // metadata about topology elements being rendered
+  overlayMetadata: LayerData<{}>,
+  setOverlayMetadata: (LayerData<{}>) => void,
   isOverlayLoading: boolean,
   setIsOverlayLoading: boolean => void,
   mapProfiles: Array<MapProfile>,
@@ -74,6 +77,8 @@ const defaultValue: MapContext = {
   setOverlaysConfig: empty,
   overlayData: {},
   setOverlayData: empty,
+  overlayMetadata: {},
+  setOverlayMetadata: empty,
   isOverlayLoading: false,
   setIsOverlayLoading: empty,
   mapProfiles: [DEFAULT_MAP_PROFILE],
@@ -122,6 +127,9 @@ export function MapContextProvider({
     {},
   );
   const [overlayData, setOverlayData] = React.useState(
+    networkMapOptions.overlayData || {},
+  );
+  const [overlayMetadata, setOverlayMetadata] = React.useState(
     networkMapOptions.overlayData || {},
   );
   const setIsLayerSelected = React.useCallback(
@@ -219,6 +227,8 @@ export function MapContextProvider({
         setOverlaysConfig: setOverlaysConfigSelectDefaults,
         overlayData,
         setOverlayData,
+        overlayMetadata,
+        setOverlayMetadata,
         overlays,
         isOverlayLoading,
         setIsOverlayLoading,

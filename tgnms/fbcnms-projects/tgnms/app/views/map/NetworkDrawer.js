@@ -18,6 +18,7 @@ import MapLayersPanel from '../../components/mappanels/MapLayersPanel';
 import NetworkTestPanel from '../../components/mappanels/NetworkTestPanel/NetworkTestPanel';
 import NodeDetailsPanel from '../../components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '../../components/mappanels/OverviewPanel';
+import RemoteOverlayMetadataPanel from '@fbcnms/tg-nms/app/components/mappanels/RemoteOverlayMetadataPanel';
 import ScanServicePanel from '../../components/mappanels/ScanServicePanel/ScanServicePanel';
 import SearchNearbyPanel from '../../components/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '../../components/mappanels/SiteDetailsPanel';
@@ -92,7 +93,7 @@ type Props = {|
   scanId?: ?string,
 |};
 
-export default function NetworkDrawerFn({
+export default function NetworkDrawer({
   networkDrawerWidth,
   mapLayersProps,
   searchNearbyProps,
@@ -390,6 +391,7 @@ export default function NetworkDrawerFn({
         )}
 
         <AnnotationsPanel panelControl={panelControl} />
+        <RemoteOverlayMetadataPanel panelControl={panelControl} />
         <TopologyBuilderMenu
           panelControl={panelControl}
           panelForm={topologyBuilderForm}

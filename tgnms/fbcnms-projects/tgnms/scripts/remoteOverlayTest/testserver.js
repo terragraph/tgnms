@@ -14,8 +14,26 @@ const towerGResponse: OverlayResponse = {
   data: {
     links: {
       'link-terra511.f5.tg.a404-if-terra622.f3.tg.a404-if': {
-        A: {value: '5', text: 'Tower G'},
-        Z: {value: '30'},
+        A: {
+          value: '5',
+          text: 'Tower G',
+          metadata: {
+            'Site Health Key': 65,
+            metric_underscore: 'puppy',
+          },
+        },
+        Z: {
+          value: '30',
+          metadata: {
+            'Site Health Key': 41,
+            metric_underscore: 'kitten',
+            'Another key': 'special',
+            'Object value': {
+              test: 1,
+              'test long key': 'test long value',
+            },
+          },
+        },
       },
       'link-terra114.f5.tg.a404-if-terra123.f5.tg.a404-if': {
         A: {value: '56', text: 'Tower G'},
@@ -39,6 +57,10 @@ const towerGResponse: OverlayResponse = {
       },
       '12L212': {
         value: '95',
+        metadata: {
+          'Test Key': 10,
+          test_underscore_key_test: 'test',
+        },
       },
       '11L917': {
         value: '88',
