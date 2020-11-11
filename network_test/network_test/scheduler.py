@@ -189,7 +189,7 @@ class Scheduler:
     async def restart(cls) -> None:
         """Clean up any stray sessions and restart the schedules in the DB."""
         # Stop all stale running tests
-        coros = []  # type: ignore
+        coros: List[asyncio.Future] = []
         client = APIServiceClient(timeout=1)
         statuses = await client.request_all("statusTraffic", return_exceptions=True)
         for network_name, sessions in statuses.items():
@@ -206,21 +206,58 @@ class Scheduler:
             ]
         await asyncio.gather(*coros, return_exceptions=True)
 
-        # Mark all stale running executions + test results as FAILED in the DB
+        # Update stale executions/results
         async with MySQLClient().lease() as sa_conn:
-            update_execution_query = (
+            # Mark all stale RUNNING executions as FAILED
+            update_running_execution_query = (
                 update(NetworkTestExecution)
                 .where(NetworkTestExecution.status == NetworkTestStatus.RUNNING)
                 .values(status=NetworkTestStatus.FAILED)
             )
-            await sa_conn.execute(update_execution_query)
+            await sa_conn.execute(update_running_execution_query)
 
-            update_result_query = (
+            # Mark all stale RUNNING/PROCESSING results as FAILED
+            update_results_query = (
                 update(NetworkTestResult)
-                .where(NetworkTestResult.status == NetworkTestStatus.RUNNING)
+                .where(
+                    (NetworkTestResult.status == NetworkTestStatus.RUNNING)
+                    | (NetworkTestResult.status == NetworkTestStatus.PROCESSING)
+                )
                 .values(status=NetworkTestStatus.FAILED)
             )
-            await sa_conn.execute(update_result_query)
+            await sa_conn.execute(update_results_query)
+
+            # Mark all stale PROCESSING executions as FINISHED/FAILED
+            get_processing_executions_query = (
+                select([NetworkTestExecution.id])
+                .select_from(
+                    join(
+                        NetworkTestResult,
+                        NetworkTestExecution,
+                        NetworkTestResult.execution_id == NetworkTestExecution.id,
+                    )
+                )
+                .where(
+                    (NetworkTestExecution.status == NetworkTestStatus.PROCESSING)
+                    & (NetworkTestResult.status == NetworkTestStatus.FINISHED)
+                )
+                .group_by(NetworkTestExecution.id)
+            )
+            cursor = await sa_conn.execute(get_processing_executions_query)
+            executions = [execution.id for execution in await cursor.fetchall()]
+
+            update_finished_executions_query = (
+                update(NetworkTestExecution)
+                .where(NetworkTestExecution.id.in_(executions))
+                .values(status=NetworkTestStatus.FINISHED)
+            )
+            await sa_conn.execute(update_finished_executions_query)
+            update_failed_executions_query = (
+                update(NetworkTestExecution)
+                .where(NetworkTestExecution.status == NetworkTestStatus.PROCESSING)
+                .values(status=NetworkTestStatus.FAILED)
+            )
+            await sa_conn.execute(update_failed_executions_query)
             await sa_conn.connection.commit()
 
         # Start all of the schedules in the DB
