@@ -86,15 +86,12 @@ const node3_0 = 'site3-0';
 const node3_1 = 'site3-1';
 const node4_0 = 'site4-0';
 const node4_1 = 'site4-1';
-const mkLink = (...nodes: [string, string]) =>
-  `link-${nodes[0] < nodes[1] ? nodes[0] : nodes[1]}-${
-    nodes[0] > nodes[1] ? nodes[0] : nodes[1]
-  }`;
+const mkLink = (...nodes: [string, string]) => `link-${nodes[0]}-${nodes[1]}`;
 
 const link1 = mkLink(node1_1, node2_0);
 const link2 = mkLink(node2_1, node3_0);
 const link3 = mkLink(node3_1, node4_0);
-const _link4 = mkLink(node4_1, node1_0);
+const link4 = mkLink(node4_1, node1_0);
 const topologyResponse: OverlayResponse = {
   type: RESPONSE_TYPE.topology,
   data: {
@@ -118,6 +115,13 @@ const topologyResponse: OverlayResponse = {
         Z: {
           value: 10,
           text: 'Link 3 Z Text',
+        },
+      },
+      [link4]: {
+        value: 10,
+        text: 'Link 4 Text',
+        metadata: {
+          testKey: 'test',
         },
       },
     },
@@ -344,6 +348,7 @@ describe('LinksLayer', () => {
       const [link1Seg1, link1Seg2] = getLineByLinkName(layer, link1);
       const [link2Seg1, link2Seg2] = getLineByLinkName(layer, link2);
       const [link3Seg1, link3Seg2] = getLineByLinkName(layer, link3);
+      const [link4Seg1, link4Seg2] = getLineByLinkName(layer, link4);
       expect(getPropValue(link1Seg1, 'properties')).toMatchObject({
         linkColor: RGB_BLACK,
       });
@@ -362,6 +367,13 @@ describe('LinksLayer', () => {
       expect(getPropValue(link3Seg2, 'properties')).toMatchObject({
         linkColor: RGB_WHITE,
       });
+      // link 4 metric is sideless
+      expect(getPropValue(link4Seg1, 'properties')).toMatchObject({
+        linkColor: RGB_WHITE,
+      });
+      expect(getPropValue(link4Seg2, 'properties')).toMatchObject({
+        linkColor: RGB_WHITE,
+      });
     },
   );
 
@@ -372,6 +384,7 @@ describe('LinksLayer', () => {
     const [link1Seg1, link1Seg2] = getLineByLinkName(layer, link1);
     const [link2Seg1, link2Seg2] = getLineByLinkName(layer, link2);
     const [link3Seg1, link3Seg2] = getLineByLinkName(layer, link3);
+    const [link4Seg1, link4Seg2] = getLineByLinkName(layer, link4);
 
     expect(getPropValue(link1Seg1, 'properties')).toMatchObject({
       text: 'Link 1 A Text',
@@ -390,6 +403,13 @@ describe('LinksLayer', () => {
     });
     expect(getPropValue(link3Seg2, 'properties')).toMatchObject({
       text: 'Link 3 Z Text',
+    });
+    // link 4 metric is sideless
+    expect(getPropValue(link4Seg1, 'properties')).toMatchObject({
+      text: 'Link 4 Text',
+    });
+    expect(getPropValue(link4Seg2, 'properties')).toMatchObject({
+      text: 'Link 4 Text',
     });
   });
 });

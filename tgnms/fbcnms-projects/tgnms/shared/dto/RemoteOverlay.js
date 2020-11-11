@@ -64,11 +64,11 @@ export type ErrorResponse = {|
   },
 |};
 
-export type Metric = {
+export type Metric = {|
   value: number | string,
   text?: string,
   metadata?: {},
-};
+|};
 
 export type LinkMetric = {|
   A: Metric,
@@ -81,7 +81,7 @@ export type SiteMetrics = {|
   [string]: Metric,
 |};
 export type LinkMetrics = {|
-  [string]: LinkMetric,
+  [string]: LinkMetric | Metric,
 |};
 
 export type LegendKey = string | number;

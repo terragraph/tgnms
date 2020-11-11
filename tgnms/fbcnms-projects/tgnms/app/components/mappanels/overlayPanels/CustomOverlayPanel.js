@@ -256,19 +256,40 @@ function processLinkMetrics(
   const overlayMetadata = {};
   for (const linkName of Object.keys(linkMetrics)) {
     const metric = linkMetrics[linkName];
-    overlayData[linkName] = {
-      A: {
-        [OVERLAY_ID]: metric?.A?.value,
-      },
-      Z: {
-        [OVERLAY_ID]: metric?.Z?.value,
-      },
-    };
-    if (metric?.A?.metadata != null || metric?.Z?.metadata != null) {
-      overlayMetadata[linkName] = {
-        A: metric?.A?.metadata,
-        Z: metric?.Z?.metadata,
+    if (metric == null) {
+      continue;
+    }
+    // support both Metric and LinkMetric shapes
+    if (metric.A != null && metric.Z != null) {
+      const {A, Z} = metric;
+      overlayData[linkName] = {
+        A: {
+          [OVERLAY_ID]: A.value,
+        },
+        Z: {
+          [OVERLAY_ID]: Z.value,
+        },
       };
+      if (A.metadata != null || Z.metadata != null) {
+        overlayMetadata[linkName] = {
+          A: A.metadata,
+          Z: Z.metadata,
+        };
+      }
+    } else {
+      if (metric.value != null) {
+        overlayData[linkName] = {
+          A: {
+            [OVERLAY_ID]: metric.value,
+          },
+          Z: {
+            [OVERLAY_ID]: metric.value,
+          },
+        };
+      }
+      if (metric.metadata != null) {
+        overlayMetadata[linkName] = metric.metadata;
+      }
     }
   }
   return {overlayData, overlayMetadata};
@@ -296,16 +317,22 @@ function makeDynamicOverlaysConfig(
     if (value == null) {
       return '';
     }
-    // determine which value (A or Z) is being rendered
-    const linkDir = indexToDirection(valIdx);
+
     const linkMetric = response?.data?.links[link.name];
     if (!linkMetric) {
       return '';
     }
-    const metric = linkMetric[linkDir];
-    if (metric?.text != null) {
-      return metric?.text;
+
+    if (linkMetric.A != null && linkMetric.Z != null) {
+      // determine which value (A or Z) is being rendered
+      const metric = valIdx === 0 ? linkMetric.A : linkMetric.Z;
+      if (metric?.text != null) {
+        return metric?.text;
+      }
+    } else if (typeof linkMetric.text === 'string') {
+      return linkMetric.text;
     }
+
     return value;
   };
   return {
@@ -403,16 +430,6 @@ function makeOverlayConfig(layerId: string, legend: Legend): OverlayConfig {
     defaultOverlayId: overlayId,
   };
   return overlay;
-}
-
-function indexToDirection(idx: number): 'A' | 'Z' {
-  if (idx === 0) {
-    return 'A';
-  }
-  if (idx === 1) {
-    return 'Z';
-  }
-  throw new Error('Cannot convert index to direction ' + idx);
 }
 
 function useExitCustomOverlayMode() {

@@ -43,6 +43,14 @@ const towerGResponse: OverlayResponse = {
         A: {value: '70', text: 'Tower G'},
         Z: {value: '90'},
       },
+      'link-terra213.f5.tg.a404-if-terra413.f5.tg.a404-if': {
+        value: '70',
+        text: 'Single Value',
+        metadata: {
+          test: 'test 123',
+          Sideless: 'Sideless Test',
+        },
+      },
     },
     nodes: {},
     sites: {
