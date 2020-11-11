@@ -24,6 +24,16 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  docs:
+    image: {{ nms_docs_image }}
+    networks:
+      - terragraph_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
   grafana:
     image: grafana/grafana:latest
     env_file:

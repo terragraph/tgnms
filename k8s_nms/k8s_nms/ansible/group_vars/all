@@ -207,6 +207,7 @@ upstream_chihaya: chihaya.default.svc.cluster.local
 upstream_elasticsearch: elasticsearch.default.svc.cluster.local
 upstream_exporter: es_exporter.default.svc.cluster.local
 upstream_fluentd: fluentd.default.svc.cluster.local
+upstream_docs: docs.default.svc.cluster.local
 
 
 # Configuration path

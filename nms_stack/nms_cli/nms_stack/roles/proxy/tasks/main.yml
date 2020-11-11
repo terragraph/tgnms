@@ -51,6 +51,7 @@
     upstream_elasticsearch: elasticsearch
     upstream_exporter: es_exporter
     upstream_fluentd: fluentd
+    upstream_docs: docs
     resolver: "127.0.0.11"
 
 - name: copy nginx backend stream config
