@@ -2486,14 +2486,9 @@
             "selected": true,
             "text": "30",
             "value": "30"
-          },
-          {
-            "selected": false,
-            "text": "900",
-            "value": "900"
           }
         ],
-        "query": "1,30,900",
+        "query": "1,30",
         "skipUrlSync": false,
         "type": "custom"
       }

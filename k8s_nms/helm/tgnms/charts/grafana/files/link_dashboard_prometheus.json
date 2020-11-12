@@ -55,7 +55,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeA]]_phystatus_ssnrest{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_phystatus_ssnrest{radioMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -63,7 +63,7 @@
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeA]]_phystatus_spostsnrdb{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_phystatus_spostsnrdb{radioMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -154,14 +154,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_phystatus_ssnrest{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_phystatus_ssnrest{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeZ]]_phystatus_ssnrest",
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeZ]]_phystatus_spostsnrdb{nodeMac=\"[[nodeA]]\" ,intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_phystatus_spostsnrdb{radioMac=\"[[nodeA]]\" ,intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -248,14 +248,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_pere6{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "expr": "tgf_[[nodeZ]]_stapkt_pere6{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeZ]]_stapkt_pere6",
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeA]]_stapkt_rxpere6{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "expr": "tgf_[[nodeA]]_stapkt_rxpere6{radioMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeA]]_stapkt_rxpere6",
@@ -341,14 +341,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeA]]_stapkt_pere6{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "expr": "tgf_[[nodeA]]_stapkt_pere6{radioMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeA]]_stapkt_pere6",
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_rxpere6{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
+          "expr": "tgf_[[nodeZ]]_stapkt_rxpere6{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}*(.000001)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeZ]]_stapkt_rxpere6",
@@ -434,7 +434,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_mcs{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_stapkt_mcs{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeZ]]_stapkt_mcs",
@@ -520,7 +520,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeA]]_stapkt_mcs{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_stapkt_mcs{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "tgf_[[nodeA]]_stapkt_mcs",
@@ -619,7 +619,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -627,7 +627,7 @@
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}-tgf_[[nodeZ]]_stapkt_linkavailable{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}-tgf_[[nodeZ]]_stapkt_linkavailable{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -731,7 +731,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_stapkt_mgmtlinkup{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -739,7 +739,7 @@
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeA]]_stapkt_mgmtlinkup{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}-tgf_[[nodeA]]_stapkt_linkavailable{nodeMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_stapkt_mgmtlinkup{radioMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}-tgf_[[nodeA]]_stapkt_linkavailable{radioMac=\"[[nodeZ]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -839,7 +839,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_stapkt_txpowerindex{nodeMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_stapkt_txpowerindex{radioMac=\"[[nodeA]]\",intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -939,7 +939,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeA]]_stapkt_txpowerindex{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_stapkt_txpowerindex{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1039,7 +1039,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeA]]_phystatus_srssi{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_phystatus_srssi{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1047,7 +1047,7 @@
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeA]]_phystatusdata_srssi{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_phystatusdata_srssi{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1147,7 +1147,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_phystatus_srssi{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_phystatus_srssi{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1155,7 +1155,7 @@
           "refId": "A"
         },
         {
-          "expr": "tgf_[[nodeZ]]_phystatusdata_srssi{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_phystatusdata_srssi{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1255,7 +1255,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "delta(tgf_[[nodeA]]_stapkt_rxppdu{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeA]]_stapkt_rxppdu{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1264,7 +1264,7 @@
           "refId": "A"
         },
         {
-          "expr": "delta(tgf_[[nodeZ]]_stapkt_txppdu{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txppdu{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1365,7 +1365,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "delta(tgf_[[nodeZ]]_stapkt_rxppdu{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_rxppdu{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1374,7 +1374,7 @@
           "refId": "A"
         },
         {
-          "expr": "delta(tgf_[[nodeA]]_stapkt_txppdu{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txppdu{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1475,7 +1475,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "delta(tgf_[[nodeA]]_stapkt_rxba{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeA]]_stapkt_rxba{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1484,7 +1484,7 @@
           "refId": "A"
         },
         {
-          "expr": "delta(tgf_[[nodeZ]]_stapkt_txba{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txba{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1585,7 +1585,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "delta(tgf_[[nodeZ]]_stapkt_rxba{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_rxba{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1594,7 +1594,7 @@
           "refId": "A"
         },
         {
-          "expr": "delta(tgf_[[nodeA]]_stapkt_txba{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txba{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1695,7 +1695,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "delta(tgf_[[nodeZ]]_stapkt_txok{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txok{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1704,7 +1704,7 @@
           "refId": "B"
         },
         {
-          "expr": "delta(tgf_[[nodeZ]]_stapkt_txfail{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeZ]]_stapkt_txfail{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1805,7 +1805,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "delta(tgf_[[nodeA]]_stapkt_txok{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txok{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1814,7 +1814,7 @@
           "refId": "B"
         },
         {
-          "expr": "delta(tgf_[[nodeA]]_stapkt_txfail{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
+          "expr": "delta(tgf_[[nodeA]]_stapkt_txfail{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}[1m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1916,7 +1916,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeZ]]_phyperiodic_txbeamidx{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_phyperiodic_txbeamidx{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1925,7 +1925,7 @@
           "refId": "B"
         },
         {
-          "expr": "tgf_[[nodeA]]_phyperiodic_rxbeamidx{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_phyperiodic_rxbeamidx{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2027,7 +2027,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "tgf_[[nodeA]]_phyperiodic_txbeamidx{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeA]]_phyperiodic_txbeamidx{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2036,7 +2036,7 @@
           "refId": "B"
         },
         {
-          "expr": "tgf_[[nodeZ]]_phyperiodic_rxbeamidx{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "tgf_[[nodeZ]]_phyperiodic_rxbeamidx{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2138,7 +2138,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "e2e_minion_uptime{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "e2e_minion_uptime{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2147,7 +2147,7 @@
           "refId": "B"
         },
         {
-          "expr": "uptime{nodeMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "uptime{radioMac=\"[[nodeA]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2249,7 +2249,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "e2e_minion_uptime{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "e2e_minion_uptime{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2258,7 +2258,7 @@
           "refId": "B"
         },
         {
-          "expr": "uptime{nodeMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
+          "expr": "uptime{radioMac=\"[[nodeZ]]\", intervalSec=\"[[intervalSec]]\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2422,14 +2422,14 @@
           "value": "2c:dc:ad:ff:ff:18"
         },
         "datasource": "Prometheus",
-        "definition": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
+        "definition": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, radioMac)",
         "hide": 0,
         "includeAll": false,
         "label": "nodeA (no select)",
         "multi": false,
         "name": "nodeA",
         "options": [],
-        "query": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, nodeMac)",
+        "query": "label_values(snr{network=\"$network\",nodeName=\"$nodeA_name\"}, radioMac)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2447,14 +2447,14 @@
           "value": "b8:9f:09:61:d5:67"
         },
         "datasource": "Prometheus",
-        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
+        "definition": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, radioMac)",
         "hide": 0,
         "includeAll": false,
         "label": "nodeZ (no select)",
         "multi": false,
         "name": "nodeZ",
         "options": [],
-        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, nodeMac)",
+        "query": "label_values(snr{network=\"$network\",linkName=\"$link_name\",nodeName=\"$nodeZ_name\"}, radioMac)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2486,14 +2486,9 @@
             "selected": true,
             "text": "30",
             "value": "30"
-          },
-          {
-            "selected": false,
-            "text": "900",
-            "value": "900"
           }
         ],
-        "query": "1,30,900",
+        "query": "1,30",
         "skipUrlSync": false,
         "type": "custom"
       }
