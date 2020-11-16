@@ -175,7 +175,7 @@ class ansible_executor:
             loader=self.loader,
             passwords=passwords,
         )
-        play.run()
+        return play.run()
 
     def version_info(self):
         """ return full ansible version info """

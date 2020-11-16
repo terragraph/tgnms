@@ -3,6 +3,7 @@
 
 import logging
 import os
+import sys
 
 import click
 import oyaml as yaml
@@ -30,8 +31,7 @@ def record_version(logger):
 
 
 def generate_host_groups(host):
-    """Generate hostgroup info given a list of hosts.
-    """
+    """Generate hostgroup info given a list of hosts."""
     # TODO skb For now, all hosts are managers. Later, make this interface nicer.
     hosts = [(h, ["managers"], None, {}) for h in host]
 
@@ -178,12 +178,14 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
 
     hosts = generate_host_groups(host)
 
-    a.run(
-        hosts,
-        INSTALL_PLAYBOOK,
-        config_file=config_file,
-        generated_config=generated_config,
-        password=password,
+    sys.exit(
+        a.run(
+            hosts,
+            INSTALL_PLAYBOOK,
+            config_file=config_file,
+            generated_config=generated_config,
+            password=password,
+        )
     )
 
 
@@ -251,7 +253,7 @@ def install(
     if ssl_cert_file is not None:
         a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
 
-    a.run(hosts, INSTALL_PLAYBOOK, config_file=config_file, password=password)
+    sys.exit(a.run(hosts, INSTALL_PLAYBOOK, config_file=config_file, password=password))
 
 
 @cli.command()
@@ -319,7 +321,9 @@ def uninstall(
     )
 
     hosts = generate_host_groups(host)
-    a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
+    sys.exit(
+        a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
+    )
 
 
 @cli.command(name="rage")
