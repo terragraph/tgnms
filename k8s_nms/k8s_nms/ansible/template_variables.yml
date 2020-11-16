@@ -16,8 +16,8 @@
         - 'default_ipv6'
   tasks:
     - set_fact:
-        is_ipv6: "{{ 'yes' if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {}
-          or hostvars[groups['master'][0]]['ansible_default_ipv4']['interface'] == 'lo' else 'no' }}"
+        is_ipv6: "{{ true if hostvars[groups['master'][0]]['ansible_default_ipv4'] == {}
+          or hostvars[groups['master'][0]]['ansible_default_ipv4']['interface'] == 'lo' else false }}"
     - set_fact:
         ipv4_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address if not is_ipv6 else '' }}"
         ipv6_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'].address if is_ipv6 else '' }}"
