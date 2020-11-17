@@ -37,7 +37,7 @@ router.get('/query/raw', (req, res) => {
 
 /** Query an array of metric based stats given a "start" and "end" timestamp */
 router.get('/query/dataArray', (req, res) => {
-  const {queries, start, end, step, topologyName} = req.query;
+  const {queries, start, end, step} = req.query;
   Promise.all(
     /* $FlowFixMe req.query is user-controlled input, properties and values
       in this object are untrusted and should be validated before trusting */
@@ -56,7 +56,7 @@ router.get('/query/dataArray', (req, res) => {
         responses.reduce((final, response) => {
           /* $FlowFixMe req.query is usercontrolled input, properties and values
          in this object are untrusted and should be validated before trusting */
-          return {...final, ...processData(response, topologyName)};
+          return {...final, ...processData(response)};
         }, {}),
       );
     })

@@ -66,10 +66,6 @@ export function createPrometheusRequest<T>(options: {[string]: any}) {
   });
 }
 
-export function formatPrometheusLabel(metricName: string): string {
-  return metricName.replace(/[\.\-\/\[\]]/g, '_');
-}
-
 /**
  * Functions for transforming Prometheus results server-side
  */
@@ -105,35 +101,10 @@ export function flattenPrometheusResponse(
   }
 }
 
-export function processData(
-  prometheusResponse: Object,
-  topologyName: string,
-): Object {
+export function processData(prometheusResponse: Object): Object {
   const prometheusResponseList = prometheusResponse.data.result;
-  const networkState = getNetworkState(topologyName);
-  const linkMap = {};
-  const nodeMap = {};
-  if (networkState != null) {
-    networkState.topology.links.forEach(link => {
-      linkMap[formatPrometheusLabel(link.name)] = link.name;
-    });
-    networkState.topology.nodes.forEach(node => {
-      nodeMap[formatPrometheusLabel(node.name)] = node.name;
-    });
-  }
-  // If the prometheus query has valid data, return an Object
-  // with the name as the key, and fix linkName and nodeName
-  // to be in readable form. Otherwise return empty Object
   return prometheusResponseList[0]?.metric?.__name__
-    ? {
-        [prometheusResponseList[0].metric.__name__]: prometheusResponseList.map(
-          data => {
-            data.metric.linkName = linkMap[data.metric.linkName];
-            data.metric.nodeName = nodeMap[data.metric.nodeName];
-            return data;
-          },
-        ),
-      }
+    ? {[prometheusResponseList[0].metric.__name__]: prometheusResponseList}
     : {};
 }
 
@@ -149,36 +120,21 @@ export function groupByLink(
     return metrics;
   }
 
-  // Map Prometheus-acceptable name to real name
-  const linkMap = {};
-  networkState.topology.links.forEach(link => {
-    linkMap[formatPrometheusLabel(link.name)] = link.name;
-  });
-
   prometheusResponseList.forEach(data => {
     const {__name__, linkName, linkDirection} = data.metric;
 
-    if (!linkMap.hasOwnProperty(linkName)) {
-      logger.debug(
-        'Unable to match Prometheus link name in topology: ',
-        linkName,
-      );
-      return;
-    }
-
-    const realLinkName = linkMap[linkName];
     if (!groupByLinkDirection) {
-      metrics[realLinkName] = data.value[1];
+      metrics[linkName] = data.value[1];
     } else {
-      if (!metrics.hasOwnProperty(realLinkName)) {
-        metrics[realLinkName] = {};
+      if (!metrics.hasOwnProperty(linkName)) {
+        metrics[linkName] = {};
       }
 
-      if (!metrics[realLinkName].hasOwnProperty(linkDirection)) {
-        metrics[realLinkName][linkDirection] = {};
+      if (!metrics[linkName].hasOwnProperty(linkDirection)) {
+        metrics[linkName][linkDirection] = {};
       }
 
-      metrics[realLinkName][linkDirection][__name__] = data.value[1];
+      metrics[linkName][linkDirection][__name__] = data.value[1];
     }
   });
 
