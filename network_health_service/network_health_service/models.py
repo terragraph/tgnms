@@ -4,7 +4,7 @@
 from enum import Enum, IntEnum
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, Integer, String, func
+from sqlalchemy import JSON, Column, DateTime, Integer, String, func, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -27,12 +27,21 @@ class Health(Enum):
 Base: Any = declarative_base()
 
 
+class NetworkHealthExecution(Base):
+    __tablename__ = "network_health_execution"
+
+    id = Column(Integer, primary_key=True)
+    start_dt = Column(DateTime, server_default=func.now(), index=True, nullable=False)
+
+
 class NetworkStatsHealth(Base):
     __tablename__ = "network_stats_health"
 
     id = Column(Integer, primary_key=True)
+    execution_id = Column(
+        Integer, ForeignKey("network_health_execution.id"), nullable=False
+    )
     network_name = Column(String(255), index=True, nullable=False)
     link_name = Column(String(255), nullable=True)
     node_name = Column(String(255), nullable=True)
-    last_updated = Column(DateTime, server_default=func.now(), nullable=False)
     stats_health = Column(JSON, nullable=True)

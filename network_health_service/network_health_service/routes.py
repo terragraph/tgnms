@@ -6,13 +6,13 @@ import functools
 import json
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, DefaultDict
+from typing import Any, Iterable, Dict
 
 from aiohttp import web
-from tglib.clients import APIServiceClient
+from sqlalchemy import insert, select
+from tglib.clients import APIServiceClient, MySQLClient
 
-from .utils.db import get_network_stats_health
-
+from .models import NetworkStatsHealth, NetworkHealthExecution
 
 routes = web.RouteTableDef()
 
@@ -26,11 +26,11 @@ def custom_serializer(obj: Any) -> str:
         return str(obj)
 
 
-@routes.get("/health/network")
+@routes.get("/health/latest")
 async def handle_get_network_health(request: web.Request) -> web.Response:
     """
     ---
-    description: Return health of links and nodes of the requested network.
+    description: Return latest health of links and nodes of the requested network.
     tags:
     - Network Health Service
     parameters:
@@ -52,13 +52,62 @@ async def handle_get_network_health(request: web.Request) -> web.Response:
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
-    network_stats_health = await get_network_stats_health(network_name)
-    results: DefaultDict = defaultdict(lambda: defaultdict(dict))
+    async with MySQLClient().lease() as sa_conn:
+        query = (
+            select([NetworkHealthExecution.id])
+            .order_by(NetworkHealthExecution.id.desc())
+            .limit(1)
+        )
+        cursor = await sa_conn.execute(query)
+        execution_row = await cursor.first()
+        latest_execution_id = execution_row.id
+
+        query = select(
+            [
+                NetworkStatsHealth.link_name,
+                NetworkStatsHealth.node_name,
+                NetworkStatsHealth.stats_health,
+            ]
+        ).where(
+            (NetworkStatsHealth.execution_id == latest_execution_id)
+            & (NetworkStatsHealth.network_name == network_name)
+        )
+        cursor = await sa_conn.execute(query)
+        network_stats_health: Iterable = await cursor.fetchall()
+
+    results: Dict = {
+        "data": {"links": {}, "nodes": {}, "sites": {}},
+        "legend": {
+            "links": {
+                "items": [
+                    {"color": "#00dd44", "label": "Excellent", "value": 1},
+                    {"color": "#ffdd00", "label": "Good", "value": 2},
+                    {"color": "#dd0000", "label": "Poor", "value": 4},
+                    {"color": "#999999", "label": "Unknown", "value": 5},
+                ],
+            },
+            "sites": {"items": []},
+            "nodes": {
+                "items": [
+                    {"color": "#00dd44", "label": "Excellent", "value": 1},
+                    {"color": "#ffdd00", "label": "Good", "value": 2},
+                    {"color": "#dd0000", "label": "Poor", "value": 4},
+                    {"color": "#999999", "label": "Unknown", "value": 5},
+                ]
+            },
+        },
+    }
     for row in network_stats_health:
         if row.link_name is not None:
-            results[network_name]["links"][row.link_name] = row.stats_health
+            results["data"]["links"][row.link_name] = {
+                "value": row.stats_health["overall_health"],
+                "metadata": row.stats_health["stats"],
+            }
         if row.node_name is not None:
-            results[network_name]["nodes"][row.node_name] = row.stats_health
+            results["data"]["nodes"][row.node_name] = {
+                "value": row.stats_health["overall_health"],
+                "metadata": row.stats_health["stats"],
+            }
 
     return web.json_response(
         results, dumps=functools.partial(json.dumps, default=custom_serializer)

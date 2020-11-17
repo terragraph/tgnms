@@ -16,7 +16,7 @@ from ..models import NodeAlignmentStatus, NodePowerStatus, Health
 from .metrics import Metrics
 
 
-def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
+def get_link_queries(network_name: str, interval_s: int) -> Dict[str, str]:
     """Create PromQL queries for link metrics."""
     queries = {}
     labels: Dict[str, Any] = {consts.network: network_name}
@@ -30,7 +30,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
             f"{base_query} == bool {NodeAlignmentStatus.TX_RX_HEALTHY.value}",
             consts.link_name,
         ),
-        f"{period_s - 1}s:{hold_time}s",
+        f"{interval_s - 1}s:{hold_time}s",
     )
 
     base_query = PrometheusClient.format_query("topology_link_is_online", labels)
@@ -38,13 +38,13 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
         Metrics.prometheus_hold_time, Metrics.topology_link_is_online.interval_s
     )
     queries["topology_link_is_online"] = ops.sum_over_time(
-        ops.min_by(base_query, consts.link_name), f"{period_s - 1}s:{hold_time}s"
+        ops.min_by(base_query, consts.link_name), f"{interval_s - 1}s:{hold_time}s"
     )
 
     base_query = PrometheusClient.format_query("tx_byte", labels)
     queries["tx_byte"] = ops.quantile_over_time(
         ops.sum_by(base_query, consts.link_name),
-        f"{period_s - 1}s:{Metrics.tx_byte.interval_s}s",
+        f"{interval_s - 1}s:{Metrics.tx_byte.interval_s}s",
         0.75,
     )
 
@@ -53,7 +53,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
         Metrics.prometheus_hold_time, Metrics.analytics_foliage_factor.interval_s
     )
     queries["analytics_foliage_factor"] = ops.quantile_over_time(
-        ops.abs(base_query), f"{period_s - 1}s:{hold_time}s", 0.75
+        ops.abs(base_query), f"{interval_s - 1}s:{hold_time}s", 0.75
     )
 
     base_query = PrometheusClient.format_query("drs_cn_egress_routes_count", labels)
@@ -61,7 +61,9 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
         Metrics.prometheus_hold_time, Metrics.drs_cn_egress_routes_count.interval_s
     )
     queries["drs_cn_egress_routes_count"] = ops.quantile_over_time(
-        ops.max_by(base_query, consts.link_name), f"{period_s - 1}s:{hold_time}s", 0.75
+        ops.max_by(base_query, consts.link_name),
+        f"{interval_s - 1}s:{hold_time}s",
+        0.75,
     )
 
     # All stats below can be found using intervalSec label
@@ -70,19 +72,19 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     base_query = PrometheusClient.format_query("tx_ok", labels)
     queries["tx_ok"] = ops.quantile_over_time(
         ops.sum_by(base_query, consts.link_name),
-        f"{period_s - 1}s:{Metrics.tx_ok.interval_s}s",
+        f"{interval_s - 1}s:{Metrics.tx_ok.interval_s}s",
         0.75,
     )
 
     base_query = PrometheusClient.format_query("link_avail", labels)
     queries["link_avail"] = ops.max_by(
-        ops.resets(base_query, f"{period_s}s"), consts.link_name
+        ops.resets(base_query, f"{interval_s}s"), consts.link_name
     )
 
     base_query = PrometheusClient.format_query("mcs", labels)
     queries["mcs"] = ops.quantile_over_time(
         ops.min_by(base_query, consts.link_name),
-        f"{period_s - 1}s:{Metrics.mcs.interval_s}s",
+        f"{interval_s - 1}s:{Metrics.mcs.interval_s}s",
         0.25,
     )
 
@@ -92,7 +94,7 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     query_Z = PrometheusClient.format_query("mcs", labels)
     queries["mcs_diff"] = ops.quantile_over_time(
         ops.abs(ops.diff_on(query_A, query_Z, consts.link_name)),
-        f"{period_s - 1}s:{Metrics.mcs_diff.interval_s}s",
+        f"{interval_s - 1}s:{Metrics.mcs_diff.interval_s}s",
         0.75,
     )
 
@@ -102,14 +104,14 @@ def get_link_queries(network_name: str, period_s: int) -> Dict[str, str]:
     query_Z = PrometheusClient.format_query("tx_power", labels)
     queries["tx_power_diff"] = ops.quantile_over_time(
         ops.abs(ops.diff_on(query_A, query_Z, consts.link_name)),
-        f"{period_s - 1}s:{Metrics.tx_power_diff.interval_s}s",
+        f"{interval_s - 1}s:{Metrics.tx_power_diff.interval_s}s",
         0.75,
     )
 
     return queries
 
 
-def get_node_queries(network_name: str, period_s: int) -> Dict[str, str]:
+def get_node_queries(network_name: str, interval_s: int) -> Dict[str, str]:
     """Create PromQL queries for node metrics."""
     queries = {}
     labels: Dict[str, Any] = {consts.network: network_name}
@@ -120,11 +122,11 @@ def get_node_queries(network_name: str, period_s: int) -> Dict[str, str]:
     )
     queries["analytics_cn_power_status"] = ops.sum_over_time(
         f"({base_query} == bool {NodePowerStatus.LINK_ALIVE.value})",
-        f"{period_s - 1}s:{hold_time}s",
+        f"{interval_s - 1}s:{hold_time}s",
     )
 
     base_query = PrometheusClient.format_query("topology_node_is_online", labels)
-    queries["topology_node_is_online"] = ops.sum_over_time(base_query, f"{period_s}s")
+    queries["topology_node_is_online"] = ops.sum_over_time(base_query, f"{interval_s}s")
 
     # All stats below can be found using intervalSec label
     labels[consts.data_interval_s] = 30
@@ -132,29 +134,29 @@ def get_node_queries(network_name: str, period_s: int) -> Dict[str, str]:
     base_query = PrometheusClient.format_query("udp_pinger_loss_ratio", labels)
     queries["udp_pinger_loss_ratio"] = ops.sum_over_time(
         f"({base_query} < bool 0.9)",
-        f"{period_s - 1}s:{Metrics.udp_pinger_loss_ratio.interval_s}s",
+        f"{interval_s - 1}s:{Metrics.udp_pinger_loss_ratio.interval_s}s",
     )
 
     base_query = PrometheusClient.format_query("node_online", labels)
-    queries["node_online"] = ops.sum_over_time(base_query, f"{period_s}s")
+    queries["node_online"] = ops.sum_over_time(base_query, f"{interval_s}s")
 
     base_query = PrometheusClient.format_query("udp_pinger_rtt_avg", labels)
     queries["udp_pinger_rtt_avg"] = ops.quantile_over_time(
-        base_query, f"{period_s}s", 0.75
+        base_query, f"{interval_s}s", 0.75
     )
 
     return queries
 
 
 async def fetch_prometheus_stats(
-    network_name: str, time_s: int, period_s: int, link_stats: Dict, node_stats: Dict
+    network_name: str, time_s: int, interval_s: int, link_stats: Dict, node_stats: Dict
 ) -> None:
     """Fetch metrics for all links of the network from Prometheus."""
     client = PrometheusClient(timeout=60)
     coros = []
     metrics = []
-    link_queries = get_link_queries(network_name, period_s)
-    node_queries = get_node_queries(network_name, period_s)
+    link_queries = get_link_queries(network_name, interval_s)
+    node_queries = get_node_queries(network_name, interval_s)
 
     for metric, query in {**link_queries, **node_queries}.items():
         metrics.append(metric)
@@ -190,14 +192,14 @@ async def fetch_prometheus_stats(
 async def fetch_network_link_health(
     network_name: str,
     time_s: int,
-    period_s: int,
+    interval_s: int,
     link_stats: Dict,
     session: aiohttp.ClientSession,
 ) -> None:
     """Fetch health metric for all links from network test service."""
     try:
         url = "http://network_test:8080/execution"
-        start_dt_iso = datetime.fromtimestamp(time_s - period_s).isoformat()
+        start_dt_iso = datetime.fromtimestamp(time_s - interval_s).isoformat()
         end_dt_iso = datetime.fromtimestamp(time_s).isoformat()
         params = {
             "network_name": network_name,
@@ -245,14 +247,14 @@ async def fetch_network_link_health(
 async def fetch_network_node_health(
     network_name: str,
     time_s: int,
-    period_s: int,
+    interval_s: int,
     node_stats: Dict,
     session: aiohttp.ClientSession,
 ) -> None:
     """Fetch health metric for all nodes from network test service."""
     try:
         url = "http://network_test:8080/execution"
-        start_dt_iso = datetime.fromtimestamp(time_s - period_s).isoformat()
+        start_dt_iso = datetime.fromtimestamp(time_s - interval_s).isoformat()
         end_dt_iso = datetime.fromtimestamp(time_s).isoformat()
         params = {
             "network_name": network_name,
@@ -300,14 +302,14 @@ async def fetch_network_node_health(
 async def fetch_scan_stats(
     network_name: str,
     time_s: int,
-    period_s: int,
+    interval_s: int,
     link_stats: Dict,
     session: aiohttp.ClientSession,
 ) -> None:
     """Fetch inr_curr_power metric for all links of the network from scan service."""
     try:
         url = "http://scan_service:8080/execution"
-        start_dt_iso = datetime.fromtimestamp(time_s - period_s).isoformat()
+        start_dt_iso = datetime.fromtimestamp(time_s - interval_s).isoformat()
         end_dt_iso = datetime.fromtimestamp(time_s).isoformat()
         params = {
             "network_name": network_name,
@@ -349,13 +351,13 @@ async def fetch_scan_stats(
 
 
 async def fetch_query_link_avail(
-    network_name: str, period_s: int, link_stats: Dict, session: aiohttp.ClientSession
+    network_name: str, interval_s: int, link_stats: Dict, session: aiohttp.ClientSession
 ) -> None:
     """Fetch linkAlive and linkAvailForData metrics from query service."""
     try:
         url = (
             "http://query_service:8086/link_health/"
-            f"{network_name}/{math.ceil(period_s/3600)}"
+            f"{network_name}/{math.ceil(interval_s/3600)}"
         )
         async with session.get(url) as resp:
             if resp.status != 200:

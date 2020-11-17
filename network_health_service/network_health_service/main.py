@@ -23,7 +23,6 @@ class Job:
 
     name: str
     start_time_s: int
-    period_s: int
     params: Dict
 
 
@@ -39,7 +38,6 @@ async def produce(
                 Job(
                     name=job["name"],
                     start_time_s=int(start_time),
-                    period_s=pipeline["period"],
                     params=job.get("params", {}),
                 )
             )
@@ -70,7 +68,7 @@ async def consume(queue: asyncio.Queue) -> NoReturn:
 
         # Execute the job
         function = getattr(jobs, job.name)
-        await function(job.start_time_s, job.period_s, **job.params)
+        await function(job.start_time_s, **job.params)
         logging.info(f"Finished running the '{job.name}' job")
 
 
