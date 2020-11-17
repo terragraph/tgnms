@@ -70,9 +70,9 @@ def create_query(
     session_duration: int,
 ) -> str:
     """Create a PromQL query given metric and label information."""
-    labels = {
+    labels: Dict[str, Any] = {
         consts.network: network_name,
-        consts.link_name: PrometheusClient.normalize(link_name),
+        consts.link_name: link_name,
     }
     if metric.direction == LinkDirection.RX:
         labels[consts.node_mac] = dst_node_mac

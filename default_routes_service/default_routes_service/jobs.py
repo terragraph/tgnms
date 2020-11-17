@@ -56,7 +56,7 @@ async def process_default_routes(
             # Create Prometheus metrics
             labels = {
                 consts.network: network_name,
-                consts.node_name: PrometheusClient.normalize(node_name),
+                consts.node_name: node_name,
             }
             metrics += [
                 PrometheusMetric(
@@ -133,7 +133,7 @@ async def process_congested_cn_egress_links(
         for link_name in wireless_link_map.values():
             link_labels = {
                 **network_labels,
-                consts.link_name: PrometheusClient.normalize(link_name),
+                consts.link_name: link_name,
             }
             metrics.append(
                 PrometheusMetric(

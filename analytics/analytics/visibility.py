@@ -65,8 +65,6 @@ class NetworkCNs:
     """Struct for representing information about CNs."""
 
     link_name_set: Set[str] = field(default_factory=set)
-    # link name as in Prometheus: raw link name
-    link_name_prometheus: Dict[str, str] = field(default_factory=dict)
     link_name_to_cn_name: Dict[str, str] = field(default_factory=dict)
     link_name_to_cn_mac: Dict[str, str] = field(default_factory=dict)
     link_name_to_dn_mac: Dict[str, str] = field(default_factory=dict)
@@ -90,17 +88,11 @@ def _get_cn_info_for_network(network: NetworkInfo) -> NetworkCNs:
             continue
         if link["a_node_mac"] in cns:
             link_name = link["name"]
-            cn_info.link_name_prometheus[
-                PrometheusClient.normalize(link_name)
-            ] = link_name
             dn_mac = link["z_node_mac"]
             cn_name = link["a_node_name"]
             cn_mac = link["a_node_mac"]
         elif link["z_node_mac"] in cns:
             link_name = link["name"]
-            cn_info.link_name_prometheus[
-                PrometheusClient.normalize(link_name)
-            ] = link_name
             dn_mac = link["a_node_mac"]
             cn_name = link["z_node_name"]
             cn_mac = link["z_node_mac"]
@@ -196,11 +188,10 @@ async def _check_fw_uptime(
 
     # one result for every link with DN in the dn_mac_set
     for result in prom_result:
-        link_name_prom = result["metric"]["linkName"]
-        link_name = cn_info.link_name_prometheus.get(link_name_prom)
+        link_name = result["metric"]["linkName"]
         if not link_name:
             logging.debug(
-                f"{link_name_prom} returned by Prometheus is a "
+                f"{link_name} returned by Prometheus is a "
                 "DN2DN link from a DN that also has a CN on network "
                 f"{network_name}"
             )
@@ -350,11 +341,10 @@ async def _check_link_attempts(
         else []
     )
     for result in prom_result:
-        link_name_prom = result["metric"]["linkName"]
-        link_name = cn_info.link_name_prometheus.get(link_name_prom)
+        link_name = result["metric"]["linkName"]
         if not link_name:
             raise Exception(
-                f"Unexpected: {link_name_prom} does not map "
+                f"Unexpected: {link_name} does not map "
                 f"to a link name for network {network_name}"
             )
         # prometheus won't return anything for nodes with no stats

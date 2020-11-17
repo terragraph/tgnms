@@ -9,7 +9,6 @@ from typing import DefaultDict, Dict, Optional
 
 from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
-from tglib.clients.prometheus_client import PrometheusClient
 from tglib.exceptions import ClientRuntimeError
 
 
@@ -66,9 +65,10 @@ class Topology:
                 logging.error(f"Node MAC missing in {link['name']} of {network_name}")
                 continue
 
-            cls.link_name_to_mac[network_name][
-                PrometheusClient.normalize(link["name"])
-            ] = (link["a_node_mac"], link["z_node_mac"])
+            cls.link_name_to_mac[network_name][link["name"]] = (
+                link["a_node_mac"],
+                link["z_node_mac"],
+            )
 
             cls.mac_to_link_name[network_name][
                 (link["a_node_mac"], link["z_node_mac"])

@@ -193,7 +193,7 @@ class TopologyTests(asynctest.TestCase):
                 Topology.link_name_to_mac,
                 {
                     "network_A": {
-                        "link_TEST_18_41_s1_TEST_18_61_P5": (
+                        "link-TEST.18-41.s1-TEST.18-61.P5": (
                             "00:00:00:2f:e6:ea",
                             "00:00:00:2f:e9:43",
                         )
@@ -276,13 +276,13 @@ class TopologyTests(asynctest.TestCase):
                 Topology.link_name_to_mac,
                 {
                     "network_A": {
-                        "link_TEST_18_41_s1_TEST_18_61_P5": (
+                        "link-TEST.18-41.s1-TEST.18-61.P5": (
                             "00:00:00:2f:e6:ea",
                             "00:00:00:2f:e9:43",
                         )
                     },
                     "network_B": {
-                        "link_TEST_18_36_p2_TEST_18_37_S1": (
+                        "link-TEST.18-36.p2-TEST.18-37.S1": (
                             "00:00:00:ca:1d:e5",
                             "00:00:00:28:e8:bc",
                         )

@@ -81,7 +81,7 @@ class StatsTests(asynctest.TestCase):
             "metric_A": [
                 {
                     "metric": {
-                        "linkName": "link_TEST_18_41_s1_TEST_18_61_P5",
+                        "linkName": "link-TEST.18-41.s1-TEST.18-61.P5",
                         "nodeMac": "dummy_node_mac",
                     },
                     "values": [(0, 1)],
@@ -94,7 +94,7 @@ class StatsTests(asynctest.TestCase):
             "metric_A": [
                 {
                     "metric": {
-                        "linkName": "link_TEST_18_41_s1_TEST_18_61_P5",
+                        "linkName": "link-TEST.18-41.s1-TEST.18-61.P5",
                         "nodeMac": "00:00:00:2f:e6:ea",
                     },
                     "values": [(0, 0)],
@@ -109,7 +109,7 @@ class StatsTests(asynctest.TestCase):
             "metric_A": [
                 {
                     "metric": {
-                        "linkName": "link_TEST_18_41_s1_TEST_18_61_P5",
+                        "linkName": "link-TEST.18-41.s1-TEST.18-61.P5",
                         "nodeMac": "00:00:00:2f:e9:43",
                     },
                     "values": [(0, 1)],
@@ -156,7 +156,7 @@ class StatsTests(asynctest.TestCase):
                     "result": [
                         {
                             "metric": {
-                                "linkName": "link_TEST_18_41_s1_TEST_18_61_P5",
+                                "linkName": "link-TEST.18-41.s1-TEST.18-61.P5",
                                 "nodeMac": "00:00:00:2f:e6:ea",
                             },
                             "values": [(0, 0)],

@@ -35,6 +35,7 @@ consts.link_name = "linkName"
 consts.network = "network"
 consts.node_mac = "nodeMac"
 consts.node_name = "nodeName"
+consts.radio_mac = "radioMac"
 consts.site_name = "siteName"
 
 # Built-in Prometheus query transformation operators/functions
@@ -173,28 +174,6 @@ class PrometheusClient(BaseClient):
         return int(duration[:-1]) * _SECONDS_PER_UNIT[duration[-1]]
 
     @staticmethod
-    def normalize(value: str) -> str:
-        """Remove invalid characters in order to be Prometheus compliant.
-
-        Args:
-            value: The raw string input.
-
-        Returns:
-            A new normalized string with invalid characters replaced with an underscore.
-
-        Example:
-            >>> PrometheusClient.normalize("link-node1-node2")
-            link_node1_node2
-        """
-        return (
-            value.replace(".", "_")
-            .replace("-", "_")
-            .replace("/", "_")
-            .replace("[", "_")
-            .replace("]", "_")
-        )
-
-    @staticmethod
     def format_query(
         metric_name: str,
         labels: Dict[str, Any] = {},
@@ -237,7 +216,7 @@ class PrometheusClient(BaseClient):
                     val = str(val).lower()
                 label_list.append(f'{name}!="{val}"')
 
-        label_str = PrometheusClient.normalize(",".join(label_list))
+        label_str = ",".join(label_list)
         return f"{metric_name}{{{label_str}}}" if label_str else metric_name
 
     @classmethod

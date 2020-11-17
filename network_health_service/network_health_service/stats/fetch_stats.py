@@ -234,7 +234,7 @@ async def fetch_network_link_health(
                         f'for {network_name} is {result["health"]}.'
                     )
                     continue
-                link_name = PrometheusClient.normalize(result["asset_name"])
+                link_name = result["asset_name"]
                 link_stats[network_name][link_name]["link_health"] = Health[
                     result["health"]
                 ].value
@@ -289,7 +289,7 @@ async def fetch_network_node_health(
                         f'for {network_name} is {result["health"]}.'
                     )
                     continue
-                node_name = PrometheusClient.normalize(result["asset_name"])
+                node_name = result["asset_name"]
                 node_stats[network_name][node_name]["node_health"] = Health[
                     result["health"]
                 ].value
@@ -343,7 +343,6 @@ async def fetch_scan_stats(
 
             for link_name, directions in results["aggregated_inr"]["n_day_avg"].items():
                 inr_max = max(d["inr_curr_power"] for d in directions)
-                link_name = PrometheusClient.normalize(link_name)
                 link_stats[network_name][link_name]["interference"] = inr_max
     except (aiohttp.ClientError, asyncio.TimeoutError) as err:
         logging.error(f"Request to {url} for {network_name} failed: {err}")
@@ -372,7 +371,6 @@ async def fetch_query_link_avail(
         return None
 
     for link_name, data in results["events"].items():
-        link_name = PrometheusClient.normalize(link_name)
         if "linkAlive" in data:
             link_stats[network_name][link_name]["link_alive"] = data["linkAlive"]
         if "linkAvailForData" in data:

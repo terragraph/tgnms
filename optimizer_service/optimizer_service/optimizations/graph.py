@@ -6,7 +6,6 @@ from typing import Dict, List, Set, Tuple
 
 import networkx as nx
 from terragraph_thrift.Topology.ttypes import LinkType, NodeType
-from tglib.clients import PrometheusClient
 
 from .flow_graph import FlowGraph
 
@@ -99,7 +98,7 @@ def remove_low_uptime_links(
     """Removes links with an average uptime below 'link_uptime_threshold' from 'graph'."""
     for edge in graph.edges:
         link_attributes = graph.get_edge_data(*edge)
-        link_name = PrometheusClient.normalize(link_attributes.get("name"))
+        link_name = link_attributes.get("name")
         uptime = active_links.get(link_name, 0)
         if uptime < link_uptime_threshold:
             logging.debug(

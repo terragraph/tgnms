@@ -105,10 +105,10 @@ async def count_network_assets(
             node_labels = {
                 **network_labels,
                 consts.node_mac: node["mac_addr"],
-                consts.node_name: PrometheusClient.normalize(node["name"]),
+                consts.node_name: node["name"],
                 consts.is_pop: node["pop_node"],
                 consts.is_cn: node["node_type"] == NodeType.CN,
-                consts.site_name: PrometheusClient.normalize(node["site_name"]),
+                consts.site_name: node["site_name"],
             }
             metrics.append(
                 PrometheusMetric(
@@ -137,7 +137,7 @@ async def count_network_assets(
             # Add link stats
             link_labels = {
                 **network_labels,
-                consts.link_name: PrometheusClient.normalize(link["name"]),
+                consts.link_name: link["name"],
                 consts.is_cn: (
                     a_node["node_type"] == NodeType.CN
                     or z_node["node_type"] == NodeType.CN

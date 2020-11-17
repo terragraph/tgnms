@@ -32,20 +32,6 @@ class PrometheusClientTests(asynctest.TestCase):
         with self.assertRaises(ValueError):
             self.client.duration2seconds("2x")
 
-    def test_normalize(self) -> None:
-        strings = {
-            "foo.bar": "foo_bar",
-            "foobar": "foobar",
-            "//foobar": "__foobar",
-            "[foobar]": "_foobar_",
-            "foo-bar": "foo_bar",
-            "foo_bar": "foo_bar",
-            "f.o-o/b[a]r": "f_o_o_b_a_r",
-        }
-
-        for raw, normalized in strings.items():
-            self.assertEqual(self.client.normalize(raw), normalized)
-
     def test_format_query(self) -> None:
         labels = {"foo": "bar", "quux": True}
         negate_labels = {"baz": "qux", "quuz": False}

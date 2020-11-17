@@ -14,7 +14,6 @@ from optimizer_service.optimizations.graph import (
     is_cn_cut_edge,
     remove_low_uptime_links,
 )
-from tglib.clients import PrometheusClient
 
 
 class GraphAnalysisTests(unittest.TestCase):
@@ -58,9 +57,7 @@ class GraphAnalysisTests(unittest.TestCase):
             0.7645,
         ]
         link_uptime_threshold = 0.5
-        link_names = [
-            PrometheusClient.normalize(link["name"]) for link in self.topology["links"]
-        ]
+        link_names = [link["name"] for link in self.topology["links"]]
         active_links = dict(zip(link_names, uptime))
         remove_low_uptime_links(self.graph, active_links, link_uptime_threshold)
         num_of_edges = self.graph.size()
