@@ -549,7 +549,7 @@ function RenderTopologyElement({
           networkConfig={networkConfig}
           ignitionEnabled={
             !(
-              ignition_state &&
+              ignition_state?.igParams?.linkAutoIgnite != null &&
               ignition_state.igParams.linkAutoIgnite[name] === false
             )
           }

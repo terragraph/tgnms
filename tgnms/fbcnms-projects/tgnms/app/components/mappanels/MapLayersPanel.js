@@ -247,10 +247,11 @@ function OverlaysForm() {
       if (overlays.length < 2) {
         return null;
       }
+      const labelId = `overlay-select-label-${layerId}`;
       return (
         <FormGroup row={false} key={layerId} className={classes.formGroup}>
-          <FormLabel component="legend">
-            <span>{legendName} Overlay</span>
+          <FormLabel component="legend" id={labelId}>
+            {legendName} Overlay
             {isOverlayLoading && (
               <CircularProgress
                 className={classes.loadingIndicator}
@@ -259,6 +260,7 @@ function OverlaysForm() {
             )}
           </FormLabel>
           <Select
+            labelId={labelId}
             value={selectedOverlays[layerId] || ''}
             key={layerId}
             className={classes.select}

@@ -6,8 +6,12 @@
  */
 
 import {BinaryStarFsmStateValueMap} from '../types/Controller';
-import type {SiteType, TopologyType} from '../types/Topology';
-import type {StatusDumpType, UpgradeStateDumpType} from '../types/Controller';
+import type {GolayIdxType, SiteType, TopologyType} from '../types/Topology';
+import type {
+  IgnitionStateType,
+  StatusDumpType,
+  UpgradeStateDumpType,
+} from '../types/Controller';
 
 export const HAPeerType = {
   PRIMARY: 'PRIMARY',
@@ -50,7 +54,7 @@ export type ServerNetworkState = {|
   config_auto_overrides: {overrides: string},
   high_availability: HAState,
   status_dump: StatusDumpType,
-  ignition_state: IgnitionState,
+  ignition_state: IgnitionStateType,
   upgrade_state: UpgradeStateDumpType,
   // not sure if these are ever set.
   controller_error: ?string,
@@ -115,24 +119,6 @@ export type WirelessControllerStats = {
 
 export type Coordinate = [number, number];
 
-export type IgnitionState = {|
-  igCandidates: Array<IgnitionCandidate>,
-  igParams: {
-    enable: boolean,
-    linkAutoIgnite: {
-      [string]: boolean,
-    },
-    linkUpDampenInterval: number,
-    linkUpInterval: number,
-  },
-  lastIgCandidates: Array<IgnitionCandidate>,
-|};
-
-export type IgnitionCandidate = {|
-  initiatorNodeName: string,
-  linkName: string,
-|};
-
 export type E2EController = {|
   api_ip: string,
   api_port: number,
@@ -145,10 +131,10 @@ export type E2EController = {|
 export type ControllerHAState = $Values<typeof BinaryStarFsmStateValueMap>;
 
 export type TopologyConfig = $Shape<{|
-  polarity: {},
-  golay: {},
-  controlSuperframe: {},
-  channel: {},
+  polarity: {|[string]: number|},
+  golay: {|[string]: $Shape<GolayIdxType>|},
+  controlSuperframe: {|[string]: {|[string]: number|}|},
+  channel: {|[string]: number|},
 |}>;
 
 export type NetworkList = {|

@@ -10,14 +10,14 @@ import {
   LinkTypeValueMap,
   NodeStatusTypeValueMap,
   NodeTypeValueMap,
-} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {IgnitionStateType} from '@fbcnms/tg-nms/shared/types/Controller';
 import type {
   LinkType,
   NodeType,
   SiteType,
   TopologyType,
-} from '../../../shared/types/Topology';
-
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {NetworkConfig} from '../../contexts/NetworkContext';
 import type {
   NetworkHealth,
@@ -75,7 +75,7 @@ export function mockNetworkConfig(
 
   const config: $Shape<NetworkConfig> = {
     controller_online: true,
-    controller_version: '',
+    controller_version: 'RELEASE_M40',
     id: 1,
     high_availability: {
       primary: {
@@ -96,6 +96,7 @@ export function mockNetworkConfig(
         linkUpInterval: 0,
       },
       lastIgCandidates: [],
+      visitedNodeNames: [],
     },
     backup: mockCtrl,
     primary: mockCtrl,
@@ -151,17 +152,23 @@ export function mockNetworkConfig(
     },
     wireless_controller_stats: {},
     controller_error: null,
-    topologyConfig: ({}: $Shape<TopologyConfig>),
+    topologyConfig: mockTopologyConfig(),
   };
 
   return Object.assign(config, overrides || {});
 }
 
-export type TopologyTestHelpers = {
+export type TopologyTestHelpers = {|
   addNode: ($Shape<NodeType>) => TopologyTestHelpers,
   addSite: ($Shape<SiteType>) => TopologyTestHelpers,
   addLink: ($Shape<LinkType>) => TopologyTestHelpers,
-};
+  updateLink: (name: string, update: $Shape<LinkType>) => void,
+  updateSite: (name: string, update: $Shape<SiteType>) => void,
+  updateNode: (name: string, update: $Shape<NodeType>) => void,
+  getLink: (name: string) => ?LinkType,
+  getNode: (name: string) => ?NodeType,
+  getSite: (name: string) => ?SiteType,
+|};
 
 /**
  * Creates a fake empty topology which passes flow validation
@@ -228,6 +235,33 @@ export function mockTopology(
       link_set.set(link.name, link);
       topology.links.push(link);
       return helpers;
+    },
+    updateLink: function (name: string, update: $Shape<LinkType>) {
+      const link = link_set.get(name);
+      if (link) {
+        Object.assign(link, update);
+      }
+    },
+    updateSite: function (name: string, update: $Shape<SiteType>) {
+      const site = site_set.get(name);
+      if (site) {
+        Object.assign(site, update);
+      }
+    },
+    updateNode: function (name: string, update: $Shape<NodeType>) {
+      const node = node_set.get(name);
+      if (node) {
+        Object.assign(node, update);
+      }
+    },
+    getLink: function (name: string): ?LinkType {
+      return link_set.get(name);
+    },
+    getNode: function (name: string): ?NodeType {
+      return node_set.get(name);
+    },
+    getSite: function (name: string): ?SiteType {
+      return site_set.get(name);
     },
   };
 
@@ -326,6 +360,49 @@ export function mockNetworkHealth(
   };
 }
 
+export function mockIgnitionState(
+  state: ?$Shape<IgnitionStateType>,
+): IgnitionStateType {
+  const igState: IgnitionStateType = {
+    igCandidates: [],
+    igParams: {
+      enable: true,
+      linkAutoIgnite: {},
+      linkUpDampenInterval: 0,
+      linkUpInterval: 0,
+    },
+    lastIgCandidates: [],
+    visitedNodeNames: [],
+    ...(state ?? {}: $Shape<IgnitionStateType>),
+  };
+  return igState;
+}
+
+export function mockTopologyConfig(
+  conf?: $Shape<TopologyConfig>,
+): TopologyConfig {
+  return {
+    polarity: {},
+    golay: {},
+    controlSuperframe: {},
+    channel: {},
+    ...(conf ?? {}: $Shape<TopologyConfig>),
+  };
+}
+
+export function mockOfflineWhitelist(
+  topology: TopologyType,
+): {links: {[string]: boolean}, nodes: {[string]: boolean}} {
+  const offline_whitelist = {links: {}, nodes: {}};
+  for (const l of topology.links) {
+    offline_whitelist.links[l.name] = true;
+  }
+  for (const n of topology.nodes) {
+    offline_whitelist.nodes[n.name] = true;
+  }
+  return offline_whitelist;
+}
+
 /**
  * Creates a fake routes that passes flow validation
  * @param {object} overrides overrides default properties of mock routes
@@ -384,6 +461,24 @@ export function mockSingleLink() {
   return topology;
 }
 
+export const FIG0 = {
+  SITE1: 'site1',
+  SITE2: 'site2',
+  SITE3: 'site3',
+  SITE4: 'site4',
+  NODE1_0: 'site1-0',
+  NODE1_1: 'site1-1',
+  NODE2_0: 'site2-0',
+  NODE2_1: 'site2-1',
+  NODE3_0: 'site3-0',
+  NODE3_1: 'site3-1',
+  NODE4_0: 'site4-0',
+  NODE4_1: 'site4-1',
+  LINK1: 'link-site1-1-site2-0',
+  LINK2: 'link-site2-1-site3-0',
+  LINK3: 'link-site3-1-site4-0',
+  LINK4: 'link-site4-1-site1-0',
+};
 /**
  * Creates a mock figure 0 like:
  * (site2)---(site3)
@@ -395,68 +490,68 @@ export function mockFig0() {
   const topology = mockTopology();
   topology.__test
     .addSite({
-      name: 'site1',
+      name: FIG0.SITE1,
       location: {latitude: 0, longitude: 0, accuracy: 1, altitude: 1},
     })
     .addSite({
-      name: 'site2',
+      name: FIG0.SITE2,
       location: {latitude: 0, longitude: 1, accuracy: 1, altitude: 1},
     })
     .addSite({
-      name: 'site3',
+      name: FIG0.SITE3,
       location: {latitude: 1, longitude: 1, accuracy: 1, altitude: 1},
     })
     .addSite({
-      name: 'site4',
+      name: FIG0.SITE4,
       location: {latitude: 1, longitude: 0, accuracy: 1, altitude: 1},
     })
     .addNode({
-      name: 'site1-0',
-      site_name: 'site1',
+      name: FIG0.NODE1_0,
+      site_name: FIG0.SITE1,
     })
     .addNode({
-      name: 'site1-1',
-      site_name: 'site1',
+      name: FIG0.NODE1_1,
+      site_name: FIG0.SITE1,
     })
     .addNode({
-      name: 'site2-0',
-      site_name: 'site2',
+      name: FIG0.NODE2_0,
+      site_name: FIG0.SITE2,
     })
     .addNode({
-      name: 'site2-1',
-      site_name: 'site2',
+      name: FIG0.NODE2_1,
+      site_name: FIG0.SITE2,
     })
     .addNode({
-      name: 'site3-0',
-      site_name: 'site3',
+      name: FIG0.NODE3_0,
+      site_name: FIG0.SITE3,
     })
     .addNode({
-      name: 'site3-1',
-      site_name: 'site3',
+      name: FIG0.NODE3_1,
+      site_name: FIG0.SITE3,
     })
     .addNode({
-      name: 'site4-0',
-      site_name: 'site4',
+      name: FIG0.NODE4_0,
+      site_name: FIG0.SITE4,
     })
     .addNode({
-      name: 'site4-1',
-      site_name: 'site4',
+      name: FIG0.NODE4_1,
+      site_name: FIG0.SITE4,
     })
     .addLink({
-      a_node_name: 'site1-1',
-      z_node_name: 'site2-0',
+      a_node_name: FIG0.NODE1_1,
+      z_node_name: FIG0.NODE2_0,
     })
     .addLink({
-      a_node_name: 'site2-1',
-      z_node_name: 'site3-0',
+      a_node_name: FIG0.NODE2_1,
+      z_node_name: FIG0.NODE3_0,
     })
     .addLink({
-      a_node_name: 'site3-1',
-      z_node_name: 'site4-0',
+      a_node_name: FIG0.NODE3_1,
+      z_node_name: FIG0.NODE4_0,
     })
     .addLink({
-      a_node_name: 'site4-1',
-      z_node_name: 'site1-0',
+      a_node_name: FIG0.NODE4_1,
+      z_node_name: FIG0.NODE1_0,
     });
   return topology;
 }

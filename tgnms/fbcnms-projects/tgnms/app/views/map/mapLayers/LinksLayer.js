@@ -50,11 +50,7 @@ import {
 } from '../../../helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 import type {Element} from '../../../contexts/NetworkContext';
-import type {
-  IgnitionState,
-  OfflineWhiteListType,
-  TopologyConfig,
-} from '../../../../shared/dto/NetworkState';
+import type {IgnitionStateType} from '../../../../shared/types/Controller';
 import type {
   LinkType as Link,
   NodeType as Node,
@@ -65,6 +61,10 @@ import type {
   NearbyNodes,
   TopologyScanInfo,
 } from '../../../components/mappanels/MapPanelTypes';
+import type {
+  OfflineWhiteListType,
+  TopologyConfig,
+} from '../../../../shared/dto/NetworkState';
 import type {Overlay} from '../NetworkMapTypes';
 import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
 import type {SiteMap} from '../../../contexts/NetworkContext';
@@ -73,7 +73,7 @@ const styles = _theme => ({});
 
 export type Props = {
   overlay: Overlay,
-  ignitionState: IgnitionState,
+  ignitionState: IgnitionStateType,
   siteMap: SiteMap,
   topology: TopologyType,
   temporaryTopology?: ?TemporaryTopologyType,

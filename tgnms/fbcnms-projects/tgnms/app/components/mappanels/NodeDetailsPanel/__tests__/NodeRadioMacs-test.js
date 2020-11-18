@@ -24,7 +24,7 @@ const defaultProps = {
   node: mockNode({wlan_mac_addrs: ['test1', 'test2']}),
   networkConfig: mockNetworkConfig({
     topologyConfig: ({
-      polarity: {test1: true, test2: true},
+      polarity: {test1: 1, test2: 1},
     }: $Shape<TopologyConfig>),
   }),
 };

@@ -730,7 +730,7 @@ export type IgnitionParamsType = {|
   enable?: boolean,
   linkUpInterval?: number,
   linkUpDampenInterval?: number,
-  linkAutoIgnite?: { [string]: boolean }
+  linkAutoIgnite?: {| [string]: boolean |}
 |};
 
 export type SetLinkStatusReqType = {|

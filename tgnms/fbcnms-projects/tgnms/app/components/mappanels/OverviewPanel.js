@@ -45,6 +45,7 @@ import {
   isNodeAlive,
   renderAvailabilityWithColor,
 } from '../../helpers/NetworkHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {shortenVersionString} from '../../helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 import type {
@@ -496,9 +497,9 @@ class OverviewPanel extends React.Component<Props, State> {
     }
     // Ignition state
     const ignitionEnabled = igParams.enable;
-    const anyLinkIgnitionOff = Object.values(igParams.linkAutoIgnite).includes(
-      false,
-    );
+    const anyLinkIgnitionOff = objectValuesTypesafe(
+      igParams.linkAutoIgnite ?? {},
+    ).includes(false);
 
     return (
       <>

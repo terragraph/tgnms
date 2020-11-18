@@ -7,6 +7,8 @@
 
 import {CtrlVerType, ctrlVerBefore} from './VersionHelper';
 import {formatNumber} from './StringHelpers';
+import type {LinkType, NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {TopologyConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 /**
  * Get polarities associated with a node.
@@ -17,8 +19,8 @@ import {formatNumber} from './StringHelpers';
  */
 export function getNodePolarities(
   ctrlVersion: string,
-  node: Object,
-  topologyConfig: Object,
+  node: NodeType,
+  topologyConfig: TopologyConfig,
 ) {
   const nodePolarities = {};
   if (ctrlVerBefore(ctrlVersion, CtrlVerType.M31)) {
@@ -46,8 +48,8 @@ export function getNodePolarities(
  */
 export function getLinkGolay(
   ctrlVersion: string,
-  link: Object,
-  topologyConfig: Object,
+  link: LinkType,
+  topologyConfig: TopologyConfig,
 ) {
   let linkGolay = {};
   if (ctrlVerBefore(ctrlVersion, CtrlVerType.M31)) {
@@ -77,7 +79,7 @@ export function getLinkGolay(
  * Prior to M40, channel was configured at the topology level.
  * Starting from release M40, channel is part of the node's configuration.
  */
-export function getLinkChannel(link: Object, topologyConfig: Object) {
+export function getLinkChannel(link: LinkType, topologyConfig: TopologyConfig) {
   let linkChannel = {};
   if (
     topologyConfig.channel &&
@@ -102,8 +104,8 @@ export function getLinkChannel(link: Object, topologyConfig: Object) {
  */
 export function getLinkControlSuperframe(
   ctrlVersion: string,
-  link: Object,
-  topologyConfig: Object,
+  link: LinkType,
+  topologyConfig: TopologyConfig,
 ) {
   let linkControlSuperframe = {};
   if (ctrlVerBefore(ctrlVersion, CtrlVerType.M31)) {

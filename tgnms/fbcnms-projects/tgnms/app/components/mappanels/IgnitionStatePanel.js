@@ -14,7 +14,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
-import type {IgnitionState} from '../../../shared/dto/NetworkState';
+import type {IgnitionStateType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 const styles = theme => ({
   sectionSpacer: {
@@ -42,7 +42,7 @@ type Props = {
   onPanelChange: () => any,
   onClose: () => any,
   networkName: string,
-  ignitionState: IgnitionState,
+  ignitionState: IgnitionStateType,
   refreshNetworkConfig: () => any,
 };
 
@@ -77,8 +77,9 @@ class IgnitionStatePanel extends React.Component<Props> {
     // Render ignition state
     const {classes} = this.props;
     const ignitionEnabled = igParams.enable;
-    const linkIgnitionOff = Object.keys(igParams.linkAutoIgnite).filter(
-      linkName => igParams.linkAutoIgnite[linkName] === false,
+    const linkAutoIgnite = igParams.linkAutoIgnite ?? {};
+    const linkIgnitionOff = Object.keys(linkAutoIgnite).filter(
+      linkName => linkAutoIgnite[linkName] === false,
     );
 
     return (
