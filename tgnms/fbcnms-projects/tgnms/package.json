@@ -101,6 +101,7 @@
     "@testing-library/react-hooks": "^3.2.1",
     "autoprefixer": "^7.1.6",
     "babel-loader": "^8.0.5",
+    "d3-color": "1.4.1",
     "express": "^4.16.3",
     "file-loader": "^2.0.0",
     "jest": "^24.9.0",

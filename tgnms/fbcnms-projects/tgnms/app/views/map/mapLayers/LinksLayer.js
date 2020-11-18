@@ -214,7 +214,7 @@ class LinksLayer extends React.Component<Props> {
     const {overlay} = this.props;
     const rangeColorFunc = makeRangeColorFunc(
       overlay.range ?? [],
-      overlay.colorRange ?? [],
+      overlay.colorRange,
     );
     return metricValues.map(metricValue =>
       metricValue !== null

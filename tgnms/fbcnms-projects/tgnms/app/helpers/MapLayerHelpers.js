@@ -15,7 +15,7 @@ import {scaleLinear} from 'd3-scale';
  */
 export function makeRangeColorFunc(
   domain: Array<number>,
-  colorRange: Array<string>,
+  colorRange: ?Array<string>,
 ): (value: number) => string {
   return scaleLinear()
     .domain(domain)
