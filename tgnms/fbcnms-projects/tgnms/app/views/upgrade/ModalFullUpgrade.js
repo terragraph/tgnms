@@ -240,7 +240,7 @@ class ModalFullUpgrade extends React.Component<Props, State> {
       timeout: formParseInt(this.state.timeout),
       skipFailure: this.state.skipFailure,
       skipPopFailure: this.state.skipPopFailure,
-      version: '',
+      version: selectedImage.name ?? '',
       skipLinks: [],
       limit,
       retryLimit: formParseInt(this.state.retryLimit),

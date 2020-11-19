@@ -225,7 +225,7 @@ class ModalPrepare extends React.Component<Props, State> {
         upgradeReqId: requestID,
         urType: UpgradeReqType.PREPARE_UPGRADE,
       },
-      version: '',
+      version: selectedImage.name ?? '',
     };
 
     apiServiceRequest(this.props.networkName, 'sendUpgradeRequest', data)

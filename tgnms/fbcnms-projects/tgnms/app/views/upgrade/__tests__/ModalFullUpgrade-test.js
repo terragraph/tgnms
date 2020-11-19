@@ -139,7 +139,7 @@ test('submit success', async () => {
       timeout: 180,
       skipFailure: true,
       skipPopFailure: false,
-      version: '',
+      version: 'testImage',
       skipLinks: [],
       limit: 0,
       retryLimit: 3,

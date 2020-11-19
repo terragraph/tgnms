@@ -140,7 +140,7 @@ test('submit success', async () => {
         upgradeReqId: 'NMS1557831718135',
         urType: 10,
       },
-      version: '',
+      version: 'testImage',
     },
   );
   expect(getByText('Prepare Upgrade Initiated')).toBeInTheDocument();
