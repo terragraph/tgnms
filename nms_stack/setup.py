@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc.
 
-import distutils
 import os
-import pathlib
-import subprocess
 from sys import version_info
 
-from setuptools import Command, setup
+from setuptools import setup
 
 
 PACKAGE = "nms_cli"
@@ -25,61 +22,6 @@ ptr_params = {
     "run_flake8": True,
     "run_mypy": False,
 }
-
-
-SUBMODULES = {
-    "ansible-role-docker": (
-        "https://github.com/geerlingguy/ansible-role-docker.git",
-        "2.5.2",
-    ),
-    "ansible-role-glusterfs": (
-        "https://github.com/geerlingguy/ansible-role-glusterfs.git",
-        "3.0.0",
-    ),
-}
-
-
-class CloneSubmodulesCommand(Command):
-    """A custom command to clone git submodules."""
-
-    description = "Clone git submodules"
-    user_options = [
-        ("proxy", None, "pass proxy configuration parameter to github"),
-        ("proxy-url=", None, "proxy URL"),
-        ("path=", None, "submodule destination path"),
-    ]
-
-    def initialize_options(self) -> None:
-        """Set default values for options."""
-        self.proxy = False
-        self.proxy_url = "fwdproxy:8080"
-        self.path = str(pathlib.Path(__file__).parent / "nms_cli/nms_stack/roles")
-
-    def finalize_options(self) -> None:
-        """Post-process options."""
-        self.path = pathlib.Path(self.path)
-
-    def run(self) -> None:
-        """Run command."""
-        for name, (url, version) in SUBMODULES.items():
-            dest = self.path / name
-            if dest.exists():
-                self.announce(f"Skipping checkout of {name} due to existing copy")
-                continue
-
-            command = ["git", "clone", url, "-b", version]
-            if self.proxy:
-                command += [
-                    "-c",
-                    f"http.proxy={self.proxy_url}",
-                    "-c",
-                    f"https.proxy={self.proxy_url}",
-                ]
-
-            # Clone the repo to 'self.path/name'
-            command.append(dest)
-            self.announce(f"Running: {str(command)}", level=distutils.log.INFO)
-            subprocess.check_call(command)
 
 
 def package_ansible(directory):
@@ -116,6 +58,5 @@ setup(
         "pygments",
         "setuptools",
     ],
-    cmdclass={"clone_submodules": CloneSubmodulesCommand},
     test_suite=ptr_params["test_suite"],
 )

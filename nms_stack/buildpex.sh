@@ -33,9 +33,6 @@ python3.7 -m venv ${BASE_VENV}
 ${BASE_VENV}/bin/pip install --upgrade pip setuptools wheel
 ${BASE_VENV}/bin/pip install --no-cache-dir ansible==${ANSIBLE_VERSION} pex requests
 
-# Clone submodules
-${BASE_VENV}/bin/python setup.py clone_submodules
-
 # push versions to console for debugging
 echo "Packages"
 ${BASE_VENV}/bin/pip freeze
