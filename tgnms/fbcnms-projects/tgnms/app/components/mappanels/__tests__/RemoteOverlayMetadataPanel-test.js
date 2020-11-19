@@ -41,18 +41,12 @@ const mapCtx: $Shape<MapContext> = {
       },
     },
     link_lines: {
-      'node1-node2': {
+      'link-node1-node2': {
         A: {
-          value: '1',
-          metadata: {
-            'test key A': '123',
-          },
+          'test key A': '123',
         },
         Z: {
-          value: '1',
-          metadata: {
-            kitten: '123',
-          },
+          kitten: '123',
         },
       },
     },
@@ -118,7 +112,8 @@ test('renders metadata keys and primitive values', async () => {
   const mockPanel = mockPanelControl({
     getIsHidden: jest.fn().mockReturnValue(false),
   });
-  const {getByText} = await render(
+  // site selected
+  const {getByText, rerender} = await render(
     <Wrapper
       mapCtx={mapCtx}
       networkCtx={{
@@ -136,6 +131,25 @@ test('renders metadata keys and primitive values', async () => {
   expect(getByText('<testkey>')).toBeInTheDocument();
   expect(getByText('<testkey2>')).toBeInTheDocument();
   expect(getByText('test value')).toBeInTheDocument();
+
+  // link selected
+  await rerender(
+    <Wrapper
+      mapCtx={mapCtx}
+      networkCtx={{
+        selectedElement: {
+          name: 'link-node1-node2',
+          type: TopologyElementType.LINK,
+          expanded: true,
+        },
+        networkConfig: mockNetworkConfig({topology}),
+        ...buildTopologyMaps(topology),
+      }}>
+      <RemoteOverlayMetadataPanel panelControl={mockPanel} />
+    </Wrapper>,
+  );
+
+  expect(getByText('test key A')).toBeInTheDocument();
 });
 test('renders metadata with object values as json', async () => {
   const mockPanel = mockPanelControl({
@@ -161,6 +175,38 @@ test('renders metadata with object values as json', async () => {
   expect(JSON.parse(metadataJson)).toMatchObject({
     health: 1,
   });
+});
+
+test('renders metadata for singlesided link metrics', async () => {
+  const mockPanel = mockPanelControl({
+    getIsHidden: jest.fn().mockReturnValue(false),
+  });
+  const {getByText} = await render(
+    <Wrapper
+      mapCtx={{
+        ...mapCtx,
+        overlayMetadata: {
+          link_lines: {
+            'link-node1-node2': {
+              'test key A': '123',
+            },
+          },
+        },
+      }}
+      networkCtx={{
+        selectedElement: {
+          name: 'link-node1-node2',
+          type: TopologyElementType.LINK,
+          expanded: true,
+        },
+        networkConfig: mockNetworkConfig({topology}),
+        ...buildTopologyMaps(topology),
+      }}>
+      <RemoteOverlayMetadataPanel panelControl={mockPanel} />
+    </Wrapper>,
+  );
+
+  expect(getByText('test key A')).toBeInTheDocument();
 });
 
 function Wrapper({

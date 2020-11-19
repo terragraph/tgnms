@@ -82,17 +82,24 @@ function LinkOverlayMetadata({
   metadata,
 }: {
   linkName: string,
-  metadata: {A: Object, Z: Object},
+  metadata: {A: Object, Z: Object} | Object,
 }) {
   const {linkMap} = useNetworkContext();
   const {a_node_name, z_node_name} = linkMap[linkName];
+  const isMetricShape =
+    typeof metadata?.A === 'undefined' && typeof metadata.Z === 'undefined';
   return (
     <Grid container justify="space-between" spacing={1}>
+      {isMetricShape && <Metadata name={linkName} metadata={metadata} />}
       {metadata?.A != null && (
-        <Metadata name={a_node_name} metadata={metadata?.A} />
+        <Grid item xs={6}>
+          <Metadata name={a_node_name} metadata={metadata?.A} />
+        </Grid>
       )}
       {metadata?.Z != null && (
-        <Metadata name={z_node_name} metadata={metadata?.Z} />
+        <Grid item xs={6}>
+          <Metadata name={z_node_name} metadata={metadata?.Z} />
+        </Grid>
       )}
     </Grid>
   );
@@ -125,7 +132,7 @@ const useStyles = makeStyles(theme => ({
 function Metadata({name, metadata}: {name: string, metadata: Object}) {
   const classes = useStyles();
   return (
-    <Grid item xs={6} container alignContent="flex-start" spacing={1}>
+    <Grid container alignContent="flex-start" spacing={1}>
       <Grid item>
         <Typography
           variant="subtitle2"

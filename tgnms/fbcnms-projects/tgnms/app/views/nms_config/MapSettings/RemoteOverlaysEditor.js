@@ -62,7 +62,7 @@ export default function RemoteOverlaysEditor({overlays, onChange}: Props) {
       name: '',
       url: '',
       enabled: true,
-      httpMethod: 'POST',
+      httpMethod: 'GET',
       useProxy: false,
     });
   }, [addListItem]);
@@ -203,8 +203,8 @@ function OverlayForm({overlay, onChange}: OverlayFormProps) {
           onChange={handleChange}
           select
           fullWidth>
-          <MenuItem value="POST">POST</MenuItem>
           <MenuItem value="GET">GET</MenuItem>
+          <MenuItem value="POST">POST</MenuItem>
         </TextField>
       </Grid>
       <Grid item xs={8}>

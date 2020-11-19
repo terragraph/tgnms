@@ -56,6 +56,10 @@ const towerGResponse: OverlayResponse = {
     sites: {
       '12L56': {
         value: '60',
+        metadata: {
+          'Test Key': 10,
+          test_underscore_key_test: 'test',
+        },
       },
       '11L746': {
         value: '80',
