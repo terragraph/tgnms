@@ -19,8 +19,9 @@ import {
   getSelectMenu,
   renderAsync,
 } from '../../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, within} from '@testing-library/react';
 import type {MapProfile} from '../../../../../shared/dto/MapProfile';
+import type {OverlayResponse} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 
 jest.mock('../../../../apiutils/MapAPIUtil');
 import * as mapAPIUtilMock from '../../../../apiutils/MapAPIUtil';
@@ -28,6 +29,19 @@ import * as mapAPIUtilMock from '../../../../apiutils/MapAPIUtil';
 const MOCK_PROFILE_1 = {
   ...DEFAULT_MAP_PROFILE,
   name: 'test1',
+  data: {
+    ...DEFAULT_MAP_PROFILE.data,
+    remoteOverlays: [
+      {
+        id: 'test',
+        name: 'test',
+        url: 'https://test.com/test',
+        enabled: true,
+        httpMethod: 'GET',
+        useProxy: false,
+      },
+    ],
+  },
 };
 const MOCK_PROFILE_2 = {
   ...DEFAULT_MAP_PROFILE,
@@ -45,6 +59,9 @@ const deleteProfileMock = jest
 const saveProfileMock = jest
   .spyOn(mapAPIUtilMock, 'saveProfile')
   .mockImplementation((p: MapProfile) => Promise.resolve(p));
+const queryRemoteOverlayMock = jest
+  .spyOn(mapAPIUtilMock, 'queryRemoteOverlay')
+  .mockImplementation((p: OverlayResponse) => Promise.resolve(p));
 
 beforeEach(() => {
   cleanup();
@@ -250,8 +267,46 @@ describe('MapSettings form', () => {
     act(() => {
       fireEvent.click(getByTestId('submit-button'));
     });
-
     expect(saveProfileMock).toHaveBeenCalled();
+  });
+});
+
+describe('Remote overlays', () => {
+  test('editor renders if selected profile has remote overlay', async () => {
+    const {getByLabelText, getByText, getByTestId} = await renderAsync(
+      <Wrapper>
+        <MapSettings />
+      </Wrapper>,
+    );
+    await selectProfileByName(getByLabelText(/profiles/i), 'test1');
+    expect(getByText(/Remote Overlays/i)).toBeInTheDocument();
+    expect(getByTestId('overlay-form-test')).toBeInTheDocument();
+  });
+  test('clicking test button submits overlay and network name to backend', async () => {
+    const {getByLabelText, getByTestId} = await renderAsync(
+      <TestApp route="/config/tower G/map">
+        <MapSettings />
+      </TestApp>,
+    );
+    await selectProfileByName(getByLabelText(/profiles/i), 'test1');
+    const form = within(getByTestId('overlay-form-test'));
+    const testBtn = form.getByText(/test/i);
+    expect(testBtn).toBeInTheDocument();
+    expect(queryRemoteOverlayMock).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(testBtn);
+    });
+    expect(queryRemoteOverlayMock).toHaveBeenCalledWith({
+      network_name: 'tower G',
+      overlay: {
+        id: 'test',
+        name: 'test',
+        url: 'https://test.com/test',
+        enabled: true,
+        httpMethod: 'GET',
+        useProxy: false,
+      },
+    });
   });
 });
 

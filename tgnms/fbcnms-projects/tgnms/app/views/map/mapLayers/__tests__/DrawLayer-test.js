@@ -45,7 +45,7 @@ describe('DrawLayer', () => {
     expect(getByTestId('tg-draw-toggle')).toBeInTheDocument();
   });
 
-  xtest('clicking draw toggle adds/removes the button', async () => {
+  test('clicking draw toggle adds/removes the button', async () => {
     mockMapboxDraw();
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(

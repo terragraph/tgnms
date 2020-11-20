@@ -60,18 +60,3 @@ test('if non-default profile is selected, inputs change', () => {
     'testprofile_changed',
   );
 });
-
-xtest('if isDisabled is passed, inputs are disabled', () => {
-  const {getByLabelText} = render(
-    <TestApp>
-      <MapProfileForm {...commonProps} isDisabled />
-    </TestApp>,
-  );
-  const nameInput = getByLabelText(/name/i);
-  expect(coerceClass(nameInput, HTMLInputElement).value).toBe('testprofile');
-  act(() => {
-    fireEvent.change(nameInput, {target: {value: 'testprofile_changed'}});
-  });
-  //expect it to be the same because the input is disabled
-  expect(coerceClass(nameInput, HTMLInputElement).value).toBe('testprofile');
-});

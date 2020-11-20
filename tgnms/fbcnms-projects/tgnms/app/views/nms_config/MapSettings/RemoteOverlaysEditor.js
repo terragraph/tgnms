@@ -20,9 +20,10 @@ import SettingsGroup from '../SettingsGroup';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import useForm from '../../../hooks/useForm';
+import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {RESPONSE_TYPE} from '../../../../shared/dto/RemoteOverlay';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {matchPath} from 'react-router-dom';
 
 import type {
   OverlayResponse,
@@ -131,8 +132,16 @@ type OverlayFormProps = {|
   onChange: ($Shape<RemoteOverlay>) => void,
 |};
 function OverlayForm({overlay, onChange}: OverlayFormProps) {
-  const {networkName} = useNetworkContext();
   const [testResponse, setTestResponse] = React.useState(null);
+
+  // there is no NetworkContext so network name must be parsed from the url
+  const {location} = useRouter();
+  const match = matchPath(location.pathname, {
+    path: '/:viewName/:networkName',
+    strict: false,
+    exact: false,
+  });
+  const networkName = match?.params?.networkName || '';
 
   const handleChange = e => {
     onChange({
@@ -149,7 +158,11 @@ function OverlayForm({overlay, onChange}: OverlayFormProps) {
   }, [overlay, networkName]);
 
   return (
-    <Grid container spacing={1} direction="column">
+    <Grid
+      container
+      spacing={1}
+      direction="column"
+      data-testid={`overlay-form-${overlay.id}`}>
       <Grid item>
         <FormControlLabel
           label="Enabled"
