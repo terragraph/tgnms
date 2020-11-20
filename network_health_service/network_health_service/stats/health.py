@@ -7,19 +7,19 @@ from ..models import Health
 from .metrics import Metric, Metrics
 
 
-def get_health(value: float, metric: Metric) -> int:
+def get_health(value: float, metric: Metric) -> str:
     if metric.reverse:
         if value <= metric.lower_threshold:
-            return Health.EXCELLENT.value
+            return Health.EXCELLENT.name
         elif value <= metric.higher_threshold:
-            return Health.GOOD.value
-        return Health.POOR.value
+            return Health.GOOD.name
+        return Health.POOR.name
 
     if value >= metric.higher_threshold:
-        return Health.EXCELLENT.value
+        return Health.EXCELLENT.name
     elif value >= metric.lower_threshold:
-        return Health.GOOD.value
-    return Health.POOR.value
+        return Health.GOOD.name
+    return Health.POOR.name
 
 
 def get_link_stats_health(  # noqa: C901
@@ -226,17 +226,17 @@ def get_link_stats_health(  # noqa: C901
         and stats_health["stats"].get("link_health") is not None
     ):
         if (
-            stats_health["stats"]["link_avail"]["health"] == Health.POOR.value
+            stats_health["stats"]["link_avail"]["health"] == Health.POOR.name
             or stats_health["stats"]["link_avail_for_data"]["health"]
             == Health.POOR.value
-            or stats_health["stats"]["link_health"]["health"] == Health.POOR.value
+            or stats_health["stats"]["link_health"]["health"] == Health.POOR.name
         ):
             stats_health["overall_health"] = Health.POOR.value
         elif (
-            stats_health["stats"]["link_avail"]["health"] == Health.EXCELLENT.value
+            stats_health["stats"]["link_avail"]["health"] == Health.EXCELLENT.name
             and stats_health["stats"]["link_avail_for_data"]["health"]
-            == Health.EXCELLENT.value
-            and stats_health["stats"]["link_health"]["health"] == Health.EXCELLENT.value
+            == Health.EXCELLENT.name
+            and stats_health["stats"]["link_health"]["health"] == Health.EXCELLENT.name
         ):
             stats_health["overall_health"] = Health.EXCELLENT.value
         else:
@@ -363,19 +363,17 @@ def get_node_stats_health(
         and stats_health["stats"].get("node_health") is not None
     ):
         if (
-            stats_health["stats"]["udp_pinger_loss_ratio"]["health"]
-            == Health.POOR.value
-            or stats_health["stats"]["udp_pinger_rtt_avg"]["health"]
-            == Health.POOR.value
-            or stats_health["stats"]["node_health"]["health"] == Health.POOR.value
+            stats_health["stats"]["udp_pinger_loss_ratio"]["health"] == Health.POOR.name
+            or stats_health["stats"]["udp_pinger_rtt_avg"]["health"] == Health.POOR.name
+            or stats_health["stats"]["node_health"]["health"] == Health.POOR.name
         ):
             stats_health["overall_health"] = Health.POOR.value
         elif (
             stats_health["stats"]["udp_pinger_loss_ratio"]["health"]
-            == Health.EXCELLENT.value
+            == Health.EXCELLENT.name
             and stats_health["stats"]["udp_pinger_rtt_avg"]["health"]
-            == Health.EXCELLENT.value
-            and stats_health["stats"]["node_health"]["health"] == Health.EXCELLENT.value
+            == Health.EXCELLENT.name
+            and stats_health["stats"]["node_health"]["health"] == Health.EXCELLENT.name
         ):
             stats_health["overall_health"] = Health.EXCELLENT.value
         else:

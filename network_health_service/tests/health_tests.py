@@ -22,18 +22,18 @@ class HealthTests(unittest.TestCase):
 
     def test_get_health(self) -> None:
         poor_health = get_health(0, Metrics.analytics_alignment_status)
-        self.assertEqual(poor_health, Health.POOR.value)
+        self.assertEqual(poor_health, Health.POOR.name)
         good_health = get_health(97, Metrics.analytics_alignment_status)
-        self.assertEqual(good_health, Health.GOOD.value)
+        self.assertEqual(good_health, Health.GOOD.name)
         excellent_health = get_health(100, Metrics.analytics_alignment_status)
-        self.assertEqual(excellent_health, Health.EXCELLENT.value)
+        self.assertEqual(excellent_health, Health.EXCELLENT.name)
 
         poor_health = get_health(1.3, Metrics.tx_byte)
-        self.assertEqual(poor_health, Health.POOR.value)
+        self.assertEqual(poor_health, Health.POOR.name)
         good_health = get_health(1.0, Metrics.tx_byte)
-        self.assertEqual(good_health, Health.GOOD.value)
+        self.assertEqual(good_health, Health.GOOD.name)
         excellent_health = get_health(0.8, Metrics.tx_byte)
-        self.assertEqual(excellent_health, Health.EXCELLENT.value)
+        self.assertEqual(excellent_health, Health.EXCELLENT.name)
 
     def test_get_link_stats_health(self) -> None:
         link_stats_map = {
@@ -59,23 +59,23 @@ class HealthTests(unittest.TestCase):
             {
                 "overall_health": 4,
                 "stats": {
-                    "analytics_alignment_status": {"health": 4, "value": 0.0},
-                    "analytics_foliage_factor": {"health": 4, "value": 3.0},
-                    "drs_cn_egress_routes_count": {"health": 2, "value": 4.0},
-                    "interference": {"health": 4, "value": 13.0},
-                    "link_alive": {"health": 4, "value": 10.0},
-                    "link_avail": {"health": 1, "value": 6.0},
-                    "link_avail_for_data": {"health": 4, "value": 11.0},
-                    "link_health": {"health": 4, "value": 12.0},
-                    "mcs": {"health": 2, "value": 7.0},
-                    "mcs_diff": {"health": 4, "value": 8.0},
+                    "analytics_alignment_status": {"health": "POOR", "value": 0.0},
+                    "analytics_foliage_factor": {"health": "POOR", "value": 3.0},
+                    "drs_cn_egress_routes_count": {"health": "GOOD", "value": 4.0},
+                    "interference": {"health": "POOR", "value": 13.0},
+                    "link_alive": {"health": "POOR", "value": 10.0},
+                    "link_avail": {"health": "EXCELLENT", "value": 6.0},
+                    "link_avail_for_data": {"health": "POOR", "value": 11.0},
+                    "link_health": {"health": "POOR", "value": 12.0},
+                    "mcs": {"health": "GOOD", "value": 7.0},
+                    "mcs_diff": {"health": "POOR", "value": 8.0},
                     "topology_link_is_online": {
-                        "health": 4,
+                        "health": "POOR",
                         "value": 0.8333333333333334,
                     },
-                    "tx_byte": {"health": 1, "value": 5.333333333333334e-10},
-                    "tx_ok": {"health": 1, "value": 5.0},
-                    "tx_power_diff": {"health": 4, "value": 9.0},
+                    "tx_byte": {"health": "EXCELLENT", "value": 5.333333333333334e-10},
+                    "tx_ok": {"health": "EXCELLENT", "value": 5.0},
+                    "tx_power_diff": {"health": "POOR", "value": 9.0},
                 },
             },
         )
@@ -92,9 +92,9 @@ class HealthTests(unittest.TestCase):
             {
                 "overall_health": 1,
                 "stats": {
-                    "link_avail": {"health": 1, "value": 0.0},
-                    "link_avail_for_data": {"health": 1, "value": 100.0},
-                    "link_health": {"health": 1, "value": 1.0},
+                    "link_avail": {"health": "EXCELLENT", "value": 0.0},
+                    "link_avail_for_data": {"health": "EXCELLENT", "value": 100.0},
+                    "link_health": {"health": "EXCELLENT", "value": 1.0},
                 },
             },
         )
@@ -111,9 +111,9 @@ class HealthTests(unittest.TestCase):
             {
                 "overall_health": 2,
                 "stats": {
-                    "link_avail": {"health": 1, "value": 0.0},
-                    "link_avail_for_data": {"health": 2, "value": 99.8},
-                    "link_health": {"health": 1, "value": 1.0},
+                    "link_avail": {"health": "EXCELLENT", "value": 0.0},
+                    "link_avail_for_data": {"health": "GOOD", "value": 99.8},
+                    "link_health": {"health": "EXCELLENT", "value": 1.0},
                 },
             },
         )
@@ -135,17 +135,17 @@ class HealthTests(unittest.TestCase):
                 "overall_health": 4,
                 "stats": {
                     "analytics_cn_power_status": {
-                        "health": 4,
+                        "health": "POOR",
                         "value": 83.33333333333334,
                     },
-                    "node_health": {"health": 4, "value": 15.0},
-                    "node_online": {"health": 4, "value": 10.833333333333334},
+                    "node_health": {"health": "POOR", "value": 15.0},
+                    "node_online": {"health": "POOR", "value": 10.833333333333334},
                     "topology_node_is_online": {
-                        "health": 4,
+                        "health": "POOR",
                         "value": 9.166666666666666,
                     },
-                    "udp_pinger_loss_ratio": {"health": 4, "value": 10.0},
-                    "udp_pinger_rtt_avg": {"health": 1, "value": 14.0},
+                    "udp_pinger_loss_ratio": {"health": "POOR", "value": 10.0},
+                    "udp_pinger_rtt_avg": {"health": "EXCELLENT", "value": 14.0},
                 },
             },
         )
@@ -162,9 +162,9 @@ class HealthTests(unittest.TestCase):
             {
                 "overall_health": 1,
                 "stats": {
-                    "node_health": {"health": 1, "value": 1.0},
-                    "udp_pinger_loss_ratio": {"health": 1, "value": 100.0},
-                    "udp_pinger_rtt_avg": {"health": 1, "value": 0.0},
+                    "node_health": {"health": "EXCELLENT", "value": 1.0},
+                    "udp_pinger_loss_ratio": {"health": "EXCELLENT", "value": 100.0},
+                    "udp_pinger_rtt_avg": {"health": "EXCELLENT", "value": 0.0},
                 },
             },
         )
@@ -181,9 +181,9 @@ class HealthTests(unittest.TestCase):
             {
                 "overall_health": 2,
                 "stats": {
-                    "node_health": {"health": 2, "value": 2.0},
-                    "udp_pinger_loss_ratio": {"health": 1, "value": 100.0},
-                    "udp_pinger_rtt_avg": {"health": 1, "value": 0.0},
+                    "node_health": {"health": "GOOD", "value": 2.0},
+                    "udp_pinger_loss_ratio": {"health": "EXCELLENT", "value": 100.0},
+                    "udp_pinger_rtt_avg": {"health": "EXCELLENT", "value": 0.0},
                 },
             },
         )
