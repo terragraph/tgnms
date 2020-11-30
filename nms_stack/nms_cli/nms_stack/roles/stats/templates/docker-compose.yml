@@ -48,8 +48,8 @@ services:
         max-file: "10"
 
   prometheus_cache:
-    image: {{ prometheus_cache_image }}
-    command: ["/bin/sh", "-c", "/bin/prometheus-cache -limit=$${PROMETHEUS_CACHE_LIMIT}"]
+    image: facebookincubator/prometheus-edge-hub:1.1.0
+    command: ["/bin/sh", "-c", "/bin/prometheus-edge-hub -limit=$${PROMETHEUS_CACHE_LIMIT}"]
     user: root
     env_file:
       - {{ stats_gfs_path }}/env/prometheus.env

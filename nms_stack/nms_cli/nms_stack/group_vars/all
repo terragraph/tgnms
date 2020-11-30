@@ -196,6 +196,5 @@ nms_image: secure.cxl-terragraph.com:443/nmsv2:stable
 nginx_image: secure.cxl-terragraph.com:443/nms_nginx:latest
 query_service_image: secure.cxl-terragraph.com:443/cpp_backends:stable
 udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends:stable
-prometheus_cache_image: secure.cxl-terragraph.com:443/prometheus_cache:stable
 v6up_image: secure.cxl-terragraph.com:443/docker_v6up:stable
 nms_docs_image: secure.cxl-terragraph.com:443/nms_docs:stable
