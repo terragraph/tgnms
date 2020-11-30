@@ -49,7 +49,6 @@ spec:
   selector:
     matchLabels:
       app: event-alerts
-  serviceName: event-alerts
   template:
     metadata:
       labels:

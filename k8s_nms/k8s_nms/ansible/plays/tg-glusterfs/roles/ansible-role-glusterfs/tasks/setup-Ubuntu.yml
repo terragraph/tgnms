@@ -5,12 +5,8 @@
     https_proxy: "{{ https_proxy }}"
 
 - name: Ensure PPA for GlusterFS is present.
-  apt_repository:
-    repo: "deb http://ppa.launchpad.net/gluster/glusterfs-7/ubuntu {{ ansible_distribution_release }} main"
-    state: present
-    update_cache: true
   register: glusterfs_ppa_added
-  when: glusterfs_ppa_use
+  shell: sudo add-apt-repository -y ppa:gluster/glusterfs-7 && sudo apt update
 
 - name: Ensure GlusterFS will reinstall if the PPA was just added.
   apt:

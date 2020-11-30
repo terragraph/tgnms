@@ -101,7 +101,7 @@ pod_network_cidr: "{{ 'fd00:cdee::/120' if is_ipv6 else '192.168.120.0/24' }}"
 
 # This is the address of the DNS resolver for Nginx, it depends on the value of
 # 'service_cidr'
-resolver: "{{ \"'[fd00:cdef::a]'\" if is_ipv6 else '10.96.0.10' }}"
+resolver: "{{ \"'[fd00:cdef::a]'\" if is_ipv6 else '192.168.121.10' }}"
 
 # This enables MetalLB which adds a L2 load balancer to the cluster.
 # If this is disabled, the Nginx server will use the host network of the

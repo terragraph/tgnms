@@ -16,74 +16,30 @@ variable "type" {
   default = "t2.micro"
 }
 
+variable "name" {
+  type = string
+  default = "terraform"
+}
+
 variable "num" {
   type = number
   default = 1
 }
 
+variable "size" {
+  type = number
+  default = 20
+}
+
 resource "aws_security_group" "kubernetes_ports" {
-  name = "kubernetes_ports"
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 60000
-    to_port = 60000
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 443
-    to_port = 443
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 6443
-    to_port = 6443
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 2379
-    to_port = 2379
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 2380
-    to_port = 2380
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 10250
-    to_port = 10250
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 10251
-    to_port = 10251
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port = 10252
-    to_port = 10252
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  name = "${var.name}-kubernetes_ports"
   egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -99,7 +55,11 @@ resource "aws_instance" "cluster_machine" {
     key_name = var.key_name
 
     tags = {
-        Name = "k8s_cluster.${count.index}"
+        Name = "${var.name}-k8s_cluster.${count.index}"
+    }
+
+    root_block_device {
+      volume_size = "${var.size}"
     }
 }
 

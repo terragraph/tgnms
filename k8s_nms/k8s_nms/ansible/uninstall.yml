@@ -1,15 +1,13 @@
-- hosts: master
-  tasks:
-    - name: "set proxy if defined"
-      set_fact:
-        http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
-        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
-
 - name: remove kubernetes cluster
   import_playbook: plays/kubeadm-ansible/reset-site.yaml
 
 - hosts: all
+  gather_facts: yes
   tasks:
+  - name: "set proxy if defined"
+    set_fact:
+      http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+      https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
   # Stash this in a fact so we know where the home directory is even during
   # tasks running as root. There is no built in way to do this apparently:
   # https://github.com/ansible/ansible/issues/15901
