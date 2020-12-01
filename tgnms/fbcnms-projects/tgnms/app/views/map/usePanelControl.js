@@ -119,7 +119,7 @@ export function usePanelControl({
       }
     }
     updateState(update);
-  }, [getAll, setPanelState, getIsOpen]);
+  }, [getAll, setPanelState, getIsOpen, updateState]);
 
   const getIsAnyOpen = React.useCallback(() => {
     return Object.values(getAll()).includes(PANEL_STATE.OPEN);
