@@ -5,10 +5,7 @@
  * @format
  */
 
-import {NodeTypeValueMap} from '../../shared/types/Topology';
-import {currentDefaultRouteRequest} from '../apiutils/DefaultRouteHistoryAPIUtil';
-
-import type {NodeType, TopologyType} from '../../shared/types/Topology';
+import type {TopologyType} from '../../shared/types/Topology';
 
 export function mapDefaultRoutes({
   mapRoutes,
@@ -82,40 +79,6 @@ export function getNodesInRoute({
       route.map(node_name => {
         nodes.add(node_name);
       });
-    });
-
-  return nodes;
-}
-
-export async function getCongestionNodes({
-  networkName,
-  selectedLink,
-  nodeList,
-  topology,
-}: {
-  networkName: string,
-  selectedLink: string,
-  nodeList: Array<NodeType>,
-  topology: TopologyType,
-}) {
-  const nodes = new Set<string>();
-
-  nodeList
-    .filter(node => node.node_type === NodeTypeValueMap.CN)
-    .map(async cn => {
-      const currentDefaultRoute = await currentDefaultRouteRequest({
-        networkName,
-        selectedNode: cn.name,
-      });
-      const {links} = mapDefaultRoutes({
-        mapRoutes: currentDefaultRoute,
-        topology,
-      });
-      const linkNames = Object.keys(links);
-
-      if (linkNames.includes(selectedLink)) {
-        nodes.add(cn.name);
-      }
     });
 
   return nodes;

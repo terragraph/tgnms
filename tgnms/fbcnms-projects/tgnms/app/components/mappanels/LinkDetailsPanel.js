@@ -26,7 +26,10 @@ import SyncIcon from '@material-ui/icons/Sync';
 import TimerIcon from '@material-ui/icons/Timer';
 import Typography from '@material-ui/core/Typography';
 import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Controller';
-import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
+import {
+  LinkTypeValueMap as LinkType,
+  NodeTypeValueMap,
+} from '../../../shared/types/Topology';
 import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
 import {TEST_TYPE_CODES} from '../../constants/ScheduleConstants';
 import {
@@ -34,16 +37,17 @@ import {
   apiServiceRequestWithConfirmation,
   requestWithConfirmation,
 } from '../../apiutils/ServiceAPIUtil';
+import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {currentDefaultRouteRequest} from '../../apiutils/DefaultRouteHistoryAPIUtil';
 import {formatNumber} from '../../helpers/StringHelpers';
 import {get} from 'lodash';
-import {getCongestionNodes} from '../../helpers/DefaultRouteHelpers';
 import {
   hasLinkEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
 } from '../../helpers/NetworkHelpers';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {mapDefaultRoutes} from '../../helpers/DefaultRouteHelpers';
 import {startPartialTest} from '../../helpers/NetworkTestHelpers';
 import {toTitleCase} from '../../helpers/StringHelpers';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
@@ -241,21 +245,46 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     );
   }
 
-  onStartCongestionTest = async () => {
-    const {networkName, link, nodeMap, history, topology} = this.props;
-    const nodesToTest = await getCongestionNodes({
-      networkName,
-      selectedLink: link.name,
-      nodeList: objectValuesTypesafe<Node>(nodeMap),
-      topology,
-    });
+  getCongestionNodes = async () => {
+    const {networkName, link, nodeMap, topology} = this.props;
+    const nodeList = objectValuesTypesafe<Node>(nodeMap);
+    const cnNames = await Promise.all(
+      nodeList
+        .filter(node => node.node_type === NodeTypeValueMap.CN)
+        .map(async cn => {
+          const currentDefaultRoute = await currentDefaultRouteRequest({
+            networkName,
+            selectedNode: cn.name,
+          });
+          const {links} = mapDefaultRoutes({
+            mapRoutes: currentDefaultRoute,
+            topology,
+          });
+          const linkNames = Object.keys(links);
+          if (linkNames.includes(link.name)) {
+            return cn.name;
+          }
+          return null;
+        }),
+    );
 
-    startPartialTest({
-      networkName,
-      allowlist: [...nodesToTest],
-      history,
-      testType: TEST_TYPE_CODES.PARALLEL_NODE,
-    });
+    return convertType<Array<string>>(cnNames).filter(
+      nodeName => nodeName !== null,
+    );
+  };
+
+  onStartCongestionTest = async () => {
+    const {networkName, history} = this.props;
+    const nodesToTest = await this.getCongestionNodes();
+
+    if (nodesToTest.length > 0) {
+      startPartialTest({
+        networkName,
+        allowlist: [...nodesToTest],
+        history,
+        testType: TEST_TYPE_CODES.PARALLEL_NODE,
+      });
+    }
   };
 
   renderActions() {
