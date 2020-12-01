@@ -75,11 +75,13 @@ class ModalAbort extends React.Component<Props, State> {
     if (this.props.upgradeRequests.length === selected.length) {
       data = {
         abortAll: true,
+        resetStatus: true,
         reqIds: [],
       };
     } else {
       data = {
         abortAll: false,
+        resetStatus: true,
         reqIds: selected,
       };
     }

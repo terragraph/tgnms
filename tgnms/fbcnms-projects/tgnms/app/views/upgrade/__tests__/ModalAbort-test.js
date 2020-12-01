@@ -120,7 +120,7 @@ test('abort success', async () => {
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
     'testNetwork',
     'abortUpgrade',
-    {abortAll: true, reqIds: []},
+    {abortAll: true, resetStatus: true, reqIds: []},
   );
   expect(getByText('Abort Upgrade(s) Success')).toBeInTheDocument();
 });
