@@ -53,7 +53,7 @@ def build(args: argparse.Namespace) -> None:
 
     command += ["--tag", f"{args.registry}/{args.name}:{release}"]
     for arg in args.build_arg or []:
-        command += ["--build-arg", arg]
+        command += ["--build-arg", f'"{arg}"']
     for label, value in get_commit_info().items():
         command += ["--label", f'"{label}={value}"']
 

@@ -8,6 +8,11 @@ WORKDIR /app
 COPY package.json yarn.lock babel.config.js ./
 COPY fbcnms-projects/tgnms/package.json fbcnms-projects/tgnms/
 
+ARG COMMIT_DATE
+RUN echo "COMMIT_DATE=$COMMIT_DATE" >> fbcnms-projects/tgnms/.env
+ARG COMMIT_HASH
+RUN echo "COMMIT_HASH=$COMMIT_HASH" >> fbcnms-projects/tgnms/.env
+
 # Install dependencies
 COPY fbcnms-packages fbcnms-packages
 RUN yarn install --frozen-lockfile && yarn cache clean
