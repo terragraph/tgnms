@@ -52,7 +52,7 @@ def build(args: argparse.Namespace) -> None:
         raise RuntimeError(f"Cannot build for {args.branch}")
 
     command += ["--tag", f"{args.registry}/{args.name}:{release}"]
-    for arg in args.build_arg:
+    for arg in args.build_arg or []:
         command += ["--build-arg", arg]
     for label, value in get_commit_info().items():
         command += ["--label", f'"{label}={value}"']
