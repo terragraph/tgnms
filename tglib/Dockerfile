@@ -1,5 +1,5 @@
 # Pull base image
-FROM alpine:edge AS thrift
+FROM alpine:3.12 AS thrift
 
 ARG FB_VERSION=v2020.05.04.00
 ARG FMT_VERSION=6.1.2
@@ -83,7 +83,7 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     apk del build-deps
 
 # Pull base image
-FROM alpine:edge AS builder
+FROM alpine:3.12 AS builder
 
 COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/thrift
 COPY --from=thrift /usr/local/bin/thrift1 /usr/local/bin/thrift
@@ -115,7 +115,7 @@ RUN apk add --no-cache --virtual build-deps \
     apk del build-deps
 
 # Pull base image
-FROM alpine:edge
+FROM alpine:3.12
 
 # Install python3
 RUN apk update && apk add --no-cache python3 && \
