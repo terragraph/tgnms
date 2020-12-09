@@ -186,7 +186,6 @@ kafka_image: secure.cxl-terragraph.com:443/kafka:stable
 monitoring_gluster_exporter_image: secure.cxl-terragraph.com:443/gluster_exporter:latest
 msa_analytics_image: secure.cxl-terragraph.com:443/analytics:stable
 msa_default_routes_service_image: secure.cxl-terragraph.com:443/default_routes_service:stable
-msa_jupyter_image: secure.cxl-terragraph.com:443/jupyter:stable
 msa_network_test_image: secure.cxl-terragraph.com:443/network_test:stable
 msa_scan_service_image: secure.cxl-terragraph.com:443/scan_service:stable
 msa_topology_service_image: secure.cxl-terragraph.com:443/topology_service:stable

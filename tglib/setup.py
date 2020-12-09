@@ -98,12 +98,6 @@ setup(
     extras_require={
         "ci": ["asynctest>=0.13.0,<1.0", "ptr"],
         "docs": ["aiohttp-swagger>=1.0.9,<2.0", "pyyaml>=5.3.1,<6.0"],
-        "jupyter": [
-            "jupyter>=1.0.0,<2.0",
-            "matplotlib>=3.2.1,<4.0",
-            "numpy>=1.18.2,<2.0",
-            "pandas>=1.0.3,<2.0",
-        ],
     },
     cmdclass={"build_thrift": BuildThriftCommand},
     test_suite=ptr_params["test_suite"],

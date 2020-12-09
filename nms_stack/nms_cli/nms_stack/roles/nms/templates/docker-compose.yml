@@ -34,6 +34,17 @@ services:
         max-size: "20m"
         max-file: "10"
 
+  jupyter:
+    image: jupyter/scipy-notebook:latest
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "jupyter notebook --ip '0.0.0.0' --port 8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.base_url=jupyter"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+
   grafana:
     image: grafana/grafana:latest
     env_file:
