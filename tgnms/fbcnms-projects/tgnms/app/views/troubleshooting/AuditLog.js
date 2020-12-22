@@ -21,7 +21,7 @@ export default function AuditLog() {
   const classes = useStyles();
   const kibanaBaseUrlRef = React.useRef(getUIEnvVal('KIBANA_URL'));
 
-  const kibanaUrl = `${kibanaBaseUrlRef.current}/kibana/app/kibana#/discover?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1d,to:now))`;
+  const kibanaUrl = `${kibanaBaseUrlRef.current}/app/kibana#/discover?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1d,to:now))`;
 
   return (
     <iframe
