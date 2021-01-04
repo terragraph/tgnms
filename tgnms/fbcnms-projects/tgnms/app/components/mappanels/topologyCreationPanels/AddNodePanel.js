@@ -87,7 +87,7 @@ type Props = {
   networkConfig: NetworkConfig,
   networkName: string,
   onPanelChange: () => void,
-  onClose: () => void,
+  onClose: (x?: ?string) => *,
   topology: TopologyType,
 };
 
@@ -182,6 +182,13 @@ class AddNodePanel extends React.Component<Props, State> {
         rxGolayIdx: formParseInt(this.state.rxGolayIdx),
       },
     };
+
+    if (node.pop_node && node.node_type == NodeTypeValueMap.CN) {
+      onClose(
+        'A node cannot be a CN and PoP. Please change the node type or PoP status and try again.',
+      );
+      return;
+    }
 
     if (formType === FormType.CREATE) {
       node.wlan_mac_addrs = wlanMacEdits.map(

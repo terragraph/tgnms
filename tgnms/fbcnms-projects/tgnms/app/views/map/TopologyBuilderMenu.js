@@ -156,7 +156,7 @@ export default function TopologyBuilderMenu(props: Props) {
   );
 
   const handleNodePanelClose = useCallback(
-    (changeMessage?: string) => {
+    (changeMessage?: ?string) => {
       // If editing a node and nothing else is selected,
       // re-select the node onClose
       if (
