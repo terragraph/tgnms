@@ -226,7 +226,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(tx_bytes)",
+          "expr": "sum(tx_bytes{network=\"$network\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
