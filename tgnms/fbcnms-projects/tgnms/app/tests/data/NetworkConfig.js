@@ -293,6 +293,10 @@ export function mockLink(overrides?: $Shape<LinkType>): $Shape<LinkType> {
     a_node_mac: 'aa:aa:aa:aa:aa',
     z_node_mac: 'bb:bb:bb:bb:bb',
     is_backup_cn_link: false,
+    _meta_: {
+      distance: 0,
+      angle: 0,
+    },
     ...overrides,
   };
 }

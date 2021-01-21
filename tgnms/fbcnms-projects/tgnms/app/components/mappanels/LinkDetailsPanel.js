@@ -176,49 +176,57 @@ class LinkDetailsPanel extends React.Component<Props, State> {
   }
 
   onDeleteLink() {
+    const {nodeMap} = this.props;
     // Delete this link
     const {link, networkName} = this.props;
 
-    async function makeRequests() {
-      try {
-        await apiRequest({
-          networkName,
-          endpoint: 'setIgnitionState',
-          data: {
-            enable: true,
-            linkAutoIgnite: {
-              [link.name]: false,
+    async function makeRequests({force}: {force: boolean}) {
+      if (force) {
+        try {
+          await apiRequest({
+            networkName,
+            endpoint: 'setIgnitionState',
+            data: {
+              enable: true,
+              linkAutoIgnite: {
+                [link.name]: false,
+              },
             },
-          },
-        });
-      } catch (error) {
-        console.error(error);
-      }
-      try {
-        const initiatorNodeName = link.a_node_name;
-        const responderNodeName = link.z_node_name;
-        await apiRequest<
-          {initiatorNodeName: string, responderNodeName: string},
-          any,
-        >({
-          networkName,
-          endpoint: 'setLinkStatus',
-          data: {
-            initiatorNodeName,
-            responderNodeName,
-            action: LinkActionType.LINK_DOWN,
-          },
-        });
-      } catch (error) {
-        console.error(error);
+          });
+        } catch (error) {
+          console.error(error);
+        }
+        try {
+          const aNode = nodeMap[link.a_node_name];
+          const zNode = nodeMap[link.z_node_name];
+          const initiatorNode =
+            aNode.node_type === NodeTypeValueMap.DN ? aNode : zNode;
+          const responderNode =
+            aNode.node_type === NodeTypeValueMap.DN ? zNode : aNode;
+
+          await apiRequest({
+            networkName,
+            endpoint: 'setLinkStatus',
+            data: {
+              initiatorNodeName: initiatorNode.name,
+              responderNodeName: responderNode.name,
+              action: LinkActionType.LINK_DOWN,
+            },
+          });
+        } catch (error) {
+          console.error(error);
+        }
       }
       try {
         const aNodeName = link.a_node_name;
         const zNodeName = link.z_node_name;
-        await apiRequest<{aNodeName: string, zNodeName: string}, any>({
+        await apiRequest<
+          {aNodeName: string, zNodeName: string, force: boolean},
+          any,
+        >({
           networkName,
           endpoint: 'delLink',
-          data: {aNodeName, zNodeName},
+          data: {aNodeName, zNodeName, force},
         });
       } catch (error) {
         return {

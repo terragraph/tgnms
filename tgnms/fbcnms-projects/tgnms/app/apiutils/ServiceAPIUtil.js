@@ -14,7 +14,7 @@ type AxiosE2EAck = {
   statusText: string, // from axios
 };
 
-type apiRequestOptions = {
+type ApiRequestOptions<T> = {
   checkbox?: string,
   choices?: {[string]: string},
   title?: string,
@@ -24,7 +24,7 @@ type apiRequestOptions = {
   successType?: string,
   getFailureStr?: string => any,
   failureType?: string,
-  processInput?: ({}, string) => any, //first input is many formats
+  processInput?: (T, string) => any, //first input is many formats
   onResultsOverride?: (
     {success: boolean, msg: string},
     ?(string) => any,
@@ -109,11 +109,11 @@ export const getErrorTextFromE2EAck = (error: ?AxiosE2EAck) => {
 /**
  * Make an API service request with confirmation and response alerts (via swal).
  */
-export function apiServiceRequestWithConfirmation(
+export function apiServiceRequestWithConfirmation<T = {}>(
   networkName: string,
   endpoint: string,
-  data: {}, //data input is recieved in many different formats
-  options: apiRequestOptions,
+  data: T, //data input is recieved in many different formats
+  options: ApiRequestOptions<T>,
 ) {
   const makeRequest = requestData =>
     new Promise((resolve, _reject) => {
@@ -139,10 +139,10 @@ type SwalInputProps = {|
 /**
  * Make a request with confirmation and response alerts (via swal).
  */
-export function requestWithConfirmation(
-  makeRequest: ({}) => any, //input is data or formatted data
-  options: apiRequestOptions,
-  data: {}, //data input is recieved in many different formats
+export function requestWithConfirmation<T>(
+  makeRequest: T => any, //input is data or formatted data
+  options: ApiRequestOptions<T>,
+  data: T, //data input is recieved in many different formats
 ) {
   const {
     // Checkbox option text (if applicable)
