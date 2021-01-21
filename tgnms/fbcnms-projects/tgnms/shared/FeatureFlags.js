@@ -29,7 +29,9 @@ export const FEATURE_FLAGS: {|[string]: FeatureFlagDef|} = {
   L2_TUNNELS_ENABLED: {isDefaultEnabled: true},
   TASK_BASED_CONFIG_ENABLED: {isDefaultEnabled: true},
   JSON_CONFIG_ENABLED: {isDefaultEnabled: true},
-  ODS_ENABLED: {isDefaultEnabled: true},
+  FORM_CONFIG_ENABLED: {isDefaultEnabled: true},
+  TABLE_CONFIG_ENABLED: {isDefaultEnabled: true},
+  ODS_ENABLED: {isDefaultEnabled: false},
 
   //experimental
   NMS_BACKUP_ENABLED: {isDefaultEnabled: false},
