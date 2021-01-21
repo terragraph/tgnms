@@ -11,6 +11,7 @@ import McsEstimateLayer, {SOURCE_ID} from '../McsEstimateLayer';
 import PlannedSiteCtx, {
   defaultValue as PlannedSiteContextDefaultValue,
 } from '../../../../contexts/PlannedSiteContext';
+import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   MapContextWrapper,
   NetworkContextWrapper,
@@ -234,6 +235,38 @@ test(
   },
 );
 
+test('renders correctly when using a custom map profile', async () => {
+  const {container} = await render(
+    <Wrapper
+      mapVals={{
+        mapboxRef: ({}: any),
+        selectedOverlays: {
+          nodes: 'mcs_estimate',
+        },
+        mapProfiles: [{...DEFAULT_MAP_PROFILE, networks: ['test']}],
+      }}
+      networkVals={{
+        selectedElement: {
+          type: TopologyElementType.SITE,
+          name: 'site1',
+          expanded: true,
+        },
+      }}>
+      <McsEstimateLayer />
+    </Wrapper>,
+  );
+  const sourceData = getSourceFeatureCollection(container, SOURCE_ID);
+  expect(sourceData.type).toBe('FeatureCollection');
+  const polygons = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Polygon',
+  );
+  const labels = sourceData.features.filter(
+    feat => turf.getType(feat) === 'Point',
+  );
+  expect(polygons.length).toBe(12 * 3);
+  expect(labels.length).toBe(12 * 3);
+});
+
 function Wrapper({
   children,
   networkVals,
@@ -259,6 +292,7 @@ function Wrapper({
     <TestApp>
       <NetworkContextWrapper
         contextValue={{
+          networkName: 'test',
           networkConfig: mockNetworkConfig({topology: topology}),
           ...topologyMaps,
           ...(networkVals || {}: $Shape<NetworkContextType>),

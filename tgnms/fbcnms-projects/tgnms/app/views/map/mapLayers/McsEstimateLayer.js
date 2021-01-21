@@ -28,10 +28,10 @@ export const LAYER_ID = 'nodes-mcs-estimate';
 export const SOURCE_ID = 'nodes-mcs-estimate-source';
 
 const CIRCLE_STEPS = 64;
-const TRIANGLE_LENGTH = 300;
-const BEAM_WIDTH_DEGREES = 30;
+const TRIANGLE_LENGTH = 1000;
+const BEAM_WIDTH_DEGREES = 90;
 
-export default function McsEstimateOverlay() {
+export default function McsEstimateLayer() {
   const {selectedOverlays, mapboxRef} = useMapContext();
   const {nodes: selectedNodesOverlay} = selectedOverlays;
   const isMcsEstimateSelected = selectedNodesOverlay === 'mcs_estimate';
@@ -347,14 +347,14 @@ function useMapProfileMcsTable(): Array<McsLinkBudget> {
     const mapProfile = mapProfiles.find(p =>
       p.networks?.some(netName => netName === networkName),
     );
+
+    let table = [...DEFAULT_MCS_TABLE];
     if (mapProfile != null) {
       const mcsTable = mapProfile.data.mcsTable;
       if (mcsTable != null) {
-        return mcsTable;
+        table = mcsTable;
       }
     }
-
-    const table = [...DEFAULT_MCS_TABLE];
     table.sort((a, b) => b.rangeMeters - a.rangeMeters);
     return table;
   }, [networkName, mapProfiles]);
