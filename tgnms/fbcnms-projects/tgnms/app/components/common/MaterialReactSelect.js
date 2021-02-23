@@ -70,6 +70,13 @@ const styles = theme => ({
     left: 0,
     right: 0,
   },
+  wrap: {
+    whiteSpace: 'normal',
+    wordWrap: 'break-word',
+    display: 'inline-block',
+    width: '100%',
+    maxWidth: '100%',
+  },
   ellipsis: {
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -119,9 +126,15 @@ function Option(props) {
       component="div"
       style={{
         fontWeight: props.isSelected ? 500 : 400,
+        whiteSpace: props.selectProps.wrapOptions ? 'normal' : '',
       }}
       {...props.innerProps}>
-      <span className={props.selectProps.classes.ellipsis}>
+      <span
+        className={
+          props.selectProps.wrapOptions === true
+            ? props.selectProps.classes.wrap
+            : props.selectProps.classes.ellipsis
+        }>
         {props.children}
       </span>
     </MenuItem>

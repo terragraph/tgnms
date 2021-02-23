@@ -456,6 +456,7 @@ class ModalFullUpgrade extends React.Component<Props, State> {
                   label: 'Select Upgrade Image',
                   InputLabelProps: {shrink: true},
                 }}
+                wrapOptions={true}
               />
 
               {selectedImage &&
