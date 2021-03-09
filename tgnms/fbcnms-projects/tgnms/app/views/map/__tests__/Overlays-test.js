@@ -257,6 +257,73 @@ describe('Default MapMode', () => {
         linkColor: LinkOverlayColors.metric.missing.color,
       });
     });
+
+    test('Channel', async () => {
+      const topology = mockFig0();
+      /**
+       * mockFig0 by default creates all links with *_node_mac fields the same.
+       * They only need to be unique for the overlay to work correctly.
+       */
+      topology.__test.updateLink(FIG0.LINK1, {a_node_mac: '11:11:11:11:11'});
+      topology.__test.updateLink(FIG0.LINK2, {a_node_mac: '22:22:22:22:22'});
+      topology.__test.updateLink(FIG0.LINK3, {a_node_mac: '33:33:33:33:33'});
+      topology.__test.updateLink(FIG0.LINK4, {a_node_mac: '44:44:44:44:44'});
+
+      const link1 = topology.__test.getLink(FIG0.LINK1);
+      const link2 = topology.__test.getLink(FIG0.LINK2);
+      const link3 = topology.__test.getLink(FIG0.LINK3);
+      const link4 = topology.__test.getLink(FIG0.LINK4);
+      if (!link1 || !link2 || !link3 || !link4) {
+        throw new Error('missing link');
+      }
+      const result = await renderAsync(
+        <MapTestWrapper
+          networkCtx={{
+            networkName,
+            networkConfig: mockNetworkConfig({
+              topology,
+              topologyConfig: mockTopologyConfig({
+                channel: {
+                  [link1.a_node_mac]: 1,
+                  [link2.a_node_mac]: 2,
+                  [link3.a_node_mac]: 3,
+                  [link4.a_node_mac]: 4,
+                },
+              }),
+            }),
+            ...buildTopologyMaps(topology),
+          }}>
+          <MapTest />
+        </MapTestWrapper>,
+      );
+
+      await selectLayerOverlay(result, 'Links Overlay', /channel/i);
+      const layer = getLayerById(result.container, 'link-normal');
+      expect(
+        getPropValue(getLineByLinkName(layer, FIG0.LINK1)[0], 'properties'),
+      ).toMatchObject({
+        linkColor: LinkOverlayColors.channel[1].color,
+        text: 1,
+      });
+      expect(
+        getPropValue(getLineByLinkName(layer, FIG0.LINK2)[0], 'properties'),
+      ).toMatchObject({
+        linkColor: LinkOverlayColors.channel[2].color,
+        text: 2,
+      });
+      expect(
+        getPropValue(getLineByLinkName(layer, FIG0.LINK3)[0], 'properties'),
+      ).toMatchObject({
+        linkColor: LinkOverlayColors.channel[3].color,
+        text: 3,
+      });
+      expect(
+        getPropValue(getLineByLinkName(layer, FIG0.LINK4)[0], 'properties'),
+      ).toMatchObject({
+        linkColor: LinkOverlayColors.channel[4].color,
+        text: 4,
+      });
+    });
   });
 });
 

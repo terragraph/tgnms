@@ -40,6 +40,12 @@ export const LinkOverlayColors = {
     [6]: {color: 'hsl(100,50%,50%)'},
     [7]: {color: 'hsl(280,50%,50%)'},
   },
+  channel: {
+    [1]: {color: 'hsl(170,50%,50%)'},
+    [2]: {color: 'hsl(30,50%,50%)'},
+    [3]: {color: 'hsl(200,50%,50%)'},
+    [4]: {color: 'hsl(60,50%,50%)'},
+  },
   superframe: {
     [0]: {color: 'hsl(170,50%,50%)'},
     [1]: {color: 'hsl(30,50%,50%)'},
@@ -468,7 +474,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
   },
   channel: {
     name: 'Channel',
-    type: 'golay',
+    type: 'channel',
     id: 'channel',
   },
 };
