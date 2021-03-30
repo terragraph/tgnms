@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+# Allow forcing a different binary for testing newer versions.
+NODE="${NODE_BINARY_OVERRIDE:-"$THIS_DIR/../../node/bin/node"}"
+
+exec "$NODE" "$THIS_DIR/yarn-validate.js" "$@"

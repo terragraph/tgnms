@@ -1,0 +1,102 @@
+- hosts : all
+  become: true
+  become_method: sudo
+  ignore_errors: "{{ force }}"
+
+  tasks:
+  - name: Count swarm nodes
+    shell: docker node ls -q|wc -l
+    register: node_count
+
+  - name: Count working swarm nodes
+    shell: docker node ls --format "{{'{{'}}.Status{{'}}'}}"|grep Ready|wc -l
+    register: node_working_count
+
+  - name: Check if uninstall requested on all connected hosts
+    assert:
+      that: groups.all | length == node_count.stdout | int
+      msg: "please specify all hosts, partial uninstall is not supported yet"
+
+  - name: Check if any hosts are down
+    assert:
+      that: node_working_count.stdout == node_count.stdout
+      msg: "not all hosts are in working state, partial uninstall is not supported yet"
+
+  - name: Leave docker swarm
+    command: docker swarm leave --force
+
+  - name: Stop non-swarm services
+    shell: docker ps -q -a|xargs docker rm -f
+
+  - name: Backup data to archive
+    archive:
+      path: "{{ terragraph_docker_path }}/"
+      dest: "{{ terragraph_docker_path }}/../backup.tgz"
+      exclude_path:
+      - "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+    when: not skip_backup and inventory_hostname == groups['all'][0]
+
+  - name: Pull data archive
+    fetch:
+      src: "{{ terragraph_docker_path }}/../backup.tgz"
+      dest: "{{ backup_file }}"
+      flat: yes
+    when: not skip_backup and inventory_hostname == groups['all'][0]
+
+  - name: Delete remote data archive
+    file:
+      path: "{{ terragraph_docker_path }}/../backup.tgz"
+      state: absent
+    when: not skip_backup and inventory_hostname == groups['all'][0]
+
+  - name: Prune docker network
+    command: docker network prune --force
+
+  - name: Unmount replicated gluster volume
+    mount:
+      path: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+      state: absent
+
+  - name: Delete gluster everything
+    shell: service glusterd stop && sudo rm -rf /var/lib/glusterd && sudo service glusterd start
+    when: groups.all | length > 1
+    args:
+      warn: false
+
+  - name: Delete data and archive
+    file:
+      path: "{{ terragraph_docker_path }}"
+      state: absent
+    when: delete_data
+
+  - name: Uninstall docker Debian/Ubuntu
+    apt:
+      name:
+        - docker-ce
+        - docker-ce-cli
+      state: absent
+    when: remove_docker and ansible_os_family == 'Debian'
+
+  - name: Uninstall gluster Debian/Ubuntu
+    apt:
+      name:
+        - glusterfs-server
+        - glusterfs-client
+      state: absent
+    when: remove_gluster and ansible_os_family == 'Debian'
+
+  - name: Uninstall docker Redhat/CentOS
+    yum:
+      name:
+        - docker-ce
+        - docker-ce-cli
+      state: absent
+    when: remove_docker and ansible_os_family == 'RedHat'
+
+  - name: Uninstall gluster Redhat/CentOS
+    yum:
+      name:
+        - glusterfs-server
+        - glusterfs-client
+      state: absent
+    when: remove_gluster and ansible_os_family == 'RedHat'

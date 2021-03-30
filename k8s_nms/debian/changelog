@@ -1,0 +1,5 @@
+tgnms-k8s (1.0.0-1) unstable; urgency=low
+
+  * Initial package
+
+ -- Terragraph NMS <terragraph.nms@fb.com>  Fri, 18 Dec 2020 12:00:00 -0700

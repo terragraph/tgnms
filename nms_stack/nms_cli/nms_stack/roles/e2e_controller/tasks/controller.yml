@@ -1,0 +1,146 @@
+---
+- set_fact:
+    e2e_controller_path: "{{ e2e_path }}/e2e-{{ escaped_controller_name }}"
+    e2e_audit_logs_path: "{{ audit_logs_gfs_path }}/{{ escaped_controller_name }}"
+
+- name: Make directory
+  file:
+    path: "{{ e2e_controller_path }}/env"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: Make audit log directory
+  file:
+    path: "{{ e2e_audit_logs_path }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    state: directory
+    mode: 0755
+
+- name: Ensure .current file exists
+  copy:
+    content: ""
+    dest: "{{ e2e_controller_path }}/.current"
+    force: no
+    group: docker
+    mode: 0644
+
+- name: copy env files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ e2e_controller_path }}/env"
+    force: "{{ item.force }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "0644"
+  loop:
+    - { src: "defaults.env", force: yes }
+    - { src: "overrides.env", force: no }
+
+- name: Read .current file
+  slurp:
+    src: "{{ e2e_controller_path }}/.current"
+  register: current_file
+
+- name: Set old_data_folder
+  set_fact:
+    data_folder: "{{ e2e_controller_path }}/data_{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+    old_data_folder: "{{ current_file['content'] | b64decode | trim }}"
+
+- name: Old data folder stat
+  stat:
+    path: "{{ old_data_folder }}"
+  register: old_data_folder_stat
+  when: old_data_folder != ''
+
+- name: make directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  with_items:
+    - "{{ data_folder }}"
+    - "{{ data_folder }}/cfg"
+    - "{{ data_folder }}/scripts"
+
+- name: Copy old data folder
+  command: "rsync -av --exclude=\"images\" {{ old_data_folder }}/ {{ data_folder }}"
+  when: old_data_folder != '' and old_data_folder_stat.stat.exists == True
+
+- name: copy compose file
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "{{ item.perm }}"
+    force: yes
+  with_items:
+    - src: docker-compose.yml
+      dest: "{{ e2e_path }}/docker-compose-e2e-{{ escaped_controller_name }}.yml"
+      perm: "0644"
+
+- name: copy start scripts
+  template:
+    src: "{{ item }}"
+    dest: "{{ data_folder }}/scripts"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "0755"
+    force: yes
+  loop:
+    - e2e_controller.start
+    - nms_aggregator.start
+    - stats_agent.start
+
+- name: copy topology file
+  template:
+    src: e2e_topology.conf
+    dest: "{{ data_folder }}/{{ E2E_TOPOLOGY_FILE }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "0644"
+    force: no
+
+- name: run compose
+  shell: "docker stack deploy -c {{ e2e_path }}/docker-compose-e2e-{{ escaped_controller_name }}.yml --with-registry-auth --prune e2e-{{ escaped_controller_name }}"
+
+- name: wait for API service to come up
+  command: "docker run --network=terragraph_net byrnedo/alpine-curl --noproxy '*' e2e-{{ escaped_controller_name }}_api_service:8080"
+  register: result
+  retries: 5
+  delay: 10
+  failed_when: result.rc >= 1
+  until: result.rc == 0
+
+- name: get current controller config
+  shell: |
+    docker run --network=terragraph_net byrnedo/alpine-curl \
+      --noproxy '*' -L {% if keycloak_enabled %} -H "Authorization: Bearer {{ keycloak_token }}" {% endif %} \
+      e2e-{{ escaped_controller_name }}_api_service:8080/api/v2/getControllerConfig
+  register: controller_config_output
+
+- set_fact:
+    controller_config: "{{ controller_config_output.stdout | from_json }}"
+  when: controller_config_output.stdout != ""
+
+- set_fact:
+    # Write in the default values
+    config: "{{ controller_config['config'] | from_json | combine({'statsAgentParams': {'sources': {'controller': {'zmq_url': 'tcp://e2e_controller-' + escaped_controller_name + ':28989'}}}}, recursive=True) | combine({'statsAgentParams': {'endpointParams': {'kafkaParams': {'config': {'brokerEndpointList': ['PLAINTEXT://kafka:9092']}}}}}, recursive=True) }}"
+  when: controller_config_output.stdout != ""
+
+- set_fact:
+    controller_config: "{{ {'config': config} }}"
+  when: controller_config_output.stdout != ""
+
+- name: set default controller config
+  shell: |
+    echo {{ controller_config | to_json }} | docker run --network=terragraph_net byrnedo/alpine-curl \
+      --noproxy '*' -L {% if keycloak_enabled %} -H "Authorization: Bearer {{ keycloak_token }}" {% endif %} \
+      -H "Content-Type: application/json" -X POST --data-binary @- \
+      e2e-{{ escaped_controller_name }}_api_service:8080/api/v2/setControllerConfig
+  when: controller_config_output.stdout != ""

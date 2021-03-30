@@ -1,0 +1,60 @@
+---
+- name: stop the old service
+  systemd:
+    name: udp_ping_client_monitor
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: delete the old service files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ terragraph_docker_path }}/udp_ping_client"
+    - /lib/systemd/system/udp_ping_client_monitor.service
+
+- name: create paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  with_items:
+   - "{{ udp_pinger_path }}"
+   - "{{ udp_pinger_path }}/env"
+
+- name: copy docker compose
+  template:
+    src: docker-compose.yml
+    dest: "{{ udp_pinger_path }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+
+- name: copy service file
+  template:
+    src: udp_pinger_monitor.service
+    dest: /lib/systemd/system
+
+- name: create keycloak client
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    --mount type=bind,source={{ udp_pinger_path }}/env/,target=/output
+    --entrypoint=""
+    --network=terragraph_net
+    -u root
+    jboss/keycloak:7.0.0
+    /scripts/create-service-account-client.sh udp_pinger /output/auth.env tg_topology_read,tg_management_read
+  when: keycloak_enabled
+
+- name: start the service
+  systemd:
+    name: udp_pinger_monitor
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

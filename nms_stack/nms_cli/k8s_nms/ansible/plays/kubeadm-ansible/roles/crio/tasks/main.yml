@@ -1,0 +1,37 @@
+- name: Set OS/Version
+  set_fact:
+    os_release: "xUbuntu_{{ ansible_distribution_version }}"
+    crio_version: "{{ kubernetes_version }}"
+
+- name: Add CRI-O repository
+  shell: |
+    export OS={{ os_release }}
+    export VERSION={{ crio_version }}
+
+    rm -rf /etc/apt/sources.list.d/terragraph-packages.list
+
+    rm -rf /etc/systemd/system/crio.service.d
+    mkdir -p /etc/systemd/system/crio.service.d
+
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" >> /etc/apt/sources.list.d/terragraph-packages.list
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" >> /etc/apt/sources.list.d/terragraph-packages.list
+
+    curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+
+- name: Update apt
+  shell: apt-get update
+
+- name: Install CRI-O
+  shell: apt-get install -y cri-o cri-o-runc
+
+- name: Copy proxy config
+  template:
+    src: "proxy.conf"
+    dest: "/etc/systemd/system/crio.service.d"
+
+- name: Enable CRI-O
+  shell: |
+    systemctl daemon-reload
+    systemctl enable crio
+    systemctl start crio

@@ -1,0 +1,92 @@
+{
+  "analytics_alignment_status": {
+    "period_s": 300,
+    "lower_threshold": 95.0,
+    "higher_threshold": 99.0
+  },
+  "topology_link_is_online": {
+    "period_s": 30,
+    "lower_threshold": 99.5,
+    "higher_threshold": 99.9
+  },
+  "link_alive": {
+    "period_s": null,
+    "lower_threshold": 99.5,
+    "higher_threshold": 99.9
+  },
+  "link_avail_for_data": {
+    "period_s": null,
+    "lower_threshold": 99.5,
+    "higher_threshold": 99.9
+  },
+  "tx_byte": {
+    "period_s": 30,
+    "lower_threshold": 0.8,
+    "higher_threshold": 1.2
+  },
+  "analytics_foliage_factor": {
+    "period_s": 30,
+    "lower_threshold": 0.5,
+    "higher_threshold": 0.85
+  },
+  "drs_cn_egress_routes_count": {
+    "period_s": 60,
+    "lower_threshold": 0.5,
+    "higher_threshold": 10.0
+  },
+  "tx_ok": {
+    "period_s": 1,
+    "lower_threshold": 250000.0,
+    "higher_threshold": 300000.0
+  },
+  "link_avail": {
+    "period_s": 1,
+    "lower_threshold": 6.0,
+    "higher_threshold": 12.0
+  },
+  "mcs": {
+    "period_s": 1,
+    "lower_threshold": 6.0,
+    "higher_threshold": 9.0
+  },
+  "mcs_diff": {
+    "period_s": 1,
+    "lower_threshold": 2.0,
+    "higher_threshold": 4.0
+  },
+  "tx_power_diff": {
+    "period_s": 1,
+    "lower_threshold": 3.0,
+    "higher_threshold": 6.0
+  },
+  "analytics_cn_power_status": {
+    "period_s": 300,
+    "lower_threshold": 95.0,
+    "higher_threshold": 99.0
+  },
+  "topology_node_is_online": {
+    "period_s": 30,
+    "lower_threshold": 99.5,
+    "higher_threshold": 99.9
+  },
+  "udp_pinger_loss_ratio": {
+    "period_s": 30,
+    "lower_threshold": 99.5,
+    "higher_threshold": 99.9
+  },
+  "udp_pinger_rtt_avg": {
+    "period_s": 30,
+    "lower_threshold": 50.0,
+    "higher_threshold": 70.0
+  },
+  "interference": {
+    "period_s": null,
+    "lower_threshold": -3.0,
+    "higher_threshold": 3.0
+  },
+  "drs_default_routes_changed": {
+    "period_s": 60,
+    "lower_threshold": 4.0,
+    "higher_threshold": 8.0
+  }
+}

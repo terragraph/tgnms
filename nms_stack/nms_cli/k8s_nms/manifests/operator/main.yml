@@ -1,0 +1,77 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition 
+metadata: 
+  name: controllers.terragraph.com
+spec: 
+  scope: Namespaced 
+  group: terragraph.com 
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                cronSpec:
+                  type: string
+                image:
+                  type: string
+                replicas:
+                  type: integer
+  names: 
+    kind: Controller 
+    plural: controllers
+    singular: controller
+    shortNames: 
+      - cont
+      - conts
+      - e2e
+---
+apiVersion: v1 
+kind: ServiceAccount 
+metadata: 
+  name: controller-operator 
+---
+apiVersion: rbac.authorization.k8s.io/v1 
+kind: ClusterRoleBinding 
+metadata: 
+  name: controller-operator 
+roleRef: 
+  apiGroup: rbac.authorization.k8s.io 
+  kind: ClusterRole 
+  name: cluster-admin 
+subjects: 
+  - kind: ServiceAccount 
+    name: controller-operator 
+    namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: controller-operator
+spec:
+  selector:
+    matchLabels:
+      app: controller-operator
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: controller-operator
+    spec:
+      serviceAccountName: controller-operator
+      containers:
+      - image: localhost/controller-operator:dev
+        name: controller-operator
+
+
+# Example usage of CRD:
+# apiVersion: terragraph.com/v1 
+# kind: Controller 
+# metadata: 
+#   name: my-network-name

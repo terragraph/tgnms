@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: db-init-config
+data:
+  cxl.sql: |
+    {{ lookup('template', '00-cxl.sql') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: add-controllers
+data:
+  add_controllers.sql: |
+    {{ lookup('template', 'add_controllers.sql') | indent(width=4, indentfirst=False )}}
+---

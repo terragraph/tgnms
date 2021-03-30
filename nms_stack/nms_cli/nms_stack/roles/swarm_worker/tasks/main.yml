@@ -1,0 +1,7 @@
+---
+- name: swarmize
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ ansible_default_ipv4.address }}:{{ swarm_manager_port }}"
+    join_token: "{{ hostvars[groups['managers'][0]]['swarm_manager']['swarm_facts']['JoinTokens']['Worker'] }}"
+    remote_addrs: [ "{{ hostvars[groups['managers'][0]]['ansible_default_ipv4']['address'] }}:{{ swarm_manager_port }}" ]

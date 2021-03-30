@@ -1,0 +1,34 @@
+---
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force --cri-socket /var/run/crio/crio.sock"
+  register: reset_cluster
+
+- name: Copy over config
+  template:
+    src: kubeadm_config.yml
+    dest: /etc/kubeadm_config.yml
+    force: yes
+
+- name: Set kubeadm flags
+  shell: |
+    echo 'KUBELET_KUBEADM_ARGS="--container-runtime=remote --container-runtime-endpoint=unix:///var/run/crio/crio.sock --hostname-override={{ node_name }} --cgroup-driver=systemd"' > /var/lib/kubelet/kubeadm-flags.env
+    systemctl daemon-reload
+    systemctl restart kubelet
+
+- name: Ensure daemons are up
+  shell: |
+    systemctl restart crio
+
+- name: Init Kubernetes cluster
+  when: reset_cluster is succeeded
+  shell: |
+    kubeadm init --config=/etc/kubeadm_config.yml --node-name {{ node_name }}
+  register: init_cluster
+  environment:
+    http_proxy: ""
+    https_proxy: ""
+
+- name: Copy kubernetes config to root home directory
+  shell: |
+    mkdir -p ~/.kube
+    cp /etc/kubernetes/admin.conf ~/.kube/config

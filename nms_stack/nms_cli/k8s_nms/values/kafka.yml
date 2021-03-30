@@ -1,0 +1,42 @@
+persistence:
+  existingClaim: kafka
+
+zookeeper:
+  enabled: false
+
+externalZookeeper:
+  servers:
+    - zookeeper.default.svc.cluster.local
+
+existingLog4jConfigMap: kafka-log4j-properties
+
+image:
+  registry: {{ kafka_image.split("/")[0] }}
+  repository: {{ kafka_image.split("/")[1].split(":")[0] }}
+  tag: {{ kafka_image.split("/")[1].split(":")[1] }}
+  pullSecrets:
+    - tg-repo-creds
+
+
+volumePermissions:
+  enabled: true
+
+autoCreateTopicsEnable: true
+
+extraEnvVars:
+  - name: KAFKA_ZOOKEEPER_CONNECT
+    value: zookeeper
+  - name: KAFKA_LOG_RETENTION_BYTES
+    value: "{{ kafka_log_retention_bytes }}"
+  - name: EXTRA_ARGS
+    value: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-0.11.0.jar=9876:/opt/jmx_exporter/kafka-2_0_0.yml"
+  - name: HOSTNAME_COMMAND
+    value: "cat /kafka/myip"
+  - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+    value: "INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT"
+  - name: KAFKA_ADVERTISED_LISTENERS
+    value: "INSIDE://:9092,OUTSIDE://[2620:10d:c0bf:1800:250:56ff:fe93:2a17]:9093"
+  - name: KAFKA_LISTENERS
+    value: "INSIDE://:9092,OUTSIDE://:9093"
+  - name: KAFKA_INTER_BROKER_LISTENER_NAME
+    value: "INSIDE"

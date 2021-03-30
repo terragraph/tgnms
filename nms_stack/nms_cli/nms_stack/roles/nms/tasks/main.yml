@@ -1,0 +1,117 @@
+---
+- name: create nms paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ logs_gfs_path }}"
+    - "{{ nms_path }}/docker_volumes"
+    - "{{ nms_path }}/docker_volumes/settings"
+    - "{{ nms_path }}/env"
+    - "{{ nms_path }}/grafana"
+    - "{{ nms_path }}/grafana/dashboards"
+    - "{{ nms_path }}/grafana/provisioning"
+    - "{{ nms_path }}/grafana/provisioning/dashboards"
+    - "{{ nms_path }}/grafana/provisioning/datasources"
+    - "{{ e2e_path }}"
+    - "{{ e2e_path }}/keycloak"
+
+- name: copy nms configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ nms_path }}" }
+    - { src: "add_controllers.sql", dest: "{{ nms_path }}" }
+
+- name: overwrite nms env files
+  template:
+    src: "{{ item }}"
+    dest: "{{ nms_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - "nms.env"
+    - "time.env"
+    - "grafana.env"
+
+- name: copy default nms env files
+  template:
+    src: "{{ item }}"
+    dest: "{{ nms_path }}/env"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: no
+  loop:
+    - "nms_custom.env"
+    - "nms_auth.env"
+
+- name: template grafana provisioning files
+  template:
+    src: "grafana/{{ item.src }}"
+    dest: "{{ nms_path }}/grafana/{{ item.dest }}"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "provisioning/dashboards/config.yml", dest: "provisioning/dashboards" }
+    - { src: "provisioning/datasources/mysql.yml", dest: "provisioning/datasources" }
+    - { src: "provisioning/datasources/prometheus.yml", dest: "provisioning/datasources" }
+
+- name: copy grafana dashboard files
+  copy:
+    src: "grafana/dashboards"
+    dest: "{{ nms_path }}/grafana"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+  loop:
+    - { src: "dashboards/docker_monitoring.json", dest: "dashboards" }
+    - { src: "dashboards/link_dashboard_prometheus.json", dest: "dashboards" }
+    - { src: "dashboards/network_health.json", dest: "dashboards" }
+    - { src: "dashboards/udp_pinger_dashboard.json", dest: "dashboards" }
+
+- name: configure nms and apiservice to use keycloak
+  command: >
+      docker run --rm
+      --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+      --mount type=bind,source={{ nms_path }}/env/nms_auth.env,target=/nms_auth.env
+      --mount type=bind,source={{ e2e_path }}/keycloak,target=/apiservice
+      --entrypoint=""
+      --network=terragraph_net
+      --env-file={{ keycloak_path }}/env/keycloak.env
+      -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
+      -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
+      -u root
+      jboss/keycloak:7.0.0
+      /scripts/configure-keycloak.sh
+  when: keycloak_enabled
+
+- name: run compose
+  shell: "docker stack deploy -c {{ nms_path }}/docker-compose.yml --with-registry-auth --prune nms"
+
+- name: wait for nms to come up
+  command: docker run --network=terragraph_net byrnedo/alpine-curl --noproxy '*' nms_nms/healthcheck:80
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc >= 1
+  until: result.rc == 0
+
+- name: Add e2e controllers to database
+  shell: "docker run -i --network=terragraph_net mysql:5 mysql -u{{ db_root_user }} -p{{ db_root_password }} --host=database_db cxl < '{{ nms_path }}/add_controllers.sql'"
+
+- name: Restart nms
+  command: docker service update --force nms_nms

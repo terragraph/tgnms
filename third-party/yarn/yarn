@@ -1,0 +1,4 @@
+#!/bin/bash
+//>/dev/null 2>&1; exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)/../node/bin/node" "${BASH_SOURCE[0]}" "$@"
+
+require('./yarn-main.js');

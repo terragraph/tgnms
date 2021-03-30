@@ -1,0 +1,154 @@
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ */
+body {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  margin: auto;
+}
+
+/* superimpose swal2 alerts onto material-ui components */
+.swal2-container {
+  z-index: 1301 !important;
+}
+
+/* stack swal2 radio inputs (instead of rendering inline) */
+.swal2-radio.swal-input {
+  flex-direction: column;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* override mapboxgl-popup styles */
+.mapboxgl-popup {
+  cursor: default !important;
+}
+.mapboxgl-popup-tip {
+  border: none !important;
+  border-top: 12px solid transparent !important;
+}
+.mapboxgl-popup-content {
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  background: rgba(255,255,255,0.92) !important;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12) !important;
+}
+
+/* Hide the ugly plotly notification when first zooming into a chart. */
+.plotly-notifier {
+  display: none;
+}
+
+.many .dygraph-legend > span {
+  display: none;
+}
+.many .dygraph-legend > span.highlight {
+  display: inline;
+}
+.dygraph-title {
+  text-align: center;
+}
+
+.CustomTable__Autosizer__Container {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+  flex: 1 1 auto;
+}
+
+.CustomTable__Autosizer__Container,
+.CustomTable__Autosizer__Container .ReactVirtualized__Grid:focus {
+  outline: none !important;
+}
+
+.CustomTable__GridRowCell.CustomTable__HeaderRowCell
+  .CustomTable__HeaderRowCell__Title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.CustomTable__HeaderGrid {
+  width: 100%;
+  overflow: hidden !important;
+}
+
+.CustomTable__HeaderGrid .ReactVirtualized__Grid__innerScrollContainer {
+  border-bottom: 1px solid #d3d3d3;
+}
+
+.data-table-tab-list {
+  align-items: center;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  list-style-type: none;
+  padding: 0 5px;
+}
+
+.data-table-tab {
+  margin: auto 2px;
+  padding: 10px 5px;
+  transition: font-weight 50ms ease-in-out;
+}
+
+.data-table-tab:hover {
+  border-bottom: 1px solid #dbd8ff;
+  cursor: pointer;
+}
+
+.data-table-tab:focus {
+  outline: none;
+}
+
+.data-table-tab-selected,
+.data-table-tab-selected:hover {
+  border-bottom: 2px solid #a29bfe;
+  font-weight: bold;
+}
+
+.add-user-header {
+  padding: 15px;
+}
+
+.add-user-header .btn {
+  float: right;
+}
+
+.add-user-modal input {
+  display: block;
+  margin: 5px 0;
+  width: 100%;
+}
+
+.add-user-modal-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.add-user-modal-footer .btn {
+  border-color: #999;
+  margin: 0 5px;
+}
+
+.commit-plan-container-box {
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+.commit-plan-batch-nav-text {
+  padding: 0px 10px;
+  font-size: 20px;
+}
+.commit-plan-batch-button-container {
+  width: 50px;
+}
+.commit-plan-batch-container-text {
+  text-align: center;
+}
+.commit-plan-batch-text {
+  font-size: 12px;
+  font-style: italic;
+}

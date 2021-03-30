@@ -1,0 +1,74 @@
+#!/usr/bin/env dotslash
+
+// @generated SignedSource<<5ac0dd333e41ed2d3b146173d568441e>>
+// MSDK schedule URL: https://our.intern.facebook.com/intern/msdk/bump/?action=view&schedule_fbid=793198731085824
+// sandcastle build trigger URL: https://our.intern.facebook.com/intern/sandcastle/job/4503599963824738/
+
+{
+    "name": "yarn",
+    "oncall": "oncall+jsinfra@xmail.facebook.com",
+    "build_info": {
+        "config_script": "xplat/third-party/yarn/yarn.dotslash.py",
+        "commit_repo": "fbsource",
+        "commit_hash": "d2b5a713442c60eed99081981a141a97e26fe0b2",
+        "commit_date": "2020-10-11 23:01:20 PDT",
+        "commit_timestamp": 1602482480,
+        "msdk_package_fbid": "384792932678743"
+    },
+    "signatures": {
+        "msdk": "<<crypto.managed_sdk.mac:AeVf_Y3cu7RDDqEFy7UEXz3dyIfH4TLrPuDHjiX5cz6hwWLj>>"
+    },
+    "platforms": {
+        "linux": {
+            "scheme": "everstore",
+            "handle": "GDEnIgcnoC5G9DIBAIncuu_nHkkKblMqAAAA",
+            "extract": {
+                "path": "bundle/yarn_bash",
+                "decompress": "tar.gz"
+            },
+            "metadata": {
+                "build_inputs": {
+                    "bundle": {
+                        "cwd": null,
+                        "target": "//xplat/third-party/yarn:yarn_for_dotslash",
+                        "flags": []
+                    }
+                }
+            }
+        },
+        "macos": {
+            "scheme": "everstore",
+            "handle": "GDEnIgcnoC5G9DIBAIncuu_nHkkKblMqAAAA",
+            "extract": {
+                "path": "bundle/yarn_bash",
+                "decompress": "tar.gz"
+            },
+            "metadata": {
+                "build_inputs": {
+                    "bundle": {
+                        "cwd": null,
+                        "target": "//xplat/third-party/yarn:yarn_for_dotslash",
+                        "flags": []
+                    }
+                }
+            }
+        },
+        "windows": {
+            "scheme": "everstore",
+            "handle": "GDEnIgcnoC5G9DIBAIncuu_nHkkKblMqAAAA",
+            "extract": {
+                "path": "bundle/yarn_batch",
+                "decompress": "tar.gz"
+            },
+            "metadata": {
+                "build_inputs": {
+                    "bundle": {
+                        "cwd": null,
+                        "target": "//xplat/third-party/yarn:yarn_for_dotslash",
+                        "flags": []
+                    }
+                }
+            }
+        }
+    }
+}

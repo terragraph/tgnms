@@ -1,0 +1,12 @@
+Source: tgnms-swarm
+Section: python
+Priority: extra
+Maintainer: Facebook Terragraph <terragraph.nms@fb.com>
+Build-Depends: debhelper (>= 9), python3.8, dh-virtualenv (>= 0.8)
+Standards-Version: 3.9.5
+
+Package: tgnms-swarm
+Architecture: any
+Pre-Depends: dpkg (>= 1.16.1), python3.8, ${misc:Pre-Depends}
+Depends: ${misc:Depends}
+Description: Terragraph NMS Docker Swarm stack installer

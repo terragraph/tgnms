@@ -1,0 +1,182 @@
+---
+###############################################################################
+#   Basic Options
+###############################################################################
+
+# NMS Web Login
+# Set desired username and password below to login to the NMS.
+nms_username: admin
+nms_password:
+
+# Terragraph Software Portal credentials
+# Set api_id and api_key to authenticate NMS with the official Terragraph
+# Software portal.
+nms_software_portal_api_id:
+nms_software_portal_api_key:
+
+# Build/Deploy Users
+# Please set users for running ansible and docker commands. Both of these users
+# can be the same. Users should exist on the server and should have sudo access.
+#
+# `ansible_user` is the user for ssh'ing to the hosts. If this user does not
+# have passwordless ssh and passwordless sudo access, make sure to pass the `-p`
+# flag to the installer.
+# `docker_user` is the user that has access to docker and its various services.
+ansible_user: ubuntu
+kubernetes_user: ubuntu
+docker_user: ubuntu
+
+# Certbot args to get free SSL Certificate from letsencrypt.org
+# Both `ext_nms_hostname` and `certbot_user_email` must be changed from the
+# placeholder values in order to be valid.
+#
+# If passing pre-generated certificates to the installer, set
+# `certbot_user_email` to empty string ("") to disable certbot.
+#
+# `ext_nms_hostname` is the DNS name for the host. The name should resolve to
+# the publically reachable IP address for the server if certbot is enabled.
+# `certbot_user_email` is an email to receive certbot notifications.
+ext_nms_hostname: host.example.com
+certbot_user_email: admin@example.com
+certbot_args: --staging
+
+# Configuration path
+# Parent directory for all files, volumes, gfs etc
+terragraph_docker_path: /opt/terragraph
+
+# List of controllers
+#
+# All port numbers must be unique.
+# `controller_list.name` may only contain alphabets, numbers, spaces and
+#  underscores
+controllers_list:
+    - 'name': 'example_first'
+      'ctrlr_port': '7007'
+      'agg_port': '8002'
+      'app_port': '17077'
+      'bt_seeder_port': '6881'
+
+    - 'name': 'example_second'
+      'ctrlr_port': '7008'
+      'agg_port': '8003'
+      'app_port': '17078'
+      'bt_seeder_port': '6882'
+
+# E2E Controller
+e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
+
+# A free-tier key for ClimaCell can be obtained at
+# https://developer.climacell.co/
+# Set enabled and provide an api_key to enable the weather service. Supported
+# providers are (openweathermap, climacell)
+weather_service:
+  enabled: no
+  provider: climacell
+  api_key:
+
+###############################################################################
+# Detailed Options
+###############################################################################
+#
+# Are you really sure you want to change this?
+
+# SSH strict host key checking
+# Remove next line to make ansible validate ssh key fingerprints.
+ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+# Package Names
+# If installing on CentOS 7, use python2.
+# ansible_python_interpreter: python2
+# pip_package: python2-pip
+#
+# `ansible_python_interpreter` is the version of python ansible will use on the
+# target hosts.
+# `pip_package` is the version of pip ansible will use on the target hosts.
+ansible_python_interpreter: python3
+pip_package: python3-pip
+
+# Retry count and delay interval for waiting for NMS to start before inserting
+# topology and controller data into the database. Configure these if NMS takes
+# longer than 300 seconds to start.
+#
+# `nms_start_retry` is the number of times to check if NMS is up before failing.
+# `nms_start_delay` is the number of seconds to wait between each retry.
+nms_start_retry: 10
+nms_start_delay: 30
+
+# Nginx worker config
+# `nginx_worker_processes` is the number of worker processes to run. "auto" spawns 1 per core.
+# `nginx_worker_connections` is the number of allowed connections per nginx worker.
+nginx_worker_processes: auto
+nginx_worker_connections: 1024
+
+# Docker network
+docker_internal_network: fd00:420:69::/48
+swarm_manager_port: 2377
+
+# TG Docker Registry
+docker_registry_url: https://secure.cxl-terragraph.com:443/v2
+docker_registry_username: tgdeploy
+docker_registry_password: 4l5C46xVJ0h74OmRWPK5
+
+keycloak_enabled: false
+# Keycloak admin portal credentials
+keycloak_root_user: root
+keycloak_root_password: 7I*xUF9PGpI5W*ig
+
+# Database Config
+db_host: db
+db_root_user: root
+db_root_password: 12345
+
+passwords:
+  grafana_db_reader:
+  grafana_db_writer:
+  nms_db:
+
+# GlusterFS paths (relative to terragraph_docker_path)
+gluster_bricks: bricks
+gluster_mount: gfs
+
+# Gluster version
+glusterfs_ppa_version: 4.1
+glusterfs_gpg_key_version: 4.1
+
+# Kafka Config
+# `kafka_log_retention_bytes` is the maximum size of the log for each topic partition before deleting it.
+kafka_log_retention_bytes: 1073741824  # 1GB
+
+# Relative to data dir in respective docker_volume
+E2E_CONFIG_FILE: cfg/controller_config.json
+E2E_TOPOLOGY_FILE: e2e_topology.conf
+
+# Extra args for api_service
+API_ARGS:
+
+# NMS Aggregator service
+NMS_CONFIG_FILE: cfg/aggregator_config.json
+
+# Gluster Paths
+stats_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/stats"
+db_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/database"
+logs_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/logs"
+prometheus_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/prometheus"
+nms_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/nms"
+e2e_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/e2e"
+chihaya_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/chihaya"
+alarms_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/alarms"
+keycloak_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/keycloak"
+docker_proxy_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/docker_proxy"
+ssh_keys_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/secrets"
+efk_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/efk"
+audit_logs_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/audit_logs"
+msa_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/msa"
+monitoring_gfs_path: "{{ terragraph_docker_path }}/{{ gluster_mount }}/monitoring"
+
+# Non Gluster Paths
+prometheus_data_path: "{{ terragraph_docker_path }}/prometheus_data"
+db_data_path: "{{ terragraph_docker_path }}/database_data"
+kafka_path: "{{ terragraph_docker_path }}/kafka"
+zookeeper_path: "{{ terragraph_docker_path }}/zookeeper"
+es_path: "{{ terragraph_docker_path }}/es"
+udp_pinger_path: "{{ terragraph_docker_path }}/udp_pinger"

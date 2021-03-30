@@ -1,0 +1,72 @@
+---
+- hosts: all
+  gather_facts: yes
+  tasks:
+    - name: install gluster
+      include_role:
+        name: ansible-role-glusterfs
+
+    - name: set ipv6 transport
+      lineinfile:
+        path: /etc/glusterfs/glusterd.vol
+        regexp: 'transport.address-family inet6'
+        line: "    option transport.address-family inet6"
+      register: setip6_result
+      when: is_ipv6
+
+    - name: restart glusterd service
+      when: setip6_result.changed
+      shell: "systemctl restart glusterd"
+
+    - name: Configure replicated gluster volume (IPv4)
+      gluster_volume:
+        state: present
+        name: glusterfs
+        bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        replicas: "{{ groups.all | length }}"
+        cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv4') | map(attribute='address') | list }}"
+        host: "{{ ansible_default_ipv4.address }}"
+        force: yes
+      run_once: true
+      when: not is_ipv6
+
+    - name: Configure replicated gluster volume (IPv6)
+      gluster_volume:
+        state: present
+        name: glusterfs
+        bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        replicas: "{{ groups.all | length }}"
+        cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv6') | map(attribute='address') | list }}"
+        host: "{{ ansible_default_ipv6.address }}"
+        force: yes
+      run_once: true
+      when: is_ipv6
+
+    - name: Start replicated gluster volume
+      gluster_volume:
+        state: started
+        name: glusterfs
+
+    - name: Ensure replicated gluster volume is mounted (IPv6)
+      mount:
+        name: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        src: "{{ ansible_default_ipv6.address }}:/glusterfs"
+        fstype: glusterfs
+        opts: "defaults,_netdev"
+        state: mounted
+      when: is_ipv6
+
+    - name: Ensure replicated gluster volume is mounted (IPv4)
+      mount:
+        name: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        src: "{{ ansible_default_ipv4.address }}:/glusterfs"
+        fstype: glusterfs
+        opts: "defaults,_netdev"
+        state: mounted
+      when: not is_ipv6
+
+    - name: Set ownership for replicated gluster mount
+      file:
+        path: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        owner: "{{ kubernetes_user }}"
+        recurse: yes

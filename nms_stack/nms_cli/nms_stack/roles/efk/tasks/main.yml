@@ -1,0 +1,83 @@
+---
+- name: create elasticsearch data path
+  file:
+    path: "{{ es_path }}/data"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: "1000"  # Must be group 1000 for elasticsearch
+    mode: 0775
+
+- name: create efk paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  run_once: true
+  loop:
+    - "{{ efk_gfs_path }}/config"
+    - "{{ efk_gfs_path }}/config/fluentd"
+    - "{{ efk_gfs_path }}/config/kibana"
+
+- name: copy configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: no
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+  run_once: true
+  loop:
+    - { src: fluent.conf, dest: "{{ efk_gfs_path }}/config/fluentd" }
+    - { src: kibana.yml, dest: "{{ efk_gfs_path }}/config/kibana" }
+
+- name: create audit log path
+  file:
+    path: "{{ audit_logs_gfs_path }}"
+    state: directory
+    owner: "100" # Must be owned by uid 100 (fluentd) in fluentd container
+    group: docker
+    mode: 0755
+
+- name: copy compose
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: yes
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+  run_once: true
+  loop:
+    - { src: docker-compose.yml, dest: "{{ efk_gfs_path }}" }
+
+- name: Increase mmap limits for elasticsearch
+  sysctl:
+    name: vm.max_map_count
+    value: "262144"
+    state: present
+    sysctl_set: yes
+
+- name: run compose
+  run_once: true
+  command: "docker stack deploy -c {{ efk_gfs_path }}/docker-compose.yml --with-registry-auth --prune efk"
+
+- name: copy init_file
+  copy:
+    src: init_elasticsearch.sh
+    dest: "{{ efk_gfs_path }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+    force: yes
+
+- name: Configure elasticsearch indices
+  run_once: true
+  command: "docker run --rm --mount type=bind,source={{ efk_gfs_path }}/init_elasticsearch.sh,target=/init_elasticsearch.sh --entrypoint=\"\" --network=terragraph_net byrnedo/alpine-curl ./init_elasticsearch.sh"
+  register: result
+  retries: "{{ nms_start_retry }}"
+  delay: "{{ nms_start_delay }}"
+  failed_when: result.rc > 1
+  until: result.rc == 0

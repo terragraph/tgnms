@@ -1,0 +1,163 @@
+- name: remove kubernetes cluster
+  import_playbook: plays/kubeadm-ansible/reset-site.yaml
+  tags:
+    - kubernetes
+
+
+
+- hosts: all
+  gather_facts: yes
+  tasks:
+  - name: "set proxy if defined"
+    set_fact:
+      http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+      https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+  # Stash this in a fact so we know where the home directory is even during
+  # tasks running as root. There is no built in way to do this apparently:
+  # https://github.com/ansible/ansible/issues/15901
+  - name: find home directory
+    become: yes
+    become_user: "{{ kubernetes_user }}"
+    become_method: sudo
+    shell: "echo $HOME"
+    register: kubernetes_user_home_dir
+    tags:
+      - kubernetes
+
+  - name: clear Kubernetes directories
+    become: true
+    become_user: root
+    become_method: sudo
+    file:
+      state: absent
+      path: "{{ item }}"
+    loop:
+      - "/etc/kubernetes"
+      - "/var/lib/kubelet"
+      - "{{ kubernetes_user_home_dir.stdout }}/.kube"
+    tags:
+      - kubernetes
+
+  - name: clean CNI configuration
+    become: true
+    become_user: root
+    become_method: sudo
+    file:
+      state: absent
+      path: "/etc/cni/net.d"
+    tags:
+      - kubernetes
+
+  - name: remove gluster volume information
+    become: true
+    become_user: root
+    become_method: sudo
+    when: purge
+    ignore_errors: true
+    shell: rm -rf /var/lib/glusterd && systemctl unmask glusterd && systemctl restart glusterd && systemctl unmask glusterd
+    tags:
+      - gluster
+
+  - name: Remove hold on Kubernetes packages
+    when: purge
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: install
+    loop:
+      - kubelet
+      - kubeadm
+      - kubectl
+      - docker
+      - docker-ce
+
+  - name: Clear stateful directories
+    when: purge
+    become: true
+    become_user: root
+    become_method: sudo
+    ignore_errors: true
+    file:
+      state: absent
+      path: "{{ item }}"
+    loop:
+      - /var/lib/docker
+      - /var/lib/calico
+      - /var/lib/etcd
+      - /var/lib/kubelet
+      - /var/lib/cni
+      - /etc/cni
+      - /etc/docker
+      - /etc/systemd/system/docker.service.d
+      - /etc/systemd/system/kubelet.service.d
+      - /run/gluster
+      - /etc/glusterfs
+      - /etc/apt/sources.list.d/terragraph-packages.list
+      - /opt/cni
+      - /opt/containerd
+      - /var/lib/dockershim
+      - /var/lib/crio
+      - /var/lib/containerd
+      - /run/calico
+      - /run/crio
+      - /run/containerd
+      - /run/runc
+      - /run/docker
+      - /etc/systemd/system/crio.service.d
+      - /etc/systemd/system/multi-user.target.wants/crio.service
+      - /usr/libexec/crio
+      - /usr/libexec/kubernetes
+      - /usr/libexec/podman
+
+  - name: Remove docker, kubeadm, and kubectl packages
+    when: purge
+    apt:
+      name: "{{ packages }}"
+      state: absent
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+        - docker
+        - docker-ce
+        - glusterfs-*
+        - cri-o
+        - cri-o-runc
+    environment:
+      https_proxy: "{{ https_proxy }}"
+      http_proxy: "{{ http_proxy }}"
+
+  - name: Purge packages
+    ignore_errors: true
+    when: purge
+    shell: "apt purge -y {{ item }}"
+    with_items:
+        - kubelet
+        - kubeadm
+        - kubectl
+        - docker
+        - docker-ce
+        - glusterfs-server
+        - glusterfs-client
+        - cri-o
+        - cri-o-runc
+
+
+  - name: "Unmount {{ terragraph_hostpath }}"
+    become: true
+    become_user: root
+    become_method: sudo
+    ignore_errors: true
+    when: purge
+    shell: "umount {{ terragraph_hostpath }}/gfs"
+
+  - name: Purge all data
+    when: purge
+    become: true
+    become_user: root
+    become_method: sudo
+    ignore_errors: true
+    file:
+      state: absent
+      path: "{{ terragraph_hostpath }}"

@@ -1,0 +1,8 @@
+---
+- hosts: master
+  gather_facts: false
+  tasks:
+    - name: Uninstall Helm charts
+      shell: "helm uninstall {{ item['name'] }}"
+      loop: "{{ helm_charts['charts'] }}"
+      ignore_errors: true

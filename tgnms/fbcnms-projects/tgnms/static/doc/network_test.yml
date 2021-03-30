@@ -1,0 +1,611 @@
+basePath: /
+info:
+  description: 'Swagger API definition'
+  title: Swagger API
+  version: 1.0.0
+paths:
+  /config:
+    get:
+      description: Return the current service configuration settings.
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '500':
+          description: Failed to load or parse the configuration file.
+      tags:
+      - Configuration
+    head:
+      description: Return the current service configuration settings.
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '500':
+          description: Failed to load or parse the configuration file.
+      tags:
+      - Configuration
+    patch:
+      description: Partially update the service's configuration settings.
+      parameters:
+      - description: Partial service configuration object with updated values.
+        in: body
+        name: config
+        required: true
+        schema:
+          properties:
+            config:
+              type: object
+          required:
+          - config
+          type: object
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Missing or invalid 'config' parameter.
+        '500':
+          description: Failed to update service configuration.
+      tags:
+      - Configuration
+    put:
+      description: Completely overwrite the service's configuration settings.
+      parameters:
+      - description: New service configuration object
+        in: body
+        name: config
+        required: true
+        schema:
+          properties:
+            config:
+              type: object
+          required:
+          - config
+          type: object
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Missing or invalid 'config' parameter.
+        '500':
+          description: Failed to overwrite service configuration.
+      tags:
+      - Configuration
+  /docs.yml:
+    get:
+      description: Fetch the raw Swagger YAML documentation.
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '503':
+          description: Documentation dependencies are missing.
+      tags:
+      - Health
+    head:
+      description: Fetch the raw Swagger YAML documentation.
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '503':
+          description: Documentation dependencies are missing.
+      tags:
+      - Health
+  /execution:
+    get:
+      description: Return all of the network test executions and their params.
+      parameters:
+      - description: A comma-separated list of network test types.
+        in: query
+        items:
+          enum:
+          - parallel_link
+          - parallel_node
+          - sequential_link
+          - sequential_node
+          - parallel
+          - sequential
+          - multihop
+          type: string
+        name: test_type
+        type: array
+      - description: The name of the network.
+        in: query
+        name: network_name
+        type: string
+      - description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
+        in: query
+        items:
+          enum:
+          - 6
+          - 17
+          type: integer
+        name: protocol
+        type: array
+      - description: If the test is only run on part of the network
+        in: query
+        name: partial
+        type: boolean
+      - description: A comma-separated list of execution statuses.
+        in: query
+        items:
+          type: string
+        name: status
+        type: array
+      - description: The start UTC offset-naive datetime in ISO 8601 format.
+        in: query
+        name: start_dt
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid filter parameters.
+      tags:
+      - Network Test
+    head:
+      description: Return all of the network test executions and their params.
+      parameters:
+      - description: A comma-separated list of network test types.
+        in: query
+        items:
+          enum:
+          - parallel_link
+          - parallel_node
+          - sequential_link
+          - sequential_node
+          - parallel
+          - sequential
+          - multihop
+          type: string
+        name: test_type
+        type: array
+      - description: The name of the network.
+        in: query
+        name: network_name
+        type: string
+      - description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
+        in: query
+        items:
+          enum:
+          - 6
+          - 17
+          type: integer
+        name: protocol
+        type: array
+      - description: If the test is only run on part of the network
+        in: query
+        name: partial
+        type: boolean
+      - description: A comma-separated list of execution statuses.
+        in: query
+        items:
+          type: string
+        name: status
+        type: array
+      - description: The start UTC offset-naive datetime in ISO 8601 format.
+        in: query
+        name: start_dt
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid filter parameters.
+      tags:
+      - Network Test
+    post:
+      description: Start a new network test execution.
+      parameters:
+      - description: The network test params of the execution.
+        in: body
+        name: execution
+        schema:
+          properties:
+            iperf_options:
+              type: object
+            network_name:
+              type: string
+            test_type:
+              enum:
+              - parallel_link
+              - parallel_node
+              - sequential_link
+              - sequential_node
+              - parallel
+              - sequential
+              - multihop
+              type: string
+            allowlist:
+              items:
+                type: string
+              type: array
+          required:
+          - test_type
+          - network_name
+          type: object
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid or missing parameters.
+        '404':
+          description: allowlist yielded no matching test assets.
+        '409':
+          description: A network test is already running on the network.
+        '500':
+          description: Failed to prepare network test assets.
+      tags:
+      - Network Test
+  /execution/{execution_id}:
+    delete:
+      description: Stop a running network test execution.
+      parameters:
+      - description: The database ID of the network test execution.
+        in: path
+        name: execution_id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Unknown network test execution ID.
+        '500':
+          description: Failed to stop network test execution.
+      tags:
+      - Network Test
+    get:
+      description: Return the network test execution, params, and results for a particular
+        network test execution ID.
+      parameters:
+      - description: The database ID of the network test execution.
+        in: path
+        name: execution_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Unknown network test execution ID.
+      tags:
+      - Network Test
+    head:
+      description: Return the network test execution, params, and results for a particular
+        network test execution ID.
+      parameters:
+      - description: The database ID of the network test execution.
+        in: path
+        name: execution_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Unknown network test execution ID.
+      tags:
+      - Network Test
+  /log/{level}:
+    put:
+      description: Dynamically set the service's log level.
+      parameters:
+      - description: The new log level.
+        enum:
+        - DEBUG
+        - INFO
+        - WARNING
+        - ERROR
+        - FATAL
+        in: path
+        name: level
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid log level.
+      tags:
+      - Configuration
+  /metrics:
+    get:
+      description: Scrape the Prometheus metrics cache.
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '500':
+          description: Prometheus client is not running.
+      tags:
+      - Prometheus
+    head:
+      description: Scrape the Prometheus metrics cache.
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '500':
+          description: Prometheus client is not running.
+      tags:
+      - Prometheus
+  /schedule:
+    get:
+      description: Return all of the network test schedules and their current params.
+      parameters:
+      - description: A comma-separated list of network test types.
+        in: query
+        items:
+          enum:
+          - parallel_link
+          - parallel_node
+          - sequential_link
+          - sequential_node
+          - parallel
+          - sequential
+          - multihop
+          type: string
+        name: test_type
+        type: array
+      - description: The name of the network.
+        in: query
+        name: network_name
+        type: string
+      - description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
+        in: query
+        items:
+          enum:
+          - 6
+          - 17
+          type: integer
+        name: protocol
+        type: array
+      - description: If the test is only run on part of the network
+        in: query
+        name: partial
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid filter parameters.
+      tags:
+      - Network Test
+    head:
+      description: Return all of the network test schedules and their current params.
+      parameters:
+      - description: A comma-separated list of network test types.
+        in: query
+        items:
+          enum:
+          - parallel_link
+          - parallel_node
+          - sequential_link
+          - sequential_node
+          - parallel
+          - sequential
+          - multihop
+          type: string
+        name: test_type
+        type: array
+      - description: The name of the network.
+        in: query
+        name: network_name
+        type: string
+      - description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
+        in: query
+        items:
+          enum:
+          - 6
+          - 17
+          type: integer
+        name: protocol
+        type: array
+      - description: If the test is only run on part of the network
+        in: query
+        name: partial
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid filter parameters.
+      tags:
+      - Network Test
+    post:
+      description: Add a new network test schedule.
+      parameters:
+      - description: The body and test params of the schedule.
+        in: body
+        name: schedule
+        schema:
+          properties:
+            cron_expr:
+              type: string
+            enabled:
+              type: boolean
+            iperf_options:
+              type: object
+            network_name:
+              type: string
+            test_type:
+              enum:
+              - parallel_link
+              - parallel_node
+              - sequential_link
+              - sequential_node
+              - parallel
+              - sequential
+              - multihop
+              type: string
+            allowlist:
+              items:
+                type: string
+              type: array
+          required:
+          - enabled
+          - cron_expr
+          - test_type
+          - network_name
+          type: object
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid or missing parameters.
+      tags:
+      - Network Test
+  /schedule/{schedule_id}:
+    delete:
+      description: Delete an existing network test schedule.
+      parameters:
+      - description: The database ID of the network test schedule.
+        in: path
+        name: schedule_id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Unknown network test schedule ID.
+        '500':
+          description: Failed to delete network test schedule.
+      tags:
+      - Network Test
+    get:
+      description: Return the network test schedule, params, and execution history
+        for a particular network test schedule ID.
+      parameters:
+      - description: The database ID of a network test schedule.
+        in: path
+        name: schedule_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Unknown network test schedule ID.
+      tags:
+      - Network Test
+    head:
+      description: Return the network test schedule, params, and execution history
+        for a particular network test schedule ID.
+      parameters:
+      - description: The database ID of a network test schedule.
+        in: path
+        name: schedule_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation.
+        '404':
+          description: Unknown network test schedule ID.
+      tags:
+      - Network Test
+    put:
+      description: Modify an existing network test schedule.
+      parameters:
+      - description: The database ID of the network test schedule.
+        in: path
+        name: schedule_id
+        required: true
+        type: integer
+      - description: The updated network test schedule and params
+        in: body
+        name: schedule
+        schema:
+          properties:
+            cron_expr:
+              type: string
+            enabled:
+              type: boolean
+            iperf_options:
+              type: object
+            network_name:
+              type: string
+            allowlist:
+              items:
+                type: string
+              type: array
+          required:
+          - enabled
+          - cron_expr
+          - network_name
+          type: object
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid or missing parameters.
+        '404':
+          description: Unknown network test schedule ID.
+        '500':
+          description: Failed to modify network test schedule.
+      tags:
+      - Network Test
+  /status:
+    get:
+      description: Check if the webserver is responsive.
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation. Return "Alive" text.
+      tags:
+      - Health
+    head:
+      description: Check if the webserver is responsive.
+      produces:
+      - text/plain
+      responses:
+        '200':
+          description: Successful operation. Return "Alive" text.
+      tags:
+      - Health
+schemes:
+- http
+- https
+swagger: '2.0'

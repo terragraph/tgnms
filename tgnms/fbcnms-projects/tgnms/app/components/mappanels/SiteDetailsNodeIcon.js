@@ -1,0 +1,100 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow strict-local
+ */
+
+import Grid from '@material-ui/core/Grid';
+import React from 'react';
+import RouterIcon from '@material-ui/icons/Router';
+import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
+import StarIcon from '@material-ui/icons/Star';
+import blue from '@material-ui/core/colors/blue';
+import yellow from '@material-ui/core/colors/yellow';
+import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
+import {makeStyles} from '@material-ui/styles';
+import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useNodeConfig} from '../../hooks/useNodeConfig';
+
+import type {NodeType} from '../../../shared/types/Topology';
+
+const useStyles = makeStyles(theme => ({
+  nodeInfoIcon: {
+    marginTop: -theme.spacing(2.25),
+  },
+  primaryPopStar: {
+    fontSize: theme.spacing(1.5),
+    marginBottom: -theme.spacing(1.75),
+    marginLeft: -theme.spacing(0.25),
+    color: yellow[800],
+  },
+  tunnelIcon: {
+    fontSize: theme.spacing(1.5),
+    marginBottom: -theme.spacing(1.75),
+    marginLeft: -theme.spacing(0.25),
+    color: blue[500],
+  },
+}));
+
+type Props = {
+  selectedNode?: NodeType,
+};
+
+export default function SiteDetailsNodeIcon(props: Props) {
+  const classes = useStyles();
+  const {selectedNode} = props;
+  const {networkConfig} = useNetworkContext();
+  const {status_dump} = networkConfig;
+  const nodeName = selectedNode?.name ?? '';
+
+  const {configParams} = useNodeConfig({
+    nodeName: selectedNode?.name,
+    editMode: FORM_CONFIG_MODES.NODE,
+    refreshConfig: 0,
+  });
+
+  const nodeConfig = React.useMemo(
+    () =>
+      configParams.nodeOverridesConfig
+        ? configParams.nodeOverridesConfig[nodeName]
+        : {},
+    [nodeName, configParams],
+  );
+
+  if (
+    selectedNode &&
+    status_dump &&
+    status_dump.statusReports[selectedNode.mac_addr] &&
+    status_dump.statusReports[selectedNode.mac_addr].bgpStatus
+  ) {
+    return (
+      <Grid
+        data-testid="bgpStatusIcon"
+        className={classes.nodeInfoIcon}
+        title="BGP Speaker">
+        <Grid item>
+          <StarIcon className={classes.primaryPopStar} />
+        </Grid>
+        <Grid item>
+          <RouterIcon />
+        </Grid>
+      </Grid>
+    );
+  } else if (nodeConfig && Object.keys(nodeConfig).includes('tunnelConfig')) {
+    return (
+      <Grid
+        data-testid="tunnelConfigIcon"
+        className={classes.nodeInfoIcon}
+        title="Active L2 Tunnel">
+        <Grid item>
+          <SettingsEthernetIcon className={classes.tunnelIcon} />
+        </Grid>
+        <Grid item>
+          <RouterIcon />
+        </Grid>
+      </Grid>
+    );
+  }
+  return <RouterIcon data-testid="routerIcon" />;
+}

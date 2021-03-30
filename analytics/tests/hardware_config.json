@@ -1,0 +1,16 @@
+{
+  "tx_power_idx_to_tx_power": {
+    "default_channel": {
+      "default_mcs": {
+        "20": 39
+      }
+    }
+  },
+  "beam_idx_to_beam_angle": {
+    "0": {
+      "0": {
+        "0": 0.0
+      }
+    }
+  }
+}

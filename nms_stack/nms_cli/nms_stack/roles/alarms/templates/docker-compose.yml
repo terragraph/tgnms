@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  alarms:
+    image: {{ alarms_image }}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    networks:
+      - terragraph_net
+    volumes:
+      - "{{ alarms_path }}:/usr/src/java"
+    command: ["-s", "PLAINTEXT://kafka:9092"]
+
+networks:
+  terragraph_net:
+    external: true

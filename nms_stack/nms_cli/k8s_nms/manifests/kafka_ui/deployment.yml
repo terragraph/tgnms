@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: kafka-ui
+spec:
+  ports:
+  - port: 9000
+    name: http
+  selector:
+    app: kafka-ui
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: kafka-ui
+spec:
+  selector:
+    matchLabels:
+      app: kafka-ui
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+      - image: obsidiandynamics/kafdrop
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: kakfa-ui
+        env:
+          - name: JVM_OPTS
+            value: "-Xms32M -Xmx64M" 
+          - name: SERVER_SERVLET_CONTEXTPATH
+            value: "/kafdrop"
+          - name: KAFKA_BROKERCONNECT
+            value: "kafka:9092"
+      imagePullSecrets:
+        - name: tg-repo-creds

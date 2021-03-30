@@ -1,0 +1,41 @@
+---
+- hosts: master
+  gather_facts: false
+  tasks:
+    - name: "set proxy if defined"
+      set_fact:
+        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+        no_proxy: "{{ no_proxy if no_proxy is defined else '' }}"
+
+- hosts: master
+  gather_facts: false
+  tasks:
+    - name: Add Helm repositories
+      shell: "helm repo add {{ item['name'] }} {{ item['url'] }}"
+      environment:
+        https_proxy: "{{ https_proxy }}"
+      loop: "{{ helm_charts['repos'] }}"
+
+    - name: Update Helm repositories
+      shell: "helm repo update"
+      environment:
+        https_proxy: "{{ https_proxy }}"
+
+    - name: Create {{ terragraph_docker_path }}/helm
+      file:
+        path: "{{ terragraph_docker_path }}/helm"
+        state: directory
+
+    - name: Copy values
+      template:
+        src: "{{ helm_values_path }}/{{ item['values'] }}"
+        dest: "{{ terragraph_docker_path }}/helm/{{ item['values'] | basename }}"
+      loop: "{{ helm_charts['charts'] }}"
+
+    - name: Install Helm charts
+      ignore_errors: true
+      shell: "helm upgrade --install {{ item['name'] }} {{ item['chart'] }} --values {{ terragraph_docker_path }}/helm/{{ item['values'] | basename }} {% if item['version'] is defined %} --version {{ item['version'] }} {% endif %}"
+      environment:
+        https_proxy: "{{ https_proxy }}"
+        no_proxy: "{{ no_proxy }}"
+      loop: "{{ helm_charts['charts'] }}"

@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: "{{ namespace }}"
+  name: db-pv
+spec:
+  capacity:
+    storage: {{ db_size }}
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local
+  local:
+    path: /opt/terragraph/local/mysql
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - {{ 'manager-0' if single_node else 'worker-0' }}
+---
+# Claim the volume we just created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: "{{ namespace }}"
+  name: db-pv-claim
+spec:
+  storageClassName: local
+  volumeName: db-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ db_size }}
+---
+# Expose the db deployment at mysql:3306 with no ClusterIP (so it is only
+# accessible through DNS)
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: db
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: db
+  clusterIP: None
+---
+# Create MySQL deployment with a single pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: db
+spec:
+  selector:
+    matchLabels:
+      app: db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: db
+    spec:
+      containers:
+      - image: {{ db_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: db
+        # Grab environment variables from the `db-env` and `time-zone` ConfigMap
+        envFrom:
+        - configMapRef:
+            name: db-env
+        - configMapRef:
+            name: time-zone
+        ports:
+        - containerPort: 3306
+          name: db
+        volumeMounts:
+        # Mount the PersistentVoluemClaim
+        - name: db-persistent-storage
+          mountPath: /var/lib/mysql
+        # Mount for the MySQL init scripts
+        - name: db-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      # Bind to the PersistentVolumeClaim from above
+      - name: db-persistent-storage
+        persistentVolumeClaim:
+          claimName: db-pv-claim
+      # Bind to the ConfigMap for the init scripts
+      - name: db-initdb
+        configMap:
+          name: db-init-config

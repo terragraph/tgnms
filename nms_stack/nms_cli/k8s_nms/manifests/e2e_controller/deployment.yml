@@ -1,0 +1,240 @@
+{% for controller in controllers_list %}
+
+# escaped_controller_name should be identical to the Ansible filter used in
+# nms_stack/nms_cli/nms_stack/roles/proxy/tasks/main.yml:
+# ctrlr.name | trim | replace(' ', '_') | lower
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+
+# controller_name_dns is only for naming K8s resources for a controller
+{% set controller_name_dns = escaped_controller_name.replace("_", "-") %}
+
+# set _ = ... is a hacky way to update a dict in-place since Jinja2 doesn't
+# support expressions by themselves
+{% set _ = controller.update({'bt_announce_ip': controller.get('bt_announce_ip', '')}) %}
+{% set _ = controller.update({'bt_seeder_port': controller.get('bt_seeder_port', '')}) %}
+{% set _ = controller.update({'bt_tracker_override': controller.get('bt_tracker_override', '')}) %}
+{% set data_folder = "/data" %}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: e2e-config-{{ controller_name_dns }}
+data:
+  stats_agent.start: |
+    {{ lookup('template', 'stats_agent.start') | indent(width=4, indentfirst=False )}}
+  e2e_controller.start: |
+    {{ lookup('template', 'e2e_controller.start') | indent(width=4, indentfirst=False )}}
+  nms_aggregator.start: |
+    {{ lookup('template', 'nms_aggregator.start') | indent(width=4, indentfirst=False )}}
+  e2e_topology.conf: |
+    {{ lookup('template', 'e2e_topology.conf', { "controller_name": controller.name }) | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: "{{ namespace }}"
+  name: e2e-{{ controller_name_dns }}
+  labels:
+    type: local
+spec:
+  storageClassName: local
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "{{ terragraph_hostpath }}/e2e/{{ controller_name_dns }}"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: "{{ namespace }}"
+  name: e2e-{{ controller_name_dns }}
+spec:
+  storageClassName: local
+  volumeName: e2e-{{ controller_name_dns }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: e2e-defaults-env-{{ controller_name_dns }}
+data:
+  # api_service
+  API_ARGS: {{ API_ARGS }}
+
+  # e2e_controller
+  E2E_CONFIG_FILE: {{ E2E_CONFIG_FILE }}
+  E2E_TOPOLOGY_FILE: {{ E2E_TOPOLOGY_FILE }}
+  TG_BT_SEEDER_PORT: "{{ controller.bt_seeder_port }}"
+  TG_BT_ANNOUNCE_IP: "{{ controller.bt_announce_ip }}"
+  TG_BT_TRACKER_OVERRIDE: "{{ controller.bt_tracker_override }}"
+  TG_LOCAL_BT_TRACKER_OVERRIDE: http://chihaya:6969/announce
+
+  # nms_aggregator
+  NMS_CONFIG_FILE: {{ NMS_CONFIG_FILE }}
+  TG_CONTROLLER_HOST: e2e-{{ controller_name_dns }}
+  TG_NMS_REMOTE_ENDPOINT: http://query_service:8086/
+
+  # stats_agent
+  TG_AGGREGATOR_HOST: localhost
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: e2e-{{ controller_name_dns }}
+spec:
+  selector:
+    app: e2e-controller
+    network: "{{ controller_name_dns }}"
+  ports:
+    - name: apiservice
+      port: 8080
+    # stream-controller.conf maps these ports, so surface those here so Nginx
+    # can see them.
+    #   ctrlr.agg_port to {controller_name}:8002
+    #   ctrlr.ctrlr_port to {controller_name}:7007
+    #   ctrlr.app_port to {controller_name}:17077
+    #   ctrlr.bt_seeder_port to {controller_name}:{ctrlr.bt_seeder_port}
+    - port: 8002
+      name: aggregator
+    - port: 7007
+      name: controller
+    - name: app
+      port: 17077
+    - name: btseeder
+      port: {{ controller.bt_seeder_port }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: e2e-controller-{{ controller_name_dns }}
+spec:
+  selector:
+    matchLabels:
+      app: e2e-controller
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: e2e-controller
+        network: "{{ controller_name_dns }}"
+    spec:
+      volumes:
+        - name: e2e-config
+          configMap:
+            name: e2e-config-{{ controller_name_dns }}
+            defaultMode: 0755
+        - name: e2e-data
+          persistentVolumeClaim:
+            claimName: e2e-{{ controller_name_dns }}
+        {% if keycloak_enabled %}
+        - name: keycloak-publickey
+          persistentVolumeClaim:
+            claimName: keycloak-publickey-pv-claim
+        - name: keycloak-helper-scripts
+          configMap:
+            name: keycloak-helper-scripts
+            defaultMode: 0777
+        {% endif %}
+      {% if keycloak_enabled %}
+      initContainers:
+        - name: copy-keycloak-publickey
+          image: {{ keycloak_image }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command: [
+              "/bin/sh",
+              "-c",
+              "sleep 2 && /scripts/copy-public-key.sh tgnms /keycloak-publickey/publickey"
+          ]
+          volumeMounts:
+            - name: keycloak-helper-scripts
+              mountPath: /scripts
+            - name: keycloak-publickey
+              mountPath: /keycloak-publickey
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+      {% endif %}
+      containers:
+        # e2e-controller
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command: ["/bin/sh", "-c", "/data/scripts/e2e_controller.start"]
+          name: e2e-controller
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          volumeMounts:
+            - name: e2e-data
+              mountPath: /data
+            - name: e2e-config
+              mountPath: /data/scripts/e2e_controller.start
+              subPath: e2e_controller.start
+
+        # NMS aggregator
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command: ["/data/scripts/nms_aggregator.start"]
+          name: nms-aggregator
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          volumeMounts:
+            - name: e2e-config
+              mountPath: /data/scripts/nms_aggregator.start
+              subPath: nms_aggregator.start
+            - name: e2e-config
+              mountPath: /data/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+
+        # stats_agent
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command: ["/data/scripts/stats_agent.start"]
+          name: stats-agent
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          volumeMounts:
+            - name: e2e-config
+              mountPath: /data/scripts/stats_agent.start
+              subPath: stats_agent.start
+            - name: e2e-config
+              mountPath: /data/cfg/e2e_topology.conf
+              subPath: e2e_topology.conf
+            - name: e2e-data
+              mountPath: /data
+
+        # API service
+        - image: {{ e2e_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          command: ["/bin/sh", "-c", "/usr/sbin/api_service -aggregator_host $${TG_AGGREGATOR_HOST} {% if keycloak_enabled %} -public_key_file /keycloak/publickey {% endif %} -controller_host $${TG_CONTROLLER_HOST} $${API_ARGS}"]
+          name: api-service
+          envFrom:
+          - configMapRef:
+              name: e2e-defaults-env-{{ controller_name_dns }}
+          ports:
+            - containerPort: 8080
+          {% if keycloak_enabled %}
+          volumeMounts:
+          - name: keycloak-publickey
+            mountPath: /keycloak
+          {% endif %}
+      imagePullSecrets:
+        - name: tg-repo-creds
+{% endfor %}

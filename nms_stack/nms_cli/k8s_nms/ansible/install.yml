@@ -1,0 +1,127 @@
+---
+- name: Bootstrap Python
+  import_playbook: bootstrap.yml
+
+- hosts: all
+  tasks:
+    - name: "set proxy if defined"
+      set_fact:
+        http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+        https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+        no_proxy: "{{ no_proxy if no_proxy is defined else '' }}"
+      tags:
+      - always
+
+- hosts: all
+  tasks:
+    - name: Create {{ terragraph_docker_path }}
+      file:
+        path: "{{ terragraph_docker_path }}"
+        state: directory
+      tags:
+      - always
+
+- name: install and mount glusterfs
+  import_playbook: plays/tg-glusterfs/site.yaml
+  vars:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy }}"
+  when: use_glusterfs and not single_node
+  tags:
+    - gluster
+
+- name: install kubernetes cluster
+  import_playbook: plays/kubeadm-ansible/site.yaml
+  vars:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy }}"
+  tags:
+    - kubernetes
+
+- hosts: all
+  tasks:
+    - name: Create {{ terragraph_docker_path }}/config-backups
+      file:
+        path: "{{ terragraph_docker_path }}/config-backups"
+        state: directory
+      tags:
+        - always
+    - name: Backup installation config file to {{ terragraph_docker_path }}/config-backups
+      template:
+        src: "{{ config_file_path }}"
+        dest: "{{ terragraph_docker_path }}/config-backups/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
+      tags:
+        - always
+    - name: Create local volume directories in {{ terragraph_docker_path }}
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ kubernetes_user }}"
+        mode: 0770
+      loop:
+        - "{{ terragraph_docker_path }}/local"
+        - "{{ terragraph_docker_path }}/local/mysql"
+        - "{{ terragraph_docker_path }}/local/kafka"
+        - "{{ terragraph_docker_path }}/local/zookeeper"
+        - "{{ terragraph_docker_path }}/local/elasticsearch"
+      tags:
+        - gluster
+    # Create the gfs and bricks dirs even if gluster is not installed
+    - name: "Warn about disabling gluster with multiple nodes"
+      fail:
+        msg: "Gluster disabled, but multiple nodes detected. You must manually provision replicated storage after installation."
+      ignore_errors: true
+      when: not (use_glusterfs or single_node)
+      tags:
+        - gluster
+    - name: Make terragraph Gluster directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ kubernetes_user }}"
+        mode: 0755
+      loop:
+        - "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        - "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+      tags:
+        - gluster
+
+- hosts: all
+  gather_facts: no
+  tasks:
+    # ElasticSearch crashes in its 'bootstrap checks' phase with the default
+    # map limit
+    - name: Increase mmap limits for elasticsearch
+      sysctl:
+        name: vm.max_map_count
+        value: "262144"
+        state: present
+        sysctl_set: yes
+      tags:
+        - kubernetes
+
+- hosts: master
+  gather_facts: yes
+  tasks:
+    - name: Copy Kubernetes config to non-root user
+      when: kubernetes_user != "root"
+      shell: |
+        mkdir -p /home/{{ kubernetes_user }}/.kube
+        cp /etc/kubernetes/admin.conf /home/{{ kubernetes_user }}/.kube/config
+      tags:
+        - kubernetes
+
+    - name: enable scheduling on master node
+      shell: "kubectl taint nodes --all node-role.kubernetes.io/master-"
+      when: single_node
+      # This may fail if the taint is already removed
+      ignore_errors: yes
+      tags:
+        - kubernetes
+
+    # - name: add MetalLB
+    #   when: metallb_address_space is defined
+    #   include_role:
+    #     name: metallb

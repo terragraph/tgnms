@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-log4j-properties
+data:
+  log4j.properties: |
+    {{ lookup('template', 'log4j.properties') | indent(width=4, indentfirst=False )}}
+---
+# Kafka's persistence
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kafka
+  labels:
+    type: local
+spec:
+  storageClassName: local
+  capacity:
+    storage: {{ kafka_size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  local:
+    path: /opt/terragraph/local/kafka
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - {{ 'manager-0' if single_node else 'worker-0' }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka
+spec:
+  storageClassName: local
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ kafka_size }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  create-kafka-topics
+data:
+  create-topics.sh: |
+    {{ lookup('template', 'create-topics.sh') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-kafka-topics
+spec:
+  ttlSecondsAfterFinished: 0
+  template:
+    spec:
+      volumes:
+        - name: create-kafka-topics
+          configMap:
+            name: create-kafka-topics
+      containers:
+      - name: create-kafka-topics
+        image: bitnami/kafka
+        command: ["/bin/sh", "/tmp/create-topics.sh"]
+        volumeMounts:
+          - name: create-kafka-topics
+            mountPath: /tmp/create-topics.sh
+            subPath: create-topics.sh
+      restartPolicy: Never
+  backoffLimit: 10

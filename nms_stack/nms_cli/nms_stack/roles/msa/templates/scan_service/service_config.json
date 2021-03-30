@@ -1,0 +1,7 @@
+{
+  "topics": ["events", "scan_results"],
+  "scan_results_dir": "/data/scans",
+  "n_days": 30,
+  "use_real_links": false,
+  "min_connectivity_snr": 0
+}

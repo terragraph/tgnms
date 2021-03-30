@@ -1,0 +1,17 @@
+# Copyright (c) 2014-present, Facebook, Inc.
+[Unit]
+Description=Nginx Proxy Monitor Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+WorkingDirectory={{ terragraph_docker_path }}/proxy
+ExecStart=/usr/local/bin/docker-compose up
+ExecStop=/usr/local/bin/docker-compose down
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=60 # restart every 60 seconds while failing
+StartLimitBurst=0 # allow an infinite number of restarts while failing
+
+[Install]
+WantedBy=multi-user.target

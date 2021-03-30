@@ -1,0 +1,63 @@
+---
+
+- name: Make env directory
+  file:
+    path: "{{ e2e_path }}/env"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: create keycloak setup client
+  command: >
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --mount type=bind,source={{ e2e_path }}/env,target=/output
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    -u root
+    jboss/keycloak:7.0.0 /scripts/create-service-account-client.sh setup /output/keycloak.env tg_all_write
+  when: keycloak_enabled
+
+- name: get API service client secret
+  shell: |
+    KEYCLOAK_CLIENT_SECRET=$(grep KEYCLOAK_CLIENT_SECRET {{ e2e_path }}/env/keycloak.env | xargs)
+    KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET#*=}
+    echo $KEYCLOAK_CLIENT_SECRET
+  register: apiservice_keycloak_secret
+  when: keycloak_enabled
+
+- name: get API service token
+  shell: |
+    docker run --entrypoint /bin/sh --network=terragraph_net jboss/keycloak:7.0.0 -c \
+      'curl --insecure -L -d "grant_type=client_credentials" -d "client_id=setup" -d "client_secret={{ apiservice_keycloak_secret.stdout }}"  --noproxy "*" -X POST keycloak_keycloak:8080/auth/realms/tgnms/protocol/openid-connect/token'
+  register: apiservice_keycloak_token_output
+  when: keycloak_enabled
+
+- set_fact:
+    apiservice_keycloak: "{{ apiservice_keycloak_token_output.stdout | from_json }}"
+  when: keycloak_enabled
+
+- set_fact:
+    apiservice_keycloak:
+      access_token: ''
+  when: not keycloak_enabled
+
+- name: include controllers
+  include_tasks: controller.yml
+  vars:
+    controller_name: "{{ ctrlr.name }}"
+    escaped_controller_name: "{{ ctrlr.name | trim | replace(' ', '_') | lower }}"
+    controller_port: "{{ ctrlr.ctrlr_port }}"
+    aggregator_port: "{{ ctrlr.agg_port }}"
+    e2e_app_port: "{{ ctrlr.app_port }}"
+    bt_seeder_port: "{{ ctrlr.bt_seeder_port}}"
+    controller_image: "{{ ctrlr.image if ctrlr.image is defined else e2e_image }}"
+    bt_announce_ip: "{{ ansible_default_ipv6.address }}"
+    keycloak_token: "{{ apiservice_keycloak['access_token'] }}"
+    bt_tracker_override: "http://[{{ ansible_default_ipv6.address }}]:6969/announce"
+  with_items: "{{ controllers_list }}"
+  loop_control:
+      loop_var: ctrlr
+      index_var: index

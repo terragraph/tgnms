@@ -1,0 +1,182 @@
+{
+    "name": "test network",
+    "nodes": [
+        {
+            "name": "TEST.18-37.S1",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:00:00:28:e8:bc",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-41.p1",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:00:00:1d:dd:52",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-41.s1",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:00:00:2f:e6:ea",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-60.P2",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:00:00:2f:eb:47",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.Roof-16-North.P1",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:00:00:28:e7:c4",
+            "pop_node": true
+        },
+        {
+            "name": "TEST.18-36.p2",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:00:00:ca:1d:e5",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-60.S1",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:00:00:2f:e7:ae",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-60.S2",
+            "node_type": 2,
+            "is_primary": false,
+            "mac_addr": "00:00:00:2f:e8:60",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-61.P4",
+            "node_type": 1,
+            "is_primary": true,
+            "mac_addr": "00:00:00:28:e8:30",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-61.P5",
+            "node_type": 1,
+            "is_primary": true,
+            "mac_addr": "00:00:00:2f:e9:43",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-61.P1",
+            "node_type": 1,
+            "is_primary": true,
+            "mac_addr": "00:00:00:28:e6:a4",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.18-61.P3",
+            "node_type": 1,
+            "is_primary": true,
+            "mac_addr": "00:00:00:28:e6:bc",
+            "pop_node": false
+        },
+        {
+            "name": "TEST.Roof-16-North.P2",
+            "node_type": 2,
+            "is_primary": true,
+            "mac_addr": "00:00:00:ca:1a:13",
+            "pop_node": true
+        }
+    ],
+    "links": [
+        {
+            "name": "link-TEST.18-41.p1-TEST.18-41.s1",
+            "a_node_name": "TEST.18-41.p1",
+            "z_node_name": "TEST.18-41.s1",
+            "link_type": 2,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-60.P2-TEST.18-60.S1",
+            "a_node_name": "TEST.18-60.P2",
+            "z_node_name": "TEST.18-60.S1",
+            "link_type": 2,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-60.S1-TEST.18-60.S2",
+            "a_node_name": "TEST.18-60.S1",
+            "z_node_name": "TEST.18-60.S2",
+            "link_type": 2,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-60.P2-TEST.18-60.S2",
+            "a_node_name": "TEST.18-60.P2",
+            "z_node_name": "TEST.18-60.S2",
+            "link_type": 2,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-36.p2-TEST.18-60.S1",
+            "a_node_name": "TEST.18-36.p2",
+            "z_node_name": "TEST.18-60.S1",
+            "link_type": 1,
+            "is_alive": false
+        },
+        {
+            "name": "link-TEST.18-36.p2-TEST.18-37.S1",
+            "a_node_name": "TEST.18-36.p2",
+            "z_node_name": "TEST.18-37.S1",
+            "link_type": 1,
+            "is_alive": false
+        },
+        {
+            "name": "link-TEST.18-41.s1-TEST.18-61.P4",
+            "a_node_name": "TEST.18-41.s1",
+            "z_node_name": "TEST.18-61.P4",
+            "link_type": 1,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-60.P2-TEST.18-61.P3",
+            "a_node_name": "TEST.18-60.P2",
+            "z_node_name": "TEST.18-61.P3",
+            "link_type": 1,
+            "is_alive": false
+        },
+        {
+            "name": "link-TEST.18-60.P2-TEST.18-61.P1",
+            "a_node_name": "TEST.18-60.P2",
+            "z_node_name": "TEST.18-61.P1",
+            "link_type": 1,
+            "is_alive": false
+        },
+        {
+            "name": "link-TEST.18-41.s1-TEST.18-61.P5",
+            "a_node_name": "TEST.18-41.s1",
+            "z_node_name": "TEST.18-61.P5",
+            "link_type": 1,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-60.P2-TEST.Roof-16-North.P1",
+            "a_node_name": "TEST.18-60.P2",
+            "z_node_name": "TEST.Roof-16-North.P1",
+            "link_type": 1,
+            "is_alive": true
+        },
+        {
+            "name": "link-TEST.18-41.s1-TEST.Roof-16-North.P2",
+            "a_node_name": "TEST.18-41.s1",
+            "z_node_name": "TEST.Roof-16-North.P2",
+            "link_type": 1,
+            "is_alive": true
+        }
+    ]
+}

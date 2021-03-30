@@ -1,0 +1,29 @@
+---
+- name: create path
+  file:
+    path: "{{ chihaya_path }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: copy configs
+  template:
+    src: chihaya.yml
+    dest: "{{ chihaya_path }}"
+    force: no
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "0644"
+
+- name: copy compose
+  template:
+    src: docker-compose.yml
+    dest: "{{ chihaya_path }}"
+    force: yes
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: "0644"
+
+- name: run compose
+  shell: "docker stack deploy -c {{ chihaya_path }}/docker-compose.yml --with-registry-auth --prune chihaya"

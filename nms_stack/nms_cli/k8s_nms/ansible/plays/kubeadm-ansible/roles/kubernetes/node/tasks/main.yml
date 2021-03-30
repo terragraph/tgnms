@@ -1,0 +1,6 @@
+---
+- name: Join to cluster if needed
+  include_tasks: join.yml
+
+- name: Enable and check kubelet service
+  shell: "systemctl daemon-reload && systemctl enable kubelet && systemctl restart kubelet"

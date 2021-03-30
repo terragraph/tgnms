@@ -1,0 +1,11 @@
+persistence:
+  storageClass: manual
+elasticsearch:
+  hosts:
+    - tg-es-elasticsearch-master
+  port: 9200
+volumePermissions:
+  enabled: true
+configuration:
+  server:
+    basePath: "/kibana"

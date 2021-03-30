@@ -1,0 +1,36 @@
+---
+- name:  add multiverse and universe (ubuntu)
+  apt_repository:
+    repo: "{{ item }}"
+    update_cache: false  # We will do ourselfs afterwards
+  when: ansible_distribution == 'Ubuntu'
+  with_items:
+    - 'deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} multiverse'
+    - 'deb-src http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} multiverse'
+    - 'deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates multiverse'
+    - 'deb-src http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates multiverse'
+    - 'deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe'
+    - 'deb-src http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe'
+    - 'deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates universe'
+    - 'deb-src http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates universe'
+
+- name: prevent upgrading docker-ce
+  dpkg_selections:
+    name: docker-ce
+    selection: hold
+
+- name: update ubuntu
+  apt:
+    update_cache: yes
+    upgrade: safe
+  register: result
+  # Defaults to 3 retries
+  until: result is success
+
+- name: Install pip and rsync
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ pip_package }}"
+    - rsync

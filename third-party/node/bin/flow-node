@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+set -u
+
+THIS_DIR=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
+ROOT_DIR=${THIS_DIR%/*/*/*/*} # ~/fbsource
+
+# Use $FLOW_NODE_ARGS to supply additional arguments to the Node.js process,
+# e.g.: FLOW_NODE_ARGS=--debug-brk js1 <command> [options]
+FLOW_NODE_ARGS=${FLOW_NODE_ARGS:-}
+
+# shellcheck disable=SC2086
+exec "$THIS_DIR/node" $FLOW_NODE_ARGS \
+  --require "$THIS_DIR/../lib-flow-node/node_modules/flow-remove-types/register" \
+  "$@"

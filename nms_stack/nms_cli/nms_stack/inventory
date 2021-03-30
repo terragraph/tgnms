@@ -1,0 +1,9 @@
+[managers]
+# Docker swarm managers group
+
+[workers]
+# Docker swarm workers group
+
+[database]
+
+[prometheus]

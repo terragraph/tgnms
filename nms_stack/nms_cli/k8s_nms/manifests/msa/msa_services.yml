@@ -1,0 +1,184 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: create-service-account-client
+data:
+  create-service-account-client.sh: |
+    {{ lookup('template', 'create-service-account-client.sh') | indent(width=4, indentfirst=False )}}
+---
+{% for service_name, service in msa_services.items() %}
+{% set _ = service.update({'name': service_name}) %}
+{% set service_dns_name = service.name.replace('_', '-') %}
+{% if service.enabled %}
+{% if service.uses_database %}
+{% set db_service_password = service.db_password if 'db_password' in service else lookup("password") %}
+# ConfigMaps for database access
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: {{ service_dns_name }}-db-env
+data:
+    DB_NAME: {{ service.name }}
+    DB_USER: {{ service.name }}_user
+    DB_PASSWORD: "{{ db_service_password }}"
+    SCAN_SERVICE_URL: http://scan-service:8080
+    NETWORK_TEST_URL: http://network-test:8080
+    ALERTMANAGER_URL: http://alertmanager:9093
+    QUERY_SERVICE_URL: http://queryservice:8086
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: {{ service_dns_name }}-init-sql
+data:
+  service.sql: |
+    {{ lookup('template', '../database/service.sql') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: {{ service_dns_name }}-alembic
+data:
+  alembic.ini: |
+    {{ lookup('template', 'alembic.ini', {"service": service, "db_service_password": db_service_password}) | indent(width=4, indentfirst=False )}}
+---
+{% endif %}
+# Service Config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: {{ service_dns_name }}-service-config
+data:
+  service_config.json: |
+    {{ lookup('template', service.name + '/service_config.json') | indent(width=4, indentfirst=False )}}
+---
+# Deployment
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: {{ service_dns_name }}
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: {{ service_dns_name }}
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: {{ service_dns_name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ service_dns_name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: {{ service_dns_name }}
+    spec:
+      volumes:
+        - name: service-config
+          configMap:
+            name: {{ service_dns_name }}-service-config
+        - name: tglib-config
+          configMap:
+            name: tglib-service-config
+        - name: tglib-hardware-config
+          configMap:
+            name: tglib-hardware-config
+        {% if service.uses_database %}
+        - name: alembic-config
+          configMap:
+            name: {{ service_dns_name }}-alembic
+        - name: init-sql-config
+          configMap:
+            name: {{ service_dns_name }}-init-sql
+        {% endif %}
+        - name: create-service-account-client
+          configMap:
+            name: create-service-account-client
+        - name: env
+          emptyDir: {}
+        {% if service.uses_database or keycloak_enabled %}
+      initContainers:
+        {% endif %}
+        {% if keycloak_enabled %}
+        - name: keycloak-init
+          image: jboss/keycloak:7.0.0
+          command: ["/bin/sh", "-c", "bash /scripts/create-service-account-client.sh {{ service.name }} /usr/local/{{ service.name }}/env/auth.env {{ service.roles }}"]
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+          {# command: ["/bin/sh", "-c", "ls && pwd && whoami && echo hi > /usr/local/{{ service.name }}/env/auth.env"] #}
+          volumeMounts:
+            - name: create-service-account-client
+              mountPath: /scripts/create-service-account-client.sh
+              subPath: create-service-account-client.sh
+            - name: env
+              mountPath: /usr/local/{{ service.name }}/env
+        {% endif %}
+        {% if service.uses_database %}
+        - name: db-init
+          image: mysql:5.7
+          command: ["/bin/sh", "-c", "mysql -v -hdb -u{{ db_root_user }} -p{{ passwords.db_root }} -e \"set @db_name='{{ service.name }}'; set @db_user='{{ service.name }}_user'; set @db_password='{{ db_service_password }}'; source /usr/local/service.sql;\""]
+          volumeMounts:
+            - name: init-sql-config
+              mountPath: /usr/local/service.sql
+              subPath: service.sql
+        {% endif %}
+      containers:
+        - image: {{ service.image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          name: {{ service_dns_name }}
+          {% if keycloak_enabled %}
+          command: ["/bin/sh", "-c", "source ./env/auth.env && {{ service.command }}"]
+          {% else %}
+          command: ["/bin/sh", "-c", "{{ service.command }}"]
+
+          {% endif %}
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+          {% if service.uses_database %}
+          envFrom:
+            - configMapRef:
+                name: {{ service_dns_name }}-db-env
+          {% endif %}
+          volumeMounts:
+            - name: env
+              mountPath: /usr/local/{{ service.name }}/env
+            - name: service-config
+              mountPath: /usr/local/{{ service.name }}/service_config.json
+              subPath: service_config.json
+            - name: tglib-config
+              mountPath: /usr/local/{{ service.name }}/config.json
+              subPath: config.json
+            - name: tglib-hardware-config
+              mountPath: /usr/local/{{ service.name }}/hardware_config.json
+              subPath: hardware_config.json
+            {% if service.uses_database %}
+            - name: alembic-config
+              mountPath: /usr/local/{{ service.name }}/alembic.ini
+              subPath: alembic.ini
+            {% endif %}
+      imagePullSecrets:
+        - name: tg-repo-creds
+---
+{% endif %}
+{% endfor %}

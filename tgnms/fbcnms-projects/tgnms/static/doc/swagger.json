@@ -1,0 +1,475 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Terragraph NMS",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "paths": {
+    "/docs/msa/{serviceName}": {
+      "get": {
+        "description": "Loads the OpenAPI docs.yml file from the specified Terragraph MSA service, and converts it to JSON for consumption by the Swagger UI. This request is made on the internal overlay network.",
+        "tags": [
+          "Docs"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "serviceName",
+            "description": "MSA Service hostname - The hostname of a service which hosts an OpenAPI docs endpoint at http://{servicename}:8080/docs.yml on the internal docker network.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/openapi_spec"
+          }
+        }
+      }
+    },
+    "/docs/yaml/{fileName}": {
+      "get": {
+        "description": "Serves an OpenAPI yaml file from the /static/docs directory, first transforming it to JSON for consumption by the Swagger UI.",
+        "tags": [
+          "Docs"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "fileName",
+            "description": "The filename of the file stored at /static/docs. For example, /docs/yaml/network_test.yaml",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/openapi_spec"
+          }
+        }
+      }
+    },
+    "/map/annotations/{network}": {
+      "get": {
+        "description": "Gets a listing of annotation groups",
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationGroupIdArray"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Creates or replaces an annotation group and its features. This request is idempotent.",
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/map/annotations/{network}/{group}": {
+      "get": {
+        "description": "Gets an annotation group, along with all GeoJSON features.",
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/group"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/map/annotations/group/{groupId}": {
+      "put": {
+        "description": "Update mutable properties of annotation group. Currently only name is mutable.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Mutable properties of annotation group",
+                "properties": {
+                  "name": "name",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/groupId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/annotations/{network}/{group}": {
+      "delete": {
+        "description": "Delete an annotation group that belongs to a network",
+        "tags": [
+          "Annotations"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/group"
+          }
+        ]
+      }
+    },
+    "/annotations/{network}/{group}/duplicate": {
+      "post": {
+        "description": "Create a copy of an annotation group with a new name",
+        "tags": [
+          "Annotations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Name of the new annotation group",
+                "properties": {
+                  "name": "newName",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/group"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/annotations/{network}/{group}/{annotationId}": {
+      "put": {
+        "description": "Update one annotation in an annotation group.",
+        "tags": [
+          "Annotations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationFeature"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/group"
+          },
+          {
+            "$ref": "#/components/parameters/annotationId"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationFeature"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete one annotation in an annotation group.",
+        "tags": [
+          "Annotations"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/network"
+          },
+          {
+            "$ref": "#/components/parameters/group"
+          },
+          {
+            "$ref": "#/components/parameters/annotationId"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "openapi_spec": {
+        "description": "JSON OpenAPI spec suitable for consumption by the Swagger UI",
+        "content": {
+          "application/json": {
+            "schema": {
+              "description": "JSON OpenAPI spec",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "AnnotationGroupIdArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AnnotationGroupId"
+        }
+      },
+      "AnnotationGroupId": {
+        "type": "object",
+        "description": "Identifiers for an annotation group",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "topologyName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AnnotationGroup": {
+        "type": "object",
+        "description": "A named group of annotations",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AnnotationGroupId"
+          },
+          {
+            "properties": {
+              "geojson": {
+                "type": "object"
+              }
+            }
+          }
+        ]
+      },
+      "AnnotationFeature": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GeoJSONFeature"
+          },
+          {
+            "description": "A GeoJSON Feature with the properties added by TGNMS. These properties are used to enable features such as color and naming.",
+            "properties": {
+              "properties": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Annotation Name",
+                    "example": "Point 1"
+                  },
+                  "showName": {
+                    "type": "boolean",
+                    "description": "Show the Feature's name on the map"
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "Hexidecimal color",
+                    "example": "#ffffff"
+                  },
+                  "opacity": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Opacity of the annotation on the map. 0 means the feature will not be visible.",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "GeoJSONFeature": {
+        "type": "object",
+        "description": "a GeoJSON Feature - https://geojson.org/",
+        "externalDocs": {
+          "url": "https://tools.ietf.org/html/rfc7946"
+        },
+        "allOf": [
+          {
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "geometry": {
+                "$ref": "#/components/schemas/Geometry"
+              }
+            }
+          }
+        ]
+      },
+      "Geometry": {
+        "type": "array",
+        "description": "GeoJSON geometry",
+        "externalDocs": {
+          "url": "http://geojson.org/geojson-spec.html#geometry-objects"
+        },
+        "minItems": 1,
+        "items": [
+          {
+            "$ref": "#/components/schemas/Coord"
+          }
+        ]
+      },
+      "Coord": {
+        "type": "array",
+        "description": "GeoJSON coordinate",
+        "minItems": 2,
+        "maxItems": 3,
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "parameters": {
+      "network": {
+        "name": "network",
+        "description": "Network Name",
+        "in": "path",
+        "required": true,
+        "type": "string"
+      },
+      "group": {
+        "name": "group",
+        "description": "Annotation Group Name",
+        "in": "path",
+        "required": true,
+        "type": "string"
+      },
+      "groupId": {
+        "name": "groupId",
+        "description": "Annotation Group Database ID",
+        "in": "path",
+        "required": true,
+        "type": "string"
+      },
+      "annotationId": {
+        "name": "annotationId",
+        "description": "Annotation Feature ID - This is the GeoJSON Feature ID in the FeatureColection of a group. Should be unique per-network.",
+        "in": "path",
+        "required": true,
+        "type": "string"
+      }
+    }
+  },
+  "tags": []
+}

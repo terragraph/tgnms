@@ -1,0 +1,22 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+export DH_VIRTUALENV_INSTALL_ROOT=/usr/share
+export SITE_PACKAGES=debian/tgnms-swarm/usr/share/tgnms-swarm/lib/python3.8/site-packages
+
+%:
+	dh $@ --with python-virtualenv
+
+override_dh_virtualenv:
+	dh_virtualenv --python /usr/bin/python3.8 $@
+
+	# These are some heavy extra modules on Ansible that we don't use, so don't
+	# bother to include them in the package
+	rm -rf ${SITE_PACKAGES}/ansible/modules/cloud/amazon
+	rm -rf ${SITE_PACKAGES}/ansible/modules/cloud/azure
+	rm -rf ${SITE_PACKAGES}/ansible/modules/cloud/google
+	rm -rf ${SITE_PACKAGES}/ansible/modules/cloud/vmware
+	rm -rf ${SITE_PACKAGES}/ansible/modules/storage/netapp
+	rm -rf ${SITE_PACKAGES}/ansible/modules/windows
+
+	# Remove all *.pyc and __pycache__ files
+	py3clean ${SITE_PACKAGES}

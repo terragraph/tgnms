@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: tglib-service-config
+data:
+  config.json: |
+    {{ lookup('template', 'config.json') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: tglib-hardware-config
+data:
+  hardware_config.json: |
+    {{ lookup('template', 'hardware_config.json') | indent(width=4, indentfirst=False )}}

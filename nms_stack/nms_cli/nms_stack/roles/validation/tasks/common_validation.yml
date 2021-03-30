@@ -1,0 +1,34 @@
+---
+- name: Ansible version check
+  assert:
+    that: "ansible_version.full is version('2.5', '>=')"
+    msg: "{{ ansible_version.full }} - You must have ansible version 2.5 or later"
+
+- name: Check hardware - Installed RAM
+  assert:
+    that: "ansible_memtotal_mb > 2048"
+    msg: "Total RAM: {{ ansible_memtotal_mb / 1024 }}GB. You must have more then 2GB of RAM"
+
+- name: Check Docker login
+  assert:
+    that:
+      - "{{ item }} is defined"
+      - "{{ item }} != None"
+      - "{{ item }} != ''"
+    msg: "{{ item }} must be defined"
+  loop:
+    - docker_registry_username
+    - docker_registry_password
+
+- name: Check passwords
+  assert:
+    that:
+      - "{{ item }} is defined"
+      - "{{ item }} != None"
+      - "{{ item }} != ''"
+    msg: "{{ item }} must be defined, you may need to re-run 'nms show-defaults' to generate the 'passwords:' map then add that to your existing config.yml. You may also need to message the Terragraph team to get a mapbox access token."
+  loop:
+    - passwords.grafana_db_writer
+    - passwords.grafana_db_reader
+    - passwords.nms_db
+    - mapbox_access_token

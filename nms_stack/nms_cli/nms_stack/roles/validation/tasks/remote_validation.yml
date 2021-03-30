@@ -1,0 +1,18 @@
+- name: Test linux distro
+  assert:
+    that: >
+      ( ansible_os_family == 'RedHat' and ansible_distribution_version is version('7', '>=') )  or
+      ( ansible_distribution == 'Ubuntu' and  ansible_distribution_version is version('16.04', '>=') )
+    msg: >
+      "Unsupported OS {{ ansible_os_family }}:{{ ansible_distribution }}:{{ ansible_distribution_version }}."
+      "Only Ubuntu 16.04+ and Redhat OS families 7+ supported"
+
+- name: Check IPV4
+  assert:
+    that: "ansible_default_ipv4.interface is defined"
+    msg: "You do not have IPV4 on the remote host"
+
+- name: Check IPV6
+  assert:
+    that: "ansible_default_ipv6.interface is defined"
+    msg: "You do not have IPV6 on the remote host"

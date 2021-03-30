@@ -1,0 +1,8 @@
+# This is meant to be used as the config that is necessary to install/apply
+# everything in the cluster in the lab VMs.
+no_proxy: 2620:10d:c0bf:1800:250:56ff::/96
+http_proxy: http://[2620:10d:c0bf:1800:20c:29ff:fe0f:8758]:2831
+https_proxy: http://[2620:10d:c0bf:1800:20c:29ff:fe0f:8758]:2831
+
+controllers_list:
+    - name: Fake Fremont F0 B

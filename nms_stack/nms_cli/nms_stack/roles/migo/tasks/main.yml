@@ -1,0 +1,41 @@
+---
+- name: set network ra and forwarding
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    reload: yes
+  with_items:
+    - name: "net.ipv6.conf.{{ ansible_default_ipv6.interface }}.accept_ra"
+      value: 2
+    - name: "net.ipv6.conf.all.accept_ra"
+      value: 2
+    - name: "net.ipv6.conf.all.forwarding"
+      value: 1
+    - name: "net.ipv6.conf.default.forwarding"
+      value: 1
+
+- name: create path
+  file:
+    path: "{{ terragraph_docker_path }}/network"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: copy config
+  template:
+    src: "docker-compose.yml"
+    dest: "{{ terragraph_docker_path }}/network/docker-compose.yml"
+    mode: "0644"
+    owner: "{{ docker_user }}"
+    group: docker
+    force: yes
+
+- name: run compose
+  docker_compose:
+    project_src: "{{ terragraph_docker_path }}/network/."
+    build: no
+    state: present
+    pull: no
+    stopped: no

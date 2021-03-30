@@ -1,0 +1,47 @@
+---
+- name: create msa paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  loop:
+    - "{{ msa_gfs_path }}/config"
+    - "{{ msa_gfs_path }}/env"
+
+- name: copy msa configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+    force: yes
+  loop:
+    - { src: "docker-compose.yml", dest: "{{ msa_gfs_path }}" }
+    - { src: "config.json", dest: "{{ msa_gfs_path }}/config" }
+    - { src: "hardware_config.json", dest: "{{ msa_gfs_path }}/config" }
+
+- name: establish services
+  include_tasks:
+    file: service.yml
+  with_items:
+    - { name: "analytics", has_database: false, roles: "tg_topology_read" }
+    - { name: "default_routes_service", has_database: true, roles: "tg_management_read,tg_topology_read" }
+    - { name: "network_health_service", has_database: true, roles: "tg_topology_read" }
+    - { name: "network_test", has_database: true, roles: "tg_management_read,tg_performance_read,tg_performance_write,tg_topology_read" }
+    - { name: "scan_service", has_database: true, roles: "tg_scan_write,tg_topology_read" }
+    - { name: "topology_service", has_database: true, roles: "tg_topology_read" }
+    - { name: "weather_service", has_database: false, roles: "tg_topology_read" }
+  loop_control:
+    loop_var: service
+
+- name: run compose
+  shell: "docker stack deploy -c {{ msa_gfs_path }}/docker-compose.yml --with-registry-auth --prune msa"
+
+- name: disable weather service (weather_service 'enabled' was false)
+  # The weather service should not be started if there is no API key provided,
+  # so if it is missing scale it down to 0
+  shell: "docker service update --replicas=0 msa_weather_service"
+  when: not weather_service["enabled"]

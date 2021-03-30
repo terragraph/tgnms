@@ -1,0 +1,50 @@
+---
+- name: "Create tmp directory"
+  file:
+    path: "/tmp/k8s_nms"
+    state: directory
+    mode: 0755
+  tags: metallb
+
+- name: copy metallb manifests
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    force: yes
+  loop:
+    - { src: "config.yaml", dest: "/tmp/k8s_nms/metallb_config.yaml" }
+    - { src: "metallb.yaml", dest: "/tmp/k8s_nms/metallb.yaml" }
+    - { src: "namespace.yaml", dest: "/tmp/k8s_nms/namespace.yaml" }
+
+# taken verbatim from https://metallb.universe.tf/installation/
+- name: install metallb
+  shell: |
+    # see what changes would be made, returns nonzero returncode if different
+    kubectl get configmap kube-proxy -n kube-system -o yaml | \
+    sed -e "s/strictARP: false/strictARP: true/" | \
+    kubectl diff -f - -n kube-system
+
+    # actually apply the changes, returns nonzero returncode on errors only
+    kubectl get configmap kube-proxy -n kube-system -o yaml | \
+    sed -e "s/strictARP: false/strictARP: true/" | \
+    kubectl apply -f - -n kube-system
+
+    # TODO: dig into this more, https://github.com/metallb/metallb/pull/582
+    # kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml
+    # kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml
+
+    # Use master instead of release so we can customize METALLB_ML_BIND_PORT
+    kubectl apply -f /tmp/k8s_nms/namespace.yaml
+    kubectl apply -f /tmp/k8s_nms/metallb.yaml
+    # On first install only
+    kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+
+    kubectl apply -f /tmp/k8s_nms/metallb_config.yaml
+
+# - name: "Clean-up"
+#   file:
+#     path: "/tmp/k8s_nms"
+#     state: absent
+#   ignore_errors: yes
+#   tags: metallb

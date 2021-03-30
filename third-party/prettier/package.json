@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "devDependencies": {
+    "prettier": "1.19.1",
+    "vscode-jsonrpc": "4.0.0"
+  }
+}

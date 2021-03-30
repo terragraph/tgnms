@@ -1,0 +1,11 @@
+Project: yarn
+Version: 0
+
+
+================================
+Missing Version Number
+Missing oncall
+For more information on README specifications, please see:
+	 https://www.internalfb.com/intern/wiki/third-party-libraries-at-facebook/ 
+Include README.facebook files for any subdirectories that contain third-party libraries.
+Please remove this section once all of the required fields are updated and accurate.

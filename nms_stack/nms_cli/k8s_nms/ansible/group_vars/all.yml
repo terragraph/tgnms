@@ -1,0 +1,282 @@
+# +--------------------------------------------------------+
+# |           NMS Configuration Options                    |
+# +--------------------------------------------------------+
+# Certbot args to get free SSL Certificate from letsencrypt.org
+# Both `ext_nms_hostname` and `certbot_user_email` must be changed from the
+# placeholder values in order to be valid.
+#
+# If passing pre-generated certificates to the installer, set
+# `certbot_user_email` to empty string ("") to disable certbot.
+#
+# `ext_nms_hostname` is the DNS name for the host. The name should resolve to
+# the publically reachable IP address for the server if certbot is enabled.
+# `certbot_user_email` is an email to receive certbot notifications.
+# ext_nms_hostname: host.example.com
+ext_nms_hostname: "{{ ipv6_address if is_ipv6 else ipv4_address }}"
+# certbot_user_email: admin@gmail.com
+# certbot_args: --staging
+
+# Keycloak admin portal credentials
+keycloak_enabled: true
+keycloak_root_user: root
+keycloak_db_user: keycloak
+
+# Kubernetes namespace for resources
+namespace: default
+
+# Database Config
+db_host: "db.{{ namespace }}.svc.cluster.local"
+db_root_user: root
+
+# NMS Web Login
+# Set desired username and password below to login to the NMS.
+nms_username: admin
+nms_password: admin
+
+# Terragraph Software Portal credentials
+# Set api_id and api_key to authenticate NMS with the official Terragraph
+# Software portal.
+nms_software_portal_api_id:
+nms_software_portal_api_key:
+
+# List of controllers
+#
+# All port numbers must be unique.
+# `controller_list.name` may only contain alphabets, numbers, spaces and
+#  underscores
+controllers_list: []
+# controllers_list:
+# - name: my_example_controller
+#   ctrlr_port: '7007'
+#   agg_port: '8002'
+#   app_port: '17077'
+#   bt_seeder_port: '6881'
+
+
+# Access token for Mapbox (the UI will prompt you for it if it is left blank
+# during installation)
+mapbox_access_token: ''
+
+
+# +--------------------------------------------------------+
+# |        Bootstrapping the Kubernetes Cluster            |
+# +--------------------------------------------------------+
+# Set to the main user that should operate the cluster
+# `ansible_user` is the user for ssh'ing to the hosts. If this user does not
+# have passwordless ssh and passwordless sudo access, make sure to pass the `-p`
+# flag to the installer.
+# `docker_user` is the user that has access to docker and its various services.
+kubernetes_user: root
+ansible_user: root
+docker_user: root
+
+
+# Set to `true` if nms will be running on a single host.
+single_node: "{{ groups['all']|length == 1 }}"
+
+# If the machine running the cluster is behind a proxy, set these options to
+# your proxy's IP address and add your local subnet to no_proxy
+# http_proxy: 
+# https_proxy: 
+# no_proxy:
+
+# If you are on Centos7, you may need to change this to python2
+ansible_python_interpreter: python3
+
+# If you are on Centos7, you may need to change this to python2-pip
+pip_package: python3-pip
+
+# Ansible uses these args to connect via SSH, edit as necessary
+ansible_ssh_extra_args: -o StrictHostKeyChecking=no
+
+# Set this to manually override the IP address used for Kubernetes'
+# 'apiserver-advertise-address' parameter for kubeadm
+# master_ip: <ip address>
+
+# This cannot overlap with any existing IP addresses on your machine,
+# so you must change it here if that is the case
+service_cidr: "{{ 'fd00:cdef::/120' if is_ipv6 else '192.168.121.0/24' }}"
+pod_network_cidr: "{{ 'fd00:cdee::/64' if is_ipv6 else '192.168.120.0/24' }}"
+
+# This is the address of the DNS resolver for Nginx, it depends on the value of
+# 'service_cidr'
+resolver: "{{ \"'[fd00:cdef::a]'\" if is_ipv6 else '192.168.121.10' }}"
+
+# This enables MetalLB which adds a L2 load balancer to the cluster.
+# If this is disabled, the Nginx server will use the host network of the
+# manager node to expose the cluster.
+# See https://metallb.universe.tf/concepts/#address-allocation for details on
+# values for <ip range>.
+# metallb_address_space: <ip range>
+use_metallb: false
+
+# This toggles the Kubernetes dashboard
+enable_dashboard: false
+
+# Set the Kubernetes version
+kube_version: v1.19.0
+
+# Size to reserve for the database and Kafka
+db_size: 10Gi
+kafka_size: 10Gi
+elasticsearch_size: 5Gi
+
+zookeeper_size: 5Gi
+
+# `kafka_log_retention_bytes` is the maximum size of the log for each topic partition
+kafka_log_retention_bytes: 1073741824
+
+# These will be generated and set automatically on the first run of the installer
+# if they are not filled in here
+passwords:
+  db_root: 
+  keycloak_db:
+  keycloak_root: 
+  grafana_db_reader:
+  grafana_db_writer:
+  nms_db:
+
+
+# base64 of a .docker/config.json with creds for secure.cxl-terragraph.com:443
+dockerconfig:
+
+
+# See https://kubernetes.io/docs/concepts/configuration/overview/#container-images
+# Set to IfNotPresent to lessen chance of hitting Docker Hub's rate limiting
+image_pull_policy: IfNotPresent
+
+# Terragraph specific images, change these to configure exactly what version of
+# Terragraph you are running
+alarms_image: secure.cxl-terragraph.com:443/tg-alarms:latest
+e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
+efk_fluentd_image: secure.cxl-terragraph.com:443/fluentd:latest
+kafka_image: secure.cxl-terragraph.com:443/kafka-bitnami:latest
+monitoring_gluster_exporter_image: secure.cxl-terragraph.com:443/gluster_exporter:latest
+msa_analytics_image: secure.cxl-terragraph.com:443/analytics:latest
+msa_jupyter_image: secure.cxl-terragraph.com:443/jupyter:latest
+nms_image: secure.cxl-terragraph.com:443/nmsv2:latest
+nginx_image: secure.cxl-terragraph.com:443/nms_nginx:latest
+query_service_image: secure.cxl-terragraph.com:443/cpp_backends:latest
+udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends:latest
+prometheus_cache_image: secure.cxl-terragraph.com:443/prometheus_cache:latest
+docs_image: secure.cxl-terragraph.com:443/nms_docs:latest
+
+# Third party images
+chihaya_image: quay.io/jzelinskie/chihaya:v2.0.0-rc.2
+db_image: mysql:5.7
+elasticsearch_image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+elasticsearch_exporter_image: justwatch/elasticsearch_exporter:1.0.2
+kibana_image: docker.elastic.co/kibana/kibana:7.4.0
+grafana_image: grafana/grafana:latest
+keycloak_image: jboss/keycloak:7.0.0
+prometheus_configurer_image: facebookincubator/prometheus-configurer:1.0.1
+alertmanager_configurer_image: facebookincubator/alertmanager-configurer:1.0.1
+alertmanager_image: prom/alertmanager
+prometheus_image: prom/prometheus
+
+# +--------------------------------------------------------+
+# |                 Core NMS  Options                      |
+# +--------------------------------------------------------+
+# These are used by the installer directly, and you probably don't need to
+# change any of these
+
+# Each of the msa services are templated out from this list
+msa_services:
+  topology_service:
+    uses_database: true
+    db_password: 6789
+    image: secure.cxl-terragraph.com:443/topology_service:stable
+    command: "alembic upgrade head && topology_service"
+    enabled: true
+    roles: "tg_topology_read"
+  network_test:
+    uses_database: true
+    db_password: 6789
+    image: secure.cxl-terragraph.com:443/network_test:stable
+    command: "alembic upgrade head && network_test"
+    enabled: true
+    roles: "tg_management_read,tg_performance_read,tg_performance_write,tg_topology_read"
+  default_routes_service:
+    uses_database: true
+    db_password: 6789
+    image: secure.cxl-terragraph.com:443/default_routes_service:stable
+    command: "alembic upgrade head && default_routes_service"
+    enabled: true
+    roles: "tg_management_read,tg_topology_read"
+  scan_service:
+    uses_database: true
+    db_password: 6789
+    image: secure.cxl-terragraph.com:443/scan_service:latest
+    command: "alembic upgrade head && scan_service"
+    enabled: true
+    roles: "tg_scan_write,tg_topology_read"
+  network_health_service:
+    uses_database: true
+    db_password: 6789
+    image: secure.cxl-terragraph.com:443/network_health_service:stable
+    command: "alembic upgrade head && network_health_service"
+    enabled: true
+    roles: "tg_topology_read"
+  analytics:
+    uses_database: false
+    image: secure.cxl-terragraph.com:443/analytics:stable
+    command: "analytics"
+    enabled: true
+    roles: "tg_topology_read"
+  weather_service:
+    uses_database: false
+    image: secure.cxl-terragraph.com:443/weather_service:stable
+    command: "weather_service"
+    # A free-tier key for ClimaCell can be obtained at
+    # https://developer.climacell.co/
+    # Set enabled and provide an api_key to enable the weather service. Supported
+    # providers are (openweathermap, climacell)
+    enabled: true
+    provider: climacell
+    api_key: 1234
+    roles: "tg_topology_read"
+
+E2E_CONFIG_FILE: cfg/controller_config.json
+E2E_TOPOLOGY_FILE: e2e_topology.conf
+API_ARGS: null
+NMS_CONFIG_FILE: cfg/aggregator_config.json
+
+# Nginx uses these addresses to reach the services in the cluster
+upstream_nms: "nms.{{ namespace }}.svc.cluster.local"
+upstream_grafana: "grafana.{{ namespace }}.svc.cluster.local"
+upstream_jupyter: "jupyter.{{ namespace }}.svc.cluster.local"
+upstream_prometheus: "prometheus.{{ namespace }}.svc.cluster.local"
+upstream_keycloak: "keycloak.{{ namespace }}.svc.cluster.local"
+upstream_chihaya: "chihaya.{{ namespace }}.svc.cluster.local"
+upstream_exporter: "es_exporter.{{ namespace }}.svc.cluster.local"
+upstream_fluentd: "fluentd.{{ namespace }}.svc.cluster.local"
+upstream_docs: "docs.{{ namespace }}.svc.cluster.local"
+
+# These are in the default namespace since they are deployed via Helm
+upstream_kibana: "tg-kibana.default.svc.cluster.local"
+upstream_elasticsearch: "tg-es-elasticsearch-master.default.svc.cluster.local"
+
+
+# Configuration path
+# Parent directory for all files, volumes, gfs etc
+terragraph_hostpath: /opt/terragraph
+
+# TODO: Remove these and re-name the template variables once we copy over the
+# config files from nms_stack. Until then we need to keep the sames the same
+# so those templates work correctly.
+terragraph_docker_path: "{{ terragraph_hostpath }}"
+
+use_glusterfs: true
+gluster_bricks: bricks
+gluster_mount: gfs
+gfs_path: "{{ terragraph_hostpath }}/{{ gluster_mount }}"
+
+# Nginx worker config
+# `nginx_worker_processes` is the number of worker processes to run. "auto" spawns 1 per core.
+# `nginx_worker_connections` is the number of allowed connections per nginx worker.
+nginx_worker_processes: auto
+nginx_worker_connections: 1024
+
+# These are set automatically by the installer
+is_ipv6:
+all_ip_addresses:

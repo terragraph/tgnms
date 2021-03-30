@@ -1,0 +1,4 @@
+{
+    "topics": ["iperf_results"],
+    "processing_timeout_s": 600
+}

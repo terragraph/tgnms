@@ -1,0 +1,18 @@
+---
+
+- name: Add Kubernetes APT GPG key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes APT repository
+  apt_repository:
+    repo: deb http://packages.cloud.google.com/apt/ kubernetes-xenial main
+    state: present
+    filename: 'kubernetes'
+
+- name: Update APT
+  shell: "apt update"
+
+- name: Install Kubernetes packages
+  shell: "apt install -y {{ kubernetes_packages }}"

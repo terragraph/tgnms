@@ -1,0 +1,61 @@
+---
+- name: "Create tmp directory"
+  file:
+    path: "{{ tmp_dir }}"
+    state: directory
+    mode: 0755
+  tags: helm
+
+- name: "Check if Helm is installed"
+  shell: command -v helm >/dev/null 2>&1
+  register: helm_exists
+  ignore_errors: yes
+  tags: helm
+
+- name: "Install Helm"
+  block:
+    - name: "Get Helm installer"
+      get_url:
+        url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        dest: "{{ tmp_dir }}/get_helm.sh"
+        mode: 0755
+      environment:
+        https_proxy: "{{ https_proxy }}"
+
+    - name: "Run the installer"
+      shell: "{{ tmp_dir }}/get_helm.sh"
+      environment:
+        https_proxy: "{{ https_proxy }}"
+
+  when: helm_exists.rc > 0
+  tags: helm
+
+- name: "Copy yaml file"
+  copy:
+    src: "rbac-config.yml"
+    dest: "{{ tmp_dir }}/rbac-config.yml"
+    mode: 0644
+  tags: helm
+
+- name: "RBAC configuration"
+  shell: "kubectl apply -f {{ tmp_dir }}/rbac-config.yml"
+  tags: helm
+
+- name: "Add stable repo"
+  shell: "helm repo add stable https://charts.helm.sh/stable"
+  tags: helm
+  environment:
+    https_proxy: "{{ https_proxy }}"
+
+- name: "Update Helm repo"
+  shell: "helm repo update"
+  tags: helm
+  environment:
+    https_proxy: "{{ https_proxy }}"
+
+- name: "Clean-up"
+  file:
+    path: "{{ tmp_dir }}"
+    state: absent
+  ignore_errors: yes
+  tags: helm

@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak-helper-scripts
+data:
+  copy-public-key.sh: |
+    {{ lookup('template', 'copy-public-key.sh') | indent(width=4, indentfirst=False )}}
+  generate-keycloak-client.sh: |
+    {{ lookup('template', 'generate-keycloak-client.sh') | indent(width=4, indentfirst=False )}}
+  create-default-realm-user.sh: |
+    {{ lookup('template', 'create-default-realm-user.sh') | indent(width=4, indentfirst=False )}}

@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: queryservice
+spec:
+  ports:
+  - port: 80
+    targetPort: 8086
+  selector:
+    app: queryservice
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: queryservice
+spec:
+  selector:
+    matchLabels:
+      app: queryservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: queryservice
+    spec:
+      imagePullSecrets:
+        - name: tg-repo-creds
+      volumes:
+        - name: create-service-account-client
+          configMap:
+            name: create-service-account-client
+        - name: env
+          emptyDir: {}
+      initContainers:
+        - name: keycloak-init
+          image: jboss/keycloak:7.0.0
+        {% if keycloak_enabled %}
+          command: ["/bin/sh", "-c", "bash /scripts/create-service-account-client.sh query_service /usr/local/query_service/auth.env tg_topology_read,tg_management_read"]
+        {% else %}
+          command: ["/bin/sh", "-c", "echo '' > /usr/local/query_service/auth.env"]
+        {% endif %}
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+          volumeMounts:
+            - name: create-service-account-client
+              mountPath: /scripts/create-service-account-client.sh
+              subPath: create-service-account-client.sh
+            - name: env
+              mountPath: /usr/local/query_service
+      containers:
+      - image: {{ query_service_image }}
+        imagePullPolicy: "{{ image_pull_policy }}"
+        name: queryservice
+        ports:
+          - containerPort: 8086
+        command: ["/bin/sh", "-c", "source /usr/local/query_service/auth.env && ln -sf $${TZ_FILE} /etc/localtime && bin/query_service -http_port 8086 -threads $${HTTP_THREADS} -mysql_url tcp://$${MYSQL_HOST}:3306 -mysql_user $${MYSQL_USER} -mysql_pass $${MYSQL_PASS} {% if keycloak_enabled %} -keycloak_enabled true -keycloak_host $${KEYCLOAK_HOST} -keycloak_realm $${KEYCLOAK_REALM} -keycloak_client_id $${KEYCLOAK_CLIENT_ID} -keycloak_client_secret $${KEYCLOAK_CLIENT_SECRET} {% endif %} -logtostderr -enable_kafka_stats=$${KAFKA_STATS_ENABLED} -kafka_broker_endpoint_list=$${KAFKA_BROKER_LIST} -enable_kafka_hf_stats=$${KAFKA_HF_STATS_ENABLED} -prometheus_cache_uri=$${PROMETHEUS_CACHE_URI}"]
+        env:
+          - name: PROMETHEUS_CACHE_URI
+            value: "http://prometheus-cache:9091/metrics"
+          - name: HTTP_THREADS
+            value: "8"
+          - name: KAFKA_BROKER_LIST
+            value: PLAINTEXT://kafka:9092
+          - name: KAFKA_STATS_ENABLED
+            value: "true"
+          - name: KAFKA_HF_STATS_ENABLED
+            value: "true"
+        volumeMounts:
+          - name: env
+            mountPath: /usr/local/query_service
+        envFrom:
+          - configMapRef:
+              name: time-zone
+          - configMapRef:
+              name: cxl-database

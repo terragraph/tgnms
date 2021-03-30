@@ -1,0 +1,25 @@
+#!/bin/bash
+
+THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)
+
+# Find the Node binary
+# Source: https://stackoverflow.com/a/27776822
+#         https://github.com/creationix/nvm/blob/d5dacdf/nvm.sh#L1577-L1583
+ARCH=$(uname -m)
+PLATFORM=$(uname -s)
+case "$ARCH" in
+  x86_64)
+    case "$PLATFORM" in
+      Darwin)                 NODE_EXECUTABLE="node-darwin-x64"   ;;
+      Linux)                  NODE_EXECUTABLE="node-linux-x64"    ;;
+      CYGWIN*|MINGW64*|MSYS*) NODE_EXECUTABLE="node-win-x64.exe"  ;;
+    esac
+    ;;
+esac
+
+if [ -z "$NODE_EXECUTABLE" ]; then
+  echo "$PLATFORM-$ARCH is not supported" >&2
+  exit 1
+fi
+
+exec "$THIS_DIR/$NODE_EXECUTABLE" --stack-trace-limit=48 "$@"

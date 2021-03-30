@@ -1,0 +1,77 @@
+- hosts: all
+  gather_facts: no
+  # This is collects a subset of 'gather_facts', since we really only care about
+  # getting the default IP address of the host.
+  pre_tasks:
+  - setup:
+      gather_subset:
+        # Don't collect the standard set of stats, only the ones we explicitly
+        # list below
+        - '!all'
+        - '!min'
+
+        # Only get the IP addresses
+        - 'default_ipv4'
+        - 'default_ipv6'
+
+- hosts: master
+  gather_facts: no
+  tasks:
+    - set_fact:
+        is_ipv6: "{{ true if hostvars[groups['master'][0]]['ansible_default_ipv6'] != {} else false }}"
+    - set_fact:
+        ipv4_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address if not is_ipv6 else '' }}"
+        ipv6_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'].address if is_ipv6 else '' }}"
+        all_ipv6_addresses: "{{ hostvars.values() | map(attribute='ansible_default_ipv6') | map(attribute='address') | list }}"
+        all_ipv4_addresses: "{{ hostvars.values() | map(attribute='ansible_default_ipv4') | map(attribute='address') | list }}"
+    - set_fact:
+        ip_address: "{{ ipv6_address if is_ipv6 else ipv4_address }}"
+        all_ip_addresses: "{{ all_ipv6_addresses if is_ipv6 else all_ipv4_addresses }}"
+        should_create_passwords: "{{ passwords.db_root == None and passwords.keycloak_db == None and passwords.keycloak_root == None and passwords.grafana_db_reader == None and passwords.grafana_db_writer == None and passwords.nms_db == None }}"
+    - name: Create temporary file
+      tempfile:
+        state: file
+        suffix: temp
+      register: tempfile
+    - name: Generated templated variables
+      template:
+        src: "{{ temp_src }}"
+        dest: "{{ tempfile.path }}"
+    - name: Create directory if it does not exist
+      file:
+        path: "{{ terragraph_docker_path }}"
+        state: directory
+    - name: Check if creds.yml exists
+      stat:
+        path: "{{ terragraph_docker_path }}/creds.yml"
+      register: stat_result
+    - name: Check passwords
+      assert: 
+        that:
+          # TODO: There's probably some way to iterate over the dictionary and do this
+          # without expicitly listing everything
+          - should_create_passwords
+        fail_msg: "Detected that passwords were manually set but already exist on remote: {{ passwords }}, remove them from your config or delete the cached passwords on the remote at {{ terragraph_docker_path }}/creds.yml"
+      when: stat_result.stat.exists
+    - name: Generated templated variables
+      template:
+        force: no
+        src: "passwords.yml"
+        dest: "{{ terragraph_docker_path }}/creds.yml"
+      when: should_create_passwords
+    - name: Pull remote variables to installer host
+      fetch:
+        src: "{{ tempfile.path }}"
+        dest: "{{ temp_dest }}"
+        flat: yes
+    - name: Pull remote variables to installer host
+      fetch:
+        src: "{{ terragraph_docker_path }}/creds.yml"
+        dest: "{{ pw_temp_dest }}"
+        flat: yes
+      when: should_create_passwords
+    - name: Remove temporary file
+      file:
+        path: "{{ tempfile.path }}"
+        state: absent
+      when: tempfile.path is defined

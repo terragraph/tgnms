@@ -1,0 +1,17 @@
+repos:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+charts:
+  - chart: bitnami/elasticsearch
+    name: tg-es
+    values: values/elasticsearch.yml
+    version: 14.1.0
+  - chart: bitnami/kibana
+    name: tg-kibana
+    values: values/kibana.yml
+  - chart: bitnami/zookeeper
+    name: zookeeper
+    values: values/zookeeper.yml
+  - chart: bitnami/kafka
+    name: kafka
+    values: values/kafka.yml

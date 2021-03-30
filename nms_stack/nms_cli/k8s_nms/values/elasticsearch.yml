@@ -1,0 +1,17 @@
+master:
+  replicas: 1
+  persistence:
+    existingClaim: elasticsearch-master-pvc
+data:
+  replicas: 1
+  persistence:
+    existingClaim: elasticsearch-data-pvc
+# This has issues 'apt install'ing sysctl, so turn it off. We do this manually
+# in the installer in install.yml's 'Increase mmap limits for elasticsearch'
+# step
+sysctlImage:
+  enabled: false
+# This is necessary to set the permissions for the elasticsearch user in the
+# container on the mounted paths in the claims above
+volumePermissions:
+  enabled: true

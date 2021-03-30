@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-sql-config
+data:
+  service.sql: |
+    {{ lookup('template', '../database/service.sql') | indent(width=4, indentfirst=False )}}

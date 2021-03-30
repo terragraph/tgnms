@@ -1,0 +1,11 @@
+---
+- name: Check if ext_nms_hostname example config is overridden
+  assert:
+    that: ext_nms_hostname is not search("example.com")
+    msg: "Config {{ ext_nms_hostname }} is set to example value, please override"
+
+- name: Check if certbot_user_email example config is overridden
+  assert:
+    that: certbot_user_email is not search("example.com")
+    msg: "Config {{ certbot_user_email }} is set to example value, please override"
+  when: certbot_user_email is defined

@@ -1,0 +1,4 @@
+{
+    "{{ msa_services['weather_service']['provider'] }}_api_key": "{{ msa_services['weather_service']['api_key'] }}",
+    "weather_data_fetch_interval_seconds": 3600
+}

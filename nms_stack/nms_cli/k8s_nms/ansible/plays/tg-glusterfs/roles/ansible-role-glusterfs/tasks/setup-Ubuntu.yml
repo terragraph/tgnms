@@ -1,0 +1,31 @@
+---
+- name: Download and install GlusterFS PPA
+  shell: "add-apt-repository --yes ppa:gluster/glusterfs-8"
+  environment:
+    https_proxy: "{{ https_proxy }}"
+
+- name: Ensure PPA for GlusterFS is present.
+  register: glusterfs_ppa_added
+  become: true
+  become_method: sudo
+  become_user: root
+  shell: apt update
+  environment:
+    https_proxy: "{{ https_proxy }}"
+
+- name: Ensure GlusterFS will reinstall if the PPA was just added.
+  apt:
+    name:
+      - glusterfs-server
+      - glusterfs-client
+    state: absent
+  when: glusterfs_ppa_added.changed
+  tags: ['skip_ansible_lint']
+
+- name: Ensure GlusterFS is installed.
+  apt:
+    name:
+      - glusterfs-server
+      - glusterfs-client
+    state: present
+    default_release: "{{ glusterfs_default_release }}"

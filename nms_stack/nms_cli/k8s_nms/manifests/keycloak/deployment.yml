@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak-conf
+data:
+  tgnms-realm.json: |
+    {{ lookup('template', 'tgnms-realm.json') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak-env
+data:
+  # keycloak root user credentials
+  KEYCLOAK_USER: "{{ keycloak_root_user }}"
+  KEYCLOAK_PASSWORD: "{{ passwords.keycloak_root }}"
+  # db connection params
+  DB_VENDOR: "mysql"
+  DB_ADDR: "{{ db_host }}"
+  DB_DATABASE: "keycloak"
+  DB_USER: "keycloak"
+  DB_PASSWORD: "{{ passwords.keycloak_db }}"
+  {% if is_ipv6 %}
+  JAVA_OPTS: "-Djava.net.preverIPv6Stack=true -Djava.net.preferIPv6Addresses=true"
+  {% endif %}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak-publickey
+  labels:
+    type: manual
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1M
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "{{ gfs_path }}/e2e/keycloak-publickey"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak-publickey-pv-claim
+spec:
+  storageClassName: manual
+  volumeName: keycloak-publickey
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1M
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak
+spec:
+  clusterIP: None
+  ports:
+    - port: 8080
+  selector:
+    app: keycloak
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: keycloak
+spec:
+  selector:
+    matchLabels:
+      app: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: keycloak
+    spec:
+      volumes:
+        - name: keycloak-conf
+          configMap:
+            name: keycloak-conf
+        - name: init-sql-config
+          configMap:
+            name: init-sql-config
+      initContainers:
+        - name: keycloak-init
+          image: mysql:5.7
+          command: ["/bin/sh",
+            "-c",
+            "mysql -v -h$(DB_ADDR) -uroot -p$(MYSQL_ROOT_PASSWORD) -e \"set @db_name='$(DB_DATABASE)'; set @db_user='$(DB_USER)'; set @db_password='$(DB_PASSWORD)'; source /usr/local/service.sql;\""
+          ]
+          volumeMounts:
+            - name: init-sql-config
+              mountPath: /usr/local/service.sql
+              subPath: service.sql
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+            - configMapRef:
+                name: db-env
+      containers:
+        - image: {{ keycloak_image }}
+          imagePullPolicy: "{{ image_pull_policy }}"
+          name: disable-ssl
+          command: [
+            "/bin/sh",
+            "-c",
+            'sleep 10 && ./keycloak/bin/kcadm.sh config credentials --server http://localhost:8080/auth --realm master --user "$KEYCLOAK_USER" --password  "$KEYCLOAK_PASSWORD" && echo logged in && ./keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE && echo set ssl to none && sleep infinity']
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+        - image: {{ keycloak_image }}
+          name: keycloak
+          args: ["-b", "::", "-c=standalone.xml"]
+          imagePullPolicy: "{{ image_pull_policy }}"
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+          env:
+            # use if hosted behind nginx
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+            # import a default keycloak realm
+            - name: KEYCLOAK_IMPORT
+              value: "/tmp/tgnms-realm.json"
+          volumeMounts:
+            - name: keycloak-conf
+              mountPath: /tmp/tgnms-realm.json
+              subPath: tgnms-realm.json

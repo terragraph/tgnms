@@ -1,0 +1,23 @@
+{
+  "num_consumers": 10,
+  "pipelines": {
+    "pipeline 1": {
+      "period": 30,
+      "jobs": [
+        {
+          "name": "count_network_assets",
+          "enabled": true
+        }
+      ]
+    },
+    "pipeline 2": {
+      "period": 600,
+      "jobs": [
+        {
+          "name": "save_latest_topologies",
+          "enabled": true
+        }
+      ]
+    }
+  }
+}

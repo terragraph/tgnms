@@ -1,0 +1,174 @@
+---
+- name: Run validation and common
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  environment:
+    http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+    https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+  roles:
+    - { role: validation, tags: ["validate_config"] }
+    - { role: common, tags: ["common"] }
+
+- name: Create managers
+  hosts: managers
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+    - { role: swarm_manager, tags: ["manager", "swarm_manager"] }
+
+- name: Add workers to swarm
+  hosts: workers
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+    - { role: swarm_worker, tags: ["worker", "swarm_worker"] }
+
+- name: Install migo v6up
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tags:
+    - networking
+  pre_tasks:
+    - name: ensure docker network terragraph_net exists
+      docker_network:
+        name: terragraph_net
+        driver: overlay
+        attachable: yes
+        debug: yes
+        state: present
+
+    - name: ensure docker network inbound exists
+      docker_network:
+        name: inbound
+        ipam_config:
+         - subnet: "{{ docker_internal_network }}"
+        attachable: yes
+        driver: bridge
+        enable_ipv6: yes
+        debug: yes
+        state: present
+  roles:
+    - { role: migo, tags: ["migo"] }
+    - { role: v6up, tags: ["v6", "v6up"] }
+
+- name: Install kafka zookeeper
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+    - { role: kafka, tags: ["kafka"] }
+    - { role: efk, tags: ["efk"] }
+
+- name: Setup database
+  hosts: database
+  run_once: true
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tags:
+    - services
+  roles:
+    - { role: database, tags: ["database", "db"] }
+
+# keycloak runs before all roles that use it
+- name: Setup keycloak
+  hosts: managers
+  run_once: true
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tags:
+    - services
+  roles:
+    - { role: keycloak, tags: ["keycloak"], when: keycloak_enabled | bool }
+
+- name: Setup stats/pinger
+  hosts: all
+  run_once: true
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tags:
+    - services
+  roles:
+    - { role: stats, tags: ["stats"] }
+    - { role: udp_pinger, tags: ["udp_pinger", "pinger"] }
+
+- name: Install nginx
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  roles:
+    - { role: proxy, tags: ["nginx", "proxy"] }
+
+- name: Setup services on a manager
+  hosts: managers
+  run_once: true
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tags:
+    - services
+  roles:
+    - { role: nms, tags: ["nms"] }
+    - { role: e2e_controller, tags: ["e2e_controller"] }
+    - { role: chihaya, tags: ["chihaya", "opentracker", "tracker"] }
+    - { role: alarms, tags: ["alarms"] }
+    - { role: msa, tags: ["msa", "tglib"] }
+    - { role: monitoring, tags: ["monitoring", "monitor"]}
+
+- hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tags:
+    - e2e_controller
+    - services
+  tasks:
+    - name: Add local tg commands
+      copy:
+        content: docker run -it --network terragraph_net {{ controller_image }} tg -c e2e_controller-{{ escaped_controller_name }} $@
+        dest: "/usr/local/bin/tg-{{ escaped_controller_name }}"
+        mode: "0755"
+      vars:
+        escaped_controller_name: "{{ ctrlr.name | trim | replace(' ', '_') | lower }}"
+        controller_image: "{{ ctrlr.image if ctrlr.image is defined else e2e_image }}"
+      with_items: "{{ controllers_list }}"
+      loop_control:
+          loop_var: ctrlr
+          index_var: index
+
+- name: Backup installation config post install/upgrade
+  hosts: managers
+  run_once: true
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+    - name: Backup installation config file
+      template:
+        src: "{{ install_config_file }}"
+        dest: "{{ terragraph_docker_path }}/{{ gluster_mount }}/secrets/config_backup_{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.yaml"
+        owner: "{{ docker_user }}"
+        group: docker
+        mode: 0600

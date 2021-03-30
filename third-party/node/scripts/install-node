@@ -1,0 +1,75 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_NAME="${0##*/}"
+
+THIS_DIR=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
+ROOT_DIR=$(cd "$THIS_DIR" && hg root)
+
+NODE_DIR="$ROOT_DIR/xplat/third-party/node"
+YARN_BIN="$ROOT_DIR/xplat/third-party/yarn/yarn"
+
+VERSION="$1"
+
+if [ ! "$VERSION" ]; then
+  echo "Usage: $SCRIPT_NAME X.Y.Z" >&2
+  exit 1
+fi
+
+LINUX_X64_TMP=$(mktemp -d)
+DARWIN_X64_TMP=$(mktemp -d)
+WIN_X64_TMP=$(mktemp -d)
+
+if [[ "$HOSTNAME" =~ dev* ]]; then
+  export http_proxy=http://fwdproxy:8080
+  export https_proxy=http://fwdproxy:8080
+  export ftp_proxy=http://fwdproxy:8080
+fi
+
+# Download version.
+curl "https://nodejs.org/dist/v$VERSION/node-v$VERSION-linux-x64.tar.gz" \
+  | tar --strip-components=1 -zx -C "$LINUX_X64_TMP"
+curl "https://nodejs.org/dist/v$VERSION/node-v$VERSION-darwin-x64.tar.gz" \
+  | tar --strip-components=1 -zx -C "$DARWIN_X64_TMP"
+curl "https://nodejs.org/dist/v$VERSION/win-x64/node.exe" \
+  -o "$WIN_X64_TMP/node.exe"
+curl "https://nodejs.org/dist/v$VERSION/win-x64/node.lib" \
+  -o "$WIN_X64_TMP/node.lib"
+
+# Install node.
+mv "$LINUX_X64_TMP/bin/node" "$NODE_DIR/bin/node-linux-x64"
+mv "$DARWIN_X64_TMP/bin/node" "$NODE_DIR/bin/node-darwin-x64"
+mv "$WIN_X64_TMP/node.exe" "$NODE_DIR/bin/node-win-x64.exe"
+mv "$WIN_X64_TMP/node.lib" "$NODE_DIR/lib_win/x64/node.lib"
+
+# Install headers.
+rm -rf "$NODE_DIR/include"
+pushd "$LINUX_X64_TMP/include/node"
+find . | cpio -pdm "$NODE_DIR/include"
+# Exclude openssl headers
+rm -rf "$NODE_DIR/include/openssl"
+popd
+
+# Add version file.
+# Use "process.stdout.write" to avoid trailing new line.
+NODE_VERSION=$("$THIS_DIR/../bin/node" --eval \
+                'process.stdout.write(process.versions.node)')
+echo "$NODE_VERSION" > "$NODE_DIR/bin/NODE_VERSION"
+
+# Update METADATA.bzl.
+sed -i '' \
+  -E 's/"version": "[^"]+"/"version": "'"$VERSION"'"/' \
+  "$NODE_DIR/METADATA.bzl"
+
+# Install npm using yarn. (Note: npx is part of this package)
+NPM_VERSION=$(
+  cd "$DARWIN_X64_TMP" && "$NODE_DIR/bin/node" -pe \
+    "require('./lib/node_modules/npm/package.json').version"
+)
+pushd "$NODE_DIR/lib_npm" >/dev/null
+  $YARN_BIN add "npm@$NPM_VERSION"
+popd >/dev/null
+
+# Cleanup.
+rm -rf "$LINUX_X64_TMP" "$DARWIN_X64_TMP" "$WIN_X64_TMP"

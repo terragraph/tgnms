@@ -1,0 +1,54 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+caCertPath: /etc/kubernetes/pki/ca.crt
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: "{{ escaped_master_ip }}:6443"
+    token: {{ token }}
+    unsafeSkipCAVerification: true
+  timeout: 5m0s
+  tlsBootstrapToken: {{ token }}
+kind: JoinConfiguration
+nodeRegistration:
+  criSocket: /var/run/crio/crio.sock
+  name: {{ node_name }}
+  taints: null
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 0s
+    enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 0s
+    cacheUnauthorizedTTL: 0s
+clusterDNS:
+- "{{ resolver.replace('[', '').replace(']', '') }}"
+clusterDomain: cluster.local
+cpuManagerReconcilePeriod: 0s
+cgroupDriver: systemd
+evictionPressureTransitionPeriod: 0s
+fileCheckFrequency: 0s
+healthzBindAddress: "{% if is_ipv6 %}::{% else %}127.0.0.1{% endif %}"
+healthzPort: 10248
+httpCheckFrequency: 0s
+imageMinimumGCAge: 0s
+kind: KubeletConfiguration
+logging: {}
+nodeStatusReportFrequency: 0s
+nodeStatusUpdateFrequency: 0s
+# Let Kubelet figure out the resolver to use
+# resolvConf: /run/systemd/resolve/resolv.conf
+rotateCertificates: true
+runtimeRequestTimeout: 0s
+shutdownGracePeriod: 0s
+shutdownGracePeriodCriticalPods: 0s
+staticPodPath: /etc/kubernetes/manifests
+streamingConnectionIdleTimeout: 0s
+syncFrequency: 0s
+volumeStatsAggPeriod: 0s

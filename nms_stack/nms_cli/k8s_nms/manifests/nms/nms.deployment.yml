@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: provisioned-networks
+data:
+  networks.yaml: |
+    {{ lookup('template', 'networks.yaml') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: "{{ namespace }}"
+  name: nms-settings-pv
+  labels:
+    type: local
+spec:
+  storageClassName: local
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "{{ gfs_path }}/nms"
+    type: DirectoryOrCreate
+---
+# Claim the volume we just created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: "{{ namespace }}"
+  name: nms-settings-claim
+spec:
+  storageClassName: local
+  volumeName: nms-settings-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: "{{ namespace }}"
+  name: nms
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nms
+  clusterIP: None
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nms-controller-account
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: create-controllers
+  labels:
+    # Add these permissions to the "admin" and "edit" default roles.
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+- apiGroups: ["terragraph.com"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: controller-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: create-controllers
+subjects:
+- kind: ServiceAccount
+  name: nms-controller-account
+  namespace: "{{ namespace }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: "{{ namespace }}"
+  name: nms
+spec:
+  selector:
+    matchLabels:
+      app: nms
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: "{{ namespace }}"
+      labels:
+        app: nms
+    spec:
+      serviceAccountName: nms-controller-account
+      volumes:
+        - name: settings
+          persistentVolumeClaim:
+            claimName: nms-settings-claim
+        - name: keycloak-helper-scripts
+          configMap:
+            name: keycloak-helper-scripts
+            defaultMode: 0777
+        - name: provisioned-networks
+          configMap:
+            name: provisioned-networks
+      {% if keycloak_enabled %}
+      initContainers:
+        - name: create-keycloak-client
+          image: {{ keycloak_image }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command: [
+              "/bin/sh",
+              "-c",
+              "sleep 2 && /scripts/generate-keycloak-client.sh tgnms /nms-settings/nms_auth.env"
+          ]
+          volumeMounts:
+            - name: keycloak-helper-scripts
+              mountPath: /scripts
+            - name: settings
+              mountPath: /nms-settings
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+        - name: create-default-user
+          image: {{ keycloak_image }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command: [
+              "/bin/sh",
+              "-c",
+              "sleep 2 && /scripts/create-default-realm-user.sh tgnms $(NMS_DEFAULT_USERNAME) $(NMS_DEFAULT_PASSWORD)"
+          ]
+          volumeMounts:
+            - name: keycloak-helper-scripts
+              mountPath: /scripts
+            - name: settings
+              mountPath: /nms-settings
+          envFrom:
+            - configMapRef:
+                name: keycloak-env
+          # TODO use a secret instead
+          env:
+            - name: NMS_DEFAULT_USERNAME
+              value: "{{ nms_username }}"
+            - name: NMS_DEFAULT_PASSWORD
+              value: "{{ nms_password }}"
+      {% endif %}
+      containers:
+        - image: {{ nms_image }}
+          name: nms
+          imagePullPolicy: "{{ image_pull_policy }}"
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+          envFrom:
+            - configMapRef:
+                name: cxl-database
+            - configMapRef:
+                name: time-zone
+            - configMapRef:
+                name: nms
+          env:
+            - name: NMS_DEFAULT_USERNAME
+              value: "{{ nms_username }}"
+            - name: NMS_DEFAULT_PASSWORD
+              value: "{{ nms_password }}"
+          volumeMounts:
+            - name: settings
+              mountPath: /app/fbcnms-projects/tgnms/.settings
+            - name: provisioned-networks
+              mountPath: /app/fbcnms-projects/tgnms/networks.yaml
+              subPath: networks.yaml
+      imagePullSecrets:
+        - name: tg-repo-creds

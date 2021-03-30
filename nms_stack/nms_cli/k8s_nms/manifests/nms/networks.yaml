@@ -1,0 +1,15 @@
+{% if controllers_list | length > 0 %}
+networks:
+{% for controller in controllers_list %}
+  - name: "{{ controller.name }}"
+    primary:
+      api:
+        hostname: e2e-{{ controller.name.lower().replace(" ", "_").replace("_", "-") }}
+        port: 8080
+      e2e:
+        hostname: e2e-{{ controller.name.lower().replace(" ", "_").replace("_", "-") }}
+        port: 17077
+{% endfor %}
+{% else %}
+networks: {}
+{% endif %}

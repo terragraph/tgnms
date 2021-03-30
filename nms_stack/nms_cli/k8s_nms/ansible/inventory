@@ -1,0 +1,5 @@
+[master]
+# Kubernetes control node group
+
+[node]
+# Kubernetes worker node group

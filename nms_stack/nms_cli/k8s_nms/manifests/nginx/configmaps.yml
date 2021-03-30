@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: nginx-conf
+data:
+  nginx.conf: |
+    {{ lookup('template', 'nginx.conf') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: http-conf
+data:
+  http.conf: |
+    {{ lookup('template', 'http.conf') | indent(width=4, indentfirst=False )}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: ssl-cert-file
+data:
+  fullchain.pem: |
+    {{ ssl_cert_text | indent(width=4, indentfirst=False) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: ssl-key-file
+data:
+  privkey.pem: |
+    {{ ssl_key_text | indent(width=4, indentfirst=False) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: stream-conf
+data:
+  stream.conf: |
+    {{ lookup('template', 'stream.conf') | indent(width=4, indentfirst=False )}}
+{% for controller in controllers_list %}
+{% set escaped_controller_name = controller.name.replace(" ", "_").strip().lower() %}
+{% set controller_name_dns = controller.name.replace(" ", "-").replace("_", "-").strip().lower() %}
+{% set env = {
+  "controller_service": "e2e-" + controller_name_dns + ".default.svc.cluster.local",
+  "cname": controller_name_dns.replace("-", "_"),
+  "controller_port": controller.ctrlr_port,
+  "aggregator_port": controller.agg_port,
+  "e2e_app_port": controller.app_port,
+  "bt_seeder_port": controller.bt_seeder_port,
+} %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: "{{ namespace }}"
+  name: stream-conf-{{ controller_name_dns }}
+data:
+  stream-{{ escaped_controller_name }}.conf: |
+    {{ lookup('template', 'stream-controller.conf', env) | indent(width=4, indentfirst=False )}}
+{% endfor %}

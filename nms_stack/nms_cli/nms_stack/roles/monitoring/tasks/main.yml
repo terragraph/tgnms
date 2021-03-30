@@ -1,0 +1,42 @@
+---
+- name: create monitoring path
+  file:
+    path: "{{ monitoring_gfs_path }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: create gluster exporter paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: groups.all | length > 1
+  with_items:
+    - "{{ monitoring_gfs_path }}/gluster_exporter"
+    - "{{ monitoring_gfs_path }}/gluster_exporter/config"
+
+- name: copy gluster_exporter configs
+  when: groups.all | length > 1
+  template:
+    src: "gluster-exporter.toml"
+    dest: "{{ monitoring_gfs_path }}/gluster_exporter/config"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+    force: yes
+
+- name: copy docker-compose
+  template:
+    src: "docker-compose.yml"
+    dest: "{{ monitoring_gfs_path }}"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0644
+    force: yes
+
+- name: run compose
+  shell: "docker stack deploy -c {{ monitoring_gfs_path }}/docker-compose.yml --with-registry-auth --prune monitoring"

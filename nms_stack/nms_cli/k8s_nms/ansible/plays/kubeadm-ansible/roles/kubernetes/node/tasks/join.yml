@@ -1,0 +1,22 @@
+---
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force --cri-socket /var/run/crio/crio.sock"
+  register: reset_cluster
+
+- name: Copy over config
+  template:
+    src: kubeadm_config.yml
+    dest: /etc/kubeadm_config.yml
+
+- name: Ensure daemons are up
+  shell: |
+    systemctl restart crio
+
+- name: Join to Kubernetes cluster
+  when: reset_cluster is succeeded
+  shell: |
+    kubeadm join --config /etc/kubeadm_config.yml
+  register: join_cluster
+  notify:
+    - Recreate kube-dns
