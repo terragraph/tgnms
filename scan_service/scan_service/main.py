@@ -20,7 +20,7 @@ from .models import ScanTestStatus
 from .routes import routes
 from .scan import parse_scan_results
 from .scheduler import Scheduler
-from .utils.alerts import post_alert
+from .utils.alerts import Alerts, Severity
 from .utils.data_loader import get_im_data
 from .utils.db import write_results
 from .utils.hardware_config import HardwareConfig
@@ -112,8 +112,10 @@ async def events_handler(value: str) -> None:
     await Scheduler.update_execution_status(
         execution_id, ScanTestStatus.FINISHED, datetime.utcnow()
     )
-    await post_alert(
-        execution_id, f"Scan test for execution id {execution_id} is now complete."
+    await Alerts.post(
+        execution_id,
+        f"Scan test for execution id {execution_id} is now complete.",
+        Severity.INFO,
     )
 
     await asyncio.sleep(Scheduler.CLEAN_UP_DELAY_S)
@@ -126,13 +128,16 @@ async def async_main(
     n_days: int,
     use_real_links: bool,
     min_connectivity_snr: int,
+    enable_alerts: bool,
 ) -> None:
     """Consume and store scan data, and perform analysis when scans are complete."""
-    # Reschedule any tests found in the schedule upon startup
-    await Scheduler.restart()
 
-    # Fetch latest topologies for analysis
-    await Topology.update_topologies()
+    # Reschedule any tests found in the schedule upon startup,
+    # fetch latest topologies for analysis, and
+    # initialize alerts
+    await asyncio.gather(
+        Scheduler.restart(), Topology.update_topologies(), Alerts.init(enable_alerts)
+    )
 
     consumer = KafkaConsumer().consumer
     consumer.subscribe(topics)
@@ -168,13 +173,19 @@ def main() -> None:
         n_days = config["n_days"]
         use_real_links = config["use_real_links"]
         min_connectivity_snr = config["min_connectivity_snr"]
+        enable_alerts = config["enable_alerts"]
     except (json.JSONDecodeError, OSError, KeyError):
         logging.exception("Failed to parse configuration file.")
         sys.exit(1)
 
     init(
         lambda: async_main(
-            topics, scan_results_dir, n_days, use_real_links, min_connectivity_snr
+            topics,
+            scan_results_dir,
+            n_days,
+            use_real_links,
+            min_connectivity_snr,
+            enable_alerts,
         ),
         {APIServiceClient, KafkaConsumer, MySQLClient, PrometheusClient},
         routes,

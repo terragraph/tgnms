@@ -25,7 +25,7 @@ from .models import (
     ScanType,
 )
 from .scan import ScanTest
-from .utils.alerts import post_alert
+from .utils.alerts import Alerts, Severity
 
 
 class Schedule:
@@ -237,17 +237,19 @@ class Scheduler:
         await test.start(execution_id, cls.SCAN_START_DELAY_S)
 
         if test.start_delay_s is None or test.end_delay_s is None:
-            await post_alert(
+            await Alerts.post(
                 execution_id,
                 f"Scan test for execution id {execution_id} failed to start.",
+                Severity.CRITICAL,
             )
             return None
 
         cls.executions[execution_id] = test
 
-        await post_alert(
+        await Alerts.post(
             execution_id,
             f"Successfully started scan test with execution id {execution_id}.",
+            Severity.INFO,
             test.start_delay_s,
             test.end_delay_s + cls.CLEAN_UP_DELAY_S,
         )
