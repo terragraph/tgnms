@@ -94,6 +94,7 @@ export default function ConfigTaskForm(props: Props) {
   );
 
   React.useEffect(() => {
+    draftsRef.current = null;
     switch (editMode) {
       case FORM_CONFIG_MODES.NETWORK:
         setCurrentConfig(cloneDeep(networkOverridesConfig));
@@ -125,12 +126,13 @@ export default function ConfigTaskForm(props: Props) {
   ]);
 
   const handleSubmitConfig = React.useCallback(() => {
-    if (editMode === FORM_CONFIG_MODES.NODE && nodeName == null) {
+    const jsonConfig = jsonConfigRef.current;
+    const drafts = draftsRef.current;
+
+    if ((editMode === FORM_CONFIG_MODES.NODE && nodeName == null) || !drafts) {
       snackbars.error('Config change failed, please double check the form');
       return;
     }
-    const jsonConfig = jsonConfigRef.current;
-    const drafts = draftsRef.current;
 
     if (editMode === FORM_CONFIG_MODES.NETWORK) {
       updateConfig.network({
@@ -216,7 +218,7 @@ export default function ConfigTaskForm(props: Props) {
         layer => layer.id === currentEditMode,
       )?.value;
 
-      if (currentLayerValue === draftValue) {
+      if (currentLayerValue === draftValue && draftsRef.current) {
         delete draftsRef.current[configField];
         return;
       }
@@ -234,7 +236,7 @@ export default function ConfigTaskForm(props: Props) {
     jsonConfigRef.current ??
     getDraftConfig<{}>({
       currentConfig,
-      drafts: draftsRef.current,
+      drafts: draftsRef.current ?? {},
     });
 
   return (
