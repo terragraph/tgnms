@@ -51,7 +51,7 @@
     mode: "0644"
     owner: "{{ docker_user }}"
     group: docker
-    force: no
+    force: yes
 
 - name: create keycloak database and user
   command: >
