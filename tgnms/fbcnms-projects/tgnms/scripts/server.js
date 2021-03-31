@@ -117,7 +117,7 @@ app.use('/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
 app.use('/healthcheck', require('../server/healthcheck/routes'));
 app.use('/settings', require('../server/settings/routes'));
-if (isFeatureEnabled('NETWORK_PLAN_ENABLED')) {
+if (isFeatureEnabled('NETWORK_PLANNING_ENABLED')) {
   app.use('/network_plan', require('../server/network_plan/routes'));
 }
 app.use(
