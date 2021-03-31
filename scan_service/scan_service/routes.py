@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import asyncio
 import enum
 import functools
 import json
@@ -11,11 +12,17 @@ from typing import Any, DefaultDict, Iterable, Optional
 from aiohttp import web
 from croniter import croniter
 from tglib.clients import APIServiceClient
+from tglib.exceptions import ClientRuntimeError
 
+from .analysis.connectivity import get_connectivity_data
+from .analysis.interference import get_interference_from_directional_beams
 from .analysis.interference import aggregate_interference_results
 from .models import ScanMode, ScanTestStatus, ScanType
 from .scan import ScanTest
 from .scheduler import Schedule, Scheduler
+from .utils.data_loader import aggregate_all_responses, average_rx_responses
+from .utils.db import fetch_aggregated_responses
+from .utils.topology import Topology
 
 
 routes = web.RouteTableDef()
@@ -496,7 +503,9 @@ async def handle_get_execution(request: web.Request) -> web.Response:
         {
             "execution": dict(execution),
             "results": scan_results,
-            "aggregated_inr": aggregate_interference_results(interference_results),
+            "aggregated_inr": aggregate_interference_results(
+                [dict(row) for row in interference_results]
+            ),
         },
         dumps=functools.partial(json.dumps, default=custom_serializer),
     )
@@ -566,3 +575,88 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             text="Failed to start a new scan test. Check scan service logs."
         )
     return web.Response(text=f"Started new scan test execution with ID: {execution_id}")
+
+
+@routes.get("/n_day_analysis")
+async def handle_get_n_day_analysis(request: web.Request) -> web.Response:  # noqa: C901
+    """
+    ---
+    description: Return offine scan analysis for the previous n_days.
+    tags:
+    - Scan Service
+    produces:
+    - application/json
+    parameters:
+    - in: query
+      name: network_name
+      description: The name of the network.
+      type: string
+    - in: query
+      name: n_day
+      description: The number of days for which scan analysis has to be run.
+      type: integer
+    - in: query
+      name: use_real_links
+      description: Use real links for analysis if true.
+      type: boolean
+    responses:
+      "200":
+        description: Successful operation.
+      "404":
+        description: Unknown scan test execution ID.
+    """
+    network_name = request.rel_url.query.get("network_name")
+    if network_name is None:
+        raise web.HTTPBadRequest(text="Missing required 'network_name' param")
+    if network_name not in APIServiceClient.network_names():
+        raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
+
+    n_day = request.rel_url.query.get("n_day")
+    if n_day is None:
+        raise web.HTTPBadRequest(text="Missing required 'n_day' param")
+    n_day = int(n_day)
+    if n_day <= 0 or n_day > 30:
+        raise web.HTTPBadRequest(text=f"Invalid n_day: {n_day}. Expected: (0, 30]")
+
+    use_real_links = request.rel_url.query.get("use_real_links", True)
+
+    try:
+        await Topology.update_topologies(network_name)
+    except ClientRuntimeError as err:
+        raise web.HTTPBadRequest(
+            text=f"Failed to fetch topology for {network_name} - {err}"
+        )
+
+    coros, tx_nodes = [], []
+    for node in Topology.topology[network_name]["nodes"]:
+        for node_mac in node["wlan_mac_addrs"]:
+            tx_nodes.append(node_mac)
+            coros.append(fetch_aggregated_responses(network_name, node_mac, n_day))
+
+    intf_coros = []
+    for tx_node, prev_responses in zip(tx_nodes, await asyncio.gather(*coros)):
+        aggregated_stats = aggregate_all_responses(prev_responses, {})
+        im_data = {
+            "network_name": network_name,
+            "n_day_avg_rx_responses": average_rx_responses(aggregated_stats),
+            "tx_node": tx_node,
+        }
+        intf_coros.append(
+            get_interference_from_directional_beams(
+                im_data, network_name, n_day, use_real_links, True
+            )
+        )
+
+    return web.json_response(
+        {
+            "aggregated_inr": aggregate_interference_results(
+                [
+                    {"network_name": network_name, **results}
+                    for intf_results in await asyncio.gather(*intf_coros)
+                    for results in intf_results
+                    if results
+                ]
+            )
+        },
+        dumps=functools.partial(json.dumps, default=custom_serializer),
+    )

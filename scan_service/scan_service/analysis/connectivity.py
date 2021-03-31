@@ -165,8 +165,8 @@ def get_connectivity_data(im_data: Dict, target: int, is_n_day_avg: bool) -> Lis
 
         result.append(
             {
-                "group_id": im_data["group_id"],
-                "token": im_data["token"],
+                "group_id": im_data.get("group_id"),
+                "token": im_data.get("token"),
                 "tx_node": tx_node,
                 "rx_node": rx_node,
                 "routes": routes,

@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterable, List, Optional
+from typing import DefaultDict, Dict, List, Optional
 
 import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
@@ -34,23 +34,27 @@ def get_link_inr(network_name: str, rx_pair_inr: Dict) -> Dict:
     return results
 
 
-def aggregate_interference_results(interference_results: Iterable) -> Dict:
+def aggregate_interference_results(interference_results: List[Dict]) -> Dict:
     """Aggregate inr for each link direction."""
     if not interference_results:
         return {}
 
     inr_current_scan: DefaultDict = defaultdict(int)
     inr_n_days_scan: DefaultDict = defaultdict(int)
-    for row in interference_results:
-        network_name = row.network_name
-        inr_db = row.inr_curr_power.get("snr_avg")
+    for result in interference_results:
+        network_name = result["network_name"]
+        inr_db = result["inr_curr_power"].get("snr_avg")
         if inr_db is None:
             continue
 
-        if row.is_n_day_avg:
-            inr_n_days_scan[(row.rx_node, row.rx_from_node)] += pow(10, inr_db / 10)
+        if result["is_n_day_avg"]:
+            inr_n_days_scan[(result["rx_node"], result["rx_from_node"])] += pow(
+                10, inr_db / 10
+            )
         else:
-            inr_current_scan[(row.rx_node, row.rx_from_node)] += pow(10, inr_db / 10)
+            inr_current_scan[(result["rx_node"], result["rx_from_node"])] += pow(
+                10, inr_db / 10
+            )
 
     aggregated_results: Dict = {
         "current": get_link_inr(network_name, inr_current_scan),
@@ -92,7 +96,6 @@ async def get_interference_from_current_beams(  # noqa: C901
     network_name = im_data["network_name"]
     tx_node = im_data["tx_node"]
     logging.info(f"Analyzing interference for {tx_node}")
-    token = im_data["token"]
 
     tx_infos = await get_latest_stats(network_name, tx_node, ["mcs", "tx_power"])
 
@@ -177,8 +180,8 @@ async def get_interference_from_current_beams(  # noqa: C901
 
                 result.append(
                     {
-                        "group_id": im_data["group_id"],
-                        "token": token,
+                        "group_id": im_data.get("group_id"),
+                        "token": im_data.get("token"),
                         "tx_node": tx_node,
                         "tx_to_node": tx_to_node,
                         "tx_power_idx": curr_power_idx,
@@ -209,7 +212,6 @@ async def get_interference_from_directional_beams(  # noqa: C901
     network_name = im_data["network_name"]
     tx_node = im_data["tx_node"]
     logging.info(f"Analyzing interference for {tx_node}")
-    token = im_data["token"]
     rx_responses = (
         im_data["n_day_avg_rx_responses"]
         if is_n_day_avg
@@ -311,8 +313,8 @@ async def get_interference_from_directional_beams(  # noqa: C901
 
                 result.append(
                     {
-                        "group_id": im_data["group_id"],
-                        "token": token,
+                        "group_id": im_data.get("group_id"),
+                        "token": im_data.get("token"),
                         "tx_node": tx_node,
                         "tx_to_node": tx_to_node,
                         "tx_power_idx": curr_power_idx,

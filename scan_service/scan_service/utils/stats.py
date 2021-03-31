@@ -37,7 +37,8 @@ def reshape_values(network_name: str, values: Dict) -> DefaultDict:
                     f"{link_result['metric']['linkName']}"
                 )
                 continue
-            node_metrics[other_node][metric] = link_result["values"][-1][1]
+            if link_result["values"]:
+                node_metrics[other_node][metric] = link_result["values"][-1][1]
     return node_metrics
 
 
