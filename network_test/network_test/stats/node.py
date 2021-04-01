@@ -53,7 +53,6 @@ async def fetch_node_stats(
     start = int(round(start_dt.timestamp()))
     coros = []
     for metric in INSTANT_METRICS:
-        logging.info(create_query(metric, network_name, node_name, session_duration))
         coros.append(
             client.query_latest(
                 create_query(metric, network_name, node_name, session_duration),

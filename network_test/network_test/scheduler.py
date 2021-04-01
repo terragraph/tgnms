@@ -176,7 +176,6 @@ class Scheduler:
                             firmware_stats, health_stats = link_stats_output
                             values.update(firmware_stats)
                             values["health"] = compute_link_health(
-                                session_duration=test.iperf_options["timeSec"],
                                 expected_bitrate=test.iperf_options["bitrate"],
                                 iperf_avg_throughput=values["iperf_avg_throughput"],
                                 **health_stats,

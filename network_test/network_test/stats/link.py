@@ -7,7 +7,7 @@ import enum
 import logging
 from datetime import datetime
 from math import inf
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from tglib.clients.prometheus_client import PrometheusClient, consts, ops
 from tglib.exceptions import ClientRuntimeError
@@ -181,10 +181,26 @@ async def fetch_link_stats(
             tx_packet_count = values["tx_fail"] + values["tx_ok"]
             tx_per = values["tx_fail"] / tx_packet_count if tx_packet_count else inf
 
+    link_unavail_ratio = (
+        BWGD_S * (values["fw_uptime_delta"] - values["link_avail"]) / session_duration
+        if values.get("fw_uptime_delta") is not None
+        and values.get("link_avail") is not None
+        else None
+    )
+    mcs_samples_with_traffic = (
+        values["mcs_with_traffic_count"] / values["mcs_count"]
+        if values.get("mcs_with_traffic_count") is not None
+        and values.get("mcs_count") is not None
+        else None
+    )
+
     return (
         {
             "link_distance": values.get("topology_link_distance_meters"),
+            "link_unavail_ratio": link_unavail_ratio,
             "mcs_avg": values.get("mcs_avg"),
+            "mcs_p10": values.get("mcs_p10"),
+            "mcs_samples_with_traffic": mcs_samples_with_traffic,
             "rssi_avg": values.get("rssi"),
             "snr_avg": values.get("snr"),
             "rx_beam_idx": values.get("rx_beam_idx"),
@@ -196,46 +212,37 @@ async def fetch_link_stats(
             "tx_pwr_avg": values.get("tx_power"),
         },
         {
-            "fw_uptime": values.get("fw_uptime_delta"),
-            "link_avail": values.get("link_avail"),
             "link_distance_m": values.get("topology_link_distance_meters"),
-            "mcs_count": values.get("mcs_count"),
+            "link_unavail_ratio": link_unavail_ratio,
             "mcs_p10": values.get("mcs_p10"),
-            "mcs_with_traffic_count": values.get("mcs_with_traffic_count"),
+            "mcs_samples_with_traffic": mcs_samples_with_traffic,
             "tx_per": tx_per,
         },
     )
 
 
 def compute_link_health(
-    session_duration: int,
     expected_bitrate: int,
     iperf_avg_throughput: float,
-    fw_uptime: Optional[float],
-    link_avail: Optional[float],
     link_distance_m: Optional[float],
-    mcs_count: Optional[float],
+    link_unavail_ratio: Optional[float],
     mcs_p10: Optional[float],
-    mcs_with_traffic_count: Optional[float],
+    mcs_samples_with_traffic: Optional[float],
     tx_per: Optional[float],
 ) -> NetworkTestHealth:
     """Compute the health of a link under test using firmware and traffic rate metrics."""
     if (
-        fw_uptime is None
-        or link_avail is None
-        or link_distance_m is None
-        or mcs_count is None
+        link_distance_m is None
+        or link_unavail_ratio is None
         or mcs_p10 is None
-        or mcs_with_traffic_count is None
+        or mcs_samples_with_traffic is None
         or tx_per is None
     ):
         params = [param for param, value in locals().items() if value is None]
         logging.error(f"Unable to calculate link health: Missing {params} data")
         return NetworkTestHealth.MISSING
 
-    link_unavail_ratio = BWGD_S * (fw_uptime - link_avail) / session_duration
-
-    if mcs_with_traffic_count / mcs_count < 0.6:
+    if mcs_samples_with_traffic < 0.6:
         logging.warning("Insufficient amount of 'mcs' samples with traffic")
         return NetworkTestHealth.POOR
 

@@ -103,7 +103,10 @@ class NetworkTestResult(Base):
     # Derived Columns
     health = Column(Enum(NetworkTestHealth), nullable=True)
     # Firmware Columns
+    link_unavail_ratio = Column(Float, nullable=True)
     mcs_avg = Column(Float, nullable=True)
+    mcs_p10 = Column(Float, nullable=True)
+    mcs_samples_with_traffic = Column(Float, nullable=True)
     rssi_avg = Column(Float, nullable=True)
     snr_avg = Column(Float, nullable=True)
     rx_beam_idx = Column(Float, nullable=True)
