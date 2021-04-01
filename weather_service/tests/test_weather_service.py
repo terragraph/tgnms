@@ -24,6 +24,7 @@ class MockWeatherClient(WeatherAPIClient):
             visibility=quantities.Meters(None),
             air_quality=None,
             precipitation=quantities.MmPerHour(None),
+            precipitation_type=quantities.Unitless(None),
             cloud_cover=quantities.Percent(None),
         )
 

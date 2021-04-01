@@ -66,6 +66,8 @@ async def fetch_weather_data(
         if isinstance(weather_state, Exception):
             logging.info(f"Failed to fetch weather data: {str(weather_state)}")
             continue
+        if weather_state.metrics is None:
+            continue
 
         labels = {
             consts.network: weather_state.network_name,

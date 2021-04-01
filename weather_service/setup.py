@@ -17,7 +17,7 @@ ptr_params = {
 
 setup(
     name="weather_service",
-    version="2020.10.23",
+    version="2021.03.30",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp"],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},

@@ -55,6 +55,7 @@ class WeatherMetrics(Metrics):
     visibility: quantities.Meters
     air_quality: Optional[AirQuality]
     precipitation: quantities.MmPerHour
+    precipitation_type: quantities.Unitless
     cloud_cover: quantities.Percent
 
 
@@ -67,4 +68,4 @@ class WeatherState(object):
     network_name: str
     site_name: str
     coordinates: Coordinates
-    metrics: WeatherMetrics
+    metrics: Optional[WeatherMetrics]

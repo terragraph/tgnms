@@ -28,7 +28,7 @@ class WeatherAPIClient(abc.ABC):
         self.session: Optional[aiohttp.ClientSession] = None
 
     @abc.abstractmethod
-    async def request(self, coordinates: Coordinates) -> WeatherMetrics:
+    async def request(self, coordinates: Coordinates) -> Optional[WeatherMetrics]:
         pass
 
     async def validate_and_get_json(
@@ -81,6 +81,7 @@ class OpenWeatherMapClient(WeatherAPIClient):
             air_quality=None,
             precipitation=MmPerHour(None),
             cloud_cover=Percent(None),
+            precipitation_type=Unitless(None),
         )
 
 
@@ -92,58 +93,67 @@ class ClimaCellClient(WeatherAPIClient):
     def __init__(self, api_key: str):
         super().__init__()
         self.api_key = api_key
-        self.base_url = "https://api.climacell.co/v3/weather/realtime"
+        self.base_url = "https://data.climacell.co/v4/timelines"
         self.fields = [
-            "temp",
+            "temperature",
             "humidity",
-            "precipitation",
-            "wind_speed",
-            "wind_direction",
-            "baro_pressure",
+            "precipitationIntensity",
+            "windSpeed",
+            "windDirection",
+            "pressureSeaLevel",
+            "precipitationType",
             "visibility",
-            "cloud_cover",
-            "pm25",
-            "pm10",
-            "o3",
-            "no2",
-            "co",
-            "so2",
-            "epa_aqi",
+            "cloudCover",
+            "particulateMatter25",
+            "particulateMatter10",
+            "pollutantO3",
+            "pollutantNO2",
+            "pollutantCO",
+            "pollutantSO2",
+            "epaIndex",
         ]
 
-    async def request(self, coordinates: Coordinates) -> WeatherMetrics:
+    async def request(self, coordinates: Coordinates) -> Optional[WeatherMetrics]:
         assert (
             self.session is not None
         ), "Weather API must be used from an async context manager"
         params = {
-            "lat": str(coordinates.latitude),
-            "lon": str(coordinates.longitude),
+            "location": f"{coordinates.latitude},{coordinates.longitude}",
             "apikey": self.api_key,
-            "unit_system": "si",
+            "units": "metric",
             "fields": ",".join(self.fields),
+            "timesteps": "current",
         }
         async with self.session.get(
             self.base_url, timeout=15, params=params
         ) as response:
             content = await self.validate_and_get_json(self.base_url, response)
+            if (
+                not content["data"]["timelines"]
+                or not content["data"]["timelines"][0]["intervals"]
+            ):
+                return None
+            else:
+                content = content["data"]["timelines"][0]["intervals"][0]["values"]
 
         air_quality = AirQuality(
-            pm25=MicrogramsPerMeter(content["pm25"]["value"]),
-            pm10=MicrogramsPerMeter(content["pm10"]["value"]),
-            epa_aqi=Unitless(content["epa_aqi"]["value"]),
-            o3=PartsPerBillion(content["o3"]["value"]),
-            so2=PartsPerBillion(content["so2"]["value"]),
-            co=PartsPerMillion(content["co"]["value"]),
-            no2=PartsPerBillion(content["no2"]["value"]),
+            pm25=MicrogramsPerMeter(content["particulateMatter25"]),
+            pm10=MicrogramsPerMeter(content["particulateMatter10"]),
+            epa_aqi=Unitless(content["epaIndex"]),
+            o3=PartsPerBillion(content["pollutantO3"]),
+            so2=PartsPerBillion(content["pollutantSO2"]),
+            co=PartsPerMillion(content["pollutantCO"]),
+            no2=PartsPerBillion(content["pollutantNO2"]),
         )
         return WeatherMetrics(
-            temperature=Celsius(content["temp"]["value"]),
-            humidity=Percent(content["humidity"]["value"]),
-            pressure=MmHg(content["baro_pressure"]["value"]),
-            wind_speed=MetersPerSecond(content["wind_speed"]["value"]),
-            wind_direction=Degrees(content["wind_direction"]["value"]),
-            visibility=Meters(content["visibility"]["value"]),
+            temperature=Celsius(content["temperature"]),
+            humidity=Percent(content["humidity"]),
+            pressure=MmHg(content["pressureSeaLevel"]),
+            wind_speed=MetersPerSecond(content["windSpeed"]),
+            wind_direction=Degrees(content["windDirection"]),
+            visibility=Meters(content["visibility"]),
             air_quality=air_quality,
-            precipitation=MmPerHour(content["precipitation"]["value"]),
-            cloud_cover=Percent(content["cloud_cover"]["value"]),
+            precipitation=MmPerHour(content["precipitationIntensity"]),
+            precipitation_type=Unitless(content["precipitationType"]),
+            cloud_cover=Percent(content["cloudCover"]),
         )
