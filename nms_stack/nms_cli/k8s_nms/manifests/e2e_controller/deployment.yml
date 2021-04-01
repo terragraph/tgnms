@@ -45,7 +45,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "{{ terragraph_hostpath }}/e2e/{{ controller_name_dns }}"
+    path: "{{ gfs_path }}/e2e/{{ controller_name_dns }}"
     type: DirectoryOrCreate
 ---
 apiVersion: v1
