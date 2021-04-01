@@ -11,21 +11,13 @@ const {
   refreshTopologies,
   refreshPrometheusStatus,
   runNowAndWatchForTopologyUpdate,
-  scheduleScansUpdate,
 } = require('./model');
 const {runNowAndSchedule} = require('../scheduler');
 
 const _ = require('lodash');
 const logger = require('../log')(module);
-
-const IM_SCAN_POLLING_ENABLED = process.env.IM_SCAN_POLLING_ENABLED
-  ? process.env.IM_SCAN_POLLING_ENABLED === '1'
-  : 0;
-
 const MS_IN_SEC = 1000;
-const MS_IN_MIN = 60 * 1000;
 
-const DEFAULT_SCAN_POLL_INTERVAL = 1 * MS_IN_MIN;
 const DEFAULT_TOPOLOGY_REFRESH_INTERVAL = 5 * MS_IN_SEC;
 const HEALTH_REFRESH_INTERVAL = 30 * MS_IN_SEC;
 
@@ -44,15 +36,6 @@ function startPeriodicTasks() {
     refreshTopologies,
     _.get(config, 'refresh_interval', DEFAULT_TOPOLOGY_REFRESH_INTERVAL),
   );
-
-  if (IM_SCAN_POLLING_ENABLED && false) {
-    logger.debug('IM_SCAN_POLLING_ENABLED is set');
-
-    runNowAndSchedule(
-      scheduleScansUpdate,
-      _.get(config, 'scan_poll_interval', DEFAULT_SCAN_POLL_INTERVAL),
-    );
-  }
 }
 
 function refreshHealthData() {
