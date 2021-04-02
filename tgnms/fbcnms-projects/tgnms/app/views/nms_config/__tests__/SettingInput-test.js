@@ -7,8 +7,11 @@
 import 'jest-dom/extend-expect';
 import React from 'react';
 import SettingInput from '../SettingInput';
-import {SettingsFormContextWrapper} from '../../../tests/testHelpers';
-import {TestApp, coerceClass} from '../../../tests/testHelpers';
+import {
+  SettingsFormContextWrapper,
+  TestApp,
+  coerceClass,
+} from '../../../tests/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import type {Props as SettingInputProps} from '../SettingInput';
 
