@@ -11,7 +11,7 @@ import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
 import {TopologyElementType} from '../../constants/NetworkConstants';
 import {useNetworkContext} from '../../contexts/NetworkContext';
 
-export default function LinkOfflineAutomation() {
+export default function LinkOffline() {
   const {linkMap, selectedElement} = useNetworkContext();
 
   const attemptTroubleShootAutomation = useTroubleshootAutomation();

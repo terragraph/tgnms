@@ -11,7 +11,7 @@ import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
 import {TopologyElementType} from '../../constants/NetworkConstants';
 import {useNetworkContext} from '../../contexts/NetworkContext';
 
-export default function FirmwareCrashAutomation() {
+export default function FirmwareCrash() {
   const {selectedElement} = useNetworkContext();
 
   const attemptTroubleShootAutomation = useTroubleshootAutomation();
@@ -37,7 +37,7 @@ export default function FirmwareCrashAutomation() {
     <TroubleshootWarning
       isToolTip={true}
       title="Node Firmware Crahsed"
-      modalContent="Node firmware seems to have crashed. By clicking confirm, you will restart the node which will resolve most common problems."
+      modalContent="Node firmware seems to have crashed. By clicking confirm, you will restart the node which will resolve most firmware crash problems."
       onAttemptFix={onAttemptFix}
     />
   );

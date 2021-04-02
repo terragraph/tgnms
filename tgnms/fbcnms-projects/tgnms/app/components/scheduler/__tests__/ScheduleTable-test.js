@@ -10,6 +10,7 @@ import * as React from 'react';
 import MaterialTheme from '../../../MaterialTheme';
 import ScheduleTable from '../ScheduleTable';
 import {SCHEDULE_TABLE_TYPES} from '../../../constants/ScheduleConstants';
+import {SnackbarWrapper} from '../../../tests/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 
 afterEach(cleanup);
@@ -31,34 +32,34 @@ const defaultProps = {
 
 test('renders without crashing', () => {
   const {getByText} = render(
-    <MaterialTheme>
+    <Wrapper>
       <ScheduleTable {...defaultProps} />
-    </MaterialTheme>,
+    </Wrapper>,
   );
   expect(getByText('schedulerModal')).toBeInTheDocument();
 });
 
 test('renders loading', () => {
   const {getByTestId} = render(
-    <MaterialTheme>
+    <Wrapper>
       <ScheduleTable {...defaultProps} loading={true} />
-    </MaterialTheme>,
+    </Wrapper>,
   );
   expect(getByTestId('loading-box')).toBeInTheDocument();
 });
 
 test('renders empty message when no rows', () => {
   const {getByText} = render(
-    <MaterialTheme>
+    <Wrapper>
       <ScheduleTable {...defaultProps} />
-    </MaterialTheme>,
+    </Wrapper>,
   );
   expect(getByText('No tests found')).toBeInTheDocument();
 });
 
 test('renders custom table with rows', () => {
   render(
-    <MaterialTheme>
+    <Wrapper>
       <ScheduleTable
         {...defaultProps}
         rows={[
@@ -74,8 +75,16 @@ test('renders custom table with rows', () => {
           },
         ]}
       />
-    </MaterialTheme>,
+    </Wrapper>,
   );
   const table = document.getElementsByClassName('CustomTable__BodyGrid');
   expect(table);
 });
+
+function Wrapper({children}: {children: React.Node}) {
+  return (
+    <SnackbarWrapper>
+      <MaterialTheme>{children}</MaterialTheme>
+    </SnackbarWrapper>
+  );
+}

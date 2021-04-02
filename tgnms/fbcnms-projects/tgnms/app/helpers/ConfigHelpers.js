@@ -583,7 +583,7 @@ export const isConfigChanged = (before: {}, after: {}) => {
 };
 
 /**
- * Merge drafts with draft config and return updated ocnfig
+ * Merge drafts with draft config and return updated config
  */
 export function getDraftConfig<T>({
   currentConfig,

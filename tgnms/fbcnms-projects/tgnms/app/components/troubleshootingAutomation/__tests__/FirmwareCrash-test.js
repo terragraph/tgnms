@@ -7,14 +7,21 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import FirmwareCrashAutomation from '../FirmwareCrashAutomation';
+import FirmwareCrash from '../FirmwareCrash';
 import {TestApp} from '../../../tests/testHelpers';
 import {render} from '@testing-library/react';
+
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/constants/FeatureFlags'),
+    'isFeatureEnabled',
+  )
+  .mockReturnValue(true);
 
 test('renders without crashing', () => {
   const {getByTitle} = render(
     <TestApp>
-      <FirmwareCrashAutomation />
+      <FirmwareCrash />
     </TestApp>,
   );
   expect(getByTitle('Node Firmware Crahsed')).toBeInTheDocument();

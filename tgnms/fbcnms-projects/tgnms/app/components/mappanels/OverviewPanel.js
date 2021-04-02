@@ -15,7 +15,7 @@ import LocationOnIcon from '@material-ui/icons/LocationOn';
 import MaterialModal from '../common/MaterialModal';
 import NetworkContext from '../../contexts/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
-import PrometheusOfflineAutomation from '../troubleshootingAutomation/PrometheusOfflineAutomation';
+import PrometheusOffline from '../troubleshootingAutomation/PrometheusOffline';
 import PropTypes from 'prop-types';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
@@ -741,10 +741,7 @@ class OverviewPanel extends React.Component<Props, State> {
             variant="subtitle2"
             gutterBottom
             data-testid="prometheus-status">
-            {!networkConfig.prometheus_online &&
-              isFeatureEnabled('SOLUTION_AUTOMATION_ENABLED') && (
-                <PrometheusOfflineAutomation />
-              )}
+            {!networkConfig.prometheus_online && <PrometheusOffline />}
             <StatusText status={networkConfig.prometheus_online} />
           </Typography>
         </div>

@@ -13,6 +13,13 @@ import {cleanup, fireEvent, render} from '@testing-library/react';
 
 afterEach(cleanup);
 
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/constants/FeatureFlags'),
+    'isFeatureEnabled',
+  )
+  .mockReturnValue(true);
+
 const defaultProps = {
   isToolTip: false,
   title: 'testTitle',

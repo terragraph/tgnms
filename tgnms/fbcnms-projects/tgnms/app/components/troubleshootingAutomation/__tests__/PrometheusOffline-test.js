@@ -7,14 +7,21 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import PrometheusOfflineAutomation from '../PrometheusOfflineAutomation';
+import PrometheusOffline from '../PrometheusOffline';
 import {TestApp} from '../../../tests/testHelpers';
 import {render} from '@testing-library/react';
+
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/constants/FeatureFlags'),
+    'isFeatureEnabled',
+  )
+  .mockReturnValue(true);
 
 test('renders without crashing', () => {
   const {getByTitle} = render(
     <TestApp>
-      <PrometheusOfflineAutomation />
+      <PrometheusOffline />
     </TestApp>,
   );
   expect(getByTitle('Prometheus Offline')).toBeInTheDocument();

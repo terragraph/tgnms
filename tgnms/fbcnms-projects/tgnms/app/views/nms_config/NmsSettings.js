@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import Box from '@material-ui/core/Box';
+import DatabaseSettings from './DatabaseSettings';
 import Grid from '@material-ui/core/Grid';
 import MapSettings from './MapSettings/MapSettings';
 import NmsBackup from './NmsBackup';
@@ -14,6 +15,7 @@ import NmsConfig from './NmsConfig';
 import Paper from '@material-ui/core/Paper';
 import SettingInput from './SettingInput';
 import SettingsForm from './SettingsForm';
+import SettingsFormHeading from './SettingsFormHeading';
 import SettingsGroup from './SettingsGroup';
 import SettingsTester from './SettingsTester';
 import Tab from '@material-ui/core/Tab';
@@ -23,6 +25,7 @@ import classnames from 'classnames';
 import {Link, Redirect, Route, Switch, useRouteMatch} from 'react-router-dom';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
+
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(2),
@@ -112,7 +115,8 @@ export default function NmsSettings() {
                 render={() => (
                   <SettingsForm
                     title="Services"
-                    description="External services which NMS depends on to provide functionality">
+                    description="External services which NMS depends on to provide functionality"
+                    Heading={SettingsFormHeading}>
                     <SettingsGroup title="Nodeupdate">
                       <SettingInput
                         label="Nodeupdate URL"
@@ -305,14 +309,7 @@ export default function NmsSettings() {
                           ]}
                         />
                       }>
-                      <SettingInput label="MySQL Host" setting="MYSQL_HOST" />
-                      <SettingInput label="MySQL Database" setting="MYSQL_DB" />
-                      <SettingInput label="MySQL User" setting="MYSQL_USER" />
-                      <SettingInput label="MySQL Port" setting="MYSQL_PORT" />
-                      <SettingInput
-                        label="MySQL Password"
-                        setting="MYSQL_PASS"
-                      />
+                      <DatabaseSettings />
                     </SettingsGroup>
                     <SettingsGroup title="Controller">
                       <SettingInput

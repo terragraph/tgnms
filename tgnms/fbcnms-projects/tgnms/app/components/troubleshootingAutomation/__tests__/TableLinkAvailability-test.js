@@ -7,15 +7,22 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import LinkOfflineAutomation from '../LinkOfflineAutomation';
+import TableLinkAvailability from '../TableLinkAvailability';
 import {TestApp} from '../../../tests/testHelpers';
 import {render} from '@testing-library/react';
+
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/constants/FeatureFlags'),
+    'isFeatureEnabled',
+  )
+  .mockReturnValue(true);
 
 test('renders without crashing', () => {
   const {getByTitle} = render(
     <TestApp>
-      <LinkOfflineAutomation />
+      <TableLinkAvailability />
     </TestApp>,
   );
-  expect(getByTitle('Link Offline')).toBeInTheDocument();
+  expect(getByTitle('MySQL DB Unavailable')).toBeInTheDocument();
 });

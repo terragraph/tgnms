@@ -11,6 +11,7 @@ import FriendlyText from '../../components/common/FriendlyText';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../components/common/LoadingBox';
 import Paper from '@material-ui/core/Paper';
+import ScheduleTableFaultWarning from './ScheduleTableFaultWarning';
 import TableOptions from './TableOptions';
 import {
   EXECUTION_STATUS,
@@ -172,7 +173,10 @@ export default function ScheduleTable<T>(props: Props<T>) {
           {loading && rows.length === 0 ? (
             <LoadingBox className={classes.loadingBox} fullScreen={false} />
           ) : !rows ? (
-            'Failed to load, please try again.'
+            <>
+              <ScheduleTableFaultWarning mode={mode} />
+              Failed to load, please try again.
+            </>
           ) : tableProps.data?.length ? (
             <CustomTable
               selected={selectedRow ? Object.values(selectedRow) : []}
@@ -187,7 +191,7 @@ export default function ScheduleTable<T>(props: Props<T>) {
               direction={'column'}
               spacing={2}>
               <Grid item className={classes.errorTitle}>
-                No {mode}s found
+                <ScheduleTableFaultWarning mode={mode} /> No {mode}s found
               </Grid>
               <Grid item xs={4} className={classes.errorMessage}>
                 No scheduled or past {mode}s match the filters. Try selecting a

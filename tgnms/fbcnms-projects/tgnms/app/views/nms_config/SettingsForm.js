@@ -44,14 +44,25 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+type settingsFormHeadingType = {
+  title?: string,
+  description?: string,
+  resetForm: () => void,
+  changedSettings: Array<string>,
+};
+
 export default function SettingsForm({
   children,
+  onUpdate,
   title,
   description,
+  Heading,
 }: {
   children: React.Node,
-  title: string,
-  description: string,
+  onUpdate?: EnvMap => void,
+  title?: string,
+  description?: string,
+  Heading?: React.ComponentType<settingsFormHeadingType>,
 }) {
   const {
     getInput,
@@ -61,6 +72,15 @@ export default function SettingsForm({
     resetForm,
     refreshSettings,
   } = useSettingsForm();
+
+  const onUpdateRef = React.useRef(onUpdate);
+  const hasHeading = !!Heading;
+
+  React.useEffect(() => {
+    if (onUpdateRef.current) {
+      onUpdateRef.current(formState);
+    }
+  }, [formState, onUpdateRef]);
 
   const classes = useStyles();
   const originalSettings = initialFormState ?? {};
@@ -135,47 +155,24 @@ export default function SettingsForm({
       <Grid item>
         <form onSubmit={handleSubmit}>
           <Grid container direction={'column'} spacing={4}>
-            <Grid
-              container
-              item
-              justify="space-between"
-              alignContent="center"
-              alignItems="center"
-              wrap="nowrap">
-              <Grid item>
-                <Typography variant="h6">{title}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {description}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Grid container spacing={2}>
-                  <Grid item>
-                    <Button
-                      onClick={resetForm}
-                      data-testid="cancel-button"
-                      variant="text">
-                      Cancel
-                    </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button
-                      type="submit"
-                      data-testid="submit-button"
-                      variant="contained"
-                      color="primary"
-                      disabled={changedSettings.length === 0}>
-                      Save
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
+            {Heading != undefined && (
+              <Heading
+                title={title}
+                description={description}
+                resetForm={resetForm}
+                changedSettings={changedSettings}
+              />
+            )}
             <SettingsFormContextProvider
               getInput={getInput}
               formState={formState}
               settingsState={settingsState || EMPTY_SETTINGS_STATE}>
-              <Grid container item spacing={3} direction={'column'} xs={10}>
+              <Grid
+                container
+                item
+                spacing={3}
+                direction={'column'}
+                xs={hasHeading ? 10 : 12}>
                 {children}
               </Grid>
             </SettingsFormContextProvider>

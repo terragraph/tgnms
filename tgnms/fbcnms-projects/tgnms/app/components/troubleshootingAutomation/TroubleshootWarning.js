@@ -11,6 +11,7 @@ import MaterialModal from '../common/MaterialModal';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import {isFeatureEnabled} from '../../constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useModalState} from '../../hooks/modalHooks';
 
@@ -38,38 +39,43 @@ export default function TroubleshootWarning({
 }) {
   const classes = useStyles();
   const {isOpen, open, close} = useModalState();
-  const handleConfirm = React.useCallback(() => {
-    onAttemptFix();
+  const handleConfirm = React.useCallback(async () => {
+    await onAttemptFix();
     close();
   }, [onAttemptFix, close]);
 
   return (
-    <>
-      <Tooltip
-        title={isToolTip ? title : ''}
-        placement="top"
-        classesName={classes.root}>
-        <Button size="small" className={classes.root} onClick={open}>
-          <ReportProblemOutlinedIcon className={classes.icon} />
-          <Typography>{isToolTip ? '' : title}</Typography>
-        </Button>
-      </Tooltip>
-      <MaterialModal
-        open={isOpen}
-        onClose={close}
-        modalTitle={title}
-        modalContent={modalContent}
-        modalActions={
-          <>
-            <Button onClick={close} variant="outlined">
-              Cancel
-            </Button>
-            <Button onClick={handleConfirm} variant="contained" color="primary">
-              Confirm
-            </Button>
-          </>
-        }
-      />
-    </>
+    isFeatureEnabled('SOLUTION_AUTOMATION_ENABLED') && (
+      <>
+        <Tooltip
+          title={isToolTip ? title : ''}
+          placement="top"
+          classesName={classes.root}>
+          <Button size="small" className={classes.root} onClick={open}>
+            <ReportProblemOutlinedIcon className={classes.icon} />
+            <Typography>{isToolTip ? '' : title}</Typography>
+          </Button>
+        </Tooltip>
+        <MaterialModal
+          open={isOpen}
+          onClose={close}
+          modalTitle={title}
+          modalContent={modalContent}
+          modalActions={
+            <>
+              <Button onClick={close} variant="outlined">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                variant="contained"
+                color="primary">
+                Confirm
+              </Button>
+            </>
+          }
+        />
+      </>
+    )
   );
 }

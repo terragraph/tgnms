@@ -7,8 +7,8 @@
 
 import * as React from 'react';
 import ConfigTaskGroup from '../ConfigTaskGroup';
-import ConfigTaskInput from '../ConfigTaskInput';
 import ConfigTaskMapInput from '../ConfigTaskMapInput';
+import ZmqUrl from './ZmqUrl';
 
 export default function StatsAgentParams() {
   return (
@@ -23,10 +23,7 @@ export default function StatsAgentParams() {
         configField="statsAgentParams.publisherParams.statsBlacklist"
         buttonText="Add Block String"
       />
-      <ConfigTaskInput
-        label="ZMQ Controller URL"
-        configField="statsAgentParams.sources.controller.zmq_url"
-      />
+      <ZmqUrl />
     </ConfigTaskGroup>
   );
 }

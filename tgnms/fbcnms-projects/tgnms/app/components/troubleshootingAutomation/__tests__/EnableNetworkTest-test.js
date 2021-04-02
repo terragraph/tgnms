@@ -7,15 +7,22 @@
 
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import EnableNetworkTestAutomation from '../EnableNetworkTestAutomation';
+import EnableNetworkTest from '../EnableNetworkTest';
 import {TestApp} from '../../../tests/testHelpers';
 import {render} from '@testing-library/react';
+
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/constants/FeatureFlags'),
+    'isFeatureEnabled',
+  )
+  .mockReturnValue(true);
 
 test('renders without crashing', () => {
   const {getByTitle} = render(
     <TestApp>
-      <EnableNetworkTestAutomation />
+      <EnableNetworkTest />
     </TestApp>,
   );
-  expect(getByTitle('Networktest Unavailable')).toBeInTheDocument();
+  expect(getByTitle('Network Test Unavailable')).toBeInTheDocument();
 });
