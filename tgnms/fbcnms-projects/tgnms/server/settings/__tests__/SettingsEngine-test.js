@@ -299,14 +299,19 @@ describe('Settings Engine', () => {
       expect(killMock).toHaveBeenCalled();
     });
     test('if no updated settings require restart, no restart occurs', () => {
-      settings.initialize(SETTINGS);
-      expect(killMock).not.toHaveBeenCalled();
+      settings.initialize(
+        SETTINGS.concat({
+          key: 'NO_RESTART_NEEDED',
+          dataType: 'INT',
+          defaultValue: '5000',
+          requiresRestart: false,
+        }),
+      );
       expect(killMock).not.toHaveBeenCalled();
       settings.update({
-        API_REQUEST_TIMEOUT: '2000',
+        NO_RESTART_NEEDED: '2000',
       });
       jest.runAllTimers();
-      expect(killMock).not.toHaveBeenCalled();
       expect(killMock).not.toHaveBeenCalled();
     });
     test('creates settings file if it does not already exist', () => {

@@ -23,7 +23,7 @@ export const SETTINGS: Array<SettingDefinition> = [
     key: 'API_REQUEST_TIMEOUT',
     dataType: 'INT',
     defaultValue: '5000',
-    requiresRestart: false,
+    requiresRestart: true,
   },
   {
     key: 'LOG_LEVEL',
