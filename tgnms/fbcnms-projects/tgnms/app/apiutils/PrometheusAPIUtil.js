@@ -114,23 +114,6 @@ export const queryDataArray = (
   });
 };
 
-export const querySince = (
-  query: string,
-  step: number,
-  value: number,
-  units: string,
-  networkName: string,
-): Promise<any> => {
-  return axios.get(`/metrics/${networkName}/query/since`, {
-    params: {
-      query: query,
-      value: value,
-      units: units,
-      step: step,
-    },
-  });
-};
-
 export const queryLatest = (
   query: string,
   networkName: string,

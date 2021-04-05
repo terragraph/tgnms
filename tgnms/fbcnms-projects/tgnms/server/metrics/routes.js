@@ -10,7 +10,6 @@ import {createApi} from '../helpers/apiHelpers';
 import {createErrorHandler} from '../helpers/apiHelpers';
 import {getLinkMetrics, getLinkMetricsByName} from './metrics';
 import type {ExpressRequest, ExpressResponse} from 'express';
-const moment = require('moment');
 const _ = require('lodash');
 const {
   query,
@@ -57,32 +56,6 @@ router.get('/:networkName/query/dataArray', (req, res) => {
         }, {}),
       );
     })
-    .catch(createErrorHandler(res));
-});
-
-/** Query raw stats given a relative time (e.g. 5 minutes ago) */
-router.get('/:networkName/query/raw/since', (req, res) => {
-  const end = moment().unix();
-  const {value, units} = req.query;
-  if (
-    value == null ||
-    units == null ||
-    typeof value !== 'string' ||
-    typeof units !== 'string'
-  ) {
-    return res.status(400).send({error: 'invalid query'});
-  }
-  const networkName = req.params.networkName;
-  const start = moment().subtract(value, units).unix();
-  const data = {
-    query: req.query.query,
-    start: start,
-    end: end,
-    step: req.query.step,
-  };
-
-  query(data, networkName)
-    .then(response => res.status(200).send(response))
     .catch(createErrorHandler(res));
 });
 
