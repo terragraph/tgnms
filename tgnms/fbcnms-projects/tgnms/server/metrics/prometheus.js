@@ -12,6 +12,17 @@ const logger = require('../log')(module);
 const request = require('request');
 const _ = require('lodash');
 
+export type PromQuery = {|
+  query: string,
+|};
+
+export type PromRangeQuery = {|
+  ...PromQuery,
+  start: number,
+  end: number,
+  step: number,
+|};
+
 /**
  * Utility functions
  */

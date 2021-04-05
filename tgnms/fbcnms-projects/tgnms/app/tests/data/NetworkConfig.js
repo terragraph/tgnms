@@ -36,11 +36,14 @@ import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDet
 import type {Overlay} from '../../views/map/NetworkMapTypes';
 import type {RoutesContext as Routes} from '../../contexts/RouteContext';
 
-export function mockNetworkInstanceConfig(): NetworkInstanceConfig {
+export function mockNetworkInstanceConfig(
+  overrides?: $Shape<NetworkInstanceConfig>,
+): NetworkInstanceConfig {
   const mockCtrl = {
     api_ip: '::',
     api_port: 8080,
     controller_online: true,
+    e2e_ip: '::',
     e2e_port: 8080,
     id: 1,
   };
@@ -57,6 +60,7 @@ export function mockNetworkInstanceConfig(): NetworkInstanceConfig {
     },
     map_profile_id: null,
     wireless_controller: null,
+    ...overrides,
   };
 }
 /**
@@ -70,6 +74,7 @@ export function mockNetworkConfig(
     api_ip: '::',
     api_port: 8080,
     controller_online: true,
+    e2e_ip: '::',
     e2e_port: 8080,
     id: 1,
   };
