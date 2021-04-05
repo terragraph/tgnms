@@ -4,12 +4,15 @@
  * @format
  * @flow
  */
-import express from 'express';
 import moment from 'moment';
 import request from 'supertest';
-const {link_event} = require('../../models');
+const {link_event, controller, topology} = require('../../models');
 const {refreshNetworkHealth} = require('../model');
+import {getNetworkById} from '../network';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 import type {LinkEventAttributes} from '../../models/linkEvents';
+import type {NetworkInstanceConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {TopologyAttributes} from '@fbcnms/tg-nms/server/models/topology';
 
 jest.mock('request');
 jest.mock('../../models');
@@ -17,6 +20,105 @@ jest.mock('../../models');
 jest.mock('../../config', () => ({
   LINK_HEALTH_TIME_WINDOW_HOURS: 24,
 }));
+
+describe('create/update topology', () => {
+  test('/topology/create creates a new network', async () => {
+    const data: $Shape<NetworkInstanceConfig> = {
+      name: '<test>',
+      primary: {
+        api_ip: '127.0.0.1',
+        api_port: 9090,
+        e2e_ip: '127.0.0.1',
+        e2e_port: 17707,
+      },
+      prometheus_url: '[::]/prometheus',
+      queryservice_url: '[::]/queryservice',
+      alertmanager_url: '[::]/alertmanager_url',
+      alertmanager_config_url: '[::]/alertmanager_config_url',
+      prometheus_config_url: '[::]/prometheus_config_url',
+      event_alarm_url: '[::]/event_alarm_url',
+    };
+    const beforeCreated = await topology.findOne({
+      where: {name: '<test>'},
+    });
+    expect(beforeCreated).toBe(null);
+    const app = setupApp();
+    const _resp = await request(app)
+      .post(`/topology/create`)
+      .send(data)
+      .expect(200);
+    const created = await topology.findOne({
+      include: [
+        {
+          model: controller,
+          as: 'primary',
+        },
+        {
+          model: controller,
+          as: 'backup',
+        },
+      ],
+      where: {name: '<test>'},
+    });
+
+    expect(created).not.toBeNull();
+    expect(created).toMatchObject({
+      ...data,
+      primary: {...data.primary, id: expect.any(Number)},
+    });
+  });
+
+  test('/topology/update updates an existing network', async () => {
+    const networkId = 1;
+    await controller.create({
+      id: 1,
+      api_ip: '[::1]',
+      e2e_ip: '[::1]',
+      api_port: 8080,
+      e2e_port: 8081,
+    });
+    await topology.bulkCreate([
+      ({
+        id: networkId,
+        name: 'test',
+        primary_controller: 1,
+      }: $Shape<TopologyAttributes>),
+    ]);
+    const original = await getNetworkById(networkId);
+    expect(original).toMatchObject({
+      id: networkId,
+      name: 'test',
+      primary: {
+        id: 1,
+        api_ip: '[::1]',
+        e2e_ip: '[::1]',
+        api_port: 8080,
+        e2e_port: 8081,
+      },
+    });
+    const data: $Shape<NetworkInstanceConfig> = {
+      name: 'test-renamed',
+      primary: {
+        api_ip: '127.0.0.1',
+        api_port: 9090,
+        e2e_ip: '127.0.0.1',
+        e2e_port: 17707,
+      },
+      prometheus_url: '[::]/prometheus',
+      queryservice_url: '[::]/queryservice',
+    };
+    const app = setupApp();
+    const _resp = await request(app)
+      .post(`/topology/update/${networkId}`)
+      .send(data)
+      .expect(200);
+    const updated = await getNetworkById(networkId);
+    expect(updated).toMatchObject({
+      id: networkId,
+      ...data,
+    });
+  });
+});
 
 /*
  * WARNING: If these break, downstream services may be affected
@@ -52,10 +154,7 @@ describe('api contract tests', () => {
 });
 
 function setupApp() {
-  const app = express();
-  // $FlowFixMe
-  app.use('/topology', require('../routes'));
-  return app;
+  return setupTestApp('/topology', require('../routes'));
 }
 
 async function seedLinkHealth({

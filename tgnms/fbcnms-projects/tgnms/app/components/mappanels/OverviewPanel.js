@@ -158,26 +158,37 @@ class OverviewPanel extends React.Component<Props, State> {
 
     const cnQuery = avg(
       avgOverTime(
-        createQuery(metricName, {topologyName, intervalSec, cn: 'true'}),
+        createQuery(metricName, {
+          network: topologyName,
+          intervalSec,
+          cn: 'true',
+        }),
         '24h',
       ),
     );
 
     const dnQuery = avg(
       avgOverTime(
-        createQuery(metricName, {topologyName, intervalSec, cn: 'false'}),
+        createQuery(metricName, {
+          network: topologyName,
+          intervalSec,
+          cn: 'false',
+        }),
         '24h',
       ),
     );
 
     const allQuery = avg(
-      avgOverTime(createQuery(metricName, {topologyName, intervalSec}), '24h'),
+      avgOverTime(
+        createQuery(metricName, {network: topologyName, intervalSec}),
+        '24h',
+      ),
     );
 
     Promise.all([
-      queryLatest(cnQuery),
-      queryLatest(dnQuery),
-      queryLatest(allQuery),
+      queryLatest(cnQuery, topologyName),
+      queryLatest(dnQuery, topologyName),
+      queryLatest(allQuery, topologyName),
     ]).then(results => {
       this.setState(this.computeServiceAvailability(results));
     });

@@ -27,17 +27,19 @@ export type PromRangeQuery = {|
  * Utility functions
  */
 
-export function query(data: Object) {
+export function query(data: PromRangeQuery, networkName: string) {
+  const prometheusUrl = getPrometheusUrlForNetwork(networkName);
   return createPrometheusRequest({
-    uri: `${PROMETHEUS_URL}/api/v1/query_range`,
+    uri: `${prometheusUrl}/api/v1/query_range`,
     method: 'GET',
     qs: data,
   });
 }
 
-export function queryLatest(data: Object) {
+export function queryLatest(data: Object, networkName: string) {
+  const prometheusUrl = getPrometheusUrlForNetwork(networkName);
   return createPrometheusRequest({
-    uri: `${PROMETHEUS_URL}/api/v1/query`,
+    uri: `${prometheusUrl}/api/v1/query`,
     method: 'GET',
     qs: data,
   });
@@ -46,6 +48,7 @@ export function queryLatest(data: Object) {
 export function createPrometheusRequest<T>(options: {[string]: any}) {
   return new Promise<T>((resolve, reject) => {
     try {
+      logger.debug(`Prometheus request: ${options.uri}`);
       return request(options, (err, response) => {
         if (err) {
           return reject(err);
@@ -75,6 +78,15 @@ export function createPrometheusRequest<T>(options: {[string]: any}) {
       return reject(err);
     }
   });
+}
+
+function getPrometheusUrlForNetwork(networkName: string): string {
+  const state = getNetworkState(networkName);
+  const promUrl = state?.prometheus_url;
+  if (promUrl != null && promUrl.trim() !== '') {
+    return promUrl;
+  }
+  return PROMETHEUS_URL;
 }
 
 /**

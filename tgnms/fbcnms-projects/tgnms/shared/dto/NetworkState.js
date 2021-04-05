@@ -34,6 +34,13 @@ export type NetworkInstanceConfig = {|
   offline_whitelist: ?OfflineWhiteListType,
   wireless_controller: ?WirelessController,
   map_profile_id: ?number,
+  // stats urls
+  prometheus_url?: ?string,
+  queryservice_url?: ?string,
+  alertmanager_url?: ?string,
+  alertmanager_config_url?: ?string,
+  prometheus_config_url?: ?string,
+  event_alarm_url?: ?string,
 |};
 
 export type ServiceState = {|
@@ -123,7 +130,7 @@ export type E2EController = {|
   api_ip: string,
   api_port: number,
   controller_online?: boolean,
-  e2e_ip?: string,
+  e2e_ip: string,
   e2e_port: number,
   id?: number,
 |};

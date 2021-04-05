@@ -90,7 +90,7 @@ export default function CorrelationVisualization({
       ];
       const queries = metrics.map(metric =>
         createQuery(metric, {
-          topologyName: networkName,
+          network: networkName,
           intervalSec: INTERVAL_SEC,
         }),
       );

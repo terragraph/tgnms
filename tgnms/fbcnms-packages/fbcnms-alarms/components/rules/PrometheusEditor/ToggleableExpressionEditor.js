@@ -19,10 +19,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import useRouter from '../../../hooks/useRouter';
 import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
+import {useNetworkId} from '../../../components/hooks';
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
@@ -82,10 +82,10 @@ export default function ToggleableExpressionEditor(props: {
   onToggleChange: void => void,
 }) {
   const {apiUtil} = useAlarmContext();
-  const {match} = useRouter();
   const snackbars = useSnackbars();
+  const networkId = useNetworkId();
   const {response, error} = apiUtil.useAlarmsApi(apiUtil.getMetricNames, {
-    networkId: match.params.networkId,
+    networkId,
   });
 
   if (error) {
@@ -220,8 +220,7 @@ function ThresholdExpressionEditor({
   metricNames: Array<string>,
   onToggleChange: void => void,
 }) {
-  const {match} = useRouter();
-  const networkId = match?.params?.networkId ?? '';
+  const networkId = useNetworkId();
   const {apiUtil} = useAlarmContext();
   const {metricName} = expression;
   // mapping from label name to all values in response

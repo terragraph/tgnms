@@ -18,13 +18,13 @@ import SimpleTable from '../table/SimpleTable';
 import Slide from '@material-ui/core/Slide';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import useRouter from '../../hooks/useRouter';
 import {Link} from 'react-router-dom';
 import {SEVERITY} from '../severity/Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
+import {useNetworkId} from '../../components/hooks';
 import {useSnackbars} from '../../hooks/useSnackbar';
 
 import type {FiringAlarm} from '../AlarmAPIType';
@@ -57,11 +57,11 @@ export default function FiringAlerts() {
   );
   const [alertData, setAlertData] = useState<?Array<FiringAlarm>>(null);
   const classes = useStyles();
-  const {match} = useRouter();
   const snackbars = useSnackbars();
+  const networkId = useNetworkId();
   const {error, isLoading, response} = apiUtil.useAlarmsApi(
     apiUtil.viewFiringAlerts,
-    {networkId: match.params.networkId},
+    {networkId},
     lastRefreshTime,
   );
 
@@ -131,7 +131,7 @@ export default function FiringAlerts() {
             size="small"
             variant="contained"
             component={Link}
-            to={`/alarms/${match.params.networkName || ''}/rules`}>
+            to={`/alarms/${networkId || ''}/rules`}>
             Add Alert Rule
           </Button>
         </Grid>

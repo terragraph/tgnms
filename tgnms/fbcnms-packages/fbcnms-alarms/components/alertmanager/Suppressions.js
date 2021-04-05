@@ -14,10 +14,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import SimpleTable, {toLabels} from '../table/SimpleTable';
 import TableActionDialog from '../table/TableActionDialog';
-import useRouter from '../../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
+import {useNetworkId} from '../../components/hooks';
 import {useSnackbars} from '../../hooks/useSnackbar';
+
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -45,12 +46,11 @@ export default function Suppressions() {
   );
   const [_isAddEditAlert, _setIsAddEditAlert] = useState<boolean>(false);
   const classes = useStyles();
-  const {match} = useRouter();
   const snackbars = useSnackbars();
-
+  const networkId = useNetworkId();
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getSuppressions,
-    {networkId: match.params.networkId},
+    {networkId},
     lastRefreshTime,
   );
 

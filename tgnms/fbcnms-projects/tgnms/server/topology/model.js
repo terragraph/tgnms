@@ -133,7 +133,7 @@ export async function reloadInstanceConfig(): Promise<TopologyConfigMap> {
         networkState[topologyName] = ({}: $Shape<ServerNetworkState>);
       }
       const primaryController = topologyItem.primary;
-      topologyConfig[topologyName] = {
+      const networkInstance: $Shape<NetworkInstanceConfig> = {
         name: topologyName,
         id: topologyItem.id,
         offline_whitelist: topologyItem.offline_whitelist,
@@ -148,7 +148,14 @@ export async function reloadInstanceConfig(): Promise<TopologyConfigMap> {
         },
         controller_online: false,
         map_profile_id: topologyItem?.map_profile?.id,
+        prometheus_url: topologyItem.prometheus_url,
+        queryservice_url: topologyItem.queryservice_url,
+        alertmanager_url: topologyItem.alertmanager_url,
+        alertmanager_config_url: topologyItem.alertmanager_config_url,
+        prometheus_config_url: topologyItem.prometheus_config_url,
+        event_alarm_url: topologyItem.event_alarm_url,
       };
+      topologyConfig[topologyName] = networkInstance;
       if (topologyItem.backup) {
         const backupController = topologyItem.backup;
         topologyConfig[topologyName].backup = {

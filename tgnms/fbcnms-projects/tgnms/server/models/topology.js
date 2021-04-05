@@ -51,6 +51,38 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
         allowNull: true,
         type: DataTypes.INTEGER,
       },
+      prometheus_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      queryservice_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      prometheus_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      queryservice_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      alertmanager_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      alertmanager_config_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      prometheus_config_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      event_alarm_url: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
     },
     {
       freezeTableName: true,
@@ -91,6 +123,12 @@ export type TopologyAttributes = {|
     nodes: {[string]: boolean},
   },
   map_profile_id: ?number,
+  prometheus_url: ?string,
+  queryservice_url: ?string,
+  alertmanager_url: ?string,
+  alertmanager_config_url: ?string,
+  prometheus_config_url: ?string,
+  event_alarm_url: ?string,
   //associations
   primary: Controller,
   backup: Controller,

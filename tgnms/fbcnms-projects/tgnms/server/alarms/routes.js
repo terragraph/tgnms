@@ -11,20 +11,21 @@ import {
   PROMETHEUS_URL,
   TG_ALARM_URL,
 } from '../config';
-import type {ExpressRequest, ExpressResponse} from 'express';
-
 import {createErrorHandler, createRequest} from '../helpers/apiHelpers';
 const express = require('express');
 const {queryLatest} = require('../metrics/prometheus');
+import {getNetworkState} from '../topology/model';
+import type {ExpressRequest, ExpressResponse} from 'express';
+import type {NetworkState} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const router: express.Router<
   ExpressRequest,
   ExpressResponse,
 > = express.Router();
 
-router.get('/alerts', (req, res) =>
+router.get('/:networkName/alerts', (req, res) =>
   createRequest({
-    uri: formatAlertManagerUrl(`/api/v1/alerts`),
+    uri: formatAlertManagerUrl(req.params.networkName, `/api/v1/alerts`),
     method: req.method,
   })
     .then(response => {
@@ -38,9 +39,9 @@ router.get('/alerts', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.get('/silences', (req, res) =>
+router.get('/:networkName/silences', (req, res) =>
   createRequest({
-    uri: formatAlertManagerUrl(`/api/v1/silences`),
+    uri: formatAlertManagerUrl(req.params.networkName, `/api/v1/silences`),
     method: req.method,
   })
     .then(response =>
@@ -49,9 +50,9 @@ router.get('/silences', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.post('/alert_config', (req, res) => {
+router.post('/:networkName/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusConfigUrl(`/alert`),
+    uri: formatPrometheusConfigUrl(req.params.networkName, `/alert`),
     method: req.method,
     json: req.body,
   };
@@ -60,13 +61,16 @@ router.post('/alert_config', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.put('/alert_config/:alertName', (req, res) => {
+router.put('/:networkName/alert_config/:alertName', (req, res) => {
   const {alertName} = req.params;
   if (!alertName) {
     return res.status(400).json({error: 'invalid alertName'});
   }
   const params = {
-    uri: formatPrometheusConfigUrl(`/alert/${alertName}`),
+    uri: formatPrometheusConfigUrl(
+      req.params.networkName,
+      `/alert/${alertName}`,
+    ),
     method: req.method,
     json: req.body,
   };
@@ -75,9 +79,10 @@ router.put('/alert_config/:alertName', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.delete('/alert_config/:alertName', (req, res) => {
+router.delete('/:networkName/alert_config/:alertName', (req, res) => {
   const params = {
     uri: formatPrometheusConfigUrl(
+      req.params.networkName,
       `/alert/${encodeURLParam(req.params.alertName)}`,
     ),
     method: req.method,
@@ -93,9 +98,9 @@ router.delete('/alert_config/:alertName', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.get('/alert_config', (req, res) => {
+router.get('/:networkName/alert_config', (req, res) => {
   const params = {
-    uri: formatPrometheusConfigUrl(`/alert`),
+    uri: formatPrometheusConfigUrl(req.params.networkName, `/alert`),
     method: req.method,
     qs: req.query,
   };
@@ -104,18 +109,18 @@ router.get('/alert_config', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.get('/receivers', (req, res) =>
+router.get('/:networkName/receivers', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/receiver`),
+    uri: formatAlertManagerConfigUrl(req.params.networkName, `/receiver`),
     method: req.method,
     qs: req.query,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res)),
 );
-router.post('/receivers', (req, res) =>
+router.post('/:networkName/receivers', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/receiver`),
+    uri: formatAlertManagerConfigUrl(req.params.networkName, `/receiver`),
     method: req.method,
     json: req.body,
   })
@@ -123,19 +128,23 @@ router.post('/receivers', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.put('/receivers/:name', (req, res) =>
-  createRequest({
-    uri: formatAlertManagerConfigUrl(`/receiver/${req.params.name}`),
-    method: req.method,
-    json: req.body,
-  })
-    .then(response => res.status(response.statusCode).send(response.body))
-    .catch(createErrorHandler(res)),
-);
-
-router.delete('/receivers/:name', (req, res) =>
+router.put('/:networkName/receivers/:name', (req, res) =>
   createRequest({
     uri: formatAlertManagerConfigUrl(
+      req.params.networkName,
+      `/receiver/${req.params.name}`,
+    ),
+    method: req.method,
+    json: req.body,
+  })
+    .then(response => res.status(response.statusCode).send(response.body))
+    .catch(createErrorHandler(res)),
+);
+
+router.delete('/:networkName/receivers/:name', (req, res) =>
+  createRequest({
+    uri: formatAlertManagerConfigUrl(
+      req.params.networkName,
       `/receiver/${encodeURLParam(req.params.name)}`,
     ),
     method: req.method,
@@ -144,9 +153,9 @@ router.delete('/receivers/:name', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.get('/routes', (req, res) =>
+router.get('/:networkName/routes', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/route`),
+    uri: formatAlertManagerConfigUrl(req.params.networkName, `/route`),
     method: req.method,
     qs: req.query,
   })
@@ -156,9 +165,9 @@ router.get('/routes', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.post('/routes', (req, res) =>
+router.post('/:networkName/routes', (req, res) =>
   createRequest({
-    uri: formatAlertManagerConfigUrl(`/route`),
+    uri: formatAlertManagerConfigUrl(req.params.networkName, `/route`),
     method: req.method,
     json: req.body,
   })
@@ -168,18 +177,18 @@ router.post('/routes', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.get('/tg_rules', (req, res) =>
+router.get('/:networkName/tg_rules', (req, res) =>
   createRequest({
-    uri: formatTgAlarmServiceUrl(`/rules`),
+    uri: formatTgAlarmServiceUrl(req.params.networkName, `/rules`),
     method: req.method,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res)),
 );
 
-router.post('/tg_rule_add', (req, res) =>
+router.post('/:networkName/tg_rule_add', (req, res) =>
   createRequest({
-    uri: formatTgAlarmServiceUrl(`/add_rule`),
+    uri: formatTgAlarmServiceUrl(req.params.networkName, `/add_rule`),
     method: req.method,
     json: req.body,
   })
@@ -189,9 +198,9 @@ router.post('/tg_rule_add', (req, res) =>
     .catch(createErrorHandler(res)),
 );
 
-router.post('/tg_rule_del', (req, res) =>
+router.post('/:networkName/tg_rule_del', (req, res) =>
   createRequest({
-    uri: formatTgAlarmServiceUrl(`/del_rule`),
+    uri: formatTgAlarmServiceUrl(req.params.networkName, `/del_rule`),
     method: req.method,
     qs: req.query,
   })
@@ -200,61 +209,87 @@ router.post('/tg_rule_del', (req, res) =>
 );
 
 // matching alerts (count only)
-router.get('/matching_alerts/:alertExpr', (req, res) => {
-  queryLatest({query: `count(${req.params.alertExpr})`})
+router.get('/:networkName/matching_alerts/:alertExpr', (req, res) => {
+  const networkName = req.params.networkName;
+  queryLatest({query: `count(${req.params.alertExpr})`}, networkName)
     .then(response => res.status(200).send(response))
     .catch(createErrorHandler(res));
 });
 
-router.post('/globalconfig', (req, res) =>
-  createRequest({
-    uri: `${ALERTMANAGER_CONFIG_URL}/v1/global`,
+router.post('/:networkName/globalconfig', (req, res) => {
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.alertmanager_config_url,
+    ALERTMANAGER_CONFIG_URL,
+  );
+  return createRequest({
+    uri: `${baseUrl}/v1/global`,
     method: req.method,
     json: req.body,
   })
     .then(response => res.status(response.statusCode).send(response.body))
-    .catch(createErrorHandler(res)),
-);
+    .catch(createErrorHandler(res));
+});
 
-router.get('/globalconfig', (req, res) => {
+router.get('/:networkName/globalconfig', (req, res) => {
   return createRequest({
-    uri: formatAlertManagerConfigUrl('/global'),
+    uri: formatAlertManagerConfigUrl(req.params.networkName, '/global'),
     method: req.method,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res));
 });
 
-router.get('/tenants', (req, res) => {
+router.get('/:networkName/tenants', (req, res) => {
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.alertmanager_config_url,
+    ALERTMANAGER_CONFIG_URL,
+  );
   return createRequest({
-    uri: `${ALERTMANAGER_CONFIG_URL}/v1/tenants`,
+    uri: `${baseUrl}/v1/tenants`,
     method: req.method,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res));
 });
 
-router.get('am_tenancy', (req, res) => {
+router.get('/:networkName/am_tenancy', (req, res) => {
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.alertmanager_config_url,
+    ALERTMANAGER_CONFIG_URL,
+  );
   return createRequest({
-    uri: `${ALERTMANAGER_CONFIG_URL}/v1/tenancy`,
+    uri: `${baseUrl}/v1/tenancy`,
     method: req.method,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res));
 });
 
-router.get('prom_tenancy', (req, res) => {
+router.get('/:networkName/prom_tenancy', (req, res) => {
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.prometheus_config_url,
+    PROMETHEUS_CONFIG_URL,
+  );
   return createRequest({
-    uri: `${PROMETHEUS_CONFIG_URL}/v1/tenancy`,
+    uri: `${baseUrl}/v1/tenancy`,
     method: req.method,
   })
     .then(response => res.status(response.statusCode).send(response.body))
     .catch(createErrorHandler(res));
 });
 
-router.get('/metric_names', (req, res) => {
+router.get('/:networkName/metric_names', (req, res) => {
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.prometheus_url,
+    PROMETHEUS_URL,
+  );
   return createRequest({
-    uri: `${PROMETHEUS_URL}/api/v1/label/__name__/values`,
+    uri: `${baseUrl}/api/v1/label/__name__/values`,
     method: 'GET',
   })
     .then(response => {
@@ -268,7 +303,7 @@ router.get('/metric_names', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-router.get('/metric_series/:name', (req, res) => {
+router.get('/:networkName/metric_series/:name', (req, res) => {
   let startTimeString: string;
   if (typeof req.query.start === 'string') {
     startTimeString = req.query.start;
@@ -284,8 +319,13 @@ router.get('/metric_series/:name', (req, res) => {
     startTime.setDate(startTime.getDate() - METRIC_SERIES_DATE_OFFSET);
     startTimeString = startTime.toISOString();
   }
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.prometheus_url,
+    PROMETHEUS_URL,
+  );
   return createRequest({
-    uri: `${PROMETHEUS_URL}/api/v1/series?start=${startTimeString}&match[]={__name__="${req.params.name}"}`,
+    uri: `${baseUrl}/api/v1/series?start=${startTimeString}&match[]={__name__="${req.params.name}"}`,
     method: 'GET',
   })
     .then(response => {
@@ -299,20 +339,56 @@ router.get('/metric_series/:name', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
-function formatAlertManagerConfigUrl(uri) {
-  return `${ALERTMANAGER_CONFIG_URL}/v1/tg${uri}`;
+function formatPrometheusConfigUrl(networkName: string, uri: string) {
+  const baseUrl = getNetworkProperty(
+    networkName,
+    state => state.prometheus_config_url,
+    PROMETHEUS_CONFIG_URL,
+  );
+  return `${baseUrl}/v1/tg${uri}`;
 }
 
-function formatPrometheusConfigUrl(uri) {
-  return `${PROMETHEUS_CONFIG_URL}/v1/tg${uri}`;
+function formatAlertManagerUrl(networkName: string, uri: string) {
+  const baseUrl = getNetworkProperty(
+    networkName,
+    state => state.alertmanager_url,
+    ALERTMANAGER_URL,
+  );
+  return `${baseUrl}${uri}`;
 }
 
-function formatAlertManagerUrl(uri) {
-  return `${ALERTMANAGER_URL}${uri}`;
+function formatAlertManagerConfigUrl(networkName: string, uri: string) {
+  const baseUrl = getNetworkProperty(
+    networkName,
+    state => state.alertmanager_config_url,
+    ALERTMANAGER_CONFIG_URL,
+  );
+  return `${baseUrl}/v1/tg${uri}`;
 }
 
-function formatTgAlarmServiceUrl(uri) {
-  return `${TG_ALARM_URL}${uri}`;
+function formatTgAlarmServiceUrl(networkName: string, uri: string) {
+  const baseUrl = getNetworkProperty(
+    networkName,
+    state => state.event_alarm_url,
+    TG_ALARM_URL,
+  );
+  return `${baseUrl}${uri}`;
+}
+
+function getNetworkProperty(
+  networkName,
+  getProp: NetworkState => ?string,
+  fallback: string,
+) {
+  const state = getNetworkState(networkName);
+  if (state == null) {
+    return fallback;
+  }
+  const prop = getProp(state);
+  if (prop != null && prop.trim() !== '') {
+    return prop;
+  }
+  return fallback;
 }
 
 function encodeURLParam(str) {

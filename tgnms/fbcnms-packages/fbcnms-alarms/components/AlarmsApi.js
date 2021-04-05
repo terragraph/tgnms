@@ -21,7 +21,7 @@ import type {
 import type {CancelToken} from 'axios';
 
 export type ApiRequest = {
-  networkId?: string,
+  networkId: string,
   cancelToken?: CancelToken,
 };
 

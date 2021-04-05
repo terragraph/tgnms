@@ -97,6 +97,12 @@ type State = {
   wacUrl: string,
   wacUsername: string,
   wacPassword: string,
+  prometheus_url: string,
+  queryservice_url: string,
+  alertmanager_url: ?string,
+  alertmanager_config_url: ?string,
+  prometheus_config_url: ?string,
+  event_alarm_url: ?string,
   formErrors: {},
 };
 
@@ -130,6 +136,12 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       backupE2eIp: networkConfig.backup?.e2e_ip ?? '',
       backupApiPort: networkConfig.backup?.api_port ?? 0,
       backupE2ePort: networkConfig.backup?.e2e_port ?? 0,
+      prometheus_url: networkConfig.prometheus_url ?? '',
+      queryservice_url: networkConfig.queryservice_url ?? '',
+      alertmanager_url: networkConfig.alertmanager_url ?? '',
+      alertmanager_config_url: networkConfig.alertmanager_config_url ?? '',
+      prometheus_config_url: networkConfig.prometheus_config_url ?? '',
+      event_alarm_url: networkConfig.event_alarm_url ?? '',
       wacType: networkConfig.wireless_controller?.type || WAC_TYPES.none,
       wacUrl: networkConfig.wireless_controller
         ? networkConfig.wireless_controller.url
@@ -138,7 +150,6 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         ? networkConfig.wireless_controller.username
         : '',
       wacPassword: '' /* we don't pass this from the server */,
-
       formErrors: {},
     };
   }
@@ -167,6 +178,8 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       backupApiPort,
       backupE2eIp,
       backupE2ePort,
+      prometheus_url,
+      queryservice_url,
       wacType,
       wacUrl,
       wacUsername,
@@ -240,6 +253,8 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         e2e_ip: backupE2eIp ? backupE2eIp.trim() : '',
         e2e_port: formParseInt(this.state.backupE2ePort),
       },
+      prometheus_url,
+      queryservice_url,
       ...(wacType !== WAC_TYPES.none
         ? {
             wireless_controller: {
@@ -338,6 +353,37 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
         label: 'Backup E2E Port',
         value: 'backupE2ePort',
         step: 1,
+      },
+      {_heading: 'Stats', func: () => null},
+      {
+        func: createTextInput,
+        label: 'Prometheus URL',
+        value: 'prometheus_url',
+      },
+      {
+        func: createTextInput,
+        label: 'Queryservice URL',
+        value: 'queryservice_url',
+      },
+      {
+        func: createTextInput,
+        label: 'Alertmanager URL',
+        value: 'alertmanager_url',
+      },
+      {
+        func: createTextInput,
+        label: 'Alertmanager Config URL',
+        value: 'alertmanager_config_url',
+      },
+      {
+        func: createTextInput,
+        label: 'Prometheus Config URL',
+        value: 'prometheus_config_url',
+      },
+      {
+        func: createTextInput,
+        label: 'Event Alarms URL',
+        value: 'event_alarm_url',
       },
       {_heading: 'Wireless AP Controller', func: () => null},
       {

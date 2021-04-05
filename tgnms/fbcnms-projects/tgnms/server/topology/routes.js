@@ -81,7 +81,7 @@ router.post(
   async (req: Request, res: Response, _next) => {
     // Update an existing network
     const {networkId} = req.params;
-    const topologyData = req.body;
+    const topologyData: $Shape<NetworkInstanceConfig> = req.body;
     try {
       // Fetch network by ID
       const network: ?Topology = await getNetworkById(networkId);
@@ -93,6 +93,12 @@ router.post(
         network.name = topologyData.name;
         await network.save();
       }
+      network.prometheus_url = topologyData.prometheus_url;
+      network.queryservice_url = topologyData.queryservice_url;
+      network.alertmanager_url = topologyData.alertmanager_url;
+      network.alertmanager_config_url = topologyData.alertmanager_config_url;
+      network.prometheus_config_url = topologyData.prometheus_config_url;
+      network.event_alarm_url = topologyData.event_alarm_url;
 
       // Update primary controller
       if (network.primary.id) {
@@ -111,19 +117,25 @@ router.post(
         network.primary_controller = primaryController.id;
         await network.save();
       }
+      const backupTopology = topologyData.backup ?? {
+        api_ip: '',
+        e2e_ip: '',
+        api_port: 0,
+        e2e_port: 0,
+      };
       // Update backup controller
-      if (network.backup.id) {
-        network.backup.api_ip = topologyData.backup.api_ip;
-        network.backup.e2e_ip = topologyData.backup.e2e_ip;
-        network.backup.api_port = topologyData.backup.api_port;
-        network.backup.e2e_port = topologyData.backup.e2e_port;
+      if (network.backup?.id) {
+        network.backup.api_ip = backupTopology.api_ip;
+        network.backup.e2e_ip = backupTopology.e2e_ip;
+        network.backup.api_port = backupTopology.api_port;
+        network.backup.e2e_port = backupTopology.e2e_port;
         await network.backup.save();
       } else {
         const backupController = await createController(
-          topologyData.backup.api_ip,
-          topologyData.backup.e2e_ip,
-          topologyData.backup.api_port,
-          topologyData.backup.e2e_port,
+          backupTopology.api_ip,
+          backupTopology.e2e_ip,
+          backupTopology.api_port,
+          backupTopology.e2e_port,
         );
         network.backup_controller = backupController.id;
         await network.save();
@@ -143,7 +155,10 @@ router.post(
         } else {
           await network.wac.destroy();
         }
-      } else if (topologyData.wireless_controller) {
+      } else if (
+        topologyData.wireless_controller &&
+        topologyData.wireless_controller?.password != null
+      ) {
         const wirelessController = await createWirelessController(
           topologyData.wireless_controller.type,
           topologyData.wireless_controller.url,
@@ -157,6 +172,7 @@ router.post(
       await reloadInstanceConfig();
       res.end();
     } catch (err) {
+      logger.error(err);
       res.status(500).json({msg: 'Unable to update network'});
     }
   },
@@ -164,7 +180,7 @@ router.post(
 
 router.post('/create', async (req: Request, res: Response, _next) => {
   // Create a new network
-  const networkConfig: NetworkInstanceConfig = req.body;
+  const networkConfig: $Shape<NetworkInstanceConfig> = req.body;
   try {
     // basic sanity checks
     if (
@@ -188,6 +204,13 @@ router.post('/create', async (req: Request, res: Response, _next) => {
       networkConfig.primary.e2e_port,
     );
     const network = await createNetwork(networkConfig.name, primaryController);
+    network.prometheus_url = networkConfig.prometheus_url;
+    network.queryservice_url = networkConfig.queryservice_url;
+    network.alertmanager_url = networkConfig.alertmanager_url;
+    network.alertmanager_config_url = networkConfig.alertmanager_config_url;
+    network.prometheus_config_url = networkConfig.prometheus_config_url;
+    network.event_alarm_url = networkConfig.event_alarm_url;
+    await network.save();
     if (networkConfig.backup) {
       const backupController = await createController(
         networkConfig.backup.api_ip,

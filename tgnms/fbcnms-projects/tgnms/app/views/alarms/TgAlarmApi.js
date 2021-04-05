@@ -14,110 +14,118 @@ import type {EventRule} from './eventalarms/EventAlarmsTypes';
 export const AM_BASE_URL = '/alarms';
 export const TgApiUtil: ApiUtil = {
   useAlarmsApi: useApi,
-  viewFiringAlerts: _req =>
+  viewFiringAlerts: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/alerts`,
+      url: `${AM_BASE_URL}/${networkId}/alerts`,
     }),
-  viewMatchingAlerts: ({expression}) =>
-    makeRequest({url: `${AM_BASE_URL}/matching_alerts/${expression}`}),
-  createAlertRule: ({rule}) =>
+  viewMatchingAlerts: ({expression, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/alert_config`,
+      url: `${AM_BASE_URL}/${networkId}/matching_alerts/${expression}`,
+    }),
+  createAlertRule: ({rule, networkId}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/${networkId}/alert_config`,
       method: 'POST',
       data: rule,
     }),
-  editAlertRule: ({rule}) =>
+  editAlertRule: ({rule, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/alert_config/${rule.alert}`,
+      url: `${AM_BASE_URL}/${networkId}/alert_config/${rule.alert}`,
       data: rule,
       method: 'PUT',
     }),
-  getAlertRules: _req =>
+  getAlertRules: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/alert_config`,
+      url: `${AM_BASE_URL}/${networkId}/alert_config`,
       method: 'GET',
     }),
-  deleteAlertRule: ({ruleName}) =>
+  deleteAlertRule: ({ruleName, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/alert_config/${ruleName}`,
+      url: `${AM_BASE_URL}/${networkId}/alert_config/${ruleName}`,
       method: 'DELETE',
     }),
 
   // suppressions
-  getSuppressions: _req =>
+  getSuppressions: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/silences`,
+      url: `${AM_BASE_URL}/${networkId}/silences`,
       method: 'GET',
     }),
 
   // receivers
-  createReceiver: ({receiver}) =>
+  createReceiver: ({receiver, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/receivers`,
+      url: `${AM_BASE_URL}/${networkId}/receivers`,
       method: 'POST',
       data: receiver,
     }),
-  editReceiver: ({receiver}) =>
+  editReceiver: ({receiver, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/receivers/${receiver.name}`,
+      url: `${AM_BASE_URL}/${networkId}/receivers/${receiver.name}`,
       method: 'PUT',
       data: receiver,
     }),
-  getReceivers: _req =>
+  getReceivers: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/receivers`,
+      url: `${AM_BASE_URL}/${networkId}/receivers`,
       method: 'GET',
     }),
-  deleteReceiver: ({receiverName}) =>
+  deleteReceiver: ({receiverName, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/receivers/${receiverName}`,
+      url: `${AM_BASE_URL}/${networkId}/receivers/${receiverName}`,
       method: 'DELETE',
     }),
 
   // routes
-  getRouteTree: _req =>
+  getRouteTree: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/routes`,
+      url: `${AM_BASE_URL}/${networkId}/routes`,
       method: 'GET',
     }),
-  editRouteTree: req =>
+  editRouteTree: ({route, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/routes`,
+      url: `${AM_BASE_URL}/${networkId}/routes`,
       method: 'POST',
-      data: req.route,
+      data: route,
     }),
 
   //TODO RENAME
   // metric series
 
-  getMetricNames: _req =>
+  getMetricNames: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/metric_names`,
+      url: `${AM_BASE_URL}/${networkId}/metric_names`,
       method: 'GET',
     }),
-  getMetricSeries: ({name}) =>
+  getMetricSeries: ({name, networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/metric_series/${name}`,
+      url: `${AM_BASE_URL}/${networkId}/metric_series/${name}`,
       method: 'GET',
     }),
 
   // global config
-  getGlobalConfig: _req =>
-    makeRequest({url: `${AM_BASE_URL}/globalconfig`, method: 'GET'}),
-  editGlobalConfig: ({config}) =>
+  getGlobalConfig: ({networkId}) =>
     makeRequest({
-      url: `${AM_BASE_URL}/globalconfig`,
+      url: `${AM_BASE_URL}/${networkId}/globalconfig`,
+      method: 'GET',
+    }),
+  editGlobalConfig: ({config, networkId}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/${networkId}/globalconfig`,
       method: 'POST',
       data: config,
     }),
 
   // Tenants
-  getTenants: _req =>
-    makeRequest({url: `${AM_BASE_URL}/tenants`, method: 'GET'}),
-  getAlertmanagerTenancy: _req =>
-    makeRequest({url: `${AM_BASE_URL}/am_tenancy`, method: 'GET'}),
-  getPrometheusTenancy: _req =>
-    makeRequest({url: `${AM_BASE_URL}/prom_tenancy`, method: 'GET'}),
+  getTenants: ({networkId}) =>
+    makeRequest({url: `${AM_BASE_URL}/${networkId}/tenants`, method: 'GET'}),
+  getAlertmanagerTenancy: ({networkId}) =>
+    makeRequest({url: `${AM_BASE_URL}/${networkId}/am_tenancy`, method: 'GET'}),
+  getPrometheusTenancy: ({networkId}) =>
+    makeRequest({
+      url: `${AM_BASE_URL}/${networkId}/prom_tenancy`,
+      method: 'GET',
+    }),
 };
 
 export const TgEventAlarmsApiUtil = {

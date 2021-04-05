@@ -178,7 +178,7 @@ export default function MapHistoryOverlayPanel({}: Props) {
       ];
       const queries = prometheusIds.map(prometheusId =>
         createQuery(prometheusId, {
-          topologyName: networkName,
+          network: networkName,
           intervalSec: INTERVAL_SEC,
         }),
       );

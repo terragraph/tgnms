@@ -9,7 +9,6 @@ import * as React from 'react';
 import PriorityHighIcon from '@material-ui/icons/PriorityHigh';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {Popup} from 'react-mapbox-gl';
 import {SEVERITY} from '@fbcnms/alarms/components/severity/Severity';
 import {TgApiUtil} from '../../alarms/TgAlarmApi';
@@ -18,6 +17,7 @@ import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
 import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {useNetworkId} from '@fbcnms/alarms/components/hooks';
 
 import type {LinkType, NodeType} from '../../../../shared/types/Topology';
 
@@ -68,7 +68,6 @@ const useStyles = makeStyles(theme => ({
 
 export default function AlertsLayer() {
   const networkContext = useNetworkContext();
-  const {match} = useRouter();
   const classes = useStyles();
   const history = useHistory();
 
@@ -84,10 +83,10 @@ export default function AlertsLayer() {
   };
 
   const networkContextRef = React.useRef(networkContext);
-
+  const networkId = useNetworkId();
   const {response} = TgApiUtil.useAlarmsApi(
     TgApiUtil.viewFiringAlerts,
-    {networkId: match.params.networkId},
+    {networkId},
     lastRefreshTime,
   );
 

@@ -8,10 +8,10 @@
 import axios from 'axios';
 
 /**
- * 'topologyName' and 'intervalSec' are mandatory Prometheus query labels
+ * 'network' and 'intervalSec' are mandatory Prometheus query labels
  */
 type QueryLabels = {
-  topologyName: string,
+  network: string,
   intervalSec: number,
   [string]: any,
 };
@@ -49,11 +49,11 @@ export const createQuery = (
   metricName: string,
   labels: QueryLabels,
 ): string => {
-  const {topologyName, intervalSec, ...extras} = labels;
+  const {network, intervalSec, ...extras} = labels;
 
   const labelStr = Object.keys(extras)
     .map(label => `${label}="${extras[label]}"`)
-    .concat([`network="${topologyName}"`, `intervalSec="${intervalSec}"`])
+    .concat([`network="${network}"`, `intervalSec="${intervalSec}"`])
     .join(', ');
 
   return `${metricName}{${labelStr}}`;
@@ -84,8 +84,9 @@ export const query = (
   start: number,
   end: number,
   step: number,
+  networkName: string,
 ): Promise<any> => {
-  return axios.get('/metrics/query/raw', {
+  return axios.get(`/metrics/${networkName}/query/raw`, {
     params: {
       query: query,
       start: start,
@@ -103,13 +104,12 @@ export const queryDataArray = (
   step: number,
   networkName: string,
 ): Promise<any> => {
-  return axios.get('/metrics/query/dataArray', {
+  return axios.get(`/metrics/${networkName}/query/dataArray`, {
     params: {
       queries: queries,
       start: start,
       end: end,
       step: step,
-      topologyName: networkName,
     },
   });
 };
@@ -119,8 +119,9 @@ export const querySince = (
   step: number,
   value: number,
   units: string,
+  networkName: string,
 ): Promise<any> => {
-  return axios.get('/metrics/query/since', {
+  return axios.get(`/metrics/${networkName}/query/since`, {
     params: {
       query: query,
       value: value,
@@ -130,6 +131,11 @@ export const querySince = (
   });
 };
 
-export const queryLatest = (query: string): Promise<any> => {
-  return axios.get('/metrics/query/raw/latest', {params: {query: query}});
+export const queryLatest = (
+  query: string,
+  networkName: string,
+): Promise<any> => {
+  return axios.get(`/metrics/${networkName}/query/raw/latest`, {
+    params: {query: query},
+  });
 };

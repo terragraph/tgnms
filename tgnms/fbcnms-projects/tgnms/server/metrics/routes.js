@@ -25,18 +25,20 @@ const {
 const router = createApi();
 
 /** Query raw stats given a "start" and "end" timestamp */
-router.get('/query/raw', (req, res) => {
-  query(req.query)
+router.get('/:networkName/query/raw', (req, res) => {
+  const networkName = req.params.networkName;
+  query(req.query, networkName)
     .then(response => res.status(200).send(response))
     .catch(createErrorHandler(res));
 });
 
 /** Query an array of metric based stats given a "start" and "end" timestamp */
-router.get('/query/dataArray', (req, res) => {
+router.get('/:networkName/query/dataArray', (req, res) => {
   const {queries, start, end, step} = req.query;
   if (queries == null || !Array.isArray(queries)) {
     return res.status(400).json({error: 'queries must be an array'});
   }
+  const networkName = req.params.networkName;
   Promise.all(
     queries.map((queryString: string) => {
       const data = {
@@ -45,7 +47,7 @@ router.get('/query/dataArray', (req, res) => {
         end: end,
         step: step,
       };
-      return query(data);
+      return query(data, networkName);
     }),
   )
     .then(responses => {
@@ -59,7 +61,7 @@ router.get('/query/dataArray', (req, res) => {
 });
 
 /** Query raw stats given a relative time (e.g. 5 minutes ago) */
-router.get('/query/raw/since', (req, res) => {
+router.get('/:networkName/query/raw/since', (req, res) => {
   const end = moment().unix();
   const {value, units} = req.query;
   if (
@@ -70,8 +72,8 @@ router.get('/query/raw/since', (req, res) => {
   ) {
     return res.status(400).send({error: 'invalid query'});
   }
+  const networkName = req.params.networkName;
   const start = moment().subtract(value, units).unix();
-
   const data = {
     query: req.query.query,
     start: start,
@@ -79,14 +81,15 @@ router.get('/query/raw/since', (req, res) => {
     step: req.query.step,
   };
 
-  query(data)
+  query(data, networkName)
     .then(response => res.status(200).send(response))
     .catch(createErrorHandler(res));
 });
 
 /** Query the latest stat */
-router.get('/query/raw/latest', (req, res) => {
-  queryLatest(req.query)
+router.get('/:networkName/query/raw/latest', (req, res) => {
+  const networkName = req.params.networkName;
+  queryLatest(req.query, networkName)
     .then(response => res.status(200).send(response))
     .catch(createErrorHandler(res));
 });
@@ -106,32 +109,36 @@ router.get('/search/:searchTerm', (req, res) => {
 });
 
 /** Query for latest value for a single metric across the network */
-router.get('/overlay/linkStat/:topologyName/:metricNames', (req, res) => {
-  const {metricNames, topologyName} = req.params;
+router.get('/:networkName/overlay/linkStat/:metricNames', (req, res) => {
+  const {metricNames, networkName} = req.params;
   const metricNameList = metricNames.split(',');
 
   // Query all metrics, flatten results (if needed), and return a result set
   Promise.all(
     metricNameList.map(metricName => {
-      return queryLatest({
-        query: `${metricName}{network="${topologyName}", intervalSec="${DS_INTERVAL_SEC}"}`,
-      });
+      return queryLatest(
+        {
+          query: `${metricName}{network="${networkName}", intervalSec="${DS_INTERVAL_SEC}"}`,
+        },
+        networkName,
+      );
     }),
   )
     .then(flattenPrometheusResponse)
-    .then(result => groupByLink(result, topologyName))
+    .then(result => groupByLink(result, networkName))
     .then(result => res.json(result))
     .catch(createErrorHandler(res));
 });
 
 /** Query for the latest data point only and format by link */
-router.get('/query/link/latest', (req, res) => {
-  const {query, topologyName} = req.query;
+router.get('/:networkName/query/link/latest', (req, res) => {
+  const topologyName = req.params.networkName;
+  const {query} = req.query;
   if (typeof topologyName !== 'string' || topologyName === '') {
     return res.status(400).json({error: 'topologyName missing from query'});
   }
 
-  queryLatest({query: query})
+  queryLatest({query: query}, topologyName)
     .then(flattenPrometheusResponse)
     .then(result => {
       return groupByLink(
@@ -146,43 +153,46 @@ router.get('/query/link/latest', (req, res) => {
 
 // raw stats data
 router.get(
-  '/link_analyzer/:topologyName',
+  '/:networkName/link_analyzer',
   (req: ExpressRequest, res: ExpressResponse, _next) => {
-    const topologyName = req.params.topologyName;
+    const networkName = req.params.networkName;
     const timeWindow = '[1h]';
     // the outer subquery requires slightly different syntax
     // [<range>:[<resolution>]]
     const timeWindowSubquery = '[1h:]';
     const prometheusQueryList = ['snr', 'mcs', 'tx_power'].map(metricName => ({
       metricName: `avg_${metricName}`,
-      prometheusQuery: `avg_over_time(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+      prometheusQuery: `avg_over_time(${metricName}{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
     }));
     prometheusQueryList.push({
       metricName: 'flaps',
-      prometheusQuery: `resets(fw_uptime{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+      prometheusQuery: `resets(fw_uptime{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
     });
     prometheusQueryList.push({
       metricName: 'avg_per',
-      prometheusQuery: `avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) / (avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}))`,
+      prometheusQuery: `avg_over_time(rate(tx_fail{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) / (avg_over_time(rate(tx_fail{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_ok{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}))`,
     });
     prometheusQueryList.push({
       metricName: 'avg_tput',
-      prometheusQuery: `avg_over_time(rate(tx_ok{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_fail{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery})`,
+      prometheusQuery: `avg_over_time(rate(tx_ok{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery}) + avg_over_time(rate(tx_fail{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})${timeWindowSubquery})`,
     });
     prometheusQueryList.push({
       metricName: 'tx_beam_idx',
-      prometheusQuery: `tx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+      prometheusQuery: `tx_beam_idx{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}`,
     });
     prometheusQueryList.push({
       metricName: 'rx_beam_idx',
-      prometheusQuery: `rx_beam_idx{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}`,
+      prometheusQuery: `rx_beam_idx{network="${networkName}",intervalSec="${DS_INTERVAL_SEC}"}`,
     });
     // TODO - add availability once published as a stat
     Promise.all(
       prometheusQueryList.map(({prometheusQuery}) => {
-        return queryLatest({
-          query: prometheusQuery,
-        });
+        return queryLatest(
+          {
+            query: prometheusQuery,
+          },
+          networkName,
+        );
       }),
     )
       .then(response =>
@@ -192,16 +202,16 @@ router.get(
         ),
       )
       .then(flattenPrometheusResponse)
-      .then(result => groupByLink(result, topologyName, true))
+      .then(result => groupByLink(result, networkName, true))
       .then(result => res.json(result))
       .catch(createErrorHandler(res));
   },
 );
 
 router.get(
-  '/node_health/:topologyName',
+  '/:networkName/node_health',
   (req: ExpressRequest, res: ExpressResponse, _next) => {
-    const topologyName = req.params.topologyName;
+    const topologyName = req.params.networkName;
     // this is set statically in NetworkNodesTable
     // TODO - make this configurable
     const timeWindow = '[24h]';
@@ -213,9 +223,12 @@ router.get(
 
     Promise.all(
       prometheusQueryList.map(({prometheusQuery}) => {
-        return queryLatest({
-          query: prometheusQuery,
-        });
+        return queryLatest(
+          {
+            query: prometheusQuery,
+          },
+          topologyName,
+        );
       }),
     )
       .then(response =>

@@ -93,7 +93,7 @@ export default function DefaultOverlayPanel() {
           : overlay.id;
         try {
           const response = await axios.get<{}, {}>(
-            `/metrics/overlay/linkStat/${networkName}/${metricNames}`,
+            `/metrics/${networkName}/overlay/linkStat/${metricNames}`,
           );
           setOverlayData({link_lines: response.data});
         } catch (error) {

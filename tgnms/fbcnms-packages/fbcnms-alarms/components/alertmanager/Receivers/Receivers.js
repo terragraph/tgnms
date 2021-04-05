@@ -20,9 +20,9 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SimpleTable from '../../table/SimpleTable';
 import TableActionDialog from '../../table/TableActionDialog';
 import TableAddButton from '../../table/TableAddButton';
-import useRouter from '../../../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
+import {useNetworkId} from '../../../components/hooks';
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {AlertReceiver} from '../../AlarmAPIType';
@@ -51,8 +51,8 @@ export default function Receivers() {
   const [lastRefreshTime, setLastRefreshTime] = React.useState<string>(
     new Date().toLocaleString(),
   );
+  const networkId = useNetworkId();
   const classes = useStyles();
-  const {match} = useRouter();
   const snackbars = useSnackbars();
   const handleActionsMenuOpen = React.useCallback(
     (row: AlertReceiver, eventTarget: HTMLElement) => {
@@ -80,7 +80,7 @@ export default function Receivers() {
       try {
         if (selectedRow) {
           await apiUtil.deleteReceiver({
-            networkId: match.params.networkId,
+            networkId,
             receiverName: selectedRow.name,
           });
           snackbars.success(`Successfully deleted receiver`);
@@ -97,7 +97,7 @@ export default function Receivers() {
       }
     }
     makeRequest();
-  }, [apiUtil, match.params.networkId, selectedRow, snackbars]);
+  }, [apiUtil, networkId, selectedRow, snackbars]);
 
   const handleViewDialogOpen = React.useCallback(() => {
     setIsDialogOpen(true);
@@ -110,7 +110,7 @@ export default function Receivers() {
 
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getReceivers,
-    {networkId: match.params.networkId},
+    {networkId},
     lastRefreshTime,
   );
 

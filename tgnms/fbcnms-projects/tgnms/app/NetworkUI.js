@@ -236,16 +236,15 @@ class NetworkUI extends React.Component<Props, State> {
       });
 
     axios
-      .get('/metrics/query/link/latest', {
+      .get(`/metrics/${networkName}/query/link/latest`, {
         params: {
           query: increase(
             createQuery('link_attempts', {
-              topologyName: networkName,
+              network: networkName,
               intervalSec: 30,
             }),
             '1d',
           ),
-          topologyName: networkName,
         },
       })
       .then(linkMetricsResp => {

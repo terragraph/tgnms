@@ -23,6 +23,7 @@ import Typography from '@material-ui/core/Typography';
 import useForm from '../../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
+import {useNetworkId} from '../../../components/hooks';
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
@@ -55,9 +56,10 @@ export default function GlobalConfig(props: Props) {
   const {apiUtil} = useAlarmContext();
   const snackbars = useSnackbars();
   const [lastRefreshTime, _setLastRefreshTime] = React.useState(new Date());
+  const networkId = useNetworkId();
   const {response, isLoading} = apiUtil.useAlarmsApi(
     apiUtil.getGlobalConfig,
-    {},
+    {networkId},
     lastRefreshTime.toLocaleString(),
   );
 
@@ -92,6 +94,7 @@ export default function GlobalConfig(props: Props) {
       const formStateCleaned = removeEmptys(formState);
       await apiUtil.editGlobalConfig({
         config: formStateCleaned,
+        networkId,
       });
       snackbars.success('Successfully saved global config');
     } catch (error) {
@@ -101,7 +104,7 @@ export default function GlobalConfig(props: Props) {
         }`,
       );
     }
-  }, [apiUtil, formState, snackbars]);
+  }, [networkId, apiUtil, formState, snackbars]);
 
   if (isLoading) {
     return (

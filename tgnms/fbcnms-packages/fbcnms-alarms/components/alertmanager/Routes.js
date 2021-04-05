@@ -14,9 +14,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import SimpleTable, {toLabels} from '../table/SimpleTable';
 import TableActionDialog from '../table/TableActionDialog';
-import useRouter from '../../hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
+import {useNetworkId} from '../../components/hooks';
 import {useSnackbars} from '../../hooks/useSnackbar';
 import {useState} from 'react';
 
@@ -38,7 +38,6 @@ export default function Routes() {
     new Date().toLocaleString(),
   );
   const classes = useStyles();
-  const {match} = useRouter();
   const snackbars = useSnackbars();
 
   const onDialogAction = args => {
@@ -46,9 +45,10 @@ export default function Routes() {
     setMenuAnchorEl(null);
   };
 
+  const networkId = useNetworkId();
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getRouteTree,
-    {networkId: match.params.networkId},
+    {networkId},
     lastRefreshTime,
   );
 
