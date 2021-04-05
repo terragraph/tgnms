@@ -127,9 +127,9 @@ export default function ConfigTaskForm(props: Props) {
 
   const handleSubmitConfig = React.useCallback(() => {
     const jsonConfig = jsonConfigRef.current;
-    const drafts = draftsRef.current;
+    const drafts = draftsRef.current ?? {};
 
-    if ((editMode === FORM_CONFIG_MODES.NODE && nodeName == null) || !drafts) {
+    if (editMode === FORM_CONFIG_MODES.NODE && nodeName == null) {
       snackbars.error('Config change failed, please double check the form');
       return;
     }
