@@ -12,6 +12,7 @@ import TextField from '@material-ui/core/TextField';
 import TroubleshootWarning from './TroubleshootWarning';
 import useForm from '../../hooks/useForm';
 import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
+import {SWARM_URLS} from '../../constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -25,7 +26,7 @@ export default function PrometheusOffline() {
   const classes = useStyles();
   const {handleInputChange, formState} = useForm({
     initialState: {
-      prometheus: 'http://prometheus:9090',
+      prometheus: SWARM_URLS.PROMETHEUS_URL,
     },
   });
 

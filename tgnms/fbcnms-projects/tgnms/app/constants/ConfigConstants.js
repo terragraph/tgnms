@@ -139,3 +139,14 @@ export const DATA_TYPE_TO_INPUT_TYPE = {
   BOOL: 'checkbox',
   FLOAT: 'number',
 };
+
+export const SWARM_URLS = {
+  NETWORKTEST_HOST: 'http://network_test:8080',
+  SCANSERVICE_HOST: 'http://scan_service:8080',
+  PROMETHEUS_URL: 'http://prometheus:9090',
+  ALERTMANAGER_URL: 'http://alertmanager:9093',
+  PROMETHEUS_CONFIG_URL: 'http://prometheus_configurer:9100',
+  ALERTMANAGER_CONFIG_URL: 'http://alertmanager_configurer:9101',
+  TG_ALARM_URL: 'http://alarms:40000',
+  DEFAULT_ROUTES_HISTORY_HOST: 'http://default_routes_service:8080',
+};

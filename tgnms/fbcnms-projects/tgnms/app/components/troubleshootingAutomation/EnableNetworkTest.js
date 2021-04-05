@@ -15,7 +15,7 @@ import TroubleshootWarning from './TroubleshootWarning';
 import ZmqUrl from '../taskBasedConfig/configTasks/ZmqUrl';
 import useForm from '../../hooks/useForm';
 import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
+import {FORM_CONFIG_MODES, SWARM_URLS} from '../../constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -30,7 +30,7 @@ export default function EnableNetworkTest() {
 
   const {handleInputChange, updateFormState, formState} = useForm({
     initialState: {
-      networkTest: 'http://network_test:8080',
+      networkTest: SWARM_URLS.NETWORKTEST_HOST,
       zmq: '',
       kafka: '',
     },

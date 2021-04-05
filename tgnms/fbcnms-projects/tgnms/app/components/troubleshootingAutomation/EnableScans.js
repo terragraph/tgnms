@@ -15,7 +15,7 @@ import TroubleshootWarning from './TroubleshootWarning';
 import ZmqUrl from '../taskBasedConfig/configTasks/ZmqUrl';
 import useForm from '../../hooks/useForm';
 import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
+import {FORM_CONFIG_MODES, SWARM_URLS} from '../../constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -30,7 +30,7 @@ export default function EnableScans() {
 
   const {handleInputChange, updateFormState, formState} = useForm({
     initialState: {
-      scan: 'http://scan_service:8080',
+      scan: SWARM_URLS.SCANSERVICE_HOST,
       zmq: '',
       kafka: '',
     },
