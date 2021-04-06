@@ -35,12 +35,14 @@ export default function TroubleshootWarning({
   isToolTip?: boolean,
   title: string,
   modalContent: React.Node,
-  onAttemptFix: () => void,
+  onAttemptFix?: () => void,
 }) {
   const classes = useStyles();
   const {isOpen, open, close} = useModalState();
   const handleConfirm = React.useCallback(async () => {
-    await onAttemptFix();
+    if (onAttemptFix) {
+      await onAttemptFix();
+    }
     close();
   }, [onAttemptFix, close]);
 

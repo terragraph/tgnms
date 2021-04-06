@@ -6,6 +6,7 @@
  */
 
 import * as React from 'react';
+import Grid from '@material-ui/core/Grid';
 import TroubleshootWarning from './TroubleshootWarning';
 import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
 import {TopologyElementType} from '../../constants/NetworkConstants';
@@ -38,7 +39,24 @@ export default function LinkOffline() {
     <TroubleshootWarning
       isToolTip={true}
       title="Link Offline"
-      modalContent="Link is offline even though nodes are both online. By clicking confirm, you will restart both nodes creating this link. This will temporarily bring nodes down, but then bring link online in most cases."
+      modalContent={
+        <Grid container spacing={3}>
+          <Grid item container>
+            <Grid item>Link is offline even though nodes are both online.</Grid>
+            <Grid item>
+              This could be caused by something blocking the path of the link.
+            </Grid>
+            <Grid item>
+              By clicking confirm, you will restart both nodes creating this
+              link.
+            </Grid>
+            <Grid item>
+              This will temporarily bring nodes down, but then attempt to bring
+              link back online.
+            </Grid>
+          </Grid>
+        </Grid>
+      }
       onAttemptFix={onAttemptFix}
     />
   );
