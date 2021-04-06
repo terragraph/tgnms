@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import OverviewPanel from '../OverviewPanel';
 import React from 'react';
 import {

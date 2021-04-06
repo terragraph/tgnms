@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import NetworkTables from '../NetworkTables';
 import React from 'react';
 import axios from 'axios';

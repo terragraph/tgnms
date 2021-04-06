@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import ModalUpgradeImages from '../ModalUpgradeImages';
 import axiosMock from 'axios';

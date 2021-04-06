@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TopologyBuilderMenu from '../TopologyBuilderMenu';
 import {FormType} from '../../../constants/MapPanelConstants';

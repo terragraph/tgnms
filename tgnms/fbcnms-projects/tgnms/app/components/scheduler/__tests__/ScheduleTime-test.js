@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ScheduleTime from '../ScheduleTime';
 import {MODAL_MODE} from '../../../constants/ScheduleConstants';

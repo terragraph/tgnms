@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ConfigContent from '../ConfigContent';
 import {EDITOR_OPTIONS} from '../../../constants/ConfigConstants';

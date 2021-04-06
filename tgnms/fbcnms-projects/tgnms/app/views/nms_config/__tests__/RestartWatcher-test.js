@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import * as settingsApi from '../../../apiutils/SettingsAPIUtil';
 import React from 'react';
 import RestartWatcher, {useRestartWatcher} from '../RestartWatcher';
@@ -23,6 +23,9 @@ const defaultWatcher = {
 beforeEach(() => {
   cleanup();
   jest.clearAllMocks();
+  Object.defineProperty(window, 'location', {
+    value: {reload: jest.fn()},
+  });
 });
 describe('RestartWatcher', () => {
   test('renders nothing if watcher state is idle', async () => {

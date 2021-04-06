@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import HealthHistogram from '../HealthHistogram';
 import React from 'react';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';

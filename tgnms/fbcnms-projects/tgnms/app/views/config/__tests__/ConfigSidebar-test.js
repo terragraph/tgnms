@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ConfigSidebar from '../ConfigSidebar';
 import MaterialTheme from '../../../MaterialTheme';
 import React from 'react';

@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ModalConfigGet from '../ModalConfigGet';
 import React from 'react';
 import {TestApp, mockNetworkConfig} from '../../../tests/testHelpers';

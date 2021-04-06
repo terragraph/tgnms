@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import {mockNetworkConfig} from '../../tests/data/NetworkConfig';
 import {renderHook} from '@testing-library/react-hooks';
 import {useNodeConfig} from '../useNodeConfig';

@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import RemoteOverlayMetadataPanel from '../RemoteOverlayMetadataPanel';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';

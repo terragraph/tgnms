@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as configAPIUtil from '../../apiutils/ConfigAPIUtil';
 import {act} from '@testing-library/react';
 import {renderHook} from '@testing-library/react-hooks';

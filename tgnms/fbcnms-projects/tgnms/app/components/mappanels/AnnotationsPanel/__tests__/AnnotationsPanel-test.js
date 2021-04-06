@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as serviceApiUtil from '../../../../apiutils/ServiceAPIUtil';
 import * as turf from '@turf/turf';

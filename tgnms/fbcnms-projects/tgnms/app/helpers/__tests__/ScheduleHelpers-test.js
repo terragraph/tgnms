@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as ScheduleHelpers from '../ScheduleHelpers';
 import {DAYS, FREQUENCIES} from '../../constants/ScheduleConstants';
 import {cleanup} from '@testing-library/react';

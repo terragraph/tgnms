@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ModalNmsConfigForm from '../ModalNmsConfigForm';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';

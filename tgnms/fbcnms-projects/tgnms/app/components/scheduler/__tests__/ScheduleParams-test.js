@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ScheduleParams from '../ScheduleParams';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';

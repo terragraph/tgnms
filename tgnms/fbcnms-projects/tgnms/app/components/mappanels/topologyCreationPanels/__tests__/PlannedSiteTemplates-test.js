@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import PlannedSiteTemplates from '../PlannedSiteTemplates';
 import React from 'react';
 import {

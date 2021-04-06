@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import {PANELS, PANEL_STATE, usePanelControl} from '../usePanelControl';
 import {act, renderHook} from '@testing-library/react-hooks';
 

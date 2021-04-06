@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import useLiveRef from '../useLiveRef';
 import {renderHook} from '@testing-library/react-hooks';
 

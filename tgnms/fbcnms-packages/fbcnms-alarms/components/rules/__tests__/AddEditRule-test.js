@@ -7,7 +7,7 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';

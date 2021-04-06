@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import CorrelationVisualization from '../CorrelationVisualization';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';

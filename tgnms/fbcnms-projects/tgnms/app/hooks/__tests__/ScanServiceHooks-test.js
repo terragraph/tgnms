@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import {renderHook} from '@testing-library/react-hooks';
 import {
   useLoadScanExecutionResults,

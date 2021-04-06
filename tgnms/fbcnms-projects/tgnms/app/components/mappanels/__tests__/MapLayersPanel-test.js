@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import MapLayersPanel from '../MapLayersPanel';
 import React from 'react';
 import {MapContextWrapper, TestApp} from '../../../tests/testHelpers';

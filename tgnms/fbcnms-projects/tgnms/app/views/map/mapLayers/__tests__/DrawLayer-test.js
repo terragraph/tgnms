@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import DrawLayer from '../DrawLayer';
 import {MapAnnotationContextProvider} from '../../../../contexts/MapAnnotationContext';

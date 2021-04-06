@@ -7,7 +7,6 @@
 
 import type {NetworkListContextType} from '../../../contexts/NetworkListContext';
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MaterialTopBar from '../MaterialTopBar';
 import NetworkListContext from '../../../contexts/NetworkListContext';

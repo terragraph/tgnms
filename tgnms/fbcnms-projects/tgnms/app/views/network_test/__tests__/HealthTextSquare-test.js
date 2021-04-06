@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import HealthTextSquare from '../HealthTextSquare';
 import MaterialTheme from '../../../MaterialTheme';
 import React from 'react';

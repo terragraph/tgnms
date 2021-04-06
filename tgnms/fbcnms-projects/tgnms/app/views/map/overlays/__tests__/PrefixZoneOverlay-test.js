@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import {NetworkContextWrapper, mockFig0} from '../../../../tests/testHelpers';
 import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';

@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import AuthorizedRoute from '../AuthorizedRoute';
 import React from 'react';
 import {Permissions} from '../../../../shared/auth/Permissions';

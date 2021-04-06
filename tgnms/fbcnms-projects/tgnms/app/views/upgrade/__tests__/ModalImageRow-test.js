@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
 import {render} from '@testing-library/react';

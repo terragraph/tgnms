@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import NetworkTestPanel from '../NetworkTestPanel';
 import React from 'react';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';

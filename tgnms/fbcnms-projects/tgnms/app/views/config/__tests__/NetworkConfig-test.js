@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import NetworkConfig from '../NetworkConfig';
 import React from 'react';
 import {TestApp, initWindowConfig} from '../../../tests/testHelpers';

@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import GrafanaLink from '../GrafanaLink';
 import React from 'react';
 import {assertType} from '@fbcnms/util/assert';

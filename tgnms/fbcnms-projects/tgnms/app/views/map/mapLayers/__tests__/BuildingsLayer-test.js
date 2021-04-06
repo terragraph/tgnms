@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import BuildingsLayer from '../BuildingsLayer';
 import {Layer} from 'react-mapbox-gl';

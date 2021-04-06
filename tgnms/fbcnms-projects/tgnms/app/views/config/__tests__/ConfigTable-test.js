@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ConfigTable from '../ConfigTable';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';

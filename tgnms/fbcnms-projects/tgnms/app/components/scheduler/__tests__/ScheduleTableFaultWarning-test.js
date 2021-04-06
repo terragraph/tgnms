@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import ScheduleTableFaultWarning from '../ScheduleTableFaultWarning';
 import {SCHEDULE_TABLE_TYPES} from '../../../constants/ScheduleConstants';

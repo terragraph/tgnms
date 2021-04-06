@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import AssetDirectionDetails from '../AssetDirectionDetails';
 import MaterialTheme from '../../../MaterialTheme';
 import React from 'react';

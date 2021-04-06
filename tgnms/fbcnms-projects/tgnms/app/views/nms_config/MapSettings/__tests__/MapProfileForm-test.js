@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MapProfileForm from '../MapProfileForm';
 import {DEFAULT_MCS_TABLE} from '../../../../constants/MapProfileConstants';

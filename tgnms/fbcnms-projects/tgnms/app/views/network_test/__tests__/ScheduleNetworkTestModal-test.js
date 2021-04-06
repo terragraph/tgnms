@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
 import ScheduleNetworkTestModal from '../ScheduleNetworkTestModal';

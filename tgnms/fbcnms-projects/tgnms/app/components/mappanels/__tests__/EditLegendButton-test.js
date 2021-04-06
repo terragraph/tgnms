@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import EditLegendButton from '../EditLegendButton';
 import {MapContextWrapper, TestApp} from '../../../tests/testHelpers';

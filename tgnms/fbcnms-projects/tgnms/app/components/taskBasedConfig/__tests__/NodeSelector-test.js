@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import NodeSelector from '../NodeSelector';
 import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';

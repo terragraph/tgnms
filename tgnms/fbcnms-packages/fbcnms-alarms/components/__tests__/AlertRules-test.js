@@ -7,7 +7,7 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import AlertRules from '../AlertRules';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';

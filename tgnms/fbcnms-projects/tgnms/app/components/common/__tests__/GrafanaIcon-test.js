@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import GrafanaIcon from '../GrafanaIcon';
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';

@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddLinkPanel from '../AddLinkPanel';
 import nullthrows from '@fbcnms/util/nullthrows';

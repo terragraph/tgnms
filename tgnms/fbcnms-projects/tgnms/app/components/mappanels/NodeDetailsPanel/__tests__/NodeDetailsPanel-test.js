@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
 import {NodeStatusTypeValueMap} from '../../../../../shared/types/Topology';

@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import * as apiMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import SelectOrUploadANPFile from '../SelectOrUploadANPFile';

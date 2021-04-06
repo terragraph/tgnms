@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import {
   DEFAULT_BASE_KEY,
   DEFAULT_FIRMWARE_BASE_KEY,

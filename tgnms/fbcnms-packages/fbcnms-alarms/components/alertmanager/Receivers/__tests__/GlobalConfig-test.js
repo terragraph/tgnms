@@ -8,7 +8,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import GlobalConfig from '../GlobalConfig';
 import React from 'react';
 import {act, fireEvent, render} from '@testing-library/react';

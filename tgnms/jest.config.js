@@ -41,6 +41,9 @@ module.exports = {
       },
       name: 'app',
       setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
+      setupFilesAfterEnv: [
+        require.resolve('@fbcnms/tg-nms/app/tests/jest-setup'),
+      ],
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',

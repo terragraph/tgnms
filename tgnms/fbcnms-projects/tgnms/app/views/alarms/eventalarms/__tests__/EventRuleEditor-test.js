@@ -7,7 +7,7 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import EventRuleEditor from '../EventRuleEditor';
 import nullthrows from '@fbcnms/util/nullthrows';

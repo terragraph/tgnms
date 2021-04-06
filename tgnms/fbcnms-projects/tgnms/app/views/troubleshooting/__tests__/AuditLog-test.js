@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import AuditLog from '../AuditLog';
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';

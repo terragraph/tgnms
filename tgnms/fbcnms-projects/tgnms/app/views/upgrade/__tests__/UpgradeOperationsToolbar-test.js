@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import React from 'react';
 import UpgradeOperationsToolbar from '../UpgradeOperationsToolbar';
 import {TestApp, initWindowConfig} from '../../../tests/testHelpers';

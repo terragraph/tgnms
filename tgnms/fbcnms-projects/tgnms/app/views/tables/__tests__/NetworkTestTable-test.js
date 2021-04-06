@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import NetworkTestTable from '../NetworkTestTable';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';

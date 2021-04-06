@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import React from 'react';
 import RootCause from '../RootCause';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';

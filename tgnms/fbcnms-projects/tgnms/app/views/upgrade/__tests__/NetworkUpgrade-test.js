@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import NetworkUpgrade from '../NetworkUpgrade';
 import React from 'react';
 import {

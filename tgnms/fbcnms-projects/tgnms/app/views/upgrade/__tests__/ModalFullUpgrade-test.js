@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ModalFullUpgrade from '../ModalFullUpgrade';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';

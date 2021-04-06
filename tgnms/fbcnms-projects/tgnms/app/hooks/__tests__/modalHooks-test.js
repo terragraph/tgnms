@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import {act, renderHook} from '@testing-library/react-hooks';
 import {useConfirmationModalState, useModalState} from '../modalHooks';
 

@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import HealthIndicator from '../HealthIndicator';
 import React from 'react';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';

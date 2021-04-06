@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';

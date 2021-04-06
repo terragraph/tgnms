@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ConfigQuickSettingsForm from '../ConfigQuickSettingsForm';
 import React from 'react';
 import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';

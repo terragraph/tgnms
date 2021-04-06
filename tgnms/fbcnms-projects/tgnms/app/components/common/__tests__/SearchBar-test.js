@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import React from 'react';
 import SearchBar from '../SearchBar';
 import {TestApp} from '../../../tests/testHelpers';

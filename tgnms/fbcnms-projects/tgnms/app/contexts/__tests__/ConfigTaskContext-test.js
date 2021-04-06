@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
 import {Provider as TaskConfigContextProvider} from '../ConfigTaskContext';

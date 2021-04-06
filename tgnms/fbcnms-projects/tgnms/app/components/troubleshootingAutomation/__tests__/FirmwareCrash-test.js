@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import FirmwareCrash from '../FirmwareCrash';
 import {TestApp} from '../../../tests/testHelpers';

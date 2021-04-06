@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import useUnmount from '../useUnmount';
 import {renderHook} from '@testing-library/react-hooks';
 

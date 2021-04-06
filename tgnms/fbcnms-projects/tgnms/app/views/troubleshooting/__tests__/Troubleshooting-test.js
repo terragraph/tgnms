@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import React from 'react';
 import Troubleshooting, {TROUBLESHOOTING_TABS} from '../Troubleshooting';
 import {TestApp} from '../../../tests/testHelpers';

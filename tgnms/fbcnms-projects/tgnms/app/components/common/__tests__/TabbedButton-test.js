@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import TabbedButton from '../TabbedButton';
 import {cleanup, fireEvent, render} from '@testing-library/react';

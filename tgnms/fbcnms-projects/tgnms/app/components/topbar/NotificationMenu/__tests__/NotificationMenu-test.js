@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import MockWebSocket from '../../../../tests/mocks/MockWebSocket';
 import NetworkListContext, {
   defaultValue as defaultContextValue,

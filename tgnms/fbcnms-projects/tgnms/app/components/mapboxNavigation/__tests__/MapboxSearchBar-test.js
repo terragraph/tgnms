@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import MapboxSearchBar from '../MapboxSearchBar';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';

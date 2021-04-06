@@ -4,7 +4,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FriendlyText from '../FriendlyText';
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';

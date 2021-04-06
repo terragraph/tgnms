@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import AssetTestResult from '../AssetTestResult';
 import MaterialTheme from '../../../../MaterialTheme';
 import React from 'react';

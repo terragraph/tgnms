@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
 import ModalAbort from '../ModalAbort';
 import React from 'react';

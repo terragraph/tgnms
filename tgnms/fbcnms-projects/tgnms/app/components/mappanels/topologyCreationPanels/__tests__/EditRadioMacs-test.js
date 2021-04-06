@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import EditRadioMacs from '../EditRadioMacs';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';

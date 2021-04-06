@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import AddL2Tunnel from '../AddL2Tunnel';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';

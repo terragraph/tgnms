@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import React from 'react';
 import ScanServiceSummary from '../ScanServiceSummary';
 import {TestApp} from '../../../../tests/testHelpers';

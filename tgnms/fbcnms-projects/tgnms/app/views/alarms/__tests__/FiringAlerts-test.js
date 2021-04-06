@@ -10,7 +10,6 @@
  * Test TGNMS integration with alarms
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import NmsAlarms from '../NmsAlarms';
 import {AlarmsTestWrapper} from '@fbcnms/alarms/test/testHelpers';

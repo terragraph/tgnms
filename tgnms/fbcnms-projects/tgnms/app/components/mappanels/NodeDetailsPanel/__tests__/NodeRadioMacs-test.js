@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import NodeRadioMacs from '../NodeRadioMacs';
 import React from 'react';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';

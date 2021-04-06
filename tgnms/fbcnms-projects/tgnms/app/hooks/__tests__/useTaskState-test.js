@@ -5,7 +5,6 @@
  * @flow
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import useTaskState, {TASK_STATE} from '../useTaskState';
 import {act, renderHook} from '@testing-library/react-hooks';

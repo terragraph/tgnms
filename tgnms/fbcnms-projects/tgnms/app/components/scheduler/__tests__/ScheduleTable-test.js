@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import MaterialTheme from '../../../MaterialTheme';
 import ScheduleTable from '../ScheduleTable';

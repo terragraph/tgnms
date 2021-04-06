@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import MaterialTheme from '../../../MaterialTheme';
 import MetricGroup from '../MetricGroup';
 import React from 'react';

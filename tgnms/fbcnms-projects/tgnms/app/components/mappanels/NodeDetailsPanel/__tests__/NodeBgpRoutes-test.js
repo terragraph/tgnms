@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import NodeBgpRoutes from '../NodeBgpRoutes';
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';

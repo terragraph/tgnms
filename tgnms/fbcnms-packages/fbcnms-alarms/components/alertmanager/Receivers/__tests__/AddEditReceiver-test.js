@@ -7,7 +7,7 @@
  * @flow
  * @format
  */
-import 'jest-dom/extend-expect';
+
 import * as React from 'react';
 import AddEditReceiver from '../AddEditReceiver';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';

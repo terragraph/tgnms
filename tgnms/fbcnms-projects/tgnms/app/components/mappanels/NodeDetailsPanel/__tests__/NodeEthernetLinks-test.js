@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import NodeEthernetLinks from '../NodeEthernetLinks';
 import React from 'react';
 import {LinkTypeValueMap} from '../../../../../shared/types/Topology';

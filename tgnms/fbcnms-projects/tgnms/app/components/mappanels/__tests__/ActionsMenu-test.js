@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import ActionsMenu from '../ActionsMenu';
 import React from 'react';
 import {cleanup, fireEvent, render} from '@testing-library/react';

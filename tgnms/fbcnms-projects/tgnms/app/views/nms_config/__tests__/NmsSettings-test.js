@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import 'jest-dom/extend-expect';
+
 import NmsSettings from '../NmsSettings';
 import React from 'react';
 import axiosMock from 'axios';
