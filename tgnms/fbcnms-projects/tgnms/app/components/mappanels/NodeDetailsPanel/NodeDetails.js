@@ -11,6 +11,7 @@ import NodeLinksAndSite from './NodeLinksAndSite';
 import NodePolarity from './NodePolarity';
 import NodeRadioMacs from './NodeRadioMacs';
 import NodeSoftwareVersion from './NodeSoftwareVersion';
+import PopOffline from '../../troubleshootingAutomation/PopOffline';
 import React from 'react';
 import StatusText from '../../common/StatusText';
 import Typography from '@material-ui/core/Typography';
@@ -94,6 +95,7 @@ export default function NodeDetails(props: Props) {
       <div className={classes.spaceBetween}>
         <Typography variant="subtitle2">Status</Typography>
         <Typography variant="body2">
+          {!isNodeAlive(node.status) && <PopOffline />}
           <StatusText
             status={isNodeAlive(node.status)}
             falseText={

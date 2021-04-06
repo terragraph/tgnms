@@ -39,6 +39,7 @@ export type Props = {
   customText?: string,
   nodeInfo?: ?NodeConfigStatusType,
   showSubmitButton?: boolean,
+  onUpdate?: ({[string]: string}) => {},
 };
 
 const useStyles = makeStyles(_theme => ({
@@ -61,6 +62,7 @@ export default function ConfigTaskForm(props: Props) {
     advancedLink,
     customText,
     showSubmitButton,
+    onUpdate,
   } = props;
   const classes = useStyles();
   const snackbars = useSnackbars();
@@ -68,6 +70,14 @@ export default function ConfigTaskForm(props: Props) {
   const draftsRef = React.useRef({});
   const jsonConfigRef = React.useRef(null);
   const nodeName = props.nodeName ? props.nodeName : nodeInfo?.name;
+
+  const onUpdateRef = React.useRef(onUpdate);
+
+  React.useEffect(() => {
+    if (onUpdateRef.current && draftsRef.current) {
+      onUpdateRef.current(draftsRef.current);
+    }
+  }, [draftsRef.current, onUpdateRef]);
 
   const [refreshConfig, setRefreshConfig] = React.useState(1);
 

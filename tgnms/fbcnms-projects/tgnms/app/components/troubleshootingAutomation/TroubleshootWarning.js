@@ -31,20 +31,30 @@ export default function TroubleshootWarning({
   title,
   modalContent,
   onAttemptFix,
+  onClose,
 }: {
   isToolTip?: boolean,
   title: string,
   modalContent: React.Node,
   onAttemptFix?: () => void,
+  onClose?: () => void,
 }) {
   const classes = useStyles();
   const {isOpen, open, close} = useModalState();
+
+  const handleClose = React.useCallback(() => {
+    if (onClose) {
+      onClose();
+    }
+    close();
+  }, [close, onClose]);
+
   const handleConfirm = React.useCallback(async () => {
     if (onAttemptFix) {
       await onAttemptFix();
     }
-    close();
-  }, [onAttemptFix, close]);
+    handleClose();
+  }, [onAttemptFix, handleClose]);
 
   return (
     isFeatureEnabled('SOLUTION_AUTOMATION_ENABLED') && (
@@ -65,7 +75,7 @@ export default function TroubleshootWarning({
           modalContent={modalContent}
           modalActions={
             <>
-              <Button onClick={close} variant="outlined">
+              <Button onClick={handleClose} variant="outlined">
                 Cancel
               </Button>
               <Button

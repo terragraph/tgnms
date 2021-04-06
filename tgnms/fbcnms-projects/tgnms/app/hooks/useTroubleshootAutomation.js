@@ -22,7 +22,7 @@ export type TroubleshootFix = ({
   settingsChange?: {[string]: string},
   configChange?: {
     mode: $Values<typeof FORM_CONFIG_MODES>,
-    drafts: {[string]: string},
+    drafts: {[string]: string | {[string]: string}},
   },
   apiCallData?: {endpoint: string, data: {}},
   successMessage: string,
