@@ -15,7 +15,12 @@ const {
   reloadInstanceConfig,
   removeRequester,
 } = require('./model');
-const {LINK_HEALTH_TIME_WINDOW_HOURS} = require('../config');
+const {LINK_HEALTH_TIME_WINDOW_HOURS, IS_KUBERNETES} = require('../config');
+const {
+  k8s_name,
+  createK8sController,
+  deleteK8sController,
+} = require('../helpers/k8sHelpers');
 const {
   createController,
   createNetwork,
@@ -183,6 +188,28 @@ router.post('/create', async (req: Request, res: Response, _next) => {
   const networkConfig: $Shape<NetworkInstanceConfig> = req.body;
   try {
     // basic sanity checks
+    if (IS_KUBERNETES) {
+      if (!networkConfig.name) {
+        res.status(400).json({msg: 'Unable to create network (missing name)'});
+        return;
+      }
+      logger.info(
+        `Kubernetes environment detected, ignoring all networkConfig options except name ${networkConfig.name}`,
+      );
+      try {
+        createK8sController(networkConfig.name);
+      } catch (err) {
+        logger.error(err);
+        res.status(500).json({msg: 'Failed to start controller pods'});
+      }
+      networkConfig.primary = {
+        api_ip: `e2e-${k8s_name(networkConfig.name)}`,
+        e2e_ip: `e2e-${k8s_name(networkConfig.name)}`,
+        api_port: 8080,
+        e2e_port: 17707,
+      };
+    }
+
     if (
       !networkConfig.name ||
       !networkConfig.primary ||
@@ -197,6 +224,7 @@ router.post('/create', async (req: Request, res: Response, _next) => {
       res.status(400).json({msg: 'Missing primary controller data'});
       return;
     }
+
     const primaryController = await createController(
       networkConfig.primary.api_ip,
       networkConfig.primary.e2e_ip,
@@ -234,6 +262,7 @@ router.post('/create', async (req: Request, res: Response, _next) => {
     await reloadInstanceConfig();
     res.end();
   } catch (err) {
+    logger.error(err);
     res.status(500).json({msg: 'Unable to create network'});
   }
 });
@@ -246,6 +275,14 @@ router.post(
     try {
       const network = await getNetworkById(networkId);
       if (network) {
+        if (IS_KUBERNETES) {
+          try {
+            deleteK8sController(network.name);
+          } catch (err) {
+            logger.error(err);
+            res.status(500).json({msg: 'Failed to remove controller pods'});
+          }
+        }
         await network.destroy();
       }
       await reloadInstanceConfig();

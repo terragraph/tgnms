@@ -18,6 +18,7 @@ const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
+const IS_KUBERNETES = !!process.env.KUBERNETES_SERVICE_HOST;
 const SQLITE_DB = process.env.SQLITE_DB;
 const NETWORKTEST_HOST =
   process.env.NETWORKTEST_HOST || 'http://network_test:8080';
@@ -121,6 +122,7 @@ module.exports = {
   MYSQL_PASS,
   MYSQL_PORT,
   MYSQL_USER,
+  IS_KUBERNETES,
   NODEUPDATE_SERVER_URL,
   NODEUPDATE_AUTH_TOKEN,
   SOFTWARE_PORTAL_ENABLED,

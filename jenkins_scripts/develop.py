@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tarfile
+import asyncio
 import tempfile
 import pickle
 import urllib.request
@@ -113,31 +114,16 @@ for service in msa_services:
     }
 
 
-@cli.command()
-@click.option("--project")
-@click.option("--build_cmd")
-@click.option("--image_name")
-@click.option("--deployment")
-@click.option("--container")
-@click.option(
-    "-m",
-    "--manager",
-    "managers",
-    default=None,
-    multiple=True,
-    required=True,
-    help="Control plane nodes for Kubernetes",
-)
-@click.option(
-    "-w",
-    "--worker",
-    "workers",
-    default=None,
-    multiple=True,
-    help="Worker nodes for Kubernetes",
-)
-@click.pass_context
-def go(ctx, project, deployment, container, build_cmd, managers, workers, image_name):
+async def cmd_async(c, **kwargs):
+    cwd = kwargs.get("cwd", BASE_CWD)
+    cprint(col.YELLOW, c)
+    proc = await asyncio.create_subprocess_shell(c, cwd=cwd, **kwargs)
+    await proc.communicate()
+
+
+async def go_impl(
+    ctx, project, deployment, container, build_cmd, managers, workers, image_name
+):
     if project is not None:
         if project not in projects:
             raise RuntimeError(
@@ -166,7 +152,7 @@ def go(ctx, project, deployment, container, build_cmd, managers, workers, image_
     cmd("cd .. && cp ../.gitignore .")
     cmd(f"ssh {docker_builder} 'rm -rf ~/nmsdev && mkdir ~/nmsdev'")
     cmd(
-        f'cd .. && rsync -azP --filter=":- .gitignore" nms/ {get_scp_dest(docker_builder)}:~/nmsdev',
+        f'cd .. && rsync -aP --exclude "third-party" --inplace --filter=":- .gitignore" nms/ {get_scp_dest(docker_builder)}:~/nmsdev',
         stdout=subprocess.PIPE,
     )
 
@@ -179,17 +165,30 @@ def go(ctx, project, deployment, container, build_cmd, managers, workers, image_
     cmd(f"ssh {docker_builder} docker save -o {image_name}.tar.gz {image_name}:dev")
 
     # Copy tar to all nodes
-    cmd(f"scp {get_scp_dest(docker_builder)}:~/{image_name}.tar.gz .")
-    for w in managers + workers:
-        cmd(f"scp {image_name}.tar.gz {get_scp_dest(w)}:~")
+    # cmd(
+    #     f"scp {get_scp_dest(docker_builder)}:~/{image_name}.tar.gz /tmp/{image_name}.tar.gz"
+    # )
+    cmd(
+        f"rsync -aP --inplace {get_scp_dest(docker_builder)}:~/{image_name}.tar.gz /tmp/{image_name}.tar.gz"
+    )
+
+    coros = [
+        cmd_async(f"rsync -aP --inplace /tmp/{image_name}.tar.gz {get_scp_dest(w)}:~")
+        # cmd_async(f"scp /tmp/{image_name}.tar.gz {get_scp_dest(w)}:~")
+        for w in managers + workers
+    ]
+    await asyncio.gather(*coros)
 
     # Add image, tag it with ':dev'
-    for m in managers + workers:
-        cmd(
-            f"ssh {m} podman load --input {image_name}.tar.gz",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+    coros = [
+        cmd_async(
+            f"ssh {w} podman load --input {image_name}.tar.gz",
+            # stdout=asyncio.subprocess.PIPE,
+            # stderr=asyncio.subprocess.PIPE,
         )
+        for w in managers + workers
+    ]
+    await asyncio.gather(*coros)
 
     cprint(col.GREEN, "Setting Kubernetes to use development image")
     cmd(
@@ -198,6 +197,34 @@ def go(ctx, project, deployment, container, build_cmd, managers, workers, image_
     cmd(
         f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=localhost/{image_name}:dev"
     )
+
+
+@cli.command()
+@click.option("--project")
+@click.option("--build_cmd")
+@click.option("--image_name")
+@click.option("--deployment")
+@click.option("--container")
+@click.option(
+    "-m",
+    "--manager",
+    "managers",
+    default=None,
+    multiple=True,
+    required=True,
+    help="Control plane nodes for Kubernetes",
+)
+@click.option(
+    "-w",
+    "--worker",
+    "workers",
+    default=None,
+    multiple=True,
+    help="Worker nodes for Kubernetes",
+)
+@click.pass_context
+def go(*args, **kwargs):
+    asyncio.run(go_impl(*args, **kwargs))
 
 
 @cli.command()
