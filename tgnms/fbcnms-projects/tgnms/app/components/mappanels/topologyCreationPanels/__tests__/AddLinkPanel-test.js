@@ -10,26 +10,16 @@ import AddLinkPanel from '../AddLinkPanel';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '../../../../tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
-import {
-  mockMultiHop,
-  mockNetworkConfig,
-} from '../../../../tests/data/NetworkConfig';
+import {mockMultiHop} from '../../../../tests/data/NetworkConfig';
+import type {Props} from '../AddLinkPanel';
 
 jest.mock('sweetalert2');
-const commonProps = {
+const commonProps: $Shape<Props> = {
   expanded: true,
-  formType: 'CREATE',
   initialParams: {},
-  linkMap: {},
-  networkConfig: mockNetworkConfig(),
   networkName: 'test',
-  nodeMap: {},
-  nodeToLinksMap: {},
-  macToNodeMap: {},
   onPanelChange: jest.fn(),
   onClose: jest.fn(),
-  topology: {},
 };
 
 function setLinkParams(
@@ -62,7 +52,7 @@ function setLinkParams(
 it('test that a PoP exists', () => {
   const spy = jest.spyOn(require('sweetalert2'), 'default');
   const topology = mockMultiHop(4, false); // 4 hops and no PoP
-  const props = {...commonProps, ...buildTopologyMaps(topology), topology};
+  const props = {...commonProps, topology};
   const {getByTestId} = render(
     <TestApp>
       <AddLinkPanel {...props} />
@@ -77,7 +67,7 @@ it('test that a PoP exists', () => {
 it('test max hop limitation exceeded', () => {
   const spy = jest.spyOn(require('sweetalert2'), 'default');
   const topology = mockMultiHop(12, true); // 12 hops
-  const props = {...commonProps, ...buildTopologyMaps(topology), topology};
+  const props = {...commonProps, topology};
   const {getByTestId} = render(
     <TestApp>
       <AddLinkPanel {...props} />

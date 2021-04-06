@@ -144,3 +144,26 @@ export function makeLinkName(a: string, z: string) {
   const name = `link-${nodeNames[0]}-${nodeNames[1]}`;
   return name;
 }
+
+/**
+ * Extracts the topologymaps object from an object which contains
+ * the maps such as NetworkContext
+ */
+export function getTopologyMaps(obj: {...TopologyMaps}): TopologyMaps {
+  const {
+    nodeMap,
+    nodeToLinksMap,
+    siteMap,
+    linkMap,
+    siteToNodesMap,
+    macToNodeMap,
+  } = obj;
+  return {
+    nodeMap,
+    siteMap,
+    linkMap,
+    nodeToLinksMap,
+    siteToNodesMap,
+    macToNodeMap,
+  };
+}

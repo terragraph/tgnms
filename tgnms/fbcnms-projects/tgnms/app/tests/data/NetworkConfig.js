@@ -535,10 +535,10 @@ export const FIG0 = {
 };
 /**
  * Creates a mock figure 0 like:
- * (site2)---(site3)
+ * (site4)---(site3)
  *    |         |
  *    |         |
- * (site1)---(site4)
+ * (site1)---(site2)
  */
 export function mockFig0() {
   const topology = mockTopology();
