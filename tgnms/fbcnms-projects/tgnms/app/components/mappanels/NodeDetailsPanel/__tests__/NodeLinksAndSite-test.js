@@ -8,14 +8,12 @@
 import NodeLinksAndSite from '../NodeLinksAndSite';
 import React from 'react';
 import {TestApp, renderAsync} from '../../../../tests/testHelpers';
-import {cleanup, fireEvent} from '@testing-library/react';
+import {fireEvent} from '@testing-library/react';
 import {
   mockLink,
   mockNode,
   mockTopology,
 } from '../../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
 
 const defaultProps = {
   node: mockNode({name: 'testNode', site_name: '11L922'}),

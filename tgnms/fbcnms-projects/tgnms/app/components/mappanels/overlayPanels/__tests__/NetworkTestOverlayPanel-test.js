@@ -16,17 +16,13 @@ import {
   TestApp,
   renderAsync,
 } from '../../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
+
 import {mockNetworkMapOptions} from '../../../../tests/data/NmsOptionsContext';
 
 import type {MapContext} from '../../../../contexts/MapContext';
 import type {NmsOptionsContextType} from '../../../../contexts/NmsOptionsContext';
 
 jest.mock('axios');
-afterEach(() => {
-  jest.clearAllMocks();
-  cleanup();
-});
 
 test('renders without crashing', async () => {
   const setOverlaysConfig = jest.fn();

@@ -9,7 +9,7 @@ import AuthorizedRoute from '../AuthorizedRoute';
 import React from 'react';
 import {Permissions} from '../../../../shared/auth/Permissions';
 import {Route} from 'react-router-dom';
-import {cleanup} from '@testing-library/react';
+
 import {
   initWindowConfig,
   renderWithRouter,
@@ -24,9 +24,6 @@ beforeEach(() => {
     },
   });
 });
-
-// automatically unmount and cleanup DOM after the test is finished.
-afterEach(cleanup);
 
 test('If login is disabled, show protected route', () => {
   initWindowConfig({

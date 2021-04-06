@@ -18,16 +18,15 @@ import {
 } from '../../../../tests/testHelpers';
 import {Feature, Layer} from 'react-mapbox-gl';
 import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {
   getFeatureBySiteName,
   getLayerById,
   getPropValue,
 } from '../../../../tests/mapHelpers';
+import {render} from '@testing-library/react';
 
 import type {Props} from '../LinksLayer';
 import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
-afterEach(cleanup);
 
 const mockMetrics = {
   'link-node1-node2': {

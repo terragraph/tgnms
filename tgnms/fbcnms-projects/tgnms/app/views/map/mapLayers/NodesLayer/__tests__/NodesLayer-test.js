@@ -23,7 +23,7 @@ import {
   mockNetworkConfig,
   renderAsync,
 } from '../../../../../tests/testHelpers';
-import {act, cleanup} from '@testing-library/react';
+import {act} from '@testing-library/react';
 import {buildTopologyMaps} from '../../../../../helpers/TopologyHelpers';
 import {
   getLayerById,
@@ -39,11 +39,9 @@ jest
     'mapboxShouldAcceptClick',
   )
   .mockReturnValue(true);
-afterEach(cleanup);
 let mapboxMock = mockMapboxRef();
 beforeEach(() => {
   mapboxMock = mockMapboxRef();
-  jest.clearAllMocks();
 });
 
 test('does not load sector icon image twice', async () => {

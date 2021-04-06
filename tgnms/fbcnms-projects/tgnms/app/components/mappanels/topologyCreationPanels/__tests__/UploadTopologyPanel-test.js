@@ -8,10 +8,8 @@
 import React from 'react';
 import {TestApp, cast, renderAsync} from '../../../../tests/testHelpers';
 import {UploadTopologyPanel} from '../UploadTopologyPanel';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {mockUploadJson} from '../../../../tests/data/UploadTopology';
-
-afterEach(cleanup);
 
 const defaultProps = {
   expanded: true,

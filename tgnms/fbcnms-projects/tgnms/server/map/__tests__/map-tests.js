@@ -16,10 +16,6 @@ const {map_annotation_group} = require('../../models');
 import type {GeoFeature} from '@turf/turf';
 import type {MapAnnotationGroupAttributes} from '../../models/mapAnnotationGroup';
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 const setupApp = () => setupTestApp('/map', require('../routes'));
 
 describe('GET /annotations/:network', () => {

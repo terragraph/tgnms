@@ -7,9 +7,7 @@
 
 import LoadingBox from '../LoadingBox';
 import React from 'react';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('renders without text', () => {
   const {getByTestId} = render(<LoadingBox />);

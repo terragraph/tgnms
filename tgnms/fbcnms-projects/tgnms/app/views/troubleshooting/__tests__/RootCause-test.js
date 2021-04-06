@@ -9,17 +9,12 @@ import React from 'react';
 import RootCause from '../RootCause';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
 import {Route} from 'react-router-dom';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {mockNetworkContext} from '../../../tests/data/NetworkContext';
 
 jest
   .spyOn(require('../../../contexts/NetworkContext'), 'useNetworkContext')
   .mockImplementation(jest.fn(() => mockNetworkContext()));
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 test('renders', () => {
   const {getByText} = render(

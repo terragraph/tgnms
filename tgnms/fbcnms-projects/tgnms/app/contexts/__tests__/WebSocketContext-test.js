@@ -18,7 +18,6 @@ import {
   useWebSocketGroup,
 } from '../WebSocketContext';
 import {act, renderHook} from '@testing-library/react-hooks';
-import {cleanup} from '@testing-library/react';
 
 import type {MockWebSocketType} from '../../tests/mocks/MockWebSocket';
 
@@ -29,9 +28,7 @@ beforeEach(() => {
     .mockImplementation((...args) => new MockWebSocket(...args));
 });
 
-// automatically unmount and cleanup DOM after the test is finished.
 afterEach(() => {
-  cleanup();
   global.WebSocket.mockClear();
 });
 

@@ -12,7 +12,7 @@ import * as React from 'react';
 import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';
 import nullthrows from '../../../util/nullthrows';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
 import {assertType} from '../../../util/assert';
 import {mockPrometheusRule} from '../../../test/testData';
@@ -40,7 +40,6 @@ const commonProps = {
 };
 
 afterEach(() => {
-  cleanup();
   jest.resetAllMocks();
 });
 

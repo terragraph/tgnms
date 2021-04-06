@@ -8,7 +8,6 @@
  * @format
  */
 
-import {cleanup} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
 import {mockRuleInterface} from '../../test/testData';
 import {useLoadRules} from '../hooks';
@@ -16,10 +15,6 @@ import type {GenericRule} from '../rules/RuleInterface';
 import type {RenderResult} from '@testing-library/react-hooks';
 
 jest.useFakeTimers();
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const enqueueSnackbarMock = jest.fn();
 jest

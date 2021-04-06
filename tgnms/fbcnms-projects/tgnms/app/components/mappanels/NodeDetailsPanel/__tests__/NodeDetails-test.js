@@ -8,15 +8,13 @@
 import NodeDetails from '../NodeDetails';
 import React from 'react';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
+
 import {
   mockNetworkConfig,
   mockNetworkHealth,
   mockNode,
   mockTopology,
 } from '../../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
 
 const defaultProps = {
   ctrlVersion: 'testVer',

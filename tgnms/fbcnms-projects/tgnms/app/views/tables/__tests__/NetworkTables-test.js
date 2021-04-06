@@ -10,16 +10,11 @@ import React from 'react';
 import axios from 'axios';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
 import {Route} from 'react-router-dom';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 
 jest
   .spyOn(axios, 'default')
   .mockImplementation(() => Promise.resolve({data: {}}));
-
-beforeEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const defaultProps = {
   selectedElement: null,

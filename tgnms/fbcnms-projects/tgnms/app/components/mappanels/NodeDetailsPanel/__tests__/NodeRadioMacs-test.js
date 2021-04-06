@@ -8,14 +8,12 @@
 import NodeRadioMacs from '../NodeRadioMacs';
 import React from 'react';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
+
 import {
   mockNetworkConfig,
   mockNode,
 } from '../../../../tests/data/NetworkConfig';
 import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
-
-afterEach(cleanup);
 
 const defaultProps = {
   ctrlVersion:

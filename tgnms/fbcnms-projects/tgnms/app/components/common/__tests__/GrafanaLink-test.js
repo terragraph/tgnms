@@ -8,9 +8,9 @@
 import GrafanaLink from '../GrafanaLink';
 import React from 'react';
 import {assertType} from '@fbcnms/util/assert';
-import {cleanup, render} from '@testing-library/react';
 import {initWindowConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {mockConsole} from '@fbcnms/tg-nms/shared/tests/testHelpers';
+import {render} from '@testing-library/react';
 
 const GRAFANA_URL = 'http://grafana:9009/grafana';
 
@@ -26,7 +26,6 @@ beforeEach(() => {
     },
   });
 });
-afterEach(cleanup);
 
 test('missing config does not crash', () => {
   initWindowConfig({

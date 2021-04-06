@@ -7,10 +7,8 @@
 
 import ActionsMenu from '../ActionsMenu';
 import React from 'react';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {renderAsync} from '../../../tests/testHelpers';
-
-afterEach(cleanup);
 
 const defaultProps = {
   options: {

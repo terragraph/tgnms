@@ -8,9 +8,7 @@
 import * as React from 'react';
 import TableOptions from '../TableOptions';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   onOptionsUpdate: jest.fn(),

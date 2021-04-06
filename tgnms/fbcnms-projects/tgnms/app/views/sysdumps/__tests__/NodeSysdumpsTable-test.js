@@ -8,10 +8,8 @@
 import NodeSysdumpsTable from '../NodeSysdumpsTable';
 import React from 'react';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {mockSysdumpData} from '../../../tests/data/Sysdumps';
-
-afterEach(cleanup);
 
 const defaultProps = {
   controllerVersion: 'testVersion',

@@ -9,9 +9,7 @@ import * as React from 'react';
 import ConfigTaskForm from '../ConfigTaskForm';
 import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {act, fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   title: 'testTitle',

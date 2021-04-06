@@ -15,15 +15,12 @@ import {
   mockNetworkConfig,
   renderWithRouter,
 } from '../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
 
 jest.mock('axios');
 
 beforeEach(() => {
   initWindowConfig();
 });
-
-afterEach(cleanup);
 
 test('renders empty without crashing', async () => {
   const getMock = jest.spyOn(axios, 'get').mockResolvedValueOnce({

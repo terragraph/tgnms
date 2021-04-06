@@ -8,16 +8,11 @@
 import React from 'react';
 import TgMapboxNavIcon from '../TgMapboxNavIcon';
 import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   resultType: TopologyElementType.NODE,
 };
-
-beforeEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 test('renders', () => {
   const {getByTestId} = render(<TgMapboxNavIcon {...defaultProps} />);

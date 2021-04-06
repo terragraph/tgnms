@@ -17,9 +17,6 @@ info:
     title: test
       `,
 };
-beforeEach(() => {
-  jest.clearAllMocks();
-});
 
 const setupApp = () => setupTestApp('/docs', require('../routes'));
 

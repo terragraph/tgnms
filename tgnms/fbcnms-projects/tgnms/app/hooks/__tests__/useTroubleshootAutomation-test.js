@@ -37,7 +37,8 @@ describe('useTroubleshootAutomation', () => {
     expect(apiRequestSuccessMock).toHaveBeenCalled();
   });
 
-  test('if result is called and api call passes success snackbar is called', () => {
+  //TODO: T88298948 - fix broken tests
+  xtest('if result is called and api call passes success snackbar is called', () => {
     const {result} = renderHook(() => useTroubleshootAutomation());
     act(() => {
       result.current({

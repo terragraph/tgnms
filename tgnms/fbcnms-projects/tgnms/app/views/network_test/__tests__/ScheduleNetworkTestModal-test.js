@@ -12,7 +12,7 @@ import {
   ScheduleNetworkTestModalWrapper,
   TestApp,
 } from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 
 const startExecutionMock = jest
   .spyOn(networkTestAPIUtil, 'startExecution')
@@ -26,10 +26,6 @@ const snackbarsMock = {error: jest.fn(), success: jest.fn()};
 jest
   .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(snackbarsMock);
-
-afterEach(() => {
-  cleanup();
-});
 
 const defaultProps = {
   onActionClick: jest.fn(),

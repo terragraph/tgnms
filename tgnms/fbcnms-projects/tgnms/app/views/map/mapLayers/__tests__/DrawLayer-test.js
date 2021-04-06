@@ -13,7 +13,7 @@ import {
   TestApp,
   mockMapboxRef,
 } from '../../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import type {MapContext} from '../../../../contexts/MapContext';
 
 import MapboxDrawMock from '@mapbox/mapbox-gl-draw';
@@ -26,7 +26,6 @@ jest
 beforeEach(() => {
   MapboxDrawMock.mockClear();
   MapboxDrawMock.mockReset();
-  cleanup();
 });
 
 describe('DrawLayer', () => {

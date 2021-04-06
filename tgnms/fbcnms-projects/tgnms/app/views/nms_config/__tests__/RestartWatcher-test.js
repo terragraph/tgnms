@@ -8,8 +8,8 @@
 import * as settingsApi from '../../../apiutils/SettingsAPIUtil';
 import React from 'react';
 import RestartWatcher, {useRestartWatcher} from '../RestartWatcher';
-import {cleanup, render} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
+import {render} from '@testing-library/react';
 
 jest.useFakeTimers();
 
@@ -20,13 +20,13 @@ const defaultWatcher = {
   start: jest.fn(),
   state: 'IDLE',
 };
+
 beforeEach(() => {
-  cleanup();
-  jest.clearAllMocks();
   Object.defineProperty(window, 'location', {
     value: {reload: jest.fn()},
   });
 });
+
 describe('RestartWatcher', () => {
   test('renders nothing if watcher state is idle', async () => {
     const {queryByTestId} = render(

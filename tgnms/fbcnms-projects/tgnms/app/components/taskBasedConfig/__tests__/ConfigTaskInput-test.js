@@ -8,10 +8,8 @@
 import * as React from 'react';
 import ConfigTaskInput from '../ConfigTaskInput';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')

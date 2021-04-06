@@ -7,9 +7,7 @@
 
 import NodeBgpRoutes from '../NodeBgpRoutes';
 import React from 'react';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   routes: [

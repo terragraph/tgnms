@@ -8,13 +8,8 @@
 import ConfigAppBar from '../ConfigAppBar';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const mockUseConfigTaskContext = jest
   .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')

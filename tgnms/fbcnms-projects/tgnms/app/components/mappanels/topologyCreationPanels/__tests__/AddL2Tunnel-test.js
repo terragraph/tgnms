@@ -8,9 +8,7 @@
 import AddL2Tunnel from '../AddL2Tunnel';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../../hooks/useNodeConfig'), 'useNodeConfig')

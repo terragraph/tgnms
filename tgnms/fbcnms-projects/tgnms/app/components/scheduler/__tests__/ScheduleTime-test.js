@@ -9,9 +9,7 @@ import * as React from 'react';
 import ScheduleTime from '../ScheduleTime';
 import {MODAL_MODE} from '../../../constants/ScheduleConstants';
 import {MuiPickersWrapper, renderAsync} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   type: 'test',

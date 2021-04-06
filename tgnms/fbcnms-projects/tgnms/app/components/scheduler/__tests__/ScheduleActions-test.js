@@ -8,10 +8,8 @@
 import * as React from 'react';
 import ScheduleActions from '../ScheduleActions';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {mockSchedules} from '../../../tests/data/NetworkTestApi';
-
-afterEach(cleanup);
 
 const defaultProps = {
   editButton: 'test edit button',

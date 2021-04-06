@@ -8,10 +8,8 @@
 import NodeUpgradeTable from '../NodeUpgradeTable';
 import React from 'react';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {mockUpgradeArrayData} from '../../../tests/data/Upgrade';
-
-afterEach(cleanup);
 
 const defaultProps = {
   controllerVersion: 'testVersion',

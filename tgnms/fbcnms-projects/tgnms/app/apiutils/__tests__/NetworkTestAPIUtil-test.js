@@ -12,10 +12,6 @@ import {mockExecutionResults} from '../../tests/data/NetworkTestApi';
 
 jest.mock('axios');
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('getExecutionResults', () => {
   test('makes an axios request', async () => {
     const getMock = jest.spyOn(axios, 'default').mockResolvedValueOnce({

@@ -12,7 +12,7 @@ import {
   TestApp,
   mockMapboxRef,
 } from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 function mockNavControl() {
   return {
@@ -25,10 +25,6 @@ function mockNavControl() {
 jest.mock('mapbox-gl', () => ({
   NavigationControl: mockNavControl,
 }));
-
-beforeEach(() => {
-  cleanup();
-});
 
 const defaultProps = {
   accessToken: 'string',

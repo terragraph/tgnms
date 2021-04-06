@@ -14,7 +14,7 @@ import {
   initWindowConfig,
   renderAsync,
 } from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, waitForElement} from '@testing-library/react';
+import {act, fireEvent, waitForElement} from '@testing-library/react';
 import type {UpgradeImageType} from '../../../../shared/types/Controller';
 
 // fetches occur on an interval so we should mock them
@@ -24,11 +24,6 @@ jest.mock('copy-to-clipboard');
 
 beforeEach(() => {
   initWindowConfig();
-});
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
 });
 
 test('clicking the button opens the modal', async () => {

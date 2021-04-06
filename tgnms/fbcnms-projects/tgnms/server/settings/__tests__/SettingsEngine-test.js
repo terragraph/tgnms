@@ -35,7 +35,6 @@ const _infoLogSpy = jest
 const OLD_ENV = process.env;
 beforeEach(() => {
   jest.useFakeTimers();
-  jest.clearAllMocks();
   fsMock.mkdirSync('.', {recursive: true});
   process.env = {...OLD_ENV, NMS_SETTINGS_ENABLED: 'true'};
   writeSettingsFile('{}');
@@ -49,7 +48,6 @@ beforeEach(() => {
 afterEach(() => {
   fsMock.reset();
   process.env = OLD_ENV;
-  jest.clearAllMocks();
   jest.resetModules();
 });
 

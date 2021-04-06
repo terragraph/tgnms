@@ -8,10 +8,8 @@
 import * as React from 'react';
 import PopBgpRouting from '../PopBgpRouting';
 import {TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(

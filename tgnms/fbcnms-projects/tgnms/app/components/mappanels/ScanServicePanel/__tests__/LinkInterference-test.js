@@ -8,9 +8,7 @@
 import LinkInterference from '../LinkInterference';
 import React from 'react';
 import {TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   linkInterference: {

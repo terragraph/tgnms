@@ -10,9 +10,7 @@ import MaterialTheme from '../../../MaterialTheme';
 import ScheduleTable from '../ScheduleTable';
 import {SCHEDULE_TABLE_TYPES} from '../../../constants/ScheduleConstants';
 import {SnackbarWrapper} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 jest.mock('react-router', () => ({
   useHistory: () => ({

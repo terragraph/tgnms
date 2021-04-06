@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as apiMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import SelectOrUploadANPFile from '../SelectOrUploadANPFile';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
-import {act, cleanup, fireEvent} from '@testing-library/react';
+import {act, fireEvent} from '@testing-library/react';
 import {renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {waitForElementToBeRemoved} from '@testing-library/dom';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
@@ -20,7 +20,6 @@ const commonProps = {
   onChange: jest.fn(),
 };
 beforeEach(() => {
-  cleanup();
   jest.resetAllMocks();
 });
 

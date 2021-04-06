@@ -12,13 +12,8 @@ import {
   FORM_CONFIG_MODES,
 } from '../../../constants/ConfigConstants';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')

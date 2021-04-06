@@ -90,5 +90,5 @@ it('test max hop limitation exceeded', () => {
     'wireless',
   );
   fireEvent.click(getByTestId('add-link-button'));
-  expect(spy).toHaveBeenCalledTimes(2);
+  expect(spy).toHaveBeenCalledTimes(1);
 });

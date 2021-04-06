@@ -21,13 +21,11 @@ import {
   OVERLAY_NONE,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {color} from 'd3-color';
 import {getSourceFeatureCollection} from '../../../../tests/mapHelpers';
+import {render} from '@testing-library/react';
 import {topologyToMapFeatures} from '@fbcnms/tg-nms/app/helpers/MapLayerHelpers';
 import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
-
-afterEach(cleanup);
 
 const topology = mockFig0();
 topology.__test.updateNode(FIG0.NODE1_0, {pop_node: true});

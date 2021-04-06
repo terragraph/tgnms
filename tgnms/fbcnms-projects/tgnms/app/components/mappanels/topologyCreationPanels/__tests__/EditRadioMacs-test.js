@@ -13,14 +13,7 @@ import {
   coerceClass,
   mockNetworkConfig,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {
-  cleanup,
-  fireEvent,
-  render,
-  waitForElement,
-} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render, waitForElement} from '@testing-library/react';
 
 const defaultProps = {
   label: 'Radio MAC Address',

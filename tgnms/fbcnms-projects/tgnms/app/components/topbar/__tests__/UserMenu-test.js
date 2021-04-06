@@ -12,9 +12,7 @@ import {
   initWindowConfig,
   setTestUser,
 } from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 test('by default, only renders the toggle button', () => {
   const {getByTestId} = render(<UserMenu />, {wrapper: TestApp});

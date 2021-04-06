@@ -9,11 +9,7 @@ import * as React from 'react';
 import ConfigTableEntryIcon from '../ConfigTableEntryIcon';
 import {CONFIG_LAYER} from '../../../constants/ConfigConstants';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(() => {
-  cleanup();
-});
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   renderedLayers: [],

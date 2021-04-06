@@ -8,10 +8,8 @@
 import ModalConfigAddField from '../ModalConfigAddField';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
 
 const defaultProps = {
   isOpen: true,

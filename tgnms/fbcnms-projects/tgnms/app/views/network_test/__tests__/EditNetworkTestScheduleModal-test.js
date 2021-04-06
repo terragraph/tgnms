@@ -12,7 +12,7 @@ import {
   ScheduleNetworkTestModalWrapper,
   TestApp,
 } from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 
 const editTestScheduleMock = jest
   .spyOn(networkTestAPIUtil, 'editTestSchedule')
@@ -22,10 +22,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-
-afterEach(() => {
-  cleanup();
-});
 
 const defaultProps = {
   onActionClick: jest.fn(),

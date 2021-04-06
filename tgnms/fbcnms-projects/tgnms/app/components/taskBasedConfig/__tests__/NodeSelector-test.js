@@ -9,9 +9,7 @@ import * as React from 'react';
 import NodeSelector from '../NodeSelector';
 import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../apiutils/ConfigAPIUtil'), 'getNodeOverridesConfig')

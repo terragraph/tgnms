@@ -8,8 +8,8 @@
 import React from 'react';
 import UpgradeOperationsToolbar from '../UpgradeOperationsToolbar';
 import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockUpgradeReqData} from '../../../tests/data/Upgrade';
+import {render} from '@testing-library/react';
 
 jest.useFakeTimers();
 jest.mock('axios');
@@ -18,8 +18,6 @@ jest.mock('copy-to-clipboard');
 beforeEach(() => {
   initWindowConfig();
 });
-
-afterEach(cleanup);
 
 const defaultProps = {
   currentRequest: mockUpgradeReqData(),

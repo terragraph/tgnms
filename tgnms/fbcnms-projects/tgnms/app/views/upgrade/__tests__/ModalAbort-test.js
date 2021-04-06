@@ -11,7 +11,6 @@ import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
 import {
   act,
-  cleanup,
   fireEvent,
   render,
   wait,
@@ -23,11 +22,6 @@ import {mockUpgradeReqData} from '../../../tests/data/Upgrade';
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiServiceRequest')
   .mockImplementation(() => Promise.resolve());
-
-afterEach(() => {
-  jest.clearAllMocks();
-  cleanup();
-});
 
 const defaultProps = {
   networkName: 'testNetwork',

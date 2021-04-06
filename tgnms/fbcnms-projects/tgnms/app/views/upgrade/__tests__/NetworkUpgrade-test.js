@@ -14,7 +14,6 @@ import {
   mockNetworkConfig,
   renderWithRouter,
 } from '../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
 
 jest.useFakeTimers();
 jest.mock('axios');
@@ -23,8 +22,6 @@ jest.mock('copy-to-clipboard');
 beforeEach(() => {
   initWindowConfig();
 });
-
-afterEach(cleanup);
 
 test('renders empty without crashing', () => {
   const {getByTestId, getAllByTestId} = renderWithRouter(

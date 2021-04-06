@@ -8,10 +8,8 @@
 import NodeUpgradeTableEntry from '../NodeUpgradeTableEntry';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockStructuredNodeData} from '../../../tests/data/Upgrade';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   node: mockStructuredNodeData(),

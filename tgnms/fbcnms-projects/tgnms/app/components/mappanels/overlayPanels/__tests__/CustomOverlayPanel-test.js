@@ -24,7 +24,7 @@ import {
   MapContextProvider,
 } from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {RESPONSE_TYPE} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
-import {act, cleanup, fireEvent} from '@testing-library/react';
+import {act, fireEvent} from '@testing-library/react';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
   getFeatureBySiteName,
@@ -60,9 +60,7 @@ beforeEach(() => {
   );
 });
 afterEach(() => {
-  jest.clearAllMocks();
   queryRemoteOverlayMock.mockReset();
-  cleanup();
 });
 
 const RGB_BLACK = 'rgb(0, 0, 0)';

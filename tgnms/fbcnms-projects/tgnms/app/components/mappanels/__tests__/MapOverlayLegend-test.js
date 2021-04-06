@@ -12,7 +12,7 @@ import {
   TestApp,
   mockMapboxRef,
 } from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 import MapboxDrawMock from '@mapbox/mapbox-gl-draw';
 jest.mock('@mapbox/mapbox-gl-draw');
@@ -20,7 +20,6 @@ jest.mock('@mapbox/mapbox-gl-draw');
 beforeEach(() => {
   MapboxDrawMock.mockClear();
   MapboxDrawMock.mockReset();
-  cleanup();
 });
 
 test('Renders legend container into mapboxControl', async () => {

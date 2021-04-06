@@ -7,9 +7,6 @@
 
 import * as ScheduleHelpers from '../ScheduleHelpers';
 import {DAYS, FREQUENCIES} from '../../constants/ScheduleConstants';
-import {cleanup} from '@testing-library/react';
-
-afterEach(cleanup);
 
 /*
  * input is a cron string in format * * * * *

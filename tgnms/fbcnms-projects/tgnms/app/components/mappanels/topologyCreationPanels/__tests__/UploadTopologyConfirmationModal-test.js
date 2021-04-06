@@ -12,9 +12,7 @@ import {
   TestApp,
   renderWithRouter,
 } from '../../../../tests/testHelpers';
-import {cleanup, fireEvent} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent} from '@testing-library/react';
 
 const defaultProps = {
   onSubmit: jest.fn(),

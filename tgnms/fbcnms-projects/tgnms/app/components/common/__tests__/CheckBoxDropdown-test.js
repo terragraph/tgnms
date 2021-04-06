@@ -8,9 +8,7 @@
 import * as React from 'react';
 import CheckBoxDropDown from '../CheckBoxDropdown';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   title: 'testTitle',

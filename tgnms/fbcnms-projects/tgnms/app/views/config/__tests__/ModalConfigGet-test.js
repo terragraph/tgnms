@@ -8,9 +8,7 @@
 import ModalConfigGet from '../ModalConfigGet';
 import React from 'react';
 import {TestApp, mockNetworkConfig} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   isOpen: true,

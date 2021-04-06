@@ -9,14 +9,10 @@
  */
 
 import useForm from '../useForm';
-import {cleanup} from '@testing-library/react';
+
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
 
 jest.useFakeTimers();
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 describe('useForm hook', () => {
   test('formState contains form initial state', () => {

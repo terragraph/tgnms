@@ -8,9 +8,7 @@
 import React from 'react';
 import ScanServiceSummary from '../ScanServiceSummary';
 import {TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   scanId: '1',

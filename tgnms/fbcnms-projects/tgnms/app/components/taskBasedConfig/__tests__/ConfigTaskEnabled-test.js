@@ -8,10 +8,8 @@
 import * as React from 'react';
 import ConfigTaskEnabled from '../ConfigTaskEnabled';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   label: 'testLabel',

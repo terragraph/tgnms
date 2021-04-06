@@ -13,10 +13,8 @@ import {
   mockTopology,
 } from '../../../../tests/testHelpers';
 import {Popup} from 'react-mapbox-gl';
-import {cleanup, render} from '@testing-library/react';
 import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('renders with default props', () => {
   const topology = mockTopology();

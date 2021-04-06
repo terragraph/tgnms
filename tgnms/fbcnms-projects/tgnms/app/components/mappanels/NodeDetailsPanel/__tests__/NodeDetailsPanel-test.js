@@ -21,9 +21,7 @@ import {
  * Use queries directly for querying children of nodes other than document.body
  */
 import {LinkTypeValueMap} from '../../../../../shared/types/Topology';
-import {cleanup, fireEvent, queries} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, queries} from '@testing-library/react';
 
 beforeEach(() => {
   initWindowConfig();

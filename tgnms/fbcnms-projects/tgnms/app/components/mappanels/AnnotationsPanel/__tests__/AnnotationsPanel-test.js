@@ -18,7 +18,7 @@ import {
   coerceClass,
   mockPanelControl,
 } from '../../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import type {GeoGeometry, LineStringCoords, PolygonCoords} from '@turf/turf';
 import type {MapAnnotationContext as MapAnnotationContextType} from '../../../../contexts/MapAnnotationContext';
 
@@ -26,7 +26,6 @@ jest.mock('../../../../apiutils/ServiceAPIUtil');
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiRequest')
   .mockImplementation(() => Promise.resolve());
-afterEach(cleanup);
 
 const defaultProps = {
   panelControl: mockPanelControl({

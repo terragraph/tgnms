@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
 import ResultExport from '../ResultExport';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 
 const getTestExecutionMock = jest
   .spyOn(networkTestAPIUtil, 'getExecutionResults')
@@ -22,8 +22,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-
-afterEach(cleanup);
 
 const defaultProps = {
   id: '1',

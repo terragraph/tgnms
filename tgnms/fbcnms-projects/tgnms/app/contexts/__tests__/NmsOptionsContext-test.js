@@ -12,9 +12,6 @@ import {
   mockNetworkMapOptions,
   renderWithRouter,
 } from '../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
-
-afterEach(cleanup);
 
 test('renders without crashing', () => {
   const {getByText} = renderWithRouter(

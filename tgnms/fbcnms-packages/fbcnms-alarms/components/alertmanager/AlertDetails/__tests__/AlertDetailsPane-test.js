@@ -10,14 +10,10 @@
 
 import * as React from 'react';
 import AlertDetailsPane from '../AlertDetailsPane';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../../../test/testHelpers';
 import {mockAlert, mockRuleInterface} from '../../../../test/testData';
 import type {AlertViewerProps} from '../../../rules/RuleInterface';
-
-afterEach(() => {
-  cleanup();
-});
 
 const {AlarmsWrapper} = alarmTestUtil();
 const commonProps = {

@@ -8,9 +8,6 @@
 import HealthHistogram from '../HealthHistogram';
 import React from 'react';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
-
-afterEach(cleanup);
 
 const defaultProps = {
   healthExecutions: [

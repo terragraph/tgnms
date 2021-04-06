@@ -8,17 +8,12 @@
 import LinkGraphs from '../LinkGraphs';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockNetworkContext} from '../../../tests/data/NetworkContext';
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../contexts/NetworkContext'), 'useNetworkContext')
   .mockImplementation(jest.fn(() => mockNetworkContext()));
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const defaultProps = {
   linkName: 'testName',

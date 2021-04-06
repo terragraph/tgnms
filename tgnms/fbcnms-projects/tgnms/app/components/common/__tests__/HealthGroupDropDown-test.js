@@ -8,9 +8,7 @@
 import HealthGroupDropDown from '../HealthGroupDropDown';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   executions: [{assetName: 'testLink', results: []}],

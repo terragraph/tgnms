@@ -11,7 +11,6 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '../../../tests/testHelpers';
 import {
   act,
-  cleanup,
   fireEvent,
   render,
   wait,
@@ -37,8 +36,6 @@ jest
       },
     ]),
   );
-
-afterEach(cleanup);
 
 const defaultProps = {
   controllerVersion: {major: 1, minor: 0},

@@ -9,14 +9,12 @@ import NodeEthernetLinks from '../NodeEthernetLinks';
 import React from 'react';
 import {LinkTypeValueMap} from '../../../../../shared/types/Topology';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
+
 import {
   mockLink,
   mockNode,
   mockTopology,
 } from '../../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
 
 const defaultProps = {
   node: mockNode({name: 'testNode', site_name: '11L922'}),

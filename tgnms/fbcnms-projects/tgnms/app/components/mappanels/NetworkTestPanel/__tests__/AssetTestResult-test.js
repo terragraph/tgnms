@@ -9,9 +9,7 @@ import AssetTestResult from '../AssetTestResult';
 import MaterialTheme from '../../../../MaterialTheme';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   assetName: 'testLink',

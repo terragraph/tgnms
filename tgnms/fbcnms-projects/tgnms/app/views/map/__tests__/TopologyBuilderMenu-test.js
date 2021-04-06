@@ -17,11 +17,9 @@ import {
   renderAsync,
 } from '../../../tests/testHelpers';
 import {SnackbarProvider} from 'notistack';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
 import type {TopologyBuilderState} from '../TopologyBuilderMenu';
-
-afterEach(cleanup);
 
 jest.mock('mapbox-gl/dist/mapbox-gl', () => ({
   Map: () => ({}),

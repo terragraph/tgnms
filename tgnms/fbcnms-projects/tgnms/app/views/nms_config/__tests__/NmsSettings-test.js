@@ -14,7 +14,7 @@ import {
   initWindowConfig,
   renderAsync,
 } from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, waitForElement} from '@testing-library/react';
+import {act, fireEvent, waitForElement} from '@testing-library/react';
 import type {EnvMap, SettingsState} from '../../../../shared/dto/Settings';
 
 jest.mock('axios');
@@ -29,15 +29,11 @@ const _postMock = jest
   .mockResolvedValue({data: null, status: 500, statusText: 'mock axios'});
 
 beforeEach(() => {
-  jest.clearAllMocks();
   initWindowConfig({
     featureFlags: {
       NMS_SETTINGS_ENABLED: true,
     },
   });
-});
-afterEach(() => {
-  cleanup();
 });
 
 describe('routing', () => {

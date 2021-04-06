@@ -12,12 +12,8 @@ import {
   TestApp,
   coerceClass,
 } from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import type {Props as SettingInputProps} from '../SettingInput';
-
-afterEach(() => {
-  cleanup();
-});
 
 const defaultProps: $Shape<SettingInputProps> = {
   label: '',

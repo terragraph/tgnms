@@ -32,6 +32,7 @@ module.exports = {
         '^.+\\.js$': 'babel-jest',
       },
       transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
+      setupFilesAfterEnv: [require.resolve('@fbcnms/tg-nms/server/jest-setup')],
     },
     {
       moduleNameMapper: {
@@ -41,9 +42,7 @@ module.exports = {
       },
       name: 'app',
       setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
-      setupFilesAfterEnv: [
-        require.resolve('@fbcnms/tg-nms/app/tests/jest-setup'),
-      ],
+      setupFilesAfterEnv: [require.resolve('@fbcnms/tg-nms/app/jest-setup')],
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',

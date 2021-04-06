@@ -12,10 +12,8 @@ import {
   TestApp,
   renderWithRouter,
 } from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockNetworkConfig, mockNode} from '../../../tests/data/NetworkConfig';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')

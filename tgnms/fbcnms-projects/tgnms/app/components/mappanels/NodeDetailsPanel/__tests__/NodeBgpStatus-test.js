@@ -8,9 +8,7 @@
 import NodeBgpStatus from '../NodeBgpStatus';
 import React from 'react';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
 
-afterEach(cleanup);
 const ipAddress = '2620:10d:c089:ee06::1';
 const defaultProps = {
   bgpStatus: {

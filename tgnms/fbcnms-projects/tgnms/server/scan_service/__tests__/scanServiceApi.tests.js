@@ -20,10 +20,6 @@ import {
 
 jest.mock('axios');
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('/executions/:id - get a single execution by id', () => {
   test('returns a single execution', async () => {
     const app = setupApp();

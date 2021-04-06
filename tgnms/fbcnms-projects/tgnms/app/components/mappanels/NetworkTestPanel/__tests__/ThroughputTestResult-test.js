@@ -9,13 +9,11 @@ import MaterialTheme from '../../../../MaterialTheme';
 import React from 'react';
 import ThroughputTestResult from '../ThroughputTestResult';
 import {TestApp, mockRoutes} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {
   mockExecutionResult,
   mockExecutionResults,
 } from '../../../../tests/data/NetworkTestApi';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   executionResult: {

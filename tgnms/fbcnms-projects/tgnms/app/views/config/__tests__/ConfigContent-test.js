@@ -9,13 +9,8 @@ import * as React from 'react';
 import ConfigContent from '../ConfigContent';
 import {EDITOR_OPTIONS} from '../../../constants/ConfigConstants';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   contentDisplayMode: EDITOR_OPTIONS.FORM,

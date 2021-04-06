@@ -15,7 +15,7 @@ import {
   mockRoutes,
   renderAsync,
 } from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 const useLoadTestExecutionResultsMock = jest
   .spyOn(networkTestHooks, 'useLoadTestExecutionResults')
@@ -24,8 +24,6 @@ const useLoadTestExecutionResultsMock = jest
     execution: {id: '1', test_type: 'PARALLEL_LINK'},
     results: [{asset_name: 'testLinkName', status: 'FINISHED'}],
   }));
-
-afterEach(cleanup);
 
 const defaultProps = {
   testId: '1',

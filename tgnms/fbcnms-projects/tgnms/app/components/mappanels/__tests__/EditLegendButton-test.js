@@ -8,11 +8,7 @@
 import * as React from 'react';
 import EditLegendButton from '../EditLegendButton';
 import {MapContextWrapper, TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-beforeEach(() => {
-  cleanup();
-});
+import {fireEvent, render} from '@testing-library/react';
 
 const mapContextValue = {
   overlaysConfig: {

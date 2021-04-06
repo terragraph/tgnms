@@ -32,7 +32,6 @@ jest.mock('../../config', () => ({
 }));
 
 beforeEach(async () => {
-  jest.clearAllMocks();
   jest.resetModules();
   axiosMock.post.mockImplementation(() => Promise.resolve({data: {}}));
 });

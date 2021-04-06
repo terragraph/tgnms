@@ -8,11 +8,9 @@
 import ConfigTable from '../ConfigTable';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
+
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
 import {renderWithRouter} from '../../../tests/testHelpers';
-
-afterEach(cleanup);
 
 const defaultProps = {
   hideDeprecatedFields: true,

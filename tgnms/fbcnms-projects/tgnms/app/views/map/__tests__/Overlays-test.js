@@ -27,7 +27,7 @@ import {
   MAPMODE,
   MapContextProvider,
 } from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {act, cleanup, fireEvent, within} from '@testing-library/react';
+import {act, fireEvent, within} from '@testing-library/react';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {color} from 'd3-color';
 import {
@@ -44,9 +44,6 @@ const axiosGetMock = jest.spyOn(require('axios'), 'get');
 axiosGetMock.mockResolvedValue(null);
 
 const networkName = 'test';
-beforeEach(() => {
-  cleanup();
-});
 
 describe('Default MapMode', () => {
   describe('Link Overlays', () => {

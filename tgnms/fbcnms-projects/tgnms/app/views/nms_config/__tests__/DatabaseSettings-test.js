@@ -8,9 +8,7 @@
 import * as React from 'react';
 import DatabaseSettings from '../DatabaseSettings';
 import {SettingsFormContextWrapper, TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(

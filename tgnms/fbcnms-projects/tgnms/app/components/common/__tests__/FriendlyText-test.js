@@ -6,9 +6,7 @@
 
 import FriendlyText from '../FriendlyText';
 import React from 'react';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('splits text based on separator', () => {
   const {getByText} = render(

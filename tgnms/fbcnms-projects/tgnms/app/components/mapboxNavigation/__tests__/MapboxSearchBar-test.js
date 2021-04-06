@@ -8,7 +8,7 @@
 import MapboxSearchBar from '../MapboxSearchBar';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   accessToken: 'testToken',
@@ -18,11 +18,6 @@ const defaultProps = {
   shouldSearchPlaces: jest.fn(),
   onRenderResult: jest.fn(),
 };
-
-beforeEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 test('renders', () => {
   const {getByTestId} = render(

@@ -18,7 +18,7 @@ import {
   getSelectMenu,
   renderAsync,
 } from '../../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render, within} from '@testing-library/react';
+import {act, fireEvent, render, within} from '@testing-library/react';
 import type {MapProfile} from '../../../../../shared/dto/MapProfile';
 import type {OverlayResponse} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 
@@ -61,11 +61,6 @@ const saveProfileMock = jest
 const queryRemoteOverlayMock = jest
   .spyOn(mapAPIUtilMock, 'queryRemoteOverlay')
   .mockImplementation((p: OverlayResponse) => Promise.resolve(p));
-
-beforeEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 test('renders', () => {
   const {getByText} = render(

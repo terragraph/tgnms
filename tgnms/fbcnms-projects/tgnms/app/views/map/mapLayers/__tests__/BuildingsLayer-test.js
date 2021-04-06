@@ -9,9 +9,7 @@ import * as React from 'react';
 import BuildingsLayer from '../BuildingsLayer';
 import {Layer} from 'react-mapbox-gl';
 import {TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('renders with default props', () => {
   render(

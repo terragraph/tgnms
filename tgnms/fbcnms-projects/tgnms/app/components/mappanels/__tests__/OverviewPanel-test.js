@@ -13,9 +13,7 @@ import {
   mockNetworkConfig,
   mockTopology,
 } from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 describe('OverviewPanel', () => {
   beforeEach(() => {

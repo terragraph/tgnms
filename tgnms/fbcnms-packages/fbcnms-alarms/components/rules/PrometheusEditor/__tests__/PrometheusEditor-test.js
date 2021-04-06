@@ -11,19 +11,14 @@
 import * as React from 'react';
 import PrometheusEditor from '../PrometheusEditor';
 import {alarmTestUtil} from '../../../../test/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {parseTimeString} from '../PrometheusEditor';
+import {render} from '@testing-library/react';
 
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {GenericRule} from '../../RuleInterface';
 
 jest.mock('../../../../hooks/useSnackbar');
 jest.mock('../../../../hooks/useRouter');
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const {AlarmsWrapper} = alarmTestUtil();
 

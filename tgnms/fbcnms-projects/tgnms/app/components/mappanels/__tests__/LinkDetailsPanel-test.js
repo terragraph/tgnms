@@ -55,10 +55,6 @@ const commonProps = {
   topology: mockTopology(),
 };
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Delete Link', () => {
   test('Brings down link and sends force parameter if force is checked', async () => {
     const mock = jest.spyOn(axios, 'post');

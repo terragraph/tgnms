@@ -14,21 +14,13 @@ import React from 'react';
 import {TestApp} from '../../../../tests/testHelpers';
 import {WebSocketMessage} from '../../../../../shared/dto/WebSockets';
 import {WebSocketProvider} from '../../../../contexts/WebSocketContext';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  getByText,
-  render,
-} from '@testing-library/react';
+import {act, fireEvent, getByText, render} from '@testing-library/react';
 
 let offsetCounter;
 
 beforeEach(() => {
   offsetCounter = 0;
 });
-
-afterEach(cleanup);
 
 const defaultTestMessage = 'test-reason-message';
 const defaultTestNetwork = 'test-network';

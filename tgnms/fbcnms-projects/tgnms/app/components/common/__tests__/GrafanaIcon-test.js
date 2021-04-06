@@ -7,9 +7,7 @@
 
 import GrafanaIcon from '../GrafanaIcon';
 import React from 'react';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('renders', () => {
   const {getByTestId} = render(<GrafanaIcon />);

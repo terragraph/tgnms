@@ -9,12 +9,7 @@ import * as React from 'react';
 import MapProfileForm from '../MapProfileForm';
 import {DEFAULT_MCS_TABLE} from '../../../../constants/MapProfileConstants';
 import {TestApp, coerceClass} from '../../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  cleanup();
-});
+import {act, fireEvent, render} from '@testing-library/react';
 
 const commonProps = {
   isDefault: false,

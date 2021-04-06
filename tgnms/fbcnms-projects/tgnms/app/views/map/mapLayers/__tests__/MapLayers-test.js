@@ -17,9 +17,9 @@ import {
   mockTopology,
 } from '../../../../tests/testHelpers';
 import {TopologyElementType} from '../../../../constants/NetworkConstants';
-import {cleanup, render} from '@testing-library/react';
 import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
 import {mockNetworkContext} from '../../../../tests/data/NetworkContext';
+import {render} from '@testing-library/react';
 
 import type {MapContext} from '../../../../contexts/MapContext';
 import type {Props} from '../MapLayers';
@@ -28,8 +28,6 @@ const sitesLayerSpy = jest.spyOn(SitesLayer, 'render');
 const linksLayerSpy = jest.spyOn(LinksLayer, 'render');
 const buildingsLayerSpy = jest.spyOn(require('../BuildingsLayer'), 'default');
 const sitePopupsLayerSpy = jest.spyOn(require('../SitePopupsLayer'), 'default');
-
-afterEach(cleanup);
 
 const commonProps: Props = {
   context: mockNetworkContext(),

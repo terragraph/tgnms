@@ -11,17 +11,13 @@ import InstallerAppConfig from '../InstallerAppConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp, renderAsync} from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {act, fireEvent, render, wait} from '@testing-library/react';
 
 import * as fbcHooks from '@fbcnms/ui/hooks';
 jest.mock('@fbcnms/ui/hooks');
 const useAxiosMock = jest
   .spyOn(fbcHooks, 'useAxios')
   .mockImplementation(jest.fn(() => ({data: {}})));
-
-afterEach(() => {
-  cleanup();
-});
 
 test('clicking the button opens the modal', () => {
   const {getByText} = render(

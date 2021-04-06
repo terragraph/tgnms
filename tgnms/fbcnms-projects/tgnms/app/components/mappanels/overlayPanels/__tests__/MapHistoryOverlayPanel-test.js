@@ -18,16 +18,12 @@ import {
   renderAsync,
 } from '../../../../tests/testHelpers';
 import {NmsOptionsContextProvider} from '../../../../contexts/NmsOptionsContext';
-import {act, cleanup, fireEvent} from '@testing-library/react';
+import {act, fireEvent} from '@testing-library/react';
 import {mockNetworkMapOptions} from '../../../../tests/data/NmsOptionsContext';
 import type {MapContext} from '../../../../contexts/MapContext';
 import type {NmsOptionsContextType} from '../../../../contexts/NmsOptionsContext';
 
 jest.mock('axios');
-afterEach(() => {
-  jest.clearAllMocks();
-  cleanup();
-});
 
 test('renders loading without crashing', async () => {
   const setIsOverlayLoading = jest.fn();

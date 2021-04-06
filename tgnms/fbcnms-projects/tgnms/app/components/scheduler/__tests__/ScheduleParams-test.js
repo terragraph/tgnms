@@ -8,9 +8,7 @@
 import * as React from 'react';
 import ScheduleParams from '../ScheduleParams';
 import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   scheduleParams: {typeSelector: <div />, advancedParams: <div />},

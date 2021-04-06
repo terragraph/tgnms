@@ -8,21 +8,13 @@
 import ModalReset from '../ModalReset';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {
-  cleanup,
-  fireEvent,
-  render,
-  wait,
-  waitForElement,
-} from '@testing-library/react';
+import {fireEvent, render, wait, waitForElement} from '@testing-library/react';
 
 import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
 
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiServiceRequest')
   .mockImplementation(() => Promise.resolve());
-
-afterEach(cleanup);
 
 const defaultProps = {
   selected: ['testNode'],

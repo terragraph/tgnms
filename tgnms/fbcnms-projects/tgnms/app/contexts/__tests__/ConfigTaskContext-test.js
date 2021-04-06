@@ -9,7 +9,7 @@ import * as React from 'react';
 import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
 import {Provider as TaskConfigContextProvider} from '../ConfigTaskContext';
 import {TestApp, renderWithRouter} from '../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
+
 import {renderHook} from '@testing-library/react-hooks';
 import {useConfigTaskContext} from '../ConfigTaskContext';
 
@@ -19,8 +19,6 @@ import type {
   ConfigParamsType,
   SelectedValuesType,
 } from '../ConfigTaskContext';
-
-afterEach(cleanup);
 
 const defaultProps = {
   configData: [],

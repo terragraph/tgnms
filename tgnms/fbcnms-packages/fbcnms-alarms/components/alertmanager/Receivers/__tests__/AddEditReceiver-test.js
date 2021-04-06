@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import AddEditReceiver from '../AddEditReceiver';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../../../test/testHelpers';
 
 const {apiUtil, AlarmsWrapper} = alarmTestUtil();
@@ -19,10 +19,6 @@ const commonProps = {
   isNew: true,
   onExit: jest.fn(),
 };
-
-afterEach(() => {
-  cleanup();
-});
 
 test('renders', () => {
   const {getByLabelText} = render(

@@ -16,9 +16,7 @@ import {
   basicTemplates,
   defaultTemplate,
 } from '../../../../constants/TemplateConstants';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   currentTemplate: defaultTemplate,

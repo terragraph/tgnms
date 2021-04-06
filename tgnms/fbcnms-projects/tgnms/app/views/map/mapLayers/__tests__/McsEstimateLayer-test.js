@@ -21,14 +21,12 @@ import {
 } from '../../../../tests/testHelpers';
 import {TopologyElementType} from '../../../../constants/NetworkConstants';
 import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {getSourceFeatureCollection} from '../../../../tests/mapHelpers';
+import {render} from '@testing-library/react';
 import type {MapContext} from '../../../../contexts/MapContext';
 import type {NetworkContextType} from '../../../../contexts/NetworkContext';
 import type {PlannedSite} from '../../../../components/mappanels/MapPanelTypes';
 import type {PlannedSiteContext} from '../../../../contexts/PlannedSiteContext';
-
-afterEach(cleanup);
 
 test('renders without any props', async () => {
   await render(

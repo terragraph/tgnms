@@ -9,9 +9,7 @@ import * as React from 'react';
 import SchedulerModal from '../SchedulerModal';
 import {MODAL_MODE} from '../../../constants/ScheduleConstants';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   type: '',

@@ -10,18 +10,13 @@
 
 import * as React from 'react';
 import AlertRules from '../AlertRules';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../test/testHelpers';
 import {assertType} from '../../util/assert';
 import {mockPrometheusRule} from '../../test/testData';
 
 jest.mock('../../hooks/useSnackbar');
 jest.mock('../../hooks/useRouter');
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const {apiUtil, AlarmsWrapper} = alarmTestUtil();
 

@@ -16,17 +16,15 @@ import {
 import {NodeTypeValueMap as NodeType} from '../../../../../shared/types/Topology';
 import {TestApp, mockRoutes, mockTopology} from '../../../../tests/testHelpers';
 import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {
   getFeatureByAttributes,
   getLayerById,
   getPropValue,
 } from '../../../../tests/mapHelpers';
+import {render} from '@testing-library/react';
 
 import type {Props} from '../SitesLayer';
 import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
-
-afterEach(cleanup);
 
 const defaultTopology = basicTopology();
 const commonProps: Props = {

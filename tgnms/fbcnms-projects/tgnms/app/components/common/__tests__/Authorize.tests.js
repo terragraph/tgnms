@@ -9,8 +9,8 @@
 
 import React from 'react';
 import {Permissions} from '../../../../shared/auth/Permissions';
-import {cleanup, render} from '@testing-library/react';
 import {initWindowConfig, setTestUser} from '../../../tests/testHelpers';
+import {render} from '@testing-library/react';
 
 import Authorize from '../Authorize';
 
@@ -21,9 +21,6 @@ beforeEach(() => {
     },
   });
 });
-
-// automatically unmount and cleanup DOM after the test is finished.
-afterEach(cleanup);
 
 test('If login is disabled, allow all', () => {
   initWindowConfig({

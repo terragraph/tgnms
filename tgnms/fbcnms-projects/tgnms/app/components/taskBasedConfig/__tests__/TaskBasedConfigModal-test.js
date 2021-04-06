@@ -12,12 +12,7 @@ import {
   TestApp,
   renderAsync,
 } from '../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
+import {act, fireEvent, render} from '@testing-library/react';
 
 jest
   .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')

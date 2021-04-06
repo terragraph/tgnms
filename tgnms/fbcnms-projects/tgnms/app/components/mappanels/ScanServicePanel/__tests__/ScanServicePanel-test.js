@@ -8,9 +8,6 @@
 import React from 'react';
 import ScanServicePanel from '../ScanServicePanel';
 import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
-import {cleanup} from '@testing-library/react';
-
-afterEach(cleanup);
 
 const defaultProps = {
   expanded: true,

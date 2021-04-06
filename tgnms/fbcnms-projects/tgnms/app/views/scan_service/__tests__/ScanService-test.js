@@ -10,7 +10,7 @@ import * as ScanServiceAPIUtil from '../../../apiutils/ScanServiceAPIUtil';
 import MaterialTheme from '../../../MaterialTheme';
 import ScanService from '../ScanService';
 import {SnackbarWrapper, renderAsync} from '../../../tests/testHelpers';
-import {act, cleanup, render} from '@testing-library/react';
+import {act, render} from '@testing-library/react';
 
 const getExecutionsMock = jest
   .spyOn(ScanServiceAPIUtil, 'getExecutions')
@@ -19,8 +19,6 @@ const getExecutionsMock = jest
 const getScheduleMock = jest
   .spyOn(ScanServiceAPIUtil, 'getSchedules')
   .mockImplementation(() => Promise.resolve([]));
-
-afterEach(cleanup);
 
 jest.mock('react-router', () => ({
   useHistory: () => ({

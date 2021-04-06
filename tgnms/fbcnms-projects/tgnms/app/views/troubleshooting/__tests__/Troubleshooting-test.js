@@ -8,11 +8,7 @@
 import React from 'react';
 import Troubleshooting, {TROUBLESHOOTING_TABS} from '../Troubleshooting';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-beforeEach(() => {
-  cleanup();
-});
+import {render} from '@testing-library/react';
 
 test('renders table', () => {
   const {getByText} = render(

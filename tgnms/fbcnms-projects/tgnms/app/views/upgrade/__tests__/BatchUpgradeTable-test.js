@@ -8,10 +8,8 @@
 import BatchUpgradeTable from '../BatchUpgradeTable';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockBatchArrayData} from '../../../tests/data/Upgrade';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   data: mockBatchArrayData(),

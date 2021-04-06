@@ -8,10 +8,8 @@
 import * as React from 'react';
 import NetworkTestAdvancedParams from '../NetworkTestAdvancedParams';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {cleanup, fireEvent, render} from '@testing-library/react';
 import {coerceClass} from '../../../tests/testHelpers';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   onIperfOptionsUpdate: jest.fn(),

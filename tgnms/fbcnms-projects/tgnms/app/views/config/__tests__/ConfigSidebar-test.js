@@ -9,7 +9,7 @@ import ConfigSidebar from '../ConfigSidebar';
 import MaterialTheme from '../../../MaterialTheme';
 import React from 'react';
 import {CONFIG_MODES} from '../../../constants/ConfigConstants';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {initWindowConfig} from '../../../tests/testHelpers';
 import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
 import {mockNetworkContext} from '../../../tests/data/NetworkContext';
@@ -58,11 +58,6 @@ jest
 jest
   .spyOn(require('../../../helpers/ConfigHelpers'), 'getTopologyNodeList')
   .mockReturnValue([{name: 'testNode'}, {name: 'mock filter node'}]);
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const defaultProps = {
   useRawJsonEditor: false,

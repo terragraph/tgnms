@@ -16,14 +16,12 @@ import {
   mockNetworkInstanceConfig,
   renderWithRouter,
 } from '../../../tests/testHelpers';
-import {cleanup, fireEvent} from '@testing-library/react';
+import {fireEvent} from '@testing-library/react';
 import type {NetworkList} from '../../../../shared/dto/NetworkState';
 
 beforeEach(() => {
   initWindowConfig();
 });
-
-afterEach(cleanup);
 
 test('renders without crashing', () => {
   const {getByText} = renderWithRouter(

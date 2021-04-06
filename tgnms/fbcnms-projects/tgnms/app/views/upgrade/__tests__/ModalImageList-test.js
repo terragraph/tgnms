@@ -8,10 +8,8 @@
 import ModalImageList from '../ModalImageList';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockUpgradeImageArrayData} from '../../../tests/data/Upgrade';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   upgradeImages: mockUpgradeImageArrayData(),

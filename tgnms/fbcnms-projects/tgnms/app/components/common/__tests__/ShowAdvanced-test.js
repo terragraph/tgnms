@@ -9,9 +9,7 @@ import React from 'react';
 import ShowAdvanced from '../ShowAdvanced';
 import TextField from '@material-ui/core/TextField';
 import {TestApp, cast, renderAsync} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   children: [

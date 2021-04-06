@@ -15,7 +15,7 @@ import {EventIdValueMap} from '../../../../../shared/types/Event';
 import {Router} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {TestApp} from '../../../../tests/testHelpers';
-import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockApiUtil} from '@fbcnms/alarms/test/testHelpers';
 
@@ -39,11 +39,6 @@ const commonProps = {
   isNew: true,
   onRuleSaved: jest.fn(),
 };
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 function Wrapper({children}) {
   return (

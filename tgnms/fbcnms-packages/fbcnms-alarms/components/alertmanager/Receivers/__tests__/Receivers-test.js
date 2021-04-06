@@ -12,7 +12,6 @@ import * as React from 'react';
 import Receivers from '../Receivers';
 import {
   act,
-  cleanup,
   fireEvent,
   render,
   wait,
@@ -27,11 +26,6 @@ jest
 jest
   .spyOn(require('../../../../hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
-
-afterEach(() => {
-  cleanup();
-  jest.clearAllMocks();
-});
 
 const {AlarmsWrapper} = alarmTestUtil();
 

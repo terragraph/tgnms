@@ -8,9 +8,7 @@
 import L2TunnelInputs from '../L2TunnelInputs';
 import React from 'react';
 import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('renders empty without crashing', () => {
   const {getByText} = render(

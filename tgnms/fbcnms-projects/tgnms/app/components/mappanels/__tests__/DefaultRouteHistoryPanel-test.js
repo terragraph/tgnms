@@ -17,7 +17,7 @@ import {
   mockPanelControl,
   renderAsync,
 } from '../../../tests/testHelpers';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {
   testDefaultRouteHistory,
   testNodeMap,
@@ -35,11 +35,6 @@ const apiServiceRequestMock = jest
 const getDefaultRouteHistoryMock = jest
   .spyOn(defaultRouteApiUtil, 'getDefaultRouteHistory')
   .mockImplementation(() => Promise.resolve(testDefaultRouteHistory()));
-
-afterEach(() => {
-  jest.clearAllMocks();
-  cleanup();
-});
 
 const defaultProps = {
   panelControl: mockPanelControl({

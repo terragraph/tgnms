@@ -7,9 +7,7 @@
 
 import React from 'react';
 import StatusText from '../StatusText';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 test('renders with null status for unknown', () => {
   const {getByText} = render(<StatusText status={null} />);

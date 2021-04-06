@@ -7,9 +7,7 @@
 
 import * as React from 'react';
 import TabbedButton from '../TabbedButton';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
   leftText: 'left',

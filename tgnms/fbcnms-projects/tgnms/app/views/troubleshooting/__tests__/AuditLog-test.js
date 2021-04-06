@@ -7,11 +7,7 @@
 
 import AuditLog from '../AuditLog';
 import React from 'react';
-import {cleanup, render} from '@testing-library/react';
-
-beforeEach(() => {
-  cleanup();
-});
+import {render} from '@testing-library/react';
 
 test('renders table', () => {
   const {getByTestId} = render(<AuditLog />);

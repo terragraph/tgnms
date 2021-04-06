@@ -8,7 +8,7 @@
 import NetworkConfig from '../NetworkConfig';
 import React from 'react';
 import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
-import {cleanup, fireEvent, waitForElement} from '@testing-library/react';
+import {fireEvent, waitForElement} from '@testing-library/react';
 import {renderWithRouter} from '../../../tests/testHelpers';
 
 beforeEach(() => {
@@ -20,8 +20,6 @@ beforeEach(() => {
     },
   });
 });
-
-afterEach(cleanup);
 
 test('renders spinner initially without crashing', () => {
   const {getByTestId} = renderWithRouter(

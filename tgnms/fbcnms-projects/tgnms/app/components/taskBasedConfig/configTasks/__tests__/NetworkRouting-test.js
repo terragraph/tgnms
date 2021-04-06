@@ -8,9 +8,7 @@
 import * as React from 'react';
 import NetworkRouting from '../NetworkRouting';
 import {TestApp} from '../../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 jest
   .spyOn(

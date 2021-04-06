@@ -8,13 +8,7 @@
 import ModalCommit from '../ModalCommit';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {
-  cleanup,
-  fireEvent,
-  render,
-  wait,
-  waitForElement,
-} from '@testing-library/react';
+import {fireEvent, render, wait, waitForElement} from '@testing-library/react';
 
 import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
 import * as upgradeHelpers from '../../../helpers/UpgradeHelpers';
@@ -35,8 +29,6 @@ jest
       },
     ]),
   );
-
-afterEach(cleanup);
 
 const defaultProps = {
   excluded: [],

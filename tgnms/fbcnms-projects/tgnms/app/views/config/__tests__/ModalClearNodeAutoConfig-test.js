@@ -9,18 +9,11 @@ import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '../../../tests/testHelpers';
-import {
-  cleanup,
-  fireEvent,
-  render,
-  waitForElement,
-} from '@testing-library/react';
+import {fireEvent, render, waitForElement} from '@testing-library/react';
 
 jest.mock('../../../apiutils/ServiceAPIUtil');
 const apiServiceRequestMock: any = require('../../../apiutils/ServiceAPIUtil')
   .apiServiceRequest;
-
-afterEach(cleanup);
 
 const defaultProps = {
   isOpen: true,

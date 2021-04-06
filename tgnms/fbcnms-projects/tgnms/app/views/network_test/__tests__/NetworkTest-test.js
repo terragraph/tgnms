@@ -10,7 +10,7 @@ import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
 import MaterialTheme from '../../../MaterialTheme';
 import NetworkTest from '../NetworkTest';
 import {SnackbarWrapper, renderAsync} from '../../../tests/testHelpers';
-import {act, cleanup, render} from '@testing-library/react';
+import {act, render} from '@testing-library/react';
 
 const getExecutionsMock = jest
   .spyOn(networkTestAPIUtil, 'getExecutions')
@@ -19,8 +19,6 @@ const getExecutionsMock = jest
 const getTestScheduleMock = jest
   .spyOn(networkTestAPIUtil, 'getSchedules')
   .mockImplementation(() => Promise.resolve([]));
-
-afterEach(cleanup);
 
 jest.mock('react-router', () => ({
   useHistory: () => ({

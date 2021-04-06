@@ -15,13 +15,7 @@ import NmsAlarms from '../NmsAlarms';
 import {AlarmsTestWrapper} from '@fbcnms/alarms/test/testHelpers';
 import {EventIdValueMap} from '../../../../shared/types/Event';
 import {TgApiUtil as TgApiUtilMock} from '../TgAlarmApi';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  waitForElement,
-} from '@testing-library/react';
+import {act, fireEvent, render, waitForElement} from '@testing-library/react';
 
 import type {FiringAlarm} from '@fbcnms/alarms/components/AlarmAPIType';
 
@@ -36,9 +30,7 @@ jest.mock('../TgAlarmApi', () => {
     },
   };
 });
-afterEach(() => {
-  cleanup();
-});
+
 const commonProps = {
   networkName: 'test',
 };

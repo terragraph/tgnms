@@ -14,8 +14,8 @@ import {
 } from '../../../../tests/testHelpers';
 import {Popup} from 'react-mapbox-gl';
 import {TgApiUtil as TgApiUtilMock} from '../../../alarms/TgAlarmApi';
-import {cleanup, render} from '@testing-library/react';
 import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
+import {render} from '@testing-library/react';
 
 import type {FiringAlarm} from '@fbcnms/alarms/components/AlarmAPIType';
 
@@ -29,10 +29,6 @@ jest.mock('../../../alarms/TgAlarmApi', () => {
       deleteAlertRule: jest.fn(),
     },
   };
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 test('renders with default props', () => {

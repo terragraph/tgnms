@@ -8,10 +8,8 @@
 import NodeSysdumpsTableEntry from '../NodeSysdumpsTableEntry';
 import React from 'react';
 import {TestApp} from '../../../tests/testHelpers';
-import {cleanup, render} from '@testing-library/react';
 import {mockSysdumpEntryData} from '../../../tests/data/Sysdumps';
-
-afterEach(cleanup);
+import {render} from '@testing-library/react';
 
 const defaultProps = {
   sysdump: mockSysdumpEntryData(),
