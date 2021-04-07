@@ -266,23 +266,39 @@ class Scheduler:
         loop.call_later(
             test.end_delay_s + cls.CLEAN_UP_DELAY_S,
             asyncio.create_task,
-            cls.cleanup_execution_status(execution_id),
+            cls.cleanup_execution_status(test, execution_id),
         )
 
         return execution_id
 
     @classmethod
-    async def cleanup_execution_status(cls, execution_id: int) -> None:
-        """If execution status is RUNNING, mark it as FAILED."""
+    async def cleanup_execution_status(cls, test: ScanTest, execution_id: int) -> None:
+        """Mark the execution as FINISHED if we receive atleast one scan response.
+
+        If we do not receive any scan responses, mark the test as FAILED & send alert.
+        """
         async with MySQLClient().lease() as sa_conn:
             get_execution_query = select([ScanTestExecution.status]).where(
                 ScanTestExecution.id == execution_id
             )
             cursor = await sa_conn.execute(get_execution_query)
             execution_row = await cursor.first()
-        if execution_row and execution_row.status == ScanTestStatus.RUNNING:
-            await cls.update_execution_status(
-                execution_id, ScanTestStatus.FAILED, datetime.utcnow()
+        if execution_row and execution_row.status == ScanTestStatus.FINISHED:
+            return None
+
+        status = (
+            ScanTestStatus.FAILED
+            if test.token_count == len(test.token_range)
+            else ScanTestStatus.FINISHED
+        )
+        await cls.update_execution_status(execution_id, status, datetime.utcnow())
+
+        if status == ScanTestStatus.FAILED:
+            await Alerts.post(
+                execution_id,
+                f"Scan test for execution id {execution_id} failed. "
+                "Did not receive any scan responses.",
+                Severity.CRITICAL,
             )
 
     @classmethod

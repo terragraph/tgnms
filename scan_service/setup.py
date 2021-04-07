@@ -15,7 +15,7 @@ ptr_params = {
         "scan_service/utils/stats.py": 100,
         "scan_service/utils/time.py": 100,
         "scan_service/utils/topology.py": 100,
-        "TOTAL": 33,
+        "TOTAL": 32,
     },
     "run_flake8": True,
     "run_black": True,
@@ -24,7 +24,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2021.03.31",
+    version="2021.04.07",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     install_requires=[

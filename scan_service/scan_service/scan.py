@@ -36,6 +36,7 @@ class ScanTest:
         self.start_token: Optional[int] = None
         self.end_token: Optional[int] = None
         self.token_range: Set = set()
+        self.token_count: int = 0
 
     async def start(self, execution_id: int, scan_start_delay_s: int) -> None:
         """Start the scan test.
@@ -126,6 +127,7 @@ class ScanTest:
             query = insert(ScanResults).values(values)
             await sa_conn.execute(query)
             await sa_conn.connection.commit()
+            self.token_count = len(self.token_range)
 
 
 def parse_scan_results(scan_result: Dict) -> Dict:
