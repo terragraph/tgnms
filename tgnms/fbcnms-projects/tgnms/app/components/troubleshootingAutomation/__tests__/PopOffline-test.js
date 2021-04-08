@@ -5,7 +5,6 @@
  * @flow strict-local
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import PopOffline from '../PopOffline';
 import {TestApp} from '../../../tests/testHelpers';
