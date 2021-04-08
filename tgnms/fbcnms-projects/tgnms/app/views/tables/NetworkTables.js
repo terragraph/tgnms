@@ -21,6 +21,7 @@ import ScanTable from './ScanTable';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
+import {NETWORK_TABLE_HEIGHTS} from '../../constants/StyleConstants';
 import {TopologyElementType} from '../../constants/NetworkConstants.js';
 import {isEqual} from 'lodash';
 import {isFeatureEnabled} from '../../constants/FeatureFlags';
@@ -84,6 +85,10 @@ const TABLE_TYPE = Object.freeze({
   scans: 'scans',
   plans: 'plans',
 });
+
+export type NetworkTableProps = {|
+  tableHeight?: ?number,
+|};
 
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
@@ -154,12 +159,18 @@ class NetworkTables extends React.Component<Props, State> {
   renderNetworkTable = () => {
     // Render the selected table
     const {selectedTable} = this.state;
-
+    const tableRootHeight = this.props.tableHeight;
+    const tableProps: NetworkTableProps = {
+      tableHeight:
+        tableRootHeight != null
+          ? tableRootHeight - NETWORK_TABLE_HEIGHTS.TABS
+          : null,
+    };
     return (
       <NetworkContext.Consumer>
         {context => {
           if (selectedTable === TABLE_TYPE.nodes) {
-            return <NetworkNodesTable context={context} />;
+            return <NetworkNodesTable {...tableProps} />;
           } else if (selectedTable === TABLE_TYPE.links) {
             return <NetworkLinksTable context={context} />;
           } else if (selectedTable === TABLE_TYPE.tests) {
@@ -167,7 +178,7 @@ class NetworkTables extends React.Component<Props, State> {
           } else if (selectedTable === TABLE_TYPE.scans) {
             return <ScanTable />;
           } else if (selectedTable === TABLE_TYPE.plans) {
-            return <NetworkPlanningTable />;
+            return <NetworkPlanningTable {...tableProps} />;
           } else {
             return null;
           }

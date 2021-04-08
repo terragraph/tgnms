@@ -10,12 +10,14 @@ import React from 'react';
 import green from '@material-ui/core/colors/green';
 import grey from '@material-ui/core/colors/grey';
 import red from '@material-ui/core/colors/red';
+import {NETWORK_TABLE_HEIGHTS} from '../../constants/StyleConstants';
 import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
 import {TopologyElementType} from '../../constants/NetworkConstants';
 import {isNodeAlive} from '../../helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
 import {useNetworkContext} from '../../contexts/NetworkContext';
+import type {NetworkTableProps} from './NetworkTables';
 
 type NetworkNodeRowType = {
   name: string,
@@ -34,7 +36,7 @@ const useStyles = makeStyles(_theme => ({
     overflow: 'auto',
   },
 }));
-export default function NetworkNodesTable() {
+export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
   const {
     nodeMap,
     networkConfig,
@@ -167,8 +169,17 @@ export default function NetworkNodesTable() {
   const tableOptions = React.useMemo(
     () => ({
       showTitle: false,
-      minBodyHeight: 200,
-      maxBodyHeight: 500,
+      maxBodyHeight:
+        /**
+         * Subtract the height of enabled mtable components to stretch the table
+         * vertically in the network tables view. prevents double scrollbar
+         */
+        tableHeight != null
+          ? tableHeight -
+            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
+            NETWORK_TABLE_HEIGHTS.MTABLE_GROUPING -
+            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
+          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       pageSize: 20,
       pageSizeOptions: [20, 50, 100],
       padding: 'dense',
@@ -183,7 +194,7 @@ export default function NetworkNodesTable() {
       },
       tableLayout: 'fixed',
     }),
-    [makeRowStyle],
+    [makeRowStyle, tableHeight],
   );
 
   return (
@@ -194,9 +205,11 @@ export default function NetworkNodesTable() {
         data={data}
         onRowClick={handleRowClick}
         options={tableOptions}
-        style={{
-          paddingBottom: 24,
-        }}
+        style={
+          {
+            //          paddingBottom: 24,
+          }
+        }
       />
     </div>
   );

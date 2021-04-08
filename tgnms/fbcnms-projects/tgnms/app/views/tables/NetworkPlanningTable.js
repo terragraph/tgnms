@@ -12,9 +12,12 @@ import PlanStatus from '@fbcnms/tg-nms/app/components/mappanels/NetworkPlanningP
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {NETWORK_TABLE_HEIGHTS} from '../../constants/StyleConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+
+import type {NetworkTableProps} from './NetworkTables';
 
 import type {ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 
@@ -25,7 +28,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-export default function NetworkPlanningTable() {
+export default function NetworkPlanningTable({tableHeight}: NetworkTableProps) {
   const classes = useStyles();
   const {networkName} = useNetworkContext();
   const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
@@ -83,8 +86,12 @@ export default function NetworkPlanningTable() {
   const tableOptions = React.useMemo(
     () => ({
       showTitle: false,
-      minBodyHeight: 200,
-      maxBodyHeight: 500,
+      maxBodyHeight:
+        tableHeight != null
+          ? tableHeight -
+            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
+            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
+          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       pageSize: 20,
       pageSizeOptions: [20, 50, 100],
       padding: 'dense',
@@ -92,7 +99,7 @@ export default function NetworkPlanningTable() {
       tableLayout: 'fixed',
       rowStyle: makeRowStyle,
     }),
-    [makeRowStyle],
+    [makeRowStyle, tableHeight],
   );
 
   const handleRowClick = React.useCallback(

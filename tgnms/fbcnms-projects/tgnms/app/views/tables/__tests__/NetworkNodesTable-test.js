@@ -21,7 +21,7 @@ test('renders table with no data', () => {
   const {getByTestId} = render(
     <TestApp route="/nodes">
       <NetworkContextWrapper contextValue={{}}>
-        <Route path="/" render={r => <NetworkNodesTable {...r} />} />
+        <Route path="/" render={_r => <NetworkNodesTable />} />
       </NetworkContextWrapper>
     </TestApp>,
   );
@@ -32,7 +32,7 @@ test('renders table with no data', () => {
 test('renders table with data', () => {
   const {getByText, getByTestId} = render(
     <Wrapper>
-      <Route path="/" render={r => <NetworkNodesTable {...r} />} />
+      <Route path="/" render={_r => <NetworkNodesTable />} />
     </Wrapper>,
   );
   expect(getByTestId('network-nodes-table')).toBeInTheDocument();
