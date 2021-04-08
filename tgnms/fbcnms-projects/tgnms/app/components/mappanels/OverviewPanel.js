@@ -660,7 +660,7 @@ class OverviewPanel extends React.Component<Props, State> {
     const {classes, networkConfig} = this.props;
     const {high_availability, primary, backup} = networkConfig;
 
-    const highAvailabilityEnabled = high_availability.primary.state !== 0;
+    const highAvailabilityEnabled = high_availability.primary?.state !== 0;
     const haOfflineText = (
       <>
         {' \u2014 '}

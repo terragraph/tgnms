@@ -114,6 +114,23 @@ describe('OverviewPanel', () => {
       );
       expect(getByTestId('controller-status').textContent).toBe('Offline');
     });
+
+    test('doesnt crash if hastate.primary/backup is null', () => {
+      const {rerender, getByTestId} = render(
+        <OverviewPanel
+          {...commonProps}
+          networkConfig={mockNetworkConfig({
+            controller_online: true,
+            high_availability: {
+              primary: null,
+              backup: null,
+            },
+          })}
+        />,
+        {wrapper: TestApp},
+      );
+      expect(getByTestId('controller-status').textContent).toBe('Online');
+    });
   });
 });
 

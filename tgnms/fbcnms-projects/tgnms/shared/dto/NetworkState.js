@@ -75,11 +75,11 @@ export type NetworkState = {|
 |};
 
 export type HAState = {|
-  primary: {
+  primary: ?{
     peerExpiry: number,
     state: ControllerHAState,
   },
-  backup: {
+  backup: ?{
     peerExpiry: number,
     state: ControllerHAState,
   },
