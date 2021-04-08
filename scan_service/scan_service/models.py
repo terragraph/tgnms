@@ -39,7 +39,6 @@ class ScanType(Enum):
 class ScanMode(Enum):
     COARSE = 1
     FINE = 2
-    SELECTIVE = 3
     RELATIVE = 4
 
     @classmethod
