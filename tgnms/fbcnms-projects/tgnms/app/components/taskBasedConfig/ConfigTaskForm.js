@@ -72,12 +72,13 @@ export default function ConfigTaskForm(props: Props) {
   const nodeName = props.nodeName ? props.nodeName : nodeInfo?.name;
 
   const onUpdateRef = React.useRef(onUpdate);
+  const currentDraftsRef = draftsRef.current;
 
   React.useEffect(() => {
-    if (onUpdateRef.current && draftsRef.current) {
-      onUpdateRef.current(draftsRef.current);
+    if (onUpdateRef.current && currentDraftsRef) {
+      onUpdateRef.current(currentDraftsRef);
     }
-  }, [draftsRef.current, onUpdateRef]);
+  }, [currentDraftsRef, onUpdateRef]);
 
   const [refreshConfig, setRefreshConfig] = React.useState(1);
 
