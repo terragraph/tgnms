@@ -15,9 +15,13 @@ jest
   .spyOn(serviceApiUtil, 'apiRequest')
   .mockImplementation(apiRequestSuccessMock);
 
-const snackbarsMock = {error: jest.fn(), success: jest.fn()};
+const snackbarsMock = {
+  error: jest.fn(),
+  success: jest.fn(),
+};
+
 jest
-  .spyOn(require('../../hooks/useSnackbar'), 'useSnackbars')
+  .spyOn(require('../useSnackbar'), 'useSnackbars')
   .mockReturnValue(snackbarsMock);
 
 describe('useTroubleshootAutomation', () => {
@@ -35,18 +39,5 @@ describe('useTroubleshootAutomation', () => {
       });
     });
     expect(apiRequestSuccessMock).toHaveBeenCalled();
-  });
-
-  //TODO: T88298948 - fix broken tests
-  xtest('if result is called and api call passes success snackbar is called', () => {
-    const {result} = renderHook(() => useTroubleshootAutomation());
-    act(() => {
-      result.current({
-        apiCallData: {data: {}, endpoint: ''},
-        successMessage: 'test',
-      });
-    });
-    expect(apiRequestSuccessMock).toHaveBeenCalled();
-    expect(snackbarsMock.success).toHaveBeenCalled();
   });
 });

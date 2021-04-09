@@ -84,8 +84,7 @@ test('save click with incorrect fields errors show', async () => {
   expect(getAllByText('Please enter a hostname.')[0]).toBeInTheDocument();
 });
 
-//TODO: T88298948 - fix broken tests
-xtest('save click with correct fields works', async () => {
+test('save click with correct fields works', async () => {
   const {getByText} = renderWithRouter(
     <TestApp>
       <ModalNmsConfigForm {...defaultProps} />
@@ -97,6 +96,10 @@ xtest('save click with correct fields works', async () => {
   const primaryApiIp = nullthrows(document.getElementById('primaryApiIp'));
   fireEvent.change(primaryApiIp, {
     target: {value: '2620:10d:c089:e009:1a66:daff:fee8:000'},
+  });
+  const wacPassword = nullthrows(document.getElementById('wacPassword'));
+  fireEvent.change(wacPassword, {
+    target: {value: 'testPassword'},
   });
   const primaryE2eIp = nullthrows(document.getElementById('primaryE2eIp'));
   fireEvent.change(primaryE2eIp, {
