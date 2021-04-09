@@ -116,7 +116,7 @@ describe('OverviewPanel', () => {
     });
 
     test('doesnt crash if hastate.primary/backup is null', () => {
-      const {rerender, getByTestId} = render(
+      const {getByTestId} = render(
         <OverviewPanel
           {...commonProps}
           networkConfig={mockNetworkConfig({
