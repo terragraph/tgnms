@@ -6,8 +6,7 @@
  */
 
 import axios from 'axios';
-
-import {FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
+import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import type {
   ANPFolder,
   ANPPlan,
@@ -28,12 +27,19 @@ export async function uploadFile({
   role,
   file,
   onProgress,
+  uploadChunkSize,
 }: {
   name: string,
   role: string,
   file: File,
+  // used for testing
+  uploadChunkSize?: number,
   onProgress?: (pct: number) => *,
 }): Promise<AnpFileHandle> {
+  const chunkSize =
+    uploadChunkSize != null && uploadChunkSize > 0
+      ? uploadChunkSize
+      : DEFAULT_FILE_UPLOAD_CHUNK_SIZE;
   // convert common file extensions into mime types
   const fileTypeMapping = {
     tif: 'image/tiff',
@@ -65,13 +71,13 @@ export async function uploadFile({
   });
   // file upload session id - all chunks must reference this
   const {id: uploadHandle} = response.data;
-  const numChunks = Math.floor(file.size / FILE_UPLOAD_CHUNK_SIZE) + 1;
+  const numChunks = Math.floor(file.size / chunkSize) + 1;
   const lastChunkIdx = numChunks - 1;
   // const perfStart = performance.now();
   let fileId = null;
   for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
-    const offset = chunkIdx * FILE_UPLOAD_CHUNK_SIZE;
-    let length = FILE_UPLOAD_CHUNK_SIZE;
+    const offset = chunkIdx * chunkSize;
+    let length = chunkSize;
     if (offset + length > file.size) {
       length = file.size - offset;
     }

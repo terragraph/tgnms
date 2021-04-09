@@ -8,7 +8,6 @@
 import * as apiUtil from '../NetworkPlanningAPIUtil';
 import axiosMock from 'axios';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
-import {FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import type {AxiosXHRConfig} from 'axios';
 jest.mock('axios');
 
@@ -38,15 +37,16 @@ const MOCK_ANP_FILE = {
   id: '123',
 };
 
+const TEST_CHUNK_SIZE = 5000;
 const NUM_FULL_CHUNKS = 2;
 const PARTIAL_CHUNK_BYTES = 500;
 const MOCK_FILE = new File(
   // Generate a fake image consisting of 2 full chunks, 1 partial
   [
     new Blob(
-      new Array(
-        FILE_UPLOAD_CHUNK_SIZE * NUM_FULL_CHUNKS + PARTIAL_CHUNK_BYTES,
-      ).fill(0),
+      new Array(TEST_CHUNK_SIZE * NUM_FULL_CHUNKS + PARTIAL_CHUNK_BYTES).fill(
+        0,
+      ),
     ),
   ],
   'image.tiff',
@@ -82,6 +82,7 @@ describe('Upload File', () => {
       file: MOCK_FILE,
       role: FILE_ROLE.DSM_GEOTIFF,
       name: MOCK_FILE.name,
+      uploadChunkSize: TEST_CHUNK_SIZE,
     });
 
     // axios request params for each api call
@@ -103,16 +104,16 @@ describe('Upload File', () => {
 
     const uploadSessionId = MOCK_UPLOAD_SESSION_RESPONSE.id;
     expect(chunk1Req).toMatchObject({
-      url: `/network_plan/file/upload/${uploadSessionId}&chunkSize=${FILE_UPLOAD_CHUNK_SIZE}`,
+      url: `/network_plan/file/upload/${uploadSessionId}&chunkSize=${TEST_CHUNK_SIZE}`,
       data: expect.any(Blob),
       headers: {'Content-Type': 'multipart/form-data', file_offset: '0'},
     });
     expect(chunk2Req).toMatchObject({
-      url: `/network_plan/file/upload/${uploadSessionId}&chunkSize=${FILE_UPLOAD_CHUNK_SIZE}`,
+      url: `/network_plan/file/upload/${uploadSessionId}&chunkSize=${TEST_CHUNK_SIZE}`,
       data: expect.any(Blob),
       headers: {
         'Content-Type': 'multipart/form-data',
-        file_offset: FILE_UPLOAD_CHUNK_SIZE.toString(),
+        file_offset: TEST_CHUNK_SIZE.toString(),
       },
     });
     expect(partialChunkReq).toMatchObject({
@@ -120,7 +121,7 @@ describe('Upload File', () => {
       data: expect.any(Blob),
       headers: {
         'Content-Type': 'multipart/form-data',
-        file_offset: (FILE_UPLOAD_CHUNK_SIZE * 2).toString(),
+        file_offset: (TEST_CHUNK_SIZE * 2).toString(),
       },
     });
     expect(anpFileReq).toMatchObject({
@@ -143,6 +144,7 @@ describe('Upload File', () => {
       role: FILE_ROLE.DSM_GEOTIFF,
       name: MOCK_FILE.name,
       onProgress: progressSpy,
+      uploadChunkSize: TEST_CHUNK_SIZE,
     });
     // one call for each chunk
     expect(progressSpy).toHaveBeenCalledTimes(3);

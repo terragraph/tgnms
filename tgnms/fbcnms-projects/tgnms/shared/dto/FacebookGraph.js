@@ -5,8 +5,8 @@
  * @flow
  */
 
-export const FILE_UPLOAD_CHUNK_SIZE = 1000000;
-//
+export const DEFAULT_FILE_UPLOAD_CHUNK_SIZE = 1000000;
+
 export type FileUploadSessionRequest = {|
   file_length: number,
   // must be a standard mime type

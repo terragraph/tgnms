@@ -6,7 +6,7 @@
  */
 
 import axios from 'axios';
-import {FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
+import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import {Readable} from 'stream';
 import {pick, trimEnd} from 'lodash';
 import {stringify} from 'querystring';
@@ -181,9 +181,9 @@ export default class ANPAPIClient {
     query: QueryMap,
   }) => {
     // Chunk size is user input. Validate it against the max
-    if (chunkSize > FILE_UPLOAD_CHUNK_SIZE) {
+    if (chunkSize > DEFAULT_FILE_UPLOAD_CHUNK_SIZE) {
       throw new Error(
-        `Request body length( ${chunkSize} exceeded Maximum chunk size (${FILE_UPLOAD_CHUNK_SIZE})`,
+        `Request body length( ${chunkSize} exceeded Maximum chunk size (${DEFAULT_FILE_UPLOAD_CHUNK_SIZE})`,
       );
     }
     const rangeHeaderNames = ['file_offset'];
