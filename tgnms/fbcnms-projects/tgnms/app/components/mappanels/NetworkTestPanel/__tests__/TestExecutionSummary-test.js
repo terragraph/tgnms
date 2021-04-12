@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 
-import * as networkTestHooks from '@fbcnms/tg-nms/app/hooks/NetworkTestHooks';
+import * as networkTestHooks from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHooks';
 import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
 import TestExecutionSummary from '../TestExecutionSummary';

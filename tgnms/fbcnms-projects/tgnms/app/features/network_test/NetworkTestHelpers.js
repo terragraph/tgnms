@@ -14,9 +14,9 @@ import {
 import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {generatePath} from 'react-router';
-import {getUrlSearchParam} from './NetworkUrlHelpers';
+import {getUrlSearchParam} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 
-import type {AssetTestResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 import type {Location} from 'react-router-dom';
 import type {RouterHistory} from 'react-router-dom';
 

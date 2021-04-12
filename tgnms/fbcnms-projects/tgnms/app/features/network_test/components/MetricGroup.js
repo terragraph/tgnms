@@ -11,7 +11,7 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
-import type {MetricType} from './NetworkTestTypes';
+import type {MetricType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 
 const useMetricStyles = makeStyles(theme => ({
   metric: {

@@ -14,7 +14,7 @@ import type {
   InputStartType,
   StartResponseType,
 } from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
-import type {TableResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
+import type {TableResultType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 
 export const scheduleTest = (inputData: InputStartType) => {
   return axios.post<InputStartType, StartResponseType>(

@@ -28,7 +28,7 @@ import {PlannedSiteContextProvider} from '@fbcnms/tg-nms/app/contexts/PlannedSit
 import {Route, withRouter} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import {getScanId} from '@fbcnms/tg-nms/app/helpers/ScanServiceHelpers';
-import {getTestOverlayId} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {getTestOverlayId} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {getUIEnvVal} from '../../common/uiConfig';
 import {withStyles} from '@material-ui/core/styles';
 

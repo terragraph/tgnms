@@ -7,10 +7,10 @@
 import * as React from 'react';
 import * as api from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import axios from 'axios';
-import useLiveRef from './useLiveRef';
-import useUnmount from './useUnmount';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {TEST_EXECUTION_STATUS} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
-import {isTestRunning} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {isTestRunning} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {

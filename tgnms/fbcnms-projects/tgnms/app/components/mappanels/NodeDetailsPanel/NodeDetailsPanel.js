@@ -29,7 +29,7 @@ import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRou
 import {getNodesInRoute} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
 import {getWirelessLinkNames} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
-import {startPartialTest} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {startPartialTest} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {supportsTopologyScan} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';

@@ -14,7 +14,7 @@ import {
 } from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 
-import type {HealthExecutionType} from './NetworkTestTypes';
+import type {HealthExecutionType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 
 const Plot = createPlotlyComponent(Plotly);
 

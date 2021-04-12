@@ -22,7 +22,7 @@ import {
 import {
   getExecutionHealth,
   getExecutionStatus,
-} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {
   locToPos,
   locationMidpoint,
@@ -31,7 +31,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
-import type {AssetTestResultType} from './NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 import type {HealthRowType} from '@fbcnms/tg-nms/app/components/common/HealthGroupDropDown';
 
 type Props = {|

@@ -33,10 +33,10 @@ import {
   getFormattedDateAndTime,
   getParsedCronString,
 } from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
-import {isTestRunning} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {isTestRunning} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
-import {useLoadTestTableData} from '@fbcnms/tg-nms/app/hooks/NetworkTestHooks';
+import {useLoadTestTableData} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHooks';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {CreateUrl} from '@fbcnms/tg-nms/app/components/scheduler/SchedulerTypes';

@@ -10,7 +10,7 @@ import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../common/LoadingBox';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import NetworkTestResults from '@fbcnms/tg-nms/app/views/network_test/NetworkTestResults';
+import NetworkTestResults from '@fbcnms/tg-nms/app/features/network_test/components/NetworkTestResults';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React, {useMemo} from 'react';
 import ThroughputTestResult from './ThroughputTestResult';
@@ -21,11 +21,11 @@ import {
 } from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
-import {getExecutionStatus} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {getExecutionStatus} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useLoadTestExecutionResults} from '@fbcnms/tg-nms/app/hooks/NetworkTestHooks';
+import {useLoadTestExecutionResults} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHooks';
 
-import type {AssetTestResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {ExecutionDetailsType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 

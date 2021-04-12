@@ -45,7 +45,7 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {mapDefaultRoutes} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
-import {startPartialTest} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {startPartialTest} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
