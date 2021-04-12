@@ -5,7 +5,7 @@
  * @flow
  */
 
-import {getUrlSearchParam} from './NetworkUrlHelpers';
+import {getUrlSearchParam} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 
 import type {Location} from 'react-router-dom';
 

@@ -8,7 +8,7 @@
  */
 
 import React, {useCallback} from 'react';
-import ScanService from '../scan_service/ScanService';
+import ScanService from '@fbcnms/tg-nms/app/features/scans/components/ScanService';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {SCHEDULE_TABLE_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
@@ -17,7 +17,6 @@ import {getTestOverlayId} from '@fbcnms/tg-nms/app/features/network_test/Network
 
 export default function ScanTable() {
   const {match, location} = useRouter();
-
   const {networkName} = match.params;
   const {setMapMode} = useMapContext();
 

@@ -13,7 +13,7 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import {BUTTON_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {TableResultType as ScanTableResultType} from '@fbcnms/tg-nms/app/views/scan_service/ScanServiceTypes';
+import type {TableResultType as ScanTableResultType} from '@fbcnms/tg-nms/app/features/scans/ScanServiceTypes';
 import type {TableResultType as TestTableResultType} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestTypes';
 
 type TableResultType = ScanTableResultType | TestTableResultType;
