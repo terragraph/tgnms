@@ -3,7 +3,7 @@ name: Bug
 about: Use this template for bugs.
 title: "[FEATURE NAME] - "
 labels: bug
-assignees: aclave1,driazati,cjminer,omikader,pmccut
+assignees: aclave1,cjminer,pmccut
 ---
 
 Terragraph's Github issue tracker is **ONLY** used for reporting bugs. New features should be requested via your company's private Workplace group.
