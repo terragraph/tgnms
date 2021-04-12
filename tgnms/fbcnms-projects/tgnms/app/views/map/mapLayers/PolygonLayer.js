@@ -7,7 +7,7 @@
 import * as React from 'react';
 import {Layer, Source} from 'react-mapbox-gl';
 
-import type {Overlay} from '../NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 type Props = {|overlay: Overlay, data?: {}|};
 export default function PolygonLayer({overlay, data}: Props) {

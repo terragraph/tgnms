@@ -69,12 +69,12 @@ import type {
   TopologyScanInfo,
   TopologyScanResponse,
   TopologyScanRespoonsePerRadio,
-} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {
   OfflineWhiteListType,
   TopologyConfig,
 } from '@fbcnms/tg-nms/shared/dto/NetworkState';
-import type {Overlay} from '../NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import type {SiteMap} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 const styles = _theme => ({});

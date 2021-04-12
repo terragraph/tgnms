@@ -6,7 +6,7 @@
  */
 
 import {defaultValue as NmsOptionsContextDefaultValue} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
-import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 
 /**

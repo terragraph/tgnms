@@ -22,7 +22,7 @@ import type {
   OverlaysConfig,
   SelectedLayersType,
   SelectedOverlays,
-} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 
 type OverlayMap = LayerData<Overlay>;

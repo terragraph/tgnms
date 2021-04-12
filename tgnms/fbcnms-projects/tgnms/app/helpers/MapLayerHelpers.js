@@ -7,7 +7,7 @@
 
 import {METRIC_COLOR_RANGE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
-import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import {interpolateHcl} from 'd3-interpolate';
 import {scaleLinear} from 'd3-scale';
 import type {
@@ -15,7 +15,7 @@ import type {
   MapFeatureTopology,
   NodeFeature,
   SiteFeature,
-} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {
   LinkType,
   NodeType,

@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import MapLayers from '@fbcnms/tg-nms/app/views/map/mapLayers/MapLayers';
-import MapLayersPanel from '@fbcnms/tg-nms/app/components/mappanels/MapLayersPanel';
+import MapLayersPanel from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
 import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   FIG0,

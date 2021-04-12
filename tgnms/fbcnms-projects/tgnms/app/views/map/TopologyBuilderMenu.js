@@ -7,11 +7,11 @@
 
 import * as React from 'react';
 import AddIcon from '@material-ui/icons/Add';
-import AddL2Tunnel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddL2Tunnel';
-import AddLinkPanel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddLinkPanel';
+import AddL2Tunnel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/AddL2Tunnel';
+import AddLinkPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/AddLinkPanel';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
-import AddNodePanel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddNodePanel';
-import AddSitePanel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddSitePanel';
+import AddNodePanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/AddNodePanel';
+import AddSitePanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/AddSitePanel';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import Fab from '@material-ui/core/Fab';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -30,9 +30,12 @@ import {
   FormType,
   SlideProps,
 } from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
-import {PANELS, PANEL_STATE} from './usePanelControl';
+import {
+  PANELS,
+  PANEL_STATE,
+} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
-import {UploadTopologyPanel} from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/UploadTopologyPanel';
+import {UploadTopologyPanel} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/UploadTopologyPanel';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
@@ -43,13 +46,13 @@ import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import type {
   EditLinkParams,
   EditNodeParams,
-} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {
   LocationType,
   SiteType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
-import type {PanelStateControl} from './usePanelControl';
-import type {SiteProps} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+import type {SiteProps} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 
 const useStyles = makeStyles(theme => ({
   addButton: {

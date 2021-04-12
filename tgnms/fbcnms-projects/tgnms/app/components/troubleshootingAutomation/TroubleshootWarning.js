@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
-import MaterialModal from '../common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';

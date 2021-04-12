@@ -25,7 +25,7 @@ import {getSourceFeatureCollection} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {render} from '@testing-library/react';
 import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import type {PlannedSite} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {PlannedSite} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {PlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 
 test('renders without any props', async () => {

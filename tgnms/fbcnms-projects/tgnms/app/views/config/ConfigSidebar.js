@@ -5,7 +5,7 @@
  * @flow
  */
 
-import ActionsMenu from '@fbcnms/tg-nms/app/components/mappanels/ActionsMenu';
+import ActionsMenu from '@fbcnms/tg-nms/app/views/map/mappanels/ActionsMenu';
 import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalClearNodeAutoConfig from './ModalClearNodeAutoConfig';

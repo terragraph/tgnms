@@ -38,7 +38,7 @@ import type {MapboxDraw} from '@mapbox/mapbox-gl-draw';
 import type {Map as MapboxMap} from 'react-mapbox-gl';
 import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
-import type {PanelStateControl} from '@fbcnms/tg-nms/app/views/map/usePanelControl';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';

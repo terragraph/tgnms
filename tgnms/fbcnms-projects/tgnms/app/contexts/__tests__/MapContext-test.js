@@ -25,9 +25,9 @@ import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
 import type {ProviderProps as MapContextProviderProps} from '../MapContext';
 import type {NetworkContextType} from '../NetworkContext';
-import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {NmsOptionsContextType} from '../NmsOptionsContext';
-import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 const testOverlaysConfig = {
   link_lines: {

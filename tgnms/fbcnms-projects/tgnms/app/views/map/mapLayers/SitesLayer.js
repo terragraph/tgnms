@@ -49,7 +49,7 @@ import type {
   TopologyScanInfo,
   TopologyScanResponse,
   TopologyScanRespoonsePerRadio,
-} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {
   NodeMap,
   SiteToNodesMap,
@@ -58,8 +58,8 @@ import type {
   OfflineWhiteListType,
   TopologyConfig,
 } from '@fbcnms/tg-nms/shared/dto/NetworkState';
-import type {Overlay} from '../NetworkMapTypes';
-import type {PlannedSite} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
+import type {PlannedSite} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import type {
   SiteType,

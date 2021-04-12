@@ -23,7 +23,7 @@ import {numToMegabits} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
 import type {
   LayerData,
   Overlay,
-} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 export const TG_COLOR = {
   GREEN: '#31A24C',

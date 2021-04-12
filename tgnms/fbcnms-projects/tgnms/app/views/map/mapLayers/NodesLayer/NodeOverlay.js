@@ -20,7 +20,7 @@ import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {NodeType as Node} from '@fbcnms/tg-nms/shared/types/Topology';
-import type {Overlay} from '../../NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 export const BEARING_PROP = 'bearing';
 export const COLOR_PROP = 'color';

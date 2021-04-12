@@ -5,7 +5,11 @@
  * @flow
  */
 
-import {PANELS, PANEL_STATE, usePanelControl} from '../usePanelControl';
+import {
+  PANELS,
+  PANEL_STATE,
+  usePanelControl,
+} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {act, renderHook} from '@testing-library/react-hooks';
 
 jest.mock('mapbox-gl', () => ({

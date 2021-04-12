@@ -25,7 +25,7 @@ import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-import type {NearbyNodes} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export type Props = {|

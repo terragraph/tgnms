@@ -31,8 +31,8 @@ import type {
   NetworkInstanceConfig,
   TopologyConfig,
 } from '@fbcnms/tg-nms/shared/dto/NetworkState';
-import type {Props as NodeDetailsProps} from '@fbcnms/tg-nms/app/components/mappanels/NodeDetailsPanel/NodeDetails';
-import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {Props as NodeDetailsProps} from '@fbcnms/tg-nms/app/views/map/mappanels/NodeDetailsPanel/NodeDetails';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 export function mockNetworkInstanceConfig(

@@ -6,7 +6,7 @@
  */
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
-import PlanStatus from '@fbcnms/tg-nms/app/components/mappanels/NetworkPlanningPanel/PlanStatus';
+import PlanStatus from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel/PlanStatus';
 import React from 'react';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';

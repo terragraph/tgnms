@@ -8,7 +8,7 @@
 import * as React from 'react';
 import {getHistoricalDate} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 
-import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 export type NmsOptionsContextType = {|
   networkMapOptions: NetworkMapOptions,

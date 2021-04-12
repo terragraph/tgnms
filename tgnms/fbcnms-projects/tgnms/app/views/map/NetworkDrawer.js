@@ -6,28 +6,28 @@
  */
 
 import * as React from 'react';
-import AccessPointsPanel from '@fbcnms/tg-nms/app/components/mappanels/AccessPointsPanel';
-import AnnotationsPanel from '@fbcnms/tg-nms/app/components/mappanels/AnnotationsPanel/AnnotationsPanel';
-import DefaultRouteHistoryPanel from '@fbcnms/tg-nms/app/components/mappanels/DefaultRouteHistoryPanel';
+import AccessPointsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/AccessPointsPanel';
+import AnnotationsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/AnnotationsPanel/AnnotationsPanel';
+import DefaultRouteHistoryPanel from '@fbcnms/tg-nms/app/views/map/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '@fbcnms/tg-nms/app/components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
 import DrawerToggleButton from '@fbcnms/tg-nms/app/components/common/DrawerToggleButton';
-import IgnitionStatePanel from '@fbcnms/tg-nms/app/components/mappanels/IgnitionStatePanel';
-import LinkDetailsPanel from '@fbcnms/tg-nms/app/components/mappanels/LinkDetailsPanel';
-import MapLayersPanel from '@fbcnms/tg-nms/app/components/mappanels/MapLayersPanel';
-import NetworkPlanningPanel from '@fbcnms/tg-nms/app/components/mappanels/NetworkPlanningPanel/NetworkPlanningPanel';
-import NetworkTestPanel from '@fbcnms/tg-nms/app/components/mappanels/NetworkTestPanel/NetworkTestPanel';
-import NodeDetailsPanel from '@fbcnms/tg-nms/app/components/mappanels/NodeDetailsPanel/NodeDetailsPanel';
-import OverviewPanel from '@fbcnms/tg-nms/app/components/mappanels/OverviewPanel';
-import RemoteOverlayMetadataPanel from '@fbcnms/tg-nms/app/components/mappanels/RemoteOverlayMetadataPanel';
-import ScanServicePanel from '@fbcnms/tg-nms/app/components/mappanels/ScanServicePanel/ScanServicePanel';
-import SearchNearbyPanel from '@fbcnms/tg-nms/app/components/mappanels/SearchNearbyPanel';
-import SiteDetailsPanel from '@fbcnms/tg-nms/app/components/mappanels/SiteDetailsPanel';
+import IgnitionStatePanel from '@fbcnms/tg-nms/app/views/map/mappanels/IgnitionStatePanel';
+import LinkDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/LinkDetailsPanel';
+import MapLayersPanel from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
+import NetworkPlanningPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel/NetworkPlanningPanel';
+import NetworkTestPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkTestPanel/NetworkTestPanel';
+import NodeDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NodeDetailsPanel/NodeDetailsPanel';
+import OverviewPanel from '@fbcnms/tg-nms/app/views/map/mappanels/OverviewPanel';
+import RemoteOverlayMetadataPanel from '@fbcnms/tg-nms/app/views/map/mappanels/RemoteOverlayMetadataPanel';
+import ScanServicePanel from '@fbcnms/tg-nms/app/views/map/mappanels/ScanServicePanel/ScanServicePanel';
+import SearchNearbyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/SearchNearbyPanel';
+import SiteDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
 import TopologyBuilderMenu, {
   useTopologyBuilderForm,
 } from './TopologyBuilderMenu';
-import UpgradeProgressPanel from '@fbcnms/tg-nms/app/components/mappanels/UpgradeProgressPanel';
+import UpgradeProgressPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UpgradeProgressPanel';
 import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   FormType,
@@ -35,7 +35,11 @@ import {
   TopologyElement,
 } from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {PANELS, PANEL_STATE, usePanelControl} from './usePanelControl';
+import {
+  PANELS,
+  PANEL_STATE,
+  usePanelControl,
+} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {get} from 'lodash';
@@ -46,9 +50,9 @@ import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 import type {EditTopologyElementParams} from './TopologyBuilderMenu';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import type {Props as MapLayersProps} from '@fbcnms/tg-nms/app/components/mappanels/MapLayersPanel';
-import type {NearbyNodes} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
-import type {PanelStateControl} from './usePanelControl';
+import type {Props as MapLayersProps} from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
+import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,

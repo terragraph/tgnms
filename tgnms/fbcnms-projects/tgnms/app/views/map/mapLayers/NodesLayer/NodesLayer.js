@@ -9,7 +9,7 @@ import McsEstimateOverlay from '../McsEstimateLayer';
 import NodeOverlay from './NodeOverlay';
 import React from 'react';
 import {OVERLAY_NONE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
-import type {Overlay} from '../../NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 export type Props = {|
   overlayData: {[string]: number},

@@ -14,7 +14,7 @@ import {
   POP_SITE_COLOR,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {Layer, Source} from 'react-mapbox-gl';
-import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeRangeColorFunc} from '@fbcnms/tg-nms/app/helpers/MapLayerHelpers';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
@@ -25,7 +25,7 @@ import type {
   LinkFeature,
   NodeFeature,
   SiteFeature,
-} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 
 export const SITES_SOURCE_ID = 'sites';
 export const NODES_SOURCE_ID = 'nodes';
