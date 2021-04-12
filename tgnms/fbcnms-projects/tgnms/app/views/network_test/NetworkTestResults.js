@@ -6,24 +6,33 @@
  */
 
 import * as React from 'react';
-import HealthGroupDropDown from '../../components/common/HealthGroupDropDown';
+import HealthGroupDropDown from '@fbcnms/tg-nms/app/components/common/HealthGroupDropDown';
 import HealthHistogram from './HealthHistogram';
 import Typography from '@material-ui/core/Typography';
-import {EXECUTION_STATUS} from '../../constants/ScheduleConstants';
-import {HEALTH_DEFS, HEALTH_EXECUTIONS} from '../../constants/HealthConstants';
-import {TopologyElementType} from '../../constants/NetworkConstants';
-import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {EXECUTION_STATUS} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {
+  HEALTH_DEFS,
+  HEALTH_EXECUTIONS,
+} from '@fbcnms/tg-nms/app/constants/HealthConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {
+  convertType,
+  objectValuesTypesafe,
+} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {
   getExecutionHealth,
   getExecutionStatus,
-} from '../../helpers/NetworkTestHelpers';
-import {locToPos, locationMidpoint} from '../../helpers/GeoHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {
+  locToPos,
+  locationMidpoint,
+} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useMapContext} from '../../contexts/MapContext';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 import type {AssetTestResultType} from './NetworkTestTypes';
-import type {HealthRowType} from '../../components/common/HealthGroupDropDown';
+import type {HealthRowType} from '@fbcnms/tg-nms/app/components/common/HealthGroupDropDown';
 
 type Props = {|
   executionResults: Array<AssetTestResultType>,

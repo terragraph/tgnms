@@ -8,7 +8,7 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
-import {shortenVersionString} from '../../../helpers/VersionHelper';
+import {shortenVersionString} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 
 const useStyles = makeStyles(theme => ({
   sectionHeading: {

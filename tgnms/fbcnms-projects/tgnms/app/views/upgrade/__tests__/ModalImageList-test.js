@@ -7,8 +7,8 @@
 
 import ModalImageList from '../ModalImageList';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockUpgradeImageArrayData} from '../../../tests/data/Upgrade';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockUpgradeImageArrayData} from '@fbcnms/tg-nms/app/tests/data/Upgrade';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

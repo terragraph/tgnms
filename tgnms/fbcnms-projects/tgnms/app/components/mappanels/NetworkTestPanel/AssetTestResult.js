@@ -5,16 +5,16 @@
  * @flow
  */
 
-import AssetTestResultDetails from '../../../views/network_test/AssetTestResultDetails';
+import AssetTestResultDetails from '@fbcnms/tg-nms/app/views/network_test/AssetTestResultDetails';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import IconButton from '@material-ui/core/IconButton';
-import NetworkContext from '../../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import Paper from '@material-ui/core/Paper';
 import React, {useMemo} from 'react';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
-import type {AssetTestResultType} from '../../../views/network_test/NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
 
 const useResultStyles = makeStyles(theme => ({
   linkMissingAlert: {

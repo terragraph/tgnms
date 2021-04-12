@@ -7,14 +7,14 @@
 
 import NodePolarity from '../NodePolarity';
 import React from 'react';
-import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
+import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 import {
   mockNetworkConfig,
   mockNode,
-} from '../../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
-import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
+import type {TopologyConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const defaultProps = {
   ctrlVersion:

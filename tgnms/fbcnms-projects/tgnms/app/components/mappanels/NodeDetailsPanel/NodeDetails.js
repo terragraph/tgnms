@@ -16,21 +16,24 @@ import React from 'react';
 import StatusText from '../../common/StatusText';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {NodeTypeValueMap} from '../../../../shared/types/Topology';
-import {formatNumber} from '../../../helpers/StringHelpers';
+import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {
   hasNodeEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
-} from '../../../helpers/NetworkHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
 
 import type {
   NetworkState as NetworkConfig,
   NetworkHealth,
-} from '../../../../shared/dto/NetworkState';
-import type {NodeType, TopologyType} from '../../../../shared/types/Topology';
-import type {StatusReportType} from '../../../../shared/types/Controller';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {
+  NodeType,
+  TopologyType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {StatusReportType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 const useStyles = makeStyles(() => ({
   spaceBetween: {

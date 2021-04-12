@@ -7,8 +7,8 @@
 
 import * as React from 'react';
 import ScheduleTableFaultWarning from '../ScheduleTableFaultWarning';
-import {SCHEDULE_TABLE_TYPES} from '../../../constants/ScheduleConstants';
-import {TestApp} from '../../../tests/testHelpers';
+import {SCHEDULE_TABLE_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 jest

@@ -5,28 +5,31 @@
  * @flow
  */
 
-import * as topologyApi from './apiutils/TopologyAPIUtil';
+import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
 import NetworkConfig from './views/config/NetworkConfig';
-import NetworkContext from './contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkDashboards from './views/dashboards/NetworkDashboards';
-import NetworkListContext from './contexts/NetworkListContext';
+import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import NetworkMap from './views/map/NetworkMap';
 import NetworkTables from './views/tables/NetworkTables';
 import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
 import NmsAlarms from './views/alarms/NmsAlarms';
-import NmsOptionsContext from './contexts/NmsOptionsContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import NodeSysdumps from './views/sysdumps/NodeSysdumps';
 import React from 'react';
 import Troubleshooting from './views/troubleshooting/Troubleshooting';
 import axios from 'axios';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {TopologyElementType} from './constants/NetworkConstants';
-import {buildTopologyMaps} from './helpers/TopologyHelpers';
-import {createQuery, increase} from './apiutils/PrometheusAPIUtil';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {
+  createQuery,
+  increase,
+} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
@@ -37,10 +40,16 @@ import type {
   NetworkNodeStats,
   NodeToLinksMap,
   SiteMap,
-} from './contexts/NetworkContext';
-import type {NetworkHealth, NetworkState} from '../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {
+  NetworkHealth,
+  NetworkState,
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
-import type {LinkType, NodeType as Node} from '../shared/types/Topology';
+import type {
+  LinkType,
+  NodeType as Node,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const styles = _theme => ({
   content: {

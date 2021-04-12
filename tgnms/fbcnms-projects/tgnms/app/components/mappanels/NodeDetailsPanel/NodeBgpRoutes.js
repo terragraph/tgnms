@@ -10,10 +10,10 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import {formatNumber} from '../../../helpers/StringHelpers';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {makeStyles} from '@material-ui/styles';
 
-import type {BgpRouteInfo} from '../../../../shared/types/Controller';
+import type {BgpRouteInfo} from '@fbcnms/tg-nms/shared/types/Controller';
 
 const useStyles = makeStyles(() => ({
   bgpRouteListItem: {

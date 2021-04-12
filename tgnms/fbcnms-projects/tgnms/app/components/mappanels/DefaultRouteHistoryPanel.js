@@ -6,7 +6,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
@@ -18,21 +18,24 @@ import Select from '@material-ui/core/Select';
 import Slide from '@material-ui/core/Slide';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
-import useLiveRef from '../../hooks/useLiveRef';
-import useTaskState from '../../hooks/useTaskState';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {KeyboardDatePicker} from '@material-ui/pickers';
-import {PANELS, PANEL_STATE} from '../../views/map/usePanelControl';
-import {SlideProps} from '../../constants/MapPanelConstants';
+import {
+  PANELS,
+  PANEL_STATE,
+} from '@fbcnms/tg-nms/app/views/map/usePanelControl';
+import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   currentDefaultRouteRequest,
   getDefaultRouteHistory,
-} from '../../apiutils/DefaultRouteHistoryAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
 import {makeStyles} from '@material-ui/styles';
-import {mapDefaultRoutes} from '../../helpers/DefaultRouteHelpers';
-import {useNetworkContext} from '../../contexts/NetworkContext';
-import {useRouteContext} from '../../contexts/RouteContext';
+import {mapDefaultRoutes} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-import type {PanelStateControl} from '../../views/map/usePanelControl';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/views/map/usePanelControl';
 
 type DefaultRouteType = {
   route: Array<Array<string>>,

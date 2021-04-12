@@ -9,9 +9,9 @@ import * as React from 'react';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-import useLiveRef from '../../hooks/useLiveRef';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
-import {useNetworkListContext} from '../../contexts/NetworkListContext';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 
 export default function NetworkSelect({
   value,

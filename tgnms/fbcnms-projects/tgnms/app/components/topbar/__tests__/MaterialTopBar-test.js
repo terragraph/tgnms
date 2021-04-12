@@ -5,19 +5,19 @@
  * @flow
  */
 
-import type {NetworkListContextType} from '../../../contexts/NetworkListContext';
+import type {NetworkListContextType} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 
 import * as React from 'react';
 import MaterialTopBar from '../MaterialTopBar';
-import NetworkListContext from '../../../contexts/NetworkListContext';
+import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import {
   TestApp,
   initWindowConfig,
   mockNetworkInstanceConfig,
   renderWithRouter,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent} from '@testing-library/react';
-import type {NetworkList} from '../../../../shared/dto/NetworkState';
+import type {NetworkList} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 beforeEach(() => {
   initWindowConfig();

@@ -10,7 +10,7 @@ import type {
   MapAnnotationGroup,
   MapAnnotationGroupIdent,
   SaveAnnotationGroupRequest,
-} from '../../shared/dto/MapAnnotations';
+} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 import type {
   OverlayRequest,

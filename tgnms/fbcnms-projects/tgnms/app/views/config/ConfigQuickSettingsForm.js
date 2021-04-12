@@ -6,26 +6,26 @@
  */
 
 import * as React from 'react';
-import CnConfig from '../../components/taskBasedConfig/configTasks/CnConfig';
-import FluentdEndpoints from '../../components/taskBasedConfig/configTasks/FluentdEndpoints';
+import CnConfig from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/CnConfig';
+import FluentdEndpoints from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/FluentdEndpoints';
 import Grid from '@material-ui/core/Grid';
-import KafkaParams from '../../components/taskBasedConfig/configTasks/KafkaParams';
-import NetworkEnvParams from '../../components/taskBasedConfig/configTasks/NetworkEnvParams';
-import NetworkRouting from '../../components/taskBasedConfig/configTasks/NetworkRouting';
-import NetworkSnmp from '../../components/taskBasedConfig/configTasks/NetworkSnmp';
-import PopKvstoreParams from '../../components/taskBasedConfig/configTasks/PopKvstoreParams';
-import PopRouting from '../../components/taskBasedConfig/configTasks/PopRouting';
-import RadioParams from '../../components/taskBasedConfig/configTasks/RadioParams';
-import StatsAgentParams from '../../components/taskBasedConfig/configTasks/StatsAgentParams';
-import SysParams from '../../components/taskBasedConfig/configTasks/SysParams';
+import KafkaParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/KafkaParams';
+import NetworkEnvParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/NetworkEnvParams';
+import NetworkRouting from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/NetworkRouting';
+import NetworkSnmp from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/NetworkSnmp';
+import PopKvstoreParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/PopKvstoreParams';
+import PopRouting from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/PopRouting';
+import RadioParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/RadioParams';
+import StatsAgentParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/StatsAgentParams';
+import SysParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/SysParams';
 import Typography from '@material-ui/core/Typography';
 import {
   CONFIG_FORM_MODE,
   CONFIG_FORM_MODE_DESCRIPTION,
   FORM_CONFIG_MODES,
-} from '../../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

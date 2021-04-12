@@ -6,10 +6,10 @@
  */
 
 import * as React from 'react';
-import NetworkContext from '../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import axios from 'axios';
-import useTaskState, {TASK_STATE} from '../hooks/useTaskState';
-import {useCancelToken} from '../hooks/axiosHooks';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {useCancelToken} from '@fbcnms/tg-nms/app/hooks/axiosHooks';
 import type {CancelToken} from 'axios';
 
 export async function exportFileType({

@@ -6,18 +6,18 @@
  */
 
 import * as React from 'react';
-import {getDraftConfig} from '../helpers/ConfigHelpers';
+import {getDraftConfig} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {
   setAggregatorConfig,
   setControllerConfig,
   setNetworkOverridesConfig,
   setNodeOverridesConfig,
-} from '../apiutils/ConfigAPIUtil';
-import {useNetworkContext} from '../contexts/NetworkContext';
+} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useSnackbars} from './useSnackbar';
 
-import type {ControllerConfigType} from '../../shared/types/Controller';
-import type {NodeConfigType} from '../../shared/types/NodeConfig';
+import type {ControllerConfigType} from '@fbcnms/tg-nms/shared/types/Controller';
+import type {NodeConfigType} from '@fbcnms/tg-nms/shared/types/NodeConfig';
 
 type updateConfigInput<T, K> = {
   drafts: $Shape<T>,

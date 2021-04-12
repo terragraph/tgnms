@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 
-import MaterialTheme from '../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import MetricGroup from '../MetricGroup';
 import React from 'react';
 import {render} from '@testing-library/react';

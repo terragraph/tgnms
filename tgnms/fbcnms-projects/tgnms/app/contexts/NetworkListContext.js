@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import type {NetworkList} from '../../shared/dto/NetworkState';
+import type {NetworkList} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 export type NetworkListContextType = {|
   networkList: NetworkList,

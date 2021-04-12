@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import * as settingsApi from '../../apiutils/SettingsAPIUtil';
+import * as settingsApi from '@fbcnms/tg-nms/app/apiutils/SettingsAPIUtil';
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -17,9 +17,9 @@ import PriorityHigh from '@material-ui/icons/PriorityHigh';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import red from '@material-ui/core/colors/red';
-import useTaskState from '../../hooks/useTaskState';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {makeStyles} from '@material-ui/styles';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useSettingsFormContext} from './SettingsFormContext';
 
 const useStyles = makeStyles(theme => ({

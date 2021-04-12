@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import TopologyBuilderMenu from '../TopologyBuilderMenu';
-import {FormType} from '../../../constants/MapPanelConstants';
+import {FormType} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   NetworkContextWrapper,
   TestApp,
@@ -15,10 +15,10 @@ import {
   mockPanelControl,
   mockTopology,
   renderAsync,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {SnackbarProvider} from 'notistack';
 import {act, fireEvent, render} from '@testing-library/react';
-import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import type {TopologyBuilderState} from '../TopologyBuilderMenu';
 
 jest.mock('mapbox-gl/dist/mapbox-gl', () => ({

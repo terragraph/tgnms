@@ -15,9 +15,12 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import RootRef from '@material-ui/core/RootRef';
-import {getVersion, getVersionNumber} from '../../helpers/VersionHelper';
+import {
+  getVersion,
+  getVersionNumber,
+} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 import {makeStyles} from '@material-ui/styles';
-import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
+import type {SoftwareImageType} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
 
 type Props = {|
   image: SoftwareImageType,

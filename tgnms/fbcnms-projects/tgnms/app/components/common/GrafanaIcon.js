@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import classNames from 'classnames';
-import icon from '../../../static/images/grafana_icon.svg';
+import icon from '@fbcnms/tg-nms/static/images/grafana_icon.svg';
 import {makeStyles} from '@material-ui/styles';
 
 export type Props = {

@@ -12,16 +12,16 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useEffect} from 'react';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {
   NETWORK_TEST_DEFS,
   NETWORK_TEST_PROTOCOLS,
   PROTOCOL,
   TEST_TYPE_CODES,
-} from '../../constants/ScheduleConstants';
-import {convertType} from '../../helpers/ObjectHelpers';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
-import type {IperfOptions} from '../../../shared/dto/NetworkTestTypes';
+import type {IperfOptions} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 type Props = {
   onIperfOptionsUpdate: IperfOptions => void,

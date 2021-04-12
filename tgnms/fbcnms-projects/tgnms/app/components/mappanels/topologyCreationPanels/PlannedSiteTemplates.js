@@ -12,11 +12,11 @@ import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import {defaultTemplate} from '../../../constants/TemplateConstants';
+import {defaultTemplate} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {SiteTemplate} from '../../../constants/TemplateConstants';
-import type {TopologyType} from '../../../../shared/types/Topology';
+import type {SiteTemplate} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {TopologyType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
   select: {

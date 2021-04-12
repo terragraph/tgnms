@@ -9,12 +9,12 @@ import * as React from 'react';
 import {
   DATA_TYPE_TO_INPUT_TYPE,
   FORM_CONFIG_MODES,
-} from '../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 
-import type {ConfigDataLayerType} from '../constants/ConfigConstants';
-import type {ControllerConfigType} from '../../shared/types/Controller';
-import type {NodeConfigStatusType} from '../helpers/ConfigHelpers';
-import type {NodeConfigType} from '../../shared/types/NodeConfig';
+import type {ConfigDataLayerType} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import type {ControllerConfigType} from '@fbcnms/tg-nms/shared/types/Controller';
+import type {NodeConfigStatusType} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import type {NodeConfigType} from '@fbcnms/tg-nms/shared/types/NodeConfig';
 
 export type ConfigParamsType = {
   autoOverridesConfig: {[string]: NodeConfigType},

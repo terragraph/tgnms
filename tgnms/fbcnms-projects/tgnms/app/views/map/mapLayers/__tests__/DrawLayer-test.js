@@ -7,20 +7,23 @@
 
 import * as React from 'react';
 import DrawLayer from '../DrawLayer';
-import {MapAnnotationContextProvider} from '../../../../contexts/MapAnnotationContext';
+import {MapAnnotationContextProvider} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import {
   MapContextWrapper,
   TestApp,
   mockMapboxRef,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-import type {MapContext} from '../../../../contexts/MapContext';
+import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
 import MapboxDrawMock from '@mapbox/mapbox-gl-draw';
 jest.mock('@mapbox/mapbox-gl-draw');
-jest.mock('../../../../apiutils/MapAPIUtil');
+jest.mock('@fbcnms/tg-nms/app/apiutils/MapAPIUtil');
 jest
-  .spyOn(require('../../../../constants/FeatureFlags'), 'isFeatureEnabled')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/constants/FeatureFlags'),
+    'isFeatureEnabled',
+  )
   .mockReturnValue(true);
 
 beforeEach(() => {

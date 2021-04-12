@@ -8,9 +8,9 @@
 import * as React from 'react';
 import AddLinkPanel from '../AddLinkPanel';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-import {mockMultiHop} from '../../../../tests/data/NetworkConfig';
+import {mockMultiHop} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import type {Props} from '../AddLinkPanel';
 
 jest.mock('sweetalert2');

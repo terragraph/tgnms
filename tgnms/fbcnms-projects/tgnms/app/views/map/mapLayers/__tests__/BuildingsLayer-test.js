@@ -8,7 +8,7 @@
 import * as React from 'react';
 import BuildingsLayer from '../BuildingsLayer';
 import {Layer} from 'react-mapbox-gl';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 test('renders with default props', () => {

@@ -4,8 +4,8 @@
  * @format
  * @flow strict-local
  */
-import type {UIConfig, UIEnv} from '../../shared/dto/UI';
-import type {User} from '../../shared/auth/User';
+import type {UIConfig, UIEnv} from '@fbcnms/tg-nms/shared/dto/UI';
+import type {User} from '@fbcnms/tg-nms/shared/auth/User';
 
 export function getUIConfig(): UIConfig {
   if (window.CONFIG) {

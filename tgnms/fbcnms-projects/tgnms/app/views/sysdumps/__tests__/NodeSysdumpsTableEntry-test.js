@@ -7,8 +7,8 @@
 
 import NodeSysdumpsTableEntry from '../NodeSysdumpsTableEntry';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockSysdumpEntryData} from '../../../tests/data/Sysdumps';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockSysdumpEntryData} from '@fbcnms/tg-nms/app/tests/data/Sysdumps';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

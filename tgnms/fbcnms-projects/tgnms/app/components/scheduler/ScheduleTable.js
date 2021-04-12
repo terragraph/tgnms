@@ -6,10 +6,10 @@
  */
 
 import * as React from 'react';
-import CustomTable from '../../components/common/CustomTable';
-import FriendlyText from '../../components/common/FriendlyText';
+import CustomTable from '@fbcnms/tg-nms/app/components/common/CustomTable';
+import FriendlyText from '@fbcnms/tg-nms/app/components/common/FriendlyText';
 import Grid from '@material-ui/core/Grid';
-import LoadingBox from '../../components/common/LoadingBox';
+import LoadingBox from '@fbcnms/tg-nms/app/components/common/LoadingBox';
 import Paper from '@material-ui/core/Paper';
 import ScheduleTableFaultWarning from './ScheduleTableFaultWarning';
 import TableOptions from './TableOptions';
@@ -17,7 +17,7 @@ import {
   EXECUTION_STATUS,
   SCAN_EXECUTION_STATUS,
   SCHEDULE_TABLE_TYPES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
 

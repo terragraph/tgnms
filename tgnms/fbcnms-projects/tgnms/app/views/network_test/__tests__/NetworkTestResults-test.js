@@ -5,13 +5,13 @@
  * @flow strict-local
  */
 
-import MaterialTheme from '../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import NetworkTestResults from '../NetworkTestResults';
 import React from 'react';
-import {NetworkContextWrapper} from '../../../tests/testHelpers';
-import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {mockExecutionResult} from '../../../tests/data/NetworkTestApi';
-import {mockLinkMapValue} from '../../../tests/data/NetworkContext';
+import {NetworkContextWrapper} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {mockExecutionResult} from '@fbcnms/tg-nms/app/tests/data/NetworkTestApi';
+import {mockLinkMapValue} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

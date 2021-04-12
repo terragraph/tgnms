@@ -7,8 +7,8 @@
 
 import * as React from 'react';
 import ConfigTaskForm from '../ConfigTaskForm';
-import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';
-import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {
@@ -19,7 +19,7 @@ const defaultProps = {
 };
 
 jest
-  .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
   .mockReturnValue({
     loading: false,
     configData: [{field: ['test', 'param']}],
@@ -28,7 +28,7 @@ jest
 
 test('renders loading initially', () => {
   jest
-    .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')
+    .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
     .mockReturnValueOnce({
       loading: true,
       configData: [{field: ['test', 'param']}],

@@ -7,43 +7,49 @@
 
 import * as React from 'react';
 import AddIcon from '@material-ui/icons/Add';
-import AddL2Tunnel from '../../components/mappanels/topologyCreationPanels/AddL2Tunnel';
-import AddLinkPanel from '../../components/mappanels/topologyCreationPanels/AddLinkPanel';
+import AddL2Tunnel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddL2Tunnel';
+import AddLinkPanel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddLinkPanel';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
-import AddNodePanel from '../../components/mappanels/topologyCreationPanels/AddNodePanel';
-import AddSitePanel from '../../components/mappanels/topologyCreationPanels/AddSitePanel';
+import AddNodePanel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddNodePanel';
+import AddSitePanel from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/AddSitePanel';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import Fab from '@material-ui/core/Fab';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import PublishIcon from '@material-ui/icons/Publish';
 import RouterIcon from '@material-ui/icons/Router';
 import Slide from '@material-ui/core/Slide';
 import TerrainIcon from '@material-ui/icons/Terrain';
 import TuneIcon from '@material-ui/icons/Tune';
 import mapboxgl from 'mapbox-gl';
-import useLiveRef from '../../hooks/useLiveRef';
-import {FormType, SlideProps} from '../../constants/MapPanelConstants';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import {
+  FormType,
+  SlideProps,
+} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {PANELS, PANEL_STATE} from './usePanelControl';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import {UploadTopologyPanel} from '../../components/mappanels/topologyCreationPanels/UploadTopologyPanel';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {UploadTopologyPanel} from '@fbcnms/tg-nms/app/components/mappanels/topologyCreationPanels/UploadTopologyPanel';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
-import {useNetworkPlanningContext} from '../../contexts/NetworkPlanningContext';
-import {usePlannedSiteContext} from '../../contexts/PlannedSiteContext';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {
   EditLinkParams,
   EditNodeParams,
-} from '../../components/mappanels/MapPanelTypes';
-import type {LocationType, SiteType} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {
+  LocationType,
+  SiteType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {PanelStateControl} from './usePanelControl';
-import type {SiteProps} from '../../components/mappanels/MapPanelTypes';
+import type {SiteProps} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
 
 const useStyles = makeStyles(theme => ({
   addButton: {

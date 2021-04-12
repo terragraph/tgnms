@@ -7,17 +7,20 @@
 
 import ConfigTable from '../ConfigTable';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-import {renderWithRouter} from '../../../tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
+import {renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   hideDeprecatedFields: true,
 };
 
 jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(mockConfigTaskContextValue());
 
 test('renders without crashing', async () => {

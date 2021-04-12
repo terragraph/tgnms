@@ -7,7 +7,7 @@
 
 import HealthGroupDropDown from '../../common/HealthGroupDropDown';
 import LinkInterference from './LinkInterference';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
 import ScanPanelTitle from './ScanPanelTitle';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
@@ -15,7 +15,7 @@ import {
   HEALTH_CODES,
   HEALTH_DEFS,
 } from '@fbcnms/tg-nms/app/constants/HealthConstants';
-import {LinkTypeValueMap} from '../../../../shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   convertType,
   objectValuesTypesafe,
@@ -32,7 +32,7 @@ import type {
   AggregatedInrType,
   ExecutionResultDataType,
   InterferenceGroupType,
-} from '../../../../shared/dto/ScanServiceTypes';
+} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
 import type {HealthRowType} from '../../common/HealthGroupDropDown';
 
 export const SCAN_INTERFERENCE_CUTOFFS = {

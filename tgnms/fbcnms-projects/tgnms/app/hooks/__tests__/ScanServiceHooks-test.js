@@ -12,7 +12,7 @@ import {
 } from '../ScanServiceHooks';
 
 jest.mock('../useSnackbar');
-jest.mock('../../apiutils/ScanServiceAPIUtil', () => ({
+jest.mock('@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil', () => ({
   getSchedules: ({inputData: {}, cancelToken: {}}) =>
     Promise.resolve([{id: 1, status: 'SCHEDULED'}]),
   getExecutions: ({inputData: {}, cancelToken: {}}) =>

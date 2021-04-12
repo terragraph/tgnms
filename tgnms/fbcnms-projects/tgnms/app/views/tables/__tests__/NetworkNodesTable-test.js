@@ -11,10 +11,10 @@ import {
   NetworkContextWrapper,
   TestApp,
   mockNetworkConfig,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Route} from 'react-router-dom';
-import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
-import {mockFig0} from '../../../tests/data/NetworkConfig';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {mockFig0} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 test('renders table with no data', () => {

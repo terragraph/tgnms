@@ -8,12 +8,15 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
-import {CONFIG_CONSTRAINT} from '../../constants/ConfigConstants';
-import {isPunctuation, toSentenceCase} from '../../helpers/StringHelpers';
+import {CONFIG_CONSTRAINT} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {
+  isPunctuation,
+  toSentenceCase,
+} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {isString} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 
-import type {ConfigMetaDataType} from '../../contexts/ConfigTaskContext';
+import type {ConfigMetaDataType} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   sectionSpacer: {

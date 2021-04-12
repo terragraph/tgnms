@@ -6,25 +6,25 @@
  */
 
 import * as React from 'react';
-import * as topologyApi from './apiutils/TopologyAPIUtil';
+import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
-import NetworkListContext from './contexts/NetworkListContext';
+import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
 import NmsSettings from './views/nms_config/NmsSettings';
-import {NmsOptionsContextProvider} from './contexts/NmsOptionsContext';
+import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {generatePath, matchPath} from 'react-router';
 import {getUIConfig} from './common/uiConfig';
-import {objectValuesTypesafe} from './helpers/ObjectHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useLocation, withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
   NetworkInstanceConfig,
   NetworkList,
-} from '../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {RouterHistory} from 'react-router-dom';
 
 // Pick a network if no network is requested in URL

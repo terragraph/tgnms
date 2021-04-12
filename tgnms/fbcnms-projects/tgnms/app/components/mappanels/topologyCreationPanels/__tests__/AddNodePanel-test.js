@@ -7,11 +7,11 @@
 
 import * as React from 'react';
 import AddNodePanel from '../AddNodePanel';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   mockNetworkConfig,
   mockTopology,
-} from '../../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 const commonProps = {

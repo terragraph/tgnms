@@ -7,13 +7,19 @@
 
 import CorrelationVisualization from '../CorrelationVisualization';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {TIME_OPTIONS} from '../RootCause';
-import {mockNetworkContext} from '../../../tests/data/NetworkContext';
+import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../contexts/NetworkContext'), 'useNetworkContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/NetworkContext'),
+    'useNetworkContext',
+  )
   .mockImplementation(jest.fn(() => mockNetworkContext()));
 
 const defaultProps = {selectedNodeName: '', timeOffset: TIME_OPTIONS.DAY};

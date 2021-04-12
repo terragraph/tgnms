@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import * as mapApi from '../../../apiutils/MapAPIUtil';
+import * as mapApi from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 import * as turf from '@turf/turf';
 import Alert from '@material-ui/lab/Alert';
 import Button from '@material-ui/core/Button';
@@ -20,12 +20,16 @@ import PublishIcon from '@material-ui/icons/Publish';
 import TextField from '@material-ui/core/TextField';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
-import useTaskState, {TASK_STATE} from '../../../hooks/useTaskState';
-import {LINES, POINTS, POLYS} from '../../../constants/GeoJSONConstants';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {
+  LINES,
+  POINTS,
+  POLYS,
+} from '@fbcnms/tg-nms/app/constants/GeoJSONConstants';
 import {kml as kmlToGeojson} from '@mapbox/togeojson';
-import {parseAndCleanKML} from '../../../helpers/KMLImport';
-import {useAnnotationGroups} from '../../../contexts/MapAnnotationContext';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {parseAndCleanKML} from '@fbcnms/tg-nms/app/helpers/KMLImport';
+import {useAnnotationGroups} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {GeoFeature, GeoGeometryType} from '@turf/turf';
 
 type KMLAnnotationImport = {

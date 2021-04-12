@@ -6,20 +6,20 @@
  */
 
 import * as React from 'react';
-import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkTestAdvancedParams from './NetworkTestAdvancedParams';
-import SchedulerModal from '../../components/scheduler/SchedulerModal';
+import SchedulerModal from '@fbcnms/tg-nms/app/components/scheduler/SchedulerModal';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {
   MODAL_MODE,
   NETWORK_TEST_TYPES,
   TEST_TYPE_CODES,
-} from '../../constants/ScheduleConstants';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useSnackbars} from '../../hooks/useSnackbar';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 type Props = {onActionClick: () => void};
 

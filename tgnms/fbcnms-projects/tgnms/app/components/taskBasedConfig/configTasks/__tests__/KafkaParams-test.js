@@ -7,12 +7,12 @@
 
 import * as React from 'react';
 import KafkaParams from '../KafkaParams';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 jest
   .spyOn(
-    require('../../../../contexts/ConfigTaskContext'),
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
     'useConfigTaskContext',
   )
   .mockReturnValue({

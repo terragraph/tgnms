@@ -5,14 +5,17 @@
  * @flow strict-local
  */
 
-import {LinkTypeValueMap, NodeTypeValueMap} from '../../shared/types/Topology';
+import {
+  LinkTypeValueMap,
+  NodeTypeValueMap,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 import type {
   LocationType,
   NodeType,
   PolarityTypeType,
   SiteType,
-} from '../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export type AnpSite = {
   site_id: string,

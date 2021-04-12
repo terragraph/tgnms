@@ -9,7 +9,7 @@ import type {
   EnvMap,
   SettingsState,
   TestResultMap,
-} from '../../shared/dto/Settings';
+} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 export async function testSettings(env: EnvMap): Promise<TestResultMap> {
   const response = await axios.post<EnvMap, TestResultMap>(

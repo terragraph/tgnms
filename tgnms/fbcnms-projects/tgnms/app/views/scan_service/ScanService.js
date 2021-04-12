@@ -6,16 +6,16 @@
  */
 
 import * as React from 'react';
-import * as scanApi from '../../apiutils/ScanServiceAPIUtil';
+import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import EditScanModal from './EditScanModal';
 import Grid from '@material-ui/core/Grid';
-import NetworkContext from '../../contexts/NetworkContext';
-import ResultExport from '../../components/scheduler/ResultExport';
-import ScheduleActions from '../../components/scheduler/ScheduleActions';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import ResultExport from '@fbcnms/tg-nms/app/components/scheduler/ResultExport';
+import ScheduleActions from '@fbcnms/tg-nms/app/components/scheduler/ScheduleActions';
 import ScheduleScanModal from './ScheduleScanModal';
-import ScheduleTable from '../../components/scheduler/ScheduleTable';
-import useLiveRef from '../../hooks/useLiveRef';
-import useUnmount from '../../hooks/useUnmount';
+import ScheduleTable from '@fbcnms/tg-nms/app/components/scheduler/ScheduleTable';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   EXECUTION_DEFS,
   FREQUENCIES,
@@ -25,18 +25,18 @@ import {
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
   SCHEDULE_TABLE_TYPES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {
   getDateNth,
   getFormattedDateAndTime,
   getParsedCronString,
-} from '../../helpers/ScheduleHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useLoadScanTableData} from '../../hooks/ScanServiceHooks';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useLoadScanTableData} from '@fbcnms/tg-nms/app/hooks/ScanServiceHooks';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
-import type {CreateUrl} from '../../components/scheduler/SchedulerTypes';
-import type {FilterOptionsType} from '../../../shared/dto/ScanServiceTypes';
+import type {CreateUrl} from '@fbcnms/tg-nms/app/components/scheduler/SchedulerTypes';
+import type {FilterOptionsType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
 
 type Props = {
   createScanUrl: CreateUrl,

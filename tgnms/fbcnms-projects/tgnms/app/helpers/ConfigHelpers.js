@@ -5,9 +5,9 @@
  * @flow
  */
 
-import {CONFIG_LAYER} from '../constants/ConfigConstants.js';
-import {FORM_CONFIG_MODES} from '../constants/ConfigConstants';
-import {NodeTypeValueMap} from '../../shared/types/Topology';
+import {CONFIG_LAYER} from '@fbcnms/tg-nms/app/constants/ConfigConstants.js';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   cloneDeep,
   forOwn,
@@ -23,14 +23,14 @@ import {
 import {isNodeAlive} from './NetworkHelpers';
 import {objectEntriesTypesafe} from './ObjectHelpers';
 
-import type {AggregatorConfigType} from '../../shared/types/Aggregator';
+import type {AggregatorConfigType} from '@fbcnms/tg-nms/shared/types/Aggregator';
 import type {
   ConfigConstraintType,
   ConfigDataLayerType,
-} from '../constants/ConfigConstants';
-import type {ConfigOption} from '../components/taskBasedConfig/ConfigOptionSelector';
-import type {ControllerConfigType} from '../../shared/types/Controller';
-import type {NetworkConfig} from '../contexts/NetworkContext';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import type {ConfigOption} from '@fbcnms/tg-nms/app/components/taskBasedConfig/ConfigOptionSelector';
+import type {ControllerConfigType} from '@fbcnms/tg-nms/shared/types/Controller';
+import type {NetworkConfig} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export type NodeConfigStatusType = {
   name: string,

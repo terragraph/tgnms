@@ -16,11 +16,11 @@ import Paper from '@material-ui/core/Paper';
 import ReactDOM from 'react-dom';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
-import {MAP_CONTROL_LOCATIONS} from '../../constants/NetworkConstants';
-import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
-import {SpecialNodeOverlayColors} from '../../constants/LayerConstants';
+import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {METRIC_COLOR_RANGE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {SpecialNodeOverlayColors} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useMapContext} from '../../contexts/MapContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

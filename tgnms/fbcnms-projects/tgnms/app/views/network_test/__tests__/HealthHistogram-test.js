@@ -7,7 +7,7 @@
 
 import HealthHistogram from '../HealthHistogram';
 import React from 'react';
-import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   healthExecutions: [

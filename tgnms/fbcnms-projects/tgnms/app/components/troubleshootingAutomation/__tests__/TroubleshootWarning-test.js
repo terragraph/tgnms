@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import TroubleshootWarning from '../TroubleshootWarning';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 jest

@@ -5,18 +5,18 @@
  * @flow
  */
 
-import * as testApi from '../apiutils/NetworkTestAPIUtil';
+import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import {
   EXECUTION_DEFS,
   NETWORK_TEST_TYPES,
   TEST_EXECUTION_STATUS,
-} from '../constants/ScheduleConstants';
-import {HEALTH_CODES} from '../constants/HealthConstants';
-import {MAPMODE} from '../contexts/MapContext';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
+import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {generatePath} from 'react-router';
 import {getUrlSearchParam} from './NetworkUrlHelpers';
 
-import type {AssetTestResultType} from '../views/network_test/NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
 import type {Location} from 'react-router-dom';
 import type {RouterHistory} from 'react-router-dom';
 

@@ -6,9 +6,9 @@
  */
 
 import React from 'react';
-import StatusIndicator from '../../components/common/StatusIndicator';
+import StatusIndicator from '@fbcnms/tg-nms/app/components/common/StatusIndicator';
 import classNames from 'classnames';
-import {getHealthDef} from '../../constants/HealthConstants';
+import {getHealthDef} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 
 type Props = {
   health: number,

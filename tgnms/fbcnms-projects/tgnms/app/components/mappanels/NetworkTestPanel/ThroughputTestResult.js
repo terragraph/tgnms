@@ -5,24 +5,24 @@
  * @flow
  */
 
-import AssetTestResultDetails from '../../../views/network_test/AssetTestResultDetails';
+import AssetTestResultDetails from '@fbcnms/tg-nms/app/views/network_test/AssetTestResultDetails';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../common/LoadingBox';
-import NetworkContext from '../../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import useUnmount from '../../../hooks/useUnmount';
-import {EXECUTION_STATUS} from '../../../constants/ScheduleConstants';
-import {currentDefaultRouteRequest} from '../../../apiutils/DefaultRouteHistoryAPIUtil';
-import {isTestRunning} from '../../../helpers/NetworkTestHelpers';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
+import {EXECUTION_STATUS} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
+import {isTestRunning} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {mapDefaultRoutes} from '../../../helpers/DefaultRouteHelpers';
-import {numToMegabitsString} from '../../../helpers/ScheduleHelpers';
-import {useRouteContext} from '../../../contexts/RouteContext';
+import {mapDefaultRoutes} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
+import {numToMegabitsString} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
+import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-import type {AssetTestResultType} from '../../../views/network_test/NetworkTestTypes';
-import type {ExecutionDetailsType} from '../../../../shared/dto/NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
+import type {ExecutionDetailsType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 export type Props = {
   executionResult: AssetTestResultType,

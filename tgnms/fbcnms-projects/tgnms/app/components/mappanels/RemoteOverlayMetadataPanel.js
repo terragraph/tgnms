@@ -9,13 +9,13 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Slide from '@material-ui/core/Slide';
 import Typography from '@material-ui/core/Typography';
-import {MAPMODE, useMapContext} from '../../contexts/MapContext';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/views/map/usePanelControl';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
-import {TopologyElementType} from '../../constants/NetworkConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';

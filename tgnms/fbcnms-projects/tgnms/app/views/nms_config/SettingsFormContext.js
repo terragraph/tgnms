@@ -11,7 +11,7 @@ import type {
   EnvMap,
   SettingDefinition,
   SettingsState,
-} from '../../../shared/dto/Settings';
+} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 export type InputData = {|
   value: ?string,

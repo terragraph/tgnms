@@ -11,16 +11,16 @@ import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import McsTableEditor from './McsTableEditor';
-import NetworkSelect from '../../../components/common/NetworkSelect';
+import NetworkSelect from '@fbcnms/tg-nms/app/components/common/NetworkSelect';
 import RemoteOverlaysEditor from './RemoteOverlaysEditor';
 import SettingsGroup from '../SettingsGroup';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
-import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
-import type {MapProfile} from '../../../../shared/dto/MapProfile';
-import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
-import type {RemoteOverlay} from '../../../../shared/dto/RemoteOverlay';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
+import type {McsLinkBudget} from '@fbcnms/tg-nms/shared/dto/MapProfile';
+import type {RemoteOverlay} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 
 export type HandleRangeChange = {
   (mcs: number, rangeMeters: number): void,

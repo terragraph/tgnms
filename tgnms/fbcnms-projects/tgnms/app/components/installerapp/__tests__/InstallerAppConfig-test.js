@@ -10,7 +10,7 @@
 import InstallerAppConfig from '../InstallerAppConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render, wait} from '@testing-library/react';
 
 import * as fbcHooks from '@fbcnms/ui/hooks';

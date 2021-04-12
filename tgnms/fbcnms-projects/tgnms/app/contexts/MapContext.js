@@ -7,13 +7,13 @@
 
 import * as React from 'react';
 import NmsOptionsContext from './NmsOptionsContext';
-import useUnmount from '../hooks/useUnmount';
-import {DEFAULT_MAP_PROFILE} from '../constants/MapProfileConstants';
-import {getUrlSearchParam} from '../helpers/NetworkUrlHelpers';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
+import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
+import {getUrlSearchParam} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 import {useLocation} from 'react-router-dom';
 
 import type Map from 'mapbox-gl/src/ui/map';
-import type {Boundary} from '../../shared/dto/NetworkState';
+import type {Boundary} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {GeoCoord} from '@turf/turf';
 import type {
   LayerData,
@@ -22,8 +22,8 @@ import type {
   OverlaysConfig,
   SelectedLayersType,
   SelectedOverlays,
-} from '../views/map/NetworkMapTypes';
-import type {MapProfile} from '../../shared/dto/MapProfile';
+} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 
 type OverlayMap = LayerData<Overlay>;
 

@@ -6,10 +6,10 @@
  */
 
 import ConfigTaskForm from '../../taskBasedConfig/ConfigTaskForm';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import L2TunnelInputs from './L2TunnelInputs';
 import React from 'react';
-import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';

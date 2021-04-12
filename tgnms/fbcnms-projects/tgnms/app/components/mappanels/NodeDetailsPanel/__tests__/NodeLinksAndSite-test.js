@@ -7,13 +7,13 @@
 
 import NodeLinksAndSite from '../NodeLinksAndSite';
 import React from 'react';
-import {TestApp, renderAsync} from '../../../../tests/testHelpers';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent} from '@testing-library/react';
 import {
   mockLink,
   mockNode,
   mockTopology,
-} from '../../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
 const defaultProps = {
   node: mockNode({name: 'testNode', site_name: '11L922'}),

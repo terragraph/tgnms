@@ -9,11 +9,11 @@ import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import ConfigMetadataBlock from './ConfigMetadataBlock';
-import ConfigTaskInput from '../../components/taskBasedConfig/ConfigTaskInput';
+import ConfigTaskInput from '@fbcnms/tg-nms/app/components/taskBasedConfig/ConfigTaskInput';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
@@ -23,14 +23,17 @@ import {
   CONFIG_BASE_TYPES,
   CONFIG_FIELD_DELIMITER,
   DATA_TYPE_TO_INPUT_TYPE,
-} from '../../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {cloneDeep} from 'lodash';
 import {difference, isPlainObject} from 'lodash';
-import {getFieldMetadata, validateField} from '../../helpers/ConfigHelpers';
+import {
+  getFieldMetadata,
+  validateField,
+} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
-import {toTitleCase} from '../../helpers/StringHelpers';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   button: {

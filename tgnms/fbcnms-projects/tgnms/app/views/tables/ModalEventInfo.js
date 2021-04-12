@@ -5,7 +5,7 @@
  */
 
 import Button from '@material-ui/core/Button';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';

@@ -11,13 +11,17 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useEffect, useState} from 'react';
 import TabbedButton from '../common/TabbedButton';
 import TextField from '@material-ui/core/TextField';
-import {DAYS, FREQUENCIES, MODAL_MODE} from '../../constants/ScheduleConstants';
+import {
+  DAYS,
+  FREQUENCIES,
+  MODAL_MODE,
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {TimePicker} from '@material-ui/pickers';
 import {
   getContextString,
   getParsedCronString,
-} from '../../helpers/ScheduleHelpers';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
 type Props = {
   onCronStringUpdate: (?string) => void,

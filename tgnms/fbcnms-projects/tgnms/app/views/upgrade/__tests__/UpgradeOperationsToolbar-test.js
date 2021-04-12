@@ -7,8 +7,8 @@
 
 import React from 'react';
 import UpgradeOperationsToolbar from '../UpgradeOperationsToolbar';
-import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
-import {mockUpgradeReqData} from '../../../tests/data/Upgrade';
+import {TestApp, initWindowConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockUpgradeReqData} from '@fbcnms/tg-nms/app/tests/data/Upgrade';
 import {render} from '@testing-library/react';
 
 jest.useFakeTimers();

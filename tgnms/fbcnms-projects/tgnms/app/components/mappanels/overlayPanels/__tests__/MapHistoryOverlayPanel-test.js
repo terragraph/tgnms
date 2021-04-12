@@ -11,17 +11,17 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {
   MapContextWrapper,
   NmsOptionsContextWrapper,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   MuiPickersWrapper,
   TestApp,
   renderAsync,
-} from '../../../../tests/testHelpers';
-import {NmsOptionsContextProvider} from '../../../../contexts/NmsOptionsContext';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {act, fireEvent} from '@testing-library/react';
-import {mockNetworkMapOptions} from '../../../../tests/data/NmsOptionsContext';
-import type {MapContext} from '../../../../contexts/MapContext';
-import type {NmsOptionsContextType} from '../../../../contexts/NmsOptionsContext';
+import {mockNetworkMapOptions} from '@fbcnms/tg-nms/app/tests/data/NmsOptionsContext';
+import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 
 jest.mock('axios');
 

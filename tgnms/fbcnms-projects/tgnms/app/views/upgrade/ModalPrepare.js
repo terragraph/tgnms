@@ -11,32 +11,35 @@ import Collapse from '@material-ui/core/Collapse';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import InsetPaper from '../../components/common/InsetPaper';
-import MaterialModal from '../../components/common/MaterialModal';
-import MaterialReactSelect from '../../components/common/MaterialReactSelect';
+import InsetPaper from '@fbcnms/tg-nms/app/components/common/InsetPaper';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
+import MaterialReactSelect from '@fbcnms/tg-nms/app/components/common/MaterialReactSelect';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 import swal from 'sweetalert2';
-import {UPGRADE_IMAGE_REFRESH_INTERVAL} from '../../constants/UpgradeConstants';
+import {UPGRADE_IMAGE_REFRESH_INTERVAL} from '@fbcnms/tg-nms/app/constants/UpgradeConstants';
 import {
   UpgradeGroupTypeValueMap as UpgradeGroupType,
   UpgradeReqTypeValueMap as UpgradeReqType,
-} from '../../../shared/types/Controller';
+} from '@fbcnms/tg-nms/shared/types/Controller';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   createCheckboxGroupInput,
   createNumericInput,
   formParseInt,
-} from '../../helpers/FormHelpers';
-import {ctrlVerAfter, shortenVersionString} from '../../helpers/VersionHelper';
-import {fetchUpgradeImages} from '../../helpers/UpgradeHelpers';
+} from '@fbcnms/tg-nms/app/helpers/FormHelpers';
+import {
+  ctrlVerAfter,
+  shortenVersionString,
+} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
+import {fetchUpgradeImages} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
-import type {Version} from '../../helpers/VersionHelper';
+import type {SoftwareImageType} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
+import type {Version} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 
 const styles = theme => ({
   root: {

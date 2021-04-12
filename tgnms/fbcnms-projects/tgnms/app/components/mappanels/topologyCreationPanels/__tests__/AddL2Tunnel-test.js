@@ -7,11 +7,14 @@
 
 import AddL2Tunnel from '../AddL2Tunnel';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../../hooks/useNodeConfig'), 'useNodeConfig')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
   .mockReturnValue({
     loading: false,
     configData: [{field: ['test', 'param']}],

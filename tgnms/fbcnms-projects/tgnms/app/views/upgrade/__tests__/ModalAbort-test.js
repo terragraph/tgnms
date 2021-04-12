@@ -5,10 +5,10 @@
  * @flow strict-local
  */
 
-import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
+import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import ModalAbort from '../ModalAbort';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   act,
   fireEvent,
@@ -17,7 +17,7 @@ import {
   waitForElement,
 } from '@testing-library/react';
 import {assertType} from '@fbcnms/util/assert';
-import {mockUpgradeReqData} from '../../../tests/data/Upgrade';
+import {mockUpgradeReqData} from '@fbcnms/tg-nms/app/tests/data/Upgrade';
 
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiServiceRequest')

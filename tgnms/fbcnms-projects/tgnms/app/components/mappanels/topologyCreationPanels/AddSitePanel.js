@@ -6,7 +6,7 @@
  */
 
 import Button from '@material-ui/core/Button';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import EditIcon from '@material-ui/icons/Edit';
 import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
@@ -17,20 +17,23 @@ import Typography from '@material-ui/core/Typography';
 import {
   basicTemplates,
   defaultTemplate,
-} from '../../../constants/TemplateConstants';
-import {createNumericInput, formParseFloat} from '../../../helpers/FormHelpers';
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import {
+  createNumericInput,
+  formParseFloat,
+} from '@fbcnms/tg-nms/app/helpers/FormHelpers';
 import {isEqual} from 'lodash';
-import {sendTopologyBuilderRequest} from '../../../helpers/MapPanelHelpers';
-import {templateTopologyBuilderRequest} from '../../../helpers/TopologyTemplateHelpers';
+import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
+import {templateTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
   LocationType,
   SiteType,
   TopologyType,
-} from '../../../../shared/types/Topology';
-import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
-import type {SiteTemplate} from '../../../constants/TemplateConstants';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {PlannedSite} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {SiteTemplate} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 const styles = theme => ({
   button: {

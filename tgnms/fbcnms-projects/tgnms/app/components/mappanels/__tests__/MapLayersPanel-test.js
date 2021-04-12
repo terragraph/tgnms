@@ -7,7 +7,7 @@
 
 import MapLayersPanel from '../MapLayersPanel';
 import React from 'react';
-import {MapContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {MapContextWrapper, TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 const commonProps = {

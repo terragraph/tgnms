@@ -10,20 +10,20 @@ import MapSettings from '../MapSettings';
 import {
   DEFAULT_MAP_PROFILE,
   DEFAULT_MCS_TABLE,
-} from '../../../../constants/MapProfileConstants';
+} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   TestApp,
   coerceClass,
   getOptions,
   getSelectMenu,
   renderAsync,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render, within} from '@testing-library/react';
-import type {MapProfile} from '../../../../../shared/dto/MapProfile';
+import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 import type {OverlayResponse} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 
-jest.mock('../../../../apiutils/MapAPIUtil');
-import * as mapAPIUtilMock from '../../../../apiutils/MapAPIUtil';
+jest.mock('@fbcnms/tg-nms/app/apiutils/MapAPIUtil');
+import * as mapAPIUtilMock from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 
 const MOCK_PROFILE_1 = {
   ...DEFAULT_MAP_PROFILE,

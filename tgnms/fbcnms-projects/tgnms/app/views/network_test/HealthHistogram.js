@@ -8,8 +8,11 @@
 import * as React from 'react';
 import Plotly from 'plotly.js-basic-dist';
 import createPlotlyComponent from 'react-plotly.js/factory';
-import {HEALTH_CODES, HEALTH_DEFS} from '../../constants/HealthConstants';
-import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '../../constants/LayerConstants';
+import {
+  HEALTH_CODES,
+  HEALTH_DEFS,
+} from '@fbcnms/tg-nms/app/constants/HealthConstants';
+import {NETWORK_TEST_HEALTH_COLOR_RANGE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 
 import type {HealthExecutionType} from './NetworkTestTypes';
 

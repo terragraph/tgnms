@@ -7,9 +7,9 @@
 
 import * as React from 'react';
 import ConfigContent from '../ConfigContent';
-import {EDITOR_OPTIONS} from '../../../constants/ConfigConstants';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
+import {EDITOR_OPTIONS} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 const defaultProps = {
@@ -18,7 +18,10 @@ const defaultProps = {
 };
 
 const mockUseConfigTaskContext = jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(
     mockConfigTaskContextValue({
       configParams: {baseConfigs: null},

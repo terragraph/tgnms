@@ -12,22 +12,22 @@ import {
   LinkOverlayColors,
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
-} from '../../constants/LayerConstants';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {
   NetworkContextWrapper,
   NmsOptionsContextWrapper,
   mockNetworkMapOptions,
-} from '../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Router} from 'react-router-dom';
 import {act, renderHook} from '@testing-library/react-hooks';
 import {createMemoryHistory} from 'history';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
 import type {ProviderProps as MapContextProviderProps} from '../MapContext';
 import type {NetworkContextType} from '../NetworkContext';
-import type {NetworkMapOptions} from '../../views/map/NetworkMapTypes';
+import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 import type {NmsOptionsContextType} from '../NmsOptionsContext';
-import type {Overlay} from '../../views/map/NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 
 const testOverlaysConfig = {
   link_lines: {

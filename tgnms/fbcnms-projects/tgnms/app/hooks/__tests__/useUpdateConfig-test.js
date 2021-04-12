@@ -5,14 +5,14 @@
  * @flow
  */
 
-import * as configAPIUtil from '../../apiutils/ConfigAPIUtil';
+import * as configAPIUtil from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
 import {act} from '@testing-library/react';
 import {renderHook} from '@testing-library/react-hooks';
 import {useUpdateConfig} from '../useUpdateConfig';
 
-import type {NodeConfigType} from '../../../shared/types/NodeConfig';
+import type {NodeConfigType} from '@fbcnms/tg-nms/shared/types/NodeConfig';
 
-jest.mock('../../contexts/NetworkContext', () => ({
+jest.mock('@fbcnms/tg-nms/app/contexts/NetworkContext', () => ({
   useNetworkContext: () => ({
     networkName: 'testNetwork',
   }),

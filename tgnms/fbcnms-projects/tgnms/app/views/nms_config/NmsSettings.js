@@ -23,7 +23,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Typography from '@material-ui/core/Typography';
 import classnames from 'classnames';
 import {Link, Redirect, Route, Switch, useRouteMatch} from 'react-router-dom';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({

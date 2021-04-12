@@ -6,10 +6,13 @@
  */
 
 import * as React from 'react';
-import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
-import MaterialTheme from '../../../MaterialTheme';
+import * as networkTestAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import NetworkTest from '../NetworkTest';
-import {SnackbarWrapper, renderAsync} from '../../../tests/testHelpers';
+import {
+  SnackbarWrapper,
+  renderAsync,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, render} from '@testing-library/react';
 
 const getExecutionsMock = jest

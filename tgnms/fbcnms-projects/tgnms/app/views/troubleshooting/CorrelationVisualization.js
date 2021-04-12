@@ -18,13 +18,16 @@ import {
   INTERVAL_SEC,
   MILLISECONDS_TO_MINUTES,
   STEP_SIZE,
-} from '../../constants/LayerConstants';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {TIME_DIFFERENCE_IN_MINUTES} from './RootCause';
-import {createQuery, queryDataArray} from '../../apiutils/PrometheusAPIUtil';
-import {getDefaultRouteHistory} from '../../apiutils/DefaultRouteHistoryAPIUtil';
+import {
+  createQuery,
+  queryDataArray,
+} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
+import {getDefaultRouteHistory} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
 import {getUIEnvVal} from '../../common/uiConfig';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const TIMELINE_START_PERCENT = 14.5;
 const TIMELINE_WIDTH_PERCENT = 100 - TIMELINE_START_PERCENT;

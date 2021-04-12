@@ -28,24 +28,24 @@ import TopologyBuilderMenu, {
   useTopologyBuilderForm,
 } from './TopologyBuilderMenu';
 import UpgradeProgressPanel from '@fbcnms/tg-nms/app/components/mappanels/UpgradeProgressPanel';
-import useUnmount from '../../hooks/useUnmount';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   FormType,
   SlideProps,
   TopologyElement,
-} from '../../constants/MapPanelConstants';
-import {MAPMODE, useMapContext} from '../../contexts/MapContext';
+} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {PANELS, PANEL_STATE, usePanelControl} from './usePanelControl';
-import {TopologyElementType} from '../../constants/NetworkConstants.js';
-import {UpgradeReqTypeValueMap as UpgradeReqType} from '../../../shared/types/Controller';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {UpgradeReqTypeValueMap as UpgradeReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {get} from 'lodash';
 import {makeStyles, useTheme} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
-import {usePlannedSiteContext} from '../../contexts/PlannedSiteContext';
-import {useRouteContext} from '../../contexts/RouteContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
+import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 import type {EditTopologyElementParams} from './TopologyBuilderMenu';
-import type {Element} from '../../contexts/NetworkContext';
+import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Props as MapLayersProps} from '@fbcnms/tg-nms/app/components/mappanels/MapLayersPanel';
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
 import type {PanelStateControl} from './usePanelControl';

@@ -5,7 +5,7 @@
  * @flow
  */
 
-import {METRIC_COLOR_RANGE} from '../constants/LayerConstants';
+import {METRIC_COLOR_RANGE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 import {interpolateHcl} from 'd3-interpolate';

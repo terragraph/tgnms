@@ -6,9 +6,12 @@
  */
 
 import AssetTestResult from '../AssetTestResult';
-import MaterialTheme from '../../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

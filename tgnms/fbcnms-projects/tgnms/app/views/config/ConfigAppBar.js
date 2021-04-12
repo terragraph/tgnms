@@ -11,14 +11,14 @@ import ModalConfigSubmit from './ModalConfigSubmit';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {NETWORK_CONFIG_MODE} from '../../constants/ConfigConstants';
-import {configRootHeightCss} from '../../constants/StyleConstants';
-import {isConfigChanged} from '../../helpers/ConfigHelpers';
+import {NETWORK_CONFIG_MODE} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {configRootHeightCss} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+import {isConfigChanged} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useAlertIfPendingChanges} from '../../hooks/useSnackbar';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
-import {useModalState} from '../../hooks/modalHooks';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useAlertIfPendingChanges} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
 const useStyles = makeStyles(theme => ({
   root: {

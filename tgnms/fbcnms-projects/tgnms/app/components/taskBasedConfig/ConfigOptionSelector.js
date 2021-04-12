@@ -12,9 +12,9 @@ import Grid from '@material-ui/core/Grid';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Typography from '@material-ui/core/Typography';
-import useForm from '../../hooks/useForm';
-import {getDefaultSelected} from '../../helpers/ConfigHelpers';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import {getDefaultSelected} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 export type ConfigOption = {
   name: string,

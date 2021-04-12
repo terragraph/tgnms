@@ -11,7 +11,7 @@ import {
   SettingsFormContextWrapper,
   TestApp,
   coerceClass,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 import type {Props as SettingInputProps} from '../SettingInput';
 

@@ -6,12 +6,12 @@
  */
 
 import * as React from 'react';
-import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
+import * as networkTestAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import EditNetworkTestScheduleModal from '../EditNetworkTestScheduleModal';
 import {
   ScheduleNetworkTestModalWrapper,
   TestApp,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const editTestScheduleMock = jest
@@ -20,7 +20,7 @@ const editTestScheduleMock = jest
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 const defaultProps = {

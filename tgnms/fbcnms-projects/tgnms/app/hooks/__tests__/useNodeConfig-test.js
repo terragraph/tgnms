@@ -5,11 +5,11 @@
  * @flow
  */
 
-import {mockNetworkConfig} from '../../tests/data/NetworkConfig';
+import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {renderHook} from '@testing-library/react-hooks';
 import {useNodeConfig} from '../useNodeConfig';
 
-jest.mock('../../contexts/NetworkContext', () => ({
+jest.mock('@fbcnms/tg-nms/app/contexts/NetworkContext', () => ({
   useNetworkContext: () => ({
     networkName: 'testNetwork',
     networkConfig: mockNetworkConfig(),

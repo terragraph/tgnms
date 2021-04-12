@@ -7,10 +7,10 @@
 
 import ModalReset from '../ModalReset';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render, wait, waitForElement} from '@testing-library/react';
 
-import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
+import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiServiceRequest')

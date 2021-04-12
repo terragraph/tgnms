@@ -8,8 +8,8 @@
 import type {
   DefaultRouteHistoryData,
   DefaultRouteUtilType,
-} from '../../apiutils/DefaultRouteHistoryAPIUtil';
-import type {NodeMap} from '../../contexts/NetworkContext';
+} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
+import type {NodeMap} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export function testDefaultRouteHistory(): {
   history: Array<DefaultRouteHistoryData>,

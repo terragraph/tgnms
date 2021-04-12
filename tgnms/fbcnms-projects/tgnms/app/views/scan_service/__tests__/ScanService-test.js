@@ -6,10 +6,13 @@
  */
 
 import * as React from 'react';
-import * as ScanServiceAPIUtil from '../../../apiutils/ScanServiceAPIUtil';
-import MaterialTheme from '../../../MaterialTheme';
+import * as ScanServiceAPIUtil from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import ScanService from '../ScanService';
-import {SnackbarWrapper, renderAsync} from '../../../tests/testHelpers';
+import {
+  SnackbarWrapper,
+  renderAsync,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, render} from '@testing-library/react';
 
 const getExecutionsMock = jest

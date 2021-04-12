@@ -6,10 +6,10 @@
  */
 
 import React from 'react';
-import {TestApp, cast, renderAsync} from '../../../../tests/testHelpers';
+import {TestApp, cast, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {UploadTopologyPanel} from '../UploadTopologyPanel';
 import {fireEvent, render} from '@testing-library/react';
-import {mockUploadJson} from '../../../../tests/data/UploadTopology';
+import {mockUploadJson} from '@fbcnms/tg-nms/app/tests/data/UploadTopology';
 
 const defaultProps = {
   expanded: true,

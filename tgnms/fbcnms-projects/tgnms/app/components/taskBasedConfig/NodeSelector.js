@@ -11,17 +11,17 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import StatusIndicator, {
   StatusIndicatorColor,
-} from '../../components/common/StatusIndicator';
+} from '@fbcnms/tg-nms/app/components/common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
-import {CONFIG_MODES} from '../../constants/ConfigConstants';
-import {getNodeOverridesConfig} from '../../apiutils/ConfigAPIUtil';
-import {getTopologyNodeList} from '../../helpers/ConfigHelpers';
+import {CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {getNodeOverridesConfig} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
+import {getTopologyNodeList} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
 
-import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
+import type {NodeConfigStatusType} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 
 const useStyles = makeStyles(theme => ({
   list: {

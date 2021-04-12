@@ -5,9 +5,9 @@
  * @format
  */
 
-import * as sysdumpApi from '../../apiutils/SysdumpAPIUtil';
+import * as sysdumpApi from '@fbcnms/tg-nms/app/apiutils/SysdumpAPIUtil';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NodeSysdumpsTable from './NodeSysdumpsTable';
 import React from 'react';
 import swal from 'sweetalert2';

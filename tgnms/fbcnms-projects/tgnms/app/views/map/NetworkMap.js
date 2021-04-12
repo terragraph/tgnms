@@ -7,35 +7,38 @@
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as React from 'react';
-import * as mapApi from '../../apiutils/MapAPIUtil';
-import Dragger from '../../components/common/Dragger';
+import * as mapApi from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
+import Dragger from '@fbcnms/tg-nms/app/components/common/Dragger';
 import MapLayers from './mapLayers/MapLayers';
-import MapOverlayLegend from '../../components/mappanels/MapOverlayLegend';
-import NetworkContext from '../../contexts/NetworkContext';
+import MapOverlayLegend from '@fbcnms/tg-nms/app/components/mappanels/MapOverlayLegend';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
 import ReactMapboxGl from 'react-mapbox-gl';
 import TableControl from './TableControl';
-import TgMapboxNavigation from '../../components/mapboxNavigation/TgMapboxNavigation';
-import {DEFAULT_MAP_PROFILE} from '../../constants/MapProfileConstants';
-import {MAPMODE, MapContextProvider} from '../../contexts/MapContext';
-import {MapAnnotationContextProvider} from '../../contexts/MapAnnotationContext';
+import TgMapboxNavigation from '@fbcnms/tg-nms/app/components/mapboxNavigation/TgMapboxNavigation';
+import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
+import {
+  MAPMODE,
+  MapContextProvider,
+} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {MapAnnotationContextProvider} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
-import {PlannedSiteContextProvider} from '../../contexts/PlannedSiteContext';
+import {PlannedSiteContextProvider} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {Route, withRouter} from 'react-router-dom';
-import {Provider as RoutesContextProvider} from '../../contexts/RouteContext';
-import {getScanId} from '../../helpers/ScanServiceHelpers';
-import {getTestOverlayId} from '../../helpers/NetworkTestHelpers';
+import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import {getScanId} from '@fbcnms/tg-nms/app/helpers/ScanServiceHelpers';
+import {getTestOverlayId} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
 import {getUIEnvVal} from '../../common/uiConfig';
 import {withStyles} from '@material-ui/core/styles';
 
 import type Map from 'mapbox-gl/src/ui/map';
 import type {GeoCoord} from '@turf/turf';
-import type {MapProfile} from '../../../shared/dto/MapProfile';
-import type {NearbyNodes} from '../../components/mappanels/MapPanelTypes';
-import type {NetworkState} from '../../../shared/dto/NetworkState';
+import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
+import type {NearbyNodes} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {NetworkState} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {RouterHistory} from 'react-router-dom';
-import type {Routes} from '../../contexts/RouteContext';
+import type {Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 const styles = theme => ({
   appBarSpacer: theme.mixins.toolbar,

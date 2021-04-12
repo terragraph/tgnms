@@ -7,7 +7,10 @@
 
 import NetworkTestTable from '../NetworkTestTable';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Route} from 'react-router-dom';
 import {render} from '@testing-library/react';
 

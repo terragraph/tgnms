@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 import * as turf from '@turf/turf';
-import {LinkTypeValueMap} from '../../shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {averageAngles} from './MathHelpers';
 import {locToPos} from './GeoHelpers';
 import type {
@@ -15,8 +15,11 @@ import type {
   NodeToLinksMap,
   SiteMap,
   SiteToNodesMap,
-} from '../contexts/NetworkContext';
-import type {NodeType, TopologyType} from '../../shared/types/Topology';
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {
+  NodeType,
+  TopologyType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export type TopologyMaps = {|
   nodeMap: NodeMap,

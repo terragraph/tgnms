@@ -15,14 +15,14 @@ import Link from '@material-ui/core/Link';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import {DATATYPE, Validators} from '../../../shared/dto/Settings';
-import {DATA_TYPE_TO_INPUT_TYPE} from '../../constants/ConfigConstants';
-import {FEATURE_FLAGS} from '../../../shared/FeatureFlags';
+import {DATATYPE, Validators} from '@fbcnms/tg-nms/shared/dto/Settings';
+import {DATA_TYPE_TO_INPUT_TYPE} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {FEATURE_FLAGS} from '@fbcnms/tg-nms/shared/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useSecretToggle} from './useSecretToggle';
 import {useSettingsFormContext} from './SettingsFormContext';
 
-import type {SettingDefinition} from '../../../shared/dto/Settings';
+import type {SettingDefinition} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 const useStyles = makeStyles(theme => ({
   configKey: {

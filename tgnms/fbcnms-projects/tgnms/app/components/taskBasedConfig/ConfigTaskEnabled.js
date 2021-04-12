@@ -10,7 +10,7 @@ import Collapse from '@material-ui/core/Collapse';
 import ConfigTaskInput from './ConfigTaskInput';
 import Grid from '@material-ui/core/Grid';
 import {get} from 'lodash';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const NETWORK_OVERRIDE_LAYER = 'network';
 

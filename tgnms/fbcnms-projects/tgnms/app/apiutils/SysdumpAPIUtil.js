@@ -8,7 +8,7 @@ import axios from 'axios';
 import type {
   NodeSysdumpDeleteType,
   NodeSysdumpType,
-} from '../views/sysdumps/NodeSysdumps';
+} from '@fbcnms/tg-nms/app/views/sysdumps/NodeSysdumps';
 
 export const SYSDUMP_PATH = '/sysdump';
 

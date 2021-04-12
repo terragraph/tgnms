@@ -6,13 +6,13 @@
  */
 
 import * as React from 'react';
-import * as api from '../apiutils/ScanServiceAPIUtil';
+import * as api from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import axios from 'axios';
 import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
-import {SCAN_EXECUTION_STATUS} from '../constants/ScheduleConstants';
-import {objectValuesTypesafe} from '../helpers/ObjectHelpers';
-import {useSnackbars} from '../hooks/useSnackbar';
+import {SCAN_EXECUTION_STATUS} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {
   AggregatedInrType,
@@ -20,7 +20,7 @@ import type {
   ExecutionResultDataType,
   FilterOptionsType,
   InputGetType,
-} from '../../shared/dto/ScanServiceTypes';
+} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
 
 export function useLoadScanExecutionResults({scanId}: {scanId: string}) {
   const [loading, setLoading] = React.useState(true);

@@ -10,9 +10,9 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import TroubleshootWarning from './TroubleshootWarning';
-import useForm from '../../hooks/useForm';
-import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
-import {SWARM_URLS} from '../../constants/ConfigConstants';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
+import {SWARM_URLS} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({

@@ -11,7 +11,7 @@ import {
   TestApp,
   mockNetworkConfig,
   renderWithRouter,
-} from '../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 test('renders without crashing', () => {
   const {getByText} = renderWithRouter(

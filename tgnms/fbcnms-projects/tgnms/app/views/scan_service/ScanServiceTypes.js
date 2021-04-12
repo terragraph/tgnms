@@ -9,7 +9,7 @@ import {
   SCAN_EXECUTION_STATUS,
   SCAN_MODE,
   SCAN_TYPES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 
 export type TableResultType = {
   id: number,

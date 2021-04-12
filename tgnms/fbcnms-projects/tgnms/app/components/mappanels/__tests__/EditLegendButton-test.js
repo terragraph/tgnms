@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import EditLegendButton from '../EditLegendButton';
-import {MapContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {MapContextWrapper, TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const mapContextValue = {

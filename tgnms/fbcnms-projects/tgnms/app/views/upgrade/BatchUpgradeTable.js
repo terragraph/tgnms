@@ -17,7 +17,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import {TableOrder} from '../../helpers/TableHelpers';
+import {TableOrder} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
 import {isEmpty, orderBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import ScanServicePanel from '../ScanServicePanel';
-import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
+import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   expanded: true,

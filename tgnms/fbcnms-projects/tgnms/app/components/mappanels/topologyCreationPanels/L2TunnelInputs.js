@@ -11,9 +11,9 @@ import Grid from '@material-ui/core/Grid';
 import MaterialReactSelect from '../../common/MaterialReactSelect';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../../hooks/useForm';
-import {useConfigTaskContext} from '../../../contexts/ConfigTaskContext';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const TUNNEL_TYPES = {
   gre: {label: 'GRE', value: 'GRE_L2'},

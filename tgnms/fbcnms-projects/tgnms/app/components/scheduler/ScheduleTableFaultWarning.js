@@ -8,7 +8,7 @@
 import * as React from 'react';
 import EnableNetworkTest from '../troubleshootingAutomation/EnableNetworkTest';
 import EnableScans from '../troubleshootingAutomation/EnableScans';
-import {SCHEDULE_TABLE_TYPES} from '../../constants/ScheduleConstants';
+import {SCHEDULE_TABLE_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 
 export default function ScheduleTableFaultWarning({
   mode,

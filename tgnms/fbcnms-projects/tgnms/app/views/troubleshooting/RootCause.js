@@ -8,19 +8,19 @@
 import CorrelationVisualization from './CorrelationVisualization';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
-import NodeSelector from '../../components/taskBasedConfig/NodeSelector';
+import NodeSelector from '@fbcnms/tg-nms/app/components/taskBasedConfig/NodeSelector';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import {
   CONFIG_MODES,
   SELECTED_NODE_QUERY_PARAM,
-} from '../../constants/ConfigConstants';
-import {convertType} from '../../helpers/ObjectHelpers';
-import {getTopologyNodeList} from '../../helpers/ConfigHelpers';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {getTopologyNodeList} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const useStyles = makeStyles(theme => ({
   visualization: {

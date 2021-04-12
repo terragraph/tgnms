@@ -6,7 +6,7 @@
  */
 
 import HealthTextSquare from '../HealthTextSquare';
-import MaterialTheme from '../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
 import {render} from '@testing-library/react';
 

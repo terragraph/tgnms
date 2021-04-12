@@ -13,9 +13,12 @@ import KafkaEndpoint from '../taskBasedConfig/configTasks/KafkaEndpoint';
 import TextField from '@material-ui/core/TextField';
 import TroubleshootWarning from './TroubleshootWarning';
 import ZmqUrl from '../taskBasedConfig/configTasks/ZmqUrl';
-import useForm from '../../hooks/useForm';
-import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
-import {FORM_CONFIG_MODES, SWARM_URLS} from '../../constants/ConfigConstants';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
+import {
+  FORM_CONFIG_MODES,
+  SWARM_URLS,
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({

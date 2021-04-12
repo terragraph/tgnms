@@ -7,7 +7,7 @@
 
 import React from 'react';
 import ScanServiceSummary from '../ScanServiceSummary';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

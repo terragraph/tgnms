@@ -17,8 +17,8 @@ import {
   waitForElement,
 } from '@testing-library/react';
 
-import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
-import * as upgradeHelpers from '../../../helpers/UpgradeHelpers';
+import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import * as upgradeHelpers from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
 
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiServiceRequest')

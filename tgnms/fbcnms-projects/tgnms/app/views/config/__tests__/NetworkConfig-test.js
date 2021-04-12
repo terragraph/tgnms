@@ -7,9 +7,9 @@
 
 import NetworkConfig from '../NetworkConfig';
 import React from 'react';
-import {TestApp, initWindowConfig} from '../../../tests/testHelpers';
+import {TestApp, initWindowConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, waitForElement} from '@testing-library/react';
-import {renderWithRouter} from '../../../tests/testHelpers';
+import {renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 beforeEach(() => {
   initWindowConfig({

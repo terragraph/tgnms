@@ -6,12 +6,12 @@
  */
 
 import * as React from 'react';
-import * as scanServiceAPIUtil from '../../../apiutils/ScanServiceAPIUtil';
+import * as scanServiceAPIUtil from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import EditScanModal from '../EditScanModal';
 import {
   ScheduleNetworkTestModalWrapper,
   TestApp,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const editScanScheduleMock = jest
@@ -20,7 +20,7 @@ const editScanScheduleMock = jest
 
 const snackbarsMock = {error: jest.fn(), success: jest.fn()};
 jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(snackbarsMock);
 
 const defaultProps = {

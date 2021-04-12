@@ -8,9 +8,9 @@
 import * as React from 'react';
 import Grid from '@material-ui/core/Grid';
 import TroubleshootWarning from './TroubleshootWarning';
-import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
-import {TopologyElementType} from '../../constants/NetworkConstants';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export default function LinkOffline() {
   const {linkMap, selectedElement} = useNetworkContext();

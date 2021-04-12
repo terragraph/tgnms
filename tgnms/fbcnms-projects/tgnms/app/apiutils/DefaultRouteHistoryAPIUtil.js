@@ -6,7 +6,7 @@
  */
 
 import axios from 'axios';
-import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
+import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 
 /**
  * Gets the default route history

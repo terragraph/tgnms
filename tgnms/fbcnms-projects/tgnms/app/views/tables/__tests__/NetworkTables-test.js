@@ -8,7 +8,10 @@
 import NetworkTables from '../NetworkTables';
 import React from 'react';
 import axios from 'axios';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Route} from 'react-router-dom';
 import {act, fireEvent, render} from '@testing-library/react';
 

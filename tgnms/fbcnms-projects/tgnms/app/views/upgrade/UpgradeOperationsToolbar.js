@@ -11,7 +11,7 @@ import React from 'react';
 import Toolbar from '@material-ui/core/Toolbar';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {UpgradeGroupReqType} from '../../../shared/types/Controller';
+import type {UpgradeGroupReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 const styles = theme => ({
   root: {

@@ -7,7 +7,7 @@
 
 import ConfigMetadataBlock from './ConfigMetadataBlock';
 import ConfigTableEntryIcon from './ConfigTableEntryIcon';
-import ConfigTaskInput from '../../components/taskBasedConfig/ConfigTaskInput';
+import ConfigTaskInput from '@fbcnms/tg-nms/app/components/taskBasedConfig/ConfigTaskInput';
 import DeleteIcon from '@material-ui/icons/Delete';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import List from '@material-ui/core/List';
@@ -27,18 +27,21 @@ import {
   BASE_VALUE_LAYERS_TO_SKIP,
   CONFIG_FIELD_DELIMITER,
   CONFIG_LAYER,
-} from '../../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {
   getConfigLayer,
   getTopLayerValue,
   validateField,
-} from '../../helpers/ConfigHelpers';
-import {isPunctuation, toTitleCase} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {
+  isPunctuation,
+  toTitleCase,
+} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {truncate} from 'lodash';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
-import type {ConfigDataLayerType} from '../../constants/ConfigConstants';
+import type {ConfigDataLayerType} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 
 const useStyles = makeStyles(theme => ({
   sectionSpacer: {

@@ -15,14 +15,14 @@ import {
   LinkOverlayColors,
   POP_SITE_COLOR,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
-import {FIG0, mockFig0} from '../../../../tests/data/NetworkConfig';
+import {FIG0, mockFig0} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {
   LINK_METRIC_OVERLAYS,
   OVERLAY_NONE,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
-import {MapContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {MapContextWrapper, TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {color} from 'd3-color';
-import {getSourceFeatureCollection} from '../../../../tests/mapHelpers';
+import {getSourceFeatureCollection} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {render} from '@testing-library/react';
 import {topologyToMapFeatures} from '@fbcnms/tg-nms/app/helpers/MapLayerHelpers';
 import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';

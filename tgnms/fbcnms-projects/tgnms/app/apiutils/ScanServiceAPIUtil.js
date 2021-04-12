@@ -12,8 +12,8 @@ import type {
   ExecutionResultsType,
   InputGetType,
   InputStartType,
-} from '../../shared/dto/ScanServiceTypes';
-import type {TableResultType} from '../views/scan_service/ScanServiceTypes';
+} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
+import type {TableResultType} from '@fbcnms/tg-nms/app/views/scan_service/ScanServiceTypes';
 
 export const scheduleScan = (inputData: InputStartType) => {
   return axios.post<InputStartType, string>('/scan_service/schedule', {

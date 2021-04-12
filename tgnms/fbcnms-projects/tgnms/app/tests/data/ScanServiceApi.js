@@ -9,8 +9,8 @@ import type {
   ExecutionDetailsType,
   ExecutionResultDataType,
   ExecutionResultsType,
-} from '../../../shared/dto/ScanServiceTypes';
-import type {TableResultType} from '../../views/scan_service/ScanServiceTypes';
+} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
+import type {TableResultType} from '@fbcnms/tg-nms/app/views/scan_service/ScanServiceTypes';
 
 /**
  * Creates a fake O< scan execution results

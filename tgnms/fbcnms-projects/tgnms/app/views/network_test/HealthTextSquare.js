@@ -7,7 +7,7 @@
 
 import React from 'react';
 import classNames from 'classnames';
-import {getHealthDef} from '../../constants/HealthConstants';
+import {getHealthDef} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {

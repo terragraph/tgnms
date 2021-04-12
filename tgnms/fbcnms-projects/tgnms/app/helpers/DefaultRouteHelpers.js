@@ -5,7 +5,7 @@
  * @format
  */
 
-import type {TopologyType} from '../../shared/types/Topology';
+import type {TopologyType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export function mapDefaultRoutes({
   mapRoutes,

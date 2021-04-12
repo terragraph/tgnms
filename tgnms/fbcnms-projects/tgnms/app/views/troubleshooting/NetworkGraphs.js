@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import StatGraph from './StatGraph';
 import {makeStyles} from '@material-ui/styles';
-import type {PrometheusDataType} from '../../apiutils/PrometheusAPIUtil';
+import type {PrometheusDataType} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 
 const SEC_TO_MS = 1000;
 

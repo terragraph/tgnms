@@ -8,9 +8,9 @@
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import WarningIcon from '@material-ui/icons/Warning';
-import {CONFIG_PARAM_MODE} from '../../constants/ConfigConstants';
+import {CONFIG_PARAM_MODE} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

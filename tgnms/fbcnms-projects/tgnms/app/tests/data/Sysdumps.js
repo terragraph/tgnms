@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-import type {NodeSysdumpType} from '../../views/sysdumps/NodeSysdumps';
+import type {NodeSysdumpType} from '@fbcnms/tg-nms/app/views/sysdumps/NodeSysdumps';
 
 export function mockSysdumpData(): Array<NodeSysdumpType> {
   return [

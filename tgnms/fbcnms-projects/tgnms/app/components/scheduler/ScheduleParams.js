@@ -9,7 +9,7 @@ import * as React from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import ShowAdvanced from '../common/ShowAdvanced';
 import TextField from '@material-ui/core/TextField';
 

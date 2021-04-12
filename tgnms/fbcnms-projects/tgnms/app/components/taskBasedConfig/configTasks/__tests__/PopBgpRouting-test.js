@@ -7,13 +7,13 @@
 
 import * as React from 'react';
 import PopBgpRouting from '../PopBgpRouting';
-import {TestApp} from '../../../../tests/testHelpers';
-import {mockConfigTaskContextValue} from '../../../../tests/data/NetworkConfig';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 jest
   .spyOn(
-    require('../../../../contexts/ConfigTaskContext'),
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
     'useConfigTaskContext',
   )
   .mockReturnValue(

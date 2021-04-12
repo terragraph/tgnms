@@ -5,9 +5,9 @@
  * @flow strict-local
  */
 
-import {defaultValue as NmsOptionsContextDefaultValue} from '../../contexts/NmsOptionsContext';
-import type {NetworkMapOptions} from '../../views/map/NetworkMapTypes';
-import type {NmsOptionsContextType} from '../../contexts/NmsOptionsContext';
+import {defaultValue as NmsOptionsContextDefaultValue} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
+import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 
 /**
  * Creates a fake NMS option context which passes flow validation

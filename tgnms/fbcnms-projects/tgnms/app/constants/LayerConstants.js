@@ -13,14 +13,17 @@ import purple from '@material-ui/core/colors/purple';
 import red from '@material-ui/core/colors/red';
 import {HEALTH_CODES, HEALTH_DEFS} from './HealthConstants';
 import {MCS_DATARATE_TABLE} from './NetworkConstants';
-import {formatNumber} from '../helpers/StringHelpers';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 //TODO don't import from views
-import PrefixZoneOverlay from '../views/map/overlays/PrefixZoneOverlay';
+import PrefixZoneOverlay from '@fbcnms/tg-nms/app/views/map/overlays/PrefixZoneOverlay';
 import {ANP_STATUS_TYPE} from './TemplateConstants';
 import {isFeatureEnabled} from './FeatureFlags';
-import {numToMegabits} from '../helpers/ScheduleHelpers';
+import {numToMegabits} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
 
-import type {LayerData, Overlay} from '../views/map/NetworkMapTypes';
+import type {
+  LayerData,
+  Overlay,
+} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 
 export const TG_COLOR = {
   GREEN: '#31A24C',

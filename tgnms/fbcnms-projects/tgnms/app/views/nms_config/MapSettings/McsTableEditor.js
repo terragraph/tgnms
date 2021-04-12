@@ -11,9 +11,9 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import SettingsGroup from '../SettingsGroup';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import type {HandleRangeChange} from './MapProfileForm';
-import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
+import type {McsLinkBudget} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 
 export default function McsTableEditor({
   mcsTable,

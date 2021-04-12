@@ -7,7 +7,10 @@
 
 import * as React from 'react';
 import ScheduleParams from '../ScheduleParams';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

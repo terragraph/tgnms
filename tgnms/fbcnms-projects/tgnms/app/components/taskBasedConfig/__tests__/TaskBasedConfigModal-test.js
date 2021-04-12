@@ -11,11 +11,11 @@ import {
   NetworkContextWrapper,
   TestApp,
   renderAsync,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
   .mockReturnValue({
     loading: false,
     configData: [{field: ['test', 'param']}],
@@ -23,11 +23,17 @@ jest
   });
 
 jest
-  .spyOn(require('../../../apiutils/ConfigAPIUtil'), 'getNodeOverridesConfig')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil'),
+    'getNodeOverridesConfig',
+  )
   .mockReturnValue({});
 
 jest
-  .spyOn(require('../../../helpers/ConfigHelpers'), 'getTopologyNodeList')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/helpers/ConfigHelpers'),
+    'getTopologyNodeList',
+  )
   .mockReturnValue([{name: 'testNode'}, {name: 'mock filter node'}]);
 
 const defaultProps = {

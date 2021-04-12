@@ -9,8 +9,8 @@ import type {
   ExecutionDetailsType,
   ExecutionResultDataType,
   ExecutionResultsType,
-} from '../../../shared/dto/NetworkTestTypes';
-import type {TableResultType} from '../../views/network_test/NetworkTestTypes';
+} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
+import type {TableResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
 
 /**
  * Creates a fake network test execution results

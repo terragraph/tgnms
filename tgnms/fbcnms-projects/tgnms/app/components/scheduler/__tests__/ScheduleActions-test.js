@@ -7,9 +7,9 @@
 
 import * as React from 'react';
 import ScheduleActions from '../ScheduleActions';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
-import {mockSchedules} from '../../../tests/data/NetworkTestApi';
+import {mockSchedules} from '@fbcnms/tg-nms/app/tests/data/NetworkTestApi';
 
 const defaultProps = {
   editButton: 'test edit button',

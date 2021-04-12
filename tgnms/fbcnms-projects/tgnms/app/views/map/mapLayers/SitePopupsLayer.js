@@ -8,7 +8,7 @@
 import * as React from 'react';
 import {Popup} from 'react-mapbox-gl';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export default function SitePopupsLayer() {
   const {networkConfig} = useNetworkContext();

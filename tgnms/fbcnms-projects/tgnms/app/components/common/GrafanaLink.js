@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import {getUIEnvVal} from '../../common/uiConfig';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
 /**
  * Creates a link to a grafana dashboard with templated variables filled in.

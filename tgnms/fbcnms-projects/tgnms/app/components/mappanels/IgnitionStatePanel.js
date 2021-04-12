@@ -7,12 +7,12 @@
 
 import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
+import {apiServiceRequestWithConfirmation} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 import type {IgnitionStateType} from '@fbcnms/tg-nms/shared/types/Controller';
 

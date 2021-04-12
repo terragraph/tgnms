@@ -18,7 +18,7 @@ import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useMapProfile, {
   useShowCustomOverlayPanel,
 } from '@fbcnms/tg-nms/app/views/map/useMapProfile';
-import useTaskState, {TASK_STATE} from '../../../hooks/useTaskState';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {RESPONSE_TYPE} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 import {makeStyles} from '@material-ui/styles';

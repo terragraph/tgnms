@@ -11,15 +11,15 @@ import {
   DEFAULT_BASE_KEY,
   DEFAULT_FIRMWARE_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
-} from '../constants/ConfigConstants';
-import {FORM_CONFIG_MODES} from '../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {cloneDeep, get, merge} from 'lodash';
 import {
   constructConfigFromMetadata,
   getNodeVersions,
   processConfigs,
-} from '../helpers/ConfigHelpers';
-import {convertType} from '../helpers/ObjectHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {
   getAggregatorConfig,
   getAggregatorConfigMetadata,
@@ -32,13 +32,13 @@ import {
   getHardwareBaseConfig,
   getNetworkOverridesConfig,
   getNodeOverridesConfig,
-} from '../apiutils/ConfigAPIUtil';
-import {useNetworkContext} from '../contexts/NetworkContext';
+} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 import type {
   ConfigDataType,
   ConfigParamsType,
-} from '../contexts/ConfigTaskContext';
+} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 export function useNodeConfig({
   nodeName,

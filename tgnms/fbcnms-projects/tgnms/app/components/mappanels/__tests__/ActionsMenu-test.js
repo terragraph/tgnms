@@ -8,7 +8,7 @@
 import ActionsMenu from '../ActionsMenu';
 import React from 'react';
 import {fireEvent, render} from '@testing-library/react';
-import {renderAsync} from '../../../tests/testHelpers';
+import {renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   options: {

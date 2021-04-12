@@ -5,15 +5,15 @@
  * @flow strict-local
  */
 
-import MockWebSocket from '../../../../tests/mocks/MockWebSocket';
+import MockWebSocket from '@fbcnms/tg-nms/app/tests/mocks/MockWebSocket';
 import NetworkListContext, {
   defaultValue as defaultContextValue,
-} from '../../../../contexts/NetworkListContext';
+} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import NotificationMenu from '../NotificationMenu';
 import React from 'react';
-import {TestApp} from '../../../../tests/testHelpers';
-import {WebSocketMessage} from '../../../../../shared/dto/WebSockets';
-import {WebSocketProvider} from '../../../../contexts/WebSocketContext';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {WebSocketMessage} from '@fbcnms/tg-nms/shared/dto/WebSockets';
+import {WebSocketProvider} from '@fbcnms/tg-nms/app/contexts/WebSocketContext';
 import {act, fireEvent, getByText, render} from '@testing-library/react';
 
 let offsetCounter;

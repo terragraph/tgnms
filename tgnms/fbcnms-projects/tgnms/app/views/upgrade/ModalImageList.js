@@ -9,7 +9,7 @@ import * as React from 'react';
 import List from '@material-ui/core/List';
 import ModalImageRow from './ModalImageRow';
 import Typography from '@material-ui/core/Typography';
-import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
+import type {SoftwareImageType} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
 
 type Props = {|
   upgradeImages: Array<$Shape<SoftwareImageType>>,

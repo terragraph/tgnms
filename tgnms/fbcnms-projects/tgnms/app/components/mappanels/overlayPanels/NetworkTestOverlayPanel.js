@@ -6,8 +6,8 @@
  */
 
 import * as React from 'react';
-import NetworkContext from '../../../contexts/NetworkContext';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {
   AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
@@ -20,14 +20,14 @@ import {
   SiteOverlayColors,
   TEST_EXECUTION_LINK_OVERLAYS,
   TestOverlayColors,
-} from '../../../constants/LayerConstants';
-import {HEALTH_CODES} from '../../../constants/HealthConstants';
-import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {numToMegabits} from '../../../helpers/ScheduleHelpers';
-import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
-import {useMapContext} from '../../../contexts/MapContext';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {numToMegabits} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
-import type {Overlay} from '../../../views/map/NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 
 const defaultOverlays = {
   link_test_link_lines: 'health',

@@ -11,7 +11,7 @@ import {
   TestApp,
   initWindowConfig,
   setTestUser,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 test('by default, only renders the toggle button', () => {

@@ -7,8 +7,8 @@
 
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
-import InsetPaper from '../../components/common/InsetPaper';
-import MaterialModal from '../../components/common/MaterialModal';
+import InsetPaper from '@fbcnms/tg-nms/app/components/common/InsetPaper';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import React from 'react';
 import RestoreIcon from '@material-ui/icons/Restore';
 import {withStyles} from '@material-ui/core/styles';

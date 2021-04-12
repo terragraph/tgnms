@@ -13,9 +13,9 @@ import {
   TestApp,
   initWindowConfig,
   renderAsync,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, waitForElement} from '@testing-library/react';
-import type {UpgradeImageType} from '../../../../shared/types/Controller';
+import type {UpgradeImageType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 // fetches occur on an interval so we should mock them
 jest.useFakeTimers();
@@ -128,11 +128,14 @@ test('if software portal is enabled, images from software portal are shown', asy
     featureFlags: {SOFTWARE_PORTAL_ENABLED: true},
   });
   const fetchUpgradeImagesMock = jest
-    .spyOn(require('../../../helpers/UpgradeHelpers'), 'fetchUpgradeImages')
+    .spyOn(
+      require('@fbcnms/tg-nms/app/helpers/UpgradeHelpers'),
+      'fetchUpgradeImages',
+    )
     .mockResolvedValueOnce([]);
   const fetchSwPortalMock = jest
     .spyOn(
-      require('../../../helpers/UpgradeHelpers'),
+      require('@fbcnms/tg-nms/app/helpers/UpgradeHelpers'),
       'fetchSoftwarePortalImages',
     )
     .mockResolvedValueOnce([]);

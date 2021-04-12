@@ -6,7 +6,10 @@
  */
 
 import * as ScheduleHelpers from '../ScheduleHelpers';
-import {DAYS, FREQUENCIES} from '../../constants/ScheduleConstants';
+import {
+  DAYS,
+  FREQUENCIES,
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 
 /*
  * input is a cron string in format * * * * *

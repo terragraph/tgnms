@@ -6,11 +6,11 @@
  */
 
 import * as React from 'react';
-import MockWebSocket from '../../tests/mocks/MockWebSocket';
+import MockWebSocket from '@fbcnms/tg-nms/app/tests/mocks/MockWebSocket';
 import {
   WEBSOCKET_READYSTATE,
   WebSocketMessage,
-} from '../../../shared/dto/WebSockets';
+} from '@fbcnms/tg-nms/shared/dto/WebSockets';
 import {
   WebSocketContext,
   WebSocketProvider,
@@ -19,7 +19,7 @@ import {
 } from '../WebSocketContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
-import type {MockWebSocketType} from '../../tests/mocks/MockWebSocket';
+import type {MockWebSocketType} from '@fbcnms/tg-nms/app/tests/mocks/MockWebSocket';
 
 jest.useFakeTimers();
 beforeEach(() => {

@@ -8,8 +8,11 @@
  */
 
 import React from 'react';
-import {Permissions} from '../../../../shared/auth/Permissions';
-import {initWindowConfig, setTestUser} from '../../../tests/testHelpers';
+import {Permissions} from '@fbcnms/tg-nms/shared/auth/Permissions';
+import {
+  initWindowConfig,
+  setTestUser,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 import Authorize from '../Authorize';

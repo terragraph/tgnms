@@ -5,7 +5,7 @@
  * @format
  */
 
-import {UpgradeStatusTypeValueMap} from '../../shared/types/Controller';
+import {UpgradeStatusTypeValueMap} from '@fbcnms/tg-nms/shared/types/Controller';
 import {invert} from 'lodash';
 
 export const REVERT_UPGRADE_IMAGE_STATUS = 5000;

@@ -11,13 +11,13 @@ import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import lightBlue from '@material-ui/core/colors/lightBlue';
-import {HEALTH_CODES} from '../../../constants/HealthConstants';
-import {LinkInterferenceColors} from '../../../constants/LayerConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
+import {LinkInterferenceColors} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {SCAN_INTERFERENCE_CUTOFFS} from './ScanInterference';
 import {makeStyles} from '@material-ui/styles';
-import {useRouteContext} from '../../../contexts/RouteContext';
+import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-import type {LinkInterferenceType} from '../../../../shared/dto/ScanServiceTypes';
+import type {LinkInterferenceType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
 
 const SELECTED_BLUE = lightBlue[50];
 

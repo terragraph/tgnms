@@ -5,18 +5,18 @@
  * @flow
  */
 
-import MaterialTable from '../../components/common/MaterialTable';
+import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import React from 'react';
 import green from '@material-ui/core/colors/green';
 import grey from '@material-ui/core/colors/grey';
 import red from '@material-ui/core/colors/red';
-import {NETWORK_TABLE_HEIGHTS} from '../../constants/StyleConstants';
-import {NodeTypeValueMap as NodeType} from '../../../shared/types/Topology';
-import {TopologyElementType} from '../../constants/NetworkConstants';
-import {isNodeAlive} from '../../helpers/NetworkHelpers';
+import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+import {NodeTypeValueMap as NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {isNodeAlive} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {NetworkTableProps} from './NetworkTables';
 
 type NetworkNodeRowType = {

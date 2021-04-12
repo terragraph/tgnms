@@ -9,7 +9,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
-import {SYSDUMP_PATH} from '../../apiutils/SysdumpAPIUtil';
+import {SYSDUMP_PATH} from '@fbcnms/tg-nms/app/apiutils/SysdumpAPIUtil';
 import type {NodeSysdumpType} from './NodeSysdumps';
 
 type Props = {

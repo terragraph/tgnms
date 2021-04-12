@@ -14,7 +14,7 @@ import SearchBar from '../common/SearchBar';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 import {makeStyles} from '@material-ui/styles';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
 import type {Feature, Result} from './MapboxSearchTypes';
 

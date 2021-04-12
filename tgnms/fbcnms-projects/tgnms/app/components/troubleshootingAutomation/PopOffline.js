@@ -13,10 +13,10 @@ import PopRouting from '../taskBasedConfig/configTasks/PopRouting';
 import SysParams from '../taskBasedConfig/configTasks/SysParams';
 import TroubleshootWarning from './TroubleshootWarning';
 import Typography from '@material-ui/core/Typography';
-import useForm from '../../hooks/useForm';
-import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export default function PopOffline() {
   const attemptTroubleShootAutomation = useTroubleshootAutomation();

@@ -13,8 +13,8 @@ import React from 'react';
 import {
   CONFIG_PARAM_MODE,
   EDITOR_OPTIONS,
-} from '../../constants/ConfigConstants';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 type Props = {
   contentDisplayMode: $Values<typeof EDITOR_OPTIONS>,

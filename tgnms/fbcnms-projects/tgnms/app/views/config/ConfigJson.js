@@ -6,11 +6,11 @@
  */
 
 import * as React from 'react';
-import useUnmount from '../../hooks/useUnmount';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {cloneDeep} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {stringifyConfig} from '../../helpers/ConfigHelpers';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {stringifyConfig} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   jsonTextarea: {

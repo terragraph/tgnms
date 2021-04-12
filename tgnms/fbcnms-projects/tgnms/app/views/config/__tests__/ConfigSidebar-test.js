@@ -6,13 +6,13 @@
  */
 
 import ConfigSidebar from '../ConfigSidebar';
-import MaterialTheme from '../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
-import {CONFIG_MODES} from '../../../constants/ConfigConstants';
+import {CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {fireEvent, render} from '@testing-library/react';
-import {initWindowConfig} from '../../../tests/testHelpers';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
-import {mockNetworkContext} from '../../../tests/data/NetworkContext';
+import {initWindowConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
+import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 
 beforeEach(() => {
   initWindowConfig({
@@ -31,19 +31,31 @@ jest.mock('react-router', () => ({
 }));
 
 const mockUseConfigTaskContext = jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockImplementation(jest.fn(() => mockConfigTaskContextValue()));
 
 jest
-  .spyOn(require('../../../contexts/NetworkContext'), 'useNetworkContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/NetworkContext'),
+    'useNetworkContext',
+  )
   .mockImplementation(jest.fn(() => mockNetworkContext()));
 
 jest
-  .spyOn(require('../../../apiutils/ConfigAPIUtil'), 'getNodeOverridesConfig')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil'),
+    'getNodeOverridesConfig',
+  )
   .mockReturnValue({});
 
 jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useAlertIfPendingChanges')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/hooks/useSnackbar'),
+    'useAlertIfPendingChanges',
+  )
   .mockImplementation(jest.fn(() => () => false));
 
 const snackbarsMock = {
@@ -52,11 +64,14 @@ const snackbarsMock = {
   warning: jest.fn(),
 };
 jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useSnackbars')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useSnackbars')
   .mockReturnValue(snackbarsMock);
 
 jest
-  .spyOn(require('../../../helpers/ConfigHelpers'), 'getTopologyNodeList')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/helpers/ConfigHelpers'),
+    'getTopologyNodeList',
+  )
   .mockReturnValue([{name: 'testNode'}, {name: 'mock filter node'}]);
 
 const defaultProps = {

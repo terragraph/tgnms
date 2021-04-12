@@ -10,7 +10,7 @@ import * as turf from '@turf/turf';
 import McsEstimateLayer, {SOURCE_ID} from '../McsEstimateLayer';
 import PlannedSiteCtx, {
   defaultValue as PlannedSiteContextDefaultValue,
-} from '../../../../contexts/PlannedSiteContext';
+} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   MapContextWrapper,
@@ -18,15 +18,15 @@ import {
   TestApp,
   mockFig0,
   mockNetworkConfig,
-} from '../../../../tests/testHelpers';
-import {TopologyElementType} from '../../../../constants/NetworkConstants';
-import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
-import {getSourceFeatureCollection} from '../../../../tests/mapHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {getSourceFeatureCollection} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {render} from '@testing-library/react';
-import type {MapContext} from '../../../../contexts/MapContext';
-import type {NetworkContextType} from '../../../../contexts/NetworkContext';
-import type {PlannedSite} from '../../../../components/mappanels/MapPanelTypes';
-import type {PlannedSiteContext} from '../../../../contexts/PlannedSiteContext';
+import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {PlannedSite} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {PlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 
 test('renders without any props', async () => {
   await render(

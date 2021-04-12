@@ -7,7 +7,7 @@
 
 import ModalConfigGet from '../ModalConfigGet';
 import React from 'react';
-import {TestApp, mockNetworkConfig} from '../../../tests/testHelpers';
+import {TestApp, mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

@@ -10,9 +10,9 @@ import {
   WEBSOCKET_READYSTATE,
   WEB_SOCKET_COMMAND_TYPE,
   WebSocketMessage,
-} from '../../shared/dto/WebSockets';
-import {isFeatureEnabled} from '../constants/FeatureFlags';
-import type {WebSocketCommand} from '../../shared/dto/WebSockets';
+} from '@fbcnms/tg-nms/shared/dto/WebSockets';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import type {WebSocketCommand} from '@fbcnms/tg-nms/shared/dto/WebSockets';
 
 export type WebSocketContextType<TSocket: WebSocket> = {|
   getRawSocket: () => ?TSocket,

@@ -6,20 +6,20 @@
  */
 
 import * as React from 'react';
-import * as mapApi from '../../../apiutils/MapAPIUtil';
+import * as mapApi from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 import Alert from '@material-ui/lab/Alert';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import useForm from '../../../hooks/useForm';
-import useTaskState, {TASK_STATE} from '../../../hooks/useTaskState';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {
   useAnnotationGroups,
   useMapAnnotationContext,
-} from '../../../contexts/MapAnnotationContext';
-import type {MapAnnotationGroupIdent} from '../../../../shared/dto/MapAnnotations';
+} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
+import type {MapAnnotationGroupIdent} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 
 export default function RenameAnnotationGroupForm({
   group,

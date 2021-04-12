@@ -7,9 +7,9 @@
 
 import NodeSysdumpsTable from '../NodeSysdumpsTable';
 import React from 'react';
-import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
-import {mockSysdumpData} from '../../../tests/data/Sysdumps';
+import {mockSysdumpData} from '@fbcnms/tg-nms/app/tests/data/Sysdumps';
 
 const defaultProps = {
   controllerVersion: 'testVersion',

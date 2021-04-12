@@ -12,19 +12,23 @@ import {
   CN_SITE_COLOR,
   PLANNED_SITE_COLOR,
   POP_SITE_COLOR,
-} from '../../../../constants/LayerConstants';
-import {NodeTypeValueMap as NodeType} from '../../../../../shared/types/Topology';
-import {TestApp, mockRoutes, mockTopology} from '../../../../tests/testHelpers';
-import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {NodeTypeValueMap as NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
+import {
+  TestApp,
+  mockRoutes,
+  mockTopology,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
   getFeatureByAttributes,
   getLayerById,
   getPropValue,
-} from '../../../../tests/mapHelpers';
+} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {render} from '@testing-library/react';
 
 import type {Props} from '../SitesLayer';
-import type {TopologyConfig} from '../../../../../shared/dto/NetworkState';
+import type {TopologyConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const defaultTopology = basicTopology();
 const commonProps: Props = {

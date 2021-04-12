@@ -11,12 +11,15 @@ import {
   NetworkContextWrapper,
   TestApp,
   renderWithRouter,
-} from '../../../tests/testHelpers';
-import {mockNetworkConfig, mockNode} from '../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {
+  mockNetworkConfig,
+  mockNode,
+} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../hooks/useNodeConfig'), 'useNodeConfig')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
   .mockReturnValue({
     loading: false,
     configData: [{field: ['test', 'param']}],

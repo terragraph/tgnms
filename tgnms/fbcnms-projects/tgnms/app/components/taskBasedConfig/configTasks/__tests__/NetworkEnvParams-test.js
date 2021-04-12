@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import NetworkEnvParams from '../NetworkEnvParams';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 test('renders', async () => {

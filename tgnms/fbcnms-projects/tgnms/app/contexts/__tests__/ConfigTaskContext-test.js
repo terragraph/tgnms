@@ -6,9 +6,9 @@
  */
 
 import * as React from 'react';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {Provider as TaskConfigContextProvider} from '../ConfigTaskContext';
-import {TestApp, renderWithRouter} from '../../tests/testHelpers';
+import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 import {renderHook} from '@testing-library/react-hooks';
 import {useConfigTaskContext} from '../ConfigTaskContext';

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Troubleshooting, {TROUBLESHOOTING_TABS} from '../Troubleshooting';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 test('renders table', () => {

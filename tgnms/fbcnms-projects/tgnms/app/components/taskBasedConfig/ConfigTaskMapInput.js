@@ -11,9 +11,9 @@ import ConfigTaskInput from './ConfigTaskInput';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
-import {getTopLayerValue} from '../../helpers/ConfigHelpers';
+import {getTopLayerValue} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const STRING_MAP_VAL = 'string';
 

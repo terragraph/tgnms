@@ -8,7 +8,7 @@
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import FBCMobileAppConfigView from '@fbcnms/mobileapp/FBCMobileAppConfigView';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 
 type Props = {
   children: React.Node,

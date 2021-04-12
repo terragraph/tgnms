@@ -8,7 +8,7 @@
 import React from 'react';
 import ShowAdvanced from '../ShowAdvanced';
 import TextField from '@material-ui/core/TextField';
-import {TestApp, cast, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, cast, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

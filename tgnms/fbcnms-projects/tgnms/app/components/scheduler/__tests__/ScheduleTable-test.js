@@ -6,10 +6,10 @@
  */
 
 import * as React from 'react';
-import MaterialTheme from '../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import ScheduleTable from '../ScheduleTable';
-import {SCHEDULE_TABLE_TYPES} from '../../../constants/ScheduleConstants';
-import {SnackbarWrapper} from '../../../tests/testHelpers';
+import {SCHEDULE_TABLE_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {SnackbarWrapper} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 jest.mock('react-router', () => ({

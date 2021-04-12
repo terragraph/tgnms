@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {
   AREA_OVERLAYS,
   LINK_METRIC_OVERLAYS,
@@ -16,11 +16,11 @@ import {
   SITE_METRIC_OVERLAYS,
   ScanOverlayColors,
   SiteOverlayColors,
-} from '../../../constants/LayerConstants';
-import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
-import {useMapContext} from '../../../contexts/MapContext';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
-import type {Overlay} from '../../../views/map/NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 
 const defaultOverlays = {
   link_lines: 'health',

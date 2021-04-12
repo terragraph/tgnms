@@ -7,8 +7,8 @@
 
 import * as apiUtil from '../NetworkTestAPIUtil';
 import axios from 'axios';
-import {mockCancelToken} from '../../tests/testHelpers';
-import {mockExecutionResults} from '../../tests/data/NetworkTestApi';
+import {mockCancelToken} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockExecutionResults} from '@fbcnms/tg-nms/app/tests/data/NetworkTestApi';
 
 jest.mock('axios');
 

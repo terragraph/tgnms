@@ -7,8 +7,8 @@
 
 import NodeUpgradeTableEntry from '../NodeUpgradeTableEntry';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockStructuredNodeData} from '../../../tests/data/Upgrade';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockStructuredNodeData} from '@fbcnms/tg-nms/app/tests/data/Upgrade';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

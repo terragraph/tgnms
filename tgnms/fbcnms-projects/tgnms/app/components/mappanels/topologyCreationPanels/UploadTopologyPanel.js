@@ -6,7 +6,7 @@
  */
 
 import Button from '@material-ui/core/Button';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
@@ -20,24 +20,24 @@ import {DOMParser} from 'xmldom';
 import {
   convertType,
   objectValuesTypesafe,
-} from '../../../helpers/ObjectHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {kml as kmlToGeojson} from '@mapbox/togeojson';
 import {makeStyles} from '@material-ui/styles';
 import {
   parseAnpJson,
   parseAnpKml,
   uploadTopologyBuilderRequest,
-} from '../../../helpers/TopologyTemplateHelpers';
+} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {
   sectorCountOptions,
   uploadFileTypes,
-} from '../../../constants/TemplateConstants';
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 import type {
   AnpUploadKmlType,
   AnpUploadTopologyType,
-} from '../../../constants/TemplateConstants';
-import type {TopologyType} from '../../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {TopologyType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
   button: {

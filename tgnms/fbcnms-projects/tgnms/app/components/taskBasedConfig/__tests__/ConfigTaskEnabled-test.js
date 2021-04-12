@@ -7,8 +7,8 @@
 
 import * as React from 'react';
 import ConfigTaskEnabled from '../ConfigTaskEnabled';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 const defaultProps = {
@@ -19,7 +19,10 @@ const defaultProps = {
 };
 
 jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(mockConfigTaskContextValue());
 
 test('renders a when enabled', () => {

@@ -11,8 +11,8 @@ import {
   useLoadTestTableData,
 } from '../NetworkTestHooks';
 
-jest.mock('../../hooks/useSnackbar');
-jest.mock('../../apiutils/NetworkTestAPIUtil', () => ({
+jest.mock('@fbcnms/tg-nms/app/hooks/useSnackbar');
+jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil', () => ({
   getSchedules: ({inputData: {}, cancelToken: {}}) =>
     Promise.resolve([{id: 1, status: 'SCHEDULED'}]),
   getExecutions: ({inputData: {}, cancelToken: {}}) =>

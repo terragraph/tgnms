@@ -14,9 +14,9 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
-import useTaskState, {TASK_STATE} from '../../hooks/useTaskState';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {makeStyles} from '@material-ui/styles';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   paper: {

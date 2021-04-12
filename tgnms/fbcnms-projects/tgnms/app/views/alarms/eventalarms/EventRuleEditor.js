@@ -17,17 +17,17 @@ import RuleEditorBase from '@fbcnms/alarms/components/rules/RuleEditorBase';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import useForm from '../../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import yellow from '@material-ui/core/colors/yellow';
 import {
   EventIdValueMap,
   EventLevelValueMap,
-} from '../../../../shared/types/Event';
+} from '@fbcnms/tg-nms/shared/types/Event';
 import {Severity} from './EventAlarmsTypes';
 import {TgEventAlarmsApiUtil} from '../TgAlarmApi';
 import {makeStyles} from '@material-ui/styles';
-import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
-import {useSnackbars} from '../../../hooks/useSnackbar';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {EventRule} from './EventAlarmsTypes';
 import type {

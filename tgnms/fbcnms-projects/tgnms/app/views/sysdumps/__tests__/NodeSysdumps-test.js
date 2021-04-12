@@ -14,7 +14,7 @@ import {
   initWindowConfig,
   mockNetworkConfig,
   renderWithRouter,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 jest.mock('axios');
 

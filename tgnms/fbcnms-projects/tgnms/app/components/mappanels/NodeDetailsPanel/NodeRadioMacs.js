@@ -8,12 +8,15 @@
 import React from 'react';
 import StatusText from '../../common/StatusText';
 import Typography from '@material-ui/core/Typography';
-import {CtrlVerType, ctrlVerBefore} from '../../../helpers/VersionHelper';
-import {isNodeAlive} from '../../../helpers/NetworkHelpers';
+import {
+  CtrlVerType,
+  ctrlVerBefore,
+} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
+import {isNodeAlive} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
 
-import type {NetworkConfig} from '../../../contexts/NetworkContext';
-import type {NodeType} from '../../../../shared/types/Topology';
+import type {NetworkConfig} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(_theme => ({
   detail: {

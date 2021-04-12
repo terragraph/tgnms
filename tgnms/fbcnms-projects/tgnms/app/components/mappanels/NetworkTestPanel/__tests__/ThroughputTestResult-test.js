@@ -5,14 +5,14 @@
  * @flow strict-local
  */
 
-import MaterialTheme from '../../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
 import ThroughputTestResult from '../ThroughputTestResult';
-import {TestApp, mockRoutes} from '../../../../tests/testHelpers';
+import {TestApp, mockRoutes} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   mockExecutionResult,
   mockExecutionResults,
-} from '../../../../tests/data/NetworkTestApi';
+} from '@fbcnms/tg-nms/app/tests/data/NetworkTestApi';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

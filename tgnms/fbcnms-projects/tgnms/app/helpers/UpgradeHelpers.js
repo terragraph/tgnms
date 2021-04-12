@@ -8,10 +8,10 @@
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
-} from '../apiutils/ServiceAPIUtil';
-import {nodeupdateServerRequest} from '../apiutils/NodeupdateAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {nodeupdateServerRequest} from '@fbcnms/tg-nms/app/apiutils/NodeupdateAPIUtil';
 import {objectEntriesTypesafe} from './ObjectHelpers';
-import type {UpgradeImageType} from '../../shared/types/Controller';
+import type {UpgradeImageType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 export type SoftwareImageType = {|
   versionNumber?: string,

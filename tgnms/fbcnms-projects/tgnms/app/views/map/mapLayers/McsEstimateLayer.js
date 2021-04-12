@@ -7,23 +7,23 @@
 
 import * as turf from '@turf/turf';
 import React from 'react';
-import useLiveRef from '../../../hooks/useLiveRef';
-import {DEFAULT_MCS_TABLE} from '../../../constants/MapProfileConstants';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import {DEFAULT_MCS_TABLE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   LINE_TEXT_PAINT,
   MCS_INTERPOLATE_FILL_COLOR,
-} from '../../../constants/LayerConstants';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {Layer, Source} from 'react-mapbox-gl';
-import {LinkTypeValueMap as LinkType} from '../../../../shared/types/Topology';
-import {TopologyElementType} from '../../../constants/NetworkConstants';
-import {getEstimatedNodeBearing} from '../../../helpers/TopologyHelpers';
+import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {getEstimatedNodeBearing} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
-import {useMapContext} from '../../../contexts/MapContext';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
-import {usePlannedSiteContext} from '../../../contexts/PlannedSiteContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import type {GeoCoord, GeoFeature} from '@turf/turf';
-import type {McsLinkBudget} from '../../../../shared/dto/MapProfile';
-import type {NodeType} from '../../../../shared/types/Topology';
+import type {McsLinkBudget} from '@fbcnms/tg-nms/shared/dto/MapProfile';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export const LAYER_ID = 'nodes-mcs-estimate';
 export const SOURCE_ID = 'nodes-mcs-estimate-source';

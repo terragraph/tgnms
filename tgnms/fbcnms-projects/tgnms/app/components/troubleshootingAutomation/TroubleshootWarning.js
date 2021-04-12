@@ -11,9 +11,9 @@ import MaterialModal from '../common/MaterialModal';
 import ReportProblemOutlinedIcon from '@material-ui/icons/ReportProblemOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
-import {useModalState} from '../../hooks/modalHooks';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
 const WARNING_YELLOW = '#FFB400';
 

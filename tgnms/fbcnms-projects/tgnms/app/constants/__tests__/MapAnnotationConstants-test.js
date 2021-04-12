@@ -12,7 +12,7 @@ import {
   MAPBOX_DRAW_DEFAULT_STYLES,
   MAPBOX_DRAW_DEFAULT_STYLE_IDS,
 } from '../MapAnnotationConstants';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
 describe('mapbox-draw upgrade tests', () => {
   test('theme structure', () => {

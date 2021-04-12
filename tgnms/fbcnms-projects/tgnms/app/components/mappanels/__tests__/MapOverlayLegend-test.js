@@ -11,7 +11,7 @@ import {
   MapContextWrapper,
   TestApp,
   mockMapboxRef,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 import MapboxDrawMock from '@mapbox/mapbox-gl-draw';

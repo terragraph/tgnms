@@ -6,12 +6,12 @@
  */
 
 import * as React from 'react';
-import DatabaseSettings from '../../views/nms_config/DatabaseSettings';
+import DatabaseSettings from '@fbcnms/tg-nms/app/views/nms_config/DatabaseSettings';
 import Grid from '@material-ui/core/Grid';
-import SettingsForm from '../../views/nms_config/SettingsForm';
+import SettingsForm from '@fbcnms/tg-nms/app/views/nms_config/SettingsForm';
 import TroubleshootWarning from './TroubleshootWarning';
-import useForm from '../../hooks/useForm';
-import useTroubleshootAutomation from '../../hooks/useTroubleshootAutomation';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
 
 export default function TableLinkAvailability() {
   const attemptTroubleShootAutomation = useTroubleshootAutomation();

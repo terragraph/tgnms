@@ -10,16 +10,19 @@ import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import Grid from '@material-ui/core/Grid';
 import HealthTextSquare from './HealthTextSquare';
 import MetricGroup from './MetricGroup';
-import NetworkContext from '../../contexts/NetworkContext';
-import ShowAdvanced from '../../components/common/ShowAdvanced';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import ShowAdvanced from '@fbcnms/tg-nms/app/components/common/ShowAdvanced';
 import Typography from '@material-ui/core/Typography';
-import {HEALTH_CODES, getHealthDef} from '../../constants/HealthConstants';
+import {
+  HEALTH_CODES,
+  getHealthDef,
+} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {makeStyles} from '@material-ui/styles';
-import {numToMegabitsString} from '../../helpers/ScheduleHelpers';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
+import {numToMegabitsString} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
-import type {ExecutionResultDataType} from '../../../shared/dto/NetworkTestTypes';
-import type {NodeType} from '../../../shared/types/Topology';
+import type {ExecutionResultDataType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useDetailStyles = makeStyles(theme => ({
   assetNameWrapper: {

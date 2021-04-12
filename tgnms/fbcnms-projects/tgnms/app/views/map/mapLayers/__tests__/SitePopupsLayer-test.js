@@ -11,9 +11,9 @@ import {
   NetworkContextWrapper,
   TestApp,
   mockTopology,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Popup} from 'react-mapbox-gl';
-import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
+import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 test('renders with default props', () => {

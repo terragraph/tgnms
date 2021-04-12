@@ -8,19 +8,19 @@
 import ConfigAppBar from './ConfigAppBar';
 import ConfigContent from './ConfigContent';
 import ConfigSidebar from './ConfigSidebar';
-import ConfigTaskForm from '../../components/taskBasedConfig/ConfigTaskForm';
+import ConfigTaskForm from '@fbcnms/tg-nms/app/components/taskBasedConfig/ConfigTaskForm';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import {
   EDITOR_OPTIONS,
   NETWORK_CONFIG_MODE,
   SELECTED_NODE_QUERY_PARAM,
-} from '../../constants/ConfigConstants';
-import {configRootHeightCss} from '../../constants/StyleConstants';
-import {getTopologyNodeList} from '../../helpers/ConfigHelpers';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {configRootHeightCss} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+import {getTopologyNodeList} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {withRouter} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({

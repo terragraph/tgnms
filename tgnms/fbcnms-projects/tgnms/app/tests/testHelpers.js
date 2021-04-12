@@ -6,22 +6,22 @@
  */
 
 import * as React from 'react';
-import MapContext from '../contexts/MapContext';
-import MaterialTheme from '../MaterialTheme';
+import MapContext from '@fbcnms/tg-nms/app/contexts/MapContext';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import MomentUtils from '@date-io/moment';
-import NetworkContext from '../contexts/NetworkContext';
-import NmsOptionsContext from '../contexts/NmsOptionsContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {CancelToken} from 'axios';
-import {EMPTY_SETTINGS_STATE} from '../../shared/dto/Settings';
-import {FEATURE_FLAGS} from '../../shared/FeatureFlags';
+import {EMPTY_SETTINGS_STATE} from '@fbcnms/tg-nms/shared/dto/Settings';
+import {FEATURE_FLAGS} from '@fbcnms/tg-nms/shared/FeatureFlags';
 import {
   LINK_METRIC_OVERLAYS,
   SITE_METRIC_OVERLAYS,
-} from '../constants/LayerConstants';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {Router} from 'react-router-dom';
-import {Provider as RoutesContextProvider} from '../contexts/RouteContext';
-import {Provider as SettingsFormContextProvider} from '../views/nms_config/SettingsFormContext';
+import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import {Provider as SettingsFormContextProvider} from '@fbcnms/tg-nms/app/views/nms_config/SettingsFormContext';
 import {SnackbarProvider} from 'notistack';
 import {act, fireEvent, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
@@ -32,19 +32,19 @@ import type {
   EnvMap,
   SettingDefinition,
   SettingsState,
-} from '../../shared/dto/Settings';
-import type {MapContext as MapContextType} from '../contexts/MapContext';
+} from '@fbcnms/tg-nms/shared/dto/Settings';
+import type {MapContext as MapContextType} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import type {MapboxDraw} from '@mapbox/mapbox-gl-draw';
 import type {Map as MapboxMap} from 'react-mapbox-gl';
-import type {NetworkContextType} from '../contexts/NetworkContext';
-import type {NmsOptionsContextType} from '../contexts/NmsOptionsContext';
-import type {PanelStateControl} from '../views/map/usePanelControl';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/views/map/usePanelControl';
 import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
-import type {RoutesContext} from '../contexts/RouteContext';
-import type {UIConfig} from '../../shared/dto/UI';
-import type {User} from '../../shared/auth/User';
+import type {RoutesContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import type {UIConfig} from '@fbcnms/tg-nms/shared/dto/UI';
+import type {User} from '@fbcnms/tg-nms/shared/auth/User';
 
 // exports things like mockNetworkConfig and mockTopology
 export * from './data/NetworkConfig';

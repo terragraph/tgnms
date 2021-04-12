@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 
-import * as settingsApi from '../../../apiutils/SettingsAPIUtil';
+import * as settingsApi from '@fbcnms/tg-nms/app/apiutils/SettingsAPIUtil';
 import React from 'react';
 import RestartWatcher, {useRestartWatcher} from '../RestartWatcher';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';

@@ -7,9 +7,9 @@
 
 import NodeUpgradeTable from '../NodeUpgradeTable';
 import React from 'react';
-import {TestApp, renderAsync} from '../../../tests/testHelpers';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
-import {mockUpgradeArrayData} from '../../../tests/data/Upgrade';
+import {mockUpgradeArrayData} from '@fbcnms/tg-nms/app/tests/data/Upgrade';
 
 const defaultProps = {
   controllerVersion: 'testVersion',

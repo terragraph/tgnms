@@ -6,8 +6,8 @@
  * @flow strict-local
  */
 import * as React from 'react';
-import {isAuthorized} from '../../helpers/UserHelpers';
-import type {Permission} from '../../../shared/auth/Permissions';
+import {isAuthorized} from '@fbcnms/tg-nms/app/helpers/UserHelpers';
+import type {Permission} from '@fbcnms/tg-nms/shared/auth/Permissions';
 
 export type Props = {
   permissions: Permission | Array<Permission>,

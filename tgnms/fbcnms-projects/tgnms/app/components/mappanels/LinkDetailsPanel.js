@@ -8,7 +8,7 @@
 import * as React from 'react';
 import ActionsMenu from './ActionsMenu';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -19,31 +19,34 @@ import RouterIcon from '@material-ui/icons/Router';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import StatusText from '../common/StatusText';
 import Typography from '@material-ui/core/Typography';
-import {LinkActionTypeValueMap as LinkActionType} from '../../../shared/types/Controller';
+import {LinkActionTypeValueMap as LinkActionType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap,
-} from '../../../shared/types/Topology';
-import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
-import {TEST_TYPE_CODES} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import {STATS_LINK_QUERY_PARAM} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TEST_TYPE_CODES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {
   apiRequest,
   apiServiceRequestWithConfirmation,
   requestWithConfirmation,
-} from '../../apiutils/ServiceAPIUtil';
-import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {currentDefaultRouteRequest} from '../../apiutils/DefaultRouteHistoryAPIUtil';
-import {formatNumber} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {
+  convertType,
+  objectValuesTypesafe,
+} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {get} from 'lodash';
 import {
   hasLinkEverGoneOnline,
   isNodeAlive,
   renderAvailabilityWithColor,
-} from '../../helpers/NetworkHelpers';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
-import {mapDefaultRoutes} from '../../helpers/DefaultRouteHelpers';
-import {startPartialTest} from '../../helpers/NetworkTestHelpers';
-import {toTitleCase} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import {mapDefaultRoutes} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
+import {startPartialTest} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -53,11 +56,11 @@ import type {
   LinkType as Link,
   NodeType as Node,
   TopologyType,
-} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {
   NetworkHealth,
   NetworkState,
-} from '../../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {RouterHistory} from 'react-router-dom';
 
 const styles = theme => ({

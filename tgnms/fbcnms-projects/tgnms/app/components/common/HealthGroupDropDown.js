@@ -7,17 +7,17 @@
 
 import * as React from 'react';
 import Collapse from '@material-ui/core/Collapse';
-import CustomTable from '../../components/common/CustomTable';
+import CustomTable from '@fbcnms/tg-nms/app/components/common/CustomTable';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import HealthIndicator from '../../components/common/HealthIndicator';
+import HealthIndicator from '@fbcnms/tg-nms/app/components/common/HealthIndicator';
 import IconButton from '@material-ui/core/IconButton';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import classNames from 'classnames';
-import {HEALTH_CODES} from '../../constants/HealthConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {ExecutionResultDataType} from '../../../shared/dto/NetworkTestTypes';
+import type {ExecutionResultDataType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 export type HealthType = {
   id: number,

@@ -15,9 +15,9 @@ import ListItem from '@material-ui/core/ListItem';
 import MaterialModal from '../common/MaterialModal';
 import React from 'react';
 import Slider from 'rc-slider';
-import {METRIC_COLOR_RANGE} from '../../constants/LayerConstants';
+import {METRIC_COLOR_RANGE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useMapContext} from '../../contexts/MapContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
 const RangeSlider = Slider.createSliderWithTooltip(Slider.Range);
 

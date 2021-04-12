@@ -7,14 +7,14 @@
 
 import NodeDetails from '../NodeDetails';
 import React from 'react';
-import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
+import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 import {
   mockNetworkConfig,
   mockNetworkHealth,
   mockNode,
   mockTopology,
-} from '../../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
 const defaultProps = {
   ctrlVersion: 'testVer',

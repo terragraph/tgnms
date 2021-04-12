@@ -7,23 +7,23 @@
  */
 
 import * as React from 'react';
-import * as settingsApi from '../../apiutils/SettingsAPIUtil';
+import * as settingsApi from '@fbcnms/tg-nms/app/apiutils/SettingsAPIUtil';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import RestartWatcherModal, {useRestartWatcher} from './RestartWatcher';
 import Typography from '@material-ui/core/Typography';
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import red from '@material-ui/core/colors/red';
-import useForm from '../../hooks/useForm';
-import {DATATYPE} from '../../../shared/dto/Settings';
-import {EMPTY_SETTINGS_STATE} from '../../../shared/dto/Settings';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import {DATATYPE} from '@fbcnms/tg-nms/shared/dto/Settings';
+import {EMPTY_SETTINGS_STATE} from '@fbcnms/tg-nms/shared/dto/Settings';
 import {Provider as SettingsFormContextProvider} from './SettingsFormContext';
 import {makeStyles} from '@material-ui/styles';
-import {useConfirmationModalState} from '../../hooks/modalHooks';
+import {useConfirmationModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useSecretToggle} from './useSecretToggle';
 import type {CancelTokenSource} from 'axios';
-import type {EnvMap, SettingsState} from '../../../shared/dto/Settings';
+import type {EnvMap, SettingsState} from '@fbcnms/tg-nms/shared/dto/Settings';
 import type {InputData} from './SettingsFormContext';
 
 const useStyles = makeStyles(theme => ({

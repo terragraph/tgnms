@@ -8,7 +8,7 @@
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
-import {useModalState} from '../../hooks/modalHooks';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
 export default function MenuButton({
   id,

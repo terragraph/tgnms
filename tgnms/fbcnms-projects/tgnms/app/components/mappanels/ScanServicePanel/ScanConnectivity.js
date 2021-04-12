@@ -9,25 +9,31 @@ import CustomTable from '../../common/CustomTable';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import NetworkContext from '../../../contexts/NetworkContext';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
 import ScanPanelTitle from './ScanPanelTitle';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import UploadTopologyConfirmationModal from '../topologyCreationPanels/UploadTopologyConfirmationModal';
-import useForm from '../../../hooks/useForm';
-import {NodeTypeValueMap} from '../../../../shared/types/Topology';
-import {locToPos, locationMidpoint} from '../../../helpers/GeoHelpers';
-import {makeLinkName} from '../../../helpers/TopologyHelpers';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {
+  locToPos,
+  locationMidpoint,
+} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
+import {makeLinkName} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {sendTopologyBuilderRequest} from '../../../helpers/MapPanelHelpers';
-import {uploadTopologyBuilderRequest} from '../../../helpers/TopologyTemplateHelpers';
-import {useMapContext} from '../../../contexts/MapContext';
-import {useSnackbars} from '../../../hooks/useSnackbar';
+import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
+import {uploadTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
-import type {ExecutionResultDataType} from '../../../../shared/dto/ScanServiceTypes';
-import type {LinkMap, MacToNodeMap} from '../../../contexts/NetworkContext';
+import type {ExecutionResultDataType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
+import type {
+  LinkMap,
+  MacToNodeMap,
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 type NewLinkType = {
   name: string,

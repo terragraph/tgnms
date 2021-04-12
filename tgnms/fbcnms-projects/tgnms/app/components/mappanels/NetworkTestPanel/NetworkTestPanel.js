@@ -6,10 +6,10 @@
  */
 
 import * as React from 'react';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import TestExecutionSummary from './TestExecutionSummary';
-import {MAPMODE, useMapContext} from '../../../contexts/MapContext';
-import {getUrlSearchParam} from '../../../helpers/NetworkUrlHelpers';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {getUrlSearchParam} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 import {withRouter} from 'react-router-dom';
 
 import type {ContextRouter} from 'react-router-dom';

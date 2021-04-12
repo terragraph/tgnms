@@ -7,12 +7,18 @@
 
 import NetworkGraphs from '../NetworkGraphs';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
-import {mockNetworkContext} from '../../../tests/data/NetworkContext';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../contexts/NetworkContext'), 'useNetworkContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/NetworkContext'),
+    'useNetworkContext',
+  )
   .mockImplementation(jest.fn(() => mockNetworkContext()));
 
 const defaultProps = {

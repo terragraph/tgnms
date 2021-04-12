@@ -21,7 +21,7 @@ import {
 } from '@fbcnms/alarms/components/alertmanager/AlertDetails/AlertDetailsPane';
 
 import type {AlertViewerProps} from '@fbcnms/alarms/components/rules/RuleInterface';
-import type {EventType} from '../../../../shared/types/Event';
+import type {EventType} from '@fbcnms/tg-nms/shared/types/Event';
 
 const EVENT_LIMIT = 10;
 

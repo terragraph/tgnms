@@ -13,19 +13,25 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import TgMapboxNavIcon from './TgMapboxNavIcon';
 import mapboxgl from 'mapbox-gl';
-import {LinkTypeValueMap} from '../../../shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   MAP_CONTROL_LOCATIONS,
   TopologyElementType,
-} from '../../constants/NetworkConstants';
-import {convertType, objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {locToPos, locationMidpoint} from '../../helpers/GeoHelpers';
+} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {
+  convertType,
+  objectValuesTypesafe,
+} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {
+  locToPos,
+  locationMidpoint,
+} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useMapContext} from '../../contexts/MapContext';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
-import type {LinkMeta, Site} from '../../contexts/NetworkContext';
-import type {LinkType, NodeType} from '../../../shared/types/Topology';
+import type {LinkMeta, Site} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {LinkType, NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(() => ({
   listItemIcon: {

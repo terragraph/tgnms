@@ -6,9 +6,9 @@
  */
 
 import * as React from 'react';
-import type {LocationType} from '../../shared/types/Topology';
+import type {LocationType} from '@fbcnms/tg-nms/shared/types/Topology';
 //TODO extract from mappaneltypes
-import type {PlannedSite} from '../components/mappanels/MapPanelTypes';
+import type {PlannedSite} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
 
 export type PlannedSiteContext = {|
   plannedSite: ?PlannedSite,

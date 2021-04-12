@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import * as mapApi from '../../../apiutils/MapAPIUtil';
+import * as mapApi from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 import * as turf from '@turf/turf';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
@@ -22,11 +22,11 @@ import {
   ANNOTATION_DEFAULT_GROUP,
   useAnnotationGroups,
   useMapAnnotationContext,
-} from '../../../contexts/MapAnnotationContext';
+} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import {makeStyles} from '@material-ui/styles';
-import {useMapContext} from '../../../contexts/MapContext';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
-import type {MapAnnotationGroupIdent} from '../../../../shared/dto/MapAnnotations';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {MapAnnotationGroupIdent} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 
 const MODE = {
   DEFAULT: 'default',

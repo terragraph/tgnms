@@ -9,11 +9,11 @@ import React from 'react';
 import SignalWifi0BarIcon from '@material-ui/icons/SignalWifi0Bar';
 import SignalWifi2BarIcon from '@material-ui/icons/SignalWifi2Bar';
 import SignalWifi4BarIcon from '@material-ui/icons/SignalWifi4Bar';
-import {NodeStatusTypeValueMap as NodeStatusType} from '../../shared/types/Topology';
+import {NodeStatusTypeValueMap as NodeStatusType} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   SNR_THRESHOLD_MCS2,
   SNR_THRESHOLD_MCS9,
-} from '../constants/NetworkConstants';
+} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {formatNumber} from './StringHelpers';
 import {getUrlSearchParam} from './NetworkUrlHelpers';
 import {isEqual} from 'lodash';
@@ -22,7 +22,7 @@ import type {
   LocationType,
   NodeType,
   TemporaryLinkType,
-} from '../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {OfflineWhiteListType} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 /** Returns whether a node is alive based on its status. */

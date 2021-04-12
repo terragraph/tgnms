@@ -7,16 +7,22 @@
 
 import * as React from 'react';
 import NodeSelector from '../NodeSelector';
-import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';
-import {TestApp} from '../../../tests/testHelpers';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../apiutils/ConfigAPIUtil'), 'getNodeOverridesConfig')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil'),
+    'getNodeOverridesConfig',
+  )
   .mockReturnValue({});
 
 jest
-  .spyOn(require('../../../helpers/ConfigHelpers'), 'getTopologyNodeList')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/helpers/ConfigHelpers'),
+    'getTopologyNodeList',
+  )
   .mockReturnValue([{name: 'testNode'}, {name: 'mock filter node'}]);
 
 const defaultProps = {

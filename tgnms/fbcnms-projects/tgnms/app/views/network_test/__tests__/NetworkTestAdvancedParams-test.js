@@ -8,7 +8,7 @@
 import * as React from 'react';
 import NetworkTestAdvancedParams from '../NetworkTestAdvancedParams';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {coerceClass} from '../../../tests/testHelpers';
+import {coerceClass} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

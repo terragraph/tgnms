@@ -24,10 +24,10 @@ import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import {TableOrder} from '../../helpers/TableHelpers';
-import {getVersion} from '../../helpers/VersionHelper';
+import {TableOrder} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
+import {getVersion} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 import {isEmpty, orderBy} from 'lodash';
-import {shortenVersionString} from '../../helpers/VersionHelper';
+import {shortenVersionString} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {StructuredNodeType} from './NetworkUpgrade';

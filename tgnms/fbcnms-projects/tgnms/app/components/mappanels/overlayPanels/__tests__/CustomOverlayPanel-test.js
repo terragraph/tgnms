@@ -34,7 +34,7 @@ import {
   getSourceFeatureCollection,
 } from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {mockNetworkMapOptions} from '@fbcnms/tg-nms/app/tests/data/NmsOptionsContext';
-import {useNetworkContext} from '../../../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {GeoFeature, GeoFeatureCollection} from '@turf/turf';
 import type {
   LegendDef,

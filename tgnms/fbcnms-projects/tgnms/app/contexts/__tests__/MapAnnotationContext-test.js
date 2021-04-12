@@ -14,14 +14,14 @@ import {
   useMapAnnotationContext,
 } from '../MapAnnotationContext';
 import {act, renderHook} from '@testing-library/react-hooks';
-import {createMapboxDrawMap} from '../../tests/mapHelpers';
+import {createMapboxDrawMap} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import type {GeoFeature} from '@turf/turf';
 import type {MapAnnotationContext} from '../MapAnnotationContext';
-import type {MapAnnotationGroup} from '../../../shared/dto/MapAnnotations';
+import type {MapAnnotationGroup} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 import type {RenderResult} from '@testing-library/react-hooks';
 
-jest.mock('../../apiutils/MapAPIUtil');
-import * as mapAPIUtilMock from '../../apiutils/MapAPIUtil';
+jest.mock('@fbcnms/tg-nms/app/apiutils/MapAPIUtil');
+import * as mapAPIUtilMock from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 
 const FEATURE_ID_1 = '1234';
 const FEATURE_ID_2 = 456;

@@ -6,13 +6,16 @@
  */
 
 import React from 'react';
-import {TopologyElementType} from '../constants/NetworkConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import type {
   LinkType,
   LocationType,
   NodeType,
-} from '../../shared/types/Topology';
-import type {NetworkHealth, NetworkState} from '../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {
+  NetworkHealth,
+  NetworkState,
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 export type NetworkConfig = NetworkState;
 

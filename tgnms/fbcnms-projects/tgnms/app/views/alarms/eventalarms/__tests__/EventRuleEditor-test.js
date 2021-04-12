@@ -11,10 +11,10 @@
 import * as React from 'react';
 import EventRuleEditor from '../EventRuleEditor';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {EventIdValueMap} from '../../../../../shared/types/Event';
+import {EventIdValueMap} from '@fbcnms/tg-nms/shared/types/Event';
 import {Router} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
-import {TestApp} from '../../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockApiUtil} from '@fbcnms/alarms/test/testHelpers';

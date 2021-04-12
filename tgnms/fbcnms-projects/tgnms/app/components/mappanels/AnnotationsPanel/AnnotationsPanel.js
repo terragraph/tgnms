@@ -9,33 +9,39 @@ import ActionsMenu from '../ActionsMenu';
 import Alert from '@material-ui/lab/Alert';
 import AnnotationGroupsForm from './AnnotationGroupsForm';
 import Box from '@material-ui/core/Box';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import EditAnnotationForm from './EditAnnotationForm';
 import Grid from '@material-ui/core/Grid';
 import Measurement from './Measurement';
 import React from 'react';
 import Slide from '@material-ui/core/Slide';
-import useTaskState from '../../../hooks/useTaskState';
-import {GEOMETRY_TYPE, POINTS} from '../../../constants/GeoJSONConstants';
-import {GEO_GEOM_TYPE_TITLES} from '../../../constants/MapAnnotationConstants';
-import {PANELS, PANEL_STATE} from '../../../views/map/usePanelControl';
-import {SlideProps} from '../../../constants/MapPanelConstants';
-import {apiRequest} from '../../../apiutils/ServiceAPIUtil';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {
+  GEOMETRY_TYPE,
+  POINTS,
+} from '@fbcnms/tg-nms/app/constants/GeoJSONConstants';
+import {GEO_GEOM_TYPE_TITLES} from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
+import {
+  PANELS,
+  PANEL_STATE,
+} from '@fbcnms/tg-nms/app/views/map/usePanelControl';
+import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   useAnnotationFeatures,
   useMapAnnotationContext,
-} from '../../../contexts/MapAnnotationContext';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
-import {useSnackbars} from '../../../hooks/useSnackbar';
+} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {GeoFeature} from '@turf/turf';
 import type {
   LinkType,
   NodeType,
   SiteType,
-} from '../../../../shared/types/Topology';
-import type {PanelStateControl} from '../../../views/map/usePanelControl';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/views/map/usePanelControl';
 
 export default function AnnotationsPanel({
   panelControl,

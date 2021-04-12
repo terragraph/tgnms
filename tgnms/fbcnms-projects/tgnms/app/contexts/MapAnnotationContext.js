@@ -5,10 +5,10 @@
  * @flow
  */
 import * as React from 'react';
-import * as mapApiUtil from '../apiutils/MapAPIUtil';
+import * as mapApiUtil from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import useLiveRef from '../hooks/useLiveRef';
-import useTaskState, {TASK_STATE} from '../hooks/useTaskState';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {
   MAPBOX_DRAW_DEFAULT_COLOR,
   MAPBOX_DRAW_DEFAULT_STYLES,
@@ -16,14 +16,14 @@ import {
   MAPBOX_DRAW_EVENTS,
   MAPBOX_DRAW_VERTEX_COLOR,
   TG_DRAW_STYLES,
-} from '../constants/MapAnnotationConstants';
+} from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
 import {useMapContext} from './MapContext';
 import {useNetworkContext} from './NetworkContext';
 import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {
   MapAnnotationGroup,
   MapAnnotationGroupIdent,
-} from '../../shared/dto/MapAnnotations';
+} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 
 // for now, only use one annotation group
 export const ANNOTATION_DEFAULT_GROUP = 'default';

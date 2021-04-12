@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import * as mapApi from '../../../apiutils/MapAPIUtil';
+import * as mapApi from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 import Box from '@material-ui/core/Box';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -18,12 +18,12 @@ import MapSettingsLayout from './MapSettingsLayout';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
-import useLiveRef from '../../../hooks/useLiveRef';
-import useTaskState, {TASK_STATE} from '../../../hooks/useTaskState';
-import {DEFAULT_MAP_PROFILE} from '../../../constants/MapProfileConstants';
-import {useNetworkListContext} from '../../../contexts/NetworkListContext';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
+import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import type {Props as IconButtonProps} from '@material-ui/core/IconButton/IconButton';
-import type {MapProfile} from '../../../../shared/dto/MapProfile';
+import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 
 export default function MapSettings() {
   const {networkList} = useNetworkListContext();

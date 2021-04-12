@@ -10,11 +10,11 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import {BUTTON_TYPES} from '../../constants/ScheduleConstants';
+import {BUTTON_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {TableResultType as ScanTableResultType} from '../../views/scan_service/ScanServiceTypes';
-import type {TableResultType as TestTableResultType} from '../../views/network_test/NetworkTestTypes';
+import type {TableResultType as ScanTableResultType} from '@fbcnms/tg-nms/app/views/scan_service/ScanServiceTypes';
+import type {TableResultType as TestTableResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
 
 type TableResultType = ScanTableResultType | TestTableResultType;
 

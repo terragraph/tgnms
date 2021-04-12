@@ -13,7 +13,7 @@
 import * as React from 'react';
 import NmsAlarms from '../NmsAlarms';
 import {AlarmsTestWrapper} from '@fbcnms/alarms/test/testHelpers';
-import {EventIdValueMap} from '../../../../shared/types/Event';
+import {EventIdValueMap} from '@fbcnms/tg-nms/shared/types/Event';
 import {TgApiUtil as TgApiUtilMock} from '../TgAlarmApi';
 import {act, fireEvent, render, waitForElement} from '@testing-library/react';
 

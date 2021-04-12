@@ -7,7 +7,7 @@
 
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
-import {NodeStatusTypeValueMap} from '../../../../../shared/types/Topology';
+import {NodeStatusTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   TestApp,
   initWindowConfig,
@@ -16,11 +16,11 @@ import {
   mockNodeDetails,
   mockTopology,
   renderWithRouter,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 /*
  * Use queries directly for querying children of nodes other than document.body
  */
-import {LinkTypeValueMap} from '../../../../../shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {fireEvent, queries} from '@testing-library/react';
 
 beforeEach(() => {

@@ -12,9 +12,12 @@ import {
   kmlAnpStatus,
   kmlFeatureType,
   kmlSiteType,
-} from '../constants/TemplateConstants';
-import {LinkTypeValueMap, NodeTypeValueMap} from '../../shared/types/Topology';
-import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import {
+  LinkTypeValueMap,
+  NodeTypeValueMap,
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {convertType, objectValuesTypesafe} from './ObjectHelpers';
 
 import type {
@@ -28,8 +31,12 @@ import type {
   LinkTemplate,
   NodeTemplate,
   UploadTopologyType,
-} from '../constants/TemplateConstants';
-import type {LinkType, NodeType, SiteType} from '../../shared/types/Topology';
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {
+  LinkType,
+  NodeType,
+  SiteType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 function createLinkData(overrides?: LinkTemplate): $Shape<LinkType> {
   return {

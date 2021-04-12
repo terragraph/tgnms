@@ -9,7 +9,7 @@ import AddLocationIcon from '@material-ui/icons/AddLocation';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Collapse from '@material-ui/core/Collapse';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
@@ -26,37 +26,37 @@ import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
+import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   approxDistance,
   renderSnrWithColor,
   renderSnrWithIcon,
-} from '../../helpers/NetworkHelpers';
-import {formatNumber} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import type {
   EditLinkParams,
   EditNodeParams,
   NearbyNodes,
-} from '../../components/mappanels/MapPanelTypes';
-import type {LocationType} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {LocationType} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {
   NodeType,
   SiteType,
   TopologyType,
-} from '../../../shared/types/Topology';
-import type {Site} from '../../contexts/NetworkContext';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {Site} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
   TopologyScanInfo,
   TopologyScanResponse,
   TopologyScanRespoonsePerRadio,
-} from '../../components/mappanels/MapPanelTypes';
+} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
 
 const styles = theme => ({
   iconCentered: {

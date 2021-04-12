@@ -8,7 +8,7 @@
 import * as React from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
-import {useModalState} from '../../hooks/modalHooks';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import type {Props as BtnProps} from '@material-ui/core/IconButton/IconButton';
 
 type UniqueProps = {|

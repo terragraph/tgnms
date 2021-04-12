@@ -10,7 +10,7 @@ import ConfigTableEntry from './ConfigTableEntry';
 import Fab from '@material-ui/core/Fab';
 import ModalConfigAddField from './ModalConfigAddField';
 import React from 'react';
-import SearchBar from '../../components/common/SearchBar';
+import SearchBar from '@fbcnms/tg-nms/app/components/common/SearchBar';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -18,15 +18,15 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
-import {CONFIG_FIELD_DELIMITER} from '../../constants/ConfigConstants';
-import {TableOrder} from '../../helpers/TableHelpers';
-import {configRootHeightCss} from '../../constants/StyleConstants';
+import {CONFIG_FIELD_DELIMITER} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TableOrder} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
+import {configRootHeightCss} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {isEqual, orderBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
-import {useModalState} from '../../hooks/modalHooks';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
-import type {ConfigDataType} from '../../contexts/ConfigTaskContext';
+import type {ConfigDataType} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

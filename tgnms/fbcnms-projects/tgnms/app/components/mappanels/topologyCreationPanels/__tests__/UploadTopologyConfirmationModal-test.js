@@ -11,7 +11,7 @@ import {
   NetworkContextWrapper,
   TestApp,
   renderWithRouter,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent} from '@testing-library/react';
 
 const defaultProps = {

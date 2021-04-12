@@ -5,18 +5,24 @@
  * @flow
  */
 import * as React from 'react';
-import * as ServiceAPIUtil from '../../../apiutils/ServiceAPIUtil';
+import * as ServiceAPIUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import * as turf from '@turf/turf';
-import NetworkContext from '../../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import axios from 'axios';
 import {Address6} from 'ip-address';
-import {INDEX_COLORS, LINE_TEXT_PAINT} from '../../../constants/LayerConstants';
+import {
+  INDEX_COLORS,
+  LINE_TEXT_PAINT,
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {Layer, Source} from 'react-mapbox-gl';
 import {scaleOrdinal} from 'd3-scale';
 
 import type {GeoFeature} from '@turf/turf';
-import type {NodeMap, SiteMap} from '../../../contexts/NetworkContext';
-import type {SiteType} from '../../../../shared/types/Topology';
+import type {
+  NodeMap,
+  SiteMap,
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {SiteType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export default function PrefixZoneOverlay() {
   const prefixData = useNetworkPrefixTable();

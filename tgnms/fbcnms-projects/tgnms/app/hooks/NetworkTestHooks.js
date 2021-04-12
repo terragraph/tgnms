@@ -5,20 +5,20 @@
  * @flow strict-local
  */
 import * as React from 'react';
-import * as api from '../apiutils/NetworkTestAPIUtil';
+import * as api from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import axios from 'axios';
 import useLiveRef from './useLiveRef';
 import useUnmount from './useUnmount';
-import {TEST_EXECUTION_STATUS} from '../constants/ScheduleConstants';
-import {isTestRunning} from '../helpers/NetworkTestHelpers';
-import {useSnackbars} from '../hooks/useSnackbar';
+import {TEST_EXECUTION_STATUS} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {isTestRunning} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {
   ExecutionDetailsType,
   ExecutionResultDataType,
   FilterOptionsType,
   InputGetType,
-} from '../../shared/dto/NetworkTestTypes';
+} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 export function useLoadTestExecutionResults({testId}: {testId: string}) {
   const [loading, setLoading] = React.useState(true);

@@ -7,13 +7,16 @@
 
 import ConfigQuickSettingsForm from '../ConfigQuickSettingsForm';
 import React from 'react';
-import {FORM_CONFIG_MODES} from '../../../constants/ConfigConstants';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 const mockUseConfigTaskContext = jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(mockConfigTaskContextValue());
 
 test('network renders', () => {

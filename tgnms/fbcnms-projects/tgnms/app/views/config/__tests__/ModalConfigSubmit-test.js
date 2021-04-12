@@ -7,9 +7,9 @@
 
 import ModalConfigSubmit from '../ModalConfigSubmit';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
 const defaultProps = {
   isOpen: true,
@@ -18,7 +18,10 @@ const defaultProps = {
 };
 
 jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(
     mockConfigTaskContextValue({
       draftChanges: {'flags.bstar_peer_host': '2001:470:f0:3e8::e3'},

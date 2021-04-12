@@ -9,17 +9,17 @@ import CloseIcon from '@material-ui/icons/Close';
 import EditIcon from '@material-ui/icons/Edit';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import useLiveRef from '../../../hooks/useLiveRef';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {
   ANNOTATION_DEFAULT_GROUP,
   useDrawState,
   useMapAnnotationContext,
   useMapAnnotationGroupState,
-} from '../../../contexts/MapAnnotationContext';
-import {MAP_CONTROL_LOCATIONS} from '../../../constants/NetworkConstants';
+} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
+import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useMapContext} from '../../../contexts/MapContext';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const useStyles = makeStyles(_theme => ({
   icon: {

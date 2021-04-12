@@ -6,17 +6,17 @@
  */
 
 import * as React from 'react';
-import * as settingsApi from '../apiutils/SettingsAPIUtil';
+import * as settingsApi from '@fbcnms/tg-nms/app/apiutils/SettingsAPIUtil';
 import {
   CONFIG_PARAM_MODE,
   FORM_CONFIG_MODES,
-} from '../constants/ConfigConstants';
-import {apiRequest} from '../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {assign} from 'lodash';
 import {useNetworkContext} from '../contexts/NetworkContext';
-import {useNodeConfig} from '../hooks/useNodeConfig';
-import {useSnackbars} from '../hooks/useSnackbar';
-import {useUpdateConfig} from '../hooks/useUpdateConfig';
+import {useNodeConfig} from '@fbcnms/tg-nms/app/hooks/useNodeConfig';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+import {useUpdateConfig} from '@fbcnms/tg-nms/app/hooks/useUpdateConfig';
 
 export type TroubleshootFix = ({
   settingsChange?: {[string]: string},

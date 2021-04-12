@@ -6,17 +6,17 @@
  */
 
 import * as React from 'react';
-import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import Button from '@material-ui/core/Button';
 import EditNetworkTestScheduleModal from './EditNetworkTestScheduleModal';
 import Grid from '@material-ui/core/Grid';
-import NetworkContext from '../../contexts/NetworkContext';
-import ResultExport from '../../components/scheduler/ResultExport';
-import ScheduleActions from '../../components/scheduler/ScheduleActions';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import ResultExport from '@fbcnms/tg-nms/app/components/scheduler/ResultExport';
+import ScheduleActions from '@fbcnms/tg-nms/app/components/scheduler/ScheduleActions';
 import ScheduleNetworkTestModal from './ScheduleNetworkTestModal';
-import ScheduleTable from '../../components/scheduler/ScheduleTable';
-import useLiveRef from '../../hooks/useLiveRef';
-import useUnmount from '../../hooks/useUnmount';
+import ScheduleTable from '@fbcnms/tg-nms/app/components/scheduler/ScheduleTable';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   BUTTON_TYPES,
   EXECUTION_DEFS,
@@ -27,23 +27,23 @@ import {
   SCHEDULE_TABLE_TYPES,
   TEST_EXECUTION_STATUS,
   TEST_TYPE_CODES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {
   getDateNth,
   getFormattedDateAndTime,
   getParsedCronString,
-} from '../../helpers/ScheduleHelpers';
-import {isTestRunning} from '../../helpers/NetworkTestHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
+import {isTestRunning} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
-import {useLoadTestTableData} from '../../hooks/NetworkTestHooks';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useLoadTestTableData} from '@fbcnms/tg-nms/app/hooks/NetworkTestHooks';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
-import type {CreateUrl} from '../../components/scheduler/SchedulerTypes';
+import type {CreateUrl} from '@fbcnms/tg-nms/app/components/scheduler/SchedulerTypes';
 import type {
   FilterOptionsType,
   InputGetType,
-} from '../../../shared/dto/NetworkTestTypes';
+} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 type Props = {
   createTestUrl: CreateUrl,

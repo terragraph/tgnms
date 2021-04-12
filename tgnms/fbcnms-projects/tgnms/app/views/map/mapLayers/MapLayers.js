@@ -11,22 +11,22 @@ import DrawLayer from './DrawLayer';
 import LinksLayer from './LinksLayer';
 import MapFeaturesLayer from './MapFeaturesLayer';
 import McsEstimateLayer from './McsEstimateLayer';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer/NodesLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
-import {MAPMODE} from '../../../contexts/MapContext';
-import {TopologyElementType} from '../../../constants/NetworkConstants.js';
+import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
-import {isFeatureEnabled} from '../../../constants/FeatureFlags';
-import {useMapContext} from '../../../contexts/MapContext';
-import {usePlannedSiteContext} from '../../../contexts/PlannedSiteContext';
-import {useRouteContext} from '../../../contexts/RouteContext';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
+import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-import type {NearbyNodes} from '../../../components/mappanels/MapPanelTypes';
-import type {NetworkContextType} from '../../../contexts/NetworkContext';
+import type {NearbyNodes} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export type Props = {|
   context: NetworkContextType,

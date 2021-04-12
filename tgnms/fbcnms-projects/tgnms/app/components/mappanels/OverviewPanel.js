@@ -7,13 +7,13 @@
 
 import Button from '@material-ui/core/Button';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import FriendlyText from '../common/FriendlyText';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import MaterialModal from '../common/MaterialModal';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import PrometheusOffline from '../troubleshootingAutomation/PrometheusOffline';
 import PropTypes from 'prop-types';
@@ -23,31 +23,31 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import StatusText from '../common/StatusText';
 import Typography from '@material-ui/core/Typography';
 import WifiIcon from '@material-ui/icons/Wifi';
-import {BinaryStarFsmStateValueMap} from '../../../shared/types/Controller';
+import {BinaryStarFsmStateValueMap} from '@fbcnms/tg-nms/shared/types/Controller';
 import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
-} from '../../../shared/types/Topology';
-import {TIME_WINDOWS} from '../../constants/NetworkConstants';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import {TIME_WINDOWS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {
   avg,
   avgOverTime,
   createQuery,
   queryLatest,
-} from '../../apiutils/PrometheusAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import {
   formatNumber,
   formatNumberFixed,
   toTitleCase,
-} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {has, invert} from 'lodash';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
-} from '../../helpers/NetworkHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
-import {shortenVersionString} from '../../helpers/VersionHelper';
+import {shortenVersionString} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {
@@ -55,7 +55,7 @@ import type {
   NetworkHealth,
   NetworkState,
   WirelessControllerStats,
-} from '../../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const styles = theme => ({
   button: {

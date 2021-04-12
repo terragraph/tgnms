@@ -17,7 +17,7 @@ import ReactDOM from 'react-dom';
 import translatedFbts from '../i18n/translatedFbts.json';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {WebSocketProvider} from './contexts/WebSocketContext';
+import {WebSocketProvider} from '@fbcnms/tg-nms/app/contexts/WebSocketContext';
 import {hot} from 'react-hot-loader';
 import {init} from 'fbt';
 

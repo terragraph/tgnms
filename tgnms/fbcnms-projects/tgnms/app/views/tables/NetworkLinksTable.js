@@ -6,40 +6,40 @@
  */
 
 import Checkbox from '@material-ui/core/Checkbox';
-import CustomTable from '../../components/common/CustomTable';
+import CustomTable from '@fbcnms/tg-nms/app/components/common/CustomTable';
 import Divider from '@material-ui/core/Divider';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import ReactPlotlyEventChart from './ReactPlotlyEventChart';
-import TableLinkAvailability from '../../components/troubleshootingAutomation/TableLinkAvailability';
+import TableLinkAvailability from '@fbcnms/tg-nms/app/components/troubleshootingAutomation/TableLinkAvailability';
 import {
   LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
-} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import {SortDirection} from 'react-virtualized';
 import {
   TIME_WINDOWS,
   TopologyElementType,
-} from '../../constants/NetworkConstants.js';
-import {availabilityColor} from '../../helpers/NetworkHelpers';
+} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {availabilityColor} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {
   beamAngleToOrientation,
   beamIndexToAngle,
-} from '../../helpers/TgFeatures';
-import {formatNumber} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {get} from 'lodash';
 import {renderDashboardLinks, renderGrafanaLink} from './FbInternal';
-import {renderStatusColor} from '../../helpers/TableHelpers';
+import {renderStatusColor} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {LinkType} from '../../../shared/types/Topology';
-import type {NetworkContextType} from '../../contexts/NetworkContext';
+import type {LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Node} from 'react';
 
 // Invalid analyzer value, ignore any fields that have this value.

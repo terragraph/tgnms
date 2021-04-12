@@ -10,27 +10,27 @@ import Chip from '@material-ui/core/Chip';
 import Collapse from '@material-ui/core/Collapse';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import InsetPaper from '../../components/common/InsetPaper';
-import MaterialModal from '../../components/common/MaterialModal';
+import InsetPaper from '@fbcnms/tg-nms/app/components/common/InsetPaper';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import UpdateIcon from '@material-ui/icons/Update';
 import swal from 'sweetalert2';
-import {BatchingType} from '../../constants/UpgradeConstants';
+import {BatchingType} from '@fbcnms/tg-nms/app/constants/UpgradeConstants';
 import {
   UpgradeGroupTypeValueMap as UpgradeGroupType,
   UpgradeReqTypeValueMap as UpgradeReqType,
-} from '../../../shared/types/Controller';
+} from '@fbcnms/tg-nms/shared/types/Controller';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   createCheckboxGroupInput,
   createNumericInput,
   createRadioGroupInput,
   formParseInt,
-} from '../../helpers/FormHelpers';
+} from '@fbcnms/tg-nms/app/helpers/FormHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

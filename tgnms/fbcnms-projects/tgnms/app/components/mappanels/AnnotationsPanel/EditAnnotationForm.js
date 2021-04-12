@@ -14,15 +14,15 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../../hooks/useForm';
-import {ANNOTATION_COLORS} from '../../../constants/MapAnnotationConstants';
-import {MAPBOX_DRAW_DEFAULT_COLOR} from '../../../constants/MapAnnotationConstants';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import {ANNOTATION_COLORS} from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
+import {MAPBOX_DRAW_DEFAULT_COLOR} from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
 import {debounce} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {
   useAnnotationFeatures,
   useMapAnnotationContext,
-} from '../../../contexts/MapAnnotationContext';
+} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import type {GeoFeature} from '@turf/turf';
 
 /**

@@ -4,11 +4,10 @@
  * @format
  * @flow
  */
-import React from 'react';
-
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import PlanStatus from '@fbcnms/tg-nms/app/components/mappanels/NetworkPlanningPanel/PlanStatus';
+import React from 'react';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
@@ -17,9 +16,8 @@ import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 
-import type {NetworkTableProps} from './NetworkTables';
-
 import type {ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {NetworkTableProps} from './NetworkTables';
 
 const useStyles = makeStyles(_theme => ({
   root: {

@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import LinkOffline from '../LinkOffline';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 jest

@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import {DATATYPE} from '../../../shared/dto/Settings';
+import {DATATYPE} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 export type SecretToggleState = {|
   // If the value is a secret and not visible, use this to show/hide values

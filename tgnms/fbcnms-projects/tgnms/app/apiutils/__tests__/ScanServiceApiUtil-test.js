@@ -7,8 +7,8 @@
 
 import * as apiUtil from '../ScanServiceAPIUtil';
 import axios from 'axios';
-import {mockCancelToken} from '../../tests/testHelpers';
-import {mockExecutionResults} from '../../tests/data/ScanServiceApi';
+import {mockCancelToken} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockExecutionResults} from '@fbcnms/tg-nms/app/tests/data/ScanServiceApi';
 
 jest.mock('axios');
 

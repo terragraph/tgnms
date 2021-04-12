@@ -6,19 +6,19 @@
  */
 
 import * as React from 'react';
-import * as scanApi from '../../apiutils/ScanServiceAPIUtil';
-import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
+import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import RootRef from '@material-ui/core/RootRef';
 import axios from 'axios';
-import {BUTTON_TYPES} from '../../constants/ScheduleConstants';
-import {MAPMODE, useMapContext} from '../../contexts/MapContext';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useSnackbars} from '../../hooks/useSnackbar';
-import type {ExecutionResultDataType as ScanDataType} from '../../../shared/dto/ScanServiceTypes';
-import type {ExecutionResultDataType as TestDataType} from '../../../shared/dto/NetworkTestTypes';
+import {BUTTON_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+import type {ExecutionResultDataType as ScanDataType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
+import type {ExecutionResultDataType as TestDataType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 type Props = {
   id: string,

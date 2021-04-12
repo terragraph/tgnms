@@ -7,16 +7,16 @@
  */
 
 import * as React from 'react';
-import * as settingsApi from '../../apiutils/SettingsAPIUtil';
+import * as settingsApi from '@fbcnms/tg-nms/app/apiutils/SettingsAPIUtil';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import Typography from '@material-ui/core/Typography';
-import useLiveRef from '../../hooks/useLiveRef';
-import useTaskState from '../../hooks/useTaskState';
-import {MILLISECONDS_TO_MINUTES} from '../../constants/LayerConstants';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {MILLISECONDS_TO_MINUTES} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 
-import type {TaskStateKey} from '../../hooks/useTaskState';
+import type {TaskStateKey} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 
 /**
  * It may take a few seconds for NMS to actually go down for restart. Poll for

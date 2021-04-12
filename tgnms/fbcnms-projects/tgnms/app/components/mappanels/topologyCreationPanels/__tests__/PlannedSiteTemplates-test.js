@@ -11,11 +11,11 @@ import {
   TestApp,
   mockTopology,
   renderAsync,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   basicTemplates,
   defaultTemplate,
-} from '../../../../constants/TemplateConstants';
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

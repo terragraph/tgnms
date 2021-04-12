@@ -11,8 +11,8 @@
 import {
   EventIdValueMap,
   EventLevelValueMap,
-} from '../../../../shared/types/Event';
-import type {EventType} from '../../../../shared/types/Event';
+} from '@fbcnms/tg-nms/shared/types/Event';
+import type {EventType} from '@fbcnms/tg-nms/shared/types/Event';
 
 export const Severity = {
   OFF: 'OFF',

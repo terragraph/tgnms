@@ -5,12 +5,12 @@
  * @flow
  */
 
-import ActionsMenu from '../../components/mappanels/ActionsMenu';
+import ActionsMenu from '@fbcnms/tg-nms/app/components/mappanels/ActionsMenu';
 import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalClearNodeAutoConfig from './ModalClearNodeAutoConfig';
 import ModalConfigGet from './ModalConfigGet';
-import NodeSelector from '../../components/taskBasedConfig/NodeSelector';
+import NodeSelector from '@fbcnms/tg-nms/app/components/taskBasedConfig/NodeSelector';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -19,20 +19,26 @@ import {
   EDITOR_OPTIONS,
   NETWORK_CONFIG_MODE,
   SELECTED_NODE_QUERY_PARAM,
-} from '../../constants/ConfigConstants';
-import {CtrlVerType, ctrlVerBefore} from '../../helpers/VersionHelper';
-import {apiServiceRequestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
-import {convertType} from '../../helpers/ObjectHelpers';
-import {isConfigChanged} from '../../helpers/ConfigHelpers';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {
+  CtrlVerType,
+  ctrlVerBefore,
+} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
+import {apiServiceRequestWithConfirmation} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {isConfigChanged} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
-import {useAlertIfPendingChanges, useSnackbars} from '../../hooks/useSnackbar';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {
+  useAlertIfPendingChanges,
+  useSnackbars,
+} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import {useHistory} from 'react-router';
-import {useModalState} from '../../hooks/modalHooks';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
-import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
+import type {NodeConfigStatusType} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 
 const useStyles = makeStyles(theme => ({
   header: {

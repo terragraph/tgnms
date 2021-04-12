@@ -7,10 +7,10 @@
 import type {
   StructuredBatchType,
   StructuredNodeType,
-} from '../../views/upgrade/NetworkUpgrade';
+} from '@fbcnms/tg-nms/app/views/upgrade/NetworkUpgrade';
 
-import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
-import type {UpgradeGroupReqType} from '../../../shared/types/Controller';
+import type {SoftwareImageType} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
+import type {UpgradeGroupReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 export function mockUpgradeArrayData(): Array<StructuredNodeType> {
   return [

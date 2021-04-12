@@ -12,7 +12,7 @@ import Grid from '@material-ui/core/Grid';
 import Loading from '@material-ui/core/CircularProgress';
 import {makeStyles} from '@material-ui/styles';
 
-import type {ExecutionResultDataType} from '../../../shared/dto/NetworkTestTypes';
+import type {ExecutionResultDataType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 //tests are run twice for each link, one for each direction
 

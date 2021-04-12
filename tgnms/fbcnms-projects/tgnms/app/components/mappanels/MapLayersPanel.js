@@ -6,7 +6,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import CustomOverlayPanel from './overlayPanels/CustomOverlayPanel';
 import DefaultOverlayPanel from './overlayPanels/DefaultOverlayPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -22,14 +22,14 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {MAPMODE, useMapContext} from '../../contexts/MapContext';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
-import {mapLayers} from '../../constants/LayerConstants';
-import {objectValuesTypesafe} from '../../helpers/ObjectHelpers';
-import {useShowCustomOverlayPanel} from '../../views/map/useMapProfile';
+import {mapLayers} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useShowCustomOverlayPanel} from '@fbcnms/tg-nms/app/views/map/useMapProfile';
 
-import type {OverlayConfig} from '../../views/map/NetworkMapTypes';
+import type {OverlayConfig} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 
 const styles = theme => ({
   formContainer: {

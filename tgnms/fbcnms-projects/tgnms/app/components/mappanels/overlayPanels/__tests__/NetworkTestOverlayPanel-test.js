@@ -10,17 +10,17 @@ import NetworkTestOverlayPanel from '../NetworkTestOverlayPanel';
 import {
   MapContextWrapper,
   NmsOptionsContextWrapper,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {
   MuiPickersWrapper,
   TestApp,
   renderAsync,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
-import {mockNetworkMapOptions} from '../../../../tests/data/NmsOptionsContext';
+import {mockNetworkMapOptions} from '@fbcnms/tg-nms/app/tests/data/NmsOptionsContext';
 
-import type {MapContext} from '../../../../contexts/MapContext';
-import type {NmsOptionsContextType} from '../../../../contexts/NmsOptionsContext';
+import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 
 jest.mock('axios');
 

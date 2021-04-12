@@ -6,23 +6,23 @@
  */
 
 import * as React from 'react';
-import * as scanAPI from '../../apiutils/ScanServiceAPIUtil';
+import * as scanAPI from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../contexts/NetworkContext';
-import SchedulerModal from '../../components/scheduler/SchedulerModal';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import SchedulerModal from '@fbcnms/tg-nms/app/components/scheduler/SchedulerModal';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {
   MODAL_MODE,
   SCAN_MODE,
   SCAN_SERVICE_MODE,
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   selector: {

@@ -8,14 +8,14 @@
 
 import Button from '@material-ui/core/Button';
 import InputLabel from '@material-ui/core/InputLabel';
-import MaterialModal from '../../components/common/MaterialModal';
-import MaterialReactSelect from '../../components/common/MaterialReactSelect';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
+import MaterialReactSelect from '@fbcnms/tg-nms/app/components/common/MaterialReactSelect';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import swal from 'sweetalert2';
-import {apiServiceRequest} from '../../apiutils/ServiceAPIUtil';
+import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

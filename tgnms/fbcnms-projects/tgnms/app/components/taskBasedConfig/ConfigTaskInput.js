@@ -12,10 +12,10 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-import {DATA_TYPE_TO_INPUT_TYPE} from '../../constants/ConfigConstants';
-import {getTopLayerValue} from '../../helpers/ConfigHelpers';
+import {DATA_TYPE_TO_INPUT_TYPE} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {getTopLayerValue} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   inputLabel: {

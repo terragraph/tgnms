@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react';
-import NetworkListContext from '../../contexts/NetworkListContext';
+import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import {Link} from 'react-router-dom';
 
 export type Props = {

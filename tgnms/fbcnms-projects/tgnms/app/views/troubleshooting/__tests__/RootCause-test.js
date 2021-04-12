@@ -7,13 +7,19 @@
 
 import React from 'react';
 import RootCause from '../RootCause';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Route} from 'react-router-dom';
 import {fireEvent, render} from '@testing-library/react';
-import {mockNetworkContext} from '../../../tests/data/NetworkContext';
+import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 
 jest
-  .spyOn(require('../../../contexts/NetworkContext'), 'useNetworkContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/NetworkContext'),
+    'useNetworkContext',
+  )
   .mockImplementation(jest.fn(() => mockNetworkContext()));
 
 test('renders', () => {

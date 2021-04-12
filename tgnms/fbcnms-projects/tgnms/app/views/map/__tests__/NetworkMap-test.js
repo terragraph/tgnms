@@ -18,14 +18,14 @@ import {
   mockNetworkConfig,
   mockSingleLink,
   renderWithRouter,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Router} from 'react-router-dom';
-import {TopologyElementType} from '../../../constants/NetworkConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {act, fireEvent, render} from '@testing-library/react';
-import {buildTopologyMaps} from '../../../helpers/TopologyHelpers';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {createMemoryHistory} from 'history';
-import {defaultNetworkMapOptions} from '../../../contexts/NmsOptionsContext';
-import {mockNetworkMapOptions} from '../../../tests/data/NmsOptionsContext';
+import {defaultNetworkMapOptions} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
+import {mockNetworkMapOptions} from '@fbcnms/tg-nms/app/tests/data/NmsOptionsContext';
 
 beforeEach(() => {
   initWindowConfig();

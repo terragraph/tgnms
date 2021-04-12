@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import * as StringHelpers from '../../helpers/StringHelpers';
+import * as StringHelpers from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';

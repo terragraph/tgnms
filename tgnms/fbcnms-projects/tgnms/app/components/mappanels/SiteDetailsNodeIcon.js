@@ -12,12 +12,12 @@ import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import StarIcon from '@material-ui/icons/Star';
 import blue from '@material-ui/core/colors/blue';
 import yellow from '@material-ui/core/colors/yellow';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
-import {useNodeConfig} from '../../hooks/useNodeConfig';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useNodeConfig} from '@fbcnms/tg-nms/app/hooks/useNodeConfig';
 
-import type {NodeType} from '../../../shared/types/Topology';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
   nodeInfoIcon: {

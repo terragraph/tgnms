@@ -9,7 +9,7 @@ import * as turf from '@turf/turf';
 import ActionsMenu from './ActionsMenu';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import Button from '@material-ui/core/Button';
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
@@ -18,7 +18,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import SiteDetailsNodeIcon from '../mappanels/SiteDetailsNodeIcon';
@@ -27,26 +27,26 @@ import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import moment from 'moment';
 import swal from 'sweetalert2';
-import {LinkTypeValueMap as LinkType} from '../../../shared/types/Topology';
+import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   apiRequest,
   apiServiceRequestWithConfirmation,
-} from '../../apiutils/ServiceAPIUtil';
-import {formatNumber} from '../../helpers/StringHelpers';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {
   isNodeAlive,
   renderAvailabilityWithColor,
-} from '../../helpers/NetworkHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {NetworkHealth} from '../../../shared/dto/NetworkState';
+import type {NetworkHealth} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {
   NodeType as Node,
   SiteType,
   TopologyType,
-} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const styles = theme => ({
   iconCentered: {

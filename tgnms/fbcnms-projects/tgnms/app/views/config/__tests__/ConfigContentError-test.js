@@ -10,13 +10,16 @@ import ConfigContentError from '../ConfigContentError';
 import {
   CONFIG_PARAM_MODE,
   FORM_CONFIG_MODES,
-} from '../../../constants/ConfigConstants';
-import {TestApp} from '../../../tests/testHelpers';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(mockConfigTaskContextValue());
 
 test('renders specific mode error', async () => {

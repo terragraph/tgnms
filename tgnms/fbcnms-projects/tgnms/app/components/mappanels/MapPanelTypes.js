@@ -5,8 +5,11 @@
  * @flow strict-local
  */
 
-import {LinkTypeValueMap} from '../../../shared/types/Topology';
-import type {LocationType, NodeType} from '../../../shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {
+  LocationType,
+  NodeType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 /*
  * Parameters passed to AddNodePanel. Used for creating/editing nodes.

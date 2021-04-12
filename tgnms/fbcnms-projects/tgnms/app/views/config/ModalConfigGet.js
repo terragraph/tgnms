@@ -7,7 +7,7 @@
 
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
@@ -18,15 +18,15 @@ import {
   DEFAULT_BASE_KEY,
   DEFAULT_FIRMWARE_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
-} from '../../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {
   getFullNodeConfig,
   sendConfigBundleToNode,
-} from '../../apiutils/ConfigAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
 import {makeStyles} from '@material-ui/styles';
-import {stringifyConfig} from '../../helpers/ConfigHelpers';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {stringifyConfig} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

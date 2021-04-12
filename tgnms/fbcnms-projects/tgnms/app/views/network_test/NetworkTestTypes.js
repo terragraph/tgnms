@@ -5,16 +5,16 @@
  * @flow strict-local
  */
 
-import {HEALTH_CODES} from '../../constants/HealthConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {
   TEST_EXECUTION_STATUS,
   TEST_TYPE_CODES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 
 import type {
   ExecutionResultDataType,
   IperfOptions,
-} from '../../../shared/dto/NetworkTestTypes';
+} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 export type TableResultType = {
   id: number,

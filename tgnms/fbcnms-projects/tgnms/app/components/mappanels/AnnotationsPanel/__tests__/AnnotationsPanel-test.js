@@ -6,23 +6,23 @@
  */
 
 import * as React from 'react';
-import * as serviceApiUtil from '../../../../apiutils/ServiceAPIUtil';
+import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import * as turf from '@turf/turf';
 import AnnotationsPanel from '../AnnotationsPanel';
 import {
   context as MapAnnotationContext,
   MapAnnotationContextProvider,
-} from '../../../../contexts/MapAnnotationContext';
+} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import {
   TestApp,
   coerceClass,
   mockPanelControl,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 import type {GeoGeometry, LineStringCoords, PolygonCoords} from '@turf/turf';
-import type {MapAnnotationContext as MapAnnotationContextType} from '../../../../contexts/MapAnnotationContext';
+import type {MapAnnotationContext as MapAnnotationContextType} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 
-jest.mock('../../../../apiutils/ServiceAPIUtil');
+jest.mock('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil');
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiRequest')
   .mockImplementation(() => Promise.resolve());

@@ -11,10 +11,10 @@ import EditIcon from '@material-ui/icons/Edit';
 import RouterIcon from '@material-ui/icons/Router';
 import ScatterPlotIcon from '@material-ui/icons/ScatterPlot';
 import Tooltip from '@material-ui/core/Tooltip';
-import {CONFIG_LAYER} from '../../constants/ConfigConstants';
+import {CONFIG_LAYER} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
 
-import type {ConfigDataLayerType} from '../../constants/ConfigConstants';
+import type {ConfigDataLayerType} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 
 const useStyles = makeStyles(() => ({
   statusIcon: {

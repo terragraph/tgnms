@@ -13,7 +13,7 @@ import EventEmitter from 'events';
 import {
   WEBSOCKET_READYSTATE,
   WebSocketMessage,
-} from '../../../shared/dto/WebSockets';
+} from '@fbcnms/tg-nms/shared/dto/WebSockets';
 
 /**
  * create a fake type for MockWebSocket to let flow know it's ok to use

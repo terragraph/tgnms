@@ -16,15 +16,15 @@ import {
   mockNetworkConfig,
   mockPanelControl,
   renderAsync,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 import {
   testDefaultRouteHistory,
   testNodeMap,
-} from '../../../tests/data/DefaultRouteHistory';
+} from '@fbcnms/tg-nms/app/tests/data/DefaultRouteHistory';
 
-import * as defaultRouteApiUtil from '../../../apiutils/DefaultRouteHistoryAPIUtil';
-import * as serviceApiUtil from '../../../apiutils/ServiceAPIUtil';
+import * as defaultRouteApiUtil from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
+import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 
 const apiServiceRequestMock = jest
   .spyOn(serviceApiUtil, 'apiServiceRequest')

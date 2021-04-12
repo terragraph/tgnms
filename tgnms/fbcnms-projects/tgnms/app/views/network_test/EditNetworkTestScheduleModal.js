@@ -6,21 +6,21 @@
  */
 
 import * as React from 'react';
-import * as testApi from '../../apiutils/NetworkTestAPIUtil';
+import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import EditIcon from '@material-ui/icons/Edit';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkTestAdvancedParams from './NetworkTestAdvancedParams';
-import SchedulerModal from '../../components/scheduler/SchedulerModal';
+import SchedulerModal from '@fbcnms/tg-nms/app/components/scheduler/SchedulerModal';
 import TextField from '@material-ui/core/TextField';
 import {
   MODAL_MODE,
   NETWORK_TEST_DEFS,
   NETWORK_TEST_TYPES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
-import type {IperfOptions as IperfOptionsType} from '../../../shared/dto/NetworkTestTypes';
+import type {IperfOptions as IperfOptionsType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 const useStyles = makeStyles(theme => ({
   selector: {

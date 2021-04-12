@@ -5,8 +5,8 @@
  * @flow strict-local
  */
 
-import * as networkTestHooks from '../../../../hooks/NetworkTestHooks';
-import MaterialTheme from '../../../../MaterialTheme';
+import * as networkTestHooks from '@fbcnms/tg-nms/app/hooks/NetworkTestHooks';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
 import TestExecutionSummary from '../TestExecutionSummary';
 import {
@@ -14,7 +14,7 @@ import {
   TestApp,
   mockRoutes,
   renderAsync,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 const useLoadTestExecutionResultsMock = jest

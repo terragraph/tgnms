@@ -8,7 +8,7 @@
  * providing configuration values to the frontend.
  */
 
-import type {FeatureFlagKey} from '../../shared/FeatureFlags';
+import type {FeatureFlagKey} from '@fbcnms/tg-nms/shared/FeatureFlags';
 
 export function isFeatureEnabled(flag: FeatureFlagKey): boolean {
   const flags = window?.CONFIG?.featureFlags;

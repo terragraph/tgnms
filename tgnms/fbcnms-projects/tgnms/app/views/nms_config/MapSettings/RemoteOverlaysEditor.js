@@ -13,15 +13,15 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Divider from '@material-ui/core/Divider';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
-import MenuIconButton from '../../../components/common/MenuIconButton';
+import MenuIconButton from '@fbcnms/tg-nms/app/components/common/MenuIconButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import SettingsGroup from '../SettingsGroup';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import useForm from '../../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {RESPONSE_TYPE} from '../../../../shared/dto/RemoteOverlay';
+import {RESPONSE_TYPE} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 import {makeStyles} from '@material-ui/styles';
 import {matchPath} from 'react-router-dom';
 

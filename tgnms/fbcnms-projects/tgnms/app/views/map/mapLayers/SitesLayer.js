@@ -28,7 +28,7 @@ import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
   PolarityTypeValueMap as PolarityType,
-} from '../../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import {getNodePolarities} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {
   hasNodeEverGoneOnline,
@@ -49,16 +49,22 @@ import type {
   TopologyScanInfo,
   TopologyScanResponse,
   TopologyScanRespoonsePerRadio,
-} from '../../../components/mappanels/MapPanelTypes';
-import type {NodeMap, SiteToNodesMap} from '../../../contexts/NetworkContext';
+} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {
+  NodeMap,
+  SiteToNodesMap,
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
   OfflineWhiteListType,
   TopologyConfig,
-} from '../../../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {Overlay} from '../NetworkMapTypes';
-import type {PlannedSite} from '../../../components/mappanels/MapPanelTypes';
-import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
-import type {SiteType, TopologyType} from '../../../../shared/types/Topology';
+import type {PlannedSite} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
+import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import type {
+  SiteType,
+  TopologyType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const styles = {
   iconBottom: {

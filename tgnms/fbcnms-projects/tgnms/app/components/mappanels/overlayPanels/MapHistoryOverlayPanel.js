@@ -6,12 +6,12 @@
  */
 
 import FormLabel from '@material-ui/core/FormLabel';
-import NetworkContext from '../../../contexts/NetworkContext';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
 import Slider from 'rc-slider';
 import Typography from '@material-ui/core/Typography';
-import useUnmount from '../../../hooks/useUnmount';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   HISTORICAL_LINK_METRIC_OVERLAYS,
   HISTORICAL_SITE_METRIC_OVERLAYS,
@@ -22,23 +22,26 @@ import {
   MINUTES_IN_DAY,
   STEP_SIZE,
   SiteOverlayColors,
-} from '../../../constants/LayerConstants';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {KeyboardDatePicker} from '@material-ui/pickers';
-import {MAPMODE, useMapContext} from '../../../contexts/MapContext';
-import {createQuery, queryDataArray} from '../../../apiutils/PrometheusAPIUtil';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {
+  createQuery,
+  queryDataArray,
+} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import {
   deleteUrlSearchParam,
   getUrlSearchParam,
   setUrlSearchParam,
-} from '../../../helpers/NetworkUrlHelpers';
+} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {objectValuesTypesafe} from '../../../helpers/ObjectHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useHistory, useLocation} from 'react-router-dom';
-import type {Overlay} from '../../../views/map/NetworkMapTypes';
+import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
 import type {
   PrometheusDataType,
   PrometheusValue,
-} from '../../../apiutils/PrometheusAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 
 const LINK_OVERLAYS = {
   ...LINK_METRIC_OVERLAYS,

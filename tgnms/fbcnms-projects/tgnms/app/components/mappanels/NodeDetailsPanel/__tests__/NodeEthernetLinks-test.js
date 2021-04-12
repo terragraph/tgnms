@@ -7,14 +7,14 @@
 
 import NodeEthernetLinks from '../NodeEthernetLinks';
 import React from 'react';
-import {LinkTypeValueMap} from '../../../../../shared/types/Topology';
-import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 import {
   mockLink,
   mockNode,
   mockTopology,
-} from '../../../../tests/data/NetworkConfig';
+} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
 const defaultProps = {
   node: mockNode({name: 'testNode', site_name: '11L922'}),

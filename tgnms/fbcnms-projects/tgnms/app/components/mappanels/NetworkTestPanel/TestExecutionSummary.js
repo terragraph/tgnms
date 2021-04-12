@@ -9,25 +9,25 @@ import AssetTestResult from './AssetTestResult';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../common/LoadingBox';
-import NetworkContext from '../../../contexts/NetworkContext';
-import NetworkTestResults from '../../../views/network_test/NetworkTestResults';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import NetworkTestResults from '@fbcnms/tg-nms/app/views/network_test/NetworkTestResults';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React, {useMemo} from 'react';
 import ThroughputTestResult from './ThroughputTestResult';
 import Typography from '@material-ui/core/Typography';
 import {
   EXECUTION_STATUS,
   NETWORK_TEST_DEFS,
-} from '../../../constants/ScheduleConstants';
-import {HEALTH_CODES} from '../../../constants/HealthConstants';
-import {TopologyElementType} from '../../../constants/NetworkConstants.js';
-import {getExecutionStatus} from '../../../helpers/NetworkTestHelpers';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {getExecutionStatus} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useLoadTestExecutionResults} from '../../../hooks/NetworkTestHooks';
+import {useLoadTestExecutionResults} from '@fbcnms/tg-nms/app/hooks/NetworkTestHooks';
 
-import type {AssetTestResultType} from '../../../views/network_test/NetworkTestTypes';
-import type {Element} from '../../../contexts/NetworkContext';
-import type {ExecutionDetailsType} from '../../../../shared/dto/NetworkTestTypes';
+import type {AssetTestResultType} from '@fbcnms/tg-nms/app/views/network_test/NetworkTestTypes';
+import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {ExecutionDetailsType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
 type Props = {
   testId: string,

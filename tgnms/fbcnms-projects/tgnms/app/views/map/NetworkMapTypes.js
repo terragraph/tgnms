@@ -5,13 +5,16 @@
  * @flow
  */
 import * as React from 'react';
-import {TopologyElementType} from '../../constants/NetworkConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 
-import type {Element, NetworkContextType} from '../../contexts/NetworkContext';
+import type {
+  Element,
+  NetworkContextType,
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
   LocationType,
   TemporaryTopologyType,
-} from '../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export type MapLayerConfig = {
   layerId: string,

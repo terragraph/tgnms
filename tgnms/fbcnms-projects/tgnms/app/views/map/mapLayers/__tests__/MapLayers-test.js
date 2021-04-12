@@ -15,13 +15,13 @@ import {
   NetworkContextWrapper,
   TestApp,
   mockTopology,
-} from '../../../../tests/testHelpers';
-import {TopologyElementType} from '../../../../constants/NetworkConstants';
-import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
-import {mockNetworkContext} from '../../../../tests/data/NetworkContext';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
+import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
-import type {MapContext} from '../../../../contexts/MapContext';
+import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import type {Props} from '../MapLayers';
 
 const sitesLayerSpy = jest.spyOn(SitesLayer, 'render');

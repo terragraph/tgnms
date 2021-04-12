@@ -6,13 +6,13 @@
  */
 
 import Button from '@material-ui/core/Button';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import React from 'react';
 import classNames from 'classnames';
 import {cloneDeep, set, unset} from 'lodash';
 import {diffJson} from 'diff';
 import {makeStyles} from '@material-ui/styles';
-import {useConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
 const useStyles = makeStyles(theme => ({
   root: {

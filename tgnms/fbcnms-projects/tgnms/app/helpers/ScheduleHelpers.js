@@ -7,7 +7,10 @@
 
 import * as CronParser from 'cron-parser';
 import * as StringHelpers from './StringHelpers';
-import {DAYS, FREQUENCIES} from '../constants/ScheduleConstants';
+import {
+  DAYS,
+  FREQUENCIES,
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {objectValuesTypesafe} from './ObjectHelpers';
 
 const MEGABITS = Math.pow(1000, 2);

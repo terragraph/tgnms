@@ -9,10 +9,10 @@ import React from 'react';
 import {
   GrafanaDashboardUUID,
   buildGrafanaUrl,
-} from '../../components/common/GrafanaLink';
-import {STATS_LINK_QUERY_PARAM} from '../../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/components/common/GrafanaLink';
+import {STATS_LINK_QUERY_PARAM} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const useStyles = makeStyles(() => ({
   root: {

@@ -7,13 +7,13 @@
 
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import {PolarityTypeValueMap} from '../../../../shared/types/Topology';
-import {SiteOverlayColors} from '../../../constants/LayerConstants';
-import {getNodePolarities} from '../../../helpers/TgFeatures';
+import {PolarityTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {SiteOverlayColors} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {getNodePolarities} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {makeStyles} from '@material-ui/styles';
 
-import type {NetworkConfig} from '../../../contexts/NetworkContext';
-import type {NodeType} from '../../../../shared/types/Topology';
+import type {NetworkConfig} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(_theme => ({
   detail: {

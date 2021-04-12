@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Grid from '@material-ui/core/Grid';
 import PlanResultsView from './PlanResultsView';
 import SelectOrUploadANPFile from './SelectOrUploadANPFile';

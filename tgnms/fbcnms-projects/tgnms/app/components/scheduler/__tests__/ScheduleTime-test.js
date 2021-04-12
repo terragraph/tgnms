@@ -7,8 +7,11 @@
 
 import * as React from 'react';
 import ScheduleTime from '../ScheduleTime';
-import {MODAL_MODE} from '../../../constants/ScheduleConstants';
-import {MuiPickersWrapper, renderAsync} from '../../../tests/testHelpers';
+import {MODAL_MODE} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {
+  MuiPickersWrapper,
+  renderAsync,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

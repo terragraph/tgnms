@@ -8,9 +8,13 @@ import * as turf from '@turf/turf';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import {LINES, MEASURABLE, POLYS} from '../../../constants/GeoJSONConstants';
-import {formatNumber} from '../../../helpers/StringHelpers';
-import {useMapAnnotationContext} from '../../../contexts/MapAnnotationContext';
+import {
+  LINES,
+  MEASURABLE,
+  POLYS,
+} from '@fbcnms/tg-nms/app/constants/GeoJSONConstants';
+import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {useMapAnnotationContext} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import type {GeoFeature} from '@turf/turf';
 
 const MIN_LEN_KM = 2;

@@ -9,7 +9,7 @@ import * as React from 'react';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import RouterIcon from '@material-ui/icons/Router';
-import {TopologyElementType} from '../../constants/NetworkConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 
 type Props = {
   resultType: $Values<typeof TopologyElementType>,

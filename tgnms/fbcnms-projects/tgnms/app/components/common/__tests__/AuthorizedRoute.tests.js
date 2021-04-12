@@ -7,14 +7,14 @@
 
 import AuthorizedRoute from '../AuthorizedRoute';
 import React from 'react';
-import {Permissions} from '../../../../shared/auth/Permissions';
+import {Permissions} from '@fbcnms/tg-nms/shared/auth/Permissions';
 import {Route} from 'react-router-dom';
 
 import {
   initWindowConfig,
   renderWithRouter,
   setTestUser,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {withStyles} from '@material-ui/core';
 
 beforeEach(() => {

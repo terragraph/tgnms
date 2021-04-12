@@ -7,8 +7,8 @@
 
 import * as React from 'react';
 import MapProfileForm from '../MapProfileForm';
-import {DEFAULT_MCS_TABLE} from '../../../../constants/MapProfileConstants';
-import {TestApp, coerceClass} from '../../../../tests/testHelpers';
+import {DEFAULT_MCS_TABLE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
+import {TestApp, coerceClass} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 
 const commonProps = {

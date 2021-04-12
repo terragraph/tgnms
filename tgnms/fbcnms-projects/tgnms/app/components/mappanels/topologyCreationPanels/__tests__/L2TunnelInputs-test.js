@@ -7,7 +7,10 @@
 
 import L2TunnelInputs from '../L2TunnelInputs';
 import React from 'react';
-import {NetworkContextWrapper, TestApp} from '../../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 test('renders empty without crashing', () => {

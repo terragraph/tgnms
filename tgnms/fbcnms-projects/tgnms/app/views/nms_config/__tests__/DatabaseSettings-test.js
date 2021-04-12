@@ -7,7 +7,10 @@
 
 import * as React from 'react';
 import DatabaseSettings from '../DatabaseSettings';
-import {SettingsFormContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  SettingsFormContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 jest

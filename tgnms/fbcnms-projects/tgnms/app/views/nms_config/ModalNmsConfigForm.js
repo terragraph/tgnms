@@ -6,21 +6,21 @@
  */
 
 import Button from '@material-ui/core/Button';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkListContext from '../../contexts/NetworkListContext';
+import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import {WAC_TYPES} from '../../../shared/dto/NetworkState';
+import {WAC_TYPES} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import {
   createNumericInput,
   createSelectInput,
   createTextInput,
   formParseInt,
-} from '../../helpers/FormHelpers';
-import {toTitleCase} from '../../helpers/StringHelpers';
+} from '@fbcnms/tg-nms/app/helpers/FormHelpers';
+import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {withStyles} from '@material-ui/core/styles';
-import type {NetworkConfig} from '../../contexts/NetworkContext';
+import type {NetworkConfig} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 type InputType = {
   _heading?: string,

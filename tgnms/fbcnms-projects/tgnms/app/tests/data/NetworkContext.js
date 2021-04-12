@@ -5,10 +5,13 @@
  * @flow strict-local
  */
 
-import {LinkTypeValueMap} from '../../../shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {mockNetworkConfig} from './NetworkConfig';
-import type {LinkMeta, NetworkContextType} from '../../contexts/NetworkContext';
-import type {LinkType} from '../../../shared/types/Topology';
+import type {
+  LinkMeta,
+  NetworkContextType,
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 /**
  * Creates a fake network context which passes flow validation

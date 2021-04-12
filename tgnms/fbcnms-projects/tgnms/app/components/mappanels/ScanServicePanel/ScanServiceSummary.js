@@ -9,14 +9,14 @@ import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '../../common/LoadingBox';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
 import ScanConnectivity from './ScanConnectivity';
 import ScanInterference from './ScanInterference';
 import ScanPanelTitle from './ScanPanelTitle';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
-import {useLoadScanExecutionResults} from '../../../hooks/ScanServiceHooks';
+import {useLoadScanExecutionResults} from '@fbcnms/tg-nms/app/hooks/ScanServiceHooks';
 
 type Props = {
   scanId: string,

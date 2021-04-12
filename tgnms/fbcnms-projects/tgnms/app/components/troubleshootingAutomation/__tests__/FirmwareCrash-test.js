@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import FirmwareCrash from '../FirmwareCrash';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
 jest

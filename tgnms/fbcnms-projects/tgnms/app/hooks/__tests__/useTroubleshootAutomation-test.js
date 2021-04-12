@@ -5,7 +5,7 @@
  * @flow
  */
 
-import * as serviceApiUtil from '../../apiutils/ServiceAPIUtil';
+import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import useTroubleshootAutomation from '../useTroubleshootAutomation';
 import {act, renderHook} from '@testing-library/react-hooks';
 

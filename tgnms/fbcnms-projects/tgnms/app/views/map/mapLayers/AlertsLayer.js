@@ -16,10 +16,10 @@ import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useHistory} from 'react-router';
-import {useNetworkContext} from '../../../contexts/NetworkContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useNetworkId} from '@fbcnms/alarms/components/hooks';
 
-import type {LinkType, NodeType} from '../../../../shared/types/Topology';
+import type {LinkType, NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const ACTIVE_ALERT_STATUS = 'active';
 

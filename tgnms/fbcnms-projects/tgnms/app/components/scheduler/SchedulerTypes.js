@@ -13,7 +13,7 @@ import {
   SCAN_MODE,
   SCAN_TYPES,
   TEST_EXECUTION_STATUS,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 
 export type ScheduleParamsType = {
   typeSelector: React.Node,

@@ -5,7 +5,7 @@
  * @flow
  */
 
-import CustomAccordion from '../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -15,15 +15,18 @@ import React from 'react';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {formatNumber, toTitleCase} from '../../helpers/StringHelpers';
-import {objectEntriesTypesafe} from '../../helpers/ObjectHelpers';
+import {
+  formatNumber,
+  toTitleCase,
+} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
-import type {TopologyType} from '../../../shared/types/Topology';
+import type {TopologyType} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {
   WirelessController,
   WirelessControllerStats,
-} from '../../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const styles = theme => ({
   sectionSpacer: {

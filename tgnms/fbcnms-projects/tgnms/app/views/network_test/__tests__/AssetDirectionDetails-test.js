@@ -6,11 +6,14 @@
  */
 
 import AssetDirectionDetails from '../AssetDirectionDetails';
-import MaterialTheme from '../../../MaterialTheme';
+import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import React from 'react';
-import {NetworkContextWrapper, mockNode} from '../../../tests/testHelpers';
-import {mockExecutionResult} from '../../../tests/data/NetworkTestApi';
-import {mockLinkMapValue} from '../../../tests/data/NetworkContext';
+import {
+  NetworkContextWrapper,
+  mockNode,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {mockExecutionResult} from '@fbcnms/tg-nms/app/tests/data/NetworkTestApi';
+import {mockLinkMapValue} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 const defaultProps = {

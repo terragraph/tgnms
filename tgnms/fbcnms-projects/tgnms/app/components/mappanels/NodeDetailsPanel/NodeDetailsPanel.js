@@ -6,31 +6,31 @@
  */
 
 import ActionsMenu from '../ActionsMenu';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import NodeDetails from './NodeDetails';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import TaskBasedConfigModal from '../../taskBasedConfig/TaskBasedConfigModal';
 import swal from 'sweetalert2';
-import {SELECTED_NODE_QUERY_PARAM} from '../../../constants/ConfigConstants';
+import {SELECTED_NODE_QUERY_PARAM} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {
   SYSDUMP_PATH,
   SYSDUMP_RESULT,
   sysdumpExists,
-} from '../../../apiutils/SysdumpAPIUtil';
-import {TEST_TYPE_CODES} from '../../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/apiutils/SysdumpAPIUtil';
+import {TEST_TYPE_CODES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {
   apiServiceRequest,
   apiServiceRequestWithConfirmation,
   requestWithConfirmation,
-} from '../../../apiutils/ServiceAPIUtil';
-import {currentDefaultRouteRequest} from '../../../apiutils/DefaultRouteHistoryAPIUtil';
-import {getNodesInRoute} from '../../../helpers/DefaultRouteHelpers';
-import {getWirelessLinkNames} from '../../../helpers/TopologyHelpers';
-import {isFeatureEnabled} from '../../../constants/FeatureFlags';
-import {startPartialTest} from '../../../helpers/NetworkTestHelpers';
-import {supportsTopologyScan} from '../../../helpers/TgFeatures';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
+import {getNodesInRoute} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
+import {getWirelessLinkNames} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import {startPartialTest} from '@fbcnms/tg-nms/app/helpers/NetworkTestHelpers';
+import {supportsTopologyScan} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -38,10 +38,13 @@ import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
 import type {EditNodeParams, NearbyNodes} from '../MapPanelTypes';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
-import type {LinkMap, NodeToLinksMap} from '../../../contexts/NetworkContext';
+import type {
+  LinkMap,
+  NodeToLinksMap,
+} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Props as NodeDetailsProps} from './NodeDetails';
-import type {NodeType} from '../../../../shared/types/Topology';
-import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import type {Theme, WithStyles} from '@material-ui/core/styles';
 
 const styles = (theme: Theme) => ({

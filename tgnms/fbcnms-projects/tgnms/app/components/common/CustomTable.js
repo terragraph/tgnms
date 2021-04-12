@@ -23,7 +23,7 @@ import {
 import {DebounceInput} from 'react-debounce-input';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkContextType} from '../../contexts/NetworkContext';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Node} from 'react';
 
 type ColumnType = {

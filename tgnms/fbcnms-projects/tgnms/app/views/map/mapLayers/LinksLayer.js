@@ -7,7 +7,7 @@
 
 import React from 'react';
 import {Feature, Layer} from 'react-mapbox-gl';
-import {HEALTH_CODES} from '../../../constants/HealthConstants';
+import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
 import {
   INDEX_COLORS,
   LINE_BACKUP_CN_PAINT,
@@ -23,16 +23,16 @@ import {
   SEARCH_NEARBY_FILL_PAINT,
   SEARCH_NEARBY_LINE_PAINT,
   SUPERFRAME_COLORS,
-} from '../../../constants/LayerConstants';
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {
   LinkTypeValueMap as LinkType,
   NodeTypeValueMap as NodeType,
-} from '../../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   SCAN_MAX_COVERAGE_ANGLE,
   SCAN_MAX_RX_DISTANCE,
   SNR_THRESHOLD_MCS9,
-} from '../../../constants/NetworkConstants';
+} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {get} from 'lodash';
 import {
   getLinkChannel,
@@ -51,7 +51,7 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {Element} from '../../../contexts/NetworkContext';
+import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {GeoCoord} from '@turf/turf';
 import type {
   GolayIdxType,
@@ -61,22 +61,22 @@ import type {
   TemporaryLinkType,
   TemporaryTopologyType,
   TopologyType,
-} from '../../../../shared/types/Topology';
-import type {IgnitionStateType} from '../../../../shared/types/Controller';
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {IgnitionStateType} from '@fbcnms/tg-nms/shared/types/Controller';
 import type {
   NearbyNodes,
   TopologyScanByNodeMac,
   TopologyScanInfo,
   TopologyScanResponse,
   TopologyScanRespoonsePerRadio,
-} from '../../../components/mappanels/MapPanelTypes';
+} from '@fbcnms/tg-nms/app/components/mappanels/MapPanelTypes';
 import type {
   OfflineWhiteListType,
   TopologyConfig,
-} from '../../../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {Overlay} from '../NetworkMapTypes';
-import type {RoutesContext as Routes} from '../../../contexts/RouteContext';
-import type {SiteMap} from '../../../contexts/NetworkContext';
+import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import type {SiteMap} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 const styles = _theme => ({});
 
 export type Props = {

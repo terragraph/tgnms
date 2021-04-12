@@ -6,12 +6,12 @@
  */
 
 import * as React from 'react';
-import CustomAccordion from '../../common/CustomAccordion';
-import NmsOptionsContext from '../../../contexts/NmsOptionsContext';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
+import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import ScanServiceSummary from './ScanServiceSummary';
-import {MAPMODE, useMapContext} from '../../../contexts/MapContext';
-import {getUrlSearchParam} from '../../../helpers/NetworkUrlHelpers';
-import {useRouteContext} from '../../../contexts/RouteContext';
+import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {getUrlSearchParam} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
+import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import {withRouter} from 'react-router-dom';
 
 import type {ContextRouter} from 'react-router-dom';

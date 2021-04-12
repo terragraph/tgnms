@@ -10,7 +10,7 @@ import type {
   NetworkHealth,
   NetworkInstanceConfig,
   NetworkState,
-} from '../../shared/dto/NetworkState';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 export async function getTopology(name: string): Promise<NetworkState> {
   const response = await axios.get<void, NetworkState>('/topology/get/' + name);

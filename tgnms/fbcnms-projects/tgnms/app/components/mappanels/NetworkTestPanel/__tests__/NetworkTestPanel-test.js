@@ -7,7 +7,7 @@
 
 import NetworkTestPanel from '../NetworkTestPanel';
 import React from 'react';
-import {TestApp, renderWithRouter} from '../../../../tests/testHelpers';
+import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   expanded: true,

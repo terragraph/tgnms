@@ -6,12 +6,12 @@
  */
 
 import BatchUpgradeTable from './BatchUpgradeTable';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NodeUpgradeTable from './NodeUpgradeTable';
 import React from 'react';
 import UpgradeOperationsToolbar from './UpgradeOperationsToolbar';
-import {UpgradeStatusToString} from '../../constants/UpgradeConstants';
-import {isNodeAlive} from '../../helpers/NetworkHelpers';
+import {UpgradeStatusToString} from '@fbcnms/tg-nms/app/constants/UpgradeConstants';
+import {isNodeAlive} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

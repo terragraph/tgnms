@@ -10,9 +10,12 @@ import React from 'react';
 import StatusText from '../../common/StatusText';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
-import {objectEntriesTypesafe} from '../../../helpers/ObjectHelpers';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
-import type {BgpInfo, BgpStatusMap} from '../../../../shared/types/Controller';
+import type {
+  BgpInfo,
+  BgpStatusMap,
+} from '@fbcnms/tg-nms/shared/types/Controller';
 
 const useStyles = makeStyles(theme => ({
   bgpEntryWrapper: {

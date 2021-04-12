@@ -6,12 +6,15 @@
  */
 
 import * as React from 'react';
-import {NetworkContextWrapper, mockFig0} from '../../../../tests/testHelpers';
-import {buildTopologyMaps} from '../../../../helpers/TopologyHelpers';
+import {
+  NetworkContextWrapper,
+  mockFig0,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
 import {useNetworkPrefixTable} from '../PrefixZoneOverlay';
 
-import type {NetworkContextType} from '../../../../contexts/NetworkContext';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {RenderResult} from '@testing-library/react-hooks';
 
 test('creates a feature collection', async () => {
@@ -63,7 +66,7 @@ function Wrapper({
 
 function setupApiMock() {
   const apiMock = jest.spyOn(
-    require('../../../../apiutils/ServiceAPIUtil'),
+    require('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil'),
     'apiRequest',
   );
   apiMock.mockResolvedValueOnce({

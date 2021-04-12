@@ -5,7 +5,10 @@
  * @flow
  */
 
-import type {MapProfile, McsLinkBudget} from '../../shared/dto/MapProfile';
+import type {
+  MapProfile,
+  McsLinkBudget,
+} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 const DUPE_RANGE_OFFSET = 10;
 
 export const DEFAULT_MCS_TABLE: Array<McsLinkBudget> = [

@@ -8,22 +8,22 @@
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import LoadingBox from '../../components/common/LoadingBox';
+import LoadingBox from '@fbcnms/tg-nms/app/components/common/LoadingBox';
 import Typography from '@material-ui/core/Typography';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
-import {Provider as TaskConfigContextProvider} from '../../contexts/ConfigTaskContext';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {Provider as TaskConfigContextProvider} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import {cloneDeep} from 'lodash';
 import {
   getConfigLayer,
   getDraftConfig,
   isConfigChanged,
-} from '../../helpers/ConfigHelpers';
+} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {useNodeConfig} from '../../hooks/useNodeConfig';
-import {useSnackbars} from '../../hooks/useSnackbar';
-import {useUpdateConfig} from '../../hooks/useUpdateConfig';
+import {useNodeConfig} from '@fbcnms/tg-nms/app/hooks/useNodeConfig';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+import {useUpdateConfig} from '@fbcnms/tg-nms/app/hooks/useUpdateConfig';
 
-import type {NodeConfigStatusType} from '../../helpers/ConfigHelpers';
+import type {NodeConfigStatusType} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 
 export type Props = {
   children: React.Node,

@@ -7,7 +7,7 @@
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
-import CustomAccordion from '../../common/CustomAccordion';
+import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
@@ -16,21 +16,24 @@ import swal from 'sweetalert2';
 import {
   LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
-} from '../../../../shared/types/Topology';
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   createReactSelectInput,
   createSelectInput,
-} from '../../../helpers/FormHelpers';
+} from '@fbcnms/tg-nms/app/helpers/FormHelpers';
 import {isEqual} from 'lodash';
-import {toTitleCase} from '../../../helpers/StringHelpers';
+import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useComputeNewLinkBearings} from './useComputeNewLinkBearings';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withStyles} from '@material-ui/core/styles';
 import type {ComputeNewLinkBearings} from './useComputeNewLinkBearings';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
-import type {LinkType, TopologyType} from '../../../../shared/types/Topology';
+import type {
+  LinkType,
+  TopologyType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {NodeMap} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const styles = {

@@ -22,20 +22,20 @@ import {
   mockMapboxRef,
   mockNetworkConfig,
   renderAsync,
-} from '../../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act} from '@testing-library/react';
-import {buildTopologyMaps} from '../../../../../helpers/TopologyHelpers';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
   getLayerById,
   getPropValue,
   getSourceFeatureCollection,
-} from '../../../../../tests/mapHelpers';
+} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 
-import type {NetworkContextType} from '../../../../../contexts/NetworkContext';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 jest
   .spyOn(
-    require('../../../../../helpers/NetworkHelpers'),
+    require('@fbcnms/tg-nms/app/helpers/NetworkHelpers'),
     'mapboxShouldAcceptClick',
   )
   .mockReturnValue(true);

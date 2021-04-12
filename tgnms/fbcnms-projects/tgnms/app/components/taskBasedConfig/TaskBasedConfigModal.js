@@ -9,18 +9,18 @@ import Button from '@material-ui/core/Button';
 import CnConfig from './configTasks/CnConfig';
 import ConfigTaskForm from './ConfigTaskForm';
 import Grid from '@material-ui/core/Grid';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../contexts/NetworkContext';
+import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import PopKvstoreParams from './configTasks/PopKvstoreParams';
 import PopRouting from './configTasks/PopRouting';
 import RadioParams from './configTasks/RadioParams';
 import React from 'react';
 import SysParams from './configTasks/SysParams';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../hooks/useForm';
-import {FORM_CONFIG_MODES} from '../../constants/ConfigConstants';
-import {NodeTypeValueMap} from '../../../shared/types/Topology';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {makeStyles} from '@material-ui/styles';
 
 const useModalStyles = makeStyles(theme => ({

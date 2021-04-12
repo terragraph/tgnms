@@ -14,12 +14,12 @@ import {
   EventCategoryValueMap,
   EventIdValueMap,
   EventLevelValueMap,
-} from '../../../../../shared/types/Event';
+} from '@fbcnms/tg-nms/shared/types/Event';
 import {alarmTestUtil} from '@fbcnms/alarms/test/testHelpers';
 import {mockAlert} from '@fbcnms/alarms/test/testData';
 import {render} from '@testing-library/react';
 
-import type {EventType} from '../../../../../shared/types/Event';
+import type {EventType} from '@fbcnms/tg-nms/shared/types/Event';
 import type {FiringAlarm} from '@fbcnms/alarms/components/AlarmAPIType';
 
 const {AlarmsWrapper} = alarmTestUtil();

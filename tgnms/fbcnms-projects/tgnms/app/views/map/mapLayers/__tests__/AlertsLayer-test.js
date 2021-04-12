@@ -11,10 +11,10 @@ import {
   NetworkContextWrapper,
   TestApp,
   mockTopology,
-} from '../../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {Popup} from 'react-mapbox-gl';
 import {TgApiUtil as TgApiUtilMock} from '../../../alarms/TgAlarmApi';
-import {mockNetworkConfig} from '../../../../tests/data/NetworkConfig';
+import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {render} from '@testing-library/react';
 
 import type {FiringAlarm} from '@fbcnms/alarms/components/AlarmAPIType';

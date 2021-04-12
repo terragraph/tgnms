@@ -7,12 +7,15 @@
 
 import ConfigAppBar from '../ConfigAppBar';
 import React from 'react';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-import {mockConfigTaskContextValue} from '../../../tests/data/NetworkConfig';
+import {mockConfigTaskContextValue} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
 const mockUseConfigTaskContext = jest
-  .spyOn(require('../../../contexts/ConfigTaskContext'), 'useConfigTaskContext')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/contexts/ConfigTaskContext'),
+    'useConfigTaskContext',
+  )
   .mockReturnValue(mockConfigTaskContextValue());
 
 const snackbarsMock = {
@@ -22,11 +25,14 @@ const snackbarsMock = {
 };
 
 const mockUseAlertIfPendingChanges = jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useAlertIfPendingChanges')
+  .spyOn(
+    require('@fbcnms/tg-nms/app/hooks/useSnackbar'),
+    'useAlertIfPendingChanges',
+  )
   .mockReturnValue(jest.fn(() => false));
 
 jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useSnackbars')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useSnackbars')
   .mockReturnValue(snackbarsMock);
 
 const defaultProps = {

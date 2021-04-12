@@ -7,19 +7,19 @@
 
 import * as turf from '@turf/turf';
 import React from 'react';
-import useLiveRef from '../../../../hooks/useLiveRef';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {Layer, Source} from 'react-mapbox-gl';
 import {NodeOverlayColors} from '@fbcnms/tg-nms/app/constants/LayerConstants';
-import {TopologyElementType} from '../../../../constants/NetworkConstants';
-import {getEstimatedNodeBearing} from '../../../../helpers/TopologyHelpers';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {getEstimatedNodeBearing} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {handleLayerMouseEnter, handleLayerMouseLeave} from '../helpers';
 import {makeRangeColorFunc} from '@fbcnms/tg-nms/app/helpers/MapLayerHelpers';
-import {mapboxShouldAcceptClick} from '../../../../helpers/NetworkHelpers';
-import {objectValuesTypesafe} from '../../../../helpers/ObjectHelpers';
-import {useMapContext} from '../../../../contexts/MapContext';
+import {mapboxShouldAcceptClick} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {FeatureId, GeoFeature} from '@turf/turf';
-import type {NodeType as Node} from '../../../../../shared/types/Topology';
+import type {NodeType as Node} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {Overlay} from '../../NetworkMapTypes';
 
 export const BEARING_PROP = 'bearing';

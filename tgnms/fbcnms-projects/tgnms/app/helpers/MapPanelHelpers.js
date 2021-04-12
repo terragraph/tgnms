@@ -5,10 +5,10 @@
  * @flow strict-local
  */
 
-import {LinkTypeValueMap} from '../../shared/types/Topology';
-import {apiServiceRequest} from '../apiutils/ServiceAPIUtil';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 
-import type {LinkType, NodeType} from '../../shared/types/Topology';
+import type {LinkType, NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export function getNodeLinks(
   node: NodeType,

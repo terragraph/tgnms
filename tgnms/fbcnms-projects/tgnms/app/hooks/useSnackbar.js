@@ -10,7 +10,7 @@
 
 // https://github.com/iamhosseindhv/notistack/pull/17
 import * as React from 'react';
-import SnackbarItem from '../components/common/SnackbarItem';
+import SnackbarItem from '@fbcnms/tg-nms/app/components/common/SnackbarItem';
 import {useCallback, useEffect, useState} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';
 import type {EnqueueSnackbarOptions} from 'notistack';

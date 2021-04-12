@@ -6,16 +6,19 @@
  */
 
 import {apiServiceRequest, getErrorTextFromE2EAck} from './ServiceAPIUtil';
-import {cleanupObject, sortConfig} from '../helpers/ConfigHelpers';
+import {
+  cleanupObject,
+  sortConfig,
+} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {isPlainObject} from 'lodash';
 import {nodeupdateServerRequest} from './NodeupdateAPIUtil';
-import {supportsFirmwareApiRequest} from '../helpers/TgFeatures';
+import {supportsFirmwareApiRequest} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 
-import type {AggregatorConfigType} from '../../shared/types/Aggregator';
-import type {ControllerConfigType} from '../../shared/types/Controller';
-import type {NodeConfigType} from '../../shared/types/NodeConfig';
+import type {AggregatorConfigType} from '@fbcnms/tg-nms/shared/types/Aggregator';
+import type {ControllerConfigType} from '@fbcnms/tg-nms/shared/types/Controller';
+import type {NodeConfigType} from '@fbcnms/tg-nms/shared/types/NodeConfig';
 
-import type {NodeConfigStatusType} from '../helpers/ConfigHelpers';
+import type {NodeConfigStatusType} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 
 // Generic success handler
 const onSuccess = (response, key, onResolve, processResults, defaultCfg) => {

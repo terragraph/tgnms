@@ -6,9 +6,9 @@
  */
 
 import {getUser} from '../common/uiConfig';
-import {isAuthorized as isAuthorizedShared} from '../../shared/auth/Permissions';
-import {isFeatureEnabled} from '../constants/FeatureFlags';
-import type {Permission} from '../../shared/auth/Permissions';
+import {isAuthorized as isAuthorizedShared} from '@fbcnms/tg-nms/shared/auth/Permissions';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import type {Permission} from '@fbcnms/tg-nms/shared/auth/Permissions';
 
 /**
  * Checks if the currently loaded user has the specified permissions.

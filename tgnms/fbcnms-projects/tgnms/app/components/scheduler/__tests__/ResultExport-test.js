@@ -6,9 +6,12 @@
  */
 
 import * as React from 'react';
-import * as networkTestAPIUtil from '../../../apiutils/NetworkTestAPIUtil';
+import * as networkTestAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import ResultExport from '../ResultExport';
-import {NetworkContextWrapper, TestApp} from '../../../tests/testHelpers';
+import {
+  NetworkContextWrapper,
+  TestApp,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const getTestExecutionMock = jest
@@ -20,7 +23,7 @@ window.URL.revokeObjectURL = jest.fn();
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(require('../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 const defaultProps = {

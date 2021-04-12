@@ -10,14 +10,14 @@ import {
   DEFAULT_FIRMWARE_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
   FORM_CONFIG_MODES,
-} from '../../constants/ConfigConstants';
+} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {
   LinkTypeValueMap,
   NodeStatusTypeValueMap,
   NodeTypeValueMap,
 } from '@fbcnms/tg-nms/shared/types/Topology';
 
-import type {ConfigTaskContext} from '../../contexts/ConfigTaskContext';
+import type {ConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import type {IgnitionStateType} from '@fbcnms/tg-nms/shared/types/Controller';
 import type {
   LinkType,
@@ -25,15 +25,15 @@ import type {
   SiteType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
-import type {NetworkConfig} from '../../contexts/NetworkContext';
+import type {NetworkConfig} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
   NetworkHealth,
   NetworkInstanceConfig,
   TopologyConfig,
-} from '../../../shared/dto/NetworkState';
-import type {Props as NodeDetailsProps} from '../../components/mappanels/NodeDetailsPanel/NodeDetails';
-import type {Overlay} from '../../views/map/NetworkMapTypes';
-import type {RoutesContext as Routes} from '../../contexts/RouteContext';
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {Props as NodeDetailsProps} from '@fbcnms/tg-nms/app/components/mappanels/NodeDetailsPanel/NodeDetails';
+import type {Overlay} from '@fbcnms/tg-nms/app/views/map/NetworkMapTypes';
+import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 export function mockNetworkInstanceConfig(
   overrides?: $Shape<NetworkInstanceConfig>,

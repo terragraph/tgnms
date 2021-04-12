@@ -6,13 +6,13 @@
  */
 
 import Button from '@material-ui/core/Button';
-import DashboardLink from '../../components/common/DashboardLink';
-import GrafanaIcon from '../../components/common/GrafanaIcon';
+import DashboardLink from '@fbcnms/tg-nms/app/components/common/DashboardLink';
+import GrafanaIcon from '@fbcnms/tg-nms/app/components/common/GrafanaIcon';
 import React from 'react';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 
-import type {LinkType} from '../../../shared/types/Topology';
-import type {NetworkContextType} from '../../contexts/NetworkContext';
+import type {LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 // create a link to an ODS Chart
 function renderODSLink(a_node_name, z_node_name, context) {

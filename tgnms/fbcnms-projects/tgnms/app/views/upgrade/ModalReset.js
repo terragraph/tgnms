@@ -7,19 +7,19 @@
 
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
-import InsetPaper from '../../components/common/InsetPaper';
-import MaterialModal from '../../components/common/MaterialModal';
+import InsetPaper from '@fbcnms/tg-nms/app/components/common/InsetPaper';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import React from 'react';
 import RestoreIcon from '@material-ui/icons/Restore';
 import swal from 'sweetalert2';
 import {
   UpgradeGroupTypeValueMap as UpgradeGroupType,
   UpgradeReqTypeValueMap as UpgradeReqType,
-} from '../../../shared/types/Controller';
+} from '@fbcnms/tg-nms/shared/types/Controller';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

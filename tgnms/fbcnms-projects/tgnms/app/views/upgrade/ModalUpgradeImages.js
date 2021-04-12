@@ -14,7 +14,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import LinkIcon from '@material-ui/icons/Link';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import MaterialModal from '../../components/common/MaterialModal';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalImageList from './ModalImageList';
 import React from 'react';
@@ -30,31 +30,31 @@ import {
   SOFTWARE_PORTAL_SUITE,
   UPGRADE_IMAGE_REFRESH_INTERVAL,
   UploadStatus,
-} from '../../constants/UpgradeConstants';
+} from '@fbcnms/tg-nms/app/constants/UpgradeConstants';
 import {
   DownloadStatus as SoftwarePortalDownloadStatus,
   getWebSocketGroupName,
-} from '../../../shared/dto/SoftwarePortalDownload';
-import {WebSocketMessage} from '../../../shared/dto/WebSockets';
+} from '@fbcnms/tg-nms/shared/dto/SoftwarePortalDownload';
+import {WebSocketMessage} from '@fbcnms/tg-nms/shared/dto/WebSockets';
 import {
   apiServiceRequest,
   apiServiceRequestWithConfirmation,
   getErrorTextFromE2EAck,
-} from '../../apiutils/ServiceAPIUtil';
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   fetchSoftwarePortalImages,
   fetchUpgradeImages,
-} from '../../helpers/UpgradeHelpers';
-import {isFeatureEnabled} from '../../constants/FeatureFlags';
-import {useWebSocketGroup} from '../../contexts/WebSocketContext';
+} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import {useWebSocketGroup} from '@fbcnms/tg-nms/app/contexts/WebSocketContext';
 import {withStyles} from '@material-ui/core/styles';
-import type {SoftwareImageType} from '../../helpers/UpgradeHelpers';
+import type {SoftwareImageType} from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
 import type {
   SoftwarePortalDownloadMessage,
   ImageIdentifier as SoftwarePortalImageIdentifier,
-} from '../../../shared/dto/SoftwarePortalDownload';
+} from '@fbcnms/tg-nms/shared/dto/SoftwarePortalDownload';
 
-import type {UpgradeImageType} from '../../../shared/types/Controller';
+import type {UpgradeImageType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 const styles = theme => ({
   dialogTitle: {

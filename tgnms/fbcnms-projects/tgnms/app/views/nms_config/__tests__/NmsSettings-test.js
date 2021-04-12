@@ -13,9 +13,9 @@ import {
   TestApp,
   initWindowConfig,
   renderAsync,
-} from '../../../tests/testHelpers';
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, waitForElement} from '@testing-library/react';
-import type {EnvMap, SettingsState} from '../../../../shared/dto/Settings';
+import type {EnvMap, SettingsState} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 jest.mock('axios');
 

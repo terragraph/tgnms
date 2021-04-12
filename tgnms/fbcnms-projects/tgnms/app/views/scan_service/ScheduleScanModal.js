@@ -6,13 +6,13 @@
  */
 
 import * as React from 'react';
-import * as scanApi from '../../apiutils/ScanServiceAPIUtil';
+import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import SchedulerModal from '../../components/scheduler/SchedulerModal';
+import SchedulerModal from '@fbcnms/tg-nms/app/components/scheduler/SchedulerModal';
 import TextField from '@material-ui/core/TextField';
-import useForm from '../../hooks/useForm';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {
   DEFAULT_SCAN_MODE,
   MODAL_MODE,
@@ -20,10 +20,10 @@ import {
   SCAN_SERVICE_MODE,
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
-} from '../../constants/ScheduleConstants';
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkContext} from '../../contexts/NetworkContext';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   selector: {

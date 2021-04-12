@@ -7,8 +7,8 @@
 
 import * as React from 'react';
 import SchedulerModal from '../SchedulerModal';
-import {MODAL_MODE} from '../../../constants/ScheduleConstants';
-import {TestApp} from '../../../tests/testHelpers';
+import {MODAL_MODE} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
 const defaultProps = {

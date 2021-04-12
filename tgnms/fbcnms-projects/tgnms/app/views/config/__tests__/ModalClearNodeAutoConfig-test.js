@@ -8,11 +8,11 @@
 import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {TestApp} from '../../../tests/testHelpers';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render, waitForElement} from '@testing-library/react';
 
-jest.mock('../../../apiutils/ServiceAPIUtil');
-const apiServiceRequestMock: any = require('../../../apiutils/ServiceAPIUtil')
+jest.mock('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil');
+const apiServiceRequestMock: any = require('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil')
   .apiServiceRequest;
 
 const defaultProps = {

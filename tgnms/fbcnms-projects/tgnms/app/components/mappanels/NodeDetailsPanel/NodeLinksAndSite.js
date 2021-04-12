@@ -17,11 +17,14 @@ import React from 'react';
 import StatusIndicator, {
   StatusIndicatorColor,
 } from '../../common/StatusIndicator';
-import {LinkTypeValueMap} from '../../../../shared/types/Topology';
-import {getNodeLinks} from '../../../helpers/MapPanelHelpers';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {getNodeLinks} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {makeStyles} from '@material-ui/styles';
 
-import type {NodeType, TopologyType} from '../../../../shared/types/Topology';
+import type {
+  NodeType,
+  TopologyType,
+} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
   listItemIcon: {

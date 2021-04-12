@@ -10,11 +10,11 @@ import EditIcon from '@material-ui/icons/Edit';
 import FileDownloadIcon from '@material-ui/icons/CloudDownload';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import InstallerAppConfig from '../../components/installerapp/InstallerAppConfig';
+import InstallerAppConfig from '@fbcnms/tg-nms/app/components/installerapp/InstallerAppConfig';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import LoadingBox from '../../components/common/LoadingBox';
+import LoadingBox from '@fbcnms/tg-nms/app/components/common/LoadingBox';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MobileFriendlyIcon from '@material-ui/icons/MobileFriendly';
@@ -25,7 +25,7 @@ import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
 import React from 'react';
 import StatusIndicator, {
   StatusIndicatorColor,
-} from '../../components/common/StatusIndicator';
+} from '@fbcnms/tg-nms/app/components/common/StatusIndicator';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -33,9 +33,9 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
-import {requestWithConfirmation} from '../../apiutils/ServiceAPIUtil';
-import {useNetworkListContext} from '../../contexts/NetworkListContext';
-import {useSnackbars} from '../../hooks/useSnackbar';
+import {requestWithConfirmation} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   leftIcon: {
