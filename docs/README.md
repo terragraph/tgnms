@@ -4,23 +4,22 @@
 
 ## Building
 
-
 ### Locally
 
 The build generates a single folder with all the necessary resources for the only NMS docs. It expects to be run alongside the other docs in `meta-terragraph` (and references CSS files in the `media` folder there).
 
-1. Install `sphinx`
+1. Install `nbsphinx`
 
-    ```bash
-    python -m pip install sphinx
-    ```
+   ```bash
+   python -m pip install nbsphinx
+   ```
 
 2. Build the docs
-    ```bash
-    cd ~/connectivity-lab/terragraph/nms/docs
-    # Build the docs (to the 'build' folder)
-    make html
-    ```
+   ```bash
+   cd ~/connectivity-lab/terragraph/nms/docs
+   # Build the docs (to the 'build' folder)
+   make html
+   ```
 
 ### With Docker
 
@@ -39,15 +38,15 @@ This uses Python's HTTP server to show the built docs.
 
 1. Follow the [Building](#Building) steps above
 2. Install `entr` (similar to Watchman, it will rebuild when a file changes)
-    ```bash
-    git clone git@github.com:eradman/entr.git && cd entr
-    ./configure
-    make test
-    sudo make install
-    ```
+   ```bash
+   git clone git@github.com:eradman/entr.git && cd entr
+   ./configure
+   make test
+   sudo make install
+   ```
 3. Preview the docs
-    ```bash
-    cd ~/connectivity-lab/terragraph/nms/docs
-    # Build the docs, start a Python server to put them up on port 8082, and watch for changes
-    make clean; make html; make dev -j2
-    ```
+   ```bash
+   cd ~/connectivity-lab/terragraph/nms/docs
+   # Build the docs, start a Python server to put them up on port 8082, and watch for changes
+   make clean; make html; make dev -j2
+   ```

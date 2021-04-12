@@ -7,6 +7,7 @@ TGNMS Deployment
    Troubleshooting
    Migration
    ControllerAPI
+   Stats
 
 TGNMS is deployed as a set of services running in a Docker Swarm. Each service is based on a Docker image with a particular tag, For example, the image ``secure.cxl-terragraph.com:443/nmsv2:stable`` refers to:
 
