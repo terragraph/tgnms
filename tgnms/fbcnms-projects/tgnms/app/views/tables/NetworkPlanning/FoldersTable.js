@@ -33,14 +33,12 @@ import {
 } from 'react-router-dom';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
-import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {NetworkTableProps} from '../NetworkTables';
 
 export default function FoldersTable({tableHeight}: NetworkTableProps) {
   const location = useLocation();
   const history = useHistory();
-  const {networkName} = useNetworkContext();
   const [lastRefreshDate, setLastRefreshDate] = React.useState(
     new Date().getTime(),
   );
@@ -58,7 +56,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
         loadPlansTask.setState(TASK_STATE.ERROR);
       }
     })();
-  }, [networkName, lastRefreshDate, loadPlansTask]);
+  }, [lastRefreshDate, loadPlansTask]);
   const refreshTable = () => setLastRefreshDate(new Date().getTime());
   useInterval(() => {
     refreshTable();

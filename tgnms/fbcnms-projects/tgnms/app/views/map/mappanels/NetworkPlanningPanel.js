@@ -18,12 +18,11 @@ import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
-import {PLANNING_FOLDER_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
-import {matchPath, useLocation} from 'react-router-dom';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import type {ANPPlan, AnpFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {InputFilesByRole} from '@fbcnms/tg-nms/app/features/planning/components/PlanEditor';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
@@ -140,20 +139,10 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   );
 }
 
-function indexFilesByRole(files: Array<AnpFileHandle>) {
-  const filesByRole = files.reduce<{
-    [role: string]: AnpFileHandle,
-  }>((map, file) => {
+function indexFilesByRole(files: Array<AnpFileHandle>): InputFilesByRole {
+  const filesByRole = files.reduce<InputFilesByRole>((map, file) => {
     map[file.file_role] = file;
     return map;
   }, {});
   return filesByRole;
-}
-
-function usePlanningFolderId(): string {
-  const location = useLocation();
-  const match = matchPath(location.pathname, {
-    path: PLANNING_FOLDER_PATH,
-  });
-  return match?.params?.folderId ?? '';
 }

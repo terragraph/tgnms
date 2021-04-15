@@ -8,10 +8,12 @@ import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import SelectANPFolder from './SelectANPFolder';
 import SelectOrUploadANPFile from './SelectOrUploadANPFile';
 import TextField from '@material-ui/core/TextField';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import type {
   ANPPlan,
   AnpFileHandle,
@@ -19,6 +21,7 @@ import type {
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 
 export type InputFilesByRole = {|[role: string]: AnpFileHandle|};
+
 export default function PlanEditor({
   folderId,
   plan,
@@ -75,6 +78,12 @@ export default function PlanEditor({
           }}
         />
       </Grid>
+      <Grid item>
+        <SelectANPFolder
+          folderId={planState.folder_id}
+          onChange={fId => updatePlanState({folder_id: fId})}
+        />
+      </Grid>
       <SelectOrUploadANPFile
         label="Select DSM File"
         fileTypes=".tif"
@@ -115,30 +124,6 @@ export default function PlanEditor({
       </Grid>
     </Grid>
   );
-}
-
-function usePlanFormState(): {|
-  planState: CreateANPPlanRequest,
-  updatePlanState: (update: $Shape<CreateANPPlanRequest>) => void,
-  setPlanFormState: (state: $Shape<CreateANPPlanRequest>) => void,
-|} {
-  const [planState, setPlanFormState] = React.useState<
-    $Shape<CreateANPPlanRequest>,
-  >({});
-  const updatePlanState = React.useCallback(
-    (update: $Shape<CreateANPPlanRequest>) =>
-      setPlanFormState(curr => ({
-        ...curr,
-        ...update,
-      })),
-    [],
-  );
-
-  return {
-    planState,
-    updatePlanState,
-    setPlanFormState,
-  };
 }
 
 function validatePlanState(state: $Shape<CreateANPPlanRequest>): boolean {

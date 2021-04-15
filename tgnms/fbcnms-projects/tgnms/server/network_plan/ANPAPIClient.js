@@ -113,6 +113,7 @@ export default class ANPAPIClient {
       query: {fields: 'plan_name,plan_status'},
       method: 'GET',
     });
+    console.dir(result);
     return result;
   };
   getPlanInputFiles = async (id: string) => {

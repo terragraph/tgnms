@@ -162,7 +162,7 @@ function BackButton() {
 
 /**
  * try to get the folder by id from the context folders, if it's not there,
- * load it and add it to folders list.
+ * load it. Doesn't modify context at all.
  */
 function useLoadFolder({
   folderId,

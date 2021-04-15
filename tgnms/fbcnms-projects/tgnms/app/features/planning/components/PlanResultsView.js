@@ -204,6 +204,11 @@ export default function PlanResultsView({
       <PlanInputs files={inputFiles} />
       <Grid item>
         <Typography color="textSecondary">Output Files</Typography>
+        {plan.plan_status === PLAN_STATUS.RUNNING && (
+          <Typography variant="subtitle2" color="textSecondary">
+            Plan in-progress
+          </Typography>
+        )}
       </Grid>
       {(downloadOutputState === TASK_STATE.LOADING ||
         loadOutputsTaskState === TASK_STATE.LOADING) && (

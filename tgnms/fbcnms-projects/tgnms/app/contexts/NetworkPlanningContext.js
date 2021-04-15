@@ -23,8 +23,8 @@ export type NetworkPlanningContext = {|
   setSelectedPlanId: (planId: ?string) => void,
   planTopology: ?AnpUploadTopologyType,
   setPlanTopology: AnpUploadTopologyType => void,
-  folders: FolderMap,
-  setFolders: ((FolderMap => FolderMap) | FolderMap) => void,
+  folders: ?FolderMap,
+  setFolders: (((?FolderMap) => ?FolderMap) | ?FolderMap) => void,
 |};
 
 const PLAN_ID_QUERY_KEY = 'planid';
@@ -34,7 +34,7 @@ const defaultValue: NetworkPlanningContext = {
   setSelectedPlanId: empty,
   planTopology: null,
   setPlanTopology: empty,
-  folders: {},
+  folders: null,
   setFolders: empty,
 };
 
@@ -69,7 +69,7 @@ export function NetworkPlanningContextProvider({
     planTopology,
     setPlanTopology,
   ] = React.useState<?AnpUploadTopologyType>(null);
-  const [folders, setFolders] = React.useState<FolderMap>({});
+  const [folders, setFolders] = React.useState<?FolderMap>(null);
   return (
     <context.Provider
       value={{
