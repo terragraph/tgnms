@@ -14,7 +14,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext.js';
 import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
-import NetworkPlanningTable from './NetworkPlanningTable';
+import NetworkPlanningTable from './NetworkPlanning/NetworkPlanningTable';
 import NetworkTestTable from './NetworkTestTable';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 import ScanTable from './ScanTable';
@@ -83,7 +83,7 @@ const TABLE_TYPE = Object.freeze({
   links: 'links',
   tests: 'tests',
   scans: 'scans',
-  plans: 'plans',
+  planning: 'planning',
 });
 
 export type NetworkTableProps = {|
@@ -177,7 +177,7 @@ class NetworkTables extends React.Component<Props, State> {
             return <NetworkTestTable />;
           } else if (selectedTable === TABLE_TYPE.scans) {
             return <ScanTable />;
-          } else if (selectedTable === TABLE_TYPE.plans) {
+          } else if (selectedTable === TABLE_TYPE.planning) {
             return <NetworkPlanningTable {...tableProps} />;
           } else {
             return null;
@@ -247,10 +247,10 @@ class NetworkTables extends React.Component<Props, State> {
                     root: classes.tabRoot,
                   }}
                   disableRipple
-                  label="Plans"
+                  label="Planning"
                   component={Link}
-                  to={`${match.url}/${TABLE_TYPE.plans}${location.search}`}
-                  value={TABLE_TYPE.plans}
+                  to={`${match.url}/${TABLE_TYPE.planning}${location.search}`}
+                  value={TABLE_TYPE.planning}
                 />
               )}
             </Tabs>
@@ -279,7 +279,7 @@ class NetworkTables extends React.Component<Props, State> {
         </Grid>
         <Switch>
           <Route
-            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests}|${TABLE_TYPE.scans}|${TABLE_TYPE.plans})`}
+            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests}|${TABLE_TYPE.scans}|${TABLE_TYPE.planning})`}
             component={this.renderNetworkTable}
           />
           {/** fixes a routing bug when this view is embedded in another page*/}

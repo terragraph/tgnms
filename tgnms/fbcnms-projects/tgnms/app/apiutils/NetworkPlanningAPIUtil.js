@@ -159,13 +159,36 @@ export async function getFolders(): Promise<Array<ANPFolder>> {
   return response.data;
 }
 
-export async function getPlansInFolder({
-  name,
+export async function getFolder({
+  folderId,
 }: {
-  name: string,
+  folderId: string,
+}): Promise<ANPFolder> {
+  const response = await axios<void, ANPFolder>({
+    url: `/network_plan/folder/${folderId}`,
+    method: 'GET',
+  });
+  return response.data;
+}
+
+export async function createFolder(
+  folder: $Shape<ANPFolder>,
+): Promise<ANPFolder> {
+  const response = await axios<$Shape<ANPFolder>, ANPFolder>({
+    url: `/network_plan/folder`,
+    method: 'POST',
+    data: folder,
+  });
+  return response.data;
+}
+
+export async function getPlansInFolder({
+  folderId,
+}: {
+  folderId: string,
 }): Promise<Array<ANPPlan>> {
   const response = await axios<void, Array<ANPPlan>>({
-    url: `/network_plan/plan?folderName=${name}`,
+    url: `/network_plan/plan?folderId=${folderId}`,
     method: 'GET',
   });
   return response.data;
@@ -201,6 +224,7 @@ export async function getPlanOutputFiles({
   });
   return response.data;
 }
+
 export async function getPlanErrors({
   id,
 }: {
@@ -212,6 +236,7 @@ export async function getPlanErrors({
   });
   return response.data;
 }
+
 export async function downloadFile({id}: {id: string}): Promise<Blob> {
   const response = await axios<void, Blob>({
     url: `/network_plan/file/${id}`,

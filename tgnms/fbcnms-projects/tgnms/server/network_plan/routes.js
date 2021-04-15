@@ -109,20 +109,32 @@ router.get('/folder', (req, res) => {
     .then(x => res.json(x))
     .catch(err => res.status(500).send(err.message));
 });
+router.get('/folder/:id', (req, res) => {
+  return apiClient
+    .getFolderById({id: req.params.id})
+    .then(x => res.json(x))
+    .catch(err => res.status(500).send(err.message));
+});
+router.post('/folder', (req, res) => {
+  return apiClient
+    .createFolder(req.body)
+    .then(x => res.json(x))
+    .catch(err => res.status(500).send(err.message));
+});
 
 router.get('/plan', async (req, res) => {
   try {
-    const {folderName} = req.query;
-    if (!folderName) {
+    const {folderId} = req.query;
+    if (!folderId) {
       return res
         .status(400)
-        .send({error: `folderName query parameter is required`});
+        .send({error: `folderId query parameter is required`});
     }
-    const folder = await apiClient.getFolderByName({name: folderName});
+    const folder = await apiClient.getFolderById({id: folderId});
     if (!folder) {
       return res
         .status(404)
-        .send({error: `No folder found with name: ${folderName}`});
+        .send({error: `No folder found with id: ${folderId}`});
     }
     const plansInFolder = await apiClient.getPlansInFolder({
       folder_id: folder.id,
@@ -137,20 +149,9 @@ router.get('/plan', async (req, res) => {
 // create plan object
 router.post('/plan', async (req, res) => {
   try {
-    const {plan_name, boundary_polygon, dsm, site_list} = req.body;
-    const folderName = 'tgnms';
-    let folder = await apiClient.getFolderByName({name: folderName});
-    if (folder == null) {
-      if (folderName === '') {
-        throw new Error('Invalid folder name');
-      }
-      folder = await apiClient.createFolder({folder_name: folderName});
-      if (folder == null) {
-        throw new Error(`Could not create folder: ${folderName}`);
-      }
-    }
+    const {plan_name, boundary_polygon, folder_id, dsm, site_list} = req.body;
     const plan = await apiClient.createPlan({
-      folder_id: folder.id,
+      folder_id: folder_id,
       plan_name: plan_name,
       boundary_polygon: boundary_polygon,
       dsm: dsm,

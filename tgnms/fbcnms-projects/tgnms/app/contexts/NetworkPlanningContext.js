@@ -11,16 +11,20 @@ import {
   getUrlSearchParam,
   setUrlSearchParam,
 } from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
+import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {AnpUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 export type LngLat = [number, number];
 export type BBox = [LngLat, LngLat];
 
+type FolderMap = {|[id: string]: ANPFolder|};
 export type NetworkPlanningContext = {|
   selectedPlanId: ?string,
   setSelectedPlanId: (planId: ?string) => void,
   planTopology: ?AnpUploadTopologyType,
   setPlanTopology: AnpUploadTopologyType => void,
+  folders: FolderMap,
+  setFolders: ((FolderMap => FolderMap) | FolderMap) => void,
 |};
 
 const PLAN_ID_QUERY_KEY = 'planid';
@@ -30,6 +34,8 @@ const defaultValue: NetworkPlanningContext = {
   setSelectedPlanId: empty,
   planTopology: null,
   setPlanTopology: empty,
+  folders: {},
+  setFolders: empty,
 };
 
 const context = React.createContext<NetworkPlanningContext>(defaultValue);
@@ -63,6 +69,7 @@ export function NetworkPlanningContextProvider({
     planTopology,
     setPlanTopology,
   ] = React.useState<?AnpUploadTopologyType>(null);
+  const [folders, setFolders] = React.useState<FolderMap>({});
   return (
     <context.Provider
       value={{
@@ -70,6 +77,8 @@ export function NetworkPlanningContextProvider({
         setSelectedPlanId,
         planTopology,
         setPlanTopology,
+        folders,
+        setFolders,
       }}>
       {children}
     </context.Provider>

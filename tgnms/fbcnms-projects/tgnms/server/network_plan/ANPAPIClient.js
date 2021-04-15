@@ -84,10 +84,13 @@ export default class ANPAPIClient {
     return result.data;
   };
 
-  getFolderByName = async ({name}: {name: string}): Promise<?ANPFolder> => {
-    const folders = await this.getFolders();
-    console.dir(folders);
-    return folders.find(f => f.folder_name === name);
+  getFolderById = async ({id}: {id: string}): Promise<?ANPFolder> => {
+    const result = await this.makeRequest<ANPFolder>({
+      id: id,
+      query: {fields: 'id,folder_name'},
+      method: 'GET',
+    });
+    return result;
   };
 
   getPlansInFolder = async ({folder_id}: {folder_id: string}) => {
