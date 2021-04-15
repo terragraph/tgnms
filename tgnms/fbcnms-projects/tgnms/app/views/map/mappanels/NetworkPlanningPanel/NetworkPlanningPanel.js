@@ -37,13 +37,20 @@ export default function NetworkPlanningPanel({
 }: {
   panelControl: PanelStateControl,
 }) {
-  const {getIsHidden, getIsOpen, toggleOpen, setPanelState} = panelControl;
+  const {
+    getIsHidden,
+    getIsOpen,
+    toggleOpen,
+    collapseAll,
+    setPanelState,
+  } = panelControl;
   const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
   const {setMapMode} = useMapContext();
 
   // open the panel whenever a plan is selected
   React.useEffect(() => {
     if (selectedPlanId != null) {
+      collapseAll();
       setPanelState(PANELS.NETWORK_PLANNING, PANEL_STATE.OPEN);
       setMapMode(MAPMODE.PLANNING);
     }
