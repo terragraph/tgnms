@@ -5,9 +5,8 @@
  * @flow
  */
 import * as React from 'react';
-import * as turf from '@turf/turf';
-
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
+import * as turf from '@turf/turf';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -43,7 +42,7 @@ import type {
   AnpSite,
   AnpUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-import type {InputFilesByRole} from './NetworkPlanningPanel';
+import type {InputFilesByRole} from './PlanEditor';
 import type {
   LinkFeature,
   MapFeatureTopology,

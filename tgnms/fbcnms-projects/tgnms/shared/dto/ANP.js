@@ -75,6 +75,7 @@ export type ANPPlan = {|
 export type ANPPlanError = {|
   error_message: string,
 |};
+
 export type CreateANPPlanRequest = {|
   folder_id: string,
   plan_name: string,

@@ -11,14 +11,12 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
-//TODO fixme
-import PlanStatus from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel/PlanStatus';
+import PlanStatus from '@fbcnms/tg-nms/app/features/planning/components/PlanStatus';
 import TableToolbar from './TableToolbar';
 import Typography from '@material-ui/core/Typography';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
-import {BASE_PATH} from './planningPaths';
 import {
   Link,
   generatePath,
@@ -27,6 +25,7 @@ import {
   useParams,
 } from 'react-router-dom';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+import {PLANNING_BASE_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import type {ANPFolder, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {NetworkTableProps} from '../NetworkTables';
@@ -139,9 +138,9 @@ function BackButton() {
   const {pathname} = useLocation();
   const backUrl = React.useMemo(() => {
     const match = matchPath(pathname, {
-      path: BASE_PATH,
+      path: PLANNING_BASE_PATH,
     });
-    const newPath = generatePath(BASE_PATH, {
+    const newPath = generatePath(PLANNING_BASE_PATH, {
       view: match?.params.view ?? '',
       networkName: match?.params.networkName ?? '',
     });

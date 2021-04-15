@@ -15,7 +15,7 @@ import DrawerToggleButton from '@fbcnms/tg-nms/app/components/common/DrawerToggl
 import IgnitionStatePanel from '@fbcnms/tg-nms/app/views/map/mappanels/IgnitionStatePanel';
 import LinkDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
-import NetworkPlanningPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel/NetworkPlanningPanel';
+import NetworkPlanningPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel';
 import NetworkTestPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkTestPanel/NetworkTestPanel';
 import NodeDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '@fbcnms/tg-nms/app/views/map/mappanels/OverviewPanel';

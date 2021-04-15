@@ -14,10 +14,11 @@ import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import type {
   ANPPlan,
+  AnpFileHandle,
   CreateANPPlanRequest,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
-import type {InputFilesByRole} from './NetworkPlanningPanel';
 
+export type InputFilesByRole = {|[role: string]: AnpFileHandle|};
 export default function PlanEditor({
   folderId,
   plan,

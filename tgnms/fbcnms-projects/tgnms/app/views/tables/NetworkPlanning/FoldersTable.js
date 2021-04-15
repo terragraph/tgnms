@@ -20,8 +20,11 @@ import Typography from '@material-ui/core/Typography';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
-import {BASE_PATH, FOLDER_PATH} from './planningPaths';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+import {
+  PLANNING_BASE_PATH,
+  PLANNING_FOLDER_PATH,
+} from '@fbcnms/tg-nms/app/constants/paths';
 import {
   generatePath,
   matchPath,
@@ -92,9 +95,9 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
 
   const handleRowClick = (event, row: ANPFolder) => {
     const match = matchPath(location.pathname, {
-      path: BASE_PATH,
+      path: PLANNING_BASE_PATH,
     });
-    const newPath = generatePath(FOLDER_PATH, {
+    const newPath = generatePath(PLANNING_FOLDER_PATH, {
       view: match?.params.view ?? '',
       networkName: match?.params.networkName ?? '',
       folderId: row.id,

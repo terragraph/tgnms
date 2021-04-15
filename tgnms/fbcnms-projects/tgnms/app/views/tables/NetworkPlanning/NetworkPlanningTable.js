@@ -4,10 +4,13 @@
  * @format
  * @flow
  */
+import * as React from 'react';
 import FoldersTable from './FoldersTable';
 import PlansTable from './PlansTable';
-import React from 'react';
-import {BASE_PATH, FOLDER_PATH} from './planningPaths';
+import {
+  PLANNING_BASE_PATH,
+  PLANNING_FOLDER_PATH,
+} from '@fbcnms/tg-nms/app/constants/paths';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import type {NetworkTableProps} from '../NetworkTables';
@@ -28,11 +31,11 @@ export default function NetworkPlanningTable({tableHeight}: NetworkTableProps) {
     <div className={classes.root}>
       <Route
         exact
-        path={BASE_PATH}
+        path={PLANNING_BASE_PATH}
         render={_props => <FoldersTable tableHeight={tableHeight} />}
       />
       <Route
-        path={FOLDER_PATH}
+        path={PLANNING_FOLDER_PATH}
         render={_props => <PlansTable tableHeight={tableHeight} />}
       />
     </div>

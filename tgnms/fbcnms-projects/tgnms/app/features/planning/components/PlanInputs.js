@@ -9,7 +9,7 @@ import ANPFileDownloadButton from './ANPFileDownloadButton';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
-import type {InputFilesByRole} from './NetworkPlanningPanel';
+import type {InputFilesByRole} from './PlanEditor';
 
 export default function PlanInputs({files}: {files: InputFilesByRole}) {
   const dsm = files[FILE_ROLE.DSM_GEOTIFF];

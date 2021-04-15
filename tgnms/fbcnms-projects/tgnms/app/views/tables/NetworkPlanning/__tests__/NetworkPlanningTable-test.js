@@ -9,8 +9,8 @@ import * as React from 'react';
 import * as apiUtilMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import NetworkPlanningTable from '../NetworkPlanningTable';
-import {BASE_PATH} from '../planningPaths';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+import {PLANNING_BASE_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {Route} from 'react-router-dom';
 import {
   TestApp,
@@ -18,7 +18,6 @@ import {
   renderWithRouter,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, waitForElement} from '@testing-library/react';
-
 import type {ANPFolder, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
 
@@ -50,8 +49,8 @@ const folder1Plans: Array<ANPPlan> = [
 test('renders the folders table by default', async () => {
   jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
   const {getByText} = await renderAsync(
-    <TestApp route={BASE_PATH}>
-      <Route path={BASE_PATH} component={NetworkPlanningTable} />
+    <TestApp route={PLANNING_BASE_PATH}>
+      <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
     </TestApp>,
   );
   expect(getByText(/Folders/i)).toBeInTheDocument();
@@ -64,8 +63,8 @@ test('if user selects a folder, navigates to the plans table', async () => {
   jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
   const {getByText, queryByText} = await renderAsync(
-    <TestApp route={BASE_PATH}>
-      <Route path={BASE_PATH} component={NetworkPlanningTable} />
+    <TestApp route={PLANNING_BASE_PATH}>
+      <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
     </TestApp>,
   );
   await act(async () => {
@@ -82,8 +81,8 @@ test('if user clicks back button, goes back to folders table', async () => {
   jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
   const {getByText, getByTestId, queryByText} = await renderAsync(
-    <TestApp route={BASE_PATH}>
-      <Route path={BASE_PATH} component={NetworkPlanningTable} />
+    <TestApp route={PLANNING_BASE_PATH}>
+      <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
     </TestApp>,
   );
   await act(async () => {
@@ -107,11 +106,11 @@ test('if user clicks back button, goes back to folders table', async () => {
  */
 test('if user selects a plan, sets the planid querystring', async () => {
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
-  const folder1Path = BASE_PATH + '/folder/1';
+  const folder1Path = PLANNING_BASE_PATH + '/folder/1';
   const {getByText, history} = renderWithRouter(
     <MaterialTheme>
       <NetworkPlanningContextProvider>
-        <Route path={BASE_PATH} component={NetworkPlanningTable} />
+        <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
       </NetworkPlanningContextProvider>
     </MaterialTheme>,
     {route: folder1Path},

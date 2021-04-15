@@ -119,10 +119,6 @@ export async function uploadFile({
   return result.data;
 }
 
-/**
- * we're sending the network name and not the folderid because of API
- * issues with querying folders
- */
 export async function createPlan(req: $Shape<CreateANPPlanRequest>) {
   const response = await axios<CreateANPPlanRequest, ANPPlan>({
     url: `/network_plan/plan`,
