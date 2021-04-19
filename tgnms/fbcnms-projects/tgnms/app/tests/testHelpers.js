@@ -51,6 +51,8 @@ export * from './data/NetworkConfig';
 export * from './data/NmsOptionsContext';
 
 /**
+ * DEPRECATED, pass a history object to TestApp instead.
+ *
  * wraps a component with a router instance, pass {route:'/myroute'} to set the
  * current url
  */
@@ -102,17 +104,27 @@ export function setTestUser(user: $Shape<User>) {
 export function TestApp({
   children,
   route,
+  history,
 }: {
   children: React.Node,
   route?: string,
+  history?: $Call<typeof createMemoryHistory>,
 }) {
+  const _history = React.useMemo(
+    () => (history != null ? history : testHistory(route)),
+    [],
+  );
   return (
-    <Router history={createMemoryHistory({initialEntries: [route || '/']})}>
+    <Router history={_history}>
       <SnackbarWrapper>
         <MaterialTheme>{children}</MaterialTheme>
       </SnackbarWrapper>
     </Router>
   );
+}
+
+export function testHistory(route?: string) {
+  return createMemoryHistory({initialEntries: [route || '/']});
 }
 
 export function MuiPickersWrapper({children}: {children: React.Node}) {
