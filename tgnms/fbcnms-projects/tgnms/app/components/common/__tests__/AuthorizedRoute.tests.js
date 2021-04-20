@@ -9,12 +9,13 @@ import AuthorizedRoute from '../AuthorizedRoute';
 import React from 'react';
 import {Permissions} from '@fbcnms/tg-nms/shared/auth/Permissions';
 import {Route} from 'react-router-dom';
-
 import {
+  TestApp,
   initWindowConfig,
-  renderWithRouter,
   setTestUser,
+  testHistory,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {render} from '@testing-library/react';
 import {withStyles} from '@material-ui/core';
 
 beforeEach(() => {
@@ -31,8 +32,9 @@ test('If login is disabled, show protected route', () => {
       LOGIN_ENABLED: false,
     },
   });
-  const {getByText, queryByText} = renderWithRouter(
-    <>
+  const history = testHistory('/testpath');
+  const {getByText, queryByText} = render(
+    <TestApp history={history}>
       <AuthorizedRoute
         path="/testpath"
         permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
@@ -43,8 +45,7 @@ test('If login is disabled, show protected route', () => {
         path="/nomatch"
         render={() => <span>should NOT be visible</span>}
       />
-    </>,
-    {route: '/testpath'},
+    </TestApp>,
   );
   expect(getByText('should be visible')).toBeInTheDocument();
   expect(getByText('should also be visible')).toBeInTheDocument();
@@ -59,16 +60,16 @@ test('If user has no roles, redirect', () => {
     email: '',
     roles: [],
   });
-  const {queryByText} = renderWithRouter(
-    <>
+  const history = testHistory('/testpath');
+  const {queryByText} = render(
+    <TestApp history={history}>
       <AuthorizedRoute
         path="/testpath"
         permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         render={() => <span>should NOT be visible</span>}
         __testRedirect={mockRedirect}
       />
-    </>,
-    {route: '/testpath'},
+    </TestApp>,
   );
   expect(queryByText('should NOT be visible')).not.toBeInTheDocument();
   expect(mockRedirect).toHaveBeenCalled();
@@ -82,16 +83,16 @@ test('If user has some of the required roles, allow', () => {
     email: '',
     roles: [Permissions['TOPOLOGY_WRITE']],
   });
-  const {queryByText} = renderWithRouter(
-    <>
+  const history = testHistory('/testpath');
+  const {queryByText} = render(
+    <TestApp history={history}>
       <AuthorizedRoute
         path="/testpath"
         permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         render={() => <span>should be visible</span>}
         __testRedirect={mockRedirect}
       />
-    </>,
-    {route: '/testpath'},
+    </TestApp>,
   );
   expect(queryByText('should be visible')).toBeInTheDocument();
   expect(mockRedirect).not.toHaveBeenCalled();
@@ -105,16 +106,16 @@ test('If user has all of the required roles, show protected route', () => {
     email: '',
     roles: [Permissions['TOPOLOGY_WRITE'], Permissions['TOPOLOGY_READ']],
   });
-  const {queryByText} = renderWithRouter(
-    <>
+  const history = testHistory('/testpath');
+  const {queryByText} = render(
+    <TestApp history={history}>
       <AuthorizedRoute
         path="/testpath"
         permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         render={() => <span>should be visible</span>}
         __testRedirect={mockRedirect}
       />
-    </>,
-    {route: '/testpath'},
+    </TestApp>,
   );
   expect(queryByText('should be visible')).toBeInTheDocument();
   expect(mockRedirect).not.toHaveBeenCalled();
@@ -128,16 +129,16 @@ test('works with Route component prop', () => {
     email: '',
     roles: [Permissions['TOPOLOGY_WRITE'], Permissions['TOPOLOGY_READ']],
   });
-  const {queryByText} = renderWithRouter(
-    <>
+  const history = testHistory('/testpath');
+  const {queryByText} = render(
+    <TestApp history={history}>
       <AuthorizedRoute
         path="/testpath"
         permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         component={MockComponent}
         __testRedirect={mockRedirect}
       />
-    </>,
-    {route: '/testpath'},
+    </TestApp>,
   );
   expect(queryByText('should be visible')).toBeInTheDocument();
   expect(mockRedirect).not.toHaveBeenCalled();
@@ -152,16 +153,16 @@ test('works with Route component prop (withStyles)', () => {
     email: '',
     roles: [Permissions['TOPOLOGY_WRITE'], Permissions['TOPOLOGY_READ']],
   });
-  const {queryByText} = renderWithRouter(
-    <>
+  const history = testHistory('/testpath');
+  const {queryByText} = render(
+    <TestApp history={history}>
       <AuthorizedRoute
         path="/testpath"
         permissions={['TOPOLOGY_READ', 'TOPOLOGY_WRITE']}
         component={StyledComponent}
         __testRedirect={mockRedirect}
       />
-    </>,
-    {route: '/testpath'},
+    </TestApp>,
   );
   expect(queryByText('should be visible')).toBeInTheDocument();
   expect(mockRedirect).not.toHaveBeenCalled();
