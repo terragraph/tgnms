@@ -312,7 +312,7 @@ class ModalUpgradeImages extends React.Component<Props, State> {
               <Typography variant="subtitle1">Upload Custom Binary</Typography>
               <input
                 className={classes.fileInput}
-                accept=".bin"
+                accept=".bin,.img"
                 onChange={this.handleUploadImage}
                 type="file"
               />
