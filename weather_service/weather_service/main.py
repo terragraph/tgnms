@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 import sys
-from typing import Any, Awaitable, Dict, List, NoReturn
+from typing import Any, Awaitable, Dict, List, NoReturn, Set
 
 from aiohttp import web
 from tglib import init
@@ -31,6 +31,14 @@ async def get_weather(
     )
 
 
+def get_pop_sites(topology: Dict) -> Set:
+    pop_sites = set()
+    for node in topology["nodes"]:
+        if node.get("pop_node"):
+            pop_sites.add(node["site_name"])
+    return pop_sites
+
+
 async def fetch_weather_data(
     api_service_client: APIServiceClient, weather_client: WeatherAPIClient
 ) -> List[PrometheusMetric]:
@@ -47,7 +55,12 @@ async def fetch_weather_data(
             logging.info(f"Failed to fetch topology for {network_name}")
             continue
 
+        pop_sites = get_pop_sites(network)
+        if not pop_sites:
+            continue
         for site in network["sites"]:
+            if site["name"] not in pop_sites:
+                continue
             coordinates = Coordinates(
                 site["location"]["latitude"], site["location"]["longitude"]
             )

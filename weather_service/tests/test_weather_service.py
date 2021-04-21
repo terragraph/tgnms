@@ -43,7 +43,19 @@ class MockAPIService(APIServiceClient):
                         "name": "fake site hungary",
                         "location": {"latitude": 47.440977, "longitude": 19.057166},
                     },
-                ]
+                ],
+                "nodes": [
+                    {
+                        "name": "fake node fremont",
+                        "pop_node": True,
+                        "site_name": "fake site fremont",
+                    },
+                    {
+                        "name": "fake node hungary",
+                        "pop_node": True,
+                        "site_name": "fake site hungary",
+                    },
+                ],
             }
         }
 
