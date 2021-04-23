@@ -12,7 +12,7 @@ import axios from 'axios';
  */
 type QueryLabels = {
   network: string,
-  intervalSec: number,
+  intervalSec?: number,
   [string]: any,
 };
 
@@ -50,10 +50,10 @@ export const createQuery = (
   labels: QueryLabels,
 ): string => {
   const {network, intervalSec, ...extras} = labels;
-
+  const intervalDetails = intervalSec ? `intervalSec="${intervalSec}"` : '';
   const labelStr = Object.keys(extras)
     .map(label => `${label}="${extras[label]}"`)
-    .concat([`network="${network}"`, `intervalSec="${intervalSec}"`])
+    .concat([`network="${network}"`, intervalDetails])
     .join(', ');
 
   return `${metricName}{${labelStr}}`;

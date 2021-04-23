@@ -386,7 +386,7 @@ export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
   node_online: {
     name: 'Node online',
     type: 'health',
-    id: 'node_online',
+    id: 'topology_node_is_online',
   },
 };
 
@@ -394,7 +394,7 @@ export const HISTORICAL_LINK_METRIC_OVERLAYS: Overlays = {
   link_online: {
     name: 'Online',
     type: 'metric',
-    id: 'link_online',
+    id: 'topology_link_is_online',
     overlayLegendType: 'ignition_status',
     range: [1, 0.5, 0.5, 0],
     bounds: [0, 1],

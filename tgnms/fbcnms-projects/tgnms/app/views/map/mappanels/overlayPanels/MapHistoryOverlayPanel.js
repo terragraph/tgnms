@@ -48,6 +48,11 @@ const LINK_OVERLAYS = {
   ...HISTORICAL_LINK_METRIC_OVERLAYS,
 };
 
+const topologyPrometheusIDs = {
+  link: 'topology_link_is_online',
+  node: 'topology_node_is_online',
+};
+
 const linkOverlayList = objectValuesTypesafe(LINK_OVERLAYS).filter(
   overlay => overlay.type === 'metric',
 );
@@ -148,13 +153,13 @@ export default function MapHistoryOverlayPanel({}: Props) {
         layerId: 'link_lines',
         overlays: linkOverlayList,
         legend: LinkOverlayColors,
-        defaultOverlayId: 'link_online',
+        defaultOverlayId: topologyPrometheusIDs.link,
       },
       site_icons: {
         layerId: 'site_icons',
         overlays: siteOverlayList,
         legend: SiteOverlayColors,
-        defaultOverlayId: 'node_online',
+        defaultOverlayId: topologyPrometheusIDs.node,
       },
     });
   }, [setOverlaysConfig]);
@@ -179,12 +184,17 @@ export default function MapHistoryOverlayPanel({}: Props) {
           return final;
         }, new Set()),
       ];
-      const queries = prometheusIds.map(prometheusId =>
-        createQuery(prometheusId, {
+      const queries = prometheusIds.map(prometheusId => {
+        if (Object.values(topologyPrometheusIDs).includes(prometheusId)) {
+          return createQuery(prometheusId, {
+            network: networkName,
+          });
+        }
+        return createQuery(prometheusId, {
           network: networkName,
           intervalSec: INTERVAL_SEC,
-        }),
-      );
+        });
+      });
 
       try {
         const response = await queryDataArray(
@@ -362,7 +372,7 @@ function getHistoricalSiteMap(
 
   return Object.keys(siteToNodesMap).reduce((final, siteName) => {
     const siteNodes = [...siteToNodesMap[siteName]];
-    const nodeData = historicalData?.node_online;
+    const nodeData = historicalData?.[topologyPrometheusIDs.node];
     if (siteNodes.length === 0 || !nodeData) {
       final[siteName] = SiteOverlayColors.health.planned.color;
     } else {
