@@ -462,8 +462,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
       }
       const {rx_bytes, tx_bytes} = metricData;
       const totalTrafficBps =
-        ((Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8) /
-        1000.0;
+        (Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8;
       return totalTrafficBps / 1000.0 / 1000.0;
     },
     formatText: (_link, value: number) => {
@@ -485,8 +484,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
       const {rx_bytes, tx_bytes, mcs} = metricData;
       const mcsCapacityBits = MCS_DATARATE_TABLE[mcs];
       const totalTrafficBps =
-        ((Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8) /
-        1000.0;
+        (Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8;
       return (totalTrafficBps / mcsCapacityBits) * 100.0;
     },
     formatText: (_link, value: number) => {
