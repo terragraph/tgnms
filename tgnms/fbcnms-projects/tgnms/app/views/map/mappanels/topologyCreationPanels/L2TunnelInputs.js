@@ -102,7 +102,7 @@ export default function L2TunnelInputs() {
               enabled: formState.enabled,
               dstNodeName: formState.node2.value,
               tunnelType: formState.type.value,
-              localInterface: formState.node2Interface,
+              localInterface: formState.node1Interface,
               tunnelParams: formState.vlanId
                 ? {vlanId: Number(formState.vlanId)}
                 : {},
@@ -118,7 +118,7 @@ export default function L2TunnelInputs() {
               enabled: formState.enabled,
               dstNodeName: formState.node1.value,
               tunnelType: formState.type.value,
-              localInterface: formState.node1Interface,
+              localInterface: formState.node2Interface,
               tunnelParams: formState.vlanId
                 ? {vlanId: Number(formState.vlanId)}
                 : {},
