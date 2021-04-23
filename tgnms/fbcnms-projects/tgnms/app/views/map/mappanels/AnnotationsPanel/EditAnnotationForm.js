@@ -119,6 +119,7 @@ export default function EditAnnotationForm({feature}: {feature: GeoFeature}) {
                 checked={!formState.color}
                 value={''}
                 inputProps={{'aria-label': 'default'}}
+                onChange={e => updateFormState({color: e.target.value})}
               />
               {ANNOTATION_COLORS.map(color => (
                 <Radio
