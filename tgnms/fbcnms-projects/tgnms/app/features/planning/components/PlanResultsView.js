@@ -23,6 +23,7 @@ import PlanStatus from './PlanStatus';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {ANP_SITE_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {OUTPUT_FILENAME, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
@@ -150,7 +151,7 @@ export default function PlanResultsView({
         setDownloadOutputState(TASK_STATE.ERROR);
       }
     })();
-  }, [reportingGraph, setDownloadOutputState, setOverlayData, setPlanTopology]);
+  }, [reportingGraph, setDownloadOutputState, setPlanTopology]);
 
   // filter planTopology and convert into mapFeatures to be rendered
   React.useEffect(() => {
@@ -208,6 +209,10 @@ export default function PlanResultsView({
       }
     }
   }, [shouldZoomToBBox, mapFeatures, mapboxRef]);
+
+  useUnmount(() => {
+    setMapFeatures({sites: {}, links: {}, nodes: {}});
+  });
 
   if (!(plan && inputFiles)) {
     return null;
