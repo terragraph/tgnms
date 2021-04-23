@@ -135,15 +135,13 @@ export default function PlanResultsView({
       try {
         if (reportingGraph) {
           setDownloadOutputState(TASK_STATE.LOADING);
-          const fileData = await networkPlanningAPIUtil.downloadFile({
-            id: reportingGraph.id,
-          });
-          let fileDataStr = fileData.toString();
-          // Workaround for T84339647
-          fileDataStr = fileDataStr.replace(/\\n/g, '').slice(2, -1);
-
-          const json = JSON.parse(fileDataStr);
-          setPlanTopology(json);
+          // eslint-disable-next-line max-len
+          const fileData = await networkPlanningAPIUtil.downloadFile<ANPUploadTopologyType>(
+            {
+              id: reportingGraph.id,
+            },
+          );
+          setPlanTopology(fileData);
           setShouldZoomToBBox(true);
           setDownloadOutputState(TASK_STATE.SUCCESS);
         }

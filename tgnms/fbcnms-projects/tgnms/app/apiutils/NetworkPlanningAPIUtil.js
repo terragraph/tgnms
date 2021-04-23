@@ -241,8 +241,8 @@ export async function getPlanErrors({
   return response.data;
 }
 
-export async function downloadFile({id}: {id: string}): Promise<Blob> {
-  const response = await axios<void, Blob>({
+export async function downloadFile<T>({id}: {id: string}): Promise<T> {
+  const response = await axios<void, T>({
     url: `/network_plan/file/${id}`,
     method: 'GET',
   });

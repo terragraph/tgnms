@@ -68,10 +68,7 @@ beforeEach(() => {
     mockANPFile({id: '8', file_name: OUTPUT_FILENAME.REPORTING_GRAPH_JSON}),
     mockANPFile({id: '9', file_name: OUTPUT_FILENAME.SITES_OPTIMIZED_CSV}),
   ]);
-  // This is due to some weirdness in the ANP output apis
-  apiMock.downloadFile.mockResolvedValue(
-    "b'" + JSON.stringify(mockANPJsonPlan) + "'",
-  );
+  apiMock.downloadFile.mockResolvedValue(mockANPJsonPlan);
 });
 afterEach(() => {
   jest.resetAllMocks();
