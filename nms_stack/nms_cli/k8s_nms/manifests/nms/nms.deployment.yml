@@ -182,6 +182,10 @@ spec:
               value: "{{ nms_username }}"
             - name: NMS_DEFAULT_PASSWORD
               value: "{{ nms_password }}"
+            {% if is_ipv6 %}
+            - name: FORCE_IPV6
+              value: "true"
+            {% endif %}
           volumeMounts:
             - name: settings
               mountPath: /app/fbcnms-projects/tgnms/.settings

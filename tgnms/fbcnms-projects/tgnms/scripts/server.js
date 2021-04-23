@@ -40,7 +40,9 @@ const {isFeatureEnabled} = require('../server/settings/settings');
 const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? process.env.PORT : 80;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
+const axiosSetup = require('../server/axiosSetup').default;
 
+axiosSetup();
 const app = express();
 if (process.env.WEBSOCKETS_ENABLED) {
   require('express-ws')(app);
