@@ -16,7 +16,9 @@ export function mockANPPlan(overrides?: $Shape<ANPPlan>): $Shape<ANPPlan> {
   };
 }
 
-export function mockANPFile(overrides?: $Shape<ANPFileHandle>) {
+export function mockANPFile(
+  overrides?: $Shape<ANPFileHandle>,
+): $Shape<ANPFileHandle> {
   return {
     file_name: 'test',
     file_extension: '.txt',

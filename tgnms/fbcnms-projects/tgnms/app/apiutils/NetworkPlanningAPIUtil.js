@@ -8,6 +8,7 @@
 import axios from 'axios';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import type {
+  ANPCommandResponse,
   ANPFileHandle,
   ANPFileHandleRequest,
   ANPFolder,
@@ -15,7 +16,6 @@ import type {
   ANPPlanError,
   CreateANPPlanRequest,
   GraphQueryResponse,
-  LaunchANPPlanResponse,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   FileUploadChunkResponse,
@@ -129,8 +129,16 @@ export async function createPlan(req: $Shape<CreateANPPlanRequest>) {
 }
 
 export async function launchPlan(req: {id: string}) {
-  const response = await axios<void, LaunchANPPlanResponse>({
+  const response = await axios<void, ANPCommandResponse>({
     url: `/network_plan/plan/launch/${req.id}`,
+    method: 'POST',
+  });
+  return response.data;
+}
+
+export async function cancelPlan(req: {id: string}) {
+  const response = await axios<void, ANPCommandResponse>({
+    url: `/network_plan/plan/cancel/${req.id}`,
     method: 'POST',
   });
   return response.data;

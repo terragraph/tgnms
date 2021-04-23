@@ -84,7 +84,8 @@ export type CreateANPPlanRequest = {|
   site_list: string,
 |};
 
-export type LaunchANPPlanResponse = {|
+// launch/cancel both return just a success message
+export type ANPCommandResponse = {|
   success: boolean,
 |};
 

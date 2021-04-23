@@ -7,6 +7,7 @@
 import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import * as turf from '@turf/turf';
+import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -61,13 +62,18 @@ type MapOptionsState = {|
   enabledStatusTypes: EnabledStatusTypes,
 |};
 
-export default function PlanResultsView({
-  plan,
-  inputFiles,
-}: {
+const useStyles = makeStyles(theme => ({
+  cancelButton: {
+    color: theme.palette.error.main,
+  },
+}));
+export type Props = {|
   plan: ?ANPPlan,
   inputFiles: ?InputFilesByRole,
-}) {
+  onExit: () => void,
+|};
+export default function PlanResultsView({plan, inputFiles, onExit}: Props) {
+  const classes = useStyles();
   const {
     state: loadOutputsTaskState,
     setState: setLoadOutputsTaskState,
@@ -171,6 +177,20 @@ export default function PlanResultsView({
     }
   }, [planTopology, mapOptions, setMapFeatures, setOverlayData]);
 
+  const cancelPlanTask = useTaskState();
+  const handleCancelPlan = React.useCallback(async () => {
+    try {
+      if (plan) {
+        cancelPlanTask.loading();
+        await networkPlanningAPIUtil.cancelPlan({id: plan.id});
+        cancelPlanTask.success();
+        onExit();
+      }
+    } catch (err) {
+      cancelPlanTask.error();
+    }
+  }, [cancelPlanTask, onExit, plan]);
+
   /**
    * only zoom to the plan's bbox once, after the plan has been
    * converted into map features.
@@ -224,6 +244,19 @@ export default function PlanResultsView({
         </Grid>
       )}
       {outputFiles && <PlanOutputs files={outputFiles} />}
+      <Grid item>
+        {plan.plan_status === PLAN_STATUS.RUNNING && (
+          <Button
+            fullWidth
+            className={classes.cancelButton}
+            disabled={cancelPlanTask.isLoading}
+            onClick={handleCancelPlan}
+            variant="text">
+            Cancel Plan{' '}
+            {cancelPlanTask.isLoading && <CircularProgress size={10} />}
+          </Button>
+        )}
+      </Grid>
     </Grid>
   );
 }

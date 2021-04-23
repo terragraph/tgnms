@@ -88,6 +88,8 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
     planInputFiles,
     setPlanInputFiles,
   ] = React.useState<?InputFilesByRole>();
+  const [refreshDate, setRefreshDate] = React.useState(new Date().getTime());
+  const refresh = () => setRefreshDate(new Date().getTime());
   // If a plan is selected, load it from the API and hydrate the form
   React.useEffect(() => {
     (async () => {
@@ -110,10 +112,17 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
         }
       }
     })();
-  }, [selectedPlanId, setLoadPlanTaskState]);
+  }, [selectedPlanId, setLoadPlanTaskState, refreshDate]);
   const handlePlanCreated = React.useCallback(
     (plan: ANPPlan) => {
       setSelectedPlanId(plan.id);
+    },
+    [setSelectedPlanId],
+  );
+  const handlePlanLaunched = React.useCallback(
+    (planId: string) => {
+      setSelectedPlanId(planId);
+      refresh();
     },
     [setSelectedPlanId],
   );
@@ -126,7 +135,13 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
     );
   }
   if (isViewResultsMode) {
-    return <PlanResultsView plan={plan} inputFiles={planInputFiles} />;
+    return (
+      <PlanResultsView
+        plan={plan}
+        inputFiles={planInputFiles}
+        onExit={onExit}
+      />
+    );
   }
   return (
     <PlanEditor
@@ -135,6 +150,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
       inputFiles={planInputFiles}
       onExit={onExit}
       onPlanCreated={handlePlanCreated}
+      onPlanLaunched={handlePlanLaunched}
     />
   );
 }

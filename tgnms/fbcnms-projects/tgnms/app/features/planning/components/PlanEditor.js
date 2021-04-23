@@ -28,12 +28,14 @@ export default function PlanEditor({
   inputFiles,
   onExit,
   onPlanCreated,
+  onPlanLaunched,
 }: {
   plan: ?ANPPlan,
   inputFiles: ?InputFilesByRole,
   folderId: string,
   onExit: () => void,
   onPlanCreated: ANPPlan => void | Promise<void>,
+  onPlanLaunched: string => void | Promise<void>,
 }) {
   // reconstruct the form-state from plan and input files
   const {planState, updatePlanState, setPlanFormState} = usePlanFormState();
@@ -64,7 +66,8 @@ export default function PlanEditor({
     const _launchPlanResult = await networkPlanningAPIUtil.launchPlan({
       id: planId,
     });
-  }, [onPlanCreated, plan, planState]);
+    onPlanLaunched(planId);
+  }, [onPlanCreated, onPlanLaunched, plan, planState]);
 
   return (
     <Grid

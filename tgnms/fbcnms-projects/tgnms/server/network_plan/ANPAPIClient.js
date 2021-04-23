@@ -12,12 +12,12 @@ import {pick, trimEnd} from 'lodash';
 import {stringify} from 'querystring';
 import type {$AxiosXHR} from 'axios';
 import type {
+  ANPCommandResponse,
   ANPFileHandle,
   ANPFolder,
   ANPPlan,
   CreateANPPlanRequest,
   GraphQueryResponse,
-  LaunchANPPlanResponse,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   FileUploadSessionRequest,
@@ -242,9 +242,16 @@ export default class ANPAPIClient {
   };
 
   launchPlan = ({id}: {id: string}) => {
-    return this.makeRequest<LaunchANPPlanResponse>({
+    return this.makeRequest<ANPCommandResponse>({
       id,
       edge: 'launch',
+      method: 'POST',
+    });
+  };
+  cancelPlan = ({id}: {id: string}) => {
+    return this.makeRequest<ANPCommandResponse>({
+      id,
+      edge: 'cancel',
       method: 'POST',
     });
   };

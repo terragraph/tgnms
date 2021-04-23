@@ -173,6 +173,14 @@ router.post('/plan/launch/:id', (req, res) => {
     .then(result => res.json(result))
     .catch(err => res.status(500).json(err.message));
 });
+router.post('/plan/cancel/:id', (req, res) => {
+  return apiClient
+    .cancelPlan({
+      id: req.params.id,
+    })
+    .then(result => res.json(result))
+    .catch(err => res.status(500).json(err.message));
+});
 
 router.get('/file', (req, res) => {
   const {role} = req.query;
