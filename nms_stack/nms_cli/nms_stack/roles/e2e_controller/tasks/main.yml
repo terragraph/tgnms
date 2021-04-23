@@ -2,11 +2,24 @@
 
 - name: Make env directory
   file:
-    path: "{{ e2e_path }}/env"
+    path: "{{ item }}"
     state: directory
     owner: "{{ docker_user }}"
     group: docker
     mode: 0755
+  run_once: true
+  loop:
+   - "{{ e2e_path }}/env"
+   - "{{ e2e_path }}/scripts"
+
+- name: copy controller configuration script
+  copy:
+    src: set_controller_config.sh
+    dest: "{{ e2e_path }}/scripts"
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+    force: yes
 
 - name: create keycloak setup client
   command: >

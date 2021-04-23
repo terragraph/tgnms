@@ -47,6 +47,7 @@
 - name: Set old_data_folder
   set_fact:
     data_folder: "{{ e2e_controller_path }}/data_{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+    data_folder_symlink: "{{ e2e_controller_path }}/data"
     old_data_folder: "{{ current_file['content'] | b64decode | trim }}"
 
 - name: Old data folder stat
@@ -70,6 +71,14 @@
 - name: Copy old data folder
   command: "rsync -av --exclude=\"images\" {{ old_data_folder }}/ {{ data_folder }}"
   when: old_data_folder != '' and old_data_folder_stat.stat.exists == True
+
+- name: Create symlink for current data folder
+  file:
+    src: "{{ data_folder }}"
+    dest: "{{ data_folder_symlink }}"
+    state: link
+    owner: "{{ docker_user }}"
+    group: docker
 
 - name: copy compose file
   template:
@@ -117,30 +126,5 @@
   failed_when: result.rc >= 1
   until: result.rc == 0
 
-- name: get current controller config
-  shell: |
-    docker run --network=terragraph_net byrnedo/alpine-curl \
-      --noproxy '*' -L {% if keycloak_enabled %} -H "Authorization: Bearer {{ keycloak_token }}" {% endif %} \
-      e2e-{{ escaped_controller_name }}_api_service:8080/api/v2/getControllerConfig
-  register: controller_config_output
-
-- set_fact:
-    controller_config: "{{ controller_config_output.stdout | from_json }}"
-  when: controller_config_output.stdout != ""
-
-- set_fact:
-    # Write in the default values
-    config: "{{ controller_config['config'] | from_json | combine({'statsAgentParams': {'sources': {'controller': {'zmq_url': 'tcp://e2e_controller-' + escaped_controller_name + ':28989'}}}}, recursive=True) | combine({'statsAgentParams': {'endpointParams': {'kafkaParams': {'config': {'brokerEndpointList': ['PLAINTEXT://kafka:9092']}}}}}, recursive=True) }}"
-  when: controller_config_output.stdout != ""
-
-- set_fact:
-    controller_config: "{{ {'config': config} }}"
-  when: controller_config_output.stdout != ""
-
-- name: set default controller config
-  shell: |
-    echo {{ controller_config | to_json }} | docker run --network=terragraph_net byrnedo/alpine-curl \
-      --noproxy '*' -L {% if keycloak_enabled %} -H "Authorization: Bearer {{ keycloak_token }}" {% endif %} \
-      -H "Content-Type: application/json" -X POST --data-binary @- \
-      e2e-{{ escaped_controller_name }}_api_service:8080/api/v2/setControllerConfig
-  when: controller_config_output.stdout != ""
+- name: set default controller config values
+  command: "docker run --rm --mount type=bind,source={{ e2e_path }}/scripts/set_controller_config.sh,target=/set_controller_config.sh --network=terragraph_net dwdraju/alpine-curl-jq /set_controller_config.sh {{ escaped_controller_name }}{% if keycloak_enabled %} {{ keycloak_token }}{% endif %}"

@@ -40,6 +40,7 @@
     - { src: "time.env", dest: "{{ terragraph_docker_path }}/proxy/env" }
     - { src: "nginx.conf", dest: "{{ terragraph_docker_path }}/proxy/conf" }
     - { src: "http.conf", dest: "{{ terragraph_docker_path }}/proxy/conf/conf.d" }
+    - { src: "node_images.conf", dest: "{{ terragraph_docker_path }}/proxy/conf/conf.d" }
   vars:
     upstream_nms: nms
     upstream_grafana: grafana
