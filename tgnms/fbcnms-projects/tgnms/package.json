@@ -39,7 +39,7 @@
     "@material-ui/pickers": "^3.2.10",
     "@material-ui/styles": "^4.0.0",
     "@turf/turf": "^5.1.6",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "classnames": "^2.2.5",
