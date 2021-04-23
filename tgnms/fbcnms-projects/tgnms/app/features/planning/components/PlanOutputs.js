@@ -9,9 +9,9 @@ import ANPFileDownloadButton from './ANPFileDownloadButton';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
-import type {AnpFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 
-export default function PlanOutputs({files}: {files: Array<AnpFileHandle>}) {
+export default function PlanOutputs({files}: {files: Array<ANPFileHandle>}) {
   return (
     <Grid item container direction="column">
       {files &&

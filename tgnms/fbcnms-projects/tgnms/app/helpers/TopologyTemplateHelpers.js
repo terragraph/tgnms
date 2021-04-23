@@ -9,7 +9,7 @@ import {
   ANP_NODE_TYPE,
   ANP_STATUS_TYPE,
   SECTOR_DEFAULT,
-  kmlAnpStatus,
+  kmlANPStatus,
   kmlFeatureType,
   kmlSiteType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
@@ -21,12 +21,12 @@ import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {convertType, objectValuesTypesafe} from './ObjectHelpers';
 
 import type {
-  AnpLink,
-  AnpLinkUploadKmlType,
-  AnpNode,
-  AnpSite,
-  AnpSiteUploadKmlType,
-  AnpUploadTopologyType,
+  ANPLink,
+  ANPLinkUploadKmlType,
+  ANPNode,
+  ANPSite,
+  ANPSiteUploadKmlType,
+  ANPUploadTopologyType,
   ApiBuilerInput,
   LinkTemplate,
   NodeTemplate,
@@ -101,8 +101,8 @@ export function uploadTopologyBuilderRequest(
     .catch(error => onClose(error.message));
 }
 
-export function parseAnpJson(input: AnpUploadTopologyType) {
-  const sites = objectValuesTypesafe<AnpSite>(input.sites)
+export function parseANPJson(input: ANPUploadTopologyType) {
+  const sites = objectValuesTypesafe<ANPSite>(input.sites)
     .filter(
       site =>
         site.status_type === ANP_STATUS_TYPE.PROPOSED ||
@@ -112,7 +112,7 @@ export function parseAnpJson(input: AnpUploadTopologyType) {
       name: site.site_id,
       location: site.loc,
     }));
-  const nodes = objectValuesTypesafe<AnpNode>(input.nodes)
+  const nodes = objectValuesTypesafe<ANPNode>(input.nodes)
     .filter(
       node =>
         node.status_type === ANP_STATUS_TYPE.PROPOSED ||
@@ -130,7 +130,7 @@ export function parseAnpJson(input: AnpUploadTopologyType) {
       ant_azimuth: node.ant_azimuth,
       ant_elevation: node.ant_elevation,
     }));
-  const links = objectValuesTypesafe<AnpLink>(input.links)
+  const links = objectValuesTypesafe<ANPLink>(input.links)
     .filter(
       link =>
         link.status_type === ANP_STATUS_TYPE.PROPOSED ||
@@ -144,22 +144,22 @@ export function parseAnpJson(input: AnpUploadTopologyType) {
   return {sites, nodes, links};
 }
 
-export function parseAnpKml(
-  input: Array<AnpSiteUploadKmlType | AnpLinkUploadKmlType>,
+export function parseANPKml(
+  input: Array<ANPSiteUploadKmlType | ANPLinkUploadKmlType>,
   sectorCount: number,
 ) {
   const {sites, links} = input.reduce(
     (
       result: {
-        sites: Array<AnpSiteUploadKmlType>,
-        links: Array<AnpLinkUploadKmlType>,
+        sites: Array<ANPSiteUploadKmlType>,
+        links: Array<ANPLinkUploadKmlType>,
       },
       asset,
     ) => {
       if (asset.geometry.type === kmlFeatureType.site) {
-        result.sites.push(convertType<AnpSiteUploadKmlType>(asset));
+        result.sites.push(convertType<ANPSiteUploadKmlType>(asset));
       } else if (asset.geometry.type === kmlFeatureType.link) {
-        result.links.push(convertType<AnpLinkUploadKmlType>(asset));
+        result.links.push(convertType<ANPLinkUploadKmlType>(asset));
       }
       return result;
     },
@@ -170,10 +170,10 @@ export function parseAnpKml(
 
   sites.forEach(asset => {
     if (
-      asset.properties.site_type !== kmlAnpStatus.DEMAND &&
+      asset.properties.site_type !== kmlANPStatus.DEMAND &&
       (!asset.properties.Status ||
-        kmlAnpStatus[asset.properties.Status] === kmlAnpStatus.PROPOSED ||
-        kmlAnpStatus[asset.properties.Status] === kmlAnpStatus.EXISTING)
+        kmlANPStatus[asset.properties.Status] === kmlANPStatus.PROPOSED ||
+        kmlANPStatus[asset.properties.Status] === kmlANPStatus.EXISTING)
     ) {
       uploadResults.sites.push({
         name: asset.properties.name,
@@ -225,8 +225,8 @@ export function parseAnpKml(
     if (
       siteNames.length === 2 &&
       (!asset.properties.styleURL ||
-        asset.properties.styleURL.includes(kmlAnpStatus.EXISTING) ||
-        asset.properties.styleURL.includes(kmlAnpStatus.PROPOSED))
+        asset.properties.styleURL.includes(kmlANPStatus.EXISTING) ||
+        asset.properties.styleURL.includes(kmlANPStatus.PROPOSED))
     ) {
       const siteTypes = getSiteTypes({siteNames, sites});
       if (!siteTypes[0] || !siteTypes[1]) {
@@ -294,7 +294,7 @@ function getSiteTypes({
   sites,
 }: {
   siteNames: Array<string>,
-  sites: Array<AnpSiteUploadKmlType>,
+  sites: Array<ANPSiteUploadKmlType>,
 }) {
   return siteNames.map(siteName => {
     const currentSite = sites.find(site => site.properties.name === siteName);

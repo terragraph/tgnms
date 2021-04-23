@@ -23,7 +23,7 @@ import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
-import type {ANPPlan, AnpFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPFileHandle, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {InputFilesByRole} from '@fbcnms/tg-nms/app/features/planning/components/PlanEditor';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 export default function NetworkPlanningPanel({
@@ -91,7 +91,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   // If a plan is selected, load it from the API and hydrate the form
   React.useEffect(() => {
     (async () => {
-      if (selectedPlanId) {
+      if (!isNullOrEmptyString(selectedPlanId)) {
         try {
           setLoadPlanTaskState(TASK_STATE.LOADING);
           // load basic plan data and its input files
@@ -139,7 +139,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   );
 }
 
-function indexFilesByRole(files: Array<AnpFileHandle>): InputFilesByRole {
+function indexFilesByRole(files: Array<ANPFileHandle>): InputFilesByRole {
   const filesByRole = files.reduce<InputFilesByRole>((map, file) => {
     map[file.file_role] = file;
     return map;

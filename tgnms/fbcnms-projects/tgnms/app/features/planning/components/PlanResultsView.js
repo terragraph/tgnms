@@ -35,12 +35,12 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import type {ANPPlan, AnpFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPFileHandle, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
-  AnpLink,
-  AnpSector,
-  AnpSite,
-  AnpUploadTopologyType,
+  ANPLink,
+  ANPSector,
+  ANPSite,
+  ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {InputFilesByRole} from './PlanEditor';
 import type {
@@ -83,7 +83,7 @@ export default function PlanResultsView({
     mapboxRef,
     setOverlayData,
   } = useMapContext();
-  const [outputFiles, setOutputFiles] = React.useState<?Array<AnpFileHandle>>(
+  const [outputFiles, setOutputFiles] = React.useState<?Array<ANPFileHandle>>(
     null,
   );
   const [mapOptions, setMapOptions] = React.useState<MapOptionsState>(
@@ -110,7 +110,7 @@ export default function PlanResultsView({
     })();
   }, [plan, setLoadOutputsTaskState, setOutputFiles]);
 
-  const reportingGraph = React.useMemo<?AnpFileHandle>(
+  const reportingGraph = React.useMemo<?ANPFileHandle>(
     () =>
       outputFiles?.find(
         f => f.file_name === OUTPUT_FILENAME.REPORTING_GRAPH_JSON,
@@ -189,7 +189,12 @@ export default function PlanResultsView({
     return null;
   }
   return (
-    <Grid container direction="column" spacing={2} wrap="nowrap">
+    <Grid
+      container
+      direction="column"
+      spacing={2}
+      wrap="nowrap"
+      data-testid="plan-results">
       <Grid item container justify="space-between" alignItems="center">
         <Typography color="textSecondary" variant="h6">
           {plan.plan_name}
@@ -313,7 +318,7 @@ function PlanMapOptions({
 }
 
 function planToMapFeatures(
-  plan: AnpUploadTopologyType,
+  plan: ANPUploadTopologyType,
   enabledStatusTypes: EnabledStatusTypes,
 ): MapFeatureTopology {
   const links = {};
@@ -328,11 +333,11 @@ function planToMapFeatures(
     }
   }
   if (plan.links != null) {
-    for (const planLink of objectValuesTypesafe<AnpLink>(plan.links)) {
+    for (const planLink of objectValuesTypesafe<ANPLink>(plan.links)) {
       if (!lookup.has(planLink.status_type)) {
         continue;
       }
-      const link = mapAnpLinkToFeature(planLink);
+      const link = mapANPLinkToFeature(planLink);
       if (link != null) {
         links[link.name] = link;
       }
@@ -340,21 +345,21 @@ function planToMapFeatures(
   }
   const sites = {};
   if (plan.sites != null) {
-    for (const planSite of objectValuesTypesafe<AnpSite>(plan.sites)) {
+    for (const planSite of objectValuesTypesafe<ANPSite>(plan.sites)) {
       if (!lookup.has(planSite.status_type)) {
         continue;
       }
-      const site = mapAnpSiteToFeature(planSite);
+      const site = mapANPSiteToFeature(planSite);
       sites[site.name] = site;
     }
   }
   const nodes = {};
   if (plan.sectors != null) {
-    for (const planNode of objectValuesTypesafe<AnpSector>(plan.sectors)) {
+    for (const planNode of objectValuesTypesafe<ANPSector>(plan.sectors)) {
       if (!lookup.has(planNode.status_type)) {
         continue;
       }
-      const node = mapAnpNodeToFeature(planNode);
+      const node = mapANPNodeToFeature(planNode);
       nodes[node.name] = node;
     }
   }
@@ -365,7 +370,7 @@ function planToMapFeatures(
   };
 }
 
-function mapAnpLinkToFeature(link: AnpLink): ?LinkFeature {
+function mapANPLinkToFeature(link: ANPLink): ?LinkFeature {
   const {tx_sector_id: a, rx_sector_id: z, link_type} = link;
   if (a == null || z == null) {
     return null;
@@ -379,7 +384,7 @@ function mapAnpLinkToFeature(link: AnpLink): ?LinkFeature {
   };
 }
 
-function mapAnpSiteToFeature(site: AnpSite): SiteFeature {
+function mapANPSiteToFeature(site: ANPSite): SiteFeature {
   const {site_id, loc, site_type} = site;
   // convert from ANP's SiteType mapping to the MapFeature mapping
   let siteFeatureType: number;
@@ -400,7 +405,7 @@ function mapAnpSiteToFeature(site: AnpSite): SiteFeature {
     site_type: siteFeatureType,
   };
 }
-function mapAnpNodeToFeature(node: AnpSector): NodeFeature {
+function mapANPNodeToFeature(node: ANPSector): NodeFeature {
   const {sector_id, site_id, ant_azimuth} = node;
   return {
     name: sector_id,

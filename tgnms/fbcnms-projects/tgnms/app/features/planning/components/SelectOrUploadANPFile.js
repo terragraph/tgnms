@@ -20,15 +20,15 @@ import Typography from '@material-ui/core/Typography';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {bytesToMB} from '@fbcnms/tg-nms/app/helpers/MathHelpers';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
-import type {AnpFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 
 type SelectOrUploadFileProps = {|
   label: string,
   // comma separated list of file extensions to accept
   role: string,
   fileTypes: string,
-  initialValue?: ?AnpFileHandle,
-  onChange: (f: AnpFileHandle) => *,
+  initialValue?: ?ANPFileHandle,
+  onChange: (f: ANPFileHandle) => *,
 |};
 
 export default function SelectOrUploadANPFile({
@@ -42,13 +42,13 @@ export default function SelectOrUploadANPFile({
   const {isOpen, open, close} = useModalState();
   // state for autocomplete open/close
   const autocompleteState = useModalState();
-  const [selectedFile, setSelectedFile] = React.useState<?AnpFileHandle>(null);
+  const [selectedFile, setSelectedFile] = React.useState<?ANPFileHandle>(null);
   React.useEffect(() => {
     if (initialValue != null) {
       setSelectedFile(initialValue);
     }
   }, [initialValue]);
-  const [files, setFiles] = React.useState<Array<AnpFileHandle>>([]);
+  const [files, setFiles] = React.useState<Array<ANPFileHandle>>([]);
   const loadFilesTask = useTaskState();
   React.useEffect(() => {
     (async () => {
@@ -217,7 +217,7 @@ function FileUpload({
   onComplete,
 }: {
   role: string,
-  onComplete: (x: AnpFileHandle) => *,
+  onComplete: (x: ANPFileHandle) => *,
   label: string,
   // comma separated list of file extensions to accept
   fileTypes: string,

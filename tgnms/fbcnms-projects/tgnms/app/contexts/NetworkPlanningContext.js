@@ -12,7 +12,7 @@ import {
   setUrlSearchParam,
 } from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
-import type {AnpUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 export type LngLat = [number, number];
 export type BBox = [LngLat, LngLat];
@@ -21,8 +21,8 @@ type FolderMap = {|[id: string]: ANPFolder|};
 export type NetworkPlanningContext = {|
   selectedPlanId: ?string,
   setSelectedPlanId: (planId: ?string) => void,
-  planTopology: ?AnpUploadTopologyType,
-  setPlanTopology: AnpUploadTopologyType => void,
+  planTopology: ?ANPUploadTopologyType,
+  setPlanTopology: ANPUploadTopologyType => void,
   folders: ?FolderMap,
   setFolders: (((?FolderMap) => ?FolderMap) | ?FolderMap) => void,
 |};
@@ -68,7 +68,7 @@ export function NetworkPlanningContextProvider({
   const [
     planTopology,
     setPlanTopology,
-  ] = React.useState<?AnpUploadTopologyType>(null);
+  ] = React.useState<?ANPUploadTopologyType>(null);
   const [folders, setFolders] = React.useState<?FolderMap>(null);
   return (
     <context.Provider

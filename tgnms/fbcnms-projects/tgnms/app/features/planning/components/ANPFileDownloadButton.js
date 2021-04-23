@@ -7,9 +7,9 @@
 import * as React from 'react';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import IconButton from '@material-ui/core/IconButton';
-import type {AnpFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 
-export default function DownloadButton({file}: {file: AnpFileHandle}) {
+export default function DownloadButton({file}: {file: ANPFileHandle}) {
   return (
     <IconButton
       size="small"

@@ -24,8 +24,8 @@ import {
 import {kml as kmlToGeojson} from '@mapbox/togeojson';
 import {makeStyles} from '@material-ui/styles';
 import {
-  parseAnpJson,
-  parseAnpKml,
+  parseANPJson,
+  parseANPKml,
   uploadTopologyBuilderRequest,
 } from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {
@@ -34,8 +34,8 @@ import {
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 import type {
-  AnpUploadKmlType,
-  AnpUploadTopologyType,
+  ANPUploadKmlType,
+  ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {TopologyType} from '@fbcnms/tg-nms/shared/types/Topology';
 
@@ -75,13 +75,13 @@ export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
   );
 
   const parseInput = (
-    fileInput: AnpUploadTopologyType | TopologyType | Array<AnpUploadKmlType>,
+    fileInput: ANPUploadTopologyType | TopologyType | Array<ANPUploadKmlType>,
   ) => {
     setLoading(false);
     try {
       if (topologyFileType === uploadFileTypes.ANP) {
-        const {sites, nodes, links} = parseAnpJson(
-          convertType<AnpUploadTopologyType>(fileInput),
+        const {sites, nodes, links} = parseANPJson(
+          convertType<ANPUploadTopologyType>(fileInput),
         );
         setUploadTopology({sites, nodes, links});
       } else if (topologyFileType === uploadFileTypes.TG) {
@@ -96,8 +96,8 @@ export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
           links,
         });
       } else if (topologyFileType === uploadFileTypes.KML) {
-        const input = convertType<Array<AnpUploadKmlType>>(fileInput);
-        const {sites, nodes, links} = parseAnpKml(input, Number(kmlNodeNumber));
+        const input = convertType<Array<ANPUploadKmlType>>(fileInput);
+        const {sites, nodes, links} = parseANPKml(input, Number(kmlNodeNumber));
         setUploadTopology({sites, nodes, links});
       }
     } catch (_error) {

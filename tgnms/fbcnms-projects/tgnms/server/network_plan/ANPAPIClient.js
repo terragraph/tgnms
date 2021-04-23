@@ -12,9 +12,9 @@ import {pick, trimEnd} from 'lodash';
 import {stringify} from 'querystring';
 import type {$AxiosXHR} from 'axios';
 import type {
+  ANPFileHandle,
   ANPFolder,
   ANPPlan,
-  AnpFileHandle,
   CreateANPPlanRequest,
   GraphQueryResponse,
   LaunchANPPlanResponse,
@@ -117,7 +117,7 @@ export default class ANPAPIClient {
     return result;
   };
   getPlanInputFiles = async (id: string) => {
-    const result = await this.makeRequest<GraphQueryResponse<AnpFileHandle>>({
+    const result = await this.makeRequest<GraphQueryResponse<ANPFileHandle>>({
       id,
       edge: 'inputs',
       query: {fields: 'file_name,file_extension,file_role,file_is_pending'},
@@ -126,7 +126,7 @@ export default class ANPAPIClient {
     return result.data;
   };
   getPlanOutputFiles = async (id: string) => {
-    const result = await this.makeRequest<GraphQueryResponse<AnpFileHandle>>({
+    const result = await this.makeRequest<GraphQueryResponse<ANPFileHandle>>({
       id,
       edge: 'outputs',
       query: {fields: 'file_name,file_extension,file_role,file_is_pending'},
@@ -135,7 +135,7 @@ export default class ANPAPIClient {
     return result.data;
   };
   getPlanErrors = async (id: string) => {
-    const result = await this.makeRequest<GraphQueryResponse<AnpFileHandle>>({
+    const result = await this.makeRequest<GraphQueryResponse<ANPFileHandle>>({
       id,
       edge: 'errors',
       query: {fields: 'error_message'},
@@ -253,11 +253,11 @@ export default class ANPAPIClient {
     role,
   }: {
     role: string,
-  }): Promise<GraphQueryResponse<AnpFileHandle>> => {
+  }): Promise<GraphQueryResponse<ANPFileHandle>> => {
     if (!role) {
       throw new Error('role field is required');
     }
-    return this.makeRequest<GraphQueryResponse<AnpFileHandle>>({
+    return this.makeRequest<GraphQueryResponse<ANPFileHandle>>({
       id: this.config.partnerId,
       edge: 'files',
       query: {
@@ -267,8 +267,8 @@ export default class ANPAPIClient {
       method: 'GET',
     });
   };
-  getFileMetadata = async ({id}: {id: string}): Promise<AnpFileHandle> => {
-    return this.makeRequest<AnpFileHandle>({
+  getFileMetadata = async ({id}: {id: string}): Promise<ANPFileHandle> => {
+    return this.makeRequest<ANPFileHandle>({
       id: id,
       query: {
         fields: 'file_name,file_extension,file_role,file_status',
@@ -283,7 +283,7 @@ export default class ANPAPIClient {
     file_handle,
   }: $Shape<{
     file_handle: string,
-    ...AnpFileHandle,
+    ...ANPFileHandle,
   }>) => {
     if (!(file_name && file_extension && file_role && file_handle)) {
       return Promise.reject(

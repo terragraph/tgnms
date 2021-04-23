@@ -15,12 +15,12 @@ import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import type {
+  ANPFileHandle,
   ANPPlan,
-  AnpFileHandle,
   CreateANPPlanRequest,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 
-export type InputFilesByRole = {|[role: string]: AnpFileHandle|};
+export type InputFilesByRole = {|[role: string]: ANPFileHandle|};
 
 export default function PlanEditor({
   folderId,
@@ -67,9 +67,15 @@ export default function PlanEditor({
   }, [onPlanCreated, plan, planState]);
 
   return (
-    <Grid container direction="column" spacing={2} wrap="nowrap">
+    <Grid
+      container
+      direction="column"
+      spacing={2}
+      wrap="nowrap"
+      data-testid="plan-editor">
       <Grid item>
         <TextField
+          id="plan-name"
           label="Name"
           fullWidth
           value={planState.plan_name ?? ''}

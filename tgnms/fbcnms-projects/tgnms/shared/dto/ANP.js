@@ -9,14 +9,14 @@
  * Using the file handle (h) returned by the last chunk upload,
  * associate it with ANP and add some metadata.
  */
-export type AnpFileHandleRequest = {|
+export type ANPFileHandleRequest = {|
   file_name: string,
   file_extension: string,
   file_role: string,
   file_handle: string,
 |};
 
-export type AnpFileHandle = {|
+export type ANPFileHandle = {|
   file_name: string,
   file_extension: string,
   file_role: string,

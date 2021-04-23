@@ -49,6 +49,7 @@ import type {User} from '@fbcnms/tg-nms/shared/auth/User';
 // exports things like mockNetworkConfig and mockTopology
 export * from './data/NetworkConfig';
 export * from './data/NmsOptionsContext';
+export * from './data/ANPTestData';
 
 /**
  * DEPRECATED, pass a history object to TestApp instead.
@@ -112,7 +113,7 @@ export function TestApp({
 }) {
   const _history = React.useMemo(
     () => (history != null ? history : testHistory(route)),
-    [],
+    [history, route],
   );
   return (
     <Router history={_history}>

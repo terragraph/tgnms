@@ -8,11 +8,11 @@
 import axios from 'axios';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import type {
+  ANPFileHandle,
+  ANPFileHandleRequest,
   ANPFolder,
   ANPPlan,
   ANPPlanError,
-  AnpFileHandle,
-  AnpFileHandleRequest,
   CreateANPPlanRequest,
   GraphQueryResponse,
   LaunchANPPlanResponse,
@@ -35,7 +35,7 @@ export async function uploadFile({
   // used for testing
   uploadChunkSize?: number,
   onProgress?: (pct: number) => *,
-}): Promise<AnpFileHandle> {
+}): Promise<ANPFileHandle> {
   const chunkSize =
     uploadChunkSize != null && uploadChunkSize > 0
       ? uploadChunkSize
@@ -106,7 +106,7 @@ export async function uploadFile({
     throw new Error('upload failed');
   }
   // associate the file with ANP partner and assign its role
-  const result = await axios<AnpFileHandleRequest, AnpFileHandle>({
+  const result = await axios<ANPFileHandleRequest, ANPFileHandle>({
     url: `/network_plan/file`,
     method: 'PUT',
     data: {
@@ -139,7 +139,7 @@ export async function launchPlan(req: {id: string}) {
 export async function getPartnerFiles({role}: {role: string}) {
   const response = await axios<
     {role: string},
-    GraphQueryResponse<AnpFileHandle>,
+    GraphQueryResponse<ANPFileHandle>,
   >({
     url: `/network_plan/file?role=${role}`,
     method: 'GET',
@@ -202,8 +202,8 @@ export async function getPlanInputFiles({
   id,
 }: {
   id: string,
-}): Promise<Array<AnpFileHandle>> {
-  const response = await axios<void, Array<AnpFileHandle>>({
+}): Promise<Array<ANPFileHandle>> {
+  const response = await axios<void, Array<ANPFileHandle>>({
     url: `/network_plan/plan/${id}/inputs`,
     method: 'GET',
   });
@@ -213,8 +213,8 @@ export async function getPlanOutputFiles({
   id,
 }: {
   id: string,
-}): Promise<Array<AnpFileHandle>> {
-  const response = await axios<void, Array<AnpFileHandle>>({
+}): Promise<Array<ANPFileHandle>> {
+  const response = await axios<void, Array<ANPFileHandle>>({
     url: `/network_plan/plan/${id}/outputs`,
     method: 'GET',
   });

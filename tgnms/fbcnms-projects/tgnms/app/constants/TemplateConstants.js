@@ -17,7 +17,7 @@ import type {
   SiteType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
 
-export type AnpSite = {
+export type ANPSite = {
   site_id: string,
   loc: LocationType,
   desc: string,
@@ -26,7 +26,7 @@ export type AnpSite = {
   status_type: $Values<typeof ANP_STATUS_TYPE>,
 };
 
-export type AnpNode = {
+export type ANPNode = {
   node_id: string,
   site_id: string,
   ant_azimuth: number,
@@ -38,7 +38,7 @@ export type AnpNode = {
   active_links?: number,
 };
 
-export type AnpSector = {
+export type ANPSector = {
   sector_id: string,
   site_id: string,
   ant_azimuth: number,
@@ -50,7 +50,7 @@ export type AnpSector = {
   active_links?: number,
 };
 
-export type AnpLink = {
+export type ANPLink = {
   link_id: string,
   rx_sector_id: string,
   tx_sector_id: string,
@@ -69,7 +69,7 @@ export type AnpLink = {
   altitudes: Array<number>,
 };
 
-export type AnpKmlFeature = {
+export type ANPKmlFeature = {
   name: string,
 };
 
@@ -114,15 +114,15 @@ export type UploadTopologyType = {
   links: Array<LinkTemplate>,
 };
 
-export type AnpUploadTopologyType = {
-  sites: {[string]: AnpSite},
+export type ANPUploadTopologyType = {
+  sites: {[string]: ANPSite},
   // TODO: T86280178 - convert from nodes to sectors
-  nodes: {[string]: AnpNode},
-  sectors: {[string]: AnpSector},
-  links: {[string]: AnpLink},
+  nodes: {[string]: ANPNode},
+  sectors: {[string]: ANPSector},
+  links: {[string]: ANPLink},
 };
 
-export type AnpSiteUploadKmlType = {
+export type ANPSiteUploadKmlType = {
   type: string,
   geometry: {
     type: $Values<typeof kmlFeatureType>,
@@ -136,7 +136,7 @@ export type AnpSiteUploadKmlType = {
   },
 };
 
-export type AnpLinkUploadKmlType = {
+export type ANPLinkUploadKmlType = {
   type: string,
   geometry: {
     type: $Values<typeof kmlFeatureType>,
@@ -144,11 +144,11 @@ export type AnpLinkUploadKmlType = {
   },
   properties: {
     name: string,
-    styleURL: $Values<typeof kmlAnpStatus>,
+    styleURL: $Values<typeof kmlANPStatus>,
   },
 };
 
-export type AnpUploadKmlType = AnpSiteUploadKmlType | AnpLinkUploadKmlType;
+export type ANPUploadKmlType = ANPSiteUploadKmlType | ANPLinkUploadKmlType;
 
 export const defaultTemplate: SiteTemplate = {
   name: 'None',
@@ -253,7 +253,7 @@ export const ANP_SITE_TYPE = {
 export const kmlFeatureType = {site: 'Point', link: 'LineString'};
 export const kmlSiteType = {CN: 'CN', DN: 'DN', POP: 'POP'};
 
-export const kmlAnpStatus = {
+export const kmlANPStatus = {
   UNAVAILABLE: 'UNAVAILABLE',
   CANDIDATE: 'CANDIDATE',
   PROPOSED: 'PROPOSED',
