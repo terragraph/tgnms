@@ -55,7 +55,7 @@ export default function ReactPlotlyLineGraph({
         xaxis: {
           type: 'date',
           tickformat: '%b %d %Hh',
-          range: [new Date(startTime), new Date(endTime)],
+          range: [new Date(startTime * 1000), new Date(endTime * 1000)],
         },
         yaxis: {
           visible: false,

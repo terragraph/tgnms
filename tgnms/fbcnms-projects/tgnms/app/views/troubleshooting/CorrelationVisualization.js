@@ -15,7 +15,6 @@ import React from 'react';
 import axios from 'axios';
 import {EVENT_TYPES} from './EventsView';
 import {
-  INTERVAL_SEC,
   MILLISECONDS_TO_MINUTES,
   STEP_SIZE,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
@@ -94,7 +93,6 @@ export default function CorrelationVisualization({
       const queries = metrics.map(metric =>
         createQuery(metric, {
           network: networkName,
-          intervalSec: INTERVAL_SEC,
         }),
       );
       try {
