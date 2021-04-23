@@ -19,6 +19,7 @@ import {
 } from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
 import {useMapContext} from './MapContext';
 import {useNetworkContext} from './NetworkContext';
+import type {AnnotationProperties} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {
   MapAnnotationGroup,
@@ -31,8 +32,8 @@ export const ANNOTATION_DEFAULT_GROUP = 'default';
 type SetState<S> = {
   ((S => S) | S): void,
 };
-type UpdateFeaturePropery = {
-  (id: FeatureId, prop: string, val: ?string | ?number | ?boolean): void,
+type UpdateFeatureProperties = {
+  (id: FeatureId, properties: $Shape<AnnotationProperties>): void,
 };
 export type MapAnnotationContext = {|
   isDrawEnabled: boolean,
@@ -41,12 +42,14 @@ export type MapAnnotationContext = {|
   setCurrent: SetState<?MapAnnotationGroup>,
   groups: Array<MapAnnotationGroupIdent>,
   setGroups: SetState<Array<MapAnnotationGroupIdent>>,
-  selectedFeatureId: ?FeatureId,
-  setSelectedFeatureId: SetState<?FeatureId>,
-  selectedFeature: ?GeoFeature,
+  selectedFeatures: Array<GeoFeature>,
+  selectedFeatureIds: Array<FeatureId>,
+  setSelectedFeatureIds: SetState<Array<FeatureId>>,
+  updateFeatureProperties: UpdateFeatureProperties,
   getFeature: (s: string) => ?GeoFeature,
   drawControl: typeof MapboxDraw,
   deselectAll: () => void,
+  flushFeatureToMap: (featureId: FeatureId) => void,
 |};
 
 const empty = () => {};
@@ -56,13 +59,15 @@ export const defaultValue: MapAnnotationContext = {
   current: null,
   setCurrent: empty,
   groups: [],
-  selectedFeatureId: null,
-  setSelectedFeatureId: empty,
+  selectedFeatures: [],
+  selectedFeatureIds: [],
+  setSelectedFeatureIds: empty,
+  updateFeatureProperties: empty,
   setGroups: empty,
-  selectedFeature: null,
   getFeature: empty,
   drawControl: new MapboxDraw(),
   deselectAll: empty,
+  flushFeatureToMap: empty,
 };
 
 export const context = React.createContext<MapAnnotationContext>(defaultValue);
@@ -78,26 +83,55 @@ export function MapAnnotationContextProvider({
   const [isDrawEnabled, setIsDrawEnabled] = React.useState(false);
   const drawControl = useDrawControl();
   const [current, setCurrent] = React.useState<?MapAnnotationGroup>(null);
-  const [selectedFeatureId, setSelectedFeatureId] = React.useState<?FeatureId>(
-    null,
-  );
+  const [selectedFeatureIds, setSelectedFeatureIds] = React.useState<
+    Array<FeatureId>,
+  >([]);
   const [groups, setGroups] = React.useState<Array<MapAnnotationGroupIdent>>(
     [],
   );
-  const selectedFeature =
-    selectedFeatureId && isDrawEnabled
-      ? drawControl.get(selectedFeatureId)
-      : null;
-
-  const getFeature = React.useCallback((id: string) => drawControl.get(id), [
+  const getFeature = React.useCallback((id: FeatureId) => drawControl.get(id), [
     drawControl,
   ]);
-
+  const [propertiesUpdated, setPropertiesUpdated] = React.useState(new Date());
+  const refreshSelectedFeatures = React.useCallback(
+    () => setPropertiesUpdated(new Date()),
+    [setPropertiesUpdated],
+  );
+  const selectedFeatures = React.useMemo(
+    () => {
+      return selectedFeatureIds.map(fId => getFeature(fId));
+    },
+    // disable exhaustive deps so we can add the propertiesUpdated cache-buster
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedFeatureIds, propertiesUpdated, getFeature],
+  );
   const deselectAll = React.useCallback(() => {
     // changing mode back to simple_select with no features deselects everything
     drawControl.changeMode('simple_select');
-    setSelectedFeatureId(null);
+    setSelectedFeatureIds([]);
   }, [drawControl]);
+
+  /**
+   * Hack to refresh a feature on the map after using updateProperty
+   */
+  const flushFeatureToMap = React.useCallback(
+    (featureId: FeatureId) => {
+      drawControl.add(drawControl.get(featureId));
+    },
+    [drawControl],
+  );
+  const updateFeatureProperties = React.useCallback<UpdateFeatureProperties>(
+    (featureId, update) => {
+      for (const key of Object.keys(update)) {
+        const val = update[key];
+        drawControl.setFeatureProperty(featureId, key, val);
+      }
+      flushFeatureToMap(featureId);
+      refreshSelectedFeatures();
+    },
+    [flushFeatureToMap, refreshSelectedFeatures, drawControl],
+  );
+
   return (
     <context.Provider
       value={{
@@ -107,17 +141,18 @@ export function MapAnnotationContextProvider({
         setCurrent,
         groups,
         setGroups,
-        selectedFeatureId,
-        setSelectedFeatureId,
-        selectedFeature,
+        selectedFeatures,
+        selectedFeatureIds,
+        setSelectedFeatureIds,
+        updateFeatureProperties,
         getFeature,
         deselectAll,
-
         /**
          * usually, don't use the draw control directly as a consumer.
          * Make a more nicely named helper function in this context
          */
         drawControl,
+        flushFeatureToMap,
       }}>
       {children}
     </context.Provider>
@@ -221,25 +256,16 @@ type UpdateFeature = {
   (GeoFeature): Promise<GeoFeature>,
 };
 export function useAnnotationFeatures(): {
-  updateFeatureProperty: UpdateFeaturePropery,
   deleteFeature: DeleteFeature,
   updateFeature: UpdateFeature,
 } {
   const {networkName} = useNetworkContext();
   const {
     drawControl,
-    setSelectedFeatureId,
+    setSelectedFeatureIds,
     current,
   } = useMapAnnotationContext();
   const groupName = current?.name;
-  // does not trigger a react rerender
-  const updateFeatureProperty = React.useCallback<UpdateFeaturePropery>(
-    (featureId, property, value) => {
-      drawControl.setFeatureProperty(featureId, property, value);
-    },
-    [drawControl],
-  );
-
   const updateFeature = React.useCallback(
     async (feature: GeoFeature) => {
       return mapApiUtil.saveAnnotation({
@@ -256,12 +282,7 @@ export function useAnnotationFeatures(): {
       if (drawControl.get(featureId)) {
         drawControl.delete(featureId);
       }
-      setSelectedFeatureId(curr => {
-        if (typeof curr === 'string' && curr === featureId) {
-          return null;
-        }
-        return curr;
-      });
+      setSelectedFeatureIds(curr => curr.filter(id => id != featureId));
       if (featureId == null || groupName == null) {
         return;
       }
@@ -271,11 +292,10 @@ export function useAnnotationFeatures(): {
         annotationId: featureId,
       });
     },
-    [drawControl, groupName, networkName, setSelectedFeatureId],
+    [drawControl, groupName, networkName, setSelectedFeatureIds],
   );
 
   return {
-    updateFeatureProperty,
     deleteFeature,
     updateFeature,
   };
@@ -287,7 +307,7 @@ type MapboxDrawEvent = {|
 |};
 export function useDrawState() {
   const {mapboxRef} = useMapContext();
-  const {setSelectedFeatureId} = useMapAnnotationContext();
+  const {setSelectedFeatureIds} = useMapAnnotationContext();
   const {deleteFeature, updateFeature} = useAnnotationFeatures();
   const handleFeaturesDeleted = (features: Array<GeoFeature>) => {
     for (const feat of features) {
@@ -303,8 +323,13 @@ export function useDrawState() {
     if (!features) {
       return;
     }
-    const [lastSelected] = features.slice(-1);
-    setSelectedFeatureId(lastSelected?.id);
+    const ids = features.reduce<Array<FeatureId>>((ids, feature) => {
+      if (feature.id != null) {
+        ids.push(feature.id);
+      }
+      return ids;
+    }, []);
+    setSelectedFeatureIds(ids);
   };
 
   const handleDrawUpdate = useLiveRef((update: MapboxDrawEvent) => {

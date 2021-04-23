@@ -28,6 +28,7 @@ import {
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {makeStyles} from '@material-ui/styles';
 import {
   useAnnotationFeatures,
   useMapAnnotationContext,
@@ -56,8 +57,7 @@ export default function AnnotationsPanel({
     collapseAll,
   } = panelControl;
   const {
-    selectedFeatureId,
-    selectedFeature,
+    selectedFeatures,
     deselectAll,
     isDrawEnabled,
     setIsDrawEnabled,
@@ -83,21 +83,21 @@ export default function AnnotationsPanel({
   return (
     <Slide {...SlideProps} in={!getIsHidden(PANELS.ANNOTATIONS)}>
       <CustomAccordion
-        title={getPanelTitle(selectedFeature)}
+        title={getPanelTitle(selectedFeatures)}
         data-testid="annotations-panel"
         details={
-          <Grid container direction="column" spacing={2} wrap="nowrap">
-            {!selectedFeatureId && (
+          <Grid container direction="column" wrap="nowrap">
+            {selectedFeatures.length < 1 && (
               <>
                 <AnnotationGroupsForm />
                 <Divider />
               </>
             )}
-            {selectedFeatureId && (
+            {selectedFeatures.length >= 1 && (
               <>
-                <EditAnnotationForm />
-                <Measurement />
-                <Divider />
+                {selectedFeatures.map(feature => (
+                  <AnnotationCard feature={feature} key={feature.id} />
+                ))}
                 <AnnotationsPanelActions />
               </>
             )}
@@ -111,17 +111,57 @@ export default function AnnotationsPanel({
   );
 }
 
-function getPanelTitle(feature: ?GeoFeature) {
-  if (feature) {
+function getPanelTitle(features: Array<GeoFeature>) {
+  if (features.length === 1) {
+    const feature = features[0];
     const type = turf.getType(feature);
     if (typeof GEO_GEOM_TYPE_TITLES[type] === 'string') {
       return GEO_GEOM_TYPE_TITLES[type];
     } else {
       return type;
     }
+  } else if (features.length > 1) {
+    return 'Multiple';
   }
 
   return 'Annotation Layers';
+}
+
+/**
+ * annotation card's internal spacing adds some negative margin on
+ * both sides which throws off alignment with the rest of CustomAccordion.
+ */
+const formSpacing = 1;
+const wrapperPadding = formSpacing / 2.0;
+const useAnnotationCardStyles = makeStyles(theme => ({
+  cardWrapper: {
+    //padding to counteract negative margin
+    padding: theme.spacing(wrapperPadding),
+    marginBottom: theme.spacing(1),
+  },
+  card: {
+    backgroundColor: theme.palette.grey[100],
+    // regular padding for the form itself
+    padding: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+  },
+}));
+function AnnotationCard({feature}: {feature: GeoFeature}) {
+  const classes = useAnnotationCardStyles();
+  return (
+    <Grid item container className={classes.cardWrapper}>
+      <Grid
+        className={classes.card}
+        item
+        container
+        direction="column"
+        spacing={formSpacing}
+        wrap="nowrap">
+        <EditAnnotationForm feature={feature} />
+        <Measurement feature={feature} />
+      </Grid>
+    </Grid>
+  );
 }
 
 type ActionsProps = {||};
@@ -136,51 +176,62 @@ function AnnotationsPanelActions({}: ActionsProps) {
     setMessage,
   } = useTaskState();
   const {networkName} = useNetworkContext();
-  const {selectedFeature} = useMapAnnotationContext();
+  const {selectedFeatures} = useMapAnnotationContext();
   const {deleteFeature} = useAnnotationFeatures();
   const snackbars = useSnackbars();
 
   const handleConvertToSite = async () => {
     reset();
-    if (selectedFeature && selectedFeature) {
-      const errors = validateFeature(selectedFeature);
-      if (errors.length > 0) {
-        setState(TASK_STATE.ERROR);
-        setMessage(errors.join());
-      } else {
-        setState(TASK_STATE.LOADING);
-        const createdTopology = convertFeatureToTopology(selectedFeature);
-        try {
-          await apiRequest({
-            networkName,
-            endpoint: 'bulkAdd',
-            data: createdTopology,
-          });
-          await deleteFeature(selectedFeature.id);
-          setState(TASK_STATE.SUCCESS);
-          snackbars.success(
-            'Topology successfully changed! Please wait a few moments for the topology to update.',
-          );
-        } catch (err) {
-          setState(TASK_STATE.ERROR);
-          setMessage(err.message);
+    // flatten the error list
+    const errors = [].concat.apply(
+      [],
+      selectedFeatures.map(f => validateFeature(f)),
+    );
+    if (errors.length > 0) {
+      setState(TASK_STATE.ERROR);
+      setMessage(errors.join());
+    } else {
+      setState(TASK_STATE.LOADING);
+      const createdTopology = convertFeaturesToTopology(selectedFeatures);
+      try {
+        await apiRequest({
+          networkName,
+          endpoint: 'bulkAdd',
+          data: createdTopology,
+        });
+        for (const f of selectedFeatures) {
+          await deleteFeature(f.id);
         }
+        setState(TASK_STATE.SUCCESS);
+        snackbars.success(
+          'Topology successfully changed! Please wait a few moments for the topology to update.',
+        );
+      } catch (err) {
+        setState(TASK_STATE.ERROR);
+        setMessage(err.message);
       }
     }
   };
 
-  const handleDelete = React.useCallback(() => {
-    deleteFeature(selectedFeature?.id);
-  }, [deleteFeature, selectedFeature]);
+  const handleDelete = React.useCallback(async () => {
+    for (const f of selectedFeatures) {
+      await deleteFeature(f.id);
+    }
+  }, [deleteFeature, selectedFeatures]);
+
+  // Disable quick convert if selection is not all points
+  const isNonPointSelected = selectedFeatures.some(
+    f => f?.geometry?.type !== GEOMETRY_TYPE.POINT,
+  );
   const actions = [
     {
       heading: 'Topology',
-      isDisabled: selectedFeature?.geometry?.type !== GEOMETRY_TYPE.POINT,
+      isDisabled: isNonPointSelected,
       actions: [
         {
           label: 'Quick-Convert to Site',
           func: handleConvertToSite,
-          isDisabled: selectedFeature?.geometry?.type !== GEOMETRY_TYPE.POINT,
+          isDisabled: isNonPointSelected,
           testId: 'quick-convert-to-site',
         },
       ],
@@ -216,14 +267,18 @@ type BulkAddTopologyType = {|
   links: Array<LinkType>,
   nodes: Array<NodeType>,
 |};
-function convertFeatureToTopology(
-  feature: GeoFeature,
+function convertFeaturesToTopology(
+  features: Array<GeoFeature>,
 ): $Shape<BulkAddTopologyType> {
-  const type = turf.getType(feature);
-  if (POINTS.has(type)) {
-    return {sites: [convertPointToSite(feature)]};
+  const topology = {sites: [], nodes: [], links: []};
+  for (const feature of features) {
+    const type = turf.getType(feature);
+    if (POINTS.has(type)) {
+      topology.sites.push(convertPointToSite(feature));
+    }
   }
-  return {sites: [], nodes: [], links: []};
+
+  return topology;
 }
 
 function convertPointToSite(feature: GeoFeature): SiteType {

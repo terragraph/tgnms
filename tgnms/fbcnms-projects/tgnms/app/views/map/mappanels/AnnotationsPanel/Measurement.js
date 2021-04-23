@@ -14,24 +14,21 @@ import {
   POLYS,
 } from '@fbcnms/tg-nms/app/constants/GeoJSONConstants';
 import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
-import {useMapAnnotationContext} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import type {GeoFeature} from '@turf/turf';
 
 const MIN_LEN_KM = 2;
 const MAX_AREA_M = 1000000; // maximum m^2 before we convert to km^2
 
-export default function Measurement() {
-  const {selectedFeature} = useMapAnnotationContext();
-
-  const geometryType = selectedFeature?.geometry?.type;
-  if (!(geometryType && MEASURABLE.has(geometryType) && selectedFeature)) {
+export default function Measurement({feature}: {feature: GeoFeature}) {
+  const geometryType = feature?.geometry?.type;
+  if (!(geometryType && MEASURABLE.has(geometryType) && feature)) {
     return null;
   }
 
   return (
     <Grid item container direction="column">
-      {LINES.has(geometryType) && <FeatureLength feature={selectedFeature} />}
-      {POLYS.has(geometryType) && <FeatureArea feature={selectedFeature} />}
+      {LINES.has(geometryType) && <FeatureLength feature={feature} />}
+      {POLYS.has(geometryType) && <FeatureArea feature={feature} />}
     </Grid>
   );
 }
@@ -49,10 +46,12 @@ function FeatureLength({feature}: {feature: GeoFeature}) {
   return (
     <Grid item container xs={12} spacing={2}>
       <Grid item>
-        <Typography color="textSecondary">Length:</Typography>
+        <Typography variant="body2" color="textSecondary">
+          Length:
+        </Typography>
       </Grid>
       <Grid item>
-        <Typography>
+        <Typography variant="body2">
           <span data-testid="feature-length">{lengthString}</span>
         </Typography>
       </Grid>
@@ -73,10 +72,12 @@ export function FeatureArea({feature}: {feature: GeoFeature}) {
   return (
     <Grid item container xs={12} spacing={2}>
       <Grid item>
-        <Typography color="textSecondary">Area:</Typography>
+        <Typography variant="body2" color="textSecondary">
+          Area:
+        </Typography>
       </Grid>
       <Grid item>
-        <Typography>
+        <Typography variant="body2">
           <span data-testid="feature-area">{areaString}</span>
         </Typography>
       </Grid>

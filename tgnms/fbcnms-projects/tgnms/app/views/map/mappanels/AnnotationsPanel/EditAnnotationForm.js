@@ -14,6 +14,7 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {ANNOTATION_COLORS} from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
 import {MAPBOX_DRAW_DEFAULT_COLOR} from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
@@ -23,19 +24,8 @@ import {
   useAnnotationFeatures,
   useMapAnnotationContext,
 } from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
+import type {AnnotationProperties} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 import type {GeoFeature} from '@turf/turf';
-
-/**
- * Most customizable things on an annotation come from its GeoJSON Properties.
- * Be careful modifying these types, they're queried by mapbox-gl-js
- * style expressions.
- */
-export type AnnotationProperties = {|
-  name: string,
-  showName: boolean,
-  color: string,
-  opacity: ?number,
-|};
 
 const defaultProperties: $Shape<AnnotationProperties> = {
   name: '',
@@ -51,10 +41,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function EditAnnotationForm() {
+export default function EditAnnotationForm({feature}: {feature: GeoFeature}) {
   const classes = useStyles();
-  const {selectedFeature, drawControl} = useMapAnnotationContext();
-  const {updateFeatureProperty, updateFeature} = useAnnotationFeatures();
+  const {drawControl, updateFeatureProperties} = useMapAnnotationContext();
+  const {updateFeature} = useAnnotationFeatures();
   const updateFeatureDebounced = React.useMemo(
     () => debounce((feature: GeoFeature) => updateFeature(feature), 500),
     [updateFeature],
@@ -64,29 +54,26 @@ export default function EditAnnotationForm() {
   >({
     initialState: defaultProperties,
     onFormUpdated: update => {
-      if (!selectedFeature || typeof selectedFeature.id === 'undefined') {
+      if (!feature || typeof feature.id === 'undefined') {
         return;
       }
-      if (typeof selectedFeature.id !== 'undefined') {
-        for (const key of Object.keys(update)) {
-          const val = update[key];
-          updateFeatureProperty(selectedFeature.id, key, val);
-        }
-        updateFeatureDebounced(drawControl.get(selectedFeature.id));
+      if (typeof feature.id !== 'undefined') {
+        updateFeatureProperties(feature.id, update);
+        updateFeatureDebounced(drawControl.get(feature.id));
       }
     },
   });
-  // if selectedFeature changes, update the local form
+  // if feature changes, update the local form
   React.useEffect(() => {
-    if (selectedFeature) {
+    if (feature) {
       setFormState({
         ...defaultProperties,
-        ...(selectedFeature?.properties: $Shape<AnnotationProperties>),
+        ...(feature?.properties: $Shape<AnnotationProperties>),
       });
     }
-  }, [selectedFeature, setFormState]);
+  }, [feature, setFormState]);
 
-  if (!selectedFeature) {
+  if (!feature) {
     return null;
   }
 
@@ -96,8 +83,8 @@ export default function EditAnnotationForm() {
     size: 'small',
   };
   return (
-    <Grid container item xs={12} direction="column" spacing={1}>
-      <Grid item>
+    <Grid container item xs={12} direction="column" spacing={1} wrap="nowrap">
+      <Grid item xs={12}>
         <TextField
           onChange={handleInputChange(val => ({name: val}))}
           value={formState.name}
@@ -106,7 +93,9 @@ export default function EditAnnotationForm() {
           fullWidth
         />
         <FormControlLabel
-          label="Show name on map"
+          label={
+            <Typography color="textSecondary">Show name on map</Typography>
+          }
           color="secondary"
           control={
             <Checkbox

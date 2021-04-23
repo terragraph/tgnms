@@ -28,3 +28,15 @@ export type SaveAnnotationGroupRequest = {|
   name: string,
   geojson: string,
 |};
+
+/**
+ * Most customizable things on an annotation come from its GeoJSON Properties.
+ * Be careful modifying these types, they're queried by mapbox-gl-js
+ * style expressions.
+ */
+export type AnnotationProperties = {|
+  name: string,
+  showName: boolean,
+  color: string,
+  opacity: ?number,
+|};

@@ -9,7 +9,6 @@ import * as React from 'react';
 import * as turf from '@turf/turf';
 import {
   MapAnnotationContextProvider,
-  useAnnotationFeatures,
   useAnnotationGroups,
   useMapAnnotationContext,
 } from '../MapAnnotationContext';
@@ -31,7 +30,7 @@ test('renders', () => {
     wrapper: Wrapper,
   });
   expect(result.current.current).toBe(null);
-  expect(result.current.selectedFeatureId).toBe(null);
+  expect(result.current.selectedFeatures.length).toBe(0);
 });
 
 test('setSelectedFeatureId should update selectedFeature', () => {
@@ -48,10 +47,10 @@ test('setSelectedFeatureId should update selectedFeature', () => {
     showGroup(result.current, group);
   });
   act(() => {
-    result.current.setSelectedFeatureId(FEATURE_ID_1);
+    result.current.setSelectedFeatureIds([FEATURE_ID_1]);
   });
 
-  expect(result.current.selectedFeature).toMatchObject({
+  expect(result.current.selectedFeatures[0]).toMatchObject({
     type: 'Feature',
     geometry: {
       type: 'Point',
@@ -64,12 +63,12 @@ test('setSelectedFeatureId should update selectedFeature', () => {
   });
 });
 
-describe('updateFeatureProperty', () => {
+describe('updateFeatureProperties', () => {
   test(
     'selectedFeature should update if ' +
       'updating properties of the selected feature',
     () => {
-      const {result, rerender} = renderCtxHook(() => useAnnotationFeatures());
+      const {result, rerender} = renderCtxHook(() => useMapAnnotationContext());
 
       act(() => {
         const group = mockAnnotationGroup([
@@ -79,18 +78,16 @@ describe('updateFeatureProperty', () => {
         showGroup(result.current.__ctx, group);
       });
       act(() => {
-        result.current.__ctx.setSelectedFeatureId(FEATURE_ID_1);
+        result.current.__ctx.setSelectedFeatureIds([FEATURE_ID_1]);
       });
       act(() => {
-        result.current.updateFeatureProperty(
-          FEATURE_ID_1,
-          'name',
-          'test-1-edited',
-        );
+        result.current.updateFeatureProperties(FEATURE_ID_1, {
+          name: 'test-1-edited',
+        });
       });
       // rerender since selectedFeature is a context property
       act(rerender);
-      expect(result.current.__ctx.selectedFeature?.properties.name).toBe(
+      expect(result.current.__ctx.selectedFeatures[0]?.properties.name).toBe(
         'test-1-edited',
       );
     },
@@ -100,7 +97,7 @@ describe('updateFeatureProperty', () => {
     'selectedFeature should not update if ' +
       'updating properties of a non-selected feature',
     () => {
-      const {result, rerender} = renderCtxHook(() => useAnnotationFeatures());
+      const {result, rerender} = renderCtxHook(() => useMapAnnotationContext());
 
       act(() => {
         const group = mockAnnotationGroup([
@@ -110,21 +107,19 @@ describe('updateFeatureProperty', () => {
         showGroup(result.current.__ctx, group);
       });
       act(() => {
-        result.current.__ctx.setSelectedFeatureId(FEATURE_ID_1);
+        result.current.__ctx.setSelectedFeatureIds([FEATURE_ID_1]);
       });
       act(() => {
-        result.current.updateFeatureProperty(
-          FEATURE_ID_2,
-          'name',
-          'test-2-edited',
-        );
+        result.current.updateFeatureProperties(FEATURE_ID_2, {
+          name: 'test-2-edited',
+        });
       });
       // rerender since selectedFeature is a context property
       act(rerender);
       expect(
         result.current.__ctx.drawControl.get(FEATURE_ID_2).properties.name,
       ).toBe('test-2-edited');
-      expect(result.current.__ctx.selectedFeature?.properties.name).toBe(
+      expect(result.current.__ctx.selectedFeatures[0]?.properties.name).toBe(
         'test-1',
       );
     },

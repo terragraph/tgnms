@@ -50,12 +50,14 @@ test('shows form if a feature is selected', () => {
   const {getByLabelText} = render(
     <Wrapper
       contextVal={{
-        selectedFeatureId: '123',
-        selectedFeature: turf.feature(
-          {type: 'Point', coordinates: [0, 0]},
-          {name: 'test-abc', showName: true},
-          {id: '123'},
-        ),
+        selectedFeatureIds: ['123'],
+        selectedFeatures: [
+          turf.feature(
+            {type: 'Point', coordinates: [0, 0]},
+            {name: 'test-abc', showName: true},
+            {id: '123'},
+          ),
+        ],
       }}>
       <AnnotationsPanel {...defaultProps} />
     </Wrapper>,
@@ -72,15 +74,17 @@ test('shows length if feature is a line', () => {
   const {getByText, getByTestId} = render(
     <Wrapper
       contextVal={{
-        selectedFeatureId: '123',
-        selectedFeature: turf.feature(
-          {
-            type: 'LineString',
-            coordinates: mockLineStringCoords(),
-          },
-          {name: 'test-abc', showName: true},
-          {id: '123'},
-        ),
+        selectedFeatureIds: ['123'],
+        selectedFeatures: [
+          turf.feature(
+            {
+              type: 'LineString',
+              coordinates: mockLineStringCoords(),
+            },
+            {name: 'test-abc', showName: true},
+            {id: '123'},
+          ),
+        ],
       }}>
       <AnnotationsPanel {...defaultProps} />
     </Wrapper>,
@@ -93,23 +97,25 @@ test('shows area if feature is a polygon', () => {
   const {getByText, getByTestId} = render(
     <Wrapper
       contextVal={{
-        selectedFeatureId: '123',
-        selectedFeature: turf.feature(
-          {
-            type: 'Polygon',
-            coordinates: ([
-              [
-                [125, -15],
-                [113, -22],
-                [154, -27],
-                [144, -15],
-                [125, -15],
-              ],
-            ]: PolygonCoords),
-          },
-          {name: 'test-abc', showName: true},
-          {id: '123'},
-        ),
+        selectedFeatureIds: ['123'],
+        selectedFeatures: [
+          turf.feature(
+            {
+              type: 'Polygon',
+              coordinates: ([
+                [
+                  [125, -15],
+                  [113, -22],
+                  [154, -27],
+                  [144, -15],
+                  [125, -15],
+                ],
+              ]: PolygonCoords),
+            },
+            {name: 'test-abc', showName: true},
+            {id: '123'},
+          ),
+        ],
       }}>
       <AnnotationsPanel {...defaultProps} />
     </Wrapper>,
@@ -122,12 +128,10 @@ describe('Convert to Topology', () => {
   describe('Convert to Site - Quick', () => {
     test('does not show for non-point annotations', () => {
       const makeCtx = (geo: GeoGeometry) => ({
-        selectedFeatureId: '123',
-        selectedFeature: turf.feature(
-          geo,
-          {name: 'test-abc', showName: true},
-          {id: '123'},
-        ),
+        selectedFeatureIds: ['123'],
+        selectedFeatures: [
+          turf.feature(geo, {name: 'test-abc', showName: true}, {id: '123'}),
+        ],
       });
       const {getByText, queryByTestId, rerender} = render(
         <Wrapper
@@ -163,12 +167,14 @@ describe('Convert to Topology', () => {
       const {getByText, getByTestId} = render(
         <Wrapper
           contextVal={{
-            selectedFeatureId: '123',
-            selectedFeature: turf.feature(
-              {type: 'Point', coordinates: [18, 32]},
-              {name: 'test-abc', showName: true},
-              {id: '123'},
-            ),
+            selectedFeatureIds: ['123'],
+            selectedFeatures: [
+              turf.feature(
+                {type: 'Point', coordinates: [18, 32]},
+                {name: 'test-abc', showName: true},
+                {id: '123'},
+              ),
+            ],
           }}>
           <AnnotationsPanel {...defaultProps} />
         </Wrapper>,
@@ -197,6 +203,8 @@ describe('Convert to Topology', () => {
               },
             },
           ],
+          links: [],
+          nodes: [],
         },
       });
     });
