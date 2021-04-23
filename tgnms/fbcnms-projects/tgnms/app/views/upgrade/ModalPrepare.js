@@ -30,6 +30,7 @@ import {
 import {
   createCheckboxGroupInput,
   createNumericInput,
+  createRadioGroupInput,
   formParseInt,
 } from '@fbcnms/tg-nms/app/helpers/FormHelpers';
 import {
@@ -79,6 +80,7 @@ const initState = Object.freeze({
   skipFailure: true,
   timeout: 180,
   uploadLimit: -1,
+  useHttpImage: false,
 });
 
 type Props = {
@@ -103,6 +105,7 @@ type State = {
   timeout: number,
   upgradeImages: Array<SoftwareImageType>,
   uploadLimit: number,
+  useHttpImage: boolean,
 };
 
 class ModalPrepare extends React.Component<Props, State> {
@@ -217,7 +220,9 @@ class ModalPrepare extends React.Component<Props, State> {
           selectedImage.hardwareBoardIds.length
             ? selectedImage.hardwareBoardIds
             : [],
-        imageUrl: selectedImage.magnetUri,
+        imageUrl: this.state.useHttpImage
+          ? selectedImage.httpUri
+          : selectedImage.magnetUri,
         md5: selectedImage.md5,
         torrentParams: {
           downloadLimit: formParseInt(this.state.downloadLimit),
@@ -252,13 +257,20 @@ class ModalPrepare extends React.Component<Props, State> {
   };
 
   handleSelectImage = selectedOption => {
-    this.setState({selectedImage: selectedOption?.image});
+    this.setState({
+      selectedImage: selectedOption?.image,
+      useHttpImage: false /* reset after image is selected */,
+    });
   };
 
   resetBatchSizeLimit = isParallel => {
     if (isParallel) {
       this.setState({batchSizeLimit: 1});
     }
+  };
+
+  setDownloadMechanism = isHttpUri => {
+    this.setState({useHttpImage: isHttpUri === 'true' ? true : false});
   };
 
   render() {
@@ -282,8 +294,29 @@ class ModalPrepare extends React.Component<Props, State> {
         step: 1,
       },
     ];
+    const httpDownloadEnabled = selectedImage && selectedImage.httpUri;
 
     const advancedInputs = [
+      {
+        func: createRadioGroupInput,
+        label: 'Download Protocol',
+        helperText:
+          !httpDownloadEnabled &&
+          'To enable HTTP-based downloads, set the controller config flag "upgrade_image_http_path"',
+        value: 'useHttpImage',
+        onChange: this.setDownloadMechanism,
+        choices: [
+          {
+            label: 'BitTorrent',
+            value: false,
+          },
+          {
+            label: 'HTTP',
+            value: true,
+            disabled: !httpDownloadEnabled,
+          },
+        ],
+      },
       {
         func: createNumericInput,
         label: 'Retry Limit',

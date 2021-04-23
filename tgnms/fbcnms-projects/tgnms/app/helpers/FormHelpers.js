@@ -79,6 +79,7 @@ export function createRadioGroupInput(options, state, setState) {
               style={{marginLeft: '-8px'}}
               control={<Radio color={choice.color} style={{padding: '6px'}} />}
               value={choice.value}
+              disabled={!!choice.disabled}
             />
           );
         })}

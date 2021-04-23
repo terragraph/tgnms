@@ -426,6 +426,7 @@ export type UpgradeCommitPlanType = {|
 export type UpgradeImageType = {|
   name: string,
   magnetUri: string,
+  httpUri?: string,
   md5: string,
   hardwareBoardIds: string[]
 |};
