@@ -47,9 +47,8 @@ function refreshHealthData() {
       configName,
     );
     refreshNetworkHealth(configName);
+    refreshPrometheusStatus(configName);
   });
-  // determine Prometheus status
-  refreshPrometheusStatus();
 }
 
 module.exports = {

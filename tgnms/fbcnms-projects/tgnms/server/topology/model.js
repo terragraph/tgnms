@@ -32,7 +32,6 @@ import type {
   NetworkInstanceConfig,
   NetworkState,
   ServerNetworkState,
-  ServiceState,
 } from '../../shared/dto/NetworkState';
 import type {Response} from '../types/express';
 
@@ -52,9 +51,6 @@ let networkInstanceConfig: {|[string]: NetworkInstanceConfig|} = {};
 // TODO - these aren't in the new config yet
 // hold all state
 const networkState: NetworkStateMap = {};
-// backend service status - just Prometheus for now
-const serviceState: ServiceState = {prometheus_online: false};
-
 // This array and the two functions below keep tracks of topology
 // stream event connections from browsers
 let topologyEventRequesters = [];
@@ -547,7 +543,6 @@ export function getNetworkState(networkName: string): ?NetworkState {
     const state = {
       ...networkState[networkName],
       ...networkInstanceConfig[networkName],
-      ...serviceState,
     };
     return state;
   }
@@ -689,16 +684,16 @@ export async function fetchNetworkHealthFromDb(
   });
 }
 
-export function refreshPrometheusStatus() {
+export function refreshPrometheusStatus(networkName: string) {
   // call the test handler to verify service is healthy
   const testHandlerUrl = PROMETHEUS_URL + '/-/healthy';
   axios.get(testHandlerUrl).then(res => {
     if (res.status !== 200) {
       logger.error('Error fetching from health status from Prometheus');
-      serviceState.prometheus_online = false;
+      networkState[networkName].prometheus_online = false;
       return;
     }
-    serviceState.prometheus_online = true;
+    networkState[networkName].prometheus_online = true;
   });
 }
 

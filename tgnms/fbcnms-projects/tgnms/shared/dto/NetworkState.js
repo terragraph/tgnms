@@ -43,10 +43,6 @@ export type NetworkInstanceConfig = {|
   event_alarm_url?: ?string,
 |};
 
-export type ServiceState = {|
-  prometheus_online: boolean,
-|};
-
 export type ServerNetworkState = {|
   name: string,
   active: $Keys<typeof HAPeerType>,
@@ -54,6 +50,7 @@ export type ServerNetworkState = {|
   controller_ip_active: number,
   controller_version: string,
   controller_online: boolean,
+  prometheus_online: boolean,
   topology: TopologyType,
   topologyConfig: TopologyConfig,
   bounds: [[number, number], [number, number]],
@@ -71,7 +68,6 @@ export type ServerNetworkState = {|
 export type NetworkState = {|
   ...ServerNetworkState,
   ...NetworkInstanceConfig,
-  ...ServiceState,
 |};
 
 export type HAState = {|
