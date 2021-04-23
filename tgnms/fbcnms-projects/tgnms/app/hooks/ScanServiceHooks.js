@@ -136,6 +136,11 @@ export function useLoadScanTableData({
       });
       setLoading(false);
 
+      const sortedExecutions = [...tempRows.executions].sort(
+        (a, b) =>
+          new Date(b.start_dt).getTime() - new Date(a.start_dt).getTime(),
+      );
+
       if (!runningTestTimeoutRef.current && tempRows.running.length) {
         runningTestTimeoutRef.current = setTimeout(() => {
           setShouldUpdate(!shouldUpdate);
@@ -146,7 +151,7 @@ export function useLoadScanTableData({
       setData([
         ...tempRows.running,
         ...tempRows.schedule.reverse(),
-        ...tempRows.executions.reverse(),
+        ...sortedExecutions,
       ]);
     };
 

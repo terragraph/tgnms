@@ -20,7 +20,7 @@ export type TableResultType = {
   id: number,
   enabled?: boolean,
   cron_expr?: string,
-  start_dt?: string,
+  start_dt?: ?string,
   end_dt?: string,
   status?: $Keys<typeof TEST_EXECUTION_STATUS>,
   test_type: $Keys<typeof TEST_TYPE_CODES>,
