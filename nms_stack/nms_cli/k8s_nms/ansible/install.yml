@@ -10,7 +10,7 @@
         https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
         no_proxy: "{{ no_proxy if no_proxy is defined else '' }}"
       tags:
-      - always
+        - always
 
 - hosts: all
   tasks:
@@ -19,7 +19,7 @@
         path: "{{ terragraph_docker_path }}"
         state: directory
       tags:
-      - always
+        - always
 
 - name: install and mount glusterfs
   import_playbook: plays/tg-glusterfs/site.yaml
@@ -120,8 +120,9 @@
       ignore_errors: yes
       tags:
         - kubernetes
-
-    # - name: add MetalLB
-    #   when: metallb_address_space is defined
-    #   include_role:
-    #     name: metallb
+    - name: enable outbound nat (v6)
+      shell: 'kubectl patch ippool default-ipv6-ippool --type merge --patch ''{"spec":{"natOutgoing": true}}'''
+      when: is_ipv6
+    - name: enable outbound nat (v4)
+      shell: 'kubectl patch ippool default-ipv4-ippool --type merge --patch ''{"spec":{"natOutgoing": true}}'''
+      when: !is_ipv6
