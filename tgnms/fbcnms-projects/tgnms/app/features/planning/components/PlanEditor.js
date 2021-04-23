@@ -7,10 +7,12 @@
 import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import SelectANPFolder from './SelectANPFolder';
 import SelectOrUploadANPFile from './SelectOrUploadANPFile';
 import TextField from '@material-ui/core/TextField';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
@@ -27,14 +29,12 @@ export default function PlanEditor({
   plan,
   inputFiles,
   onExit,
-  onPlanCreated,
   onPlanLaunched,
 }: {
   plan: ?ANPPlan,
   inputFiles: ?InputFilesByRole,
   folderId: string,
   onExit: () => void,
-  onPlanCreated: ANPPlan => void | Promise<void>,
   onPlanLaunched: string => void | Promise<void>,
 }) {
   // reconstruct the form-state from plan and input files
@@ -51,23 +51,26 @@ export default function PlanEditor({
     };
     setPlanFormState(formState);
   }, [plan, inputFiles, folderId, setPlanFormState]);
+  const startPlanTask = useTaskState();
   const handleStartPlanClicked = React.useCallback(async () => {
-    if (!validatePlanState(planState)) {
-      return;
-    }
-    let planId = plan?.id;
-    if (planId == null) {
+    try {
+      startPlanTask.loading();
+      if (!validatePlanState(planState)) {
+        return;
+      }
       const createPlanResult = await networkPlanningAPIUtil.createPlan({
         ...planState,
       });
-      planId = createPlanResult.id;
-      onPlanCreated(createPlanResult);
+      const _launchPlanResult = await networkPlanningAPIUtil.launchPlan({
+        id: createPlanResult.id,
+      });
+      startPlanTask.success();
+      onPlanLaunched(createPlanResult.id);
+    } catch (err) {
+      startPlanTask.error();
+      startPlanTask.setMessage(err.message);
     }
-    const _launchPlanResult = await networkPlanningAPIUtil.launchPlan({
-      id: planId,
-    });
-    onPlanLaunched(planId);
-  }, [onPlanCreated, onPlanLaunched, plan, planState]);
+  }, [onPlanLaunched, planState, startPlanTask]);
 
   return (
     <Grid
@@ -127,7 +130,8 @@ export default function PlanEditor({
             variant="contained"
             color="primary"
             size="small">
-            Start Plan
+            Start Plan{' '}
+            {startPlanTask.isLoading && <CircularProgress size={10} />}
           </Button>
         </Grid>
       </Grid>

@@ -32,6 +32,10 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: red[100],
     color: red[400],
   },
+  [PLAN_STATUS.KILLED]: {
+    backgroundColor: theme.palette.grey[300],
+    color: theme.palette.grey[400],
+  },
 }));
 
 export default function PlanStatus({status}: {status: PlanStatusType}) {

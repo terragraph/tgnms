@@ -21,7 +21,7 @@ export function mockANPFile(
 ): $Shape<ANPFileHandle> {
   return {
     file_name: 'test',
-    file_extension: '.txt',
+    file_extension: 'txt',
     file_role: '',
     file_status: '',
     id: '1',

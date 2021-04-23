@@ -36,6 +36,7 @@ export const PLAN_STATUS = {
   RUNNING: 'RUNNING',
   SCHEDULED: 'SCHEDULED',
   FAILED: 'FAILED',
+  KILLED: 'KILLED',
 };
 export type PlanStatus = $Keys<typeof PLAN_STATUS>;
 

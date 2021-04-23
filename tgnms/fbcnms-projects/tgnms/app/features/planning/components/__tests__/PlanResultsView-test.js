@@ -52,6 +52,7 @@ const commonProps = {
     }),
   },
   onExit: jest.fn(),
+  onCopyPlan: jest.fn(),
 };
 beforeEach(() => {
   apiMock.getPlan.mockImplementation(({id}: {id: string}) =>

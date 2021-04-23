@@ -71,8 +71,14 @@ export type Props = {|
   plan: ?ANPPlan,
   inputFiles: ?InputFilesByRole,
   onExit: () => void,
+  onCopyPlan: () => void,
 |};
-export default function PlanResultsView({plan, inputFiles, onExit}: Props) {
+export default function PlanResultsView({
+  plan,
+  inputFiles,
+  onExit,
+  onCopyPlan,
+}: Props) {
   const classes = useStyles();
   const {
     state: loadOutputsTaskState,
@@ -235,14 +241,7 @@ export default function PlanResultsView({plan, inputFiles, onExit}: Props) {
           </Typography>
         )}
       </Grid>
-      {(downloadOutputState === TASK_STATE.LOADING ||
-        loadOutputsTaskState === TASK_STATE.LOADING) && (
-        <Grid item>
-          <Grid container justify="center">
-            <CircularProgress size={10} />
-          </Grid>
-        </Grid>
-      )}
+
       {outputFiles && <PlanOutputs files={outputFiles} />}
       <Grid item>
         {plan.plan_status === PLAN_STATUS.RUNNING && (
@@ -255,6 +254,19 @@ export default function PlanResultsView({plan, inputFiles, onExit}: Props) {
             Cancel Plan{' '}
             {cancelPlanTask.isLoading && <CircularProgress size={10} />}
           </Button>
+        )}
+        {plan.plan_status !== PLAN_STATUS.RUNNING && (
+          <Button fullWidth onClick={onCopyPlan} variant="text">
+            Copy Plan
+          </Button>
+        )}
+        {(downloadOutputState === TASK_STATE.LOADING ||
+          loadOutputsTaskState === TASK_STATE.LOADING) && (
+          <Grid item>
+            <Grid container justify="center">
+              <CircularProgress size={10} />
+            </Grid>
+          </Grid>
         )}
       </Grid>
     </Grid>

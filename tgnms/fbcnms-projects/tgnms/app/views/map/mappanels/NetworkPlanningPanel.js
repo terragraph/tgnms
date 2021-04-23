@@ -20,7 +20,12 @@ import {
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {
+  isFinalState,
+  suggestVersionedName,
+} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {useInterval} from '@fbcnms/ui/hooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import type {ANPFileHandle, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
@@ -113,21 +118,43 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
       }
     })();
   }, [selectedPlanId, setLoadPlanTaskState, refreshDate]);
-  const handlePlanCreated = React.useCallback(
-    (plan: ANPPlan) => {
-      setSelectedPlanId(plan.id);
-    },
-    [setSelectedPlanId],
-  );
+  useInterval(() => {
+    if (plan != null && !isFinalState(plan?.plan_status)) {
+      refresh();
+    }
+  }, 5000);
   const handlePlanLaunched = React.useCallback(
     (planId: string) => {
+      setPlan(null); //null out the old plan and select a new one
       setSelectedPlanId(planId);
-      refresh();
     },
     [setSelectedPlanId],
   );
 
-  if (loadPlanTaskState === TASK_STATE.LOADING) {
+  const handleCopyPlan = React.useCallback(() => {
+    setSelectedPlanId('');
+    // remove the ID from the cached plan and rename
+    setPlan(curr => {
+      if (curr == null) {
+        return curr;
+      }
+      const {id: _, ...planParams} = curr;
+      const suggestedName = suggestVersionedName(planParams.plan_name);
+      if (suggestedName != null) {
+        planParams.plan_name = suggestedName;
+      }
+      return {
+        ...planParams,
+        id: '',
+        plan_name: suggestedName ?? planParams.plan_name,
+      };
+    });
+  }, [setSelectedPlanId, setPlan]);
+
+  if (
+    loadPlanTaskState === TASK_STATE.LOADING &&
+    (plan == null || planInputFiles == null)
+  ) {
     return (
       <Grid container justify="center">
         <CircularProgress size={25} />
@@ -140,6 +167,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
         plan={plan}
         inputFiles={planInputFiles}
         onExit={onExit}
+        onCopyPlan={handleCopyPlan}
       />
     );
   }
@@ -149,7 +177,6 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
       plan={plan}
       inputFiles={planInputFiles}
       onExit={onExit}
-      onPlanCreated={handlePlanCreated}
       onPlanLaunched={handlePlanLaunched}
     />
   );
