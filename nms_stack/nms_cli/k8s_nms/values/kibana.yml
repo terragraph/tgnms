@@ -1,3 +1,5 @@
+image:
+  tag: 7.10.2
 persistence:
   storageClass: manual
 elasticsearch:

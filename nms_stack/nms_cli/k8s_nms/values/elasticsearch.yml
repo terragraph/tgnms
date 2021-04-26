@@ -1,3 +1,5 @@
+image:
+  tag: 7.10.2
 master:
   replicas: 1
   persistence:
