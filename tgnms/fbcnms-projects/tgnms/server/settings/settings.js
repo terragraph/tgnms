@@ -247,6 +247,22 @@ export const SETTINGS: Array<SettingDefinition> = [
     tester: TESTER.ANP,
     defaultValue: 'https://graph.facebook.com',
   },
+  {
+    key: 'MAPBOX_ACCESS_TOKEN',
+    dataType: 'SECRET_STRING',
+    requiresRestart: true,
+  },
+  {
+    key: 'FACEBOOK_MAPSTYLE_URL',
+    dataType: 'STRING',
+    requiresRestart: true,
+    defaultValue: 'https://external.xx.fbcdn.net/maps/vt/style/canterbury_1_0',
+  },
+  {
+    key: 'TILE_STYLE',
+    dataType: 'STRING',
+    requiresRestart: true,
+  },
   ...mapFromFeatureFlags(FEATURE_FLAGS),
 ];
 

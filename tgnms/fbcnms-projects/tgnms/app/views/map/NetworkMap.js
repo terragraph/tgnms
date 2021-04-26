@@ -27,9 +27,9 @@ import {NetworkDrawerConstants} from './NetworkDrawer';
 import {PlannedSiteContextProvider} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {Route, withRouter} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import {getMapStyles, getUIEnvVal} from '../../common/uiConfig';
 import {getScanId} from '@fbcnms/tg-nms/app/features/scans/ScanServiceHelpers';
 import {getTestOverlayId} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
-import {getUIEnvVal} from '../../common/uiConfig';
 import {withStyles} from '@material-ui/core/styles';
 
 import type Map from 'mapbox-gl/src/ui/map';
@@ -66,22 +66,13 @@ const styles = theme => ({
 
 const MAPBOX_ACCESS_TOKEN = getUIEnvVal('MAPBOX_ACCESS_TOKEN');
 const MapBoxGL = ReactMapboxGl({
-  accessToken: MAPBOX_ACCESS_TOKEN,
+  accessToken: MAPBOX_ACCESS_TOKEN ?? '',
   attributionControl: false,
 });
 
 // Initial map bounding box:
 // https://www.mapbox.com/mapbox-gl-js/api/#map#fitbounds
 const FIT_BOUND_OPTIONS = {padding: 32, maxZoom: 18, animate: false};
-
-// All supported map styles:
-// https://www.mapbox.com/api-documentation/#styles
-const DefaultMapBoxStyles = [
-  {name: 'Streets', endpoint: 'streets-v10'},
-  {name: 'Satellite', endpoint: 'satellite-streets-v10'},
-];
-const getMapBoxStyleUrl = endpoint => 'mapbox://styles/mapbox/' + endpoint;
-
 // Table size limits (in pixels)
 const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
@@ -137,7 +128,7 @@ class NetworkMap extends React.Component<Props, State> {
       overlayLoading: false,
 
       // Selected map style (from MapBoxStyles)
-      selectedMapStyle: this._mapBoxStyles[0].endpoint,
+      selectedMapStyle: this._mapBoxStyles[0]?.endpoint,
 
       // // Planned site location ({latitude, longitude} or null)
       // plannedSite: null,
@@ -174,22 +165,8 @@ class NetworkMap extends React.Component<Props, State> {
     }
   };
   mapBoxStylesList() {
-    const customStyles = getUIEnvVal('TILE_STYLE');
-    // use default styles if no override specified
-    if (!customStyles) {
-      return DefaultMapBoxStyles.map(({name, endpoint}) => ({
-        name,
-        endpoint: getMapBoxStyleUrl(endpoint),
-      }));
-    }
-    // override list of styles if env specified
-    // parse style format
-    // <Display Name>=<Tile URL>,...
-    const tileStyleUrls = customStyles.split(',');
-    return tileStyleUrls.map(tileStyle => {
-      const [name, endpoint] = tileStyle.split('=');
-      return {name, endpoint};
-    });
+    const mapStyles = getMapStyles();
+    return mapStyles.map(({name, url}) => ({name, endpoint: url}));
   }
 
   handleTableResize = height => {

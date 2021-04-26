@@ -13,7 +13,7 @@ export type UIEnv = $Shape<{
   ELASTIC_URL: string,
   MAPBOX_ACCESS_TOKEN: string,
   ISSUES_URL: string,
-  TILE_STYLE: string,
+  // TILE_STYLE: string,
   COMMIT_DATE: string,
   COMMIT_HASH: string,
   DOC_URL: string,
@@ -21,10 +21,12 @@ export type UIEnv = $Shape<{
 
 // NetworkConfig
 export type Networks = {|[string]: NetworkInstanceConfig|};
+export type MapStyle = {|name: string, url: string|};
 export type UIConfig = {|
   env: UIEnv,
   networks: Networks, // list of currently configured networks
   user: ?UserDto, // non-secret UI info about the currently logged-in user
   version: ?string,
   featureFlags: UIFeatureFlags,
+  mapStyles: Array<MapStyle>,
 |};

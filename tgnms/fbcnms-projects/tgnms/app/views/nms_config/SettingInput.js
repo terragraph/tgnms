@@ -21,7 +21,6 @@ import {FEATURE_FLAGS} from '@fbcnms/tg-nms/shared/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useSecretToggle} from './useSecretToggle';
 import {useSettingsFormContext} from './SettingsFormContext';
-
 import type {SettingDefinition} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 const useStyles = makeStyles(theme => ({
@@ -39,9 +38,15 @@ const useStyles = makeStyles(theme => ({
 export type Props = {|
   setting: string,
   label: string,
+  helperText?: React.Node,
   isFeatureToggle?: boolean,
 |};
-export default function SettingInput({setting, label, isFeatureToggle}: Props) {
+export default function SettingInput({
+  setting,
+  label,
+  helperText,
+  isFeatureToggle,
+}: Props) {
   const classes = useStyles();
   const settingsForm = useSettingsFormContext();
   const {config, value, fallbackValue, onChange} = settingsForm.getInput(
@@ -101,23 +106,26 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
   return (
     <Grid item>
       {config && settingType === 'checkbox' && (
-        <FormControlLabel
-          control={React.createElement(
-            isFeatureToggle === true ? Switch : Checkbox,
-            {
-              checked:
-                typeof value !== 'undefined' && value !== ''
-                  ? value === 'true'
-                  : isDefaultEnabled,
-              onChange: e => {
-                onChange(e.target.checked ? 'true' : 'false');
+        <>
+          <FormControlLabel
+            control={React.createElement(
+              isFeatureToggle === true ? Switch : Checkbox,
+              {
+                checked:
+                  typeof value !== 'undefined' && value !== ''
+                    ? value === 'true'
+                    : isDefaultEnabled,
+                onChange: e => {
+                  onChange(e.target.checked ? 'true' : 'false');
+                },
+                value: value || '',
+                color: 'primary',
               },
-              value: value || '',
-              color: 'primary',
-            },
-          )}
-          label={label}
-        />
+            )}
+            label={label}
+          />
+          {helperText != null && helperText}
+        </>
       )}
       {config && settingType !== 'checkbox' && (
         <TextField
@@ -126,6 +134,7 @@ export default function SettingInput({setting, label, isFeatureToggle}: Props) {
           error={hasError}
           helperText={
             <>
+              {helperText != null && helperText}
               <ResetToValueButton
                 config={config}
                 onResetClick={handleDeleteSetting}

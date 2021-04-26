@@ -27,7 +27,8 @@ export const FEATURE_FLAGS: {[FeatureFlagKey]: FeatureFlagDef} = {
   SERVICE_AVAILABILITY_ENABLED: {isDefaultEnabled: false},
   MAP_HISTORY_ENABLED: {isDefaultEnabled: true},
   SOFTWARE_PORTAL_ENABLED: {isDefaultEnabled: false},
-
+  MAPSTYLE_FACEBOOK_ENABLED: {isDefaultEnabled: true},
+  MAPSTYLE_MAPBOX_ENABLED: {isDefaultEnabled: false},
   //beta features
   NMS_SETTINGS_ENABLED: {isDefaultEnabled: true},
   NETWORKTEST_ENABLED: {isDefaultEnabled: true},

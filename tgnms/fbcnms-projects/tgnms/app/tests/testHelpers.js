@@ -82,7 +82,11 @@ export function initWindowConfig(config?: $Shape<UIConfig>) {
       'window is undefined. Ensure that the current jest environment is jsdom',
     );
   }
-  const emptyConf = {env: {}, featureFlags: {}};
+  const emptyConf = {
+    env: {},
+    featureFlags: {},
+    mapStyles: [],
+  };
   const defaults = Object.keys(FEATURE_FLAGS).reduce(
     (map, key) =>
       Object.assign(map, {

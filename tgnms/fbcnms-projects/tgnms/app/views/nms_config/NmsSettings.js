@@ -10,6 +10,7 @@ import Box from '@material-ui/core/Box';
 import DatabaseSettings from './DatabaseSettings';
 import Grid from '@material-ui/core/Grid';
 import MapSettings from './MapSettings/MapSettings';
+import MapStylesSettingsGroup from './MapStylesSettingsGroup';
 import NmsBackup from './NmsBackup';
 import NmsConfig from './NmsConfig';
 import Paper from '@material-ui/core/Paper';
@@ -117,6 +118,7 @@ export default function NmsSettings() {
                     title="Services"
                     description="External services which NMS depends on to provide functionality"
                     Heading={SettingsFormHeading}>
+                    <MapStylesSettingsGroup />
                     <SettingsGroup title="Nodeupdate">
                       <SettingInput
                         label="Nodeupdate URL"

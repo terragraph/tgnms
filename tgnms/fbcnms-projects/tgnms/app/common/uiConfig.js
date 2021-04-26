@@ -4,14 +4,26 @@
  * @format
  * @flow strict-local
  */
-import type {UIConfig, UIEnv} from '@fbcnms/tg-nms/shared/dto/UI';
+import type {MapStyle, UIConfig, UIEnv} from '@fbcnms/tg-nms/shared/dto/UI';
 import type {User} from '@fbcnms/tg-nms/shared/auth/User';
 
 export function getUIConfig(): UIConfig {
   if (window.CONFIG) {
     return window.CONFIG;
   }
-  return {env: {}, networks: {}, user: null, version: 'none', featureFlags: {}};
+  return {
+    env: {},
+    networks: {},
+    user: null,
+    version: 'none',
+    featureFlags: {},
+    mapStyles: [],
+  };
+}
+
+export function getMapStyles(): Array<MapStyle> {
+  const {mapStyles} = getUIConfig();
+  return mapStyles;
 }
 
 export function getUIEnv(): UIEnv {
