@@ -168,26 +168,38 @@ const AddLinkForm = withStyles(styles)(
         ) {
           const nodeA = this.props.nodeMap[a_node_name];
           const nodeZ = this.props.nodeMap[z_node_name];
-          //node azimuths range [0,360], bearings are [-180,180]
           const {bearingA, bearingZ} = this.props.computeNewLinkBearings(link);
-          await Promise.all([
-            apiRequest({
-              networkName,
-              endpoint: 'editNode',
-              data: {
-                nodeName: a_node_name,
-                newNode: {...nodeA, ant_azimuth: bearingA + 360},
-              },
-            }),
-            apiRequest({
-              networkName,
-              endpoint: 'editNode',
-              data: {
-                nodeName: z_node_name,
-                newNode: {...nodeZ, ant_azimuth: bearingZ + 360},
-              },
-            }),
-          ]);
+          //node azimuths range [0,360], bearings are [-180,180]
+          const azimuthA = (bearingA + 360) % 360;
+          const azimuthZ = (bearingZ + 360) % 360;
+          const AZIMUTH_EPSILON = 0.2;
+
+          const requests = [];
+          if (Math.abs(nodeA.ant_azimuth - azimuthA) > AZIMUTH_EPSILON) {
+            requests.push(
+              apiRequest({
+                networkName,
+                endpoint: 'editNode',
+                data: {
+                  nodeName: a_node_name,
+                  newNode: {...nodeA, ant_azimuth: azimuthA},
+                },
+              }),
+            );
+          }
+          if (Math.abs(nodeZ.ant_azimuth - azimuthZ) > AZIMUTH_EPSILON) {
+            requests.push(
+              apiRequest({
+                networkName,
+                endpoint: 'editNode',
+                data: {
+                  nodeName: z_node_name,
+                  newNode: {...nodeZ, ant_azimuth: azimuthZ},
+                },
+              }),
+            );
+          }
+          await Promise.all(requests);
         }
         onClose('success');
       } catch (error) {
