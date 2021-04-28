@@ -52,11 +52,9 @@ controllers_list: []
 #   app_port: '17077'
 #   bt_seeder_port: '6881'
 
-
-# Access token for Mapbox (the UI will prompt you for it if it is left blank
-# during installation)
-mapbox_access_token: ''
-
+# Access token for Mapbox. This can also be configured through the
+# NMS Settings UI
+mapbox_access_token: ""
 
 # +--------------------------------------------------------+
 # |        Bootstrapping the Kubernetes Cluster            |
@@ -69,7 +67,6 @@ mapbox_access_token: ''
 kubernetes_user: root
 ansible_user: root
 docker_user: root
-
 
 # Set to `true` if nms will be running on a single host.
 single_node: "{{ groups['all']|length == 1 }}"
