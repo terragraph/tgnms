@@ -12,7 +12,7 @@ ptr_params = {
         "network_health_service/stats/fetch_stats.py": 97,
         "network_health_service/stats/health.py": 100,
         "network_health_service/stats/metrics.py": 100,
-        "TOTAL": 76,
+        "TOTAL": 75,
     },
     "run_flake8": True,
     "run_black": True,
@@ -21,7 +21,7 @@ ptr_params = {
 
 setup(
     name="network_health_service",
-    version="2021.03.04",
+    version="2021.05.03",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=["aiohttp", "aiomysql", "alembic>=1.3.3,<2.0", "sqlalchemy"],

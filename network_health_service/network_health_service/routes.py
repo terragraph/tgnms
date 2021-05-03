@@ -52,6 +52,9 @@ async def handle_get_network_health(request: web.Request) -> web.Response:
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
+    topology = await APIServiceClient(timeout=1).request(network_name, "getTopology")
+    node_to_site_name = {node["name"]: node["site_name"] for node in topology["nodes"]}
+
     async with MySQLClient().lease() as sa_conn:
         query = (
             select([NetworkHealthExecution.id])
@@ -86,7 +89,14 @@ async def handle_get_network_health(request: web.Request) -> web.Response:
                     {"color": "#999999", "label": "Unknown", "value": 5},
                 ],
             },
-            "nodes": {"items": []},
+            "nodes": {
+                "items": [
+                    {"color": "#00dd44", "label": "Excellent", "value": 1},
+                    {"color": "#ffdd00", "label": "Good", "value": 2},
+                    {"color": "#dd0000", "label": "Poor", "value": 4},
+                    {"color": "#999999", "label": "Unknown", "value": 5},
+                ]
+            },
             "sites": {
                 "items": [
                     {"color": "#00dd44", "label": "Excellent", "value": 1},
@@ -104,7 +114,11 @@ async def handle_get_network_health(request: web.Request) -> web.Response:
                 "metadata": row.stats_health["stats"],
             }
         if row.node_name is not None:
-            results["data"]["sites"][row.node_name] = {
+            results["data"]["nodes"][row.node_name] = {
+                "value": row.stats_health["overall_health"],
+                "metadata": row.stats_health["stats"],
+            }
+            results["data"]["sites"][node_to_site_name[row.node_name]] = {
                 "value": row.stats_health["overall_health"],
                 "metadata": row.stats_health["stats"],
             }
