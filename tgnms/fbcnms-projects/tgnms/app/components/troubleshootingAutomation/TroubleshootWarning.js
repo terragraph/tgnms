@@ -62,7 +62,7 @@ export default function TroubleshootWarning({
         <Tooltip
           title={isToolTip ? title : ''}
           placement="top"
-          classesName={classes.root}>
+          className={classes.root}>
           <Button size="small" className={classes.root} onClick={open}>
             <ReportProblemOutlinedIcon className={classes.icon} />
             <Typography>{isToolTip ? '' : title}</Typography>
