@@ -108,7 +108,6 @@ class AddNodePanel extends React.Component<Props, State> {
     this.state = {
       // Node properties
       name: '',
-      is_primary: null,
       node_polarity: null,
       node_type: null,
       mac_addr: '',
@@ -166,7 +165,7 @@ class AddNodePanel extends React.Component<Props, State> {
     const {wlanMacEdits} = this.state;
     const node = {
       name: this.state.name.trim(),
-      is_primary: this.state.is_primary,
+      is_primary: false, // deprecated TODO: T89970540
       node_type: this.state.node_type,
       mac_addr: this.state.mac_addr,
       wlan_mac_addrs: this.state.wlan_mac_addrs
@@ -315,14 +314,6 @@ class AddNodePanel extends React.Component<Props, State> {
         No
       </MenuItem>,
     ];
-    const hardwareMenuItems = [
-      <MenuItem key="primary" value={true}>
-        Primary
-      </MenuItem>,
-      <MenuItem key="secondary" value={false}>
-        Secondary
-      </MenuItem>,
-    ];
     const polarityMenuItems = Object.keys(PolarityType).map(polarityName => (
       <MenuItem key={polarityName} value={PolarityType[polarityName]}>
         {toTitleCase(polarityName)}
@@ -378,14 +369,6 @@ class AddNodePanel extends React.Component<Props, State> {
         value: 'pop_node',
         required: false,
         menuItems: popMenuItems,
-        _editable: true,
-      },
-      {
-        func: createSelectInput,
-        label: 'Hardware',
-        value: 'is_primary',
-        required: false,
-        menuItems: hardwareMenuItems,
         _editable: true,
       },
     ];
@@ -500,7 +483,6 @@ class AddNodePanel extends React.Component<Props, State> {
   nodeFormChanged = () => {
     const keysToCheck = new Set([
       'name',
-      'is_primary',
       'pop_node',
       'site_name',
       'ant_azimuth',

@@ -48,7 +48,7 @@ export default function TaskBasedConfigModal(props: Props) {
   const node = nodeMap[selectedElement?.name || ''];
 
   const configGroup = [
-    ...(node?.is_primary && node?.pop_node
+    ...(node?.pop_node
       ? [
           {title: 'Upstream Routing', content: <PopRouting />},
           {title: 'Key-Value Store Parameters', content: <PopKvstoreParams />},

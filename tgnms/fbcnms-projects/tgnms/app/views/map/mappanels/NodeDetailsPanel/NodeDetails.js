@@ -83,9 +83,6 @@ export default function NodeDetails(props: Props) {
       key => NodeTypeValueMap[key] === node.node_type,
     ) || 'unknown';
   const nodeProperties = [];
-  if (node.node_type === NodeTypeValueMap.DN) {
-    nodeProperties.push(node.is_primary ? 'primary' : 'secondary');
-  }
   if (node.pop_node) {
     nodeProperties.push('POP');
   }
@@ -134,6 +131,14 @@ export default function NodeDetails(props: Props) {
         <Typography variant="subtitle2">Node Type</Typography>
         <Typography variant="body2">{nodeType}</Typography>
       </div>
+      {statusReport && (
+        <div className={classes.spaceBetween}>
+          <Typography variant="subtitle2">Hardware Type</Typography>
+          <Typography variant="body2">
+            {statusReport.hardwareBoardId}
+          </Typography>
+        </div>
+      )}
       {node.ant_azimuth > 0.0 ? (
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Azimuth</Typography>

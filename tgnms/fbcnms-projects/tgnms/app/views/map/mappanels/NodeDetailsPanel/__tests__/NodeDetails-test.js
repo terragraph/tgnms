@@ -13,6 +13,7 @@ import {
   mockNetworkConfig,
   mockNetworkHealth,
   mockNode,
+  mockStatusReport,
   mockTopology,
 } from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
@@ -24,9 +25,21 @@ const defaultProps = {
   onSelectLink: () => {},
   onSelectSite: () => {},
   topology: mockTopology(),
+  statusReport: mockStatusReport(),
 };
 
 test('renders empty without crashing', () => {
+  const {getByText} = renderWithRouter(
+    <TestApp>
+      <NodeDetails {...defaultProps} />,
+    </TestApp>,
+  );
+  expect(getByText('Status')).toBeInTheDocument();
+  expect(getByText('Node Type')).toBeInTheDocument();
+  expect(getByText('Last Reported')).toBeInTheDocument();
+});
+
+test('renders hardware type if it exists in statusReport', () => {
   const {getByText} = renderWithRouter(
     <TestApp>
       <NodeDetails {...defaultProps} />,

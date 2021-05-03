@@ -34,6 +34,7 @@ import type {
 import type {Props as NodeDetailsProps} from '@fbcnms/tg-nms/app/views/map/mappanels/NodeDetailsPanel/NodeDetails';
 import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import type {StatusReportType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 export function mockNetworkInstanceConfig(
   overrides?: $Shape<NetworkInstanceConfig>,
@@ -635,4 +636,19 @@ export function mockMultiHop(hops: number, includesPop: boolean) {
     }
   }
   return topology;
+}
+
+/**
+ * Gets the mock status report
+ */
+export function mockStatusReport(): $Shape<StatusReportType> {
+  return {
+    timeStamp: 0,
+    ipv6Address: 'testIpv6',
+    version: 'x',
+    ubootVersion: 'ubootX',
+    status: 'ONLINE',
+    configMd5: 'config',
+    hardwareBoardId: 'test',
+  };
 }
