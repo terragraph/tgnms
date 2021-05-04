@@ -7,7 +7,7 @@
 import * as turf from '@turf/turf';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {averageAngles} from './MathHelpers';
-import {locToPos} from './GeoHelpers';
+import {bearingToAzimuth, locToPos} from './GeoHelpers';
 import type {
   LinkMap,
   MacToNodeMap,
@@ -70,6 +70,11 @@ export function buildTopologyMaps(topology: TopologyType): TopologyMaps {
   };
 }
 
+/**
+ * Gets the estimated bearing for a node based on its wireless links in the
+ * topologyMaps object.
+ * Bearing is [-180,180] and is used in turf and mapbox
+ */
 export function getEstimatedNodeBearing(
   node: NodeType,
   topologyMaps: $Shape<TopologyMaps>,
@@ -89,6 +94,22 @@ export function getEstimatedNodeBearing(
   );
   const averageBearing = averageAngles(bearings);
   return averageBearing;
+}
+
+/**
+ * Gets the estimated azimuth for a node based on its wireless links in the
+ * topologyMaps object.
+ * Azimuth is [0,360] and is used topology nodes in the ant_azimuth field.
+ */
+export function getEstimatedNodeAzimuth(
+  node: NodeType,
+  topologyMaps: $Shape<TopologyMaps>,
+): ?number {
+  const bearing = getEstimatedNodeBearing(node, topologyMaps);
+  if (bearing == null || isNaN(bearing)) {
+    return bearing;
+  }
+  return bearingToAzimuth(bearing);
 }
 
 /*

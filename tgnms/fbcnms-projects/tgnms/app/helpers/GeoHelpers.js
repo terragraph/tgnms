@@ -25,3 +25,11 @@ export function locToPos(
 ): [number, number, number] {
   return [location.longitude, location.latitude, location.altitude];
 }
+
+export function bearingToAzimuth(bearing: number): number {
+  return (bearing + 360) % 360;
+}
+
+export function azimuthToBearing(azimuth: number): number {
+  return azimuth < 180 ? azimuth : azimuth - 360;
+}

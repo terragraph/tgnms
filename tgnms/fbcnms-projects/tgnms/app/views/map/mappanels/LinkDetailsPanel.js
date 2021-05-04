@@ -53,6 +53,7 @@ import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
+import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {
   LinkType as Link,
@@ -101,6 +102,7 @@ type Props = {
   onSelectNode: string => any,
   pinned: boolean,
   topology: TopologyType,
+  azimuthManager: AzimuthManager,
 } & ForwardRef;
 
 type State = {};
@@ -177,7 +179,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
   onDeleteLink() {
     const {nodeMap} = this.props;
     // Delete this link
-    const {link, networkName} = this.props;
+    const {link, networkName, azimuthManager} = this.props;
 
     async function makeRequests({force}: {force: boolean}) {
       if (force) {
@@ -233,6 +235,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
           msg: error,
         };
       }
+      await azimuthManager.deleteLink(link);
       return {
         success: true,
         msg: `Link was successfully deleted!`,

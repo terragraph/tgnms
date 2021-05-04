@@ -53,6 +53,11 @@ const commonProps = {
   onSelectNode: jest.fn(),
   pinned: false,
   topology: mockTopology(),
+  azimuthManager: {
+    addLink: jest.fn(),
+    deleteLink: jest.fn(),
+    moveSite: jest.fn(),
+  },
 };
 
 describe('Delete Link', () => {

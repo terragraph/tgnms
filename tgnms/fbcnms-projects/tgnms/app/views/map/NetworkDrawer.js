@@ -44,6 +44,7 @@ import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {get} from 'lodash';
 import {makeStyles, useTheme} from '@material-ui/styles';
+import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
@@ -428,7 +429,7 @@ function RenderTopologyElement({
 }) {
   const {setPanelState, getIsHidden, removePanel, collapseAll} = panelControl;
   const theme = useTheme();
-
+  const azimuthManager = useAzimuthManager();
   const {type, name, expanded} = element;
   const {
     networkConfig,
@@ -566,6 +567,7 @@ function RenderTopologyElement({
           pinned={pinned}
           topology={topology}
           onPin={() => togglePin(type, name, !pinned)}
+          azimuthManager={azimuthManager}
         />
       </Slide>
     );

@@ -24,11 +24,10 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/FormHelpers';
 import {isEqual} from 'lodash';
 import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
-import {useComputeNewLinkBearings} from './useComputeNewLinkBearings';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withStyles} from '@material-ui/core/styles';
-import type {ComputeNewLinkBearings} from './useComputeNewLinkBearings';
+import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {
   LinkType,
@@ -51,6 +50,7 @@ export type Props = {|
   initialParams: {},
   networkName: string,
   topology: TopologyType,
+  azimuthManager: AzimuthManager,
 |};
 
 type State = {|
@@ -66,7 +66,6 @@ type State = {|
 
 type FormProps = {|
   nodeMap: NodeMap,
-  computeNewLinkBearings: ComputeNewLinkBearings,
 |};
 
 export type AddLinkFormProps = {|
@@ -166,40 +165,7 @@ const AddLinkForm = withStyles(styles)(
           link.link_type === LinkTypeValueMap.WIRELESS &&
           this.state.recomputeNodeAzimuth
         ) {
-          const nodeA = this.props.nodeMap[a_node_name];
-          const nodeZ = this.props.nodeMap[z_node_name];
-          const {bearingA, bearingZ} = this.props.computeNewLinkBearings(link);
-          //node azimuths range [0,360], bearings are [-180,180]
-          const azimuthA = (bearingA + 360) % 360;
-          const azimuthZ = (bearingZ + 360) % 360;
-          const AZIMUTH_EPSILON = 0.2;
-
-          const requests = [];
-          if (Math.abs(nodeA.ant_azimuth - azimuthA) > AZIMUTH_EPSILON) {
-            requests.push(
-              apiRequest({
-                networkName,
-                endpoint: 'editNode',
-                data: {
-                  nodeName: a_node_name,
-                  newNode: {...nodeA, ant_azimuth: azimuthA},
-                },
-              }),
-            );
-          }
-          if (Math.abs(nodeZ.ant_azimuth - azimuthZ) > AZIMUTH_EPSILON) {
-            requests.push(
-              apiRequest({
-                networkName,
-                endpoint: 'editNode',
-                data: {
-                  nodeName: z_node_name,
-                  newNode: {...nodeZ, ant_azimuth: azimuthZ},
-                },
-              }),
-            );
-          }
-          await Promise.all(requests);
+          await this.props.azimuthManager.addLink(link);
         }
         onClose('success');
       } catch (error) {
@@ -399,18 +365,11 @@ export default withForwardRef(function AddLinkPanel({
 }: Props & ForwardRef) {
   const {className, expanded, onPanelChange} = props;
   const {nodeMap} = useNetworkContext();
-  const computeNewLinkBearings = useComputeNewLinkBearings();
   return (
     <CustomAccordion
       className={className}
       title="Add Link"
-      details={
-        <AddLinkForm
-          computeNewLinkBearings={computeNewLinkBearings}
-          nodeMap={nodeMap}
-          {...props}
-        />
-      }
+      details={<AddLinkForm nodeMap={nodeMap} {...props} />}
       expanded={expanded}
       onChange={onPanelChange}
       data-testid="add-link-panel"

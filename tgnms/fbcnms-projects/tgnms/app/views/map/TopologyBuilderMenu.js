@@ -38,6 +38,7 @@ import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants
 import {UploadTopologyPanel} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/UploadTopologyPanel';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
+import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useCallback, useContext, useState} from 'react';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
@@ -114,6 +115,7 @@ export default function TopologyBuilderMenu(props: Props) {
   const classes = useStyles();
   const panelControlRef = useLiveRef(panelControl);
   const {setSelectedPlanId} = useNetworkPlanningContext();
+  const azimuthManager = useAzimuthManager();
   const context = useContext(NetworkContext);
   const snackbars = useSnackbars();
   const {
@@ -375,6 +377,7 @@ export default function TopologyBuilderMenu(props: Props) {
           initialParams={params ?? {}}
           topology={topology}
           networkName={networkName}
+          azimuthManager={azimuthManager}
         />
       </Slide>
       <Slide
@@ -406,6 +409,7 @@ export default function TopologyBuilderMenu(props: Props) {
           topology={topology}
           plannedSite={plannedSite}
           onUpdatePlannedSite={updatePlannedSite}
+          azimuthManager={azimuthManager}
         />
       </Slide>
       <Slide

@@ -7,11 +7,14 @@
 
 import * as turf from '@turf/turf';
 import React from 'react';
-import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {Layer, Source} from 'react-mapbox-gl';
 import {NodeOverlayColors} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
-import {getEstimatedNodeBearing} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {azimuthToBearing} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
+import {
+  getEstimatedNodeBearing,
+  getTopologyMaps,
+} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {handleLayerMouseEnter, handleLayerMouseLeave} from '../helpers';
 import {makeRangeColorFunc} from '@fbcnms/tg-nms/app/helpers/MapLayerHelpers';
 import {mapboxShouldAcceptClick} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
@@ -59,29 +62,12 @@ export default function NodeOverlay({
   overlay?: Overlay,
   overlayData?: {[string]: number},
 }) {
-  const {
-    nodeMap,
-    siteMap,
-    linkMap,
-    nodeToLinksMap,
-    setSelected,
-  } = useNetworkContext();
-  /**
-   * Prevent geojson from being recomputed needlessly.
-   * Since the topology maps break reference equality with every topology pull,
-   * the memoization function will re-run every few seconds. Caveat: if
-   * the topology is changed, the new sector will not show without a refresh.
-   */
-  const topologyMapsRef = useLiveRef({
-    nodeMap,
-    siteMap,
-    linkMap,
-    nodeToLinksMap,
-  });
+  const {setSelected, ...ctx} = useNetworkContext();
+  const topologyMaps = getTopologyMaps(ctx);
   useNodeIcon();
   const getOverlayColor = useOverlayColor(overlay);
   const geoJson = React.useMemo(() => {
-    const {nodeMap, siteMap} = topologyMapsRef.current;
+    const {nodeMap, siteMap} = topologyMaps;
     const features = objectValuesTypesafe<Node>(nodeMap).map((node, idx) => {
       const {location} = siteMap[node.site_name];
       const feature = turf.point(
@@ -91,11 +77,11 @@ export default function NodeOverlay({
         },
         {id: idx},
       );
-      const estimatedBearing = getEstimatedNodeBearing(
-        node,
-        topologyMapsRef.current,
-      );
-      feature.properties[BEARING_PROP] = estimatedBearing ?? 0;
+      const nodeBearing =
+        node.ant_azimuth === 0
+          ? getEstimatedNodeBearing(node, topologyMaps)
+          : azimuthToBearing(node.ant_azimuth);
+      feature.properties[BEARING_PROP] = nodeBearing ?? 0;
       const overlayValue = overlayData != null ? overlayData[node.name] : null;
       if (overlayValue != null) {
         feature.properties[COLOR_PROP] =
@@ -105,7 +91,7 @@ export default function NodeOverlay({
     });
     const featureCollection = turf.featureCollection(features);
     return featureCollection;
-  }, [topologyMapsRef, getOverlayColor, overlayData]);
+  }, [topologyMaps, getOverlayColor, overlayData]);
 
   useMapboxSelectionState(geoJson);
   return (

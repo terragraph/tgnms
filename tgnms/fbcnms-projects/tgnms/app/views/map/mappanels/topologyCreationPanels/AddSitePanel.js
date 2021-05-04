@@ -26,7 +26,7 @@ import {isEqual} from 'lodash';
 import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {templateTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {withStyles} from '@material-ui/core/styles';
-
+import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import type {
   LocationType,
   SiteType,
@@ -70,6 +70,7 @@ type Props = {
   plannedSite: ?PlannedSite,
   onUpdatePlannedSite: ($Shape<PlannedSite>) => any,
   topology: TopologyType,
+  azimuthManager: AzimuthManager,
 };
 
 type State = {
@@ -182,6 +183,7 @@ class AddSitePanel extends React.Component<Props, State> {
         newSite: site,
       };
       sendTopologyBuilderRequest(networkName, 'editSite', data, onClose);
+      this.props.azimuthManager.moveSite(site);
     }
   }
 
