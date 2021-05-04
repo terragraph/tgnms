@@ -1606,6 +1606,8 @@ d3d2533cbf4997c9f407a15d0198434e78a7b1e6  @react-native-community-cli-3.0.5-alph
 25fcb7fbfb96f34fc4143d0ba48bb9c4e010bc5a  @react-native-community-cli-4.2.4.tgz
 d01d08d1e5ddc1633d82c7d84d48fff07bd39416  @react-native-community-cli-debugger-ui-3.0.0.tgz
 da22aa1cf8d04fe1aa2759873916473e81c4450b  @react-native-community-cli-debugger-ui-4.2.1.tgz
+4177764ba69243c97aa26829d59d9501acb2bd71  @react-native-community-cli-debugger-ui-4.9.0.tgz
+
 28831e61ce565a2c7d1905852fce1eecfd33cb5e  @react-native-community-cli-platform-android-2.9.0.tgz
 e652abce79a7c1e3a8280228123e99df2c4b97b6  @react-native-community-cli-platform-android-3.0.3.tgz
 ccdda42f7876aee797d770e318e3542d895e7159  @react-native-community-cli-platform-android-3.0.5-alpha.0.tgz
