@@ -28,9 +28,11 @@ import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useInterval} from '@fbcnms/ui/hooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
+
 import type {ANPFileHandle, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {InputFilesByRole} from '@fbcnms/tg-nms/app/features/planning/components/PlanEditor';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+
 export default function NetworkPlanningPanel({
   panelControl,
 }: {
@@ -46,6 +48,13 @@ export default function NetworkPlanningPanel({
   const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
   const {setMapMode} = useMapContext();
 
+  // when the panel is closed, deselect the plan
+  const closePanel = React.useCallback(() => {
+    setPanelState(PANELS.NETWORK_PLANNING, PANEL_STATE.HIDDEN);
+    setSelectedPlanId(null);
+    setMapMode(MAPMODE.DEFAULT);
+  }, [setPanelState, setSelectedPlanId, setMapMode]);
+
   // open the panel whenever a plan is selected
   React.useEffect(() => {
     if (selectedPlanId != null) {
@@ -53,13 +62,18 @@ export default function NetworkPlanningPanel({
       setPanelState(PANELS.NETWORK_PLANNING, PANEL_STATE.OPEN);
       setMapMode(MAPMODE.PLANNING);
     }
-  }, [setPanelState, selectedPlanId, setMapMode, collapseAll]);
-  // when the panel is closed, deselect the plan
-  const closePanel = React.useCallback(() => {
-    setPanelState(PANELS.NETWORK_PLANNING, PANEL_STATE.HIDDEN);
-    setSelectedPlanId(null);
-    setMapMode(MAPMODE.DEFAULT);
-  }, [setPanelState, setSelectedPlanId, setMapMode]);
+    if (selectedPlanId == null && getIsOpen(PANELS.NETWORK_PLANNING)) {
+      closePanel();
+    }
+  }, [
+    setPanelState,
+    selectedPlanId,
+    setMapMode,
+    collapseAll,
+    getIsOpen,
+    closePanel,
+  ]);
+
   return (
     <Slide
       {...SlideProps}

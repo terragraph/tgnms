@@ -33,6 +33,7 @@ export type ProviderProps = {|
 export function PlannedSiteContextProvider({children}: ProviderProps) {
   const {Provider} = context;
   const [plannedSite, setPlannedSite] = React.useState<?PlannedSite>(null);
+
   const update = React.useCallback(
     (plannedSite: ?$Shape<PlannedSite>) => {
       setPlannedSite(curr => {
@@ -47,6 +48,7 @@ export function PlannedSiteContextProvider({children}: ProviderProps) {
     },
     [setPlannedSite],
   );
+
   const setLocation = React.useCallback(
     (location: LocationType) => update(location),
     [update],

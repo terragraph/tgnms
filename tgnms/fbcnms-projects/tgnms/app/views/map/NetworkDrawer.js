@@ -13,6 +13,7 @@ import Dragger from '@fbcnms/tg-nms/app/components/common/Dragger';
 import Drawer from '@material-ui/core/Drawer';
 import DrawerToggleButton from '@fbcnms/tg-nms/app/components/common/DrawerToggleButton';
 import IgnitionStatePanel from '@fbcnms/tg-nms/app/views/map/mappanels/IgnitionStatePanel';
+import L2TunnelPanel from '@fbcnms/tg-nms/app/views/map/mappanels/L2TunnelPanel';
 import LinkDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
 import NetworkPlanningPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel';
@@ -24,10 +25,10 @@ import ScanServicePanel from '@fbcnms/tg-nms/app/views/map/mappanels/ScanService
 import SearchNearbyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/SearchNearbyPanel';
 import SiteDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/SiteDetailsPanel';
 import Slide from '@material-ui/core/Slide';
-import TopologyBuilderMenu, {
-  useTopologyBuilderForm,
-} from './TopologyBuilderMenu';
+import TopologyBuilderPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderPanel';
 import UpgradeProgressPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UpgradeProgressPanel';
+import UploadTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/UploadTopologyPanel';
+import useTopologyBuilderForm from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   FormType,
@@ -49,7 +50,7 @@ import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-import type {EditTopologyElementParams} from './TopologyBuilderMenu';
+import type {EditTopologyElementParams} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Props as MapLayersProps} from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
@@ -114,7 +115,7 @@ export default function NetworkDrawer({
     height: '100%',
   };
   const context = useNetworkContext();
-  const {mapMode, mapboxRef} = useMapContext();
+  const {mapMode} = useMapContext();
   const {
     networkName,
     networkLinkHealth,
@@ -187,7 +188,7 @@ export default function NetworkDrawer({
     getIsAnyOpen,
   } = panelControl;
 
-  // this state is for the TopologyBuilderMenu forms
+  // this state is for the TopologyBuilderPanel forms
   const topologyBuilderForm = useTopologyBuilderForm();
   const {updateForm} = topologyBuilderForm;
 
@@ -338,6 +339,8 @@ export default function NetworkDrawer({
           onPanelChange={() => toggleOpen(PANELS.MAP_LAYERS)}
         />
         <NetworkPlanningPanel panelControl={panelControl} />
+        <L2TunnelPanel panelControl={panelControl} />
+        <UploadTopologyPanel panelControl={panelControl} />
 
         <Slide
           {...SlideProps}
@@ -397,10 +400,9 @@ export default function NetworkDrawer({
         <AnnotationsPanel panelControl={panelControl} />
         <RemoteOverlayMetadataPanel panelControl={panelControl} />
 
-        <TopologyBuilderMenu
+        <TopologyBuilderPanel
           panelControl={panelControl}
           panelForm={topologyBuilderForm}
-          mapRef={mapboxRef}
           siteProps={siteProps}
         />
         <DrawerToggleButton

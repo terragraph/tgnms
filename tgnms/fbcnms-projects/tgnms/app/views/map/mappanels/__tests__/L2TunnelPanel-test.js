@@ -5,11 +5,12 @@
  * @flow
  */
 
-import AddL2Tunnel from '../AddL2Tunnel';
+import L2TunnelPanel from '../L2TunnelPanel';
 import React from 'react';
 import {
   NetworkContextWrapper,
   TestApp,
+  mockPanelControl,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
 
@@ -22,16 +23,17 @@ jest
   });
 
 const defaultProps = {
-  expanded: true,
-  onClose: jest.fn(),
-  onPanelChange: jest.fn(),
+  panelControl: mockPanelControl({
+    getIsOpen: jest.fn().mockReturnValue(true),
+    getIsHidden: jest.fn().mockReturnValue(false),
+  }),
 };
 
 test('renders empty without crashing', () => {
   const {getByText} = render(
     <TestApp>
       <NetworkContextWrapper>
-        <AddL2Tunnel {...defaultProps} />
+        <L2TunnelPanel {...defaultProps} />
       </NetworkContextWrapper>
     </TestApp>,
   );
@@ -42,10 +44,9 @@ test('clicking close calls onClose', () => {
   const {getByText} = render(
     <TestApp>
       <NetworkContextWrapper>
-        <AddL2Tunnel {...defaultProps} />,
+        <L2TunnelPanel {...defaultProps} />,
       </NetworkContextWrapper>
     </TestApp>,
   );
   fireEvent.click(getByText('Cancel'));
-  expect(defaultProps.onClose).toHaveBeenCalled();
 });

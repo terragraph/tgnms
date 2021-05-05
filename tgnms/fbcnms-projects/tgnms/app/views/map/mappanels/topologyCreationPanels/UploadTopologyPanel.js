@@ -12,11 +12,17 @@ import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
 import MenuItem from '@material-ui/core/MenuItem';
 import PublishIcon from '@material-ui/icons/Publish';
-import React, {forwardRef, useCallback, useState} from 'react';
+import React, {useCallback, useState} from 'react';
+import Slide from '@material-ui/core/Slide';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import UploadTopologyConfirmationModal from './UploadTopologyConfirmationModal';
 import {DOMParser} from 'xmldom';
+import {
+  PANELS,
+  PANEL_STATE,
+} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   convertType,
   objectValuesTypesafe,
@@ -32,11 +38,15 @@ import {
   sectorCountOptions,
   uploadFileTypes,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
 
 import type {
   ANPUploadKmlType,
   ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import type {TopologyType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useStyles = makeStyles(theme => ({
@@ -50,17 +60,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
-  expanded: boolean,
-  onClose: (message?: string) => any,
-  onPanelChange: () => any,
-  networkName: string,
-};
-
-export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
-  const {networkName, onClose, onPanelChange, expanded} = props;
+export default function UploadTopologyPanel({
+  panelControl,
+}: {
+  panelControl: PanelStateControl,
+}) {
   const classes = useStyles();
-
+  const {networkName} = useNetworkContext();
+  const {setPanelState} = panelControl;
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState('');
   const [errorText, setErrorText] = useState('');
@@ -68,10 +75,38 @@ export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
   const [topologyFileType, setTopologyFileType] = useState(uploadFileTypes.KML);
   const [kmlNodeNumber, setKmlNodeNumber] = useState('4');
   const fileReader = new FileReader();
+  const snackbars = useSnackbars();
+  const {setSelectedTopologyPanel} = useTopologyBuilderContext();
 
   const handleReadingFileError = useCallback(
     () => setErrorText('Unreadable input file.'),
     [setErrorText],
+  );
+
+  const handleTopologyChangeSnackbar = useCallback(
+    (changeMessage: ?string) => {
+      if (changeMessage === 'success') {
+        snackbars.success(
+          'Topology successfully changed! Please wait a few moments for the topology to update.',
+        );
+      } else {
+        snackbars.error(
+          `Topology change failed${changeMessage ? ':' + changeMessage : ''} `,
+        );
+      }
+    },
+    [snackbars],
+  );
+
+  const onClose = React.useCallback(
+    status => {
+      setSelectedTopologyPanel(null);
+      setPanelState(PANELS.TOPOLOGY_UPLOAD, PANEL_STATE.HIDDEN);
+      if (status) {
+        handleTopologyChangeSnackbar(status);
+      }
+    },
+    [handleTopologyChangeSnackbar, setPanelState, setSelectedTopologyPanel],
   );
 
   const parseInput = (
@@ -154,99 +189,103 @@ export const UploadTopologyPanel = forwardRef<Props, *>((props, ref) => {
   };
 
   return (
-    <CustomAccordion
-      ref={ref}
-      title="Upload Topology"
-      details={
-        <Grid container direction="column" spacing={2}>
-          <Grid item />
-          <Button
-            variant="contained"
-            disabled={loading}
-            color="primary"
-            component="label"
-            endIcon={<PublishIcon />}>
-            Select File
-            <Input
-              data-testid="fileInput"
-              onChange={e => handleChosenFile(e.target)}
-              type="file"
-              inputProps={{accept: '.json, .kml'}}
-              style={{display: 'none'}}
-            />
-          </Button>
-          <Grid container direction="column" item>
-            <Grid container justify="center" item>
-              <Typography variant="subtitle2" gutterBottom>
-                {loading ? 'Loading...' : fileName}
-              </Typography>
+    <Slide
+      {...SlideProps}
+      unmountOnExit
+      in={!panelControl.getIsHidden(PANELS.TOPOLOGY_UPLOAD)}>
+      <CustomAccordion
+        title="Upload Topology"
+        details={
+          <Grid container direction="column" spacing={2}>
+            <Grid item />
+            <Button
+              variant="contained"
+              disabled={loading}
+              color="primary"
+              component="label"
+              endIcon={<PublishIcon />}>
+              Select File
+              <Input
+                data-testid="fileInput"
+                onChange={e => handleChosenFile(e.target)}
+                type="file"
+                inputProps={{accept: '.json, .kml'}}
+                style={{display: 'none'}}
+              />
+            </Button>
+            <Grid container direction="column" item>
+              <Grid container justify="center" item>
+                <Typography variant="subtitle2" gutterBottom>
+                  {loading ? 'Loading...' : fileName}
+                </Typography>
+              </Grid>
+              <Grid container justify="center" item>
+                <Typography
+                  className={classes.errorText}
+                  variant="subtitle2"
+                  gutterBottom>
+                  {errorText}
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid container justify="center" item>
-              <Typography
-                className={classes.errorText}
-                variant="subtitle2"
-                gutterBottom>
-                {errorText}
-              </Typography>
-            </Grid>
-          </Grid>
-          <Grid item>
-            <FormLabel component="legend">
-              <span>Select File Format</span>
-            </FormLabel>
-
-            <TextField
-              defaultValue={uploadFileTypes.KML}
-              select
-              InputLabelProps={{shrink: true}}
-              margin="dense"
-              fullWidth
-              onChange={ev => handleFileTypeChange(ev.target.value)}>
-              {objectValuesTypesafe<string>(uploadFileTypes).map(name => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          {topologyFileType === uploadFileTypes.KML && (
             <Grid item>
               <FormLabel component="legend">
-                <span>Sectors Per Site </span>
+                <span>Select File Format</span>
               </FormLabel>
+
               <TextField
-                defaultValue={'4'}
+                defaultValue={uploadFileTypes.KML}
                 select
                 InputLabelProps={{shrink: true}}
                 margin="dense"
                 fullWidth
-                onChange={handleNodeNumberChange}>
-                {sectorCountOptions.map(name => (
+                onChange={ev => handleFileTypeChange(ev.target.value)}>
+                {objectValuesTypesafe<string>(uploadFileTypes).map(name => (
                   <MenuItem key={name} value={name}>
                     {name}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
-          )}
-          <Grid item>
-            <UploadTopologyConfirmationModal
-              disabled={uploadTopology ? false : true}
-              onSubmit={onSubmit}
-              uploadTopology={uploadTopology}
-            />
-            <Button
-              className={classes.button}
-              variant="outlined"
-              size="small"
-              onClick={() => onClose()}>
-              Cancel
-            </Button>
+            {topologyFileType === uploadFileTypes.KML && (
+              <Grid item>
+                <FormLabel component="legend">
+                  <span>Sectors Per Site </span>
+                </FormLabel>
+                <TextField
+                  defaultValue={'4'}
+                  select
+                  InputLabelProps={{shrink: true}}
+                  margin="dense"
+                  fullWidth
+                  onChange={handleNodeNumberChange}>
+                  {sectorCountOptions.map(name => (
+                    <MenuItem key={name} value={name}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+            <Grid item>
+              <UploadTopologyConfirmationModal
+                disabled={uploadTopology ? false : true}
+                onSubmit={onSubmit}
+                uploadTopology={uploadTopology}
+              />
+              <Button
+                className={classes.button}
+                variant="outlined"
+                size="small"
+                onClick={() => onClose(null)}>
+                Cancel
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      }
-      expanded={expanded}
-      onChange={onPanelChange}
-    />
+        }
+        expanded={panelControl.getIsOpen(PANELS.TOPOLOGY_UPLOAD)}
+        onChange={() => panelControl.toggleOpen(PANELS.TOPOLOGY_UPLOAD)}
+      />
+    </Slide>
   );
-});
+}

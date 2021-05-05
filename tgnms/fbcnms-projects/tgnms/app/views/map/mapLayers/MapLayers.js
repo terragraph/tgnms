@@ -13,10 +13,12 @@ import MapFeaturesLayer from './MapFeaturesLayer';
 import McsEstimateLayer from './McsEstimateLayer';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer/NodesLayer';
+import PlanningLayer from './PlanningLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
+import TopologyBuilderLayer from './TopologyBuilderLayer';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
@@ -24,7 +26,6 @@ import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
-
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
@@ -190,6 +191,8 @@ export default function MapLayers(props: Props) {
         overlay={overlays.area_polygons}
         data={overlayData.area_polygons}
       />
+      {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && <PlanningLayer />}
+      <TopologyBuilderLayer />
       {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawLayer />}
       {isFeatureEnabled('LINK_BUDGETING_ENABLED') && <McsEstimateLayer />}
       {isFeatureEnabled('ALERTS_LAYER_ENABLED') && alert_popups && (

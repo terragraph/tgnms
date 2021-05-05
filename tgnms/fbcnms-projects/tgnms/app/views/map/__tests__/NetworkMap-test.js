@@ -42,6 +42,8 @@ jest.mock('mapbox-gl', () => ({
   Map: () => ({}),
 }));
 
+jest.mock('@fbcnms/tg-nms/app/apiutils/MapAPIUtil');
+
 const commonProps = {
   /*
    * NetworkMap only uses bounds on the networkConfig passed as props.
@@ -156,64 +158,7 @@ describe('NetworkDrawer', () => {
   });
 });
 
-describe('TopologyBuilderMenu', () => {
-  test('clicking Add Node opens the AddNodePanel', () => {
-    const {getByText, getByTestId} = render(
-      <MapWrapper>
-        <NetworkMap {...commonProps} />
-      </MapWrapper>,
-    );
-    const fab = getByTestId('addTopologyIcon');
-    act(() => {
-      fireEvent.click(fab);
-    });
-    const btn = getByText(/add node/i);
-    act(() => {
-      fireEvent.click(btn);
-    });
-    const panel = getByTestId('add-node-panel');
-    expect(getIsExpanded(panel)).toBe(true);
-    // overview-panel should collapse automatically
-    expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
-  });
-  test('clicking Add Link opens the AddLinkPanel', () => {
-    const {getByText, getByTestId} = render(
-      <MapWrapper>
-        <NetworkMap {...commonProps} />
-      </MapWrapper>,
-    );
-    const fab = getByTestId('addTopologyIcon');
-    act(() => {
-      fireEvent.click(fab);
-    });
-    const btn = getByText(/add link/i);
-    act(() => {
-      fireEvent.click(btn);
-    });
-    const panel = getByTestId('add-link-panel');
-    expect(getIsExpanded(panel)).toBe(true);
-    // overview-panel should collapse automatically
-    expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
-  });
-  test('clicking Add Site opens the AddSitePanel', () => {
-    const {getByText, getByTestId} = render(
-      <MapWrapper>
-        <NetworkMap {...commonProps} />
-      </MapWrapper>,
-    );
-    const fab = getByTestId('addTopologyIcon');
-    act(() => {
-      fireEvent.click(fab);
-    });
-    const btn = getByText(/add planned site/i);
-    act(() => {
-      fireEvent.click(btn);
-    });
-    const panel = getByTestId('add-site-panel');
-    expect(getIsExpanded(panel)).toBe(true);
-    // overview-panel should collapse automatically
-    expect(getIsExpanded(getByTestId('overview-panel'))).toBe(false);
-  });
+describe('TopologyBuilderPanel', () => {
   test('clicking edit node opens the panel', async () => {
     const topology = mockSingleLink();
     const topologyMaps = buildTopologyMaps(topology);
@@ -243,6 +188,36 @@ describe('TopologyBuilderMenu', () => {
     });
 
     expect(getByTestId('add-node-panel')).toBeInTheDocument();
+  });
+  test('clicking edit site opens the panel', async () => {
+    const topology = mockSingleLink();
+    const topologyMaps = buildTopologyMaps(topology);
+    const selectedElement = {
+      name: 'site1',
+      type: TopologyElementType.SITE,
+      expanded: true,
+    };
+    const {getByText, getByTestId} = render(
+      <MapWrapper
+        contextValue={{
+          networkConfig: mockNetworkConfig({topology: topology}),
+          ...topologyMaps,
+          selectedElement,
+        }}>
+        <NetworkMap {...commonProps} />,
+      </MapWrapper>,
+      {baseElement: document.body ?? undefined},
+    );
+
+    await act(async () => {
+      fireEvent.click(getByText(/view actions/i));
+    });
+
+    await act(async () => {
+      fireEvent.click(getByText(/edit site/i));
+    });
+
+    expect(getByTestId('add-site-panel')).toBeInTheDocument();
   });
 });
 

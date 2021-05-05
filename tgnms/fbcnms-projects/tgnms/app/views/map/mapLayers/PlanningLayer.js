@@ -1,0 +1,85 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow
+ */
+
+import * as React from 'react';
+import CloseIcon from '@material-ui/icons/Close';
+import ReactDOM from 'react-dom';
+import TerrainIcon from '@material-ui/icons/Terrain';
+import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {makeStyles} from '@material-ui/styles';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+
+const useStyles = makeStyles(() => ({
+  icon: {
+    fontSize: '1rem',
+  },
+}));
+
+export default function PlanningLayer() {
+  const classes = useStyles();
+  const {mapboxRef} = useMapContext();
+  const [planEnabled, setPlanEnabled] = React.useState(false);
+  const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
+
+  React.useEffect(() => {
+    if (selectedPlanId == null) {
+      setPlanEnabled(false);
+    }
+  }, [selectedPlanId]);
+
+  const handlePlanClicked = React.useCallback(() => {
+    if (planEnabled) {
+      setSelectedPlanId(null);
+    } else {
+      setSelectedPlanId('');
+    }
+
+    setPlanEnabled(!planEnabled);
+  }, [setSelectedPlanId, planEnabled]);
+
+  const mapboxControl = React.useMemo(() => {
+    const container = document.createElement('div');
+    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    container.setAttribute('data-testid', 'tg-plan-toggle-container');
+    return container;
+  }, []);
+
+  React.useEffect(() => {
+    mapboxRef?.addControl(
+      {
+        onAdd: _map => {
+          return mapboxControl;
+        },
+        onRemove: () => {},
+      },
+      MAP_CONTROL_LOCATIONS.TOP_LEFT,
+    );
+  }, [mapboxRef, mapboxControl]);
+
+  return ReactDOM.createPortal(
+    <button
+      style={
+        !planEnabled
+          ? {
+              backgroundColor: '#424242',
+              color: 'white',
+            }
+          : undefined
+      }
+      title="Network Planning"
+      onClick={handlePlanClicked}
+      data-testid="tg-plan-toggle">
+      {planEnabled ? (
+        <CloseIcon data-testid="close-plan" className={classes.icon} />
+      ) : (
+        <TerrainIcon data-testid="open-plan" className={classes.icon} />
+      )}
+    </button>,
+    mapboxControl,
+  );
+}
