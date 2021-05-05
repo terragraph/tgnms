@@ -35,7 +35,6 @@ def compute_link_foliage(
     number_of_windows: int,
     min_window_size: int,
     minimum_var: float,
-    foliage_factor_threshold: float,
     query_interval: int,
 ) -> None:
 
@@ -74,7 +73,7 @@ def compute_link_foliage(
                     reverse_link_metrics[tx_power_per_link["link_name"]] = path_loss
 
         for link_name, forward_link_path_loss in forward_link_metrics.items():
-            reverse_link_path_loss: Optional[List] = reverse_link_metrics.get(link_name)
+            reverse_link_path_loss: Optional[Dict] = reverse_link_metrics.get(link_name)
             if reverse_link_path_loss is None:
                 continue
             foliage_factor = compute_single_link_foliage_factor(
@@ -88,7 +87,9 @@ def compute_link_foliage(
             )
             if foliage_factor is None:
                 continue
-
+            logging.info(
+                f"{network_name}:{link_name} foliage_factor is {foliage_factor}"
+            )
             labels = {consts.network: network_name, consts.link_name: link_name}
             foliage_metrics.append(
                 PrometheusMetric(
@@ -98,13 +99,13 @@ def compute_link_foliage(
     PrometheusClient.write_metrics(foliage_metrics)
 
 
-def calculate_path_loss(tx_power: List, rssi: List) -> List:
+def calculate_path_loss(tx_power: List, rssi: List) -> Dict:
     """Calculate pathloss using TX tx_power and RX rssi for synced timestamps.
 
     tx_power and rssi values could be sampled at different timestamps. Calculate
     pathloss only for those timestamps that have both the stat values.
     """
-    pathloss: List = []
+    pathloss: Dict = {}
     i, j = 0, 0
     while i < len(tx_power) and j < len(rssi):
         tx_power_time, tx_power_index = tx_power[i]
@@ -122,22 +123,24 @@ def calculate_path_loss(tx_power: List, rssi: List) -> List:
         ].get(int(tx_power_index))
         if power_dBm is None:
             continue
-        pathloss.append(power_dBm - int(rx_rssi))
+        pathloss[tx_power_time] = power_dBm - int(rx_rssi)
     return pathloss
 
 
 def compute_single_link_foliage_factor(
     network_name: str,
     link_name: str,
-    forward_link_path_loss: List,
-    reverse_link_path_loss: List,
+    forward_path_loss_w_time: Dict,
+    reverse_path_loss_w_time: Dict,
     number_of_windows: int,
     min_window_size: int,
     minimum_var: float,
 ) -> Optional[float]:
-    if len(forward_link_path_loss) != len(reverse_link_path_loss):
-        logging.error("Different lengths of forward and reverse link pathloss")
-        return None
+    common_timestaps = set(forward_path_loss_w_time).intersection(
+        reverse_path_loss_w_time
+    )
+    forward_link_path_loss = [forward_path_loss_w_time[i] for i in common_timestaps]
+    reverse_link_path_loss = [reverse_path_loss_w_time[i] for i in common_timestaps]
 
     if len(forward_link_path_loss) < min_window_size * number_of_windows:
         logging.error(

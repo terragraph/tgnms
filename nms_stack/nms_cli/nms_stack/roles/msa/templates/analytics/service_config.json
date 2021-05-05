@@ -18,7 +18,6 @@
             "number_of_windows": 5,
             "min_window_size": 20,
             "minimum_var": 0,
-            "foliage_factor_threshold": 0.85,
             "query_interval": 3600,
             "step": 30
           }

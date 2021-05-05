@@ -8,7 +8,7 @@ from tglib.clients import APIServiceClient, PrometheusClient
 
 from .link_insight import analyze_alignment, compute_link_foliage, fetch_metrics
 from .utils.topology import fetch_network_info
-from .visibility import NodePowerStatus, create_results, get_power_status
+from .visibility import create_results, get_power_status
 
 
 async def find_link_foliage(
@@ -16,7 +16,6 @@ async def find_link_foliage(
     number_of_windows: int,
     min_window_size: int,
     minimum_var: float,
-    foliage_factor_threshold: float,
     query_interval: int,
     step: int = 1,
 ) -> None:
@@ -37,12 +36,7 @@ async def find_link_foliage(
         )
     network_stats = zip(network_names, await asyncio.gather(*coros))
     compute_link_foliage(
-        network_stats,
-        number_of_windows,
-        min_window_size,
-        minimum_var,
-        foliage_factor_threshold,
-        query_interval,
+        network_stats, number_of_windows, min_window_size, minimum_var, query_interval
     )
 
 
