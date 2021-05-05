@@ -232,14 +232,18 @@ function AnnotationsPanelActions({}: ActionsProps) {
           label: 'Quick-Convert to Site',
           func: handleConvertToSite,
           isDisabled: isNonPointSelected,
-          testId: 'quick-convert-to-site',
+          'data-testid': 'quick-convert-to-site',
         },
       ],
     },
     {
       heading: 'Annotation',
       actions: [
-        {label: 'Delete', func: handleDelete, testId: 'delete-annotation'},
+        {
+          label: 'Delete',
+          func: handleDelete,
+          'data-testid': 'delete-annotation',
+        },
       ],
     },
   ];

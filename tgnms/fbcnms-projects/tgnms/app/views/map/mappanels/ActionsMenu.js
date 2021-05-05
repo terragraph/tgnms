@@ -44,7 +44,7 @@ type ActionType = {|
   func?: () => *,
   component?: React.ComponentType<*>,
   isDisabled?: boolean,
-  testId?: string,
+  'data-testid'?: string,
 |};
 
 type Props = {
@@ -108,9 +108,10 @@ class ActionsMenu extends React.Component<Props, State> {
                       if (isDisabled === true) {
                         return null;
                       }
+                      const testId = itemProps['data-testid'];
                       return (
                         <MenuItem
-                          data-testid={itemProps?.testId ?? null}
+                          data-testid={testId ?? null}
                           key={label}
                           onClick={() => {
                             this.setState({anchor: null});
