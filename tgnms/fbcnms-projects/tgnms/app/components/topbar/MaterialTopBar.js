@@ -8,15 +8,14 @@ import AlarmIcon from '@material-ui/icons/Alarm';
 import AppBar from '@material-ui/core/AppBar';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BuildIcon from '@material-ui/icons/Build';
+import BuildInformationModal from '@fbcnms/tg-nms/app/components/topbar/InfoMenu/BuildInformationModal';
 import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import GetAppIcon from '@material-ui/icons/GetApp';
-import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 import List from '@material-ui/core/List';
@@ -25,7 +24,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import MapIcon from '@material-ui/icons/Map';
-import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuBookIcon from '@material-ui/icons/MenuBook';
 import MenuIcon from '@material-ui/icons/Menu';
@@ -41,7 +39,6 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import UserMenu from './UserMenu';
-import axios from 'axios';
 import classNames from 'classnames';
 import {NavLink} from 'react-router-dom';
 import {getUIConfig} from '../../common/uiConfig';
@@ -49,10 +46,10 @@ import {isAuthorized} from '@fbcnms/tg-nms/app/helpers/UserHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
+
 import type {ContextRouter} from 'react-router-dom';
 
 const DRAWER_WIDTH = 240;
-const ISSUES_URL = window?.CONFIG?.env?.ISSUES_URL;
 
 type IndexProps = ContextRouter &
   WithStyles<typeof styles> & {
@@ -194,111 +191,6 @@ const VIEWS = [
   },
 ];
 
-export function VersionModal({title, diffs}) {
-  const [expanded, setExpanded] = React.useState(false);
-  return (
-    <CustomAccordion
-      title={title}
-      details={diffs}
-      expanded={expanded}
-      onChange={() => setExpanded(!expanded)}
-    />
-  );
-}
-
-const DiffModal = props => (
-  <Grid container spacing={1}>
-    <Grid item xs={4}>
-      Date
-    </Grid>
-    <Grid item xs={8}>
-      Title
-    </Grid>
-    {props.diffs &&
-      props.diffs.map((diffData, idx) => (
-        <React.Fragment key={'diff' + idx}>
-          <Grid item xs={4}>
-            {diffData.date}
-          </Grid>
-          <Grid item xs={8}>
-            {diffData.title}
-          </Grid>
-        </React.Fragment>
-      ))}
-  </Grid>
-);
-
-const ChangelogModal = () => {
-  const [changelog, setChangelog] = React.useState([]);
-  React.useEffect(() => {
-    axios.get('/api/v1/changelog').then(response => {
-      setChangelog(response.data);
-    });
-  }, []);
-  return (
-    <>
-      {changelog.map(versionData => {
-        const versionStr = versionData.version;
-        return (
-          <VersionModal
-            key={'version-' + versionStr}
-            title={'Version ' + versionStr}
-            diffs={<DiffModal diffs={versionData.diffs} />}
-          />
-        );
-      })}
-    </>
-  );
-};
-
-const BuildInformationModal = props => (
-  <MaterialModal
-    open={props.buildInformationOpen}
-    onClose={props.toggleBuildModal}
-    modalTitle="About"
-    data-testid="about-modal"
-    modalContent={
-      <Grid container spacing={1}>
-        <Grid item xs={4}>
-          Version
-        </Grid>
-        <Grid item xs={8}>
-          {props.version}-{props.commitHash}
-        </Grid>
-        <Grid item xs={4}>
-          Date
-        </Grid>
-        <Grid item xs={8}>
-          {props.commitDate}
-        </Grid>
-        <Grid item xs={12}>
-          <ChangelogModal />
-        </Grid>
-      </Grid>
-    }
-    modalActions={
-      <>
-        {ISSUES_URL ? (
-          <Button
-            className={props.classes.button}
-            href={ISSUES_URL}
-            target="_blank"
-            onClick={props.toggleBuildModal}
-            variant="outlined">
-            Submit Bug
-          </Button>
-        ) : null}
-        <Button
-          className={props.classes.button}
-          onClick={props.toggleBuildModal}
-          variant="outlined">
-          Close
-        </Button>
-      </>
-    }
-  />
-);
-
 class MaterialTopBar extends React.Component<IndexProps, State> {
   constructor(props) {
     super(props);
@@ -416,7 +308,6 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
                 </ListItem>
               </Tooltip>
               <BuildInformationModal
-                classes={classes}
                 buildInformationOpen={this.state.buildInformationOpen}
                 toggleBuildModal={toggleBuildModal}
                 version={version}
