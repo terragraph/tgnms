@@ -8,13 +8,16 @@
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import MapboxControl from '@fbcnms/tg-nms/app/views/map/mapControls/MapboxControl';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SearchBar from '@fbcnms/tg-nms/app/components/common/SearchBar';
 import axios from 'axios';
-import mapboxgl from 'mapbox-gl';
+import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {getUIEnvVal} from '@fbcnms/tg-nms/app/common/uiConfig';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
 import type {Feature, Result} from './MapboxSearchTypes';
 
@@ -31,8 +34,6 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  accessToken: string,
-  mapRef: ?mapboxgl.Map,
   onSelectFeature: Feature => any,
   getCustomResults: string => any,
   shouldSearchPlaces: (Array<Result>) => any,
@@ -40,14 +41,14 @@ type Props = {
   apiEndpoint?: string,
   searchDebounceMs?: number,
 };
+const MAPBOX_ACCESS_TOKEN = getUIEnvVal('MAPBOX_ACCESS_TOKEN');
 
 export default function MapboxSearchBar(props: Props) {
+  const {mapboxRef} = useMapContext();
   const classes = useStyles();
   const {
     getCustomResults,
     shouldSearchPlaces,
-    accessToken,
-    mapRef,
     onSelectFeature,
     onRenderResult,
   } = props;
@@ -80,7 +81,7 @@ export default function MapboxSearchBar(props: Props) {
     // Construct GET request
     // See: https://www.mapbox.com/api-documentation/#search-for-places
     const params = {
-      access_token: accessToken,
+      access_token: MAPBOX_ACCESS_TOKEN,
       ...getProximity(),
     };
     const encodedParams = objectEntriesTypesafe<string, string>(params)
@@ -110,8 +111,8 @@ export default function MapboxSearchBar(props: Props) {
   const getProximity = () => {
     // Return proximity arguments based on the current map center and zoom level
     // (or none if not applicable)
-    if (mapRef && mapRef.getZoom() > 9) {
-      const center = mapRef.getCenter().wrap();
+    if (mapboxRef && mapboxRef.getZoom() > 9) {
+      const center = mapboxRef.getCenter().wrap();
       return {proximity: [center.lng, center.lat].join(',')};
     }
     return {};
@@ -168,23 +169,27 @@ export default function MapboxSearchBar(props: Props) {
   };
 
   return (
-    <div data-testid="mapbox-search-bar">
-      <SearchBar
-        value={value}
-        onChange={handleInput}
-        onClearInput={handleClearInput}
-        onSearch={getResults}
-        isLoading={isLoading}
-        debounceMs={searchDebounceMs}
-      />
+    <MapboxControl
+      mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
+      data-testid="tg-nav-container">
+      <div data-testid="mapbox-search-bar">
+        <SearchBar
+          value={value}
+          onChange={handleInput}
+          onClearInput={handleClearInput}
+          onSearch={getResults}
+          isLoading={isLoading}
+          debounceMs={searchDebounceMs}
+        />
 
-      {results.length > 0 || value === '' ? (
-        <Paper className={classes.resultsPaper} elevation={2}>
-          <List className={classes.resultsList} component="nav">
-            {results.map(result => renderResult(result))}
-          </List>
-        </Paper>
-      ) : null}
-    </div>
+        {results.length > 0 || value === '' ? (
+          <Paper className={classes.resultsPaper} elevation={2}>
+            <List className={classes.resultsList} component="nav">
+              {results.map(result => renderResult(result))}
+            </List>
+          </Paper>
+        ) : null}
+      </div>
+    </MapboxControl>
   );
 }

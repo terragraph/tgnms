@@ -38,8 +38,18 @@ jest.mock('axios', () => {
 
   return ax;
 });
+
+function mockNavControl() {
+  return {
+    onAdd: () => {
+      return document.createElement('div');
+    },
+  };
+}
+
 jest.mock('mapbox-gl', () => ({
   Map: () => ({}),
+  NavigationControl: mockNavControl,
 }));
 
 jest.mock('@fbcnms/tg-nms/app/apiutils/MapAPIUtil');

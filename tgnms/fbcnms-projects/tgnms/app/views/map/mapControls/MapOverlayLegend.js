@@ -12,8 +12,8 @@ import Divider from '@material-ui/core/Divider';
 import EditLegendButton from './EditLegendButton';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import MapboxControl from '@fbcnms/tg-nms/app/views/map/mapControls/MapboxControl';
 import Paper from '@material-ui/core/Paper';
-import ReactDOM from 'react-dom';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
@@ -54,15 +54,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function MapOverlayLegend() {
   const classes = useStyles();
-  const {mapboxRef, overlaysConfig, selectedOverlays} = useMapContext();
+  const {overlaysConfig, selectedOverlays} = useMapContext();
   const [showLegend, setShowLegend] = React.useState(true);
-
-  const mapboxControl = React.useMemo(() => {
-    const container = document.createElement('div');
-    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-    container.setAttribute('data-testid', 'tg-legend-container');
-    return container;
-  }, []);
 
   const editableLinkLegend = React.useMemo(
     () =>
@@ -76,18 +69,6 @@ export default function MapOverlayLegend() {
   const toggleLegend = React.useCallback(() => setShowLegend(curr => !curr), [
     setShowLegend,
   ]);
-
-  React.useEffect(() => {
-    mapboxRef?.addControl(
-      {
-        onAdd: _map => {
-          return mapboxControl;
-        },
-        onRemove: () => {},
-      },
-      MAP_CONTROL_LOCATIONS.TOP_RIGHT,
-    );
-  }, [mapboxRef, mapboxControl]);
 
   const linkLegend = React.useMemo(
     () => getLegendsFromOverlay(overlaysConfig.link_lines, selectedOverlays),
@@ -113,109 +94,112 @@ export default function MapOverlayLegend() {
     [overlaysConfig, selectedOverlays],
   );
 
-  return ReactDOM.createPortal(
-    <Paper className={classes.root} elevation={2}>
-      <Grid container direction="column">
-        <Grid item className={classes.titleWrapper} container wrap="nowrap">
-          <Grid item container xs={2} justify="center">
+  return (
+    <MapboxControl
+      mapLocation={MAP_CONTROL_LOCATIONS.TOP_RIGHT}
+      data-testid="tg-legend-container">
+      <Paper className={classes.root} elevation={2}>
+        <Grid container direction="column">
+          <Grid item className={classes.titleWrapper} container wrap="nowrap">
+            <Grid item container xs={2} justify="center">
+              <Grid item>
+                <IconButton
+                  size="small"
+                  onClick={toggleLegend}
+                  data-testid="drawer-toggle-button"
+                  edge="start">
+                  <ChevronRightIcon
+                    color="secondary"
+                    className={classNames(
+                      showLegend ? classes.rotateIcon : '',
+                      classes.transition,
+                    )}
+                  />
+                </IconButton>
+              </Grid>
+            </Grid>
             <Grid item>
-              <IconButton
-                size="small"
-                onClick={toggleLegend}
-                data-testid="drawer-toggle-button"
-                edge="start">
-                <ChevronRightIcon
-                  color="secondary"
-                  className={classNames(
-                    showLegend ? classes.rotateIcon : '',
-                    classes.transition,
-                  )}
-                />
-              </IconButton>
+              <Typography className={classes.title} variant="subtitle1">
+                Legend
+              </Typography>
             </Grid>
           </Grid>
-          <Grid item>
-            <Typography className={classes.title} variant="subtitle1">
-              Legend
-            </Typography>
-          </Grid>
-        </Grid>
-        <Collapse
-          in={showLegend}
-          component={Grid}
-          container
-          item
-          direction="column"
-          wrap="nowrap"
-          justify="flex-start">
-          <Grid
+          <Collapse
+            in={showLegend}
+            component={Grid}
             container
             item
             direction="column"
             wrap="nowrap"
             justify="flex-start">
             <Grid
-              item
               container
-              justify="space-between"
-              spacing={1}
-              alignItems="center"
-              wrap="nowrap">
-              <Grid item>
-                <SectionName>Links</SectionName>
-              </Grid>
-              <Grid item>{editableLinkLegend && <EditLegendButton />}</Grid>
-            </Grid>
-            {linkLegend?.map(({labelName, elementColor}) => (
-              <LegendItem
-                shape={LinkLegendShape}
-                color={elementColor}
-                label={labelName}
-                key={labelName}
-              />
-            ))}
-            <Divider className={classes.resultDivider} />
-            <Grid item>
-              <SectionName>Sites</SectionName>
-            </Grid>
-            {siteLegend?.map(({labelName, elementColor}) => (
-              <LegendItem
-                shape={SiteLegendShape}
-                color={elementColor}
-                label={labelName}
-                key={labelName}
-              />
-            ))}
-            {nodeLegend && nodeLegend.length > 0 && (
-              <>
-                <Divider className={classes.resultDivider} />
+              item
+              direction="column"
+              wrap="nowrap"
+              justify="flex-start">
+              <Grid
+                item
+                container
+                justify="space-between"
+                spacing={1}
+                alignItems="center"
+                wrap="nowrap">
                 <Grid item>
-                  <SectionName>Nodes</SectionName>
+                  <SectionName>Links</SectionName>
                 </Grid>
-                {nodeLegend.map(({labelName, elementColor}) => (
-                  <LegendItem
-                    shape={SiteLegendShape}
-                    color={elementColor}
-                    label={labelName}
-                    key={labelName}
-                  />
-                ))}
-              </>
-            )}
-            <Divider className={classes.resultDivider} />
-            {specialNodeLegend.map(({labelName, elementColor}) => (
-              <LegendItem
-                shape={SiteLegendShape}
-                color={elementColor}
-                label={labelName}
-                key={labelName}
-              />
-            ))}
-          </Grid>
-        </Collapse>
-      </Grid>
-    </Paper>,
-    mapboxControl,
+                <Grid item>{editableLinkLegend && <EditLegendButton />}</Grid>
+              </Grid>
+              {linkLegend?.map(({labelName, elementColor}) => (
+                <LegendItem
+                  shape={LinkLegendShape}
+                  color={elementColor}
+                  label={labelName}
+                  key={labelName}
+                />
+              ))}
+              <Divider className={classes.resultDivider} />
+              <Grid item>
+                <SectionName>Sites</SectionName>
+              </Grid>
+              {siteLegend?.map(({labelName, elementColor}) => (
+                <LegendItem
+                  shape={SiteLegendShape}
+                  color={elementColor}
+                  label={labelName}
+                  key={labelName}
+                />
+              ))}
+              {nodeLegend && nodeLegend.length > 0 && (
+                <>
+                  <Divider className={classes.resultDivider} />
+                  <Grid item>
+                    <SectionName>Nodes</SectionName>
+                  </Grid>
+                  {nodeLegend.map(({labelName, elementColor}) => (
+                    <LegendItem
+                      shape={SiteLegendShape}
+                      color={elementColor}
+                      label={labelName}
+                      key={labelName}
+                    />
+                  ))}
+                </>
+              )}
+              <Divider className={classes.resultDivider} />
+              {specialNodeLegend.map(({labelName, elementColor}) => (
+                <LegendItem
+                  shape={SiteLegendShape}
+                  color={elementColor}
+                  label={labelName}
+                  key={labelName}
+                />
+              ))}
+            </Grid>
+          </Collapse>
+        </Grid>
+      </Paper>
+    </MapboxControl>
   );
 }
 

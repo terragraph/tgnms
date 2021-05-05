@@ -42,7 +42,7 @@ test('Renders container into mapboxControl', async () => {
     </TestApp>,
     {container: document.body?.appendChild(__baseElement)},
   );
-  expect(getByTestId('tg-draw-toggle-container')).toBeInTheDocument();
+  expect(getByTestId('tg-nav-container')).toBeInTheDocument();
 });
 
 test('Renders search in container ', async () => {

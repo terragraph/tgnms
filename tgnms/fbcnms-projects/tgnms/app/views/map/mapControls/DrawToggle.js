@@ -7,8 +7,8 @@
 
 import CloseIcon from '@material-ui/icons/Close';
 import EditIcon from '@material-ui/icons/Edit';
+import MapboxControl from '@fbcnms/tg-nms/app/views/map/mapControls/MapboxControl';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {
   ANNOTATION_DEFAULT_GROUP,
@@ -27,36 +27,8 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-export default function DrawLayer() {
+export default function DrawToggle() {
   const classes = useStyles();
-  const {isDrawEnabled, setIsDrawEnabled, mapboxControl} = useDrawLayer();
-  if (!mapboxControl) {
-    return null;
-  }
-  return ReactDOM.createPortal(
-    <button
-      style={
-        !isDrawEnabled
-          ? {
-              backgroundColor: '#424242',
-              color: 'white',
-            }
-          : undefined
-      }
-      title="Map Annotations"
-      onClick={() => setIsDrawEnabled(!isDrawEnabled)}
-      data-testid="tg-draw-toggle">
-      {isDrawEnabled ? (
-        <CloseIcon className={classes.icon} />
-      ) : (
-        <EditIcon className={classes.icon} />
-      )}
-    </button>,
-    mapboxControl,
-  );
-}
-
-function useDrawLayer() {
   const {networkName} = useNetworkContext();
   const {mapboxRef} = useMapContext();
   const {
@@ -70,6 +42,7 @@ function useDrawLayer() {
     groupName: ANNOTATION_DEFAULT_GROUP,
   });
   useDrawState();
+
   const isControlAdded = React.useRef(false);
 
   const setDrawControlState = useLiveRef(
@@ -95,57 +68,28 @@ function useDrawLayer() {
     setDrawControlState.current(isDrawEnabled);
   }, [isDrawEnabled, setDrawControlState]);
 
-  const mapboxControl = React.useMemo(() => {
-    const container = document.createElement('div');
-    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-    container.setAttribute('data-testid', 'tg-draw-toggle-container');
-    return container;
-  }, []);
-
-  useOnceInitialized(() => {
-    mapboxRef?.addControl(
-      {
-        onAdd: _map => {
-          return mapboxControl;
-        },
-        onRemove: () => {},
-      },
-      MAP_CONTROL_LOCATIONS.TOP_LEFT,
-    );
-  }, [mapboxRef]);
-
-  return {
-    mapboxControl,
-    mapboxRef,
-    isDrawEnabled,
-    setIsDrawEnabled,
-  };
-}
-
-export function useOnceInitialized(fn: () => void | any, deps: Array<*>) {
-  const fnRef = React.useRef(fn);
-  React.useEffect(() => {
-    fnRef.current = fn;
-  }, [fn]);
-  React.useEffect(
-    () => {
-      if (fnRef.current === null) {
-        return;
-      }
-      // all deps have been initialized
-      for (const d of deps) {
-        if (typeof d === 'undefined' || d === null) {
-          return;
+  return (
+    <MapboxControl
+      mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
+      data-testid="tg-draw-toggle-container">
+      <button
+        style={
+          !isDrawEnabled
+            ? {
+                backgroundColor: '#424242',
+                color: 'white',
+              }
+            : undefined
         }
-      }
-
-      try {
-        fnRef.current();
-      } finally {
-        fnRef.current = null;
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    deps,
+        title="Map Annotations"
+        onClick={() => setIsDrawEnabled(!isDrawEnabled)}
+        data-testid="tg-draw-toggle">
+        {isDrawEnabled ? (
+          <CloseIcon className={classes.icon} />
+        ) : (
+          <EditIcon className={classes.icon} />
+        )}
+      </button>
+    </MapboxControl>
   );
 }

@@ -8,16 +8,12 @@
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import MapboxNavigationControl from './MapboxNavigationControl';
 import MapboxSearchBar from './MapboxSearchBar';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import TgMapboxNavIcon from './TgMapboxNavIcon';
-import mapboxgl from 'mapbox-gl';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
-import {
-  MAP_CONTROL_LOCATIONS,
-  TopologyElementType,
-} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {
   convertType,
   objectValuesTypesafe,
@@ -39,15 +35,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
-  accessToken: string,
-  mapRef: ?mapboxgl.Map,
-};
-
-export default function TgMapboxNavigation(props: Props) {
+export default function TgMapboxNavigation() {
   const classes = useStyles();
-  const {accessToken, mapRef} = props;
-  const {mapboxRef, moveMapTo} = useMapContext();
+  const {moveMapTo} = useMapContext();
+
   const {
     nodeMap,
     linkMap,
@@ -56,29 +47,6 @@ export default function TgMapboxNavigation(props: Props) {
     networkConfig,
   } = useNetworkContext();
   const statusReports = networkConfig?.status_dump?.statusReports;
-
-  const mapboxControl = React.useMemo(() => {
-    const container = document.createElement('div');
-    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-    container.setAttribute('data-testid', 'tg-draw-toggle-container');
-    return container;
-  }, []);
-
-  React.useEffect(() => {
-    mapboxRef?.addControl(
-      {
-        onAdd: _map => {
-          return mapboxControl;
-        },
-        onRemove: () => {},
-      },
-      MAP_CONTROL_LOCATIONS.TOP_LEFT,
-    );
-    mapboxRef?.addControl(
-      new mapboxgl.NavigationControl({}),
-      MAP_CONTROL_LOCATIONS.TOP_LEFT,
-    );
-  }, [mapboxRef, mapboxControl]);
 
   const searchInMap = React.useCallback((query, map, filter) => {
     // Performs a case-insensitive substring lookup in the given map
@@ -312,15 +280,15 @@ export default function TgMapboxNavigation(props: Props) {
     [classes, moveMapTo, setSelected],
   );
 
-  return ReactDOM.createPortal(
-    <MapboxSearchBar
-      accessToken={accessToken}
-      mapRef={mapRef}
-      onSelectFeature={moveMapTo}
-      getCustomResults={getCustomResults}
-      shouldSearchPlaces={shouldSearchPlaces}
-      onRenderResult={onRenderResult}
-    />,
-    mapboxControl,
+  return (
+    <>
+      <MapboxSearchBar
+        onSelectFeature={moveMapTo}
+        getCustomResults={getCustomResults}
+        shouldSearchPlaces={shouldSearchPlaces}
+        onRenderResult={onRenderResult}
+      />
+      <MapboxNavigationControl />
+    </>
   );
 }

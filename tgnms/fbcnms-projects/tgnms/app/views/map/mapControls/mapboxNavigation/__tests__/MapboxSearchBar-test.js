@@ -7,23 +7,41 @@
 
 import MapboxSearchBar from '../MapboxSearchBar';
 import React from 'react';
-import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {
+  MapContextWrapper,
+  TestApp,
+  mockMapboxRef,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
+function mockNavControl() {
+  return {
+    onAdd: () => {
+      return document.createElement('div');
+    },
+  };
+}
+
+jest.mock('mapbox-gl', () => ({
+  NavigationControl: mockNavControl,
+}));
+
 const defaultProps = {
-  accessToken: 'testToken',
-  mapRef: null,
   onSelectFeature: jest.fn(),
   getCustomResults: jest.fn(),
   shouldSearchPlaces: jest.fn(),
   onRenderResult: jest.fn(),
 };
 
-test('renders', () => {
-  const {getByTestId} = render(
+test('renders', async () => {
+  const {__baseElement, ...mapboxRef} = mockMapboxRef();
+  const {getByTestId} = await render(
     <TestApp>
-      <MapboxSearchBar {...defaultProps} />
+      <MapContextWrapper contextValue={{mapboxRef}}>
+        <MapboxSearchBar {...defaultProps} />
+      </MapContextWrapper>
     </TestApp>,
+    {container: document.body?.appendChild(__baseElement)},
   );
   expect(getByTestId('mapbox-search-bar')).toBeInTheDocument();
 });

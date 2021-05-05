@@ -397,14 +397,13 @@ export default function NetworkDrawer({
         ))}
 
         <DefaultRouteHistoryPanel panelControl={panelControl} />
-        <AnnotationsPanel panelControl={panelControl} />
         <RemoteOverlayMetadataPanel panelControl={panelControl} />
-
         <TopologyBuilderPanel
           panelControl={panelControl}
           panelForm={topologyBuilderForm}
           siteProps={siteProps}
         />
+        <AnnotationsPanel panelControl={panelControl} />
         <DrawerToggleButton
           drawerWidth={networkDrawerWidth}
           isOpen={isDrawerOpen}
