@@ -10,17 +10,16 @@ import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordio
 import TestExecutionSummary from './TestExecutionSummary';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {getUrlSearchParam} from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
-import {withRouter} from 'react-router-dom';
-
-import type {ContextRouter} from 'react-router-dom';
+import {useHistory} from 'react-router';
 
 type Props = {
-  testId: ?string,
+  networkTestId: ?string,
   expanded: boolean,
-} & ContextRouter;
+};
 
-export default withRouter(function NetworkTestPanel(props: Props) {
-  const {expanded, testId, history} = props;
+export default function NetworkTestPanel(props: Props) {
+  const {expanded, networkTestId} = props;
+  const history = useHistory();
   const historyRef = React.useRef(history);
 
   const {setMapMode} = useMapContext();
@@ -47,7 +46,7 @@ export default withRouter(function NetworkTestPanel(props: Props) {
     }
   }, [setMapMode]);
 
-  if (!testId) {
+  if (!networkTestId) {
     return null;
   }
 
@@ -56,7 +55,7 @@ export default withRouter(function NetworkTestPanel(props: Props) {
       title="Network Test"
       expanded={expanded}
       onClose={handleNetworkTestClose}
-      details={<TestExecutionSummary testId={testId} />}
+      details={<TestExecutionSummary networkTestId={networkTestId} />}
     />
   );
-});
+}

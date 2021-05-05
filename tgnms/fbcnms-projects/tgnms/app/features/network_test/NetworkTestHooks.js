@@ -20,7 +20,11 @@ import type {
   InputGetType,
 } from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
-export function useLoadTestExecutionResults({testId}: {testId: string}) {
+export function useLoadTestExecutionResults({
+  networkTestId,
+}: {
+  networkTestId: string,
+}) {
   const [loading, setLoading] = React.useState(true);
   const [execution, setExecution] = React.useState<?ExecutionDetailsType>(null);
   const [results, setResults] = React.useState<?Array<ExecutionResultDataType>>(
@@ -34,13 +38,13 @@ export function useLoadTestExecutionResults({testId}: {testId: string}) {
     const cancelSource = axios.CancelToken.source();
 
     const getExecutionResults = async () => {
-      if (!testId) {
+      if (!networkTestId) {
         return;
       }
       setLoading(true);
       try {
         const executionResults = await api.getExecutionResults({
-          executionId: testId,
+          executionId: networkTestId,
           cancelToken: cancelSource.token,
         });
         setExecution(executionResults.execution);
@@ -53,7 +57,7 @@ export function useLoadTestExecutionResults({testId}: {testId: string}) {
     getExecutionResults();
 
     return () => cancelSource.cancel();
-  }, [testId, shouldUpdate]);
+  }, [networkTestId, shouldUpdate]);
 
   React.useEffect(() => {
     if (

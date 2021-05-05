@@ -26,7 +26,7 @@ const useLoadTestExecutionResultsMock = jest
   }));
 
 const defaultProps = {
-  testId: '1',
+  networkTestId: '1',
   routes: mockRoutes(),
 };
 

@@ -11,7 +11,7 @@ import {TestApp, renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   expanded: true,
-  testId: null,
+  networkTestId: null,
 };
 
 test('doest not render table if there is no test ID', () => {
@@ -24,7 +24,7 @@ test('doest not render table if there is no test ID', () => {
 test('renders table if there is a test ID', () => {
   const {getByText} = renderWithRouter(
     <TestApp>
-      <NetworkTestPanel {...defaultProps} testId={'1'} />
+      <NetworkTestPanel {...defaultProps} networkTestId={'1'} />
     </TestApp>,
   );
   expect(getByText('Network Test')).toBeInTheDocument();

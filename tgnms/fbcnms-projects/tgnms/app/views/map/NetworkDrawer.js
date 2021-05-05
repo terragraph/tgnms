@@ -326,7 +326,7 @@ export default function NetworkDrawer({
           />
         )}
         {mapMode === MAPMODE.NETWORK_TEST && (
-          <NetworkTestPanel expanded={true} testId={networkTestId} />
+          <NetworkTestPanel expanded={true} networkTestId={networkTestId} />
         )}
         {mapMode === MAPMODE.SCAN_SERVICE && (
           <ScanServicePanel expanded={true} scanId={scanId} />

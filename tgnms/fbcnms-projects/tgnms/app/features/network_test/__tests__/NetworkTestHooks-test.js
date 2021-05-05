@@ -27,7 +27,7 @@ jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil', () => ({
 describe('useLoadTestExecutionResults', () => {
   test('calling useLoadTestExecutionResults loading initially ', () => {
     const {result} = renderHook(() =>
-      useLoadTestExecutionResults({testId: '1'}),
+      useLoadTestExecutionResults({networkTestId: '1'}),
     );
     expect(result.current.loading).toBe(true);
   });

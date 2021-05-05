@@ -29,10 +29,6 @@ import type {AssetTestResultType} from '@fbcnms/tg-nms/app/features/network_test
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {ExecutionDetailsType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
-type Props = {
-  testId: string,
-};
-
 const useSummaryStyles = makeStyles(theme => ({
   header: {
     textTransform: 'uppercase',
@@ -47,11 +43,16 @@ const useSummaryStyles = makeStyles(theme => ({
   },
 }));
 
-export default function TestExecutionSummary(props: Props) {
-  const {testId} = props;
+export default function TestExecutionSummary({
+  networkTestId,
+}: {
+  networkTestId: string,
+}) {
   const classes = useSummaryStyles();
   const {linkMap, selectedElement} = React.useContext(NetworkContext);
-  const {loading, execution, results} = useLoadTestExecutionResults({testId});
+  const {loading, execution, results} = useLoadTestExecutionResults({
+    networkTestId,
+  });
   const {updateNetworkMapOptions} = React.useContext(NmsOptionsContext);
 
   const assetType =
