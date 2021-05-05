@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import TopologyBuilderLayer from '../TopologyBuilderLayer';
+import TopologyBuilderToggle from '../TopologyBuilderToggle';
 import {
   MapContextWrapper,
   TestApp,
@@ -24,13 +24,13 @@ jest
   )
   .mockReturnValue(true);
 
-describe('TopologyBuilderLayer', () => {
+describe('TopologyBuilderToggle', () => {
   test('Renders button into mapboxControl', async () => {
     mockMapboxTopologyBuilder();
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <TopologyBuilderLayer />
+        <TopologyBuilderToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -43,7 +43,7 @@ describe('TopologyBuilderLayer', () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <TopologyBuilderLayer />
+        <TopologyBuilderToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -60,7 +60,7 @@ describe('TopologyBuilderLayer', () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <TopologyBuilderLayer />
+        <TopologyBuilderToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -73,7 +73,7 @@ describe('TopologyBuilderLayer', () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId, queryByTitle, getByTitle} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <TopologyBuilderLayer />
+        <TopologyBuilderToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );

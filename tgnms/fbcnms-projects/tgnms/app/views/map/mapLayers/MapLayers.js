@@ -7,18 +7,18 @@
 
 import AlertsLayer from './AlertsLayer';
 import BuildingsLayer from './BuildingsLayer';
-import DrawLayer from './DrawLayer';
+import DrawToggle from '@fbcnms/tg-nms/app/views/map/mapControls/DrawToggle';
 import LinksLayer from './LinksLayer';
 import MapFeaturesLayer from './MapFeaturesLayer';
 import McsEstimateLayer from './McsEstimateLayer';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer/NodesLayer';
-import PlanningLayer from './PlanningLayer';
+import PlanningToggle from '@fbcnms/tg-nms/app/views/map/mapControls/PlanningToggle';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
-import TopologyBuilderLayer from './TopologyBuilderLayer';
+import TopologyBuilderToggle from '@fbcnms/tg-nms/app/views/map/mapControls/TopologyBuilderToggle';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
@@ -191,9 +191,9 @@ export default function MapLayers(props: Props) {
         overlay={overlays.area_polygons}
         data={overlayData.area_polygons}
       />
-      {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && <PlanningLayer />}
-      <TopologyBuilderLayer />
-      {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawLayer />}
+      {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && <PlanningToggle />}
+      <TopologyBuilderToggle />
+      {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawToggle />}
       {isFeatureEnabled('LINK_BUDGETING_ENABLED') && <McsEstimateLayer />}
       {isFeatureEnabled('ALERTS_LAYER_ENABLED') && alert_popups && (
         <AlertsLayer />

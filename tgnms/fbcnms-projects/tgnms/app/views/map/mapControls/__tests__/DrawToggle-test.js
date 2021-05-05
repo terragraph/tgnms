@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import DrawLayer from '../DrawLayer';
+import DrawToggle from '../DrawToggle';
 import {MapAnnotationContextProvider} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import {
   MapContextWrapper,
@@ -31,14 +31,14 @@ beforeEach(() => {
   MapboxDrawMock.mockReset();
 });
 
-describe('DrawLayer', () => {
+describe('DrawToggle', () => {
   test('Renders button into mapboxControl', async () => {
     mockMapboxDraw();
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
-        <DrawLayer />
+        <DrawToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -52,7 +52,7 @@ describe('DrawLayer', () => {
     const {getByTestId} = await render(
       // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
-        <DrawLayer />
+        <DrawToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -70,7 +70,7 @@ describe('DrawLayer', () => {
     const {getByTestId} = await render(
       // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
-        <DrawLayer />
+        <DrawToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -84,7 +84,7 @@ describe('DrawLayer', () => {
     const {getByTestId, queryByTestId} = await render(
       // $FlowIgnore It's a mock
       <Wrapper mapValue={{mapboxRef}}>
-        <DrawLayer />
+        <DrawToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -92,7 +92,7 @@ describe('DrawLayer', () => {
     act(() => {
       fireEvent.click(getByTestId('tg-draw-toggle'));
     });
-    // mapboxdraw will be the second control added after the drawlayer toggle
+    // mapboxdraw will be the second control added after the drawToggle toggle
     expect(mapboxRef.addControl).toHaveBeenCalledTimes(2);
     expect(getByTestId('mapbox-gl-draw-mock')).toBeInTheDocument();
     expect(mapboxDrawMock.onAdd).toHaveBeenCalledTimes(1);

@@ -10,13 +10,13 @@ import * as React from 'react';
 import * as mapApi from '@fbcnms/tg-nms/app/apiutils/MapAPIUtil';
 import Dragger from '@fbcnms/tg-nms/app/components/common/Dragger';
 import MapLayers from './mapLayers/MapLayers';
-import MapOverlayLegend from '@fbcnms/tg-nms/app/views/map/mappanels/MapOverlayLegend';
+import MapOverlayLegend from '@fbcnms/tg-nms/app/views/map/mapControls/MapOverlayLegend';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkDrawer from './NetworkDrawer';
 import NetworkTables from '../tables/NetworkTables';
 import ReactMapboxGl from 'react-mapbox-gl';
 import TableControl from './TableControl';
-import TgMapboxNavigation from '@fbcnms/tg-nms/app/components/mapboxNavigation/TgMapboxNavigation';
+import TgMapboxNavigation from '@fbcnms/tg-nms/app/views/map/mapControls/mapboxNavigation/TgMapboxNavigation';
 import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   MAPMODE,

@@ -10,7 +10,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import SearchBar from '../common/SearchBar';
+import SearchBar from '@fbcnms/tg-nms/app/components/common/SearchBar';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 import {makeStyles} from '@material-ui/styles';

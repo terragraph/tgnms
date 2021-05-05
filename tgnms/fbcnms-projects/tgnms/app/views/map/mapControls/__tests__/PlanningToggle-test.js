@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import PlanningLayer from '../PlanningLayer';
+import PlanningToggle from '../PlanningToggle';
 import {
   MapContextWrapper,
   TestApp,
@@ -24,13 +24,13 @@ jest
   )
   .mockReturnValue(true);
 
-describe('PlanningLayer', () => {
+describe('PlanningToggle', () => {
   test('Renders button into mapboxControl', async () => {
     mockMapboxPlanning();
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <PlanningLayer />
+        <PlanningToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -43,7 +43,7 @@ describe('PlanningLayer', () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <PlanningLayer />
+        <PlanningToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -60,7 +60,7 @@ describe('PlanningLayer', () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <PlanningLayer />
+        <PlanningToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
@@ -73,7 +73,7 @@ describe('PlanningLayer', () => {
     const {__baseElement, ...mapboxRef} = mockMapboxRef();
     const {getByTestId, queryByTestId} = await render(
       <Wrapper mapValue={{mapboxRef}}>
-        <PlanningLayer />
+        <PlanningToggle />
       </Wrapper>,
       {container: document.body?.appendChild(__baseElement)},
     );
