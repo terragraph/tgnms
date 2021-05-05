@@ -8,6 +8,7 @@ import ClipboardTooltip from '@fbcnms/tg-nms/app/components/common/ClipboardTool
 import NodeBgpStatus from './NodeBgpStatus';
 import NodeEthernetLinks from './NodeEthernetLinks';
 import NodeLinksAndSite from './NodeLinksAndSite';
+import NodeOffline from '@fbcnms/tg-nms/app/components/troubleshootingAutomation/NodeOffline';
 import NodePolarity from './NodePolarity';
 import NodeRadioMacs from './NodeRadioMacs';
 import NodeSoftwareVersion from './NodeSoftwareVersion';
@@ -95,7 +96,8 @@ export default function NodeDetails(props: Props) {
       <div className={classes.spaceBetween}>
         <Typography variant="subtitle2">Status</Typography>
         <Typography variant="body2">
-          {!isNodeAlive(node.status) && <PopOffline />}
+          {!isNodeAlive(node.status) &&
+            (node.pop_node ? <PopOffline /> : <NodeOffline />)}
           <StatusText
             status={isNodeAlive(node.status)}
             falseText={
