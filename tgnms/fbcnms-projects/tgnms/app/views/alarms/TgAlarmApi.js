@@ -11,7 +11,7 @@ import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
 import type {AxiosXHRConfig} from 'axios';
 import type {EventRule} from './eventalarms/EventAlarmsTypes';
 
-export const AM_BASE_URL = '/alarms';
+export const AM_BASE_URL = '/api/alarms';
 export const TgApiUtil: ApiUtil = {
   useAlarmsApi: useApi,
   viewFiringAlerts: ({networkId}) =>

@@ -115,7 +115,7 @@ app.use('/user', require('../server/user/routes'));
 app.use('/network_test', require('../server/network_test/routes'));
 app.use('/scan_service', require('../server/scan_service/routes'));
 app.use('/websockets', require('../server/websockets/routes'));
-app.use('/alarms', require('../server/alarms/routes'));
+app.use('/api/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));
 app.use('/healthcheck', require('../server/healthcheck/routes'));
 app.use('/settings', require('../server/settings/routes'));
