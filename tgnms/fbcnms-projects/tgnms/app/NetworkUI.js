@@ -317,14 +317,14 @@ class NetworkUI extends React.Component<Props, State> {
       this.setState({networkLinkHealth: health || {}});
     });
 
-    axios.get(`/metrics/node_health/${networkName}`).then(response => {
+    axios.get(`/metrics/${networkName}/node_health`).then(response => {
       this.setState({networkNodeHealthPrometheus: response.data || {}});
     });
   };
 
   updateNetworkAnalyzer = networkName => {
     // Refresh network analyzer data
-    axios.get('/metrics/link_analyzer/' + networkName).then(response => {
+    axios.get(`/metrics/${networkName}/link_analyzer`).then(response => {
       this.setState({networkAnalyzerData: response.data});
     });
   };
