@@ -100,6 +100,8 @@ async def generate_network_health_labels(time_s: int, interval_s: int) -> None:
     PrometheusClient.write_metrics(metrics)
 
     # Write stats health to db
+    if not to_db:
+        return None
     async with MySQLClient().lease() as sa_conn:
         await sa_conn.execute(insert(NetworkStatsHealth).values(to_db))
         await sa_conn.connection.commit()
