@@ -255,13 +255,15 @@ def analyze_alignment(
                     consts.link_direction: key[0],
                     consts.node_name: key[1],
                 }
-                alignment_stats.append(
+                alignment_stats += [
                     PrometheusMetric(
-                        name="analytics_alignment_status",
-                        value=node_alignment_status.value,
-                        labels=labels,
-                    )
-                )
+                        "analytics_alignment_status",
+                        labels,
+                        node_alignment_status.value,
+                    ),
+                    PrometheusMetric("analytics_tx_beam_angle", labels, tx_degree),
+                    PrometheusMetric("analytics_rx_beam_angle", labels, rx_degree),
+                ]
     PrometheusClient.write_metrics(alignment_stats)
 
 
