@@ -237,7 +237,7 @@ def analyze_alignment(
                 rx_degree_info = HardwareConfig.BEAM_IDX_TO_TILE_ELE_ANGLE.get(rx_idx)
                 if tx_degree_info is None or rx_degree_info is None:
                     continue
-                _, _, tx_degree = rx_degree_info
+                _, _, tx_degree = tx_degree_info
                 _, _, rx_degree = rx_degree_info
 
                 node_alignment_status = NodeAlignmentStatus.TX_RX_HEALTHY
