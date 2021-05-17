@@ -248,9 +248,8 @@ class NetworkUI extends React.Component<Props, State> {
       .get(`/metrics/${networkName}/query/link/latest`, {
         params: {
           query: increase(
-            createQuery('link_attempts', {
+            createQuery('topology_link_attempts', {
               network: networkName,
-              intervalSec: 30,
             }),
             '1d',
           ),

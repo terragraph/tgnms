@@ -191,7 +191,7 @@ router.get(
 
     const prometheusQueryList = ['e2e_minion_uptime'].map(metricName => ({
       metricName: `resets_${metricName}`,
-      prometheusQuery: `resets(${metricName}{network="${topologyName}",intervalSec="${DS_INTERVAL_SEC}"}${timeWindow})`,
+      prometheusQuery: `resets(${metricName}{network="${topologyName}"}${timeWindow})`,
     }));
 
     Promise.all(
