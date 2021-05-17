@@ -10,6 +10,7 @@
 .*/node_modules/findup/.*
 .*/node_modules/jsonlint-lines-primitives/.*
 .*/node_modules/zalgo-promise/.*
+.*/.yalc/.*
 
 ; Huge libraries that we dont need flow for, just speed up because we dont care
 .*/node_modules/@material-ui/.*

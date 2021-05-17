@@ -6,11 +6,19 @@
  */
 
 const paths = require('@fbcnms/webpack-config/paths');
+const packageJson = require('../package.json');
+const path = require('path');
+
+const fbcnmsPackages = Object.keys(packageJson.dependencies)
+  .filter(key => key.includes('@fbcnms'))
+  .map(pkg =>
+    path.join(
+      path.resolve(require.resolve(path.join(pkg, 'package.json'))),
+      '../',
+    ),
+  );
 
 module.exports = {
   ...paths,
-  extraPaths: [
-    paths.resolveApp('shared'),
-    paths.resolveApp('../../node_modules/@fbcnms'), //transform fbcnms-packages
-  ],
+  extraPaths: [paths.resolveApp('shared'), ...fbcnmsPackages],
 };

@@ -33,6 +33,7 @@ declare module 'notistack' {
     iconVariant?: {success?: Node, warning?: Node, error?: Node, info?: Node},
     hideIconVariant?: boolean,
     dense?: boolean,
+    children: Node,
     ...MutualProps,
   |};
 

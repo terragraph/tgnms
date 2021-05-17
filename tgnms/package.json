@@ -57,8 +57,7 @@
     "test": "NODE_ENV=test jest",
     "test:ci": "NODE_ENV=test jest -w 1",
     "flow": "flow",
-    "flow-typed-install": "flow-typed --flowVersion $(flow version --json | jq -r .semver) install --",
-    "generate-promql-grammar": "nearleyc fbcnms-packages/fbcnms-alarms/components/prometheus/PromQLGrammar.ne -o fbcnms-packages/fbcnms-alarms/components/prometheus/__generated__/PromQLGrammar.js"
+    "flow-typed-install": "flow-typed --flowVersion $(flow version --json | jq -r .semver) install --"
   },
   "workspaces": {
     "nohoist": [

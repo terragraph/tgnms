@@ -11,5 +11,3 @@ fbcnms-packages/eslint-config-fbcnms/index.js
 fbcnms-packages/fbcnms-magma-api/__generated__/*.js
 fbcnms-projects/tgnms/shared/types/*.js
 fbcnms-projects/tgnms/static/**/*.js
-fbcnms-packages/fbcnms-alarms/components/prometheus/__generated__/*.js
-fbcnms-packages/fbcnms-alarms/lib/*.js
