@@ -36,9 +36,9 @@ type Props = {
 };
 
 const EVENT_RULE_TYPE = 'events';
-export default function NmsAlarms(_props: Props) {
+export default function NmsAlarms({networkName}: Props) {
   const classes = useStyles();
-
+  const getNetworkId = React.useCallback(() => networkName, [networkName]);
   const ruleMap = React.useMemo<{[string]: RuleInterface<EventRule>}>(
     () => ({
       [EVENT_RULE_TYPE]: {
@@ -47,7 +47,7 @@ export default function NmsAlarms(_props: Props) {
         AlertViewer: EventAlertViewer,
         deleteRule: TgEventAlarmsApiUtil.deleteAlertRule,
         getRules: () =>
-          TgEventAlarmsApiUtil.getRules().then(rules =>
+          TgEventAlarmsApiUtil.getRules({networkId: networkName}).then(rules =>
             rules.map<GenericRule<EventRule>>(rule => ({
               severity: mapEventSeverityToGenericSeverity(rule.severity),
               name: rule.name,
@@ -60,13 +60,14 @@ export default function NmsAlarms(_props: Props) {
           ),
       },
     }),
-    [],
+    [networkName],
   );
   return (
     <div className={classes.root}>
       <Alarms
         apiUtil={TgApiUtil}
         ruleMap={ruleMap}
+        getNetworkId={getNetworkId}
         makeTabLink={({match, keyName}) =>
           `/alarms/${match.params.networkName || ''}/${keyName}`
         }

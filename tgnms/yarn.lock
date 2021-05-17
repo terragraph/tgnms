@@ -1649,10 +1649,10 @@
   resolved "https://registry.yarnpkg.com/@emotion/weak-memoize/-/weak-memoize-0.2.5.tgz#8eed982e2ee6f7f4e44c253e12962980791efd46"
   integrity sha512-6U71C2Wp7r5XtFtQzYrW5iKFT67OixrSxjI4MptCHzdSVlgabczzqLe0ZSgnub/5Kp4hSbpDB1tMytZY9pwxxA==
 
-"@fbcnms/alarms@^0.2.0":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@fbcnms/alarms/-/alarms-0.2.2.tgz#c261965c219bd39c95a17d163ab3e49dcee1cc9c"
-  integrity sha512-gFJm2BXzrlhxQnnQaO+RLpuxqzBTYllwmSCuf+vXQcaD5CHNQNvMQLlSCqYqp5FYussv2bLwNUdVv39axL54fQ==
+"@fbcnms/alarms@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@fbcnms/alarms/-/alarms-0.2.3.tgz#d43623a256feb82ee4f0f156a0e5ef4601512cee"
+  integrity sha512-QjMxnlX9xBDAPhgXi+1IsO0EXDiclxXX0W5H4Xgobdj0He3r2r7RLzOAafWpRu6dnOCyY6mg3DMZmNkAtl47uA==
   dependencies:
     "@fbcnms/ui" "0.1.11"
     "@material-ui/core" "^4.0.0"

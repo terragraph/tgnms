@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@date-io/moment": "1.x",
-    "@fbcnms/alarms": "^0.2.0",
+    "@fbcnms/alarms": "0.2.3",
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.0",
     "@fbcnms/express-middleware": "^0.1.0",

@@ -27,6 +27,7 @@ import {Severity} from './EventAlarmsTypes';
 import {TgEventAlarmsApiUtil} from '../TgAlarmApi';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {useNetworkId} from '@fbcnms/alarms/components/hooks';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {EventRule} from './EventAlarmsTypes';
@@ -57,6 +58,7 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
   const {isNew, onRuleUpdated, onExit, rule} = props;
   const classes = useStyles();
   const snackbars = useSnackbars();
+  const networkId = useNetworkId();
   const handleFormUpdated = React.useCallback(
     (state: EventRule) => {
       onRuleUpdated({
@@ -92,14 +94,17 @@ export default function EventRuleEditor(props: RuleEditorProps<EventRule>) {
   const saveAlert = React.useCallback(async () => {
     try {
       if (isNew) {
-        await TgEventAlarmsApiUtil.createAlertRule(formState);
+        await TgEventAlarmsApiUtil.createAlertRule({
+          networkId,
+          rule: formState,
+        });
       }
       snackbars.success(`Successfully saved alert rule`);
       onExit();
     } catch (error) {
       snackbars.error(`Could not create alert rule: ${error.message}`);
     }
-  }, [isNew, onExit, formState, snackbars]);
+  }, [isNew, networkId, onExit, formState, snackbars]);
 
   return (
     <RuleEditorBase

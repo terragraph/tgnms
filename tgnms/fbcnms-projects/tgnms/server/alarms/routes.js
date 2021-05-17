@@ -232,8 +232,13 @@ router.post('/:networkName/globalconfig', (req, res) => {
 });
 
 router.get('/:networkName/globalconfig', (req, res) => {
+  const baseUrl = getNetworkProperty(
+    req.params.networkName,
+    state => state.alertmanager_config_url,
+    ALERTMANAGER_CONFIG_URL,
+  );
   return createRequest({
-    uri: formatAlertManagerConfigUrl(req.params.networkName, '/global'),
+    uri: `${baseUrl}/v1/global`,
     method: req.method,
   })
     .then(response => res.status(response.statusCode).send(response.body))

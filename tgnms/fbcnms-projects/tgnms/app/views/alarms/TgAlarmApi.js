@@ -7,7 +7,7 @@
 
 import axios from 'axios';
 import {useEffect, useState} from 'react';
-import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
+import type {ApiRequest, ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
 import type {AxiosXHRConfig} from 'axios';
 import type {EventRule} from './eventalarms/EventAlarmsTypes';
 
@@ -129,21 +129,29 @@ export const TgApiUtil: ApiUtil = {
 };
 
 export const TgEventAlarmsApiUtil = {
-  getRules: () =>
+  getRules: ({networkId}: ApiRequest) =>
     makeRequest<void, Array<EventRule>>({
-      url: `${AM_BASE_URL}/tg_rules`,
+      url: `${AM_BASE_URL}/${networkId}/tg_rules`,
       method: 'GET',
       timeout: 3000,
     }),
-  createAlertRule: (rule: EventRule) =>
+  createAlertRule: ({networkId, rule}: {networkId: string, rule: EventRule}) =>
     makeRequest<EventRule, void>({
-      url: `${AM_BASE_URL}/tg_rule_add`,
+      url: `${AM_BASE_URL}/${networkId}/tg_rule_add`,
       method: 'POST',
       data: rule,
     }),
-  deleteAlertRule: ({ruleName}: {ruleName: string}) => {
+  deleteAlertRule: ({
+    networkId,
+    ruleName,
+  }: {
+    networkId: string,
+    ruleName: string,
+  }) => {
     return makeRequest<string, void>({
-      url: `${AM_BASE_URL}/tg_rule_del?name=${encodeURIComponent(ruleName)}`,
+      url: `${AM_BASE_URL}/${networkId}/tg_rule_del?name=${encodeURIComponent(
+        ruleName,
+      )}`,
       method: 'POST',
     });
   },
