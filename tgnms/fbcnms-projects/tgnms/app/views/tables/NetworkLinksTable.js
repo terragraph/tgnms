@@ -814,7 +814,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
     const linksTable = this.renderLinksTable(context);
     return (
       <>
-        <div className={classes.tableOptions}>
+        <div className={classes.tableOptions} data-testid="network-links-table">
           <FormControl>
             <FormLabel component="legend">Link Options</FormLabel>
             <FormGroup row>

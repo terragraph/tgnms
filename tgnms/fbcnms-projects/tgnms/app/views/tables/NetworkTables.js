@@ -11,7 +11,6 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MenuButton from '@fbcnms/tg-nms/app/components/common/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext.js';
 import NetworkLinksTable from './NetworkLinksTable';
 import NetworkNodesTable from './NetworkNodesTable';
 import NetworkPlanningTable from './NetworkPlanning/NetworkPlanningTable';
@@ -20,14 +19,25 @@ import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 import ScanTable from './ScanTable';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {Link, Redirect, Route, Switch} from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Switch,
+  generatePath,
+  matchPath,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
+import {
+  NETWORK_BASE,
+  NETWORK_TABLES_BASE_PATH,
+} from '@fbcnms/tg-nms/app/constants/paths';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
-import {isEqual} from 'lodash';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import {makeStyles} from '@material-ui/styles';
 import {useExport} from '@fbcnms/tg-nms/app/apiutils/ExportAPIUtil';
-import {withStyles} from '@material-ui/core/styles';
-import type {ContextRouter} from 'react-router-dom';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 const styles = theme => ({
   root: {
@@ -59,10 +69,6 @@ const styles = theme => ({
       color: '#40a9ff',
       opacity: 1,
     },
-    '&$tabSelected': {
-      color: '#1890ff',
-      fontWeight: theme.typography.fontWeightMedium,
-    },
     '&:focus': {
       color: '#40a9ff',
     },
@@ -77,8 +83,9 @@ const styles = theme => ({
   },
   expandTableButton: {borderBottom: '1px solid #e8e8e8'},
 });
+const useStyles = makeStyles(styles);
 
-const TABLE_TYPE = Object.freeze({
+export const TABLE_TYPE = Object.freeze({
   nodes: 'nodes',
   links: 'links',
   tests: 'tests',
@@ -90,58 +97,67 @@ export type NetworkTableProps = {|
   tableHeight?: ?number,
 |};
 
-const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
+export const TABLE_LIMITS = {minHeight: 360, maxHeight: 720};
 
-type Props = {
-  classes: Object,
-  selectedElement: ?Object,
-  isEmbedded?: boolean,
+export type Props = {|
   onResize?: number => void,
-  tableHeight?: number,
-  ...ContextRouter,
-};
+  ...NetworkTableProps,
+|};
 
-type State = {
-  selectedTable: string,
-};
+//Matches the current URL against the route pattern for network tables
+function matchNetworkTablePath(pathname: string) {
+  const match = matchPath(pathname, {
+    path: NETWORK_TABLES_BASE_PATH,
+    exact: false,
+    strict: false,
+  });
+  return match;
+}
 
-class NetworkTables extends React.Component<Props, State> {
-  constructor(props) {
-    super(props);
+export default function NetworkTables(props: Props) {
+  const {tableHeight} = props;
+  const networkContext = useNetworkContext();
+  const {selectedElement} = networkContext;
+  const classes = useStyles();
+  const {pathname} = useLocation();
+  const history = useHistory();
+  const match = matchNetworkTablePath(pathname);
+  const selectedTable = match?.params?.table ?? TABLE_TYPE.nodes;
+  const makeTablePath = React.useCallback(
+    (tableName: string) => {
+      const match = matchNetworkTablePath(pathname);
+      const path = generatePath(NETWORK_TABLES_BASE_PATH, {
+        ...match?.params,
+        table: tableName,
+      });
+      return path;
+    },
+    [pathname],
+  );
+  const tableProps: NetworkTableProps = {
+    tableHeight:
+      tableHeight != null ? tableHeight - NETWORK_TABLE_HEIGHTS.TABS : null,
+  };
 
-    // Set initial table using path (if specified)
-    const splitPath = props.location.pathname.split('/');
-    const selectedTable =
-      splitPath.length > 3 && TABLE_TYPE.hasOwnProperty(splitPath[3])
-        ? splitPath[3]
-        : TABLE_TYPE.nodes;
-
-    this.state = {selectedTable};
-  }
-
-  componentDidUpdate(prevProps: Props, _prevState: State) {
-    // Render table containing selected element (from NetworkContext)
-    const {selectedElement} = this.props;
+  React.useEffect(() => {
     if (
-      // dont jump to another tab if on the test or scan tab
-      this.state.selectedTable !== TABLE_TYPE.tests &&
-      this.state.selectedTable !== TABLE_TYPE.scans &&
-      selectedElement &&
-      !isEqual(selectedElement, prevProps.selectedElement)
+      selectedElement?.type === TopologyElementType.NODE ||
+      selectedElement?.type === TopologyElementType.SITE
     ) {
-      if (
-        selectedElement.type === TopologyElementType.NODE ||
-        selectedElement.type === TopologyElementType.SITE
-      ) {
-        this.handleTableChange(null, TABLE_TYPE.nodes);
-      } else if (selectedElement.type === TopologyElementType.LINK) {
-        this.handleTableChange(null, TABLE_TYPE.links);
+      const newPath = makeTablePath(TABLE_TYPE.nodes);
+      if (newPath !== pathname) {
+        history.replace(newPath);
+      }
+    } else if (selectedElement?.type === TopologyElementType.LINK) {
+      const newPath = makeTablePath(TABLE_TYPE.links);
+      if (newPath !== pathname) {
+        history.replace(newPath);
       }
     }
-  }
+  }, [selectedElement, history, makeTablePath, pathname]);
 
-  handleTableResize = () => {
-    const {onResize, tableHeight} = this.props;
+  const handleTableResize = () => {
+    const {onResize, tableHeight} = props;
     if (onResize) {
       onResize(
         tableHeight === TABLE_LIMITS.maxHeight
@@ -151,151 +167,121 @@ class NetworkTables extends React.Component<Props, State> {
     }
   };
 
-  handleTableChange = (event, value) => {
-    // Handle a table change
-    this.setState({selectedTable: value});
-  };
-
-  renderNetworkTable = () => {
-    // Render the selected table
-    const {selectedTable} = this.state;
-    const tableRootHeight = this.props.tableHeight;
-    const tableProps: NetworkTableProps = {
-      tableHeight:
-        tableRootHeight != null
-          ? tableRootHeight - NETWORK_TABLE_HEIGHTS.TABS
-          : null,
-    };
-    return (
-      <NetworkContext.Consumer>
-        {context => {
-          if (selectedTable === TABLE_TYPE.nodes) {
-            return <NetworkNodesTable {...tableProps} />;
-          } else if (selectedTable === TABLE_TYPE.links) {
-            return <NetworkLinksTable context={context} />;
-          } else if (selectedTable === TABLE_TYPE.tests) {
-            return <NetworkTestTable />;
-          } else if (selectedTable === TABLE_TYPE.scans) {
-            return <ScanTable />;
-          } else if (selectedTable === TABLE_TYPE.planning) {
-            return <NetworkPlanningTable {...tableProps} />;
-          } else {
-            return null;
-          }
-        }}
-      </NetworkContext.Consumer>
-    );
-  };
-
-  render() {
-    const {classes, match, location, isEmbedded, tableHeight} = this.props;
-    const {selectedTable} = this.state;
-    return (
-      <div className={classes.root}>
-        <Grid container className={classes.menuBar}>
-          <Grid item xs={8}>
-            <Tabs
-              value={selectedTable}
-              onChange={this.handleTableChange}
-              classes={{
-                root: classes.tabsRoot,
-                indicator: classes.tabsIndicator,
-              }}>
+  return (
+    <div className={classes.root}>
+      <Grid container className={classes.menuBar}>
+        <Grid item xs={8}>
+          <Tabs
+            value={selectedTable}
+            classes={{
+              root: classes.tabsRoot,
+              indicator: classes.tabsIndicator,
+            }}
+            data-test-selected={selectedTable}
+            data-testid="network-tables-tabs">
+            <Tab
+              classes={{root: classes.tabRoot}}
+              disableRipple
+              label="Nodes"
+              component={Link}
+              to={makeTablePath(TABLE_TYPE.nodes)}
+              value={TABLE_TYPE.nodes}
+            />
+            <Tab
+              classes={{root: classes.tabRoot}}
+              disableRipple
+              label="Links"
+              component={Link}
+              to={makeTablePath(TABLE_TYPE.links)}
+              value={TABLE_TYPE.links}
+            />
+            {isFeatureEnabled('NETWORKTEST_ENABLED') && (
               <Tab
-                classes={{root: classes.tabRoot}}
+                classes={{
+                  root: classes.tabRoot,
+                }}
                 disableRipple
-                label="Nodes"
+                label="Tests"
                 component={Link}
-                to={`${match.url}/${TABLE_TYPE.nodes}${location.search}`}
-                value={TABLE_TYPE.nodes}
+                to={makeTablePath(TABLE_TYPE.tests)}
+                value={TABLE_TYPE.tests}
               />
-              <Tab
-                classes={{root: classes.tabRoot}}
-                disableRipple
-                label="Links"
-                component={Link}
-                to={`${match.url}/${TABLE_TYPE.links}${location.search}`}
-                value={TABLE_TYPE.links}
-              />
-              {isFeatureEnabled('NETWORKTEST_ENABLED') && (
-                <Tab
-                  classes={{
-                    root: classes.tabRoot,
-                  }}
-                  disableRipple
-                  label="Tests"
-                  component={Link}
-                  to={`${match.url}/${TABLE_TYPE.tests}${location.search}`}
-                  value={TABLE_TYPE.tests}
-                />
-              )}
-              {isFeatureEnabled('SCANSERVICE_ENABLED') && (
-                <Tab
-                  classes={{
-                    root: classes.tabRoot,
-                  }}
-                  disableRipple
-                  label="Scans"
-                  component={Link}
-                  to={`${match.url}/${TABLE_TYPE.scans}${location.search}`}
-                  value={TABLE_TYPE.scans}
-                />
-              )}
-              {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && (
-                <Tab
-                  classes={{
-                    root: classes.tabRoot,
-                  }}
-                  disableRipple
-                  label="Planning"
-                  component={Link}
-                  to={`${match.url}/${TABLE_TYPE.planning}${location.search}`}
-                  value={TABLE_TYPE.planning}
-                />
-              )}
-            </Tabs>
-          </Grid>
-          <Grid container item xs={4} justify="flex-end" alignItems="center">
-            {selectedTable === 'nodes' && ( //export nodes only for now
-              <Grid item>
-                <ExportMenu selectedTable={selectedTable} />
-              </Grid>
             )}
+            {isFeatureEnabled('SCANSERVICE_ENABLED') && (
+              <Tab
+                classes={{
+                  root: classes.tabRoot,
+                }}
+                disableRipple
+                label="Scans"
+                component={Link}
+                to={makeTablePath(TABLE_TYPE.scans)}
+                value={TABLE_TYPE.scans}
+              />
+            )}
+            {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && (
+              <Tab
+                classes={{
+                  root: classes.tabRoot,
+                }}
+                disableRipple
+                label="Planning"
+                component={Link}
+                to={makeTablePath(TABLE_TYPE.planning)}
+                value={TABLE_TYPE.planning}
+              />
+            )}
+          </Tabs>
+        </Grid>
+        <Grid container item xs={4} justify="flex-end" alignItems="center">
+          {selectedTable === 'nodes' && ( //export nodes only for now
             <Grid item>
-              {isEmbedded && (
-                <IconButton
-                  className={classes.expandButton}
-                  onClick={this.handleTableResize}
-                  title={'Expand Table'}>
-                  {tableHeight === TABLE_LIMITS.maxHeight ? (
-                    <OpenInBrowserIcon className={classes.rotated} />
-                  ) : (
-                    <OpenInBrowserIcon />
-                  )}
-                </IconButton>
-              )}
+              <ExportMenu selectedTable={selectedTable} />
             </Grid>
+          )}
+          <Grid item>
+            {!isNaN(tableHeight) && (
+              <IconButton
+                className={classes.expandButton}
+                onClick={handleTableResize}
+                title={'Expand Table'}
+                data-testid="expand-table">
+                {tableHeight === TABLE_LIMITS.maxHeight ? (
+                  <OpenInBrowserIcon className={classes.rotated} />
+                ) : (
+                  <OpenInBrowserIcon />
+                )}
+              </IconButton>
+            )}
           </Grid>
         </Grid>
-        <Switch>
-          <Route
-            path={`${match.path}/:table(${TABLE_TYPE.nodes}|${TABLE_TYPE.links}|${TABLE_TYPE.tests}|${TABLE_TYPE.scans}|${TABLE_TYPE.planning})`}
-            component={this.renderNetworkTable}
-          />
-          {/** fixes a routing bug when this view is embedded in another page*/}
-          {this.props.isEmbedded !== true && (
-            <>
-              <Redirect
-                exact
-                from={match.path}
-                to={`${match.url}/${TABLE_TYPE.nodes}`}
-              />
-            </>
-          )}
-        </Switch>
-      </div>
-    );
-  }
+      </Grid>
+      <Switch>
+        <Route
+          path={`${NETWORK_BASE}/${TABLE_TYPE.links}`}
+          render={() => <NetworkLinksTable context={networkContext} />}
+        />
+        <Route
+          path={`${NETWORK_BASE}/${TABLE_TYPE.tests}`}
+          render={() => <NetworkTestTable />}
+        />
+        <Route
+          path={`${NETWORK_BASE}/${TABLE_TYPE.scans}`}
+          render={() => <ScanTable />}
+        />
+        <Route
+          path={`${NETWORK_BASE}/${TABLE_TYPE.planning}`}
+          render={() => <NetworkPlanningTable {...tableProps} />}
+        />
+        {/** Don't put any new routes below here, nodes is the default */}
+        <Route
+          path={`${NETWORK_BASE}(/${TABLE_TYPE.nodes})?`}
+          exact={false}
+          render={() => <NetworkNodesTable {...tableProps} />}
+        />
+      </Switch>
+    </div>
+  );
 }
 
 function ExportMenu({selectedTable}: {selectedTable: string}) {
@@ -313,5 +299,3 @@ function ExportMenu({selectedTable}: {selectedTable: string}) {
     </MenuButton>
   );
 }
-
-export default withStyles(styles)(NetworkTables);

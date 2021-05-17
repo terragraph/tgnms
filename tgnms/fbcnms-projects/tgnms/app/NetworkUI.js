@@ -509,15 +509,7 @@ class NetworkUI extends React.Component<Props, State> {
                 path={`/troubleshooting/:networkName`}
                 render={() => <Troubleshooting />}
               />
-              <Route
-                path={`/tables/:networkName`}
-                render={routeProps => (
-                  <NetworkTables
-                    selectedElement={this.state.selectedElement}
-                    {...routeProps}
-                  />
-                )}
-              />
+              <Route path={`/tables/:networkName`} component={NetworkTables} />
               <Route
                 path={`/alarms/:networkName/:tabName?`}
                 render={() => <NmsAlarms networkName={networkName} />}

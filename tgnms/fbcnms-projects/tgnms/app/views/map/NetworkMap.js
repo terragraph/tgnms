@@ -38,7 +38,6 @@ import type {GeoCoord} from '@turf/turf';
 import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {NetworkState} from '@fbcnms/tg-nms/shared/dto/NetworkState';
-import type {RouterHistory} from 'react-router-dom';
 import type {Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 const styles = theme => ({
@@ -84,7 +83,6 @@ type Props = {
   networkName: string,
   siteToNodesMap: {[string]: Set<string>},
   match: Object,
-  history: RouterHistory,
 };
 
 type State = {
@@ -215,7 +213,7 @@ class NetworkMap extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, match, history, location} = this.props;
+    const {classes, match, location} = this.props;
     const {
       mapRef,
       mapBounds,
@@ -317,12 +315,6 @@ class NetworkMap extends React.Component<Props, State> {
                             />
                           </div>
                           <NetworkTables
-                            selectedElement={context.selectedElement}
-                            // fixes this component's usage of withRouter
-                            match={match}
-                            location={location}
-                            history={history}
-                            isEmbedded={true}
                             onResize={this.handleTableResize}
                             tableHeight={tableHeight}
                           />

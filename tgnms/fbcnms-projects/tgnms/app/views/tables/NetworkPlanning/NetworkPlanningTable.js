@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
 export default function NetworkPlanningTable({tableHeight}: NetworkTableProps) {
   const classes = useStyles();
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid="network-planning-table">
       <Route
         exact
         path={PLANNING_BASE_PATH}

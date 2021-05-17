@@ -117,7 +117,8 @@ export function TestApp({
 }) {
   const _history = React.useMemo(
     () => (history != null ? history : testHistory(route)),
-    [history, route],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [history],
   );
   return (
     <Router history={_history}>

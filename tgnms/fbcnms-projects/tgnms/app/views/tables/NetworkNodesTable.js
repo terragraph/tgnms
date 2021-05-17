@@ -205,11 +205,6 @@ export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
         data={data}
         onRowClick={handleRowClick}
         options={tableOptions}
-        style={
-          {
-            //          paddingBottom: 24,
-          }
-        }
       />
     </div>
   );
