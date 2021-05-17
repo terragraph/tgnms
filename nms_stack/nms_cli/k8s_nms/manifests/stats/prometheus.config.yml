@@ -10,7 +10,7 @@ data:
       evaluation_interval: 30s # Evaluate rules every 30 seconds. The default is every 1 minute.
       # scrape_timeout is set to the global default (10s).
     rule_files:
-      - "/etc/prometheus/alert_rules/*_rules.yml"
+      - "/etc/configs/alert_rules/*_rules.yml"
     # Alertmanager configuration
     alerting:
       alertmanagers:
