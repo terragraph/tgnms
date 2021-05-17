@@ -180,6 +180,10 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       backupE2ePort,
       prometheus_url,
       queryservice_url,
+      alertmanager_url,
+      alertmanager_config_url,
+      prometheus_config_url,
+      event_alarm_url,
       wacType,
       wacUrl,
       wacUsername,
@@ -255,6 +259,10 @@ class ModalNmsConfigForm extends React.Component<Props, State> {
       },
       prometheus_url,
       queryservice_url,
+      alertmanager_url,
+      alertmanager_config_url,
+      prometheus_config_url,
+      event_alarm_url,
       ...(wacType !== WAC_TYPES.none
         ? {
             wireless_controller: {

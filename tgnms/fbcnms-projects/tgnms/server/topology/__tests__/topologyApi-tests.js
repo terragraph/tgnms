@@ -8,6 +8,7 @@ import moment from 'moment';
 import request from 'supertest';
 const {link_event, controller, topology} = require('../../models');
 const {refreshNetworkHealth} = require('../model');
+import nullthrows from '@fbcnms/util/nullthrows';
 import {getNetworkById} from '../network';
 import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 import type {LinkEventAttributes} from '../../models/linkEvents';
@@ -85,7 +86,7 @@ describe('create/update topology', () => {
       }: $Shape<TopologyAttributes>),
     ]);
     const original = await getNetworkById(networkId);
-    expect(original).toMatchObject({
+    expect(nullthrows(original).toJSON()).toMatchObject({
       id: networkId,
       name: 'test',
       primary: {
@@ -113,7 +114,7 @@ describe('create/update topology', () => {
       .send(data)
       .expect(200);
     const updated = await getNetworkById(networkId);
-    expect(updated).toMatchObject({
+    expect(nullthrows(updated).toJSON()).toMatchObject({
       id: networkId,
       ...data,
     });

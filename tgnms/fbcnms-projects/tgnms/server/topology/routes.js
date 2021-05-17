@@ -104,7 +104,7 @@ router.post(
       network.alertmanager_config_url = topologyData.alertmanager_config_url;
       network.prometheus_config_url = topologyData.prometheus_config_url;
       network.event_alarm_url = topologyData.event_alarm_url;
-
+      await network.save();
       // Update primary controller
       if (network.primary.id) {
         network.primary.api_ip = topologyData.primary.api_ip;
