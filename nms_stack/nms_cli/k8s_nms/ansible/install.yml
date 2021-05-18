@@ -125,4 +125,4 @@
       when: is_ipv6
     - name: enable outbound nat (v4)
       shell: 'kubectl patch ippool default-ipv4-ippool --type merge --patch ''{"spec":{"natOutgoing": true}}'''
-      when: !is_ipv6
+      when: not is_ipv6
