@@ -140,7 +140,7 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
                 select(
                     [
                         func.max(DefaultRoutesHistory.last_updated),
-                        func.any_value(DefaultRoutesHistory.node_name),
+                        func.min(DefaultRoutesHistory.node_name),
                     ]
                 )
                 .where(DefaultRoutesHistory.last_updated < start_dt_obj)
