@@ -139,22 +139,36 @@ export default function NetworkTables(props: Props) {
       tableHeight != null ? tableHeight - NETWORK_TABLE_HEIGHTS.TABS : null,
   };
 
-  React.useEffect(() => {
-    if (
-      selectedElement?.type === TopologyElementType.NODE ||
-      selectedElement?.type === TopologyElementType.SITE
-    ) {
-      const newPath = makeTablePath(TABLE_TYPE.nodes);
-      if (newPath !== pathname) {
-        history.replace(newPath);
+  /**
+   * If a topology table is selected or no table is selected, switch tables
+   * to reflect the currently selected topology element.
+   */
+  React.useEffect(
+    () => {
+      if (
+        selectedTable != TABLE_TYPE.nodes &&
+        selectedTable != TABLE_TYPE.links
+      ) {
+        return;
       }
-    } else if (selectedElement?.type === TopologyElementType.LINK) {
-      const newPath = makeTablePath(TABLE_TYPE.links);
-      if (newPath !== pathname) {
-        history.replace(newPath);
+      if (
+        selectedElement?.type === TopologyElementType.NODE ||
+        selectedElement?.type === TopologyElementType.SITE
+      ) {
+        const newPath = makeTablePath(TABLE_TYPE.nodes);
+        if (newPath !== pathname) {
+          history.replace(newPath);
+        }
+      } else if (selectedElement?.type === TopologyElementType.LINK) {
+        const newPath = makeTablePath(TABLE_TYPE.links);
+        if (newPath !== pathname) {
+          history.replace(newPath);
+        }
       }
-    }
-  }, [selectedElement, history, makeTablePath, pathname]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedElement],
+  );
 
   const handleTableResize = () => {
     const {onResize, tableHeight} = props;
