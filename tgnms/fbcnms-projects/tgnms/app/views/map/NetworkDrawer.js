@@ -61,7 +61,7 @@ export const NetworkDrawerConstants = {
   DRAWER_MAX_WIDTH: 800,
 };
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   appBarSpacer: theme.mixins.toolbar,
   content: {
     height: '100%',
@@ -79,9 +79,8 @@ const styles = theme => ({
     width: 'inherit',
     height: 'inherit',
   },
-});
+}));
 
-const useStyles = makeStyles(styles);
 type SearchNearbyProps = {|
   nearbyNodes: NearbyNodes,
   onUpdateNearbyNodes: NearbyNodes => *,
