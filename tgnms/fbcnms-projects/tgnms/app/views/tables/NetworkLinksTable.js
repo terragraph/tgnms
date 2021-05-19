@@ -17,7 +17,6 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import ReactPlotlyEventChart from './ReactPlotlyEventChart';
-import TableLinkAvailability from '@fbcnms/tg-nms/app/components/troubleshootingAutomation/TableLinkAvailability';
 import {
   LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
@@ -869,10 +868,6 @@ class NetworkLinksTable extends React.Component<Props, State> {
                 control={<Radio color="primary" />}
                 label="Link Stats"
               />
-              {context.networkLinkHealth.events &&
-                Object.keys(context.networkLinkHealth.events).length === 0 && (
-                  <TableLinkAvailability />
-                )}
             </RadioGroup>
           </FormControl>
         </div>
