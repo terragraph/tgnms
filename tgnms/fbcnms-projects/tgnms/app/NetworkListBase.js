@@ -12,35 +12,19 @@ import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
 import NmsSettings from './views/nms_config/NmsSettings';
+import useInterval from '@fbcnms/ui/hooks/useInterval';
 import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {generatePath, matchPath} from 'react-router';
 import {getUIConfig} from './common/uiConfig';
+import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
-import {useLocation, withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {useLocation} from 'react-router-dom';
 
-import type {
-  NetworkInstanceConfig,
-  NetworkList,
-} from '@fbcnms/tg-nms/shared/dto/NetworkState';
-import type {RouterHistory} from 'react-router-dom';
+import type {NetworkInstanceConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
-// Pick a network if no network is requested in URL
-// This will choose any alive controller, otherwise redirect to /config
-function getDefaultNetworkName(networkList: {[string]: NetworkInstanceConfig}) {
-  if (!networkList || !Object.keys(networkList).length) {
-    return null;
-  }
-  const network = objectValuesTypesafe<NetworkInstanceConfig>(networkList).find(
-    cfg => cfg.controller_online,
-  );
-  return network ? network.name : null;
-}
-const defaultNetworkName = getDefaultNetworkName(getUIConfig().networks);
-
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   appBarSpacer: {
     flex: '0 1 auto',
     ...theme.mixins.toolbar,
@@ -63,58 +47,56 @@ const styles = theme => ({
   snackbar: {
     paddingRight: theme.spacing(8),
   },
-});
+}));
 
 const CONFIG_URL = '/config';
-
 const REFRESH_INTERVAL = 5000;
 
-type Props = {
-  classes: {[string]: string},
-  history: RouterHistory,
-  location: Object,
-};
+export default function NetworkListBase() {
+  const classes = useStyles();
+  const [networkList, setNetworkList] = React.useState(null);
+  const location = useLocation();
+  const {networks} = getUIConfig();
 
-type State = {networkList: ?NetworkList};
-
-class NetworkListBase extends React.Component<Props, State> {
-  _refreshNetworkListInterval;
-
-  state = {
-    networkList: null,
-  };
-
-  componentDidMount() {
-    // fetch initial network list
-    this.refreshTopologyList();
-
-    // schedule period refresh
-    this._refreshNetworkListInterval = setInterval(
-      this.refreshTopologyList,
-      REFRESH_INTERVAL,
+  // Pick a network if no network is requested in URL
+  // This will choose any alive controller, otherwise redirect to /config
+  const defaultNetworkName = React.useMemo(() => {
+    if (!networks || !Object.keys(networks).length) {
+      return null;
+    }
+    const network = objectValuesTypesafe<NetworkInstanceConfig>(networks).find(
+      cfg => cfg.controller_online,
     );
-  }
+    return network ? network.name : null;
+  }, [networks]);
 
-  refreshTopologyList = () => {
+  const refreshTopologyList = React.useCallback(() => {
     // Fetch list of network/topology configurations
-    topologyApi.listTopology().then(networkList => {
-      this.setState({networkList});
+    topologyApi.listTopology().then(newNetworkList => {
+      setNetworkList(newNetworkList);
     });
+  }, []);
+
+  useInterval(refreshTopologyList, REFRESH_INTERVAL);
+
+  React.useEffect(() => {
+    // fetch initial network list
+    refreshTopologyList();
+  }, [refreshTopologyList]);
+
+  const waitForNetworkListRefresh = () => {
+    setNetworkList(null);
+    refreshTopologyList();
   };
 
-  waitForNetworkListRefresh = () => {
-    this.setState({networkList: null});
-    this.refreshTopologyList();
-  };
-
-  getNetworkName = () => {
-    const match = matchPath(this.props.location.pathname, {
+  const getNetworkName = React.useCallback(() => {
+    const match = matchPath(location.pathname, {
       path: '/:viewName/:networkName',
       strict: false,
       exact: false,
     });
-    if (this.state.networkList && match?.params?.networkName != null) {
-      const network = this.state.networkList[match.params.networkName];
+    if (networkList && match?.params?.networkName != null) {
+      const network = networkList[match.params.networkName];
       if (network != null) {
         return match.params.networkName;
       } else {
@@ -122,66 +104,62 @@ class NetworkListBase extends React.Component<Props, State> {
       }
     }
     return null;
-  };
+  }, [location, networkList]);
 
-  changeNetworkName = networkName => {
-    const curr = matchPath(this.props.location.pathname, {
-      path: '/:viewName/:networkName?/:rest?',
-    });
-    const newPath = generatePath('/:viewName/:networkName/:rest?', {
-      viewName: curr?.params?.viewName ?? 'map',
-      networkName,
-      rest: curr?.params?.rest,
-    });
-    return newPath;
-  };
+  const changeNetworkName = React.useCallback(
+    networkName => {
+      const curr = matchPath(location.pathname, {
+        path: '/:viewName/:networkName?/:rest?',
+      });
+      const newPath = generatePath('/:viewName/:networkName/:rest?', {
+        viewName: curr?.params?.viewName ?? 'map',
+        networkName,
+        rest: curr?.params?.rest,
+      });
+      return newPath;
+    },
+    [location],
+  );
 
-  render() {
-    const {classes} = this.props;
-    return (
-      <NetworkListContext.Provider
-        value={{
-          networkList: this.state.networkList || {},
-          // Wait until topology is refreshed before rendering routes
-          waitForNetworkListRefresh: this.waitForNetworkListRefresh,
-          // Get/set network name
-          getNetworkName: this.getNetworkName,
-          changeNetworkName: this.changeNetworkName,
-        }}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={10000}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          classes={{root: classes.snackbar}}>
-          <NmsOptionsContextProvider>
-            <div className={classes.root}>
-              <MaterialTopBar />
-              <main className={classes.main}>
-                <div className={classes.appBarSpacer} />
-                <Switch>
-                  <AuthorizedRoute
-                    path={CONFIG_URL}
-                    component={NmsSettings}
-                    permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
-                  />
-                  <Route path="/:viewName/:networkName" component={NetworkUI} />
-                  <NetworkRedirect defaultNetworkName={defaultNetworkName} />
-                </Switch>
-              </main>
-            </div>
-          </NmsOptionsContextProvider>
-        </SnackbarProvider>
-      </NetworkListContext.Provider>
-    );
-  }
+  return (
+    <NetworkListContext.Provider
+      value={{
+        networkList: networkList || {},
+        // Wait until topology is refreshed before rendering routes
+        waitForNetworkListRefresh,
+        // Get/set network name
+        getNetworkName,
+        changeNetworkName,
+      }}>
+      <SnackbarProvider
+        maxSnack={3}
+        autoHideDuration={10000}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        classes={{root: classes.snackbar}}>
+        <NmsOptionsContextProvider>
+          <div className={classes.root}>
+            <MaterialTopBar />
+            <main className={classes.main}>
+              <div className={classes.appBarSpacer} />
+              <Switch>
+                <AuthorizedRoute
+                  path={CONFIG_URL}
+                  component={NmsSettings}
+                  permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
+                />
+                <Route path="/:viewName/:networkName" component={NetworkUI} />
+                <NetworkRedirect defaultNetworkName={defaultNetworkName} />
+              </Switch>
+            </main>
+          </div>
+        </NmsOptionsContextProvider>
+      </SnackbarProvider>
+    </NetworkListContext.Provider>
+  );
 }
-
-export default withStyles(styles, {withTheme: true})(
-  withRouter(NetworkListBase),
-);
 
 function NetworkRedirect({defaultNetworkName}: {defaultNetworkName: ?string}) {
   const location = useLocation();
