@@ -21,7 +21,6 @@ import {getTopologyNodeList} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import {withRouter} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -65,7 +64,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default withRouter(function NetworkConfig() {
+export default function NetworkConfig() {
   const classes = useStyles();
   const {networkConfig} = useNetworkContext();
 
@@ -133,4 +132,4 @@ export default withRouter(function NetworkConfig() {
       </div>
     </ConfigTaskForm>
   );
-});
+}

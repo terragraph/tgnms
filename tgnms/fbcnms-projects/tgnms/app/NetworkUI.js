@@ -521,12 +521,7 @@ class NetworkUI extends React.Component<Props, State> {
               <AuthorizedRoute
                 permissions={['CONFIG_READ', 'CONFIG_WRITE']}
                 path={`/network_config/:networkName`}
-                render={() => (
-                  <NetworkConfig
-                    networkName={networkName}
-                    networkConfig={this.state.networkConfig}
-                  />
-                )}
+                render={() => <NetworkConfig />}
               />
               <Route path={'/sysdumps/:networkName'} component={NodeSysdumps} />
               <Redirect to="/config" />
