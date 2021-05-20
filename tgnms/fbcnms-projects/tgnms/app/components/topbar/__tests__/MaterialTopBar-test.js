@@ -17,6 +17,7 @@ import {
   renderWithRouter,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent} from '@testing-library/react';
+
 import type {NetworkList} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 beforeEach(() => {
