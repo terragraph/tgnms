@@ -6,10 +6,8 @@
 
 import AlarmIcon from '@material-ui/icons/Alarm';
 import AppBar from '@material-ui/core/AppBar';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BuildIcon from '@material-ui/icons/Build';
 import BuildInformationModal from '@fbcnms/tg-nms/app/components/topbar/InfoMenu/BuildInformationModal';
-import Button from '@material-ui/core/Button';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -22,17 +20,14 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListSubheader from '@material-ui/core/ListSubheader';
 import MapIcon from '@material-ui/icons/Map';
-import Menu from '@material-ui/core/Menu';
 import MenuBookIcon from '@material-ui/icons/MenuBook';
 import MenuIcon from '@material-ui/icons/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
+import NetworkMenu from './NetworkMenu';
 import NotificationMenu from './NotificationMenu/NotificationMenu';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -111,9 +106,7 @@ const styles = theme => ({
   link: {
     textDecoration: 'none',
   },
-  networkMenuButton: {
-    marginRight: theme.spacing(),
-  },
+
   nested: {
     paddingLeft: theme.spacing(5),
   },
@@ -198,15 +191,12 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
     this.state = {
       drawerOpen: false,
       accountMenuAnchor: null,
-      networksMenuAnchor: null,
       buildInformationOpen: false,
     };
   }
 
   openAccountMenu = e => this.setState({accountMenuAnchor: e.currentTarget});
   closeAccountMenu = () => this.setState({accountMenuAnchor: null});
-  openNetworksMenu = e => this.setState({networksMenuAnchor: e.currentTarget});
-  closeNetworksMenu = () => this.setState({networksMenuAnchor: null});
 
   renderViewDrawer = networkName => {
     // Render the view selection drawer
@@ -321,78 +311,6 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
     );
   };
 
-  renderNetworkMenu = (networkName, listContext) => {
-    // Render the network selection menu
-    const {classes} = this.props;
-    const {networksMenuAnchor} = this.state;
-    const {networkList} = listContext;
-    const activeNetwork =
-      networkName && networkList && networkList.hasOwnProperty(networkName)
-        ? networkList[networkName]
-        : null;
-
-    return (
-      <div>
-        <Button
-          aria-owns={networksMenuAnchor ? 'networks-appbar' : null}
-          aria-haspopup="true"
-          className={classes.networkMenuButton}
-          onClick={this.openNetworksMenu}
-          data-testid="toggle-networks-menu"
-          color="inherit">
-          {networkName !== null && activeNetwork ? (
-            <StatusIndicator
-              color={
-                activeNetwork.controller_online
-                  ? StatusIndicatorColor.GREEN
-                  : StatusIndicatorColor.RED
-              }
-            />
-          ) : null}
-          {networkName !== null ? networkName : 'Not Selected'}
-          <ArrowDropDownIcon />
-        </Button>
-        <Menu
-          id="networks-appbar"
-          anchorEl={networksMenuAnchor}
-          anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-          transformOrigin={{vertical: 'top', horizontal: 'right'}}
-          MenuListProps={{
-            subheader: (
-              <ListSubheader component="div">
-                <strong>Network</strong>
-              </ListSubheader>
-            ),
-          }}
-          open={!!networksMenuAnchor}
-          onClose={this.closeNetworksMenu}>
-          {networkList !== null && Object.keys(networkList).length > 0 ? (
-            Object.entries(networkList).map(([networkName, network]) => (
-              <MenuItem
-                key={networkName}
-                component={this.renderNavLink}
-                value={networkName}
-                to={listContext.changeNetworkName(networkName)}
-                activeClassName={classes.active}
-                disabled={!network.controller_online}>
-                <StatusIndicator
-                  color={
-                    network.controller_online
-                      ? StatusIndicatorColor.GREEN
-                      : StatusIndicatorColor.RED
-                  }
-                />
-                {networkName}
-              </MenuItem>
-            ))
-          ) : (
-            <MenuItem disabled>No networks defined.</MenuItem>
-          )}
-        </Menu>
-      </div>
-    );
-  };
-
   onDrawerToggle = () => {
     const {drawerOpen} = this.state;
     const {theme} = this.props;
@@ -448,14 +366,12 @@ class MaterialTopBar extends React.Component<IndexProps, State> {
             <Typography variant="h6" color="inherit" noWrap>
               Terragraph NMS
             </Typography>
-
             <div className={classes.grow} />
-
             {isFeatureEnabled('LOGIN_ENABLED') && <UserMenu />}
             {isFeatureEnabled('NOTIFICATION_MENU_ENABLED') && (
               <NotificationMenu />
             )}
-            {this.renderNetworkMenu(networkName, listContext)}
+            <NetworkMenu />
           </Toolbar>
         </AppBar>
 
