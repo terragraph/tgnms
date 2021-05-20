@@ -53,7 +53,10 @@ export type ServerNetworkState = {|
   prometheus_online: boolean,
   topology: TopologyType,
   topologyConfig: TopologyConfig,
-  bounds: [[number, number], [number, number]],
+  bounds: [
+    [number, number] | [number, number, number],
+    [number, number] | [number, number, number],
+  ],
   config_node_overrides: {overrides: string},
   config_auto_overrides: {overrides: string},
   high_availability: HAState,

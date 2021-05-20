@@ -9,22 +9,14 @@ import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import Fade from '@material-ui/core/Fade';
 import LoadingBox from './components/common/LoadingBox';
-import NetworkConfig from './views/config/NetworkConfig';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import NetworkDashboards from './views/dashboards/NetworkDashboards';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
-import NetworkMap from './views/map/NetworkMap';
-import NetworkTables from './views/tables/NetworkTables';
-import NetworkUpgrade from './views/upgrade/NetworkUpgrade';
-import NmsAlarms from './views/alarms/NmsAlarms';
-import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
-import NodeSysdumps from './views/sysdumps/NodeSysdumps';
 import React from 'react';
-import Troubleshooting from './views/troubleshooting/Troubleshooting';
 import axios from 'axios';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
   createQuery,
@@ -481,49 +473,17 @@ class NetworkUI extends React.Component<Props, State> {
           <NetworkPlanningContextProvider>
             {this.renderReloadingOverlay()}
             <Switch>
-              <Route
-                path={`/map/:networkName`}
-                render={() => (
-                  <NmsOptionsContext.Consumer>
-                    {nmsOptionsContext => (
-                      <NetworkMap
-                        networkName={networkName}
-                        networkConfig={this.state.networkConfig}
-                        siteToNodesMap={this.state.siteToNodesMap}
-                        networkMapOptions={nmsOptionsContext.networkMapOptions}
-                        updateNetworkMapOptions={
-                          nmsOptionsContext.updateNetworkMapOptions
-                        }
-                      />
-                    )}
-                  </NmsOptionsContext.Consumer>
-                )}
-              />
+              {VIEWS.map(view =>
+                view.permissions ? (
+                  <AuthorizedRoute
+                    path={view.path}
+                    component={view.component}
+                    permissions={view.permissions}
+                  />
+                ) : (
+                  <Route path={view.path} component={view.component} />
+                ),
               )}
-              <Route
-                path={`/dashboards/:networkName`}
-                render={() => <NetworkDashboards />}
-              />
-              <Route
-                path={`/troubleshooting/:networkName`}
-                render={() => <Troubleshooting />}
-              />
-              <Route path={`/tables/:networkName`} component={NetworkTables} />
-              <Route
-                path={`/alarms/:networkName/:tabName?`}
-                render={() => <NmsAlarms />}
-              />
-              <AuthorizedRoute
-                permissions={['UPGRADE_READ', 'UPGRADE_WRITE']}
-                path={`/upgrade/:networkName`}
-                component={NetworkUpgrade}
-              />
-              <AuthorizedRoute
-                permissions={['CONFIG_READ', 'CONFIG_WRITE']}
-                path={`/network_config/:networkName`}
-                render={() => <NetworkConfig />}
-              />
-              <Route path={'/sysdumps/:networkName'} component={NodeSysdumps} />
               <Redirect to="/config" />
             </Switch>
           </NetworkPlanningContextProvider>

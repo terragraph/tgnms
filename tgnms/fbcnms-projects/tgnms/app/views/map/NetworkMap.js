@@ -25,22 +25,27 @@ import {
 import {MapAnnotationContextProvider} from '@fbcnms/tg-nms/app/contexts/MapAnnotationContext';
 import {NetworkDrawerConstants} from './NetworkDrawer';
 import {PlannedSiteContextProvider} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
-import {Route, withRouter} from 'react-router-dom';
+import {Route} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import {TopologyBuilderContextProvider} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
 import {getMapStyles, getUIEnvVal} from '../../common/uiConfig';
 import {getScanId} from '@fbcnms/tg-nms/app/features/scans/ScanServiceHelpers';
 import {getTestOverlayId} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useLocation, useRouteMatch} from 'react-router';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 import type Map from 'mapbox-gl/src/ui/map';
 import type {GeoCoord} from '@turf/turf';
+import type {Location} from 'react-router-dom';
 import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {NetworkState} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
-const styles = theme => ({
+type MapboxStyle = {name: string, endpoint: string};
+
+const useStyles = makeStyles(theme => ({
   appBarSpacer: theme.mixins.toolbar,
   container: {
     display: 'flex',
@@ -62,7 +67,7 @@ const styles = theme => ({
       outline: 'none',
     },
   },
-});
+}));
 
 const MAPBOX_ACCESS_TOKEN = getUIEnvVal('MAPBOX_ACCESS_TOKEN');
 const MapBoxGL = ReactMapboxGl({
@@ -108,10 +113,10 @@ type State = {
   mapProfiles: Array<MapProfile>,
 };
 
-class NetworkMap extends React.Component<Props, State> {
-  _mapBoxStyles;
+class NetworkMapContent extends React.Component<Props, State> {
+  _mapBoxStyles: Array<MapboxStyle>;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     // construct styles list
     this._mapBoxStyles = this.mapBoxStylesList();
@@ -165,10 +170,13 @@ class NetworkMap extends React.Component<Props, State> {
   };
   mapBoxStylesList() {
     const mapStyles = getMapStyles();
-    return mapStyles.map(({name, url}) => ({name, endpoint: url}));
+    return mapStyles.map<MapboxStyle>(({name, url}) => ({
+      name,
+      endpoint: url,
+    }));
   }
 
-  handleTableResize = height => {
+  handleTableResize = (height: number) => {
     // Handle dragger resize event on the table
     this.setState({tableHeight: height}, () =>
       // Force map to resize
@@ -186,7 +194,7 @@ class NetworkMap extends React.Component<Props, State> {
     });
   };
 
-  updateRoutes = routes => {
+  updateRoutes = (routes: $Shape<Routes>) => {
     this.setState({routes});
   };
 
@@ -194,21 +202,21 @@ class NetworkMap extends React.Component<Props, State> {
     this.setState({routes: {node: null, links: {}, nodes: new Set()}});
   };
 
-  hideSite = name => {
+  hideSite = (name: string) => {
     // Hide the given site
     const {hiddenSites} = this.state;
     hiddenSites.add(name);
     this.setState({hiddenSites});
   };
 
-  unhideSite = name => {
+  unhideSite = (name: string) => {
     // Unhide the given site
     const {hiddenSites} = this.state;
     hiddenSites.delete(name);
     this.setState({hiddenSites});
   };
 
-  handleStyleLoad = map => {
+  handleStyleLoad = (map: ?Map) => {
     this.setState({mapRef: map});
   };
 
@@ -332,4 +340,20 @@ class NetworkMap extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles, {withTheme: true})(withRouter(NetworkMap));
+export default function NetworkMap() {
+  const {networkName, networkConfig, siteToNodesMap} = useNetworkContext();
+  const classes = useStyles();
+  const location = useLocation();
+  const match = useRouteMatch();
+
+  return (
+    <NetworkMapContent
+      classes={classes}
+      location={location}
+      match={match}
+      networkName={networkName}
+      networkConfig={networkConfig}
+      siteToNodesMap={siteToNodesMap}
+    />
+  );
+}

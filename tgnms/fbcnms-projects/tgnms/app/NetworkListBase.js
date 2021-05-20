@@ -7,12 +7,11 @@
 
 import * as React from 'react';
 import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
-import AuthorizedRoute from './components/common/AuthorizedRoute';
 import MaterialTopBar from './components/topbar/MaterialTopBar.js';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import NetworkUI from './NetworkUI';
-import NmsSettings from './views/nms_config/NmsSettings';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
+import {CONFIG_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
@@ -49,7 +48,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const CONFIG_URL = '/config';
 const REFRESH_INTERVAL = 5000;
 
 export default function NetworkListBase() {
@@ -145,11 +143,6 @@ export default function NetworkListBase() {
             <main className={classes.main}>
               <div className={classes.appBarSpacer} />
               <Switch>
-                <AuthorizedRoute
-                  path={CONFIG_URL}
-                  component={NmsSettings}
-                  permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
-                />
                 <Route path="/:viewName/:networkName" component={NetworkUI} />
                 <NetworkRedirect defaultNetworkName={defaultNetworkName} />
               </Switch>
@@ -170,7 +163,7 @@ function NetworkRedirect({defaultNetworkName}: {defaultNetworkName: ?string}) {
   return (
     <Redirect
       to={
-        defaultNetworkName ? `/${viewName}/${defaultNetworkName}` : CONFIG_URL
+        defaultNetworkName ? `/${viewName}/${defaultNetworkName}` : CONFIG_PATH
       }
     />
   );
