@@ -511,7 +511,7 @@ class NetworkUI extends React.Component<Props, State> {
               <Route path={`/tables/:networkName`} component={NetworkTables} />
               <Route
                 path={`/alarms/:networkName/:tabName?`}
-                render={() => <NmsAlarms networkName={networkName} />}
+                render={() => <NmsAlarms />}
               />
               <AuthorizedRoute
                 permissions={['UPGRADE_READ', 'UPGRADE_WRITE']}

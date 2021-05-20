@@ -14,6 +14,8 @@ import {SEVERITY as GenericSeverity} from '@fbcnms/alarms/components/severity/Se
 import {PROMETHEUS_RULE_TYPE} from '@fbcnms/alarms/components/rules/PrometheusEditor/getRuleInterface';
 import {TgApiUtil, TgEventAlarmsApiUtil} from './TgAlarmApi.js';
 import {makeStyles} from '@material-ui/styles';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+
 import type {EventRule} from './eventalarms/EventAlarmsTypes';
 import type {FiringAlarm, Labels} from '@fbcnms/alarms/components/AlarmAPIType';
 import type {
@@ -31,12 +33,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
-  networkName: string,
-};
-
 const EVENT_RULE_TYPE = 'events';
-export default function NmsAlarms({networkName}: Props) {
+
+export default function NmsAlarms() {
+  const {networkName} = useNetworkContext();
   const classes = useStyles();
   const getNetworkId = React.useCallback(() => networkName, [networkName]);
   const ruleMap = React.useMemo<{[string]: RuleInterface<EventRule>}>(
