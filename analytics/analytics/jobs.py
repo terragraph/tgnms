@@ -2,9 +2,15 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
+import json
 import logging
+from os import environ
+from typing import Dict, Optional
 
-from tglib.clients import APIServiceClient, PrometheusClient
+import aiohttp
+from tglib.clients import APIServiceClient
+from tglib.clients.prometheus_client import consts, PrometheusClient, PrometheusMetric
+from tglib.exceptions import ClientRuntimeError
 
 from .link_insight import analyze_alignment, compute_link_foliage, fetch_metrics
 from .utils.topology import fetch_network_info
@@ -81,3 +87,68 @@ async def find_alignment_status(
     analyze_alignment(
         network_stats, threshold_misalign_degree, threshold_tx_rx_degree_diff
     )
+
+
+async def estimate_current_interference(
+    start_time_ms: int, n_day: int, use_real_links: bool
+) -> None:
+    async def get_interference_results(
+        network_name: str,
+        n_day: int,
+        use_real_links: bool,
+        session: aiohttp.ClientSession,
+    ) -> Optional[Dict]:
+        try:
+            url = (
+                f"{environ.get('SCAN_SERVICE_URL', 'http://scan_service:8080')}"
+                "/n_day_analysis"
+            )
+            params = {
+                "network_name": network_name,
+                "n_day": n_day,
+                "use_real_links": int(use_real_links),
+            }
+            async with session.get(url, params=params) as resp:
+                if resp.status == 200:
+                    results: Dict = json.loads(await resp.read())
+                    return results
+                logging.error(f"Request to {url} failed: {resp.reason} ({resp.status})")
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            logging.error(f"Request to {url} for {network_name} failed: {err}")
+        return None
+
+    metrics = []
+    network_names = APIServiceClient.network_names()
+    async with aiohttp.ClientSession() as session:
+        coros = [
+            get_interference_results(network_name, n_day, use_real_links, session)
+            for network_name in network_names
+        ]
+        scan_results = zip(
+            network_names, await asyncio.gather(*coros, return_exceptions=True)
+        )
+    for network_name, results in scan_results:
+        if (
+            isinstance(results, ClientRuntimeError)
+            or results is None
+            or not results["aggregated_inr"]
+        ):
+            continue
+
+        for link_name, intrf_links in results["aggregated_inr"]["n_day_avg"].items():
+            for link in intrf_links:
+                labels = {
+                    consts.network: network_name,
+                    consts.link_name: link_name,
+                    "rx_node": link["rx_node"],
+                    "rx_from_node": link["rx_from_node"],
+                }
+                metrics.append(
+                    PrometheusMetric(
+                        name="analytics_scan_interference",
+                        time=start_time_ms,
+                        value=link["inr_curr_power"],
+                        labels=labels,
+                    )
+                )
+    PrometheusClient.write_metrics(metrics)

@@ -36,7 +36,7 @@ def package_ansible(directory):
 
 setup(
     name="nms",
-    version="2021.03.11",
+    version="2021.05.21",
     description=("nms cli"),
     packages=[PACKAGE, "{}.tests".format(PACKAGE)],
     package_data={PACKAGE: package_ansible("nms_stack") + package_ansible("k8s_nms")},

@@ -11,7 +11,7 @@ ptr_params = {
     "required_coverage": {
         "analytics/link_insight.py": 39,
         "analytics/visibility.py": 39,
-        "TOTAL": 35,
+        "TOTAL": 33,
     },
     "run_flake8": True,
     "run_black": True,
@@ -20,7 +20,7 @@ ptr_params = {
 
 setup(
     name="analytics",
-    version="2021.05.13",
+    version="2021.05.21",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=["numpy>=1.16.4,<2.0"],

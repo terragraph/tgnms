@@ -581,7 +581,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
 async def handle_get_n_day_analysis(request: web.Request) -> web.Response:  # noqa: C901
     """
     ---
-    description: Return offine scan analysis for the previous n_days.
+    description: Return offline scan analysis for the previous n_days.
     tags:
     - Scan Service
     produces:
