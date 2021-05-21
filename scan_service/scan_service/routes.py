@@ -618,7 +618,8 @@ async def handle_get_n_day_analysis(request: web.Request) -> web.Response:  # no
     if n_day <= 0 or n_day > 30:
         raise web.HTTPBadRequest(text=f"Invalid n_day: {n_day}. Expected: (0, 30]")
 
-    use_real_links = request.rel_url.query.get("use_real_links", True)
+    use_real_links = request.rel_url.query.get("use_real_links", "True")
+    use_real_links = False if use_real_links == "False" else True
 
     try:
         await Topology.update_topologies(network_name)
