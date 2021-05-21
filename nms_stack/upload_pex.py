@@ -12,7 +12,7 @@ from fbc_sp_client import SPClient
 
 JSONCONF = {
     "api_id": "nms_cli_upload",
-    "api_token": "p8zYT_zXhRPeqqMe_i_H1iD6_AQ",
+    "api_token": environ["FBC_SW_PORTAL_API_TOKEN"],
     "api_url": "https://sw.terragraph.link",
 }
 SUITE = "tg_nms_cli"
