@@ -17,8 +17,8 @@ import {
   MAPBOX_DRAW_VERTEX_COLOR,
   TG_DRAW_STYLES,
 } from '@fbcnms/tg-nms/app/constants/MapAnnotationConstants';
-import {useMapContext} from './MapContext';
-import {useNetworkContext} from './NetworkContext';
+import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {AnnotationProperties} from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
 import type {FeatureId, GeoFeature} from '@turf/turf';
 import type {
