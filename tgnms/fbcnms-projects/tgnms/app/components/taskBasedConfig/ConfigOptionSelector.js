@@ -13,6 +13,7 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Typography from '@material-ui/core/Typography';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {getDefaultSelected} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
@@ -47,18 +48,24 @@ export default function ConfigOptionSelector({
     options,
   ]);
 
+  const optionName = option.name;
+  const optionRef = useLiveRef(option);
+  const firstUpdate = React.useRef(true);
+
   React.useEffect(() => {
-    if (option) {
-      option.setConfigs?.forEach(setConfig => {
-        if (setConfig.set) {
-          onUpdate({
-            configField: setConfig.configField,
-            draftValue: setConfig.set,
-          });
-        }
-      });
+    if (firstUpdate.current) {
+      firstUpdate.current = false;
+      return;
     }
-  }, [onUpdate, option, formState]);
+    optionRef.current.setConfigs?.forEach(setConfig => {
+      if (setConfig.set) {
+        onUpdate({
+          configField: setConfig.configField,
+          draftValue: setConfig.set,
+        });
+      }
+    });
+  }, [optionName, optionRef, onUpdate, firstUpdate]);
 
   React.useEffect(
     () =>
