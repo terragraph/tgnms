@@ -143,7 +143,8 @@ describe('Delete Link', () => {
       fireEvent.click(getByText(/Confirm/i));
     });
 
-    expect(mock).lastCalledWith(
+    expect(mock).nthCalledWith(
+      1,
       '/apiservice/test/api/delLink',
       {
         aNodeName: 'node0',
@@ -229,7 +230,7 @@ describe('Delete Link', () => {
       fireEvent.click(getByText(/Confirm/i));
     });
     expect(mock).nthCalledWith(
-      5,
+      6,
       '/apiservice/test/api/setLinkStatus',
       {
         initiatorNodeName: FIG0.NODE3_0,
