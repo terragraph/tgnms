@@ -30,7 +30,7 @@ export default function useSnackbar(
     if (show) {
       const config: AllowedConfig = JSON.parse(stringConfig);
       const k = enqueueSnackbar(message, {
-        children: key => (
+        content: key => (
           <SnackbarItem
             id={key}
             message={message}
@@ -63,7 +63,7 @@ export function useEnqueueSnackbar() {
   return useCallback(
     (message: string, config: $Shape<EnqueueSnackbarOptions>) =>
       enqueueSnackbar(message, {
-        children: key => (
+        content: key => (
           <SnackbarItem
             id={key}
             message={message}

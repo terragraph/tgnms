@@ -48,7 +48,7 @@ declare module 'notistack' {
     key?: string | number,
     variant?: Variants,
     persist?: boolean,
-    children?: SnackBarKey => Node,
+    content?: SnackBarKey => Node,
     ...MutualProps,
   |};
 
