@@ -13,10 +13,10 @@ import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import React from 'react';
 import axios from 'axios';
+import {NETWORK_VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
-import {VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
   createQuery,
@@ -473,7 +473,7 @@ class NetworkUI extends React.Component<Props, State> {
           <NetworkPlanningContextProvider>
             {this.renderReloadingOverlay()}
             <Switch>
-              {VIEWS.map(view =>
+              {NETWORK_VIEWS.map(view =>
                 view.permissions ? (
                   <AuthorizedRoute
                     path={view.path}

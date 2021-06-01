@@ -14,10 +14,11 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MUINavLink from '@fbcnms/tg-nms/app/components/topbar/MUINavLink';
 import React from 'react';
+import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
 import {CONFIG_PATH} from '@fbcnms/tg-nms/app/constants/paths';
-import {NETWORKLESS_VIEW_NAME, VIEWS} from '@fbcnms/tg-nms/app/views/views';
+import {NETWORK_VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {generatePath} from 'react-router';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
@@ -94,32 +95,49 @@ export default function ViewDrawer({drawerOpen}: {drawerOpen: boolean}) {
       open={drawerOpen}>
       <div className={classes.toolbar} />
       <List>
-        {VIEWS.filter(view => !view.hideCondition || !view.hideCondition()).map(
-          ({name, path, icon}) => {
-            return (
-              <Tooltip
-                key={name}
-                title={name}
-                placement="right"
-                disableHoverListener={drawerOpen}
-                disableFocusListener={true}
-                disableTouchListener={true}>
-                <ListItem
-                  classes={{root: classes.drawerListItem}}
-                  to={makePath(path)}
-                  component={MUINavLink}
-                  activeClassName={classes.active}
-                  disabled={
-                    networkName === null && !NETWORKLESS_VIEW_NAME !== name
-                  }
-                  button>
-                  <ListItemIcon>{icon}</ListItemIcon>
-                  <ListItemText primary={name} />
-                </ListItem>
-              </Tooltip>
-            );
-          },
-        )}
+        {NETWORK_VIEWS.filter(
+          view => !view.hideCondition || !view.hideCondition(),
+        ).map(({name, path, icon}) => {
+          return (
+            <Tooltip
+              key={name}
+              title={name}
+              placement="right"
+              disableHoverListener={drawerOpen}
+              disableFocusListener={true}
+              disableTouchListener={true}>
+              <ListItem
+                classes={{root: classes.drawerListItem}}
+                to={makePath(path)}
+                component={MUINavLink}
+                activeClassName={classes.active}
+                disabled={networkName === null}
+                button>
+                <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemText primary={name} />
+              </ListItem>
+            </Tooltip>
+          );
+        })}
+        <Tooltip
+          key="NMS Config"
+          title="NMS Config"
+          placement="right"
+          disableHoverListener={drawerOpen}
+          disableFocusListener={true}
+          disableTouchListener={true}>
+          <ListItem
+            classes={{root: classes.drawerListItem}}
+            to={makePath('/config/:networkName?')}
+            component={MUINavLink}
+            activeClassName={classes.active}
+            button>
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="NMS Config" />
+          </ListItem>
+        </Tooltip>
         <Divider />
         <InfoMenu drawerOpen={drawerOpen} />
       </List>

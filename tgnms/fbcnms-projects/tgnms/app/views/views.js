@@ -19,9 +19,7 @@ import NetworkMap from '@fbcnms/tg-nms/app/views/map/NetworkMap';
 import NetworkTables from '@fbcnms/tg-nms/app/views/tables/NetworkTables';
 import NetworkUpgrade from '@fbcnms/tg-nms/app/views/upgrade/NetworkUpgrade';
 import NmsAlarms from '@fbcnms/tg-nms/app/views/alarms/NmsAlarms';
-import NmsSettings from '@fbcnms/tg-nms/app/views/nms_config/NmsSettings';
 import NodeSysdumps from '@fbcnms/tg-nms/app/views/sysdumps/NodeSysdumps';
-import SettingsIcon from '@material-ui/icons/Settings';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Troubleshooting from '@fbcnms/tg-nms/app/views/troubleshooting/Troubleshooting';
@@ -49,9 +47,7 @@ export type ViewType = {
   permissions?: Array<Permission>,
 };
 
-export const NETWORKLESS_VIEW_NAME = 'NMS Config';
-
-export const VIEWS: Array<ViewType> = [
+export const NETWORK_VIEWS: Array<ViewType> = [
   {
     name: 'Map',
     icon: <MapIcon />,
@@ -101,14 +97,6 @@ export const VIEWS: Array<ViewType> = [
     component: NetworkConfig,
     permissions: ['CONFIG_READ', 'CONFIG_WRITE'],
     hideCondition: () => !isAuthorized(['CONFIG_READ', 'CONFIG_WRITE']),
-  },
-  {
-    name: 'NMS Config',
-    icon: <SettingsIcon />,
-    path: '/config/:networkName?',
-    component: NmsSettings,
-    permissions: ['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE'],
-    hideCondition: () => !isAuthorized(['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']),
   },
   {
     name: 'Sysdumps',
