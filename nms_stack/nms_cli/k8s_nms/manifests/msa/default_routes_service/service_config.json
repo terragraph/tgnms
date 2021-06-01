@@ -11,6 +11,10 @@
         {
           "name": "process_congested_cn_egress_links",
           "enabled": true
+        },
+        {
+          "name": "process_min_mcs_links",
+          "enabled": true
         }
       ]
     }
