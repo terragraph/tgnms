@@ -48,7 +48,7 @@ const styles = theme => ({
     overflow: 'hidden',
   },
   menuBar: {
-    paddingRight: theme.spacing(1),
+    paddingRight: theme.spacing(2),
   },
   tabsRoot: {
     flex: '0 1 auto',
@@ -73,11 +73,7 @@ const styles = theme => ({
       color: '#40a9ff',
     },
   },
-  expandButton: {
-    float: 'right',
-    margin: theme.spacing(2),
-    padding: theme.spacing(1),
-  },
+
   rotated: {
     transform: 'rotate(180deg)',
   },
@@ -248,7 +244,7 @@ export default function NetworkTables(props: Props) {
           </Tabs>
         </Grid>
         <Grid container item xs={4} justify="flex-end" alignItems="center">
-          {selectedTable === 'nodes' && ( //export nodes only for now
+          {selectedTable === TABLE_TYPE.nodes && ( //export nodes only for now
             <Grid item>
               <ExportMenu selectedTable={selectedTable} />
             </Grid>
@@ -256,10 +252,10 @@ export default function NetworkTables(props: Props) {
           <Grid item>
             {!isNaN(tableHeight) && (
               <IconButton
-                className={classes.expandButton}
                 onClick={handleTableResize}
                 title={'Expand Table'}
-                data-testid="expand-table">
+                data-testid="expand-table"
+                edge="end">
                 {tableHeight === TABLE_LIMITS.maxHeight ? (
                   <OpenInBrowserIcon className={classes.rotated} />
                 ) : (

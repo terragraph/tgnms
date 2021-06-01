@@ -13,7 +13,6 @@ import MapFeaturesLayer from './MapFeaturesLayer';
 import McsEstimateLayer from './McsEstimateLayer';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer/NodesLayer';
-import PlanningToggle from '@fbcnms/tg-nms/app/views/map/mapControls/PlanningToggle';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
@@ -191,7 +190,6 @@ export default function MapLayers(props: Props) {
         overlay={overlays.area_polygons}
         data={overlayData.area_polygons}
       />
-      {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && <PlanningToggle />}
       <TopologyBuilderToggle />
       {isFeatureEnabled('MAP_ANNOTATIONS_ENABLED') && <DrawToggle />}
       {isFeatureEnabled('LINK_BUDGETING_ENABLED') && <McsEstimateLayer />}

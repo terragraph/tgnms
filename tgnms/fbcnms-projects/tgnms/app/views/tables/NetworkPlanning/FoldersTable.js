@@ -4,20 +4,17 @@
  * @format
  * @flow
  */
-import React from 'react';
-
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
-import Alert from '@material-ui/lab/Alert';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import CreateNewFolderIcon from '@material-ui/icons/CreateNewFolder';
-import Grid from '@material-ui/core/Grid';
-import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import CreateFolderModal from './CreateFolderModal';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
-import TableToolbar from './TableToolbar';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
-import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import MenuButton from '@fbcnms/tg-nms/app/components/common/MenuButton';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import TableToolbar, {
+  TableToolbarAction,
+  TableToolbarActions,
+} from './TableToolbar';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
@@ -31,8 +28,8 @@ import {
   useHistory,
   useLocation,
 } from 'react-router-dom';
-import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
+import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {NetworkTableProps} from '../NetworkTables';
 
@@ -57,7 +54,10 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
       }
     })();
   }, [lastRefreshDate, loadPlansTask]);
-  const refreshTable = () => setLastRefreshDate(new Date().getTime());
+  const refreshTable = React.useCallback(
+    () => setLastRefreshDate(new Date().getTime()),
+    [setLastRefreshDate],
+  );
   useInterval(() => {
     refreshTable();
   }, 30000);
@@ -86,7 +86,10 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
       pageSizeOptions: [20, 50, 100],
       padding: 'dense',
       tableLayout: 'fixed',
-      toolbarButtonAlignment: 'left',
+      toolbarButtonAlignment: 'right',
+      searchFieldStyle: {
+        marginRight: '16px',
+      },
     }),
     [tableHeight],
   );
@@ -102,6 +105,17 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
     });
     history.push(newPath);
   };
+
+  /**
+   * Passing a lambda with every render causes Component to unmount/remount
+   * on every render. This normally isn't a problem, but FoldersTableCTA uses a
+   * MenuButton. If a render occurs while the user has the menu open,
+   * the menu will close.
+   */
+  const CTAComponent = React.useCallback(
+    _props => <FoldersTableCTA onFolderCreated={refreshTable} />,
+    [refreshTable],
+  );
   return (
     <>
       <MaterialTable
@@ -113,16 +127,14 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
         isLoading={loadPlansTask.isLoading}
         actions={[
           {
-            isFreeAction: true,
-            icon: CreateNewFolderIcon,
-            tooltip: 'Create New Folder',
-            onClick: (_event, _rowData) => {
-              createFolderModal.open();
-            },
+            position: 'toolbar',
+            Component: CTAComponent,
           },
         ]}
         components={{
           Toolbar: TableToolbar,
+          Action: TableToolbarAction,
+          Actions: TableToolbarActions,
         }}
       />
       <CreateFolderModal
@@ -134,83 +146,31 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
   );
 }
 
-function CreateFolderModal({isOpen, onClose, onComplete}) {
-  const taskState = useTaskState();
-  const {formState, handleInputChange} = useForm<ANPFolder>({initialState: {}});
-  const handleSubmitClick = React.useCallback(async () => {
-    try {
-      taskState.reset();
-      taskState.loading();
-      if (isNullOrEmptyString(formState.folder_name)) {
-        throw new Error('Folder name is required');
-      }
-      await networkPlanningAPIUtil.createFolder(formState);
-      taskState.success();
-      onComplete();
-      onClose();
-    } catch (err) {
-      taskState.setMessage(err.message);
-      taskState.error();
-    }
-  }, [formState, taskState, onComplete, onClose]);
-  return (
-    <MaterialModal
-      open={isOpen}
-      onClose={onClose}
-      modalTitle={'Create new plan folder'}
-      modalContent={
-        <Grid container direction="column">
-          {taskState.isSuccess && (
-            <Alert color="success" severity="success">
-              <Typography>Plan created</Typography>
-            </Alert>
-          )}
-          {taskState.isError && (
-            <Alert color="error" severity="error">
-              <Grid item container direction="column">
-                <Grid item>
-                  <Typography>Creating folder failed</Typography>
-                </Grid>
-                {taskState.message && (
-                  <Grid item>
-                    <Typography>{taskState.message}</Typography>
-                  </Grid>
-                )}{' '}
-              </Grid>
-            </Alert>
-          )}
-          <Grid item xs={8}>
-            <TextField
-              id="folder_name"
-              onChange={handleInputChange(x => ({folder_name: x}))}
-              value={formState.folder_name}
-              placeholder="Folder Name"
-              disabled={taskState.isLoading}
-            />
-          </Grid>
-        </Grid>
-      }
-      modalActions={
-        <>
-          <Button onClick={onClose} variant="outlined">
-            Cancel
-          </Button>
-          <Button
-            disabled={!validate(formState)}
-            color="primary"
-            onClick={handleSubmitClick}
-            variant="contained">
-            Submit{' '}
-            {taskState.isLoading && (
-              <CircularProgress size={10} style={{marginLeft: 5}} />
-            )}
-          </Button>
-        </>
-      }
-    />
-  );
-}
+type CTAProps = {|
+  onFolderCreated: () => void,
+|};
+export function FoldersTableCTA({onFolderCreated}: CTAProps) {
+  const {setSelectedPlanId} = useNetworkPlanningContext();
+  const createFolderModal = useModalState();
 
-function validate(folder: ANPFolder) {
-  return !isNullOrEmptyString(folder.folder_name);
+  return (
+    <>
+      <MenuButton
+        label={
+          <>
+            Add <ArrowDropDownIcon fontSize="small" />
+          </>
+        }
+        id="folders-table-cta"
+        ButtonProps={{variant: 'outlined'}}>
+        <MenuItem onClick={createFolderModal.open}>Folder</MenuItem>
+        <MenuItem onClick={() => setSelectedPlanId('')}>Plan</MenuItem>
+      </MenuButton>
+      <CreateFolderModal
+        isOpen={createFolderModal.isOpen}
+        onClose={createFolderModal.close}
+        onComplete={onFolderCreated}
+      />
+    </>
+  );
 }

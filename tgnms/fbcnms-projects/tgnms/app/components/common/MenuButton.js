@@ -14,10 +14,14 @@ export default function MenuButton({
   id,
   children,
   label,
+  ButtonProps,
+  MenuProps,
 }: {
   id: string,
   label: React.Node,
   children: React.Node,
+  ButtonProps?: React.ElementProps<typeof Button>,
+  MenuProps?: React.ElementProps<typeof Menu>,
 }) {
   const {isOpen, open, close} = useModalState();
   const ref = React.useRef<any>();
@@ -28,7 +32,8 @@ export default function MenuButton({
         onClick={open}
         aria-controls={id}
         aria-haspopup="true"
-        data-testid={`${id}-button`}>
+        data-testid={`${id}-button`}
+        {...ButtonProps}>
         {label}
       </Button>
       <Menu
@@ -36,7 +41,8 @@ export default function MenuButton({
         open={isOpen}
         id={id}
         data-testid={id}
-        anchorEl={ref.current}>
+        anchorEl={ref.current}
+        {...(MenuProps ?? {})}>
         {children}
       </Menu>
     </>

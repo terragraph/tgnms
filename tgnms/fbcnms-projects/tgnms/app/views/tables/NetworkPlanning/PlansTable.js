@@ -8,15 +8,16 @@ import React from 'react';
 
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import PlanStatus from '@fbcnms/tg-nms/app/features/planning/components/PlanStatus';
-import TableToolbar from './TableToolbar';
+import TableToolbar, {TableToolbarAction} from './TableToolbar';
 import Typography from '@material-ui/core/Typography';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
-import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {
   Link,
   generatePath,
@@ -26,6 +27,7 @@ import {
 } from 'react-router-dom';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {PLANNING_BASE_PATH} from '@fbcnms/tg-nms/app/constants/paths';
+import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import type {ANPFolder, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {NetworkTableProps} from '../NetworkTables';
@@ -35,29 +37,16 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
   const match = useParams();
   const folderId = match?.folderId ?? '';
   const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
-  const [lastRefreshDate, setLastRefreshDate] = React.useState(
-    new Date().getTime(),
-  );
-  const [plans, setPlans] = React.useState<?Array<ANPPlan>>();
-  const loadPlansTask = useTaskState();
   const {folder} = useLoadFolder({folderId});
-  React.useEffect(() => {
-    (async () => {
-      try {
-        loadPlansTask.setState(TASK_STATE.LOADING);
-        const _plans = await networkPlanningAPIUtil.getPlansInFolder({
-          folderId: folderId,
-        });
-        setPlans(_plans);
-        loadPlansTask.setState(TASK_STATE.SUCCESS);
-      } catch (err) {
-        loadPlansTask.setState(TASK_STATE.ERROR);
-      }
-    })();
-  }, [folderId, lastRefreshDate, loadPlansTask]);
+  const {
+    plans,
+    taskState: loadPlansTask,
+    refresh: refreshPlans,
+  } = useFolderPlans({folderId});
   useInterval(() => {
-    setLastRefreshDate(new Date().getTime());
+    refreshPlans();
   }, 30000);
+
   const columns = React.useMemo(
     () => [
       {
@@ -98,7 +87,10 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
       padding: 'dense',
       tableLayout: 'fixed',
       rowStyle: makeRowStyle,
-      toolbarButtonAlignment: 'left',
+      toolbarButtonAlignment: 'right',
+      searchFieldStyle: {
+        marginRight: '16px',
+      },
     }),
     [makeRowStyle, tableHeight],
   );
@@ -126,8 +118,22 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
       columns={columns}
       onRowClick={handleRowClick}
       isLoading={loadPlansTask.isLoading}
+      actions={[
+        {
+          position: 'toolbar',
+          Component: () => (
+            <Button
+              data-testid="add-plan-button"
+              onClick={() => setSelectedPlanId('')}
+              variant="outlined">
+              Add Plan
+            </Button>
+          ),
+        },
+      ]}
       components={{
         Toolbar: TableToolbar,
+        Action: TableToolbarAction,
       }}
     />
   );

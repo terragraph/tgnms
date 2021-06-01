@@ -23,7 +23,6 @@ import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {mapLayers} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
@@ -162,19 +161,17 @@ function OverlaySection() {
               label="Historical"
               value={MAPMODE.HISTORICAL}
             />
-            {
-              /** Removing tab from dom causes race condition. MUI logs
+            {/** Removing tab from dom causes race condition. MUI logs
               some errors. Errors stop once useExitCustomOverlayMode
               in CustomOverlayPanel finishes. */
-              showCustomOverlaysTab && (
-                <Tab
-                  classes={{root: classes.tabRoot}}
-                  disableRipple
-                  label="Custom"
-                  value={MAPMODE.CUSTOM_OVERLAYS}
-                />
-              )
-            }
+            showCustomOverlaysTab && (
+              <Tab
+                classes={{root: classes.tabRoot}}
+                disableRipple
+                label="Custom"
+                value={MAPMODE.CUSTOM_OVERLAYS}
+              />
+            )}
           </Tabs>
         </>
       )}
@@ -184,10 +181,7 @@ function OverlaySection() {
         {mapMode === MAPMODE.NETWORK_TEST && <NetworkTestOverlayPanel />}
         {mapMode === MAPMODE.SCAN_SERVICE && <ScanServiceOverlayPanel />}
         {mapMode === MAPMODE.CUSTOM_OVERLAYS && <CustomOverlayPanel />}
-        {mapMode === MAPMODE.PLANNING &&
-          isFeatureEnabled('NETWORK_PLANNING_ENABLED') && (
-            <NetworkPlanningOverlayPanel />
-          )}
+        {mapMode === MAPMODE.PLANNING && <NetworkPlanningOverlayPanel />}
         <div>
           <OverlaysForm />
         </div>

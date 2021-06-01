@@ -8,10 +8,14 @@ import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {PLANNING_FOLDER_PATH} from '@fbcnms/tg-nms/app/constants/paths';
+import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {matchPath, useLocation} from 'react-router-dom';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 
-import type {CreateANPPlanRequest} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {
+  ANPPlan,
+  CreateANPPlanRequest,
+} from '@fbcnms/tg-nms/shared/dto/ANP';
 
 export function usePlanFormState(): {|
   planState: CreateANPPlanRequest,
@@ -74,5 +78,40 @@ export function useFolders() {
     folders,
     setFolders,
     taskState: loadfoldersTask,
+  };
+}
+
+export function useFolderPlans({folderId}: {folderId: string}) {
+  const [plans, setPlans] = React.useState<?Array<ANPPlan>>();
+  const loadPlansTask = useTaskState();
+  const [lastRefreshDate, setLastRefreshDate] = React.useState(
+    new Date().getTime(),
+  );
+  const refresh = React.useCallback(
+    () => setLastRefreshDate(new Date().getTime()),
+    [],
+  );
+  React.useEffect(() => {
+    (async () => {
+      if (isNullOrEmptyString(folderId)) {
+        return;
+      }
+      try {
+        loadPlansTask.setState(TASK_STATE.LOADING);
+        const _plans = await networkPlanningAPIUtil.getPlansInFolder({
+          folderId: folderId,
+        });
+        setPlans(_plans);
+        loadPlansTask.setState(TASK_STATE.SUCCESS);
+      } catch (err) {
+        loadPlansTask.setState(TASK_STATE.ERROR);
+      }
+    })();
+  }, [folderId, lastRefreshDate, loadPlansTask]);
+
+  return {
+    plans,
+    refresh,
+    taskState: loadPlansTask,
   };
 }

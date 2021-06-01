@@ -7,7 +7,6 @@
 
 import * as React from 'react';
 import * as apiUtilMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
-import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import NetworkPlanningTable from '../NetworkPlanningTable';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {PLANNING_BASE_PATH} from '@fbcnms/tg-nms/app/constants/paths';
@@ -15,9 +14,9 @@ import {Route} from 'react-router-dom';
 import {
   TestApp,
   renderAsync,
-  renderWithRouter,
+  testHistory,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, waitForElement} from '@testing-library/react';
+import {act, fireEvent, waitForElement, within} from '@testing-library/react';
 import type {ANPFolder, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
 
@@ -107,13 +106,13 @@ test('if user clicks back button, goes back to folders table', async () => {
 test('if user selects a plan, sets the planid querystring', async () => {
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
   const folder1Path = PLANNING_BASE_PATH + '/folder/1';
-  const {getByText, history} = renderWithRouter(
-    <MaterialTheme>
+  const history = testHistory(folder1Path);
+  const {getByText} = await renderAsync(
+    <TestApp history={history}>
       <NetworkPlanningContextProvider>
         <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
       </NetworkPlanningContextProvider>
-    </MaterialTheme>,
-    {route: folder1Path},
+    </TestApp>,
   );
   expect(history.location.pathname).toBe(folder1Path);
   expect(history.location.search).toBe('');
@@ -124,4 +123,45 @@ test('if user selects a plan, sets the planid querystring', async () => {
   });
   expect(history.location.pathname).toBe(folder1Path);
   expect(history.location.search).toBe('?planid=1');
+});
+
+describe('CTAs', () => {
+  test('folders table shows folder/plan menu CTA', async () => {
+    jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
+    const {getByTestId} = await renderAsync(
+      <TestApp route={PLANNING_BASE_PATH}>
+        <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
+      </TestApp>,
+    );
+
+    const ctaBtn = getByTestId('folders-table-cta-button');
+    act(() => {
+      fireEvent.click(ctaBtn);
+    });
+    const cta = getByTestId('folders-table-cta');
+    expect(cta).toBeInTheDocument();
+    expect(within(cta).getByText(/folder/i)).toBeInTheDocument();
+    expect(within(cta).getByText(/plan/i)).toBeInTheDocument();
+  });
+  test('plans table shows add plan CTA', async () => {
+    jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
+    const folder1Path = PLANNING_BASE_PATH + '/folder/1';
+    const history = testHistory(folder1Path);
+    const {getByTestId} = await renderAsync(
+      <TestApp history={history}>
+        <NetworkPlanningContextProvider>
+          <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
+        </NetworkPlanningContextProvider>
+      </TestApp>,
+      {route: folder1Path},
+    );
+    const btn = getByTestId('add-plan-button');
+    expect(btn).toBeInTheDocument();
+
+    // ensure that clicking the add plan button navigates to plan editor
+    act(() => {
+      fireEvent.click(btn);
+    });
+    expect(history.location.search).toBe('?planid=');
+  });
 });

@@ -92,6 +92,7 @@ export default function PlanEditor({
       </Grid>
       <Grid item>
         <SelectANPFolder
+          id="folderid"
           folderId={planState.folder_id}
           onChange={fId => updatePlanState({folder_id: fId})}
         />

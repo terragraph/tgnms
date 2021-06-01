@@ -184,7 +184,7 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     // 1. disable auto ignite so when link is turned off it doesn't turn back on
     // 2. turn link off so we can delete
     // 3. delete link
-    // 4. enable auto ignite so if same link is formed, it will automatically ignite
+    // 4. enable auto ignite so if same link is formed, it will ignite
     async function makeRequests({force}: {force: boolean}) {
       if (force) {
         try {

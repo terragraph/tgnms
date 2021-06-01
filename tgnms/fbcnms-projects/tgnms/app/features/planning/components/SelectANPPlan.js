@@ -7,37 +7,40 @@
 import * as React from 'react';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
-import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
-import {useFolders} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
+import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
-import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 
 export type Props = {|
   folderId: string,
-  onChange: (folderId: string) => void,
+  planId: ?string,
+  onChange: (planId: string) => void,
+  disabled: boolean,
   id: string,
   hideLabel?: boolean,
 |};
 
-export default function SelectANPFolder({
+export default function SelectANPPlan({
   folderId,
+  planId,
   onChange,
+  disabled,
   id,
   hideLabel,
 }: Props) {
   const autocompleteState = useModalState();
-  const {folders, taskState: loadFoldersTask} = useFolders();
-  const options = React.useMemo<Array<ANPFolder>>(
-    () => (folders != null ? objectValuesTypesafe<ANPFolder>(folders) : []),
-    [folders],
+  const {plans, taskState: loadPlansTask} = useFolderPlans({folderId});
+  const options = React.useMemo<Array<ANPPlan>>(
+    () => (plans != null ? plans : []),
+    [plans],
   );
-  const [folder, setFolder] = React.useState();
+  const [plan, setPlan] = React.useState();
   React.useEffect(() => {
-    if (folderId != null && folders != null) {
-      setFolder(folders[folderId]);
+    if (plans != null && planId != null) {
+      setPlan(plans.find(p => p.id === planId));
     }
-  }, [folderId, setFolder, folders]);
+  }, [planId, setPlan, plans]);
   return (
     <Autocomplete
       id={id}
@@ -45,8 +48,8 @@ export default function SelectANPFolder({
       open={autocompleteState.isOpen}
       onOpen={autocompleteState.open}
       onClose={autocompleteState.close}
-      loading={loadFoldersTask.isLoading}
-      value={folder ?? null}
+      loading={loadPlansTask.isLoading}
+      value={plan ?? null}
       onChange={(e, val) => {
         onChange(val.id);
       }}
@@ -54,10 +57,12 @@ export default function SelectANPFolder({
       getOptionSelected={(option, value) => {
         return option.id === value.id;
       }}
-      getOptionLabel={opt => opt?.folder_name ?? ''}
+      getOptionLabel={opt => opt?.plan_name ?? ''}
       renderInput={params => (
-        <TextField {...params} label={!hideLabel ? 'Select Folder' : null} />
+        <TextField {...params} label={!hideLabel ? 'Select Plan' : null} />
       )}
+      noOptionsText="No plans"
+      disabled={disabled}
     />
   );
 }
