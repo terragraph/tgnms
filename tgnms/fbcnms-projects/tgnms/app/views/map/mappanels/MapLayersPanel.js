@@ -161,10 +161,7 @@ function OverlaySection() {
               label="Historical"
               value={MAPMODE.HISTORICAL}
             />
-            {/** Removing tab from dom causes race condition. MUI logs
-              some errors. Errors stop once useExitCustomOverlayMode
-              in CustomOverlayPanel finishes. */
-            showCustomOverlaysTab && (
+            {showCustomOverlaysTab && (
               <Tab
                 classes={{root: classes.tabRoot}}
                 disableRipple
