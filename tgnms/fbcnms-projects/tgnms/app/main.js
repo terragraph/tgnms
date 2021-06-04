@@ -14,14 +14,10 @@ import MomentUtils from '@date-io/moment';
 import NetworkListBase from './NetworkListBase';
 import React, {Suspense} from 'react';
 import ReactDOM from 'react-dom';
-import translatedFbts from '../i18n/translatedFbts.json';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {WebSocketProvider} from '@fbcnms/tg-nms/app/contexts/WebSocketContext';
 import {hot} from 'react-hot-loader';
-import {init} from 'fbt';
-
-init({translations: translatedFbts});
 
 /* eslint-disable-next-line no-undef */
 const HotNetworkListBase = hot(module)(NetworkListBase);
