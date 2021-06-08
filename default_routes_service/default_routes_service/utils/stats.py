@@ -68,21 +68,15 @@ async def generate_min_mcs_metrics(
                 node_names.append(node_name)
 
     node_min_mcs_map: DefaultDict = defaultdict(int)
-    node_link_map = {}
     for node_name, responses in zip(node_names, await asyncio.gather(*coros)):
         for metric in responses:
             mcs = int(metric["value"][1])
             if node_min_mcs_map[node_name] == 0 or mcs < node_min_mcs_map[node_name]:
                 node_min_mcs_map[node_name] = mcs
-                node_link_map[node_name] = metric["metric"][consts.link_name]
 
     metrics = []
     for node_name, min_mcs in node_min_mcs_map.items():
-        labels = {
-            consts.network: network_name,
-            consts.node_name: node_name,
-            "minMcsLinkName": node_link_map[node_name],
-        }
+        labels = {consts.network: network_name, consts.node_name: node_name}
         metrics.append(
             PrometheusMetric(
                 name="drs_min_route_mcs",

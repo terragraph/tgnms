@@ -19,7 +19,7 @@ ptr_params = {
 
 setup(
     name="default_routes_service",
-    version="2021.05.28",
+    version="2021.06.08",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "aiomysql", "alembic>=1.3.3,<2.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
