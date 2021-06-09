@@ -14,7 +14,7 @@ from croniter import croniter
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from .analysis.connectivity import get_connectivity_data
+from .analysis.connectivity import get_connectivity_data, process_connectivity_results
 from .analysis.interference import get_interference_from_directional_beams
 from .analysis.interference import aggregate_interference_results
 from .models import ScanMode, ScanTestStatus, ScanType
@@ -503,6 +503,9 @@ async def handle_get_execution(request: web.Request) -> web.Response:
         {
             "execution": dict(execution),
             "results": scan_results,
+            "max_snr": process_connectivity_results(
+                [dict(row) for row in connectivity_results]
+            ),
             "aggregated_inr": aggregate_interference_results(
                 [dict(row) for row in interference_results]
             ),

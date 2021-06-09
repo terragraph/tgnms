@@ -2,13 +2,49 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import logging
-from typing import Dict, List, Optional, Set
+from collections import defaultdict
+from typing import DefaultDict, Dict, List, Optional, Set
 
 import numpy as np
 from terragraph_thrift.Controller.ttypes import ScanMode
 
 from ..utils.hardware_config import HardwareConfig
 from ..utils.topology import Topology
+
+
+def process_connectivity_results(connectivity_results: List[Dict]) -> Dict:
+    if not connectivity_results:
+        return {}
+
+    conn_current_scan: DefaultDict = defaultdict(list)
+    conn_n_days_scan: DefaultDict = defaultdict(list)
+    for results in connectivity_results:
+        network_name = results["network_name"]
+        tx_node = results["tx_node"]
+        rx_node = results["rx_node"]
+
+        if (tx_node, rx_node) not in Topology.mac_to_link_name[network_name]:
+            continue
+        link_name = Topology.mac_to_link_name[network_name][(tx_node, rx_node)]
+
+        max_snr = 0
+        max_route = []
+        for data in results["routes"]:
+            _, _, snr = data
+            if snr > max_snr:
+                max_snr = snr
+                max_route = data
+
+        if results["is_n_day_avg"]:
+            conn_n_days_scan[link_name].append(
+                {"tx_node": tx_node, "rx_node": rx_node, "max_snr_route": max_route}
+            )
+        else:
+            conn_current_scan[link_name].append(
+                {"tx_node": tx_node, "rx_node": rx_node, "max_snr_route": max_route}
+            )
+
+    return {"current": conn_current_scan, "n_day_avg": conn_n_days_scan}
 
 
 def find_routes_compute(

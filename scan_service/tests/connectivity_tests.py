@@ -14,6 +14,7 @@ from scan_service.analysis.connectivity import (
     find_routes_all,
     find_routes_compute,
     get_connectivity_data,
+    process_connectivity_results,
     separate_beams,
 )
 from scan_service.utils.hardware_config import HardwareConfig
@@ -22,6 +23,7 @@ from scan_service.utils.topology import Topology
 
 class ConnectivityTests(asynctest.TestCase):
     async def setUp(self) -> None:
+        self.maxDiff = None
         with open("tests/hardware_config.json") as f:
             hardware_config = json.load(f)
             HardwareConfig.set_config(hardware_config)
@@ -49,6 +51,14 @@ class ConnectivityTests(asynctest.TestCase):
                     "z_node_name": "N1",
                     "a_node_mac": "00:00:00:00:00:00",
                     "z_node_mac": "00:00:00:00:00:01",
+                    "link_type": 1,
+                },
+                {
+                    "name": "link-N0-N1",
+                    "a_node_name": "N1",
+                    "z_node_name": "N0",
+                    "a_node_mac": "00:00:00:00:00:01",
+                    "z_node_mac": "00:00:00:00:00:00",
                     "link_type": 1,
                 },
                 {
@@ -232,3 +242,67 @@ class ConnectivityTests(asynctest.TestCase):
 
     def test_analyze_connectivity_empty(self) -> None:
         self.assertEqual(analyze_connectivity(None, 30, 10), None)
+
+    def test_process_connectivity_results_empty(self) -> None:
+        connectivity_results = []
+        self.assertDictEqual(process_connectivity_results(connectivity_results), {})
+
+    def test_process_connectivity_results(self) -> None:
+        connectivity_results = [
+            {
+                "network_name": "network_A",
+                "tx_node": "00:00:00:00:00:00",
+                "rx_node": "00:00:00:00:00:01",
+                "routes": [[0, 0, 10], [0, 0, 20]],
+                "is_n_day_avg": True,
+            },
+            {
+                "network_name": "network_A",
+                "tx_node": "00:00:00:00:00:01",
+                "rx_node": "00:00:00:00:00:00",
+                "routes": [[0, 0, 15], [0, 0, 30]],
+                "is_n_day_avg": True,
+            },
+            {
+                "network_name": "network_A",
+                "tx_node": "00:00:00:00:00:01",
+                "rx_node": "00:00:00:00:00:00",
+                "routes": [[0, 0, 15], [0, 0, 30]],
+                "is_n_day_avg": False,
+            },
+            {
+                "network_name": "wrong_network",
+                "tx_node": "00",
+                "rx_node": "00",
+                "routes": [[0, 0, 15]],
+                "is_n_day_avg": False,
+            },
+        ]
+        expected_results = {
+            "current": {
+                "link-N0-N1": [
+                    {
+                        "tx_node": "00:00:00:00:00:01",
+                        "rx_node": "00:00:00:00:00:00",
+                        "max_snr_route": [0, 0, 30],
+                    }
+                ]
+            },
+            "n_day_avg": {
+                "link-N0-N1": [
+                    {
+                        "tx_node": "00:00:00:00:00:00",
+                        "rx_node": "00:00:00:00:00:01",
+                        "max_snr_route": [0, 0, 20],
+                    },
+                    {
+                        "tx_node": "00:00:00:00:00:01",
+                        "rx_node": "00:00:00:00:00:00",
+                        "max_snr_route": [0, 0, 30],
+                    },
+                ]
+            },
+        }
+        self.assertDictEqual(
+            process_connectivity_results(connectivity_results), expected_results
+        )
