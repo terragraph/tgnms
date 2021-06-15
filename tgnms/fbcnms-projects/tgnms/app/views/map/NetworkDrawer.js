@@ -14,22 +14,19 @@ import Drawer from '@material-ui/core/Drawer';
 import DrawerToggleButton from '@fbcnms/tg-nms/app/components/common/DrawerToggleButton';
 import IgnitionStatePanel from '@fbcnms/tg-nms/app/views/map/mappanels/IgnitionStatePanel';
 import L2TunnelPanel from '@fbcnms/tg-nms/app/views/map/mappanels/L2TunnelPanel';
-import LinkDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/LinkDetailsPanel';
 import MapLayersPanel from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
 import NetworkPlanningPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkPlanningPanel';
 import NetworkTestPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NetworkTestPanel/NetworkTestPanel';
-import NodeDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/NodeDetailsPanel/NodeDetailsPanel';
 import OverviewPanel from '@fbcnms/tg-nms/app/views/map/mappanels/OverviewPanel';
 import RemoteOverlayMetadataPanel from '@fbcnms/tg-nms/app/views/map/mappanels/RemoteOverlayMetadataPanel';
+import RenderTopologyElement from '@fbcnms/tg-nms/app/views/map/RenderTopologyElement';
 import ScanServicePanel from '@fbcnms/tg-nms/app/views/map/mappanels/ScanServicePanel/ScanServicePanel';
-import SearchNearbyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/SearchNearbyPanel';
-import SiteDetailsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/SiteDetailsPanel';
+import SearchNearby from '@fbcnms/tg-nms/app/views/map/SearchNearby';
 import Slide from '@material-ui/core/Slide';
 import TopologyBuilderPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderPanel';
 import UpgradeProgressPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UpgradeProgressPanel';
 import UploadTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/UploadTopologyPanel';
 import useTopologyBuilderForm from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
-import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   FormType,
   SlideProps,
@@ -43,18 +40,14 @@ import {
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '@fbcnms/tg-nms/shared/types/Controller';
-import {get} from 'lodash';
-import {makeStyles, useTheme} from '@material-ui/styles';
-import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
+import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
-import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 
 import type {EditTopologyElementParams} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Props as MapLayersProps} from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
-import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
 export const NetworkDrawerConstants = {
   DRAWER_MIN_WIDTH: 330,
@@ -81,7 +74,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type SearchNearbyProps = {|
+export type SearchNearbyProps = {|
   nearbyNodes: NearbyNodes,
   onUpdateNearbyNodes: NearbyNodes => *,
 |};
@@ -410,229 +403,5 @@ export default function NetworkDrawer({
         />
       </div>
     </Drawer>
-  );
-}
-
-function RenderTopologyElement({
-  element,
-  panelControl,
-  searchNearbyProps,
-  onEditTopology,
-}: {
-  element: Element,
-  panelControl: PanelStateControl,
-  searchNearbyProps: SearchNearbyProps,
-  onEditTopology: (
-    params: EditTopologyElementParams,
-    type: $Values<typeof TopologyElement>,
-  ) => *,
-}) {
-  const {setPanelState, getIsHidden, removePanel, collapseAll} = panelControl;
-  const theme = useTheme();
-  const azimuthManager = useAzimuthManager();
-  const {type, name, expanded} = element;
-  const {
-    networkConfig,
-    pinnedElements,
-    networkName,
-    networkNodeHealth,
-    networkLinkHealth,
-    networkLinkMetrics,
-    nodeMap,
-    nodeToLinksMap,
-    linkMap,
-    siteMap,
-    siteToNodesMap,
-    toggleExpanded,
-    setSelected,
-    togglePin,
-    removeElement,
-  } = useNetworkContext();
-  const {
-    controller_version,
-    ignition_state,
-    status_dump,
-    topology,
-    wireless_controller_stats,
-  } = networkConfig;
-
-  const pinned = !!pinnedElements.find(
-    el => el.type === type && el.name === name,
-  );
-
-  const panelKey = React.useMemo(() => `${type}-${name}`, [name, type]);
-
-  // When this component first mounts, open it
-  React.useEffect(() => {
-    collapseAll();
-    setPanelState(panelKey, PANEL_STATE.OPEN);
-  }, [setPanelState, panelKey, collapseAll]);
-  useUnmount(() => {
-    removePanel(panelKey);
-  });
-
-  const isVisible = !getIsHidden(panelKey);
-  const handleClosePanel = () => {
-    removePanel(panelKey);
-    setTimeout(() => {
-      removeElement(type, name);
-    }, theme.transitions.duration.leavingScreen + 100 /* to be safe */);
-  };
-  const routesProps = useRouteContext();
-
-  const onUpdateRoutes = React.useCallback(
-    ({
-      node,
-      links,
-      nodes,
-    }: {
-      node: ?string,
-      links: {[string]: number},
-      nodes: Set<string>,
-    }) => {
-      routesProps.onUpdateRoutes({
-        node,
-        links,
-        nodes,
-      });
-      setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.OPEN);
-    },
-    [routesProps, setPanelState],
-  );
-  const node = nodeMap[name];
-  const link = linkMap[name];
-  const site = siteMap[name];
-
-  if (type === TopologyElementType.NODE && node) {
-    // hack to get around issues with flow
-    const {node: _, ...routesPropsWithoutNode} = {
-      ...routesProps,
-      onUpdateRoutes,
-    };
-
-    return (
-      <Slide {...SlideProps} key={name} in={isVisible}>
-        <NodeDetailsPanel
-          expanded={expanded}
-          onPanelChange={() => toggleExpanded(type, name, !expanded)}
-          networkName={networkName}
-          nodeDetailsProps={{
-            ctrlVersion: controller_version,
-            node: node,
-            statusReport: node
-              ? status_dump.statusReports[node.mac_addr]
-              : null,
-            networkNodeHealth,
-            networkConfig: networkConfig,
-            onSelectLink: linkName =>
-              setSelected(TopologyElementType.LINK, linkName),
-            onSelectSite: siteName =>
-              setSelected(TopologyElementType.SITE, siteName),
-            topology,
-          }}
-          pinned={pinned}
-          onPin={() => togglePin(type, name, !pinned)}
-          onClose={handleClosePanel}
-          onEdit={params => onEditTopology(params, TopologyElement.node)}
-          {...searchNearbyProps}
-          {...routesPropsWithoutNode}
-          node={node}
-          nodeToLinksMap={nodeToLinksMap}
-          linkMap={linkMap}
-        />
-      </Slide>
-    );
-  } else if (type === TopologyElementType.LINK && link) {
-    return (
-      <Slide {...SlideProps} key={name} in={isVisible}>
-        <LinkDetailsPanel
-          expanded={expanded}
-          onPanelChange={() => toggleExpanded(type, name, !expanded)}
-          networkName={networkName}
-          link={link}
-          nodeMap={nodeMap}
-          networkLinkHealth={networkLinkHealth}
-          networkLinkMetrics={networkLinkMetrics}
-          networkConfig={networkConfig}
-          ignitionEnabled={
-            !(
-              ignition_state?.igParams?.linkAutoIgnite != null &&
-              ignition_state.igParams.linkAutoIgnite[name] === false
-            )
-          }
-          onClose={handleClosePanel}
-          onSelectNode={nodeName =>
-            setSelected(TopologyElementType.NODE, nodeName)
-          }
-          pinned={pinned}
-          topology={topology}
-          onPin={() => togglePin(type, name, !pinned)}
-          azimuthManager={azimuthManager}
-        />
-      </Slide>
-    );
-  } else if (type === TopologyElementType.SITE && site) {
-    const wapStats = get(wireless_controller_stats, [name.toLowerCase()], null);
-    return (
-      <Slide {...SlideProps} key={name} in={isVisible}>
-        <SiteDetailsPanel
-          expanded={expanded}
-          onPanelChange={() => toggleExpanded(type, name, !expanded)}
-          networkName={networkName}
-          topology={topology}
-          site={site}
-          siteMap={siteMap}
-          siteNodes={siteToNodesMap[name] || new Set()}
-          nodeMap={nodeMap}
-          networkLinkHealth={networkLinkHealth}
-          wapStats={wapStats}
-          onClose={handleClosePanel}
-          onSelectNode={nodeName =>
-            setSelected(TopologyElementType.NODE, nodeName)
-          }
-          pinned={pinned}
-          onPin={() => togglePin(type, name, !pinned)}
-          onEdit={params => onEditTopology(params, TopologyElement.site)}
-          onUpdateRoutes={onUpdateRoutes}
-        />
-      </Slide>
-    );
-  }
-  return null;
-}
-
-function SearchNearby({
-  onAddTopology,
-  nodeName,
-  searchNearbyProps,
-}: {
-  nodeName: string,
-  searchNearbyProps: {|
-    nearbyNodes: NearbyNodes,
-    onUpdateNearbyNodes: NearbyNodes => *,
-  |},
-  onAddTopology: (
-    x: EditTopologyElementParams,
-    t: $Values<typeof TopologyElement>,
-  ) => *,
-}) {
-  const {networkName, networkConfig, nodeMap, siteMap} = useNetworkContext();
-  const {topology} = networkConfig;
-  const node = nodeMap[nodeName];
-
-  return (
-    <Slide {...SlideProps} in={true}>
-      <SearchNearbyPanel
-        networkName={networkName}
-        topology={topology}
-        node={node}
-        site={siteMap[node.site_name]}
-        onClose={() => {}}
-        onAddNode={params => onAddTopology(params, TopologyElement.node)}
-        onAddLink={params => onAddTopology(params, TopologyElement.link)}
-        onAddSite={params => onAddTopology(params, TopologyElement.site)}
-        {...searchNearbyProps}
-      />
-    </Slide>
   );
 }
