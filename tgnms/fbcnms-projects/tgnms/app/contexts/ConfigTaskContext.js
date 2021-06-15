@@ -37,6 +37,8 @@ export type ConfigDataType = {|
   metadata: ConfigMetaDataType,
 |};
 
+type objValType = {properties: {[string]: ConfigMetaDataType}};
+
 export type ConfigMetaDataType = {
   action: string,
   desc: string,
@@ -46,8 +48,8 @@ export type ConfigMetaDataType = {
   floatVal?: {allowedRanges: Array<Array<number>>},
   readOnly?: boolean,
   deprecated?: boolean,
-  mapVal?: {objVal: {properties: {[string]: ConfigMetaDataType}}},
-  objVal?: {properties: {[string]: ConfigMetaDataType}},
+  mapVal?: {objVal?: objValType, mapVal?: {objVal?: objValType}},
+  objVal?: objValType,
   defaultValue?: string,
   allowedValues?: Array<string>,
   type: $Keys<typeof DATA_TYPE_TO_INPUT_TYPE>,

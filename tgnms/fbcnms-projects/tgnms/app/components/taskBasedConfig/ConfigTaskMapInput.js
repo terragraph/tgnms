@@ -31,10 +31,11 @@ export type Props = {|
   configField: string,
   label?: string,
   buttonText?: string,
+  onChange?: ({}) => void,
 |};
 
 export default function ConfigTaskMapInput(props: Props) {
-  const {configField, label, buttonText} = props;
+  const {configField, label, buttonText, onChange} = props;
   const classes = useStyles();
   const {configData, configMetadata, onUpdate} = useConfigTaskContext();
   const [configValue, setConfigValue] = React.useState<{
@@ -51,7 +52,8 @@ export default function ConfigTaskMapInput(props: Props) {
     configMetadata,
   );
 
-  const {properties} = metadata?.mapVal?.objVal || {};
+  const {properties} =
+    metadata?.mapVal?.mapVal?.objVal || metadata?.mapVal?.objVal || {};
   const requiredFields =
     properties &&
     Object.keys(properties)
@@ -96,10 +98,13 @@ export default function ConfigTaskMapInput(props: Props) {
         tempConfig[change] = tempConfig[key];
         delete tempConfig[key];
       }
-      onUpdateRef.current({configField, draftValue: tempConfig});
       setConfigValue(tempConfig);
+      if (onChange) {
+        return onChange(tempConfig);
+      }
+      onUpdateRef.current({configField, draftValue: tempConfig});
     },
-    [configValue, configField],
+    [configValue, configField, onChange],
   );
 
   const handleAddMapKey = React.useCallback(() => {
@@ -119,10 +124,13 @@ export default function ConfigTaskMapInput(props: Props) {
     (key: string) => {
       const tempConfig = {...configValue};
       delete tempConfig[key];
-      onUpdateRef.current({configField, draftValue: tempConfig});
       setConfigValue(tempConfig);
+      if (onChange) {
+        return onChange(tempConfig);
+      }
+      onUpdateRef.current({configField, draftValue: tempConfig});
     },
-    [configValue, configField],
+    [configValue, configField, onChange],
   );
 
   return (
