@@ -10,7 +10,8 @@ import InfoIcon from '@material-ui/icons/Info';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import MenuBookIcon from '@material-ui/icons/MenuBook';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
 import {getUIConfig} from '@fbcnms/tg-nms/app/common/uiConfig';
@@ -18,6 +19,10 @@ import {makeStyles} from '@material-ui/styles';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
 const useStyles = makeStyles(theme => ({
+  tooltip: {
+    bottom: 0,
+    position: 'absolute',
+  },
   drawerListItem: {
     '@media (min-width: 600px)': {
       paddingLeft: theme.spacing(3),
@@ -27,6 +32,17 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
+  const anchorEl = React.useRef<?HTMLElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const handleClick = React.useCallback(_ => {
+    setIsMenuOpen(true);
+  }, []);
+
+  const handleClose = React.useCallback(() => {
+    setIsMenuOpen(false);
+  }, []);
+
   const {version, env} = getUIConfig();
   const {COMMIT_DATE, COMMIT_HASH, DOC_URL} = env;
   const classes = useStyles();
@@ -37,59 +53,63 @@ export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
       close();
     } else {
       open();
+      handleClose();
     }
-  }, [isOpen, open, close]);
+  }, [isOpen, open, close, handleClose]);
 
   return (
     <>
-      {DOC_URL && (
-        <Tooltip
-          title="Help"
-          placement="right"
-          disableHoverListener={drawerOpen}
-          disableFocusListener={true}
-          disableTouchListener={false}>
-          <ListItem
-            component="a"
-            href={DOC_URL}
-            target="_blank"
-            classes={{root: classes.drawerListItem}}
-            button>
-            <ListItemIcon>
-              <MenuBookIcon />
-            </ListItemIcon>
-            <ListItemText primary="Help" />
-          </ListItem>
-        </Tooltip>
-      )}
-      {COMMIT_DATE && COMMIT_HASH && (
-        <>
-          <Tooltip
-            title="About"
-            placement="right"
-            disableHoverListener={drawerOpen}
-            disableFocusListener={true}
-            disableTouchListener={false}>
-            <ListItem
-              classes={{root: classes.drawerListItem}}
-              data-testid="toggle-about-modal"
-              onClick={toggleBuildModal}
-              button>
-              <ListItemIcon>
-                <InfoIcon />
-              </ListItemIcon>
+      <Tooltip
+        className={classes.tooltip}
+        title="Help"
+        placement="right"
+        disableHoverListener={drawerOpen}
+        disableFocusListener={true}
+        disableTouchListener={false}>
+        <ListItem
+          ref={(anchorEl: any)}
+          classes={{root: classes.drawerListItem}}
+          data-testid="toggle-help-menu"
+          onClick={handleClick}
+          button>
+          <ListItemIcon>
+            <InfoIcon />
+          </ListItemIcon>
+          <ListItemText primary="Help" />
+        </ListItem>
+      </Tooltip>
+      <Menu
+        id="help-menu"
+        anchorEl={anchorEl.current}
+        anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+        transformOrigin={{vertical: 'top', horizontal: 'left'}}
+        open={isMenuOpen}
+        onClose={handleClose}>
+        {DOC_URL && (
+          <MenuItem onClick={handleClose}>
+            <ListItem component="a" href={DOC_URL} target="_blank">
+              <ListItemText primary="NMS Documentation" />
+            </ListItem>
+          </MenuItem>
+        )}
+        {COMMIT_DATE && COMMIT_HASH && (
+          <MenuItem
+            data-testid="toggle-about-modal"
+            key="about"
+            onClick={toggleBuildModal}>
+            <ListItem>
               <ListItemText primary="About" />
             </ListItem>
-          </Tooltip>
-          <BuildInformationModal
-            buildInformationOpen={isOpen}
-            toggleBuildModal={toggleBuildModal}
-            version={version ?? ''}
-            commitDate={COMMIT_DATE}
-            commitHash={COMMIT_HASH}
-          />
-        </>
-      )}
+          </MenuItem>
+        )}
+      </Menu>
+      <BuildInformationModal
+        buildInformationOpen={isOpen}
+        toggleBuildModal={toggleBuildModal}
+        version={version ?? ''}
+        commitDate={COMMIT_DATE}
+        commitHash={COMMIT_HASH}
+      />
     </>
   );
 }

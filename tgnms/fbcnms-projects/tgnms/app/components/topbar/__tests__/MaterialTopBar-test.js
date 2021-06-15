@@ -124,18 +124,20 @@ describe('About modal', () => {
         <MaterialTopBar />
       </TestApp>,
     );
-    expect(getByText('About')).toBeInTheDocument();
+    expect(getByText('Help')).toBeInTheDocument();
     expect(queryByTestId('about-modal')).not.toBeInTheDocument();
+    fireEvent.click(getByTestId('toggle-help-menu'));
     fireEvent.click(getByTestId('toggle-about-modal'));
     expect(queryByTestId('about-modal')).toBeInTheDocument();
   });
 
   test('does not render about modal when commit vars not set', () => {
-    const {queryByText} = renderWithRouter(
+    const {getByTestId, queryByTestId} = renderWithRouter(
       <TestApp>
         <MaterialTopBar />
       </TestApp>,
     );
-    expect(queryByText('About')).not.toBeInTheDocument();
+    fireEvent.click(getByTestId('toggle-help-menu'));
+    expect(queryByTestId('about-modal')).not.toBeInTheDocument();
   });
 });

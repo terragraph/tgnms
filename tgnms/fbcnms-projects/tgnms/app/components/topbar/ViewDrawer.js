@@ -139,8 +139,8 @@ export default function ViewDrawer({drawerOpen}: {drawerOpen: boolean}) {
           </ListItem>
         </Tooltip>
         <Divider />
-        <InfoMenu drawerOpen={drawerOpen} />
       </List>
+      <InfoMenu drawerOpen={drawerOpen} />
     </Drawer>
   );
 }
