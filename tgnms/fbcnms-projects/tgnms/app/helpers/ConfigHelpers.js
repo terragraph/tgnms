@@ -18,6 +18,7 @@ import {
   isPlainObject,
   merge,
   set,
+  setWith,
   unset,
 } from 'lodash';
 import {isNodeAlive} from './NetworkHelpers';
@@ -598,18 +599,17 @@ export function getDraftConfig<T>({
       const draftConfigValue = drafts[configField];
       if (draftConfigValue === '' || draftConfigValue === null) {
         unset(currentDraftConfig, configField.split('.'));
+      } else if (typeof draftConfigValue === 'object') {
+        Object.keys(draftConfigValue).forEach(key => {
+          setWith(
+            currentDraftConfig,
+            [...configField.split('.'), key],
+            draftConfigValue[key],
+            Object,
+          );
+        });
       } else {
-        if (typeof draftConfigValue === 'object') {
-          Object.keys(draftConfigValue).forEach(key => {
-            set(
-              currentDraftConfig,
-              [...configField.split('.'), key],
-              draftConfigValue[key],
-            );
-          });
-        } else {
-          set(currentDraftConfig, configField.split('.'), draftConfigValue);
-        }
+        set(currentDraftConfig, configField.split('.'), draftConfigValue);
       }
     });
   }
