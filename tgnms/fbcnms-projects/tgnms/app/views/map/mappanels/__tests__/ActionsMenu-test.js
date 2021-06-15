@@ -7,8 +7,8 @@
 
 import ActionsMenu from '../ActionsMenu';
 import React from 'react';
+import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
-import {renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   options: {
@@ -22,12 +22,20 @@ const defaultProps = {
 };
 
 test('renders empty without crashing', () => {
-  const {getByText} = render(<ActionsMenu {...defaultProps} />);
+  const {getByText} = render(
+    <TestApp>
+      <ActionsMenu {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('View Actions')).toBeInTheDocument();
 });
 
 test('clicking button Opens menu', async () => {
-  const {getByText} = await renderAsync(<ActionsMenu {...defaultProps} />);
+  const {getByText} = await renderAsync(
+    <TestApp>
+      <ActionsMenu {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('View Actions')).toBeInTheDocument();
   fireEvent.click(getByText('View Actions'));
   expect(getByText('Test Heading')).toBeInTheDocument();
@@ -35,7 +43,11 @@ test('clicking button Opens menu', async () => {
 });
 
 test('clicking button in menu calls function', async () => {
-  const {getByText} = await renderAsync(<ActionsMenu {...defaultProps} />);
+  const {getByText} = await renderAsync(
+    <TestApp>
+      <ActionsMenu {...defaultProps} />
+    </TestApp>,
+  );
   expect(getByText('View Actions')).toBeInTheDocument();
   fireEvent.click(getByText('View Actions'));
   expect(getByText('testLabel')).toBeInTheDocument();
