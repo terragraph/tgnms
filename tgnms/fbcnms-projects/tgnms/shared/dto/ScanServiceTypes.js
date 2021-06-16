@@ -103,7 +103,11 @@ export type LinkInterferenceType = {
   totalINR?: number,
   directions: Array<{
     label: string,
-    interference: Array<{interferenceLinkName: ?string, INR: number}>,
+    interference: Array<{
+      interferenceLinkName: ?string,
+      INR: number,
+      fromNode: string,
+    }>,
     totalINR: number,
     health: number,
   }>,

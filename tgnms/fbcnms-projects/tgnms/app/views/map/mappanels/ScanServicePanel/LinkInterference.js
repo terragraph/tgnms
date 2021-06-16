@@ -128,13 +128,20 @@ export default function LinkInterference(props: Props) {
                     : 'Negligible total interference'}
                 </div>
                 <Typography variant="button">Top Interferers</Typography>
-                {direction.interference
-                  .filter(link => link.interferenceLinkName !== null)
-                  .map(({interferenceLinkName, INR}) => (
-                    <Typography>
-                      {interferenceLinkName}: {INR.toFixed(2)} dB
-                    </Typography>
-                  ))}
+                <Grid container spacing={2}>
+                  {direction.interference
+                    .filter(link => link.interferenceLinkName !== null)
+                    .map(({interferenceLinkName, INR, fromNode}) => (
+                      <Grid item>
+                        <Typography>
+                          {interferenceLinkName}: {INR.toFixed(2)} dB
+                        </Typography>
+                        <Typography color="textSecondary">
+                          Originating from: {fromNode}
+                        </Typography>
+                      </Grid>
+                    ))}
+                </Grid>
               </div>
             </ListItem>
           </Grid>

@@ -241,6 +241,7 @@ function parseInterference(scanData, aggregatedInr, topologyMaps) {
         // if the link already has been processed,
         // add this link to the INR list otherwise add it
         const currentLink = result.find(link => link.assetName === linkName);
+        const fromNode = macToNodeMap[interference.tx_node];
 
         if (currentLink && interferenceLinkName !== null) {
           //check if there is data for current direction
@@ -251,11 +252,18 @@ function parseInterference(scanData, aggregatedInr, topologyMaps) {
             currentLink.directions[currentDirection].interference.push({
               interferenceLinkName,
               INR: currentINR,
+              fromNode,
             });
           } else {
             currentLink.directions.push({
               label: tempDirection,
-              interference: [{interferenceLinkName, INR: currentINR}],
+              interference: [
+                {
+                  interferenceLinkName,
+                  INR: currentINR,
+                  fromNode,
+                },
+              ],
               totalINR: totalInr,
               health,
             });
@@ -266,7 +274,13 @@ function parseInterference(scanData, aggregatedInr, topologyMaps) {
             directions: [
               {
                 label: tempDirection,
-                interference: [{interferenceLinkName, INR: currentINR}],
+                interference: [
+                  {
+                    interferenceLinkName,
+                    INR: currentINR,
+                    fromNode,
+                  },
+                ],
                 totalINR: totalInr,
                 health,
               },
