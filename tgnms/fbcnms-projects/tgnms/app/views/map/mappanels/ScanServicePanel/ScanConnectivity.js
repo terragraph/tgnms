@@ -9,7 +9,6 @@ import CustomTable from '@fbcnms/tg-nms/app/components/common/CustomTable';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
 import ScanPanelTitle from './ScanPanelTitle';
@@ -27,6 +26,7 @@ import {makeStyles} from '@material-ui/styles';
 import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {uploadTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {ExecutionResultDataType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
@@ -74,7 +74,7 @@ export default function ScanConnectivity(props: Props) {
     nodeMap,
     siteMap,
     linkMap,
-  } = React.useContext(NetworkContext);
+  } = useNetworkContext();
   const snackbars = useSnackbars();
   const {moveMapTo} = useMapContext();
 
@@ -100,6 +100,14 @@ export default function ScanConnectivity(props: Props) {
           connectivityLink.snr >= formState.filterSNR,
       ),
     [connectivityLinks, formState.filterSNR, formState.filterString],
+  );
+
+  const newLink = React.useMemo(
+    () =>
+      potentialLinks.find(
+        potentialLink => potentialLink.name === selectedLink?.link_name,
+      ),
+    [potentialLinks, selectedLink],
   );
 
   React.useEffect(() => {
@@ -161,10 +169,12 @@ export default function ScanConnectivity(props: Props) {
   }, [selectedLink, onBack, setSelectedLink, updateNetworkMapOptions]);
 
   const potentialTopologyAddition = React.useMemo(() => {
-    const cnLinks = potentialLinks.filter(
-      potentialLink =>
-        nodeMap[potentialLink.aNodeName]?.node_type === NodeTypeValueMap.CN ||
-        nodeMap[potentialLink.zNodeName]?.node_type === NodeTypeValueMap.CN,
+    const cnLinks = potentialLinks.filter(potentialLink =>
+      getBackupLinkEligibility(
+        potentialLink.aNodeName,
+        potentialLink.zNodeName,
+        nodeMap,
+      ),
     );
 
     const potentialCnLinks = cnLinks.map(cnLink => ({
@@ -205,9 +215,6 @@ export default function ScanConnectivity(props: Props) {
   );
 
   const handleAddLink = () => {
-    const newLink = potentialLinks.find(
-      potentialLink => potentialLink.name === selectedLink?.link_name,
-    );
     if (newLink != undefined) {
       const link = {
         a_node_name: newLink.aNodeName,
@@ -226,9 +233,6 @@ export default function ScanConnectivity(props: Props) {
   };
 
   const handleAddBackupLink = () => {
-    const newLink = potentialLinks.find(
-      potentialLink => potentialLink.name === selectedLink?.link_name,
-    );
     if (newLink != undefined) {
       const link = {
         a_node_name: newLink.aNodeName,
@@ -296,6 +300,17 @@ export default function ScanConnectivity(props: Props) {
     }
   }, [tableProps, temporarySelectedAsset]);
 
+  const possibleBackupLink = React.useMemo(() => {
+    if (!newLink) {
+      return false;
+    }
+    return getBackupLinkEligibility(
+      newLink.aNodeName,
+      newLink.zNodeName,
+      nodeMap,
+    );
+  }, [newLink, nodeMap]);
+
   return (
     <Grid container spacing={2}>
       <Grid item>
@@ -321,17 +336,19 @@ export default function ScanConnectivity(props: Props) {
               }}
               customText={`Add Link To ${networkName}`}
             />
-            <UploadTopologyConfirmationModal
-              fullWidth={true}
-              disabled={false}
-              onSubmit={handleAddBackupLink}
-              uploadTopology={{
-                sites: [],
-                nodes: [],
-                links: [{a_node_name: '', z_node_name: ''}],
-              }}
-              customText={`Add Link As CN backup link To ${networkName}`}
-            />
+            {possibleBackupLink && (
+              <UploadTopologyConfirmationModal
+                fullWidth={true}
+                disabled={false}
+                onSubmit={handleAddBackupLink}
+                uploadTopology={{
+                  sites: [],
+                  nodes: [],
+                  links: [{a_node_name: '', z_node_name: ''}],
+                }}
+                customText={`Add Link As CN backup link To ${networkName}`}
+              />
+            )}
           </>
         ) : (
           <>
@@ -452,4 +469,13 @@ function parseConnectivity(
   }
 
   return [...dedupedLinkMap.values()];
+}
+
+function getBackupLinkEligibility(aNodeName, zNodeName, nodeMap) {
+  const aNodeType = nodeMap[aNodeName].node_type;
+  const zNodeType = nodeMap[zNodeName].node_type;
+  return (
+    (aNodeType === NodeTypeValueMap.DN && zNodeType === NodeTypeValueMap.CN) ||
+    (aNodeType === NodeTypeValueMap.CN && zNodeType === NodeTypeValueMap.DN)
+  );
 }
