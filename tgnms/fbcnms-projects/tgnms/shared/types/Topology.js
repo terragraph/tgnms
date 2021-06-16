@@ -48,7 +48,7 @@ export const NodeStatusTypeValueMap = {
 export type NodeType = {|
   name: string,
   node_type: $Values<typeof NodeTypeValueMap>,
-  is_primary: boolean,
+  is_primary?: boolean, //deprecated TODO: T89970540
   mac_addr: string,
   pop_node: boolean,
   polarity?: PolarityTypeType,
