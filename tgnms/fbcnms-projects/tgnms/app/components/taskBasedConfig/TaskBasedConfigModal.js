@@ -11,7 +11,6 @@ import ConfigTaskForm from './ConfigTaskForm';
 import Grid from '@material-ui/core/Grid';
 import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import PopKvstoreParams from './configTasks/PopKvstoreParams';
 import PopRouting from './configTasks/PopRouting';
 import RadioParams from './configTasks/RadioParams';
@@ -22,6 +21,9 @@ import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {makeStyles} from '@material-ui/styles';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 const useModalStyles = makeStyles(theme => ({
   root: {
@@ -39,13 +41,14 @@ export type Props = {
   modalTitle: string,
   onClose: () => void,
   onAdvancedLinkClick?: () => void,
+  node?: NodeType,
 };
 
 export default function TaskBasedConfigModal(props: Props) {
   const {modalTitle, open, onClose, onAdvancedLinkClick} = props;
-  const {selectedElement, nodeMap} = React.useContext(NetworkContext);
+  const {selectedElement, nodeMap} = useNetworkContext();
   const classes = useModalStyles();
-  const node = nodeMap[selectedElement?.name || ''];
+  const node = props.node ?? nodeMap[selectedElement?.name || ''];
 
   const configGroup = [
     ...(node?.pop_node
@@ -71,17 +74,19 @@ export default function TaskBasedConfigModal(props: Props) {
       modalContent={
         <>
           <ConfigTaskForm
-            nodeName={selectedElement?.name}
+            nodeName={node?.name ?? ''}
             onClose={onClose}
             editMode={FORM_CONFIG_MODES.NODE}
             showSubmitButton={true}
             advancedLink={
-              <Button
-                color="primary"
-                className={classes.advancedLink}
-                onClick={onAdvancedLinkClick}>
-                Go to advanced configuration
-              </Button>
+              onAdvancedLinkClick ? (
+                <Button
+                  color="primary"
+                  className={classes.advancedLink}
+                  onClick={onAdvancedLinkClick}>
+                  Go to advanced configuration
+                </Button>
+              ) : null
             }>
             {formState.currentConfig.content}
           </ConfigTaskForm>
