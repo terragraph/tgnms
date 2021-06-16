@@ -16,7 +16,11 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import UploadTopologyConfirmationModal from '../topologyCreationPanels/UploadTopologyConfirmationModal';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
-import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {
+  NodeTypeValueMap,
+  PolarityTypeValueMap,
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import {getNodePolarities} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {
   locToPos,
   locationMidpoint,
@@ -33,7 +37,10 @@ import type {ExecutionResultDataType} from '@fbcnms/tg-nms/shared/dto/ScanServic
 import type {
   LinkMap,
   MacToNodeMap,
+  NetworkConfig,
+  NodeMap,
 } from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 type NewLinkType = {
   name: string,
@@ -74,6 +81,7 @@ export default function ScanConnectivity(props: Props) {
     nodeMap,
     siteMap,
     linkMap,
+    networkConfig,
   } = useNetworkContext();
   const snackbars = useSnackbars();
   const {moveMapTo} = useMapContext();
@@ -88,8 +96,9 @@ export default function ScanConnectivity(props: Props) {
   });
 
   const connectivityLinks = React.useMemo(
-    () => parseConnectivity(results, macToNodeMap, linkMap),
-    [results, macToNodeMap, linkMap],
+    () =>
+      parseConnectivity(results, macToNodeMap, linkMap, nodeMap, networkConfig),
+    [results, macToNodeMap, linkMap, nodeMap, networkConfig],
   );
 
   const potentialLinks = React.useMemo(
@@ -428,6 +437,8 @@ function parseConnectivity(
   scanData: Array<ExecutionResultDataType>,
   macToNodeMap: MacToNodeMap,
   linkMap: LinkMap,
+  nodeMap: NodeMap,
+  networkConfig: NetworkConfig,
 ): Array<NewLinkType> {
   const newLinks = scanData.reduce((result: Array<NewLinkType>, scanResult) => {
     const scanConnectivity = scanResult.connectivity;
@@ -442,7 +453,9 @@ function parseConnectivity(
         if (
           aNodeName == undefined ||
           zNodeName == undefined ||
-          linkMap[newLinkName]
+          linkMap[newLinkName] ||
+          getNodePolarity(nodeMap[aNodeName], networkConfig) ===
+            getNodePolarity(nodeMap[zNodeName], networkConfig)
         ) {
           return {};
         }
@@ -469,6 +482,26 @@ function parseConnectivity(
   }
 
   return [...dedupedLinkMap.values()];
+}
+
+function getNodePolarity(node: NodeType, networkConfig: NetworkConfig) {
+  const {controller_version, topologyConfig} = networkConfig;
+
+  const mac2Polarity = getNodePolarities(
+    controller_version,
+    node,
+    topologyConfig,
+  );
+  let nodePolarity = null;
+  for (const mac of Object.keys(mac2Polarity)) {
+    const macPolarity = mac2Polarity[mac];
+    if (nodePolarity === null) {
+      nodePolarity = macPolarity;
+    } else if (nodePolarity !== macPolarity) {
+      nodePolarity = PolarityTypeValueMap.HYBRID_ODD;
+    }
+  }
+  return nodePolarity;
 }
 
 function getBackupLinkEligibility(aNodeName, zNodeName, nodeMap) {
