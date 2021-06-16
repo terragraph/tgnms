@@ -216,6 +216,14 @@ class NetworkMapContent extends React.Component<Props, State> {
     this.setState({hiddenSites});
   };
 
+  setIsSiteHidden = (name: string, hidden: boolean) => {
+    if (hidden) {
+      this.hideSite(name);
+    } else {
+      this.unhideSite(name);
+    }
+  };
+
   handleStyleLoad = (map: ?Map) => {
     this.setState({mapRef: map});
   };
@@ -246,7 +254,8 @@ class NetworkMapContent extends React.Component<Props, State> {
                 <MapContextProvider
                   defaultMapMode={MAPMODE.DEFAULT}
                   mapboxRef={mapRef}
-                  mapProfiles={mapProfiles}>
+                  mapProfiles={mapProfiles}
+                  setIsSiteHidden={this.setIsSiteHidden}>
                   <MapAnnotationContextProvider>
                     <TgMapboxNavigation
                       accessToken={MAPBOX_ACCESS_TOKEN}

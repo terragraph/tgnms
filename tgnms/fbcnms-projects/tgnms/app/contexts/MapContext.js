@@ -70,6 +70,7 @@ export type MapContext = {|
     bbox?: Boundary,
     center?: GeoCoord,
   }) => void,
+  setIsSiteHidden: (string, boolean) => void,
 |};
 
 const empty = () => {};
@@ -96,6 +97,7 @@ const defaultValue: MapContext = {
   moveMapTo: () => {},
   mapFeatures: {sites: {}, links: {}, nodes: {}},
   setMapFeatures: empty,
+  setIsSiteHidden: empty,
 };
 
 const context = React.createContext<MapContext>(defaultValue);
@@ -107,6 +109,7 @@ export type ProviderProps = {|
   overlayData?: LayerData<{}>,
   mapProfiles: Array<MapProfile>,
   mapboxRef: ?Map,
+  setIsSiteHidden: (string, boolean) => void,
 |};
 
 const defaultSelectedLayers: SelectedLayersType = {
@@ -120,6 +123,7 @@ export function MapContextProvider({
   defaultMapMode,
   mapboxRef,
   mapProfiles,
+  setIsSiteHidden,
 }: ProviderProps) {
   const {networkMapOptions, updateNetworkMapOptions} = React.useContext(
     NmsOptionsContext,
@@ -274,6 +278,7 @@ export function MapContextProvider({
         mapProfiles,
         mapboxRef,
         moveMapTo,
+        setIsSiteHidden,
       }}>
       {children}
     </Provider>

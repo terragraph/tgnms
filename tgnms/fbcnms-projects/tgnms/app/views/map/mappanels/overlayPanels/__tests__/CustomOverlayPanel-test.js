@@ -505,7 +505,10 @@ describe('CustomOverlayPanel', () => {
   function OverlayPanelTest({mapProfiles}: {mapProfiles: Array<MapProfile>}) {
     const networkCtx = useNetworkContext();
     return (
-      <MapContextProvider mapProfiles={mapProfiles} mapboxRef={mockMapboxRef()}>
+      <MapContextProvider
+        mapProfiles={mapProfiles}
+        mapboxRef={mockMapboxRef()}
+        setIsSiteHidden={() => {}}>
         <MapLayers context={networkCtx} {...defaultMapLayersProps} />
         <MapLayersPanel {...defaultMapLayersPanelProps} />
       </MapContextProvider>
@@ -622,7 +625,8 @@ function MapTest() {
     <MapContextProvider
       defaultMapMode={MAPMODE.CUSTOM_OVERLAYS}
       mapProfiles={[mapProfile]}
-      mapboxRef={mockMapboxRef()}>
+      mapboxRef={mockMapboxRef()}
+      setIsSiteHidden={() => {}}>
       <MapLayers
         context={networkCtx}
         hiddenSites={new Set()}

@@ -333,7 +333,8 @@ function MapTest() {
     <MapContextProvider
       defaultMapMode={MAPMODE.DEFAULT}
       mapProfiles={[DEFAULT_MAP_PROFILE]}
-      mapboxRef={mockMapboxRef()}>
+      mapboxRef={mockMapboxRef()}
+      setIsSiteHidden={() => {}}>
       <MapLayers
         context={networkCtx}
         hiddenSites={new Set()}
