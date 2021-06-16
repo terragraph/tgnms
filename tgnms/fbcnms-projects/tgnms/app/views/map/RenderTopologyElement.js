@@ -24,6 +24,7 @@ import {get} from 'lodash';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import {useTheme} from '@material-ui/styles';
 
 import type {EditTopologyElementParams} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
@@ -48,6 +49,8 @@ export default function RenderTopologyElement({
   const {setPanelState, getIsHidden, removePanel, collapseAll} = panelControl;
   const theme = useTheme();
   const azimuthManager = useAzimuthManager();
+  const snackbars = useSnackbars();
+
   const {type, name, expanded} = element;
   const {
     networkConfig,
@@ -157,6 +160,7 @@ export default function RenderTopologyElement({
           node={node}
           nodeToLinksMap={nodeToLinksMap}
           linkMap={linkMap}
+          snackbars={snackbars}
         />
       </Slide>
     );

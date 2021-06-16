@@ -73,6 +73,11 @@ type Props = {
   node: NodeType,
   nodeToLinksMap: NodeToLinksMap,
   linkMap: LinkMap,
+  snackbars: {
+    success: string => any,
+    error: string => any,
+    warning: string => any,
+  },
 } & WithStyles<typeof styles> &
   ForwardRef;
 
@@ -198,18 +203,26 @@ class NodeDetailsPanel extends React.Component<Props, State> {
   };
 
   onStartIncrementalRouteTest = async () => {
-    const {networkName, node, history} = this.props;
-    const currentRoute = await currentDefaultRouteRequest({
-      networkName,
-      selectedNode: node.name,
-    });
-
-    startPartialTest({
-      networkName,
-      allowlist: [...getNodesInRoute({mapRoutes: currentRoute})],
-      history,
-      testType: TEST_TYPE_CODES.SEQUENTIAL_NODE,
-    });
+    const {networkName, node, history, snackbars} = this.props;
+    try {
+      const currentRoute = await currentDefaultRouteRequest({
+        networkName,
+        selectedNode: node.name,
+      });
+      if (!currentRoute || currentRoute.length === 0) {
+        return snackbars.error(
+          'Could not start incremental route test, no route available.',
+        );
+      }
+      startPartialTest({
+        networkName,
+        allowlist: [...getNodesInRoute({mapRoutes: currentRoute})],
+        history,
+        testType: TEST_TYPE_CODES.SEQUENTIAL_NODE,
+      });
+    } catch {
+      snackbars.error('Could not start incremental route test.');
+    }
   };
 
   onStartP2MPTest = () => {

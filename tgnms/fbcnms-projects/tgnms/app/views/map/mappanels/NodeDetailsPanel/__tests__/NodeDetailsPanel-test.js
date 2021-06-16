@@ -28,6 +28,7 @@ beforeEach(() => {
 });
 
 const testNodeName = 'NODEA';
+const empty = () => {};
 const commonProps = {
   nodeDetailsProps: mockNodeDetails(),
   networkName: '',
@@ -35,17 +36,18 @@ const commonProps = {
   nodes: new Set(),
   links: {},
   expanded: true,
-  onPin: () => {},
+  onPin: empty,
   node: mockNode({name: testNodeName}),
-  onPanelChange: () => {},
-  onEdit: () => {},
-  onClose: () => {},
-  onUpdateNearbyNodes: () => {},
+  onPanelChange: empty,
+  onEdit: empty,
+  onClose: empty,
+  onUpdateNearbyNodes: empty,
   onUpdateRoutes: _ => {},
   resetRoutes: jest.fn(),
   pinned: true,
   nodeToLinksMap: {},
   linkMap: {},
+  snackbars: {error: empty, success: empty, warning: empty},
 };
 
 test('renders', () => {
