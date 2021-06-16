@@ -152,9 +152,7 @@ export const SCAN_SERVICE_TYPES = {
 };
 
 export const SCAN_SERVICE_MODE = {
-  COARSE: 'Coarse',
   FINE: 'Fine',
-  SELECTIVE: 'Selective',
   RELATIVE: 'Relative',
 };
 
@@ -165,9 +163,7 @@ export const SCAN_TYPES = {
 export const DEFAULT_SCAN_MODE = 'FINE';
 
 export const SCAN_MODE = {
-  COARSE: 1,
   FINE: 2,
-  SELECTIVE: 3,
   RELATIVE: 4,
 };
 
