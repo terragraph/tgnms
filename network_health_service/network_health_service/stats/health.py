@@ -235,18 +235,19 @@ def get_link_stats_health(  # noqa: C901
         )
     link_labels_bitmap += f"{inr_curr_power_label}"
 
+    link_health = Metrics.link_health if Metrics.use_real_throughput else Metrics.mcs
+
     # Calculate overall link health
     if (
         stats_health["stats"].get(Metrics.link_avail.key) is not None
         and stats_health["stats"].get(Metrics.link_avail_for_data.key) is not None
-        and stats_health["stats"].get(Metrics.link_health.key) is not None
+        and stats_health["stats"].get(link_health.key) is not None
     ):
         if (
             stats_health["stats"][Metrics.link_avail.key]["health"] == Health.POOR.name
             or stats_health["stats"][Metrics.link_avail_for_data.key]["health"]
             == Health.POOR.value
-            or stats_health["stats"][Metrics.link_health.key]["health"]
-            == Health.POOR.name
+            or stats_health["stats"][link_health.key]["health"] == Health.POOR.name
         ):
             stats_health["overall_health"] = Health.POOR.value
         elif (
@@ -254,7 +255,7 @@ def get_link_stats_health(  # noqa: C901
             == Health.EXCELLENT.name
             and stats_health["stats"][Metrics.link_avail_for_data.key]["health"]
             == Health.EXCELLENT.name
-            and stats_health["stats"][Metrics.link_health.key]["health"]
+            and stats_health["stats"][link_health.key]["health"]
             == Health.EXCELLENT.name
         ):
             stats_health["overall_health"] = Health.EXCELLENT.value
@@ -383,19 +384,34 @@ def get_node_stats_health(
         )
     node_labels_bitmap += f"{reroutes_label}"
 
+    # Evaluate minimum route mcs using "min_route_mcs"
+    min_route_mcs_label = 0
+    min_route_mcs = node_stats_map.get("min_route_mcs")
+    if min_route_mcs is not None:
+        stats_health["stats"][Metrics.min_route_mcs.key] = {
+            "health": get_health(min_route_mcs, Metrics.min_route_mcs),
+            "value": round(min_route_mcs, 3),
+            "description": Metrics.min_route_mcs.description,
+        }
+        min_route_mcs_label = int(min_route_mcs < Metrics.min_route_mcs.lower_threshold)
+    node_labels_bitmap += f"{min_route_mcs_label}"
+
+    node_health = (
+        Metrics.node_health if Metrics.use_real_throughput else Metrics.min_route_mcs
+    )
+
     # Calculate overall node health
     if (
         stats_health["stats"].get(Metrics.udp_pinger_loss_ratio.key) is not None
         and stats_health["stats"].get(Metrics.udp_pinger_rtt_avg.key) is not None
-        and stats_health["stats"].get(Metrics.node_health.key) is not None
+        and stats_health["stats"].get(node_health.key) is not None
     ):
         if (
             stats_health["stats"][Metrics.udp_pinger_loss_ratio.key]["health"]
             == Health.POOR.name
             or stats_health["stats"][Metrics.udp_pinger_rtt_avg.key]["health"]
             == Health.POOR.name
-            or stats_health["stats"][Metrics.node_health.key]["health"]
-            == Health.POOR.name
+            or stats_health["stats"][node_health.key]["health"] == Health.POOR.name
         ):
             stats_health["overall_health"] = Health.POOR.value
         elif (
@@ -403,7 +419,7 @@ def get_node_stats_health(
             == Health.EXCELLENT.name
             and stats_health["stats"][Metrics.udp_pinger_rtt_avg.key]["health"]
             == Health.EXCELLENT.name
-            and stats_health["stats"][Metrics.node_health.key]["health"]
+            and stats_health["stats"][node_health.key]["health"]
             == Health.EXCELLENT.name
         ):
             stats_health["overall_health"] = Health.EXCELLENT.value

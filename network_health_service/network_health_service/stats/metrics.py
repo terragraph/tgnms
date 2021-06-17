@@ -19,6 +19,7 @@ class Metric:
 
 class Metrics:
     prometheus_hold_time: int
+    use_real_throughput: bool
     analytics_alignment_status: Metric
     topology_link_is_online: Metric
     link_alive: Metric
@@ -30,6 +31,7 @@ class Metrics:
     link_avail: Metric
     mcs: Metric
     mcs_diff: Metric
+    min_route_mcs: Metric
     tx_power_diff: Metric
     link_health: Metric
     interference: Metric
@@ -42,9 +44,13 @@ class Metrics:
 
     @classmethod
     def update_metrics(
-        cls, metrics: Dict[str, Dict], prometheus_hold_time: int
+        cls,
+        metrics: Dict[str, Dict],
+        prometheus_hold_time: int,
+        use_real_throughput: bool,
     ) -> None:
         cls.prometheus_hold_time = prometheus_hold_time
+        cls.use_real_throughput = use_real_throughput
         cls.analytics_alignment_status = Metric(
             "alignment_ok_percent",
             "Percentage of time TX and RX beam-angles were reasonable.",
@@ -132,6 +138,14 @@ class Metrics:
             metrics["mcs_diff"]["lower_threshold"],
             metrics["mcs_diff"]["higher_threshold"],
             True,
+        )
+        cls.min_route_mcs = Metric(
+            "min_route_mcs",
+            "75th percentile of node's minimum upstream route MCS.",
+            metrics["min_route_mcs"]["period_s"],
+            metrics["min_route_mcs"]["lower_threshold"],
+            metrics["min_route_mcs"]["higher_threshold"],
+            False,
         )
         cls.tx_power_diff = Metric(
             "tx_power_idx_diff",

@@ -22,7 +22,9 @@ class FetchStatsTests(asynctest.TestCase):
         self.maxDiff = None
         with open("tests/metrics.json") as f:
             metrics = json.load(f)
-            Metrics.update_metrics(metrics, prometheus_hold_time=30)
+            Metrics.update_metrics(
+                metrics, prometheus_hold_time=30, use_real_throughput=True
+            )
 
     @asynctest.patch(
         "tglib.clients.prometheus_client.PrometheusClient.query_latest",
@@ -119,6 +121,13 @@ class FetchStatsTests(asynctest.TestCase):
             },
             {"metric": "udp_pinger_loss_ratio", "status": "failed"},
             ClientRuntimeError(),
+            {
+                "metric": "drs_min_route_mcs",
+                "status": "success",
+                "data": {
+                    "result": [{"metric": {"nodeName": "node"}, "value": (0, 12)}]
+                },
+            },
         ],
     )
     async def test_fetch_prometheus_stats_results(self, mock_query_latest) -> None:
@@ -152,6 +161,7 @@ class FetchStatsTests(asynctest.TestCase):
                         "analytics_cn_power_status": 10.0,
                         "topology_node_is_online": 11.0,
                         "drs_default_routes_changed": 12.0,
+                        "min_route_mcs": 12.0,
                     }
                 }
             },

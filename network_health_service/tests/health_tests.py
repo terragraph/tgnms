@@ -41,6 +41,7 @@ class Descriptions:
     pinger_no_loss_perecnt = "Percentage of time node was reachable via pings."
     pinger_rtt_avg_ms = "75th percentile of average ping RTT in ms."
     reroutes_estimate_min = "Lower bound on number of reroutes for the node per hour."
+    min_route_mcs = "75th percentile of node's minimum upstream route MCS."
     node_tput_health = "Health from the latest node throughput test."
 
 
@@ -49,7 +50,9 @@ class HealthTests(unittest.TestCase):
         self.maxDiff = None
         with open("tests/metrics.json") as f:
             metrics = json.load(f)
-            Metrics.update_metrics(metrics, prometheus_hold_time=30)
+            Metrics.update_metrics(
+                metrics, prometheus_hold_time=30, use_real_throughput=True
+            )
 
     def test_get_health(self) -> None:
         poor_health = get_health(0, Metrics.analytics_alignment_status)
@@ -226,6 +229,39 @@ class HealthTests(unittest.TestCase):
             },
         )
 
+        # Disable use_real_throughput
+        Metrics.use_real_throughput = False
+        link_stats_map = {
+            "link_avail": 0.0,
+            "link_avail_for_data": 99.8,
+            "mcs": 11.0,
+        }
+        bit_map, link_health = get_link_stats_health(link_stats_map, 30)
+        self.assertEqual(bit_map, "00000000000000")
+        self.assertDictEqual(
+            link_health,
+            {
+                "overall_health": 2,
+                "stats": {
+                    "link_resets_count": {
+                        "description": Descriptions.link_resets_count,
+                        "health": "EXCELLENT",
+                        "value": 0.0,
+                    },
+                    "link_avail_for_data_percent": {
+                        "description": Descriptions.link_avail_for_data_percent,
+                        "health": "GOOD",
+                        "value": 99.8,
+                    },
+                    "mcs": {
+                        "description": Descriptions.mcs,
+                        "health": "EXCELLENT",
+                        "value": 11.0,
+                    },
+                },
+            },
+        )
+
     def test_get_node_stats_health(self) -> None:
         node_stats_map = {
             "analytics_cn_power_status": 10.0,
@@ -234,9 +270,10 @@ class HealthTests(unittest.TestCase):
             "udp_pinger_rtt_avg": 14.0,
             "node_health": 15.0,
             "drs_default_routes_changed": 16.0,
+            "min_route_mcs": 3.0,
         }
         bit_map, node_health = get_node_stats_health(node_stats_map, 3600)
-        self.assertEqual(bit_map, "101111")
+        self.assertEqual(bit_map, "1011111")
         self.assertDictEqual(
             node_health,
             {
@@ -272,6 +309,11 @@ class HealthTests(unittest.TestCase):
                         "health": "POOR",
                         "value": 16.0,
                     },
+                    "min_route_mcs": {
+                        "description": Descriptions.min_route_mcs,
+                        "health": "POOR",
+                        "value": 3.0,
+                    },
                 },
             },
         )
@@ -282,7 +324,7 @@ class HealthTests(unittest.TestCase):
             "node_health": 1.0,
         }
         bit_map, node_health = get_node_stats_health(node_stats_map, 30)
-        self.assertEqual(bit_map, "000000")
+        self.assertEqual(bit_map, "0000000")
         self.assertDictEqual(
             node_health,
             {
@@ -313,7 +355,7 @@ class HealthTests(unittest.TestCase):
             "node_health": 2.0,
         }
         bit_map, node_health = get_node_stats_health(node_stats_map, 30)
-        self.assertEqual(bit_map, "000000")
+        self.assertEqual(bit_map, "0000000")
         self.assertDictEqual(
             node_health,
             {
@@ -323,6 +365,39 @@ class HealthTests(unittest.TestCase):
                         "description": Descriptions.node_tput_health,
                         "health": "GOOD",
                         "value": 2.0,
+                    },
+                    "pinger_no_loss_perecnt": {
+                        "description": Descriptions.pinger_no_loss_perecnt,
+                        "health": "EXCELLENT",
+                        "value": 100.0,
+                    },
+                    "pinger_rtt_avg_ms": {
+                        "description": Descriptions.pinger_rtt_avg_ms,
+                        "health": "EXCELLENT",
+                        "value": 0.0,
+                    },
+                },
+            },
+        )
+
+        # Disable use_real_throughput
+        Metrics.use_real_throughput = False
+        node_stats_map = {
+            "udp_pinger_loss_ratio": 1.0,
+            "udp_pinger_rtt_avg": 0.0,
+            "min_route_mcs": 12.0,
+        }
+        bit_map, node_health = get_node_stats_health(node_stats_map, 30)
+        self.assertEqual(bit_map, "0000000")
+        self.assertDictEqual(
+            node_health,
+            {
+                "overall_health": 1,
+                "stats": {
+                    "min_route_mcs": {
+                        "description": Descriptions.min_route_mcs,
+                        "health": "EXCELLENT",
+                        "value": 12.0,
                     },
                     "pinger_no_loss_perecnt": {
                         "description": Descriptions.pinger_no_loss_perecnt,

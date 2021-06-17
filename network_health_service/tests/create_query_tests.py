@@ -13,7 +13,9 @@ class CreateQueryTests(unittest.TestCase):
         self.maxDiff = None
         with open("tests/metrics.json") as f:
             metrics = json.load(f)
-            Metrics.update_metrics(metrics, prometheus_hold_time=30)
+            Metrics.update_metrics(
+                metrics, prometheus_hold_time=30, use_real_throughput=True
+            )
 
     def test_get_link_queries(self) -> None:
         expected_link_queries = {
@@ -89,6 +91,10 @@ class CreateQueryTests(unittest.TestCase):
             "udp_pinger_rtt_avg": (
                 "quantile_over_time(0.75, "
                 'udp_pinger_rtt_avg{network="network_A",intervalSec="30"} [3600s])'
+            ),
+            "min_route_mcs": (
+                "quantile_over_time(0.25, "
+                'drs_min_route_mcs{network="network_A"} [3599s:60s])'
             ),
         }
         node_queries = get_node_queries("network_A", 3600)

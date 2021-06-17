@@ -76,7 +76,9 @@ async def async_main(config: Dict[str, Any]) -> None:
     logging.info("#### Starting the 'network_health_service' ####")
     logging.debug(f"service config: {config}")
 
-    Metrics.update_metrics(config["metrics"], config["prometheus_hold_time"])
+    Metrics.update_metrics(
+        config["metrics"], config["prometheus_hold_time"], config["use_real_throughput"]
+    )
 
     q: asyncio.Queue = asyncio.Queue()
 

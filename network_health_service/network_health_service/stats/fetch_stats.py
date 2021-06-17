@@ -5,8 +5,8 @@ import asyncio
 import json
 import logging
 import math
-from os import environ
 from datetime import datetime
+from os import environ
 from typing import Any, Dict
 
 import aiohttp
@@ -193,6 +193,11 @@ def get_node_queries(network_name: str, interval_s: int) -> Dict[str, str]:
         base_query, f"{interval_s}s", 0.75
     )
 
+    # Create query for min_route_mcs
+    base_query = PrometheusClient.format_query("drs_min_route_mcs", labels)
+    queries["min_route_mcs"] = ops.quantile_over_time(
+        base_query, f"{interval_s - 1}s:{Metrics.min_route_mcs.period_s}s", 0.25
+    )
     return queries
 
 
