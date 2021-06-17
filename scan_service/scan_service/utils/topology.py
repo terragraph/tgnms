@@ -17,6 +17,7 @@ class Topology:
     link_name_to_mac: DefaultDict = defaultdict(dict)
     mac_to_link_name: DefaultDict = defaultdict(dict)
     wlan_mac_to_site_name: DefaultDict = defaultdict(dict)
+    site_name_to_wlan_macs: DefaultDict = defaultdict(dict)
     node_channel: DefaultDict = defaultdict(dict)
     node_polarity: DefaultDict = defaultdict(dict)
 
@@ -52,6 +53,9 @@ class Topology:
         for node in cls.topology[network_name]["nodes"]:
             for wlan_mac in node["wlan_mac_addrs"]:
                 cls.wlan_mac_to_site_name[network_name][wlan_mac] = node["site_name"]
+            cls.site_name_to_wlan_macs[network_name][node["site_name"]] = node[
+                "wlan_mac_addrs"
+            ]
 
     @classmethod
     def get_link_maps(cls, network_name: str) -> None:

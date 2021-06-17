@@ -538,6 +538,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             type: integer
           options:
             type: object
+          tx_wlan_mac:
+            type: string
         required:
         - network_name
         - mode
@@ -570,8 +572,9 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     type = ScanType(type)
 
     options = body.get("options", {})
+    tx_wlan_mac = body.get("tx_wlan_mac")
 
-    test = ScanTest(network_name, type, mode, options)
+    test = ScanTest(network_name, type, mode, options, tx_wlan_mac)
     execution_id = await Scheduler.start_execution(test)
     if execution_id is None:
         raise web.HTTPInternalServerError(

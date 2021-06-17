@@ -4,6 +4,7 @@
 import logging
 import time
 from datetime import datetime
+from math import cos, fabs, pi, sqrt
 from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy import insert, update
@@ -22,15 +23,25 @@ from .models import (
 from .utils.time import bwgd_to_epoch
 from .utils.topology import Topology
 
+# Max distnace (in meters) for two nodes to be considered 'close' to
+# each other to run scan
+SCAN_MAX_DISTANCE = 350
+
 
 class ScanTest:
     def __init__(
-        self, network_name: str, type: ScanType, mode: ScanMode, options: Dict[str, Any]
+        self,
+        network_name: str,
+        type: ScanType,
+        mode: ScanMode,
+        options: Dict[str, Any],
+        tx_wlan_mac: Optional[str] = None,
     ) -> None:
         self.network_name = network_name
         self.type = type
         self.mode = mode
         self.options = options
+        self.tx_wlan_mac = tx_wlan_mac
         self.start_delay_s: Optional[float] = None
         self.end_delay_s: Optional[float] = None
         self.start_token: Optional[int] = None
@@ -61,21 +72,29 @@ class ScanTest:
                 # Fetch latest topology for analysis
                 await Topology.update_topologies(self.network_name)
 
+                params = {
+                    "scanType": self.type.value,
+                    "scanMode": self.mode.value,
+                    "startTime": int(time.time()) + scan_start_delay_s,
+                    **self.options,
+                }
+                if self.tx_wlan_mac is not None:
+                    params["txNode"] = self.tx_wlan_mac
+                    params["rxNodes"] = self.get_rx_wlan_macs(self.tx_wlan_mac)
+
                 start_scan_resp = await APIServiceClient(timeout=5).request(
-                    self.network_name,
-                    "startScan",
-                    params={
-                        "scanType": self.type.value,
-                        "scanMode": self.mode.value,
-                        "startTime": int(time.time()) + scan_start_delay_s,
-                        **self.options,
-                    },
+                    self.network_name, "startScan", params
                 )
                 if not start_scan_resp["success"]:
                     raise ClientRuntimeError(msg=start_scan_resp["message"])
 
                 self.start_token = start_scan_resp.get("token")
-                self.end_token = start_scan_resp.get("lastToken")
+                # Single node IM scan will have only one token
+                self.end_token = (
+                    start_scan_resp.get("lastToken")
+                    if self.tx_wlan_mac is None
+                    else self.start_token
+                )
                 if self.start_token is None or self.end_token is None:
                     raise ClientRuntimeError(
                         msg=(
@@ -128,6 +147,53 @@ class ScanTest:
             await sa_conn.execute(query)
             await sa_conn.connection.commit()
             self.token_count = len(self.token_range)
+
+    def get_rx_wlan_macs(self, tx_wlan_mac: str) -> List:
+        """Find all rx node wlan macs in close proximity of the tx_node."""
+        tx_node_location = None
+        for site in Topology.topology[self.network_name]["sites"]:
+            if (
+                Topology.wlan_mac_to_site_name[self.network_name].get(tx_wlan_mac)
+                == site["name"]
+            ):
+                tx_node_location = site["location"]
+                break
+        if tx_node_location is None:
+            return []
+
+        rx_wlan_macs: List = []
+        for site in Topology.topology[self.network_name]["sites"]:
+            if (
+                self.get_approximate_distance(tx_node_location, site["location"])
+                < SCAN_MAX_DISTANCE
+            ):
+                rx_wlan_macs += Topology.site_name_to_wlan_macs[self.network_name].get(
+                    site["name"], []
+                )
+        return rx_wlan_macs
+
+    def get_approximate_distance(self, l1, l2) -> float:
+        """Find approximate distance between two sites."""
+        # Circumference 40,075.017 km (24,901.461 mi) (equatorial)
+        deg = 360
+        length_per_degree = 40075017 / deg
+        avg_latitude_radian = ((l1["latitude"] + l2["latitude"]) / 2) * (2 * pi / deg)
+
+        # Calculate the distance across latitude change
+        d_lat = fabs(l1["latitude"] - l2["latitude"]) * length_per_degree
+
+        # Calculate the distance across longitude change
+        # Take care of links across 180 meridian and effect of different latitudes
+        d_long = fabs(l1["longitude"] - l2["longitude"])
+        if d_long > (deg / 2):
+            d_long = deg - d_long
+        d_long *= length_per_degree * cos(avg_latitude_radian)
+
+        # Calculate the distance across altitude change
+        d_alt = fabs(l1["altitude"] - l2["altitude"])
+
+        # Assume orthogonality over small distance
+        return sqrt((d_lat * d_lat) + (d_long * d_long) + (d_alt * d_alt))
 
 
 def parse_scan_results(scan_result: Dict) -> Dict:

@@ -18,6 +18,7 @@ class TopologyTests(asynctest.TestCase):
         Topology.link_name_to_mac = defaultdict(dict)
         Topology.mac_to_link_name = defaultdict(dict)
         Topology.wlan_mac_to_site_name = defaultdict(dict)
+        Topology.site_name_to_wlan_macs = defaultdict(dict)
         Topology.node_channel = defaultdict(dict)
         Topology.node_polarity = defaultdict(dict)
 
@@ -79,7 +80,7 @@ class TopologyTests(asynctest.TestCase):
         }
         network_C = {
             "name": "network_C",
-            "nodes": [{"wlan_mac_addrs": []}],
+            "nodes": [{"site_name": "dummy_site", "wlan_mac_addrs": []}],
             "links": [
                 {
                     "name": "link-TEST.18-36.p2-TEST.18-37.S1",
