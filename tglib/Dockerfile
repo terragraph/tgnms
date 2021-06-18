@@ -1,12 +1,9 @@
 # Pull base image
-FROM alpine:3.12 AS thrift
+FROM alpine:3.14 AS thrift
 
 ARG FB_VERSION=v2020.05.04.00
 ARG FMT_VERSION=6.1.2
 ARG ZSTD_VERSION=v1.4.4
-
-# Add testing repo for double-conversion-dev and glog-dev packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
 # Install dependencies, build thrift, and remove build dependencies
 RUN apk update && apk add --no-cache --virtual build-deps \
@@ -83,7 +80,7 @@ RUN apk update && apk add --no-cache --virtual build-deps \
     apk del build-deps
 
 # Pull base image
-FROM alpine:3.12 AS builder
+FROM alpine:3.14 AS builder
 
 COPY --from=thrift /opt/fbthrift/thrift/lib/py /usr/local/thrift
 COPY --from=thrift /usr/local/bin/thrift1 /usr/local/bin/thrift
@@ -101,10 +98,11 @@ COPY if/*.thrift ./if/
 
 # Compile thrift files
 RUN apk add --no-cache boost-filesystem libstdc++ && \
-    python setup.py build_thrift --out-path=/usr/lib/python3.8/site-packages
+    python setup.py build_thrift --out-path=/usr/lib/python3.9/site-packages
 
 # Install tglib
 RUN apk add --no-cache --virtual build-deps \
+        g++ \
         gcc \
         libffi-dev \
         make \
@@ -115,7 +113,7 @@ RUN apk add --no-cache --virtual build-deps \
     apk del build-deps
 
 # Pull base image
-FROM alpine:3.12
+FROM alpine:3.14
 
 # Install python3
 RUN apk update && apk add --no-cache python3 && \
@@ -123,4 +121,4 @@ RUN apk update && apk add --no-cache python3 && \
 
 # Copy python dependencies
 COPY --from=builder /usr/bin/pip /usr/bin/pip
-COPY --from=builder /usr/lib/python3.8/site-packages /usr/lib/python3.8/site-packages
+COPY --from=builder /usr/lib/python3.9/site-packages /usr/lib/python3.9/site-packages
