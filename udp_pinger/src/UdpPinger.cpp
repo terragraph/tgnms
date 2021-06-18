@@ -858,9 +858,12 @@ UdpTestResults UdpPinger::run(
 
   std::unordered_map<std::string, thrift::Target> hostToTargetMap;
   for (const auto& testPlan : testPlans) {
-    hostProbeCount.emplace(testPlan.target.name, testPlan.numPackets);
+    // Save host results using custom ID because node names are not necessarily
+    // globally unique
+    const auto id = testPlan.target.name + "\0" + testPlan.target.network;
+    hostProbeCount.emplace(id, testPlan.numPackets);
     networkProbeCount[testPlan.target.network] += testPlan.numPackets;
-    hostToTargetMap.emplace(testPlan.target.name, testPlan.target);
+    hostToTargetMap.emplace(id, testPlan.target);
   }
 
   // Submit test plans to senders
@@ -917,8 +920,11 @@ UdpTestResults UdpPinger::run(
   }
 
   for (auto& result : results.hostResults) {
-    result->metrics.num_xmit = hostProbeCount.at(result->metadata.dst.name);
-    hostProbeCount.erase(result->metadata.dst.name);
+    // Retrieve host results using custom ID because node names are not necessarily
+    // globally unique
+    const auto id = result->metadata.dst.name + "\0" + result->metadata.dst.network;
+    result->metrics.num_xmit = hostProbeCount.at(id);
+    hostProbeCount.erase(id);
 
     result->metrics.loss_ratio =
         1 - (double)result->metrics.num_recv / result->metrics.num_xmit;
