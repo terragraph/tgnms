@@ -20,7 +20,7 @@ COPY query_service $WORKDIR/query_service/
 COPY udp_pinger $WORKDIR/udp_pinger/
 
 # some packages aren't in mainline
-RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing glog-dev
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/community glog-dev
 RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev autoconf automake libtool libevent-dev gmock gtest-dev binutils-gold bison flex gperf lz4-dev xz-dev mariadb-connector-c-dev snappy-dev git double-conversion-dev python2
 
 WORKDIR /tmp
@@ -133,7 +133,7 @@ COPY udp_pinger $WORKDIR/udp_pinger/
 # some packages aren't in mainline
 RUN apk update
 # install most of the same packages from builder
-RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing glog-dev
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/community glog-dev
 RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community bash g++ make libstdc++ bsd-compat-headers cmake boost-dev curl-dev libtool libevent-dev gmock gtest-dev vim curl mariadb-connector-c-dev snappy-dev git lz4-dev xz-dev double-conversion-dev
 
 # copy thrift binary
@@ -166,7 +166,7 @@ COPY --from=builder /usr/local/nms/build/bin/prometheus_metrics_test bin/
 FROM alpine:3.12
 
 # some packages aren't in mainline
-RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing glog
+RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/community glog
 RUN apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/community --no-cache boost-context gflags libcrypto1.1 libcurl libevent libgcc libssl1.1 libstdc++ lz4-libs mariadb-connector-c musl nghttp2-libs snappy xz-libs zlib mysql-client double-conversion
 
 # copy the libraries we just built
