@@ -7,7 +7,8 @@ from setuptools import setup
 
 
 assert version_info >= (3, 6, 0), "docker-v6up.py requires >= Python 3.6"
-INSTALL_REQUIRES = ["click", "docker", "nsenter"]
+# Pin docker to 4.4.4 b/c of https://github.com/docker/docker-py/issues/2807
+INSTALL_REQUIRES = ["click", "docker==4.4.4", "nsenter"]
 
 
 setup(
