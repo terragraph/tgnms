@@ -11,6 +11,7 @@ import ConfigTaskInput from './ConfigTaskInput';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import {DATA_TYPE_TO_INPUT_TYPE} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {getTopLayerValue} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
@@ -93,7 +94,15 @@ export default function ConfigTaskMapInput(props: Props) {
       if (config === STRING_MAP_VAL) {
         tempConfig[key] = String(change);
       } else if (config != null && typeof tempConfig[key] === 'object') {
-        tempConfig[key][config] = change;
+        const configType = properties[config].type;
+        let formattedChange = change;
+        if (
+          DATA_TYPE_TO_INPUT_TYPE[configType] ===
+          DATA_TYPE_TO_INPUT_TYPE.INTEGER
+        ) {
+          formattedChange = Number(change);
+        }
+        tempConfig[key][config] = formattedChange;
       } else if (typeof change !== 'boolean') {
         tempConfig[change] = tempConfig[key];
         delete tempConfig[key];
@@ -104,7 +113,7 @@ export default function ConfigTaskMapInput(props: Props) {
       }
       onUpdateRef.current({configField, draftValue: tempConfig});
     },
-    [configValue, configField, onChange],
+    [configValue, configField, onChange, properties],
   );
 
   const handleAddMapKey = React.useCallback(() => {
