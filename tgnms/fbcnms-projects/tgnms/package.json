@@ -57,6 +57,7 @@
     "eventsource": "^1.0.7",
     "express-session": "^1.15.6",
     "express-ws": "^2.0.0",
+    "file-saver": "^2.0.2",
     "ip-address": "^6.2.0",
     "is-ip": "^2.0.0",
     "kafka-node": "^4.1.3",

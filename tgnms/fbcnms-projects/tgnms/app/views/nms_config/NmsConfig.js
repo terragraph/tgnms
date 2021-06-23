@@ -4,6 +4,7 @@
  * @format
  */
 
+import * as FileSaver from 'file-saver';
 import Button from '@material-ui/core/Button';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import EditIcon from '@material-ui/icons/Edit';
@@ -20,6 +21,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MobileFriendlyIcon from '@material-ui/icons/MobileFriendly';
 import ModalNmsConfigForm from './ModalNmsConfigForm';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import NetworkExport from './NetworkImportExport/NetworkExport';
 import Paper from '@material-ui/core/Paper';
 import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
 import React from 'react';
@@ -32,6 +34,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
+
 import {makeStyles} from '@material-ui/styles';
 import {requestWithConfirmation} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
@@ -143,19 +146,13 @@ export default function NmsConfig() {
     axios
       .get(`/export/${networkName}/sites`)
       .then(response => {
-        const downloadLink = document.createElement('a');
-        const data =
-          'data:text/plain;charset=utf-8,' + encodeURIComponent(response.data);
-        downloadLink.href = data;
-        downloadLink.download = `${networkName}_sites.kml`;
-        downloadLink.target = '_blank';
         try {
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
+          const blob = new Blob([response.data], {
+            type: 'text/plain;charset=utf-8',
+          });
+          FileSaver.saveAs(blob, `${networkName}_sites.kml`);
         } catch (error) {
           return Promise.reject(error);
-        } finally {
-          document.body.removeChild(downloadLink);
         }
       })
       .catch(err => {
@@ -377,6 +374,12 @@ export default function NmsConfig() {
           </ListItemIcon>
           <ListItemText primary="Edit Network" />
         </MenuItem>
+        <NetworkExport
+          networkConfig={networkList[menuNetworkName]}
+          onComplete={() => {
+            handleMenuClose();
+          }}
+        />
         <MenuItem
           onClick={() => {
             handleKMLSiteExport(networkList[menuNetworkName]);
