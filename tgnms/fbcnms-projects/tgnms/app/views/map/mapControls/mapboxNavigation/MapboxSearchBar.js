@@ -21,15 +21,16 @@ import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
 import type {Feature, Result} from './MapboxSearchTypes';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   resultsPaper: {
     position: 'absolute',
-    zIndex: 10,
-    marginTop: 4,
+    zIndex: theme.zIndex.drawer,
+    margin: `${theme.spacing(6.75)}px 0 0 ${theme.spacing()}px`,
+    width: theme.spacing(28.75),
   },
   resultsList: {
     overflow: 'auto',
-    maxHeight: 300,
+    maxHeight: theme.spacing(37.5),
   },
 }));
 
@@ -169,27 +170,28 @@ export default function MapboxSearchBar(props: Props) {
   };
 
   return (
-    <MapboxControl
-      mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
-      data-testid="tg-nav-container">
-      <div data-testid="mapbox-search-bar">
-        <SearchBar
-          value={value}
-          onChange={handleInput}
-          onClearInput={handleClearInput}
-          onSearch={getResults}
-          isLoading={isLoading}
-          debounceMs={searchDebounceMs}
-        />
-
-        {results.length > 0 || value === '' ? (
-          <Paper className={classes.resultsPaper} elevation={2}>
-            <List className={classes.resultsList} component="nav">
-              {results.map(result => renderResult(result))}
-            </List>
-          </Paper>
-        ) : null}
-      </div>
-    </MapboxControl>
+    <>
+      <MapboxControl
+        mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
+        data-testid="tg-nav-container">
+        <div data-testid="mapbox-search-bar">
+          <SearchBar
+            value={value}
+            onChange={handleInput}
+            onClearInput={handleClearInput}
+            onSearch={getResults}
+            isLoading={isLoading}
+            debounceMs={searchDebounceMs}
+          />
+        </div>
+      </MapboxControl>
+      {results.length > 0 ? (
+        <Paper className={classes.resultsPaper} elevation={2}>
+          <List className={classes.resultsList} component="nav">
+            {results.map(result => renderResult(result))}
+          </List>
+        </Paper>
+      ) : null}
+    </>
   );
 }
