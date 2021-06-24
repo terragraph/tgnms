@@ -721,6 +721,7 @@ class LinksLayer extends React.Component<Props> {
       <>
         {lineCasingFeatures ? (
           <Layer
+            before="site-layer"
             type="line"
             key={'link-casing-layer'}
             id={'link-casing-layer'}
@@ -732,6 +733,7 @@ class LinksLayer extends React.Component<Props> {
         {objectEntriesTypesafe<string, TopologyLayer>(topologyLines).map(
           ([id, {paint, features}]) => [
             <Layer
+              before="site-layer"
               type="line"
               key={id}
               id={id}
@@ -740,6 +742,7 @@ class LinksLayer extends React.Component<Props> {
               {features}
             </Layer>,
             <Layer
+              before="site-layer"
               type="symbol"
               key={id + '-text'}
               id={id + '-text'}
@@ -752,6 +755,7 @@ class LinksLayer extends React.Component<Props> {
 
         {searchNearbyCoverageFeatures ? (
           <Layer
+            before="site-layer"
             type="fill"
             key={'nearby-fill-layer'}
             id={'nearby-fill-layer'}
@@ -762,6 +766,7 @@ class LinksLayer extends React.Component<Props> {
 
         {searchNearbyLineFeatures ? (
           <Layer
+            before="site-layer"
             type="line"
             key={'nearby-link-layer'}
             id={'nearby-link-layer'}
