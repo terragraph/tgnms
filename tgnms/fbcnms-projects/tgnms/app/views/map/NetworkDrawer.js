@@ -25,7 +25,7 @@ import SearchNearby from '@fbcnms/tg-nms/app/views/map/SearchNearby';
 import Slide from '@material-ui/core/Slide';
 import TopologyBuilderPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderPanel';
 import UpgradeProgressPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UpgradeProgressPanel';
-import UploadTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/UploadTopologyPanel';
+import UploadTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UploadTopologyPanel';
 import useTopologyBuilderForm from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import {
   FORM_TYPE,

@@ -14,7 +14,7 @@ import React from 'react';
 import ScanPanelTitle from './ScanPanelTitle';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import UploadTopologyConfirmationModal from '../topologyCreationPanels/UploadTopologyConfirmationModal';
+import UploadTopologyConfirmationModal from '@fbcnms/tg-nms/app/views/map/mappanels/UploadTopologyConfirmationModal';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {
   NodeTypeValueMap,
