@@ -13,6 +13,7 @@ import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import PopKvstoreParams from './configTasks/PopKvstoreParams';
 import PopRouting from './configTasks/PopRouting';
+import QoSTrafficConfig from './configTasks/QoSTrafficConfig';
 import RadioParams from './configTasks/RadioParams';
 import React from 'react';
 import SysParams from './configTasks/SysParams';
@@ -62,6 +63,7 @@ export default function TaskBasedConfigModal(props: Props) {
       : []),
     {title: 'System Parameters', content: <SysParams />},
     {title: 'Radio Parameters', content: <RadioParams />},
+    {title: 'QoS Traffic Config', content: <QoSTrafficConfig />},
   ];
   const {formState, handleInputChange} = useForm({
     initialState: {currentConfig: configGroup[0]},

@@ -397,6 +397,11 @@ export default function NmsSettings() {
                         label="Troubleshooting Solution Automation"
                         setting="SOLUTION_AUTOMATION_ENABLED"
                       />
+                      <SettingInput
+                        isFeatureToggle
+                        label="QoS Traffic Config"
+                        setting="QOS_CONFIG"
+                      />
                     </SettingsGroup>
                   </SettingsForm>
                 )}

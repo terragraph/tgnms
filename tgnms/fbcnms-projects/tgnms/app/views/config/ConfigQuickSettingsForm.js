@@ -15,6 +15,7 @@ import NetworkRouting from '@fbcnms/tg-nms/app/components/taskBasedConfig/config
 import NetworkSnmp from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/NetworkSnmp';
 import PopKvstoreParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/PopKvstoreParams';
 import PopRouting from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/PopRouting';
+import QoSTrafficConfig from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/QoSTrafficConfig';
 import RadioParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/RadioParams';
 import StatsAgentParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/StatsAgentParams';
 import SysParams from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/SysParams';
@@ -73,22 +74,28 @@ export default function ConfigQuickSettingsForm() {
               <NetworkSnmp />
               <KafkaParams />
               <StatsAgentParams />
-              <RadioParams />
             </>
           )}
           {formMode === 'POP' && (
             <>
               <PopRouting />
               <PopKvstoreParams />
+              <SysParams />
             </>
           )}
-          {formMode === 'CN' && <CnConfig />}
+          {formMode === 'CN' && (
+            <>
+              <CnConfig />
+              <SysParams />
+            </>
+          )}
           {formMode === 'NODE' && (
             <>
               <SysParams />
-              <RadioParams />
             </>
           )}
+          <QoSTrafficConfig />
+          <RadioParams />
         </Grid>
       </Grid>
     </div>
