@@ -408,9 +408,6 @@ export const HISTORICAL_LINK_METRIC_OVERLAYS: Overlays = {
 };
 
 export const LINK_METRIC_OVERLAYS: Overlays = {
-  //{name: 'Performance Health', id: 'perf_health'},
-  //{name: 'Availability', id: 'availability'},
-  //{name: 'Uptime', id: 'uptime'},
   [OVERLAY_NONE.id]: OVERLAY_NONE,
   ignition_status: {
     name: 'Ignition status',
