@@ -22,7 +22,7 @@ import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js
 import {
   TOPOLOGY_PANEL_OPTIONS,
   useTopologyBuilderContext,
-} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
+} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useCallback, useState} from 'react';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';

@@ -12,7 +12,7 @@ import {
   TestApp,
   mockMapboxRef,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {TopologyBuilderContextProvider} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
+import {TopologyBuilderContextProvider} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {act, fireEvent, render} from '@testing-library/react';
 import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 

@@ -16,7 +16,7 @@ import {
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
-import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
+import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 

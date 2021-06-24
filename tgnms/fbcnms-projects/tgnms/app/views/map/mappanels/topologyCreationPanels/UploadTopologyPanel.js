@@ -40,7 +40,7 @@ import {
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
-import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
+import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 
 import type {
   ANPUploadKmlType,

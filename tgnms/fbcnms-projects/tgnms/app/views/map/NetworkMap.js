@@ -27,7 +27,7 @@ import {NetworkDrawerConstants} from './NetworkDrawer';
 import {PlannedSiteContextProvider} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {Route} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
-import {TopologyBuilderContextProvider} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
+import {TopologyBuilderContextProvider} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {getMapStyles, getUIEnvVal} from '../../common/uiConfig';
 import {getScanId} from '@fbcnms/tg-nms/app/features/scans/ScanServiceHelpers';
 import {getTestOverlayId} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';

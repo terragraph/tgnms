@@ -17,7 +17,7 @@ import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstan
 import {
   TOPOLOGY_PANEL_OPTIONS,
   useTopologyBuilderContext,
-} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
+} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 
