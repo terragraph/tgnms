@@ -11,18 +11,18 @@ import AddNodePanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreatio
 import AddSitePanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/AddSitePanel';
 import Slide from '@material-ui/core/Slide';
 import {
-  FormType,
+  FORM_TYPE,
   SlideProps,
 } from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {
   TOPOLOGY_PANEL_OPTIONS,
   useTopologyBuilderContext,
 } from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderContext';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useCallback, useState} from 'react';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
@@ -78,7 +78,7 @@ export default function TopologyBuilderPanel(props: Props) {
       // Add a planned site to the map
 
       // If there's already a planned site...
-      if (plannedSite && formType === FormType.EDIT && siteName) {
+      if (plannedSite && formType === FORM_TYPE.EDIT && siteName) {
         // Stop editing the previous site
         unhideSite(siteName);
         setSiteName(null);
@@ -124,7 +124,7 @@ export default function TopologyBuilderPanel(props: Props) {
     if (selectedTopologyPanel != null) {
       collapseAll();
       updateForm({
-        formType: FormType.CREATE,
+        formType: FORM_TYPE.CREATE,
         params: {},
       });
       setPanelState(selectedTopologyPanel, PANEL_STATE.OPEN);
@@ -172,12 +172,12 @@ export default function TopologyBuilderPanel(props: Props) {
       // If editing a node and nothing else is selected,
       // re-select the node onClose
       if (
-        formType === FormType.EDIT &&
+        formType === FORM_TYPE.EDIT &&
         !selectedElement &&
         params &&
         typeof params.name === 'string' //coerce to EditNodeParams
       ) {
-        setSelected(TopologyElementType.NODE, params.name);
+        setSelected(TOPOLOGY_ELEMENT.NODE, params.name);
       }
       hidePanel(PANELS.TOPOLOGY_NODE);
       if (changeMessage) {
@@ -202,12 +202,12 @@ export default function TopologyBuilderPanel(props: Props) {
       // If editing a site and nothing else is selected,
       // re-select the site onClose
       if (
-        formType === FormType.EDIT &&
+        formType === FORM_TYPE.EDIT &&
         !selectedElement &&
         params &&
         typeof params.name === 'string' //coerce to EditSiteParams
       ) {
-        setSelected(TopologyElementType.SITE, params?.name ?? '');
+        setSelected(TOPOLOGY_ELEMENT.SITE, params?.name ?? '');
       }
 
       if (changeMessage) {

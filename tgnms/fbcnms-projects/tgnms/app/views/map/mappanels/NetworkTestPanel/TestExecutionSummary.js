@@ -20,7 +20,7 @@ import {
   NETWORK_TEST_DEFS,
 } from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {getExecutionStatus} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useLoadTestExecutionResults} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHooks';
@@ -57,8 +57,8 @@ export default function TestExecutionSummary({
 
   const assetType =
     results && linkMap[results[0].asset_name]
-      ? TopologyElementType.LINK
-      : TopologyElementType.NODE;
+      ? TOPOLOGY_ELEMENT.LINK
+      : TOPOLOGY_ELEMENT.NODE;
 
   const mapTestResults = useMemo(() => {
     if (!results) {

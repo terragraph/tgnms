@@ -9,7 +9,7 @@ import * as turf from '@turf/turf';
 import React from 'react';
 import {Layer, Source} from 'react-mapbox-gl';
 import {NodeOverlayColors} from '@fbcnms/tg-nms/app/constants/LayerConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {azimuthToBearing} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {
   getEstimatedNodeBearing,
@@ -121,7 +121,7 @@ export default function NodeOverlay({
           }
           const {name} = feature.properties;
           if (name) {
-            setSelected(TopologyElementType.NODE, name);
+            setSelected(TOPOLOGY_ELEMENT.NODE, name);
           }
         }}
       />
@@ -187,7 +187,7 @@ function useMapboxSelectionState(geoJson) {
     if (!geoJson) {
       return;
     }
-    if (selectedElement?.type !== TopologyElementType.NODE) {
+    if (selectedElement?.type !== TOPOLOGY_ELEMENT.NODE) {
       return selectFeature(null);
     }
     const feature = (geoJson.features ?? []).find(

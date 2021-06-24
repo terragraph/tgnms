@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import {FormType} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 
 import type {
   EditLinkParams,
@@ -21,7 +21,7 @@ export type EditTopologyElementParams =
 
 export type PanelForm<T> = {|
   params: ?T,
-  formType: $Values<typeof FormType>,
+  formType: $Values<typeof FORM_TYPE>,
 |};
 
 export type TopologyBuilderState<T> = {
@@ -34,7 +34,7 @@ export default function useTopologyBuilderForm<T>(): TopologyBuilderState<T> {
     $Shape<PanelForm<T>>,
   >({
     params: null,
-    formType: FormType.CREATE,
+    formType: FORM_TYPE.CREATE,
   });
   const updateform = React.useCallback(
     (update: $Shape<PanelForm<T>>) => {

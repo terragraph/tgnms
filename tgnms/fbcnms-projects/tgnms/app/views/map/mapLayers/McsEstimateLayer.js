@@ -15,7 +15,7 @@ import {
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {Layer, Source} from 'react-mapbox-gl';
 import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {getEstimatedNodeBearing} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
@@ -63,7 +63,7 @@ export default function McsEstimateLayer() {
     const {nodeMap, siteMap, siteToNodesMap} = topologyMapsRef.current;
     const nodes: Array<NodeType> = [];
     if (selectedElement != null) {
-      if (selectedElement.type === TopologyElementType.SITE) {
+      if (selectedElement.type === TOPOLOGY_ELEMENT.SITE) {
         const nodeNames = siteToNodesMap[selectedElement?.name];
         for (const n of nodeNames) {
           const node = nodeMap[n];
@@ -75,7 +75,7 @@ export default function McsEstimateLayer() {
             nodes.push(node);
           }
         }
-      } else if (selectedElement.type === TopologyElementType.NODE) {
+      } else if (selectedElement.type === TOPOLOGY_ELEMENT.NODE) {
         const node = nodeMap[selectedElement?.name];
         if (node != null) {
           nodes.push(node);
@@ -170,7 +170,7 @@ export default function McsEstimateLayer() {
         for (const linkId of linkSet.values()) {
           const link = linkMap[linkId];
           if (link && link.link_type === LinkType.WIRELESS) {
-            setSelected(TopologyElementType.NODE, nodeName);
+            setSelected(TOPOLOGY_ELEMENT.NODE, nodeName);
           }
         }
       }

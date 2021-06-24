@@ -5,7 +5,7 @@
  * @flow strict-local
  */
 
-export const TopologyElementType = {
+export const TOPOLOGY_ELEMENT = {
   NODE: 'node',
   LINK: 'link',
   SITE: 'site',

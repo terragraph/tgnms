@@ -33,7 +33,7 @@ import {
   NETWORK_TABLES_BASE_PATH,
 } from '@fbcnms/tg-nms/app/constants/paths';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useExport} from '@fbcnms/tg-nms/app/apiutils/ExportAPIUtil';
@@ -148,14 +148,14 @@ export default function NetworkTables(props: Props) {
         return;
       }
       if (
-        selectedElement?.type === TopologyElementType.NODE ||
-        selectedElement?.type === TopologyElementType.SITE
+        selectedElement?.type === TOPOLOGY_ELEMENT.NODE ||
+        selectedElement?.type === TOPOLOGY_ELEMENT.SITE
       ) {
         const newPath = makeTablePath(TABLE_TYPE.nodes);
         if (newPath !== pathname) {
           history.replace(newPath);
         }
-      } else if (selectedElement?.type === TopologyElementType.LINK) {
+      } else if (selectedElement?.type === TOPOLOGY_ELEMENT.LINK) {
         const newPath = makeTablePath(TABLE_TYPE.links);
         if (newPath !== pathname) {
           history.replace(newPath);

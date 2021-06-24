@@ -15,7 +15,7 @@ import {
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
@@ -67,13 +67,13 @@ function CustomOverlayMetadata({metadata}: {metadata: Object}) {
 
   return (
     <Grid container direction="column" spacing={2} wrap="nowrap">
-      {type === TopologyElementType.LINK && (
+      {type === TOPOLOGY_ELEMENT.LINK && (
         <LinkOverlayMetadata linkName={name} metadata={metadata} />
       )}
-      {type === TopologyElementType.SITE && (
+      {type === TOPOLOGY_ELEMENT.SITE && (
         <AssetOverlayMetadata name={name} metadata={metadata} />
       )}
-      {type === TopologyElementType.NODE && (
+      {type === TOPOLOGY_ELEMENT.NODE && (
         <AssetOverlayMetadata name={name} metadata={metadata} />
       )}
     </Grid>
@@ -183,19 +183,19 @@ function getElementMetadata(
     return null;
   }
   const elementType = selectedElement?.type;
-  if (elementType === TopologyElementType.LINK) {
+  if (elementType === TOPOLOGY_ELEMENT.LINK) {
     const linkMap = overlayMetadata?.link_lines;
     if (!linkMap) {
       return null;
     }
     return linkMap[selectedElement.name];
-  } else if (elementType === TopologyElementType.SITE) {
+  } else if (elementType === TOPOLOGY_ELEMENT.SITE) {
     const siteMap = overlayMetadata?.site_icons;
     if (!siteMap) {
       return null;
     }
     return siteMap[selectedElement.name];
-  } else if (elementType === TopologyElementType.NODE) {
+  } else if (elementType === TOPOLOGY_ELEMENT.NODE) {
     const nodeMap = overlayMetadata?.nodes;
     if (!nodeMap) {
       return null;

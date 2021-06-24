@@ -16,7 +16,7 @@ import {
   TestApp,
   mockTopology,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
@@ -99,7 +99,7 @@ test('renders with wrong linkname for linkmap', () => {
           selectedElement: {
             expanded: false,
             name: 'NotRealTestName',
-            type: TopologyElementType.LINK,
+            type: TOPOLOGY_ELEMENT.LINK,
           },
         })}
       />

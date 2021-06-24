@@ -5,7 +5,7 @@
  * @flow
  */
 import * as React from 'react';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 
 import type {
   Element,
@@ -83,7 +83,7 @@ export type NetworkMapOptions = $Shape<{
   historicalDate: Date,
   selectedTime: Date,
   historicalData: ?{},
-  testExecutionData: ?{results: {}, type: $Values<typeof TopologyElementType>},
+  testExecutionData: ?{results: {}, type: $Values<typeof TOPOLOGY_ELEMENT>},
   scanLinkData: ?{},
   temporaryTopology?: ?TemporaryTopologyType,
   temporarySelectedAsset?: ?Element,

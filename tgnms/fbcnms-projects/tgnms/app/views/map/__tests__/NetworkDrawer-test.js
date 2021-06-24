@@ -16,7 +16,7 @@ import {
   mockNetworkConfig,
   mockSingleLink,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {render} from '@testing-library/react';
 
@@ -79,7 +79,7 @@ test('all panels close if an element is selected', async () => {
   const topologyMaps = buildTopologyMaps(topology);
   const selectedElement = {
     name: 'site1',
-    type: TopologyElementType.SITE,
+    type: TOPOLOGY_ELEMENT.SITE,
     expanded: true,
   };
   const {getByTestId, rerender} = render(

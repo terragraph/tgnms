@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import TopologyBuilderPanel from '../TopologyBuilderPanel';
-import {FormType} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   NetworkContextWrapper,
   TestApp,
@@ -105,7 +105,7 @@ function TopologyBuilderWrapper({children}: {children: React.Node}) {
 function mockPanelForm(): TopologyBuilderState<any> {
   return {
     params: {},
-    formType: FormType.CREATE,
+    formType: FORM_TYPE.CREATE,
     updateForm: jest.fn(),
   };
 }

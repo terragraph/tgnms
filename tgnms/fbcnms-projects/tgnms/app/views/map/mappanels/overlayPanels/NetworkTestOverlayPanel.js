@@ -22,7 +22,7 @@ import {
   TestOverlayColors,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {HEALTH_CODES} from '@fbcnms/tg-nms/app/constants/HealthConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {numToMegabits} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
@@ -41,7 +41,7 @@ export default function NetworkTestOverlayPanel() {
   const {nodeMap, siteMap} = React.useContext(NetworkContext);
   const {networkMapOptions} = React.useContext(NmsOptionsContext);
   const isLink =
-    networkMapOptions.testExecutionData?.type === TopologyElementType.LINK;
+    networkMapOptions.testExecutionData?.type === TOPOLOGY_ELEMENT.LINK;
   /**
    * when component first mounts, change the available overlays and select
    * the default overlays

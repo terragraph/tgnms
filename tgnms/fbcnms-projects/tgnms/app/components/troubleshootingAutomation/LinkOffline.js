@@ -9,7 +9,7 @@ import * as React from 'react';
 import Grid from '@material-ui/core/Grid';
 import TroubleshootWarning from './TroubleshootWarning';
 import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export default function LinkOffline() {
@@ -18,7 +18,7 @@ export default function LinkOffline() {
   const attemptTroubleShootAutomation = useTroubleshootAutomation();
 
   const nodeNames = React.useMemo(() => {
-    if (selectedElement && selectedElement?.type === TopologyElementType.LINK) {
+    if (selectedElement && selectedElement?.type === TOPOLOGY_ELEMENT.LINK) {
       const link = linkMap[selectedElement.name];
       return [link.a_node_name, link.z_node_name];
     }

@@ -15,11 +15,8 @@ import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
-import {
-  SlideProps,
-  TopologyElement,
-} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {get} from 'lodash';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
@@ -43,7 +40,7 @@ export default function RenderTopologyElement({
   searchNearbyProps: SearchNearbyProps,
   onEditTopology: (
     params: EditTopologyElementParams,
-    type: $Values<typeof TopologyElement>,
+    type: $Values<typeof TOPOLOGY_ELEMENT>,
   ) => *,
 }) {
   const {setPanelState, getIsHidden, removePanel, collapseAll} = panelControl;
@@ -124,7 +121,7 @@ export default function RenderTopologyElement({
   const link = linkMap[name];
   const site = siteMap[name];
 
-  if (type === TopologyElementType.NODE && node) {
+  if (type === TOPOLOGY_ELEMENT.NODE && node) {
     // hack to get around issues with flow
     const {node: _, ...routesPropsWithoutNode} = {
       ...routesProps,
@@ -146,15 +143,15 @@ export default function RenderTopologyElement({
             networkNodeHealth,
             networkConfig: networkConfig,
             onSelectLink: linkName =>
-              setSelected(TopologyElementType.LINK, linkName),
+              setSelected(TOPOLOGY_ELEMENT.LINK, linkName),
             onSelectSite: siteName =>
-              setSelected(TopologyElementType.SITE, siteName),
+              setSelected(TOPOLOGY_ELEMENT.SITE, siteName),
             topology,
           }}
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
           onClose={handleClosePanel}
-          onEdit={params => onEditTopology(params, TopologyElement.node)}
+          onEdit={params => onEditTopology(params, TOPOLOGY_ELEMENT.NODE)}
           {...searchNearbyProps}
           {...routesPropsWithoutNode}
           node={node}
@@ -164,7 +161,7 @@ export default function RenderTopologyElement({
         />
       </Slide>
     );
-  } else if (type === TopologyElementType.LINK && link) {
+  } else if (type === TOPOLOGY_ELEMENT.LINK && link) {
     return (
       <Slide {...SlideProps} key={name} in={isVisible}>
         <LinkDetailsPanel
@@ -184,7 +181,7 @@ export default function RenderTopologyElement({
           }
           onClose={handleClosePanel}
           onSelectNode={nodeName =>
-            setSelected(TopologyElementType.NODE, nodeName)
+            setSelected(TOPOLOGY_ELEMENT.NODE, nodeName)
           }
           pinned={pinned}
           topology={topology}
@@ -193,7 +190,7 @@ export default function RenderTopologyElement({
         />
       </Slide>
     );
-  } else if (type === TopologyElementType.SITE && site) {
+  } else if (type === TOPOLOGY_ELEMENT.SITE && site) {
     const wapStats = get(wireless_controller_stats, [name.toLowerCase()], null);
     return (
       <Slide {...SlideProps} key={name} in={isVisible}>
@@ -210,11 +207,11 @@ export default function RenderTopologyElement({
           wapStats={wapStats}
           onClose={handleClosePanel}
           onSelectNode={nodeName =>
-            setSelected(TopologyElementType.NODE, nodeName)
+            setSelected(TOPOLOGY_ELEMENT.NODE, nodeName)
           }
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
-          onEdit={params => onEditTopology(params, TopologyElement.site)}
+          onEdit={params => onEditTopology(params, TOPOLOGY_ELEMENT.SITE)}
           onUpdateRoutes={onUpdateRoutes}
         />
       </Slide>

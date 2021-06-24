@@ -20,7 +20,7 @@ import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {render} from '@testing-library/react';
 
@@ -63,7 +63,7 @@ test(
         networkCtx={{
           selectedElement: {
             name: 'site1',
-            type: TopologyElementType.SITE,
+            type: TOPOLOGY_ELEMENT.SITE,
             expanded: true,
           },
           networkConfig: mockNetworkConfig({topology}),
@@ -119,7 +119,7 @@ test('renders metadata keys and primitive values', async () => {
       networkCtx={{
         selectedElement: {
           name: 'site1',
-          type: TopologyElementType.SITE,
+          type: TOPOLOGY_ELEMENT.SITE,
           expanded: true,
         },
         networkConfig: mockNetworkConfig({topology}),
@@ -139,7 +139,7 @@ test('renders metadata keys and primitive values', async () => {
       networkCtx={{
         selectedElement: {
           name: 'link-node1-node2',
-          type: TopologyElementType.LINK,
+          type: TOPOLOGY_ELEMENT.LINK,
           expanded: true,
         },
         networkConfig: mockNetworkConfig({topology}),
@@ -161,7 +161,7 @@ test('renders metadata with object values as json', async () => {
       networkCtx={{
         selectedElement: {
           name: 'site1',
-          type: TopologyElementType.SITE,
+          type: TOPOLOGY_ELEMENT.SITE,
           expanded: true,
         },
         networkConfig: mockNetworkConfig({topology}),
@@ -196,7 +196,7 @@ test('renders metadata for singlesided link metrics', async () => {
       networkCtx={{
         selectedElement: {
           name: 'link-node1-node2',
-          type: TopologyElementType.LINK,
+          type: TOPOLOGY_ELEMENT.LINK,
           expanded: true,
         },
         networkConfig: mockNetworkConfig({topology}),

@@ -13,7 +13,7 @@ import EditRadioMacs from './EditRadioMacs';
 import MenuItem from '@material-ui/core/MenuItem';
 import ShowAdvanced from '@fbcnms/tg-nms/app/components/common/ShowAdvanced';
 import swal from 'sweetalert2';
-import {FormType} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   NodeTypeValueMap,
   PolarityTypeValueMap as PolarityType,
@@ -82,7 +82,7 @@ type Props = {
   className?: string,
   ctrlVersion: string,
   expanded: boolean,
-  formType: $Values<typeof FormType>,
+  formType: $Values<typeof FORM_TYPE>,
   initialParams: Object,
   networkConfig: NetworkConfig,
   networkName: string,
@@ -189,12 +189,12 @@ class AddNodePanel extends React.Component<Props, State> {
       return;
     }
 
-    if (formType === FormType.CREATE) {
+    if (formType === FORM_TYPE.CREATE) {
       node.wlan_mac_addrs = wlanMacEdits.map(
         macEdit => macEdit.data.wlanMacs[0],
       );
       sendTopologyBuilderRequest(networkName, 'addNode', {node}, onClose);
-    } else if (formType === FormType.EDIT) {
+    } else if (formType === FORM_TYPE.EDIT) {
       const apiRequestAttempts = [];
 
       // Update the node's MAC address
@@ -292,7 +292,7 @@ class AddNodePanel extends React.Component<Props, State> {
     const {error} = this.state;
     // Change form based on form type
     const submitButtonText =
-      formType === FormType.EDIT ? 'Save Changes' : 'Add Node';
+      formType === FORM_TYPE.EDIT ? 'Save Changes' : 'Add Node';
 
     // Create menu items
     const siteOptions = this.props.topology.sites.map(site => ({
@@ -414,14 +414,14 @@ class AddNodePanel extends React.Component<Props, State> {
     return (
       <div style={{width: '100%'}}>
         {inputs
-          .filter(input => formType !== FormType.EDIT || input._editable)
+          .filter(input => formType !== FORM_TYPE.EDIT || input._editable)
           .map(input =>
             input.func({...input}, this.state, this.setState.bind(this)),
           )}
 
         <ShowAdvanced
           children={advancedInputs
-            .filter(input => formType !== FormType.EDIT || input._editable)
+            .filter(input => formType !== FORM_TYPE.EDIT || input._editable)
             .map(input =>
               input.func({...input}, this.state, this.setState.bind(this)),
             )}
@@ -460,9 +460,9 @@ class AddNodePanel extends React.Component<Props, State> {
     } = this.props;
 
     // Change form based on form type
-    const title = formType === FormType.EDIT ? initialParams.name : 'Add Node';
+    const title = formType === FORM_TYPE.EDIT ? initialParams.name : 'Add Node';
     const titleIcon =
-      formType === FormType.EDIT ? (
+      formType === FORM_TYPE.EDIT ? (
         <EditIcon classes={{root: classes.iconCentered}} />
       ) : null;
 

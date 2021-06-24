@@ -24,7 +24,7 @@ import {
 import {SortDirection} from 'react-virtualized';
 import {
   TIME_WINDOWS,
-  TopologyElementType,
+  TOPOLOGY_ELEMENT,
 } from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {availabilityColor} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {
@@ -107,7 +107,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
   static getDerivedStateFromProps(nextProps, prevState) {
     // Update selected row
     const {selectedElement} = nextProps.context;
-    if (selectedElement && selectedElement.type === TopologyElementType.LINK) {
+    if (selectedElement && selectedElement.type === TOPOLOGY_ELEMENT.LINK) {
       if (prevState.selectedLink !== selectedElement.name) {
         // TODO - HACK! - When selecting a row, don't change topLink
         // (only change it when another component sets the state)
@@ -609,7 +609,7 @@ class NetworkLinksTable extends React.Component<Props, State> {
     // Select a row
     const {context} = this.props;
     this.setState({keepTopLink: true}, () =>
-      context.setSelected(TopologyElementType.LINK, row.name),
+      context.setSelected(TOPOLOGY_ELEMENT.LINK, row.name),
     );
   };
 

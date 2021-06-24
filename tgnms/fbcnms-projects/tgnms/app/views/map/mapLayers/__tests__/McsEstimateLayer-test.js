@@ -19,7 +19,7 @@ import {
   mockFig0,
   mockNetworkConfig,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {getSourceFeatureCollection} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {render} from '@testing-library/react';
@@ -77,7 +77,7 @@ test(
         }}
         networkVals={{
           selectedElement: {
-            type: TopologyElementType.NODE,
+            type: TOPOLOGY_ELEMENT.NODE,
             name: 'site1-0',
             expanded: true,
           },
@@ -101,7 +101,7 @@ test('if a node with wireless links is selected, renders the selected segments',
       }}
       networkVals={{
         selectedElement: {
-          type: TopologyElementType.NODE,
+          type: TOPOLOGY_ELEMENT.NODE,
           name: 'site1-0',
           expanded: true,
         },
@@ -147,7 +147,7 @@ test('if a site with wireless links is selected, renders the selected nodes', as
       }}
       networkVals={{
         selectedElement: {
-          type: TopologyElementType.SITE,
+          type: TOPOLOGY_ELEMENT.SITE,
           name: 'site1',
           expanded: true,
         },
@@ -177,7 +177,7 @@ test('if a site without wireless links is selected, renders nothing', async () =
       }}
       networkVals={{
         selectedElement: {
-          type: TopologyElementType.SITE,
+          type: TOPOLOGY_ELEMENT.SITE,
           name: 'site-nonodes',
           expanded: true,
         },
@@ -245,7 +245,7 @@ test('renders correctly when using a custom map profile', async () => {
       }}
       networkVals={{
         selectedElement: {
-          type: TopologyElementType.SITE,
+          type: TOPOLOGY_ELEMENT.SITE,
           name: 'site1',
           expanded: true,
         },

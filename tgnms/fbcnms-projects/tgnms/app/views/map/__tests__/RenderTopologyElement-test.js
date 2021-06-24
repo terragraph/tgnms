@@ -15,7 +15,7 @@ import {
   mockPanelControl,
   mockSingleLink,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {render} from '@testing-library/react';
 
@@ -26,7 +26,7 @@ beforeEach(() => {
 const commonProps = {
   element: {
     name: 'site1',
-    type: TopologyElementType.SITE,
+    type: TOPOLOGY_ELEMENT.SITE,
     expanded: true,
   },
   panelControl: mockPanelControl({
@@ -40,7 +40,7 @@ const commonProps = {
 test('renders site when it is selected', async () => {
   const selectedElement = {
     name: 'site1',
-    type: TopologyElementType.SITE,
+    type: TOPOLOGY_ELEMENT.SITE,
     expanded: true,
   };
   const {getByText} = render(
@@ -54,7 +54,7 @@ test('renders site when it is selected', async () => {
 test('renders node when it is selected', async () => {
   const selectedElement = {
     name: 'node1',
-    type: TopologyElementType.NODE,
+    type: TOPOLOGY_ELEMENT.NODE,
     expanded: true,
   };
   const {getByText} = render(
@@ -68,7 +68,7 @@ test('renders node when it is selected', async () => {
 test('renders link when it is selected', async () => {
   const selectedElement = {
     name: 'link-node1-node2',
-    type: TopologyElementType.LINK,
+    type: TOPOLOGY_ELEMENT.LINK,
     expanded: true,
   };
   const {getByText} = render(

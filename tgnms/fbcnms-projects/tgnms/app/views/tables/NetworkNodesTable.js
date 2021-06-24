@@ -12,7 +12,7 @@ import grey from '@material-ui/core/colors/grey';
 import red from '@material-ui/core/colors/red';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {NodeTypeValueMap as NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {isNodeAlive} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
@@ -150,7 +150,7 @@ export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
 
   const handleRowClick = React.useCallback(
     (event, row) => {
-      setSelected(TopologyElementType.NODE, row.name);
+      setSelected(TOPOLOGY_ELEMENT.NODE, row.name);
     },
     [setSelected],
   );
@@ -158,7 +158,7 @@ export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
   const makeRowStyle = React.useCallback(
     (rowData: NetworkNodeRowType) => ({
       backgroundColor:
-        selectedElement?.type === TopologyElementType.NODE &&
+        selectedElement?.type === TOPOLOGY_ELEMENT.NODE &&
         rowData.name === selectedElement?.name
           ? grey[300]
           : undefined,

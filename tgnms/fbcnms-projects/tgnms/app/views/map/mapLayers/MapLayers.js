@@ -19,7 +19,7 @@ import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
 import TopologyBuilderToggle from '@fbcnms/tg-nms/app/views/map/mapControls/TopologyBuilderToggle';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
@@ -35,13 +35,13 @@ export type Props = {|
 |};
 
 function getSelectedLinks(selectedElement, linkMap) {
-  return selectedElement && selectedElement.type === TopologyElementType.LINK
+  return selectedElement && selectedElement.type === TOPOLOGY_ELEMENT.LINK
     ? {[selectedElement.name]: linkMap[selectedElement.name]}
     : {};
 }
 
 function getSelectedNodeName(selectedElement) {
-  return selectedElement && selectedElement.type === TopologyElementType.NODE
+  return selectedElement && selectedElement.type === TOPOLOGY_ELEMENT.NODE
     ? selectedElement.name
     : '';
 }
@@ -53,13 +53,13 @@ function getSelectedSites(selectedElement, siteMap, nodeMap, linkMap) {
     const site = siteMap[selectedName];
     const node = nodeMap[selectedName];
     const link = linkMap[selectedName];
-    if (selectedElement.type === TopologyElementType.SITE && site) {
+    if (selectedElement.type === TOPOLOGY_ELEMENT.SITE && site) {
       selectedSites[selectedName] = site;
-    } else if (selectedElement.type === TopologyElementType.NODE && node) {
+    } else if (selectedElement.type === TOPOLOGY_ELEMENT.NODE && node) {
       // Pick the node's site
       const siteName = node.site_name;
       selectedSites[siteName] = siteMap[siteName];
-    } else if (selectedElement.type === TopologyElementType.LINK && link) {
+    } else if (selectedElement.type === TOPOLOGY_ELEMENT.LINK && link) {
       // Pick the link's two sites
       const {a_node_name, z_node_name} = link;
       const aSiteName = nodeMap[a_node_name].site_name;
@@ -142,7 +142,7 @@ export default function MapLayers(props: Props) {
           ctrlVersion={controller_version}
           selectedLinks={selectedLinks}
           onSelectLinkChange={linkName =>
-            setSelected(TopologyElementType.LINK, linkName)
+            setSelected(TOPOLOGY_ELEMENT.LINK, linkName)
           }
           selectedNodeName={selectedNodeName}
           nodeMap={nodeMap}
@@ -169,7 +169,7 @@ export default function MapLayers(props: Props) {
           ctrlVersion={controller_version}
           selectedSites={selectedSites}
           onSelectSiteChange={siteName =>
-            setSelected(TopologyElementType.SITE, siteName)
+            setSelected(TOPOLOGY_ELEMENT.SITE, siteName)
           }
           nodeMap={nodeMap}
           siteToNodesMap={siteToNodesMap}

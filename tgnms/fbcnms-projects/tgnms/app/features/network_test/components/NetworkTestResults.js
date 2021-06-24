@@ -14,7 +14,7 @@ import {
   HEALTH_DEFS,
   HEALTH_EXECUTIONS,
 } from '@fbcnms/tg-nms/app/constants/HealthConstants';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {
   convertType,
   objectValuesTypesafe,
@@ -36,7 +36,7 @@ import type {HealthRowType} from '@fbcnms/tg-nms/app/components/common/HealthGro
 
 type Props = {|
   executionResults: Array<AssetTestResultType>,
-  assetType: $Values<typeof TopologyElementType>,
+  assetType: $Values<typeof TOPOLOGY_ELEMENT>,
 |};
 
 const useStyles = makeStyles(theme => ({
@@ -56,13 +56,13 @@ export default function NetworkTestResults(props: Props) {
   const {setSelected, linkMap, nodeMap, siteMap} = useNetworkContext();
   const {moveMapTo} = useMapContext();
 
-  const asset = assetType === TopologyElementType.LINK ? 'link' : 'site';
+  const asset = assetType === TOPOLOGY_ELEMENT.LINK ? 'link' : 'site';
 
   const handleRowSelect = row => {
     const tempAssetName = row.asset_name;
     setSelected(assetType, tempAssetName);
     let location = {};
-    if (assetType === TopologyElementType.LINK) {
+    if (assetType === TOPOLOGY_ELEMENT.LINK) {
       const tempLink = linkMap[tempAssetName];
       const aNode = nodeMap[tempLink.a_node_name];
       const zNode = nodeMap[tempLink.z_node_name];

@@ -13,7 +13,7 @@ import MapboxSearchBar from './MapboxSearchBar';
 import React from 'react';
 import TgMapboxNavIcon from './TgMapboxNavIcon';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {
   convertType,
   objectValuesTypesafe,
@@ -77,7 +77,7 @@ export default function TgMapboxNavigation() {
       // This performs a case-insensitive substring search, and will return
       // results with the following structure:
       // {
-      //   type: TopologyElementType,
+      //   type: TOPOLOGY_ELEMENT,
       //   name: str,
       //   matchIdx: int,
       //   matchLen: int,
@@ -101,7 +101,7 @@ export default function TgMapboxNavigation() {
           if (el) {
             const location = convertType<Site>(el).location;
             addMatch({
-              type: TopologyElementType.SITE,
+              type: TOPOLOGY_ELEMENT.SITE,
               name: el.name,
               label: el.name,
               location,
@@ -117,7 +117,7 @@ export default function TgMapboxNavigation() {
             const location =
               siteMap[convertType<NodeType>(el).site_name].location;
             addMatch({
-              type: TopologyElementType.NODE,
+              type: TOPOLOGY_ELEMENT.NODE,
               name: el.name,
               label: el.name,
               location,
@@ -151,7 +151,7 @@ export default function TgMapboxNavigation() {
               siteMap[zNode.site_name].location,
             );
             addMatch({
-              type: TopologyElementType.LINK,
+              type: TOPOLOGY_ELEMENT.LINK,
               name: el.name,
               label: el.name,
               location,
@@ -191,7 +191,7 @@ export default function TgMapboxNavigation() {
       macMatch.forEach(nodeMacMatch => {
         const location = siteMap[nodeMacMatch.site_name].location;
         addMatch({
-          type: TopologyElementType.NODE,
+          type: TOPOLOGY_ELEMENT.NODE,
           name: nodeMacMatch.node_name,
           label: nodeMacMatch.name,
           location,
@@ -213,7 +213,7 @@ export default function TgMapboxNavigation() {
         if (ipMatchNode) {
           const location = siteMap[ipMatchNode.site_name].location;
           addMatch({
-            type: TopologyElementType.NODE,
+            type: TOPOLOGY_ELEMENT.NODE,
             name: ipMatchNode.name,
             label: originalQuery,
             location,

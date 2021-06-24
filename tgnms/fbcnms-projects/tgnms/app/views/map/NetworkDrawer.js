@@ -28,9 +28,8 @@ import UpgradeProgressPanel from '@fbcnms/tg-nms/app/views/map/mappanels/Upgrade
 import UploadTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/UploadTopologyPanel';
 import useTopologyBuilderForm from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import {
-  FormType,
+  FORM_TYPE,
   SlideProps,
-  TopologyElement,
 } from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {
@@ -38,7 +37,7 @@ import {
   PANEL_STATE,
   usePanelControl,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
@@ -219,14 +218,14 @@ export default function NetworkDrawer({
   const handleEditTopology = React.useCallback(
     (
       params: EditTopologyElementParams,
-      type: $Values<typeof TopologyElementType>,
+      type: $Values<typeof TOPOLOGY_ELEMENT>,
     ) => {
       collapseAll();
       updateForm({
         params,
-        formType: FormType.EDIT,
+        formType: FORM_TYPE.EDIT,
       });
-      if (type === TopologyElement.site) {
+      if (type === TOPOLOGY_ELEMENT.SITE) {
         if (
           typeof params?.location !== 'undefined' &&
           params?.location != null
@@ -234,9 +233,9 @@ export default function NetworkDrawer({
           setLocation({...params.location});
         }
         setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
-      } else if (type === TopologyElement.node) {
+      } else if (type === TOPOLOGY_ELEMENT.NODE) {
         setPanelState(PANELS.TOPOLOGY_NODE, PANEL_STATE.OPEN);
-      } else if (type === TopologyElement.link) {
+      } else if (type === TOPOLOGY_ELEMENT.LINK) {
         setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
       }
     },
@@ -245,14 +244,14 @@ export default function NetworkDrawer({
   const handleAddTopology = React.useCallback(
     (
       params: EditTopologyElementParams,
-      type: $Values<typeof TopologyElementType>,
+      type: $Values<typeof TOPOLOGY_ELEMENT>,
     ) => {
       collapseAll();
       updateForm({
         params,
-        formType: FormType.CREATE,
+        formType: FORM_TYPE.CREATE,
       });
-      if (type === TopologyElement.site) {
+      if (type === TOPOLOGY_ELEMENT.SITE) {
         if (
           typeof params?.location !== 'undefined' &&
           params?.location != null
@@ -260,9 +259,9 @@ export default function NetworkDrawer({
           setLocation({...params.location});
         }
         setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
-      } else if (type === TopologyElement.node) {
+      } else if (type === TOPOLOGY_ELEMENT.NODE) {
         setPanelState(PANELS.TOPOLOGY_NODE, PANEL_STATE.OPEN);
-      } else if (type === TopologyElement.link) {
+      } else if (type === TOPOLOGY_ELEMENT.LINK) {
         setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
       }
     },
@@ -361,7 +360,7 @@ export default function NetworkDrawer({
               setPanelState(PANELS.ACCESS_POINTS, PANEL_STATE.HIDDEN)
             }
             onSelectSite={siteName =>
-              context.setSelected(TopologyElementType.SITE, siteName)
+              context.setSelected(TOPOLOGY_ELEMENT.SITE, siteName)
             }
             topology={topology}
             wirelessController={wireless_controller}

@@ -9,14 +9,14 @@ import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import NetworkTestResults from '../NetworkTestResults';
 import React from 'react';
 import {NetworkContextWrapper} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {mockExecutionResult} from '@fbcnms/tg-nms/app/tests/data/NetworkTestApi';
 import {mockLinkMapValue} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 const defaultProps = {
   executionResults: [],
-  assetType: TopologyElementType.LINK,
+  assetType: TOPOLOGY_ELEMENT.LINK,
 };
 
 test('renders with with no executions', () => {

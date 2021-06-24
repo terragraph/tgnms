@@ -16,7 +16,7 @@ import axios from 'axios';
 import {NETWORK_VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {
   createQuery,
@@ -107,7 +107,7 @@ class NetworkUI extends React.Component<Props, State> {
     macToNodeMap: {},
 
     // Topology elements
-    // {type: TopologyElementType, name: string, expanded: bool}
+    // {type: TOPOLOGY_ELEMENT, name: string, expanded: bool}
     selectedElement: null,
     pinnedElements: [],
 
@@ -291,11 +291,11 @@ class NetworkUI extends React.Component<Props, State> {
 
   topologyElementExists = ({type, name}, {nodeMap, linkMap, siteMap}) => {
     // Returns whether the given node/link/site exists
-    if (type === TopologyElementType.NODE) {
+    if (type === TOPOLOGY_ELEMENT.NODE) {
       return nodeMap.hasOwnProperty(name);
-    } else if (type === TopologyElementType.LINK) {
+    } else if (type === TOPOLOGY_ELEMENT.LINK) {
       return linkMap.hasOwnProperty(name);
-    } else if (type === TopologyElementType.SITE) {
+    } else if (type === TOPOLOGY_ELEMENT.SITE) {
       return siteMap.hasOwnProperty(name);
     }
     return false;

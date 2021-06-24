@@ -7,11 +7,11 @@
 
 import React from 'react';
 import TgMapboxNavIcon from '../TgMapboxNavIcon';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {render} from '@testing-library/react';
 
 const defaultProps = {
-  resultType: TopologyElementType.NODE,
+  resultType: TOPOLOGY_ELEMENT.NODE,
 };
 
 test('renders', () => {

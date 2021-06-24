@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import type {
   LinkType,
   LocationType,
@@ -46,14 +46,14 @@ export type NetworkContextType = {|
   // Topology elements
   selectedElement: ?Element,
   pinnedElements: Array<Element>,
-  setSelected: ($Values<typeof TopologyElementType>, string) => void,
-  removeElement: ($Values<typeof TopologyElementType>, string) => void,
+  setSelected: ($Values<typeof TOPOLOGY_ELEMENT>, string) => void,
+  removeElement: ($Values<typeof TOPOLOGY_ELEMENT>, string) => void,
   togglePin: ToggleTopologyElement,
   toggleExpanded: ToggleTopologyElement,
 |};
 
 export type ToggleTopologyElement = {
-  ($Values<typeof TopologyElementType>, string, boolean): any,
+  ($Values<typeof TOPOLOGY_ELEMENT>, string, boolean): any,
 };
 
 export type NetworkNodeStats = {
@@ -75,7 +75,7 @@ export type LinkMeta = {
 export type Element = {|
   expanded: boolean,
   name: string,
-  type: $Values<typeof TopologyElementType>,
+  type: $Values<typeof TOPOLOGY_ELEMENT>,
 |};
 
 export type SiteMap = {

@@ -8,7 +8,7 @@
 import * as React from 'react';
 import TroubleshootWarning from './TroubleshootWarning';
 import useTroubleshootAutomation from '@fbcnms/tg-nms/app/hooks/useTroubleshootAutomation';
-import {TopologyElementType} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export default function FirmwareCrash() {
@@ -17,7 +17,7 @@ export default function FirmwareCrash() {
   const attemptTroubleShootAutomation = useTroubleshootAutomation();
 
   const nodeName = React.useMemo(() => {
-    if (selectedElement && selectedElement.type === TopologyElementType.NODE) {
+    if (selectedElement && selectedElement.type === TOPOLOGY_ELEMENT.NODE) {
       return selectedElement.name;
     }
     return '';

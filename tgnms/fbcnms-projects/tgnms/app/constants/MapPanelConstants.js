@@ -12,14 +12,14 @@ export const SlideProps = {
   // (interferes with onClosePanel() logic and causes unmount-mount-unmount)
 };
 
-export const FormType = Object.freeze({
+export const FORM_TYPE = Object.freeze({
   CREATE: 'CREATE',
   EDIT: 'EDIT',
 });
 
-export const TopologyElement = {
-  site: 'site',
-  node: 'node',
-  link: 'link',
-  upload: 'upload',
+export const defaultLocation = {
+  latitude: 0,
+  longitude: 0,
+  altitude: 0,
+  accuracy: 40000000,
 };
