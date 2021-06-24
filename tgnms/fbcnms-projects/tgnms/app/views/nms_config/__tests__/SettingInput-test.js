@@ -7,13 +7,16 @@
 
 import React from 'react';
 import SettingInput from '../SettingInput';
+import {EMPTY_SETTINGS_STATE} from '@fbcnms/tg-nms/shared/dto/Settings';
 import {
   SettingsFormContextWrapper,
   TestApp,
   coerceClass,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, render} from '@testing-library/react';
+
 import type {Props as SettingInputProps} from '../SettingInput';
+
+import {act, fireEvent, render} from '@testing-library/react';
 
 const defaultProps: $Shape<SettingInputProps> = {
   label: '',
@@ -89,8 +92,8 @@ describe('data type', () => {
 });
 
 describe('secrets', () => {
-  test('renders secret visibility toggle for SECRET_STRING', () => {
-    const {queryByLabelText} = render(
+  test('renders secret visibility toggle and reset for SECRET_STRING', () => {
+    const {getByText, queryByLabelText} = render(
       <TestApp>
         <SettingsFormContextWrapper
           settings={[
@@ -98,12 +101,22 @@ describe('secrets', () => {
               dataType: 'SECRET_STRING',
               key: 'SETTING_KEY',
             },
-          ]}>
+          ]}
+          settingsState={{
+            ...EMPTY_SETTINGS_STATE,
+            envMaps: {
+              defaults: {},
+              initialEnv: {},
+              dotenvEnv: {},
+              settingsFileEnv: {SETTING_KEY: 'my secret'},
+            },
+          }}>
           <SettingInput {...defaultProps} setting={'SETTING_KEY'} />
         </SettingsFormContextWrapper>
       </TestApp>,
     );
     expect(queryByLabelText('toggle secret visibility')).toBeInTheDocument();
+    expect(getByText('to ******')).toBeInTheDocument(); // Reset to ******
   });
   test('does not renders secret visibility toggle for non SECRET_STRING', () => {
     const {queryByLabelText} = render(

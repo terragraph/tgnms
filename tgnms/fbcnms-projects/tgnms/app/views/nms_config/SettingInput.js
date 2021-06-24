@@ -185,19 +185,21 @@ function ResetToValueButton({
   config: SettingDefinition,
   onResetClick: () => void,
 }) {
+  const {isSecret} = useSecretToggle(config.dataType);
   const {settingsState, getInput} = useSettingsFormContext();
   const {settingsFileEnv} = settingsState.envMaps;
   const {fallbackValue} = getInput(config.key);
 
-  //don't show reset if setting has not been edited
+  // Don't show reset if setting has not been edited and saved.
   if (settingsFileEnv[config.key] == null) {
     return null;
   }
 
-  const fallbackValueText =
-    fallbackValue == null || fallbackValue.trim() === ''
-      ? 'empty'
-      : fallbackValue;
+  const fallbackValueText = isSecret
+    ? '******'
+    : fallbackValue == null || fallbackValue.trim() === ''
+    ? 'empty'
+    : fallbackValue;
 
   return (
     <span>
