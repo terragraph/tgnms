@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
+import logging
 from collections import defaultdict
 from typing import Any, DefaultDict, Dict, List, Tuple
 
@@ -9,7 +10,7 @@ from terragraph_thrift.Topology.ttypes import LinkType, NodeType
 from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
 
 from .utils.db import save_cn_egress_routes, save_default_routes
-from .utils.stats import generate_min_mcs_metrics
+from .utils.stats import generate_route_stats
 
 
 async def process_default_routes(
@@ -166,18 +167,17 @@ async def process_congested_cn_egress_links(
     await save_cn_egress_routes(start_time_ms, curr_routes)
 
 
-async def process_min_mcs_links(
-    start_time_ms: int, network_info: Dict[str, Dict[str, Any]]
+async def process_routes_for_aggregate_metrics(
+    start_time_ms: int, network_info: Dict[str, Dict[str, Any]], route_metrics: Dict
 ) -> None:
-    """Produces timeseries metrics for link with minimum mcs in default_routes.
+    """Produces timeseries metrics for different route metrics.
 
-    This job finds the minimum mcs of all the wireless links part of the
-    default routes of a node and pushes that metric to the timeseries db.
+    This job finds several aggregate metrics of all the wireless links
+    part of the default routes of a node and pushes that metrics prometheus
     """
     if not network_info:
         return
 
-    coros = []
     client = PrometheusClient(timeout=2)
     for network_name, topology_info in network_info.items():
         if "defaultRoutes" not in topology_info:
@@ -189,13 +189,12 @@ async def process_min_mcs_links(
             for link in topology_info["links"]
             if link["link_type"] == LinkType.WIRELESS
         }
-
-        coros.append(
-            generate_min_mcs_metrics(
-                start_time_ms, client, network_name, topology_info, wireless_link_map
-            )
-        )
-
-    # Write metrics to memory
-    metrics = [metric for metrics in await asyncio.gather(*coros) for metric in metrics]
-    PrometheusClient.write_metrics(metrics)
+    write_metrics = await generate_route_stats(
+        start_time_ms,
+        client,
+        network_name,
+        topology_info,
+        wireless_link_map,
+        route_metrics,
+    )
+    PrometheusClient.write_metrics(write_metrics)

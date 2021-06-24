@@ -13,8 +13,11 @@
           "enabled": true
         },
         {
-          "name": "process_min_mcs_links",
-          "enabled": true
+          "name": "process_routes_for_aggregate_metrics",
+          "enabled": true,
+          "params": {
+            "route_metrics": {"mcs": "min", "tx_ok": "max", "per": "max"}
+          }
         }
       ]
     }
