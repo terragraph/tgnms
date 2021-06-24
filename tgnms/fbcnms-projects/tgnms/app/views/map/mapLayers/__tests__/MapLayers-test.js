@@ -16,6 +16,7 @@ import {
   TestApp,
   mockTopology,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {OVERLAY_NONE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
@@ -40,13 +41,15 @@ test('renders with no layers selected', () => {
     <Wrapper
       mapValue={{
         selectedLayers: {
-          link_lines: false,
-          site_icons: false,
           nodes: false,
           buildings_3d: false,
           site_name_popups: false,
           alert_popups: false,
           area_polygons: false,
+        },
+        overlays: {
+          link_lines: OVERLAY_NONE,
+          site_icons: OVERLAY_NONE,
         },
       }}>
       <MapLayers {...commonProps} />
@@ -64,8 +67,6 @@ test('renders all layers if selected', () => {
     <Wrapper
       mapValue={{
         selectedLayers: {
-          link_lines: true,
-          site_icons: true,
           buildings_3d: true,
           site_name_popups: true,
           area_polygons: true,
@@ -86,8 +87,6 @@ test('renders with wrong linkname for linkmap', () => {
     <Wrapper
       mapValue={{
         selectedLayers: {
-          link_lines: true,
-          site_icons: true,
           buildings_3d: true,
           site_name_popups: true,
           area_polygons: true,

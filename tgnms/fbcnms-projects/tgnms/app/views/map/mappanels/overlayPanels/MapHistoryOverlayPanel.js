@@ -54,7 +54,7 @@ const topologyPrometheusIDs = {
 };
 
 const linkOverlayList = objectValuesTypesafe(LINK_OVERLAYS).filter(
-  overlay => overlay.type === 'metric',
+  overlay => overlay.type === 'metric' || overlay.id === 'none',
 );
 const siteOverlayList = objectValuesTypesafe(HISTORICAL_SITE_METRIC_OVERLAYS);
 

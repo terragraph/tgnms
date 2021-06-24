@@ -298,10 +298,12 @@ export const mapLayers: Array<{|
   {
     layerId: 'link_lines',
     name: 'Links',
+    toggleable: false,
   },
   {
     layerId: 'site_icons',
     name: 'Sites',
+    toggleable: false,
   },
   {
     layerId: 'nodes',
@@ -343,11 +345,13 @@ export const OVERLAY_NONE: Overlay = {
 };
 
 export const SITE_METRIC_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   health: {name: 'Health', type: 'health', id: 'health'},
   polarity: {name: 'Polarity', type: 'polarity', id: 'polarity'},
 };
 
 export const SITE_TEST_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   health: {
     name: 'Health',
     type: 'health',
@@ -383,6 +387,7 @@ export const SITE_TEST_OVERLAYS: Overlays = {
 };
 
 export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   node_online: {
     name: 'Node online',
     type: 'health',
@@ -391,6 +396,7 @@ export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
 };
 
 export const HISTORICAL_LINK_METRIC_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   link_online: {
     name: 'Online',
     type: 'metric',
@@ -405,6 +411,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
   //{name: 'Performance Health', id: 'perf_health'},
   //{name: 'Availability', id: 'availability'},
   //{name: 'Uptime', id: 'uptime'},
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   ignition_status: {
     name: 'Ignition status',
     type: 'ignition_status',
@@ -499,6 +506,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
 };
 
 export const TEST_EXECUTION_LINK_OVERLAYS: Overlays = {
+  [OVERLAY_NONE.id]: OVERLAY_NONE,
   health: {
     name: 'Health',
     type: 'health',

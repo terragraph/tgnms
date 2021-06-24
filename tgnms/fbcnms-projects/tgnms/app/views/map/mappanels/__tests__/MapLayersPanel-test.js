@@ -66,7 +66,7 @@ describe('Layers', () => {
       </TestApp>,
     );
     expect(getByText('Layers')).toBeInTheDocument();
-    expect(getByText('Links')).toBeInTheDocument();
-    expect(getByText('Sites')).toBeInTheDocument();
+    expect(getByText('3D Buildings')).toBeInTheDocument();
+    expect(getByText('Site Names')).toBeInTheDocument();
   });
 });

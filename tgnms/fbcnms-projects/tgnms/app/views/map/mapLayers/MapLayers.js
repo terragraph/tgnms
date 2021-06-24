@@ -19,12 +19,14 @@ import SitePopupsLayer from './SitePopupsLayer';
 import SitesLayer from './SitesLayer';
 import TopologyBuilderToggle from '@fbcnms/tg-nms/app/views/map/mapControls/TopologyBuilderToggle';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {OVERLAY_NONE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {handleFeatureMouseEnter, handleFeatureMouseLeave} from './helpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
@@ -89,14 +91,8 @@ export default function MapLayers(props: Props) {
     [setLocation],
   );
 
-  const {
-    site_icons,
-    link_lines,
-    site_name_popups,
-    alert_popups,
-    buildings_3d,
-  } = selectedLayers;
-
+  const {site_name_popups, alert_popups, buildings_3d} = selectedLayers;
+  const {link_lines, site_icons, nodes, area_polygons} = overlays;
   const {
     networkConfig,
     selectedElement,
@@ -106,7 +102,6 @@ export default function MapLayers(props: Props) {
     siteToNodesMap,
     setSelected,
   } = context;
-
   const {
     controller_version,
     ignition_state,
@@ -129,10 +124,11 @@ export default function MapLayers(props: Props) {
       temporarySelectedAsset,
     });
   };
+
   return (
     <>
       {buildings_3d ? <BuildingsLayer key="3d-buildings-layer" /> : null}
-      {link_lines && overlays.link_lines ? (
+      {link_lines && link_lines.id !== OVERLAY_NONE.id ? (
         <LinksLayer
           key="links-layer"
           onLinkMouseEnter={handleFeatureMouseEnter}
@@ -147,7 +143,7 @@ export default function MapLayers(props: Props) {
           selectedNodeName={selectedNodeName}
           nodeMap={nodeMap}
           siteMap={siteMap}
-          overlay={overlays.link_lines}
+          overlay={link_lines}
           ignitionState={ignition_state}
           nearbyNodes={nearbyNodes}
           offlineWhitelist={offline_whitelist}
@@ -159,7 +155,7 @@ export default function MapLayers(props: Props) {
           scanMode={mapMode === MAPMODE.SCAN_SERVICE}
         />
       ) : null}
-      {site_icons && overlays.site_icons ? (
+      {site_icons && site_icons.id !== OVERLAY_NONE.id ? (
         <SitesLayer
           key="sites-layer"
           onSiteMouseEnter={handleFeatureMouseEnter}
@@ -175,7 +171,7 @@ export default function MapLayers(props: Props) {
           siteToNodesMap={siteToNodesMap}
           plannedSite={plannedSite}
           onPlannedSiteMoved={onPlannedSiteMoved}
-          overlay={overlays.site_icons}
+          overlay={site_icons}
           nearbyNodes={nearbyNodes}
           hiddenSites={hiddenSites}
           offlineWhitelist={offline_whitelist}
@@ -183,11 +179,11 @@ export default function MapLayers(props: Props) {
           routes={routes}
         />
       ) : null}
-      <NodesLayer overlayData={overlayData.nodes} overlay={overlays.nodes} />
+      <NodesLayer overlayData={overlayData.nodes} overlay={nodes} />
       {site_name_popups ? <SitePopupsLayer key="popups-layer" /> : null}
       <PolygonLayer
         key="polygon-layer"
-        overlay={overlays.area_polygons}
+        overlay={area_polygons}
         data={overlayData.area_polygons}
       />
       <TopologyBuilderToggle />
