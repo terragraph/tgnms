@@ -536,7 +536,7 @@ class LinksLayer extends React.Component<Props> {
       const features = topologyLines[renderType].features;
 
       const featureParams = {
-        key: 'link-layer-' + link.name,
+        key: `link-layer-${link.name}`,
         onMouseEnter: onLinkMouseEnter,
         onMouseLeave: onLinkMouseLeave,
         onClick: this.handleLinkClick(link),
@@ -622,7 +622,7 @@ class LinksLayer extends React.Component<Props> {
       if (selectedLinks.hasOwnProperty(link.name)) {
         lineCasingFeatures.push(
           <Feature
-            key={'line-layer-' + link.name}
+            key={`line-layer-${link.name}`}
             onMouseEnter={onLinkMouseEnter}
             onMouseLeave={onLinkMouseLeave}
             coordinates={[locToPos(siteA.location), locToPos(siteZ.location)]}
@@ -634,7 +634,7 @@ class LinksLayer extends React.Component<Props> {
     temporaryTopology &&
       temporaryTopology.links.forEach(link => {
         const featureParams = {
-          key: 'link-layer-' + link.name,
+          key: `link-layer-${link.name}`,
           onMouseEnter: onLinkMouseEnter,
           onMouseLeave: onLinkMouseLeave,
           onClick: this.handleTemporaryLinkClick(link),
@@ -663,7 +663,7 @@ class LinksLayer extends React.Component<Props> {
         ) {
           lineCasingFeatures.push(
             <Feature
-              key={'line-layer-' + link.name}
+              key={`line-layer-${link.name}`}
               onMouseEnter={onLinkMouseEnter}
               onMouseLeave={onLinkMouseLeave}
               coordinates={[locToPos(link.locationA), locToPos(link.locationZ)]}
@@ -704,7 +704,7 @@ class LinksLayer extends React.Component<Props> {
             if (rxLocation) {
               searchNearbyLineFeatures.push(
                 <Feature
-                  key={'nearby-' + txNode + '-' + addr}
+                  key={`nearby-${txNode}-${addr}`}
                   coordinates={[locToPos(txLocation), locToPos(rxLocation)]}
                 />,
               );
@@ -723,8 +723,8 @@ class LinksLayer extends React.Component<Props> {
           <Layer
             before="site-layer"
             type="line"
-            key={'link-casing-layer'}
-            id={'link-casing-layer'}
+            key="link-casing-layer"
+            id="link-casing-layer"
             paint={LINE_CASING_PAINT}>
             {lineCasingFeatures}
           </Layer>
@@ -744,8 +744,8 @@ class LinksLayer extends React.Component<Props> {
             <Layer
               before="site-layer"
               type="symbol"
-              key={id + '-text'}
-              id={id + '-text'}
+              key={`${id}-text`}
+              id={`${id}-text`}
               sourceId={id}
               paint={LINE_TEXT_PAINT}
               layout={LINE_TEXT_LAYOUT}
@@ -757,8 +757,8 @@ class LinksLayer extends React.Component<Props> {
           <Layer
             before="site-layer"
             type="fill"
-            key={'nearby-fill-layer'}
-            id={'nearby-fill-layer'}
+            key="nearby-fill-layer"
+            id="nearby-fill-layer"
             paint={SEARCH_NEARBY_FILL_PAINT}>
             {searchNearbyCoverageFeatures}
           </Layer>
@@ -768,8 +768,8 @@ class LinksLayer extends React.Component<Props> {
           <Layer
             before="site-layer"
             type="line"
-            key={'nearby-link-layer'}
-            id={'nearby-link-layer'}
+            key="nearby-link-layer"
+            id="nearby-link-layer"
             paint={SEARCH_NEARBY_LINE_PAINT}
             layout={LINE_LAYOUT}>
             {searchNearbyLineFeatures}
