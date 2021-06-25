@@ -145,7 +145,7 @@ export default function ConfigTaskMapInput(props: Props) {
   return (
     <Grid item>
       <Grid item container spacing={4}>
-        <Grid item xs={8}>
+        <Grid item>
           {label != null && (
             <FormLabel>
               <Grid className={classes.inputLabel} item container spacing={1}>

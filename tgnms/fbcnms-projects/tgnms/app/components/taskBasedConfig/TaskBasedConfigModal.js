@@ -96,10 +96,10 @@ export default function TaskBasedConfigModal(props: Props) {
       }
       modalTitle={
         <Grid container direction="row" spacing={0}>
-          <Grid item xs={4}>
+          <Grid item xs={6}>
             {modalTitle}
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={6}>
             <TextField
               select
               value={formState.currentConfig.title}

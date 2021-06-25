@@ -425,7 +425,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
         />
         <TaskBasedConfigModal
           open={configModalOpen}
-          modalTitle="Node Config"
+          modalTitle="Node Configuration"
           onClose={this.handleConfigModalClose}
           onAdvancedLinkClick={this.handleToConfigTable}
         />
