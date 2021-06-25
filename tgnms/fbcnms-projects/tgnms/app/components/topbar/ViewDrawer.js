@@ -23,7 +23,7 @@ import {generatePath} from 'react-router';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 260;
 
 const useStyles = makeStyles(theme => ({
   drawerPaper: {

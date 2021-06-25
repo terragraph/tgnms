@@ -91,7 +91,7 @@ export const NETWORK_VIEWS: Array<ViewType> = [
     hideCondition: () => !isAuthorized(['UPGRADE_READ', 'UPGRADE_WRITE']),
   },
   {
-    name: 'Network Config',
+    name: 'Network Configuration',
     icon: <BuildIcon />,
     path: NETWORK_CONFIG_PATH,
     component: NetworkConfig,
