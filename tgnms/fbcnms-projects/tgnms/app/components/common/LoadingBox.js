@@ -29,6 +29,7 @@ const useStyles = makeStyles(() => styles);
 type Props = {
   fullScreen?: boolean,
   text?: string,
+  'data-testid'?: ?string,
 };
 
 export default function LoadingBox(props: Props) {
@@ -37,7 +38,7 @@ export default function LoadingBox(props: Props) {
   return (
     <div
       className={classes.root}
-      data-testid={'loading-box'}
+      data-testid={props['data-testid'] ?? 'loading-box'}
       style={{height: fullScreen ? '100vh' : '100%'}}>
       <Grid cols={1}>
         <Grid item>{props.text}</Grid>

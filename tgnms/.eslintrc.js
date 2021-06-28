@@ -47,7 +47,7 @@ module.exports.overrides = [
     files: [
       '**/__mocks__/**/*.js',
       '**/__tests__/**/*.js',
-      '**/tests/*.js',
+      '**/tests/**/*.js',
       'testHelpers.js',
       'testData.js',
       'jest-setup.js',

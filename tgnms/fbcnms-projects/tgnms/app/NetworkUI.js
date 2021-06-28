@@ -13,6 +13,7 @@ import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import React from 'react';
 import axios from 'axios';
+import {HAPeerType} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import {NETWORK_VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -41,6 +42,7 @@ import type {
 import type {
   LinkType,
   NodeType as Node,
+  TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
 
 const styles = _theme => ({
@@ -60,6 +62,15 @@ const styles = _theme => ({
   },
 });
 
+const NETWORK_UI_STATUS = {
+  OK: 'OK',
+  // nodejs Backend is likely down
+  NETWORKING_ERROR: 'NETWORKING_ERROR',
+  // topology doesn't exist, redirect to the config page
+  TOPOLOGY_NOT_FOUND: 'TOPOLOGY_NOT_FOUND',
+  // the api-service container is not responding
+  CONTROLLER_OFFLINE: 'CONTROLLER_OFFLINE',
+};
 const REFRESH_INTERVAL = 5000;
 
 type Props = {
@@ -68,7 +79,7 @@ type Props = {
 };
 
 type State = {
-  invalidTopologyRedirect: boolean,
+  status: $Keys<typeof NETWORK_UI_STATUS>,
   isReloading: boolean,
   linkMap: {[string]: LinkType & LinkMeta},
   macToNodeMap: MacToNodeMap,
@@ -91,7 +102,7 @@ type State = {
 class NetworkUI extends React.Component<Props, State> {
   state = {
     // Used to trigger a redirect when the network is invalid
-    invalidTopologyRedirect: false,
+    status: NETWORK_UI_STATUS.OK,
 
     // Selected network
     networkConfig: ({}: $Shape<NetworkState>),
@@ -219,18 +230,29 @@ class NetworkUI extends React.Component<Props, State> {
     topologyApi
       .getTopology(networkName)
       .then(topology => {
-        if (this.state.invalidTopologyRedirect) {
+        if (topology?.active?.active === HAPeerType.ERROR) {
+          return this.setState({
+            status: NETWORK_UI_STATUS.CONTROLLER_OFFLINE,
+          });
+        }
+        if (this.state.status == NETWORK_UI_STATUS.OK) {
           this.setState({
-            invalidTopologyRedirect: false,
+            status: NETWORK_UI_STATUS.OK,
           });
         }
         this.processNetworkConfig(topology, networkName);
       })
       .catch(error => {
-        if (!error.response || error.response.status === 404) {
+        console.error(error);
+        if (!error.response) {
+          return this.setState({
+            status: NETWORK_UI_STATUS.NETWORKING_ERROR,
+          });
+        }
+        if (error.response.status === 404) {
           // invalid topology, redirect to /
           this.setState({
-            invalidTopologyRedirect: true,
+            status: NETWORK_UI_STATUS.TOPOLOGY_NOT_FOUND,
             isReloading: false,
           });
         }
@@ -257,13 +279,18 @@ class NetworkUI extends React.Component<Props, State> {
 
   processNetworkConfig = (networkConfig, networkName) => {
     // Update state with new network config
-    const topologyMaps = buildTopologyMaps(networkConfig.topology);
-    const topologyState = this.cleanTopologyState(topologyMaps);
+    const topologyMaps =
+      networkConfig.topology != null
+        ? buildTopologyMaps(networkConfig.topology)
+        : null;
+    const topologyState =
+      topologyMaps != null ? this.cleanTopologyState(topologyMaps) : null;
     this.setState({
       networkConfig,
       isReloading: false,
-      ...topologyMaps,
-      ...topologyState,
+      ...(topologyMaps ??
+        ({}: $Shape<$Call<typeof buildTopologyMaps, TopologyType>>)),
+      ...(topologyState ?? {}),
     });
 
     // Refresh network health
@@ -501,19 +528,29 @@ class NetworkUI extends React.Component<Props, State> {
   }
 
   renderContext = context => {
-    if (this.state.invalidTopologyRedirect) {
-      return (
-        <LoadingBox text="Error connecting to network. Attempting to reconnect." />
-      );
-    } else {
-      return context.networkList &&
-        this.state.networkConfig &&
-        this.state.networkConfig.topology ? (
-        this.renderRoutes()
-      ) : (
-        <LoadingBox />
-      );
+    if (this.state.status === NETWORK_UI_STATUS.TOPOLOGY_NOT_FOUND) {
+      return <Redirect to="/config" />;
     }
+    if (this.state.status !== NETWORK_UI_STATUS.OK) {
+      let errorText = 'Error... Attempting to reconnect.';
+      switch (this.state.status) {
+        case NETWORK_UI_STATUS.NETWORKING_ERROR:
+          errorText = 'NMS Backend offline. Attempting to reconnect.';
+          break;
+        case NETWORK_UI_STATUS.CONTROLLER_OFFLINE:
+          errorText = `The Controller for this network is offline. Attempting to reconnect.`;
+          break;
+      }
+      return <LoadingBox text={errorText} data-testid="loading-error" />;
+    }
+    if (
+      context.networkList &&
+      this.state.networkConfig &&
+      this.state.networkConfig.topology
+    ) {
+      return this.renderRoutes();
+    }
+    return <LoadingBox data-testid="loading-network" />;
   };
 }
 

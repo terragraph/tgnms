@@ -49,6 +49,7 @@ import type {User} from '@fbcnms/tg-nms/shared/auth/User';
 // exports things like mockNetworkConfig and mockTopology
 export * from './data/NetworkConfig';
 export * from './data/NmsOptionsContext';
+export * from './data/NetworkListContext';
 export * from './data/ANPTestData';
 
 /**

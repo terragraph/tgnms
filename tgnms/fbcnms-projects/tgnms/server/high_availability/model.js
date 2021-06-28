@@ -14,6 +14,7 @@ function determineActiveController(bStarStatePrimary, bStarStateBackup) {
     if (bStarStateBackup === null) {
       // both controllers offline
       haState.active = HAPeerType.ERROR;
+      haState.error = 'Both controllers OFFLINE';
     } else if (
       bStarStateBackup !== null &&
       bStarStateBackup === BinaryStarFsmState.STATE_ACTIVE

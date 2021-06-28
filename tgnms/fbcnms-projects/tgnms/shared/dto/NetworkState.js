@@ -45,7 +45,7 @@ export type NetworkInstanceConfig = {|
 
 export type ServerNetworkState = {|
   name: string,
-  active: $Keys<typeof HAPeerType>,
+  active: {active: $Keys<typeof HAPeerType>, error: string},
   controller_ip: number,
   controller_ip_active: number,
   controller_version: string,
