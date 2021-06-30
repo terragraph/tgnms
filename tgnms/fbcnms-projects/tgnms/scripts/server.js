@@ -41,12 +41,36 @@ const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? process.env.PORT : 80;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
 const axiosSetup = require('../server/axiosSetup').default;
+const {
+  STARTUP_STEPS,
+  makeStartupState,
+  startupMiddleware,
+} = require('../server/middleware/startup');
 
+const startupState = makeStartupState();
 axiosSetup();
 const app = express();
+
+// Serve error pages if NMS fails to initialize
+startupState.setStep(STARTUP_STEPS.START);
+app.use(startupMiddleware(startupState));
+
 if (process.env.WEBSOCKETS_ENABLED) {
   require('express-ws')(app);
 }
+app.listen(port, '', err => {
+  if (err) {
+    logger.error(err);
+  }
+  if (devMode) {
+    logger.info('<=========== DEVELOPER MODE ===========>');
+  } else {
+    logger.info('<=========== PRODUCTION MODE ==========>');
+    logger.info('<== JS BUNDLE SERVED FROM /static/js ==>');
+    logger.info('<==== LOCAL CHANGES NOT POSSIBLE ======>');
+  }
+  logger.info('=========> LISTENING ON PORT %s', port);
+});
 
 app.use(bodyParser.json({limit: '1mb'})); // parse json
 app.use(bodyParser.urlencoded({limit: '1mb', extended: false})); // parse application/x-www-form-urlencoded
@@ -151,14 +175,17 @@ app.get('*', (req, res) => {
 
 (async function main() {
   // loop and wait for a database connection
+  startupState.setStep(STARTUP_STEPS.DATABASE_CONFIGURE);
   for (;;) {
     try {
+      logger.debug('Attempting database connection');
       await sequelize.authenticate();
       break;
     } catch (error) {
+      startupState.errorMessage = makeDBErrorMessage(error);
       logger.error('NMS could not connect to database', error);
       // if connecting to the database fails, wait 2 seconds before retrying
-      await new Promise(res => setTimeout(res, 2000));
+      await new Promise(res => setTimeout(res, 5000));
     }
   }
 
@@ -176,27 +203,13 @@ app.get('*', (req, res) => {
   } catch (error) {
     logger.error('Unable to run seeds:', error);
   }
-
+  startupState.setStep(STARTUP_STEPS.DATABASE_READY);
   try {
     // Provision networks from a file
     await initializeNetworks();
   } catch (error) {
     logger.error('Unable to run network provisioning:', error);
   }
-
-  app.listen(port, '', err => {
-    if (err) {
-      logger.error(err);
-    }
-    if (devMode) {
-      logger.info('<=========== DEVELOPER MODE ===========>');
-    } else {
-      logger.info('<=========== PRODUCTION MODE ==========>');
-      logger.info('<== JS BUNDLE SERVED FROM /static/js ==>');
-      logger.info('<==== LOCAL CHANGES NOT POSSIBLE ======>');
-    }
-    logger.info('=========> LISTENING ON PORT %s', port);
-  });
 
   try {
     // Load network list
@@ -206,6 +219,9 @@ app.get('*', (req, res) => {
   } catch (error) {
     logger.error(`Unable to load initial network list:${error?.message}`);
   }
+
+  // NMS is completely started
+  startupState.setStep(STARTUP_STEPS.DONE);
 })();
 
 function configureWebpackSmartMiddleware() {
@@ -249,4 +265,16 @@ function configureSessionMaxAge() {
    * one day.
    */
   return DAY; // 1 day
+}
+
+function makeDBErrorMessage(error: Error) {
+  const {config} = sequelize;
+  const connString = [
+    `MYSQL_HOST=${config.host}`,
+    `MYSQL_USER=${config.username}`,
+    'MYSQL_PASS=****',
+    `MYSQL_PORT:${config.port}`,
+  ].join(';');
+  const errorMessage = `Cannot connect to database.<br/>${error.message}<br/> Credentials: ${connString}`;
+  return errorMessage;
 }
