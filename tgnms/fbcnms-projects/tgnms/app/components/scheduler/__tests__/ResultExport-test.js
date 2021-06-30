@@ -11,20 +11,14 @@ import ResultExport from '../ResultExport';
 import {
   NetworkContextWrapper,
   TestApp,
+  readBlob,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 
-const getTestExecutionMock = jest
-  .spyOn(networkTestAPIUtil, 'getExecutionResults')
-  .mockImplementation(() => Promise.resolve({data: {testResults: {id: '2'}}}));
-
-window.URL.createObjectURL = jest.fn();
-window.URL.revokeObjectURL = jest.fn();
-
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('file-saver', () => ({
+  saveAs: jest.fn(),
+}));
+const FileSaverMock = jest.requireMock('file-saver');
 
 const defaultProps = {
   id: '1',
@@ -39,7 +33,12 @@ test('renders without crashing', () => {
   expect(getByTestId('download-button')).toBeInTheDocument();
 });
 
-test('download triggers api call', () => {
+test('download triggers a file to be saved', async () => {
+  const apiResponse = {testResults: {id: '2'}};
+  const getTestExecutionMock = jest
+    .spyOn(networkTestAPIUtil, 'getExecutionResults')
+    .mockImplementation(() => Promise.resolve({results: apiResponse}));
+
   const {getByTestId, getByText} = render(
     <TestApp>
       <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
@@ -49,6 +48,18 @@ test('download triggers api call', () => {
     </TestApp>,
   );
   expect(getByTestId('download-button')).toBeInTheDocument();
-  fireEvent.click(getByText('JSON'));
+  await act(async () => {
+    fireEvent.click(getByText('JSON'));
+  });
   expect(getTestExecutionMock).toHaveBeenCalled();
+  expect(FileSaverMock.saveAs).toHaveBeenCalledWith(
+    expect.any(Blob),
+    'network_test_results_1.json',
+  );
+
+  // Verify blob object is the response from getExecutionResults.
+  const blob = FileSaverMock.saveAs.mock.calls[0][0];
+  expect(blob.type).toBe('octet/stream');
+  const text = await readBlob(blob);
+  expect(JSON.parse(text)).toMatchObject(apiResponse);
 });

@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as FileSaver from 'file-saver';
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
@@ -35,15 +36,7 @@ export default function NmsExportForm() {
         const blob = new Blob([JSON.stringify(response.data, null, 2)], {
           type: 'octet/stream',
         });
-
-        const anchor = document.createElement('a');
-        window.document.body.appendChild(anchor);
-        anchor.style.display = 'none';
-        const url = window.URL.createObjectURL(blob);
-        anchor.href = url;
-        anchor.download = 'nms_export.json';
-        anchor.click();
-        window.URL.revokeObjectURL(url);
+        FileSaver.saveAs(blob, 'nms_export.json');
       })
       .catch(_ => snackbars.error('Unable to export NMS data right now'));
   };

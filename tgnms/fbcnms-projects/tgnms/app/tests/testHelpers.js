@@ -474,3 +474,30 @@ export async function clickPanel(panel: HTMLElement) {
     fireEvent.click(btn);
   });
 }
+
+/**
+ * Reads a Blob into several different formats.
+ */
+type BLOB_TYPES = 'text' | 'array_buffer' | 'binary_string' | 'data_url';
+export async function readBlob(blob: Blob, as: BLOB_TYPES = 'text') {
+  return new Promise((res, _) => {
+    const fr = new FileReader();
+    fr.onload = function () {
+      res(this.result);
+    };
+    switch (as) {
+      case 'text':
+        fr.readAsText(blob);
+        break;
+      case 'array_buffer':
+        fr.readAsArrayBuffer(blob);
+        break;
+      case 'binary_string':
+        fr.readAsBinaryString(blob);
+        break;
+      case 'data_url':
+        fr.readAsDataURL(blob);
+        break;
+    }
+  });
+}

@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as FileSaver from 'file-saver';
 import * as React from 'react';
 import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
@@ -17,6 +18,7 @@ import {BUTTON_TYPES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
+
 import type {ExecutionResultDataType as ScanDataType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
 import type {ExecutionResultDataType as TestDataType} from '@fbcnms/tg-nms/shared/dto/NetworkTestTypes';
 
@@ -91,15 +93,9 @@ export default function ResultExport(props: Props): React.Node {
         });
       }
 
-      const anchor = document.createElement('a');
-      window.document.body.appendChild(anchor);
-      anchor.style.display = 'none';
-      const url = window.URL.createObjectURL(blob);
-      anchor.href = url;
-      anchor.download = fileName;
-      anchor.click();
-      window.URL.revokeObjectURL(url);
-
+      blob != null
+        ? FileSaver.saveAs(blob, fileName)
+        : console.error(`Unsupported export type: ${exportType}`);
       setExportMenu(false);
     },
     [fetchData, id, mapMode, snackbars],

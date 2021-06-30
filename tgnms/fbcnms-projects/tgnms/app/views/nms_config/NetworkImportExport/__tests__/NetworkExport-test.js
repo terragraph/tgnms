@@ -5,14 +5,11 @@
  * @flow
  */
 
-import * as FileSaverMock from 'file-saver';
 import * as ServiceApiUtilMock from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import * as SnackbarMock from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import NetworkExport from '../NetworkExport';
 import React from 'react';
-
-import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-
+import {TestApp, readBlob} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 import {mockNetworkInstanceConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
@@ -25,6 +22,7 @@ jest
   .mock('file-saver', () => ({
     saveAs: jest.fn(),
   }));
+const FileSaverMock = jest.requireMock('file-saver');
 
 // Setup Helpers
 const renderComponent = () => {
@@ -70,13 +68,8 @@ describe('NetworkExport', () => {
 
     // Verify blob object is the api response.
     const blob = FileSaverMock.saveAs.mock.calls[0][0];
-    const text = await new Promise((res, _) => {
-      const fr = new FileReader();
-      fr.onload = function () {
-        res(this.result);
-      };
-      fr.readAsText(blob);
-    });
+    expect(blob.type).toBe('application/json');
+    const text = await readBlob(blob);
     expect(JSON.parse(text)).toMatchObject(apiResponse);
   });
 

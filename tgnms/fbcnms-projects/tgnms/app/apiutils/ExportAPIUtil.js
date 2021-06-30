@@ -5,11 +5,13 @@
  * @flow
  */
 
+import * as FileSaver from 'file-saver';
 import * as React from 'react';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import axios from 'axios';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {useCancelToken} from '@fbcnms/tg-nms/app/hooks/axiosHooks';
+
 import type {CancelToken} from 'axios';
 
 export async function exportFileType({
@@ -44,20 +46,17 @@ export function useExport({table}: {table: string}) {
       table,
       cancelToken,
     });
-    const downloadLink = document.createElement('a');
-    const data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(csvData);
-    downloadLink.href = data;
-    downloadLink.download = `${networkName}_${table}.csv`;
-    downloadLink.target = '_blank';
+
     try {
-      document.body && document.body.appendChild(downloadLink);
-      downloadLink.click();
+      const blob = new Blob([csvData], {
+        type: 'text/plain;charset=utf-8',
+      });
+      FileSaver.saveAs(blob, `${networkName}_${table}.csv`);
     } catch (err) {
       setState(TASK_STATE.ERROR);
       throw err;
     } finally {
       setState(TASK_STATE.SUCCESS);
-      document.body && document.body.removeChild(downloadLink);
     }
   }, [networkName, cancelToken, table, setState]);
   return {

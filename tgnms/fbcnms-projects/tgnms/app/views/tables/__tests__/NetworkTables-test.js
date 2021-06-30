@@ -18,6 +18,9 @@ import {act, fireEvent, render, within} from '@testing-library/react';
 
 const axiosMock = jest.spyOn(axios, 'default');
 axiosMock.mockImplementation(() => Promise.resolve({data: []}));
+jest.mock('file-saver', () => ({
+  saveAs: jest.fn(),
+}));
 
 beforeEach(() => {
   initWindowConfig({
