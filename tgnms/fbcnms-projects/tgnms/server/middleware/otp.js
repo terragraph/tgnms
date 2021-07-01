@@ -16,8 +16,7 @@
  * - protect /static/tg-binaries with the otpMiddleware function
  */
 
-// eslint-disable-next-line no-unused-vars
-import type express from 'express';
+import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
 const crypto = require('crypto');
 
 export type OtpMiddlewareParams = {|
@@ -35,11 +34,7 @@ const defaultParams = {
 const otpTokenStore = new Set<string>();
 
 export function otpMiddleware(params?: OtpMiddlewareParams = defaultParams) {
-  return (
-    req: express$Request,
-    res: express$Response,
-    next: express$NextFunction,
-  ) => {
+  return (req: ExpressRequest, res: ExpressResponse, next: NextFunction) => {
     const token = req.query[params.queryKey];
     if (!token || typeof token !== 'string' || token.trim() === '') {
       return res.status(401).send({
