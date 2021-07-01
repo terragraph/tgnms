@@ -30,6 +30,17 @@
   roles:
     - { role: swarm_worker, tags: ["worker", "swarm_worker"] }
 
+- name: Pull docker images
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  tasks:
+    - name: "Pull latest docker images for tag"
+      shell: "docker pull {{ item }}"
+      loop: "{{docker_images}}"
+
 - name: Install migo v6up
   hosts: all
   become: true
@@ -51,7 +62,7 @@
       docker_network:
         name: inbound
         ipam_config:
-         - subnet: "{{ docker_internal_network }}"
+          - subnet: "{{ docker_internal_network }}"
         attachable: yes
         driver: bridge
         enable_ipv6: yes
@@ -133,7 +144,7 @@
     - { role: chihaya, tags: ["chihaya", "opentracker", "tracker"] }
     - { role: alarms, tags: ["alarms"] }
     - { role: msa, tags: ["msa", "tglib"] }
-    - { role: monitoring, tags: ["monitoring", "monitor"]}
+    - { role: monitoring, tags: ["monitoring", "monitor"] }
 
 - hosts: all
   become: true
@@ -154,8 +165,8 @@
         controller_image: "{{ ctrlr.image if ctrlr.image is defined else e2e_image }}"
       with_items: "{{ controllers_list }}"
       loop_control:
-          loop_var: ctrlr
-          index_var: index
+        loop_var: ctrlr
+        index_var: index
 
 - name: Backup installation config post install/upgrade
   hosts: managers

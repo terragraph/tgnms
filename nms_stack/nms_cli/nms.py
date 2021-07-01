@@ -2,11 +2,11 @@
 # Copyright (c) 2014-present, Facebook, Inc.
 
 import logging
-import re
 import os
-import sys
+import re
 import secrets
 import string
+import sys
 
 import click
 import oyaml as yaml
@@ -203,7 +203,7 @@ def beta(ctx):
 
 def generate_password():
     alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for i in range(20))
+    return "".join(secrets.choice(alphabet) for i in range(20))
 
 
 def fill_in_passwords(content, group_vars_file):
@@ -221,12 +221,14 @@ def fill_in_passwords(content, group_vars_file):
         content = re.sub(f"{key}:\s*?\n", f"{key}: {generate_password()}\n", content)
 
     # Grab everything defined under 'passwords:' via regex and put in a password.
-    passwords_re = re.compile(r'^(passwords:\n(  .*\n)+?\n)', flags=re.MULTILINE)
+    passwords_re = re.compile(r"^(passwords:\n(  .*\n)+?\n)", flags=re.MULTILINE)
     match = passwords_re.search(content)
 
     # If there is no match then group_vars/all is messed up, so report an error
     if match is None or len(match.groups()) != 2:
-        raise RuntimeError(f"{group_vars_file} 'passwords' is incorrectly configured, it must end in 2 blank lines")
+        raise RuntimeError(
+            f"{group_vars_file} 'passwords' is incorrectly configured, it must end in 2 blank lines"
+        )
 
     text = match.groups()[0].strip("passwords:").strip()
     new_text = "passwords:\n"
@@ -265,6 +267,18 @@ def quoted_presenter(dumper, data):
     data = data.replace('"', "")
     data = data.replace("'", "")
     return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+
+
+def load_variables(config_file):
+    default_variables_file = os.path.join(
+        os.path.dirname(__file__), "nms_stack", "group_vars", "all"
+    )
+    with open(default_variables_file, "r") as defaults:
+        variables = yaml.safe_load(defaults)
+    if config_file and os.path.exists(config_file):
+        with open(config_file, "r") as user:
+            variables.update(yaml.safe_load(user))
+    return variables
 
 
 @cli.command()
@@ -307,7 +321,28 @@ def install(
     if ssl_cert_file is not None:
         a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
 
-    sys.exit(a.run(hosts, INSTALL_PLAYBOOK, config_file=config_file, password=password))
+    generated_config = {}
+    # Load variables from the config file / defaults
+    variables = load_variables(config_file)
+
+    # Enumerate docker images to be pulled
+    docker_images = []
+    for key in variables.keys():
+        if re.match("^[a-z0-9_]+_image", key):
+            image = variables[key]
+            docker_images.append(image)
+
+    generated_config["docker_images"] = docker_images
+
+    sys.exit(
+        a.run(
+            hosts,
+            INSTALL_PLAYBOOK,
+            config_file=config_file,
+            generated_config=generated_config,
+            password=password,
+        )
+    )
 
 
 @cli.command()
