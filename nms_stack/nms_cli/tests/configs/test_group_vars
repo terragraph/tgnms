@@ -127,12 +127,12 @@ keycloak_root_password: 7I*xUF9PGpI5W*ig
 # Database Config
 db_host: db
 db_root_user: root
-db_root_password: 12345
 
 passwords:
   grafana_db_reader:
   grafana_db_writer:
   nms_db:
+  db_root_password: 12345
 
 # GlusterFS paths (relative to terragraph_docker_path)
 gluster_bricks: bricks

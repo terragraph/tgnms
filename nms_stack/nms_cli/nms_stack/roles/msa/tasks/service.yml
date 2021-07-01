@@ -43,7 +43,7 @@
     --env-file={{ msa_gfs_path }}/env/{{ service.name }}.env
     -e DB_HOST={{ db_host }}
     -e DB_ROOT_USER={{ db_root_user }}
-    -e DB_ROOT_PASSWORD={{ db_root_password }}
+    -e DB_ROOT_PASSWORD={{ passwords.db_root_password  }}
     mysql:5 /scripts/create_service_database.sh
   when: service.has_database
 

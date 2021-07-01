@@ -65,9 +65,18 @@
     group: docker
     force: yes
   loop:
-    - { src: "provisioning/dashboards/config.yml", dest: "provisioning/dashboards" }
-    - { src: "provisioning/datasources/mysql.yml", dest: "provisioning/datasources" }
-    - { src: "provisioning/datasources/prometheus.yml", dest: "provisioning/datasources" }
+    - {
+        src: "provisioning/dashboards/config.yml",
+        dest: "provisioning/dashboards",
+      }
+    - {
+        src: "provisioning/datasources/mysql.yml",
+        dest: "provisioning/datasources",
+      }
+    - {
+        src: "provisioning/datasources/prometheus.yml",
+        dest: "provisioning/datasources",
+      }
 
 - name: copy grafana dashboard files
   copy:
@@ -85,18 +94,18 @@
 
 - name: configure nms and apiservice to use keycloak
   command: >
-      docker run --rm
-      --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
-      --mount type=bind,source={{ nms_path }}/env/nms_auth.env,target=/nms_auth.env
-      --mount type=bind,source={{ e2e_path }}/keycloak,target=/apiservice
-      --entrypoint=""
-      --network=terragraph_net
-      --env-file={{ keycloak_path }}/env/keycloak.env
-      -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
-      -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
-      -u root
-      jboss/keycloak:7.0.0
-      /scripts/configure-keycloak.sh
+    docker run --rm
+    --mount type=bind,source={{ keycloak_path }}/docker_volumes/keycloak/scripts,target=/scripts
+    --mount type=bind,source={{ nms_path }}/env/nms_auth.env,target=/nms_auth.env
+    --mount type=bind,source={{ e2e_path }}/keycloak,target=/apiservice
+    --entrypoint=""
+    --network=terragraph_net
+    --env-file={{ keycloak_path }}/env/keycloak.env
+    -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
+    -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
+    -u root
+    jboss/keycloak:7.0.0
+    /scripts/configure-keycloak.sh
   when: keycloak_enabled
 
 - name: run compose
@@ -111,7 +120,7 @@
   until: result.rc == 0
 
 - name: Add e2e controllers to database
-  shell: "docker run -i --network=terragraph_net mysql:5 mysql -u{{ db_root_user }} -p{{ db_root_password }} --host=database_db cxl < '{{ nms_path }}/add_controllers.sql'"
+  shell: "docker run -i --network=terragraph_net mysql:5 mysql -u{{ db_root_user }} -p{{ passwords.db_root_password  }} --host=database_db cxl < '{{ nms_path }}/add_controllers.sql'"
 
 - name: Restart nms
   command: docker service update --force nms_nms

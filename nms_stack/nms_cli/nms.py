@@ -207,19 +207,6 @@ def generate_password():
 
 
 def fill_in_passwords(content, group_vars_file):
-    # For these keys, add a value with a password. Generating passwords here
-    # rather than in Ansible via lookup('password', ...) ensures that passwords
-    # don't get regenerated every time the plays are run.
-    passwords = [
-        "db_root_password",
-        "keycloak_root_password",
-    ]
-
-    # Replace via regex instead of round-tripping through PyYAML in order to
-    # preserve comments and spacing.
-    for key in passwords:
-        content = re.sub(f"{key}:\s*?\n", f"{key}: {generate_password()}\n", content)
-
     # Grab everything defined under 'passwords:' via regex and put in a password.
     passwords_re = re.compile(r"^(passwords:\n(  .*\n)+?\n)", flags=re.MULTILINE)
     match = passwords_re.search(content)

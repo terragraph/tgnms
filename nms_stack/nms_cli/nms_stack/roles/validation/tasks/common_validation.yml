@@ -31,5 +31,6 @@
     - passwords.grafana_db_writer
     - passwords.grafana_db_reader
     - passwords.nms_db
-    - keycloak_root_password
-    - db_root_password
+    - passwords.keycloak_root_password
+    - passwords.keycloak_db_password
+    - passwords.db_root_password

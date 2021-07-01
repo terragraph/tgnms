@@ -120,21 +120,22 @@ docker_registry_password:
 keycloak_enabled: false
 # Keycloak admin portal credentials
 keycloak_root_user: root
-keycloak_root_password:
 
 # Database Config
 db_host: db
 db_root_user: root
-db_root_password:
 
 
-mapbox_access_token: 
+mapbox_access_token:
 
 passwords:
   grafana_db_reader:
   grafana_db_writer:
   nms_db:
   grafana_admin:
+  db_root_password:
+  keycloak_root_password:
+  keycloak_db_password:
 
 # GlusterFS paths (relative to terragraph_docker_path)
 gluster_bricks: bricks
