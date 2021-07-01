@@ -39,6 +39,17 @@
             "n_day" : 30,
             "use_real_links": true
           }
+        },
+        {
+          "name": "estimate_early_weak_interference",
+          "enabled": true,
+          "params": {
+            "window_s" : 300,
+            "windows_count" : 12,
+            "tx_per_threshold_percent" : 25,
+            "rx_per_threshold_percent" : 5,
+            "ewi_count_threshold_percent" : 50
+          }
         }
       ]
     }

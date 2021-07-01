@@ -1,46 +1,57 @@
 {
-    "num_consumers": 5,
-    "pipelines": {
-      "pipeline 1": {
-        "period_s": 300,
-        "jobs": [
-          {
-            "name": "gauge_cn_power_status",
-            "enabled": true,
-            "params": {
-              "window_s": 1800
-            }
-          },
-          {
-            "name": "find_link_foliage",
-            "enabled": true,
-            "params": {
-              "number_of_windows" : 5,
-              "min_window_size" : 20,
-              "minimum_var" : 0,
-              "query_interval" : 3600,
-              "step": 30
-            }
-          },
-          {
-            "name": "find_alignment_status",
-            "enabled": true,
-            "params": {
-              "threshold_misalign_degree" : 30,
-              "threshold_tx_rx_degree_diff": 6,
-              "sample_period": 300,
-              "step": 30
-            }
-          },
-          {
-            "name": "estimate_current_interference",
-            "enabled": true,
-            "params": {
-              "n_day" : 30,
-              "use_real_links": true
-            }
+  "num_consumers": 5,
+  "pipelines": {
+    "pipeline 1": {
+      "period_s": 300,
+      "jobs": [
+        {
+          "name": "gauge_cn_power_status",
+          "enabled": true,
+          "params": {
+            "window_s": 1800
           }
-        ]
-      }
+        },
+        {
+          "name": "find_link_foliage",
+          "enabled": true,
+          "params": {
+            "number_of_windows" : 5,
+            "min_window_size" : 20,
+            "minimum_var" : 0,
+            "query_interval" : 3600,
+            "step": 30
+          }
+        },
+        {
+          "name": "find_alignment_status",
+          "enabled": true,
+          "params": {
+            "threshold_misalign_degree" : 30,
+            "threshold_tx_rx_degree_diff": 6,
+            "sample_period": 300,
+            "step": 30
+          }
+        },
+        {
+          "name": "estimate_current_interference",
+          "enabled": true,
+          "params": {
+            "n_day" : 30,
+            "use_real_links": true
+          }
+        },
+        {
+          "name": "estimate_early_weak_interference",
+          "enabled": true,
+          "params": {
+            "window_s" : 300,
+            "windows_count" : 12,
+            "tx_per_threshold_percent" : 25,
+            "rx_per_threshold_percent" : 5,
+            "ewi_count_threshold_percent" : 50
+          }
+        }
+      ]
     }
   }
+}
