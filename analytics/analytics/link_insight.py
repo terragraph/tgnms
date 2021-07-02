@@ -87,8 +87,8 @@ def compute_link_foliage(
             )
             if foliage_factor is None:
                 continue
-            logging.info(
-                f"{network_name}:{link_name} foliage_factor is {foliage_factor}"
+            logging.debug(
+                f"{network_name}: {link_name} foliage_factor is {foliage_factor}"
             )
             labels = {consts.network: network_name, consts.link_name: link_name}
             foliage_metrics.append(
@@ -186,11 +186,12 @@ def compute_single_link_foliage_factor(
 
 def extract_prometheus_results(prom_results: Dict, network_name: str) -> Dict:
     prometheus_stats: Dict = {}
-    for metric, values in prom_results.items():
-        if not prom_results[metric]:
-            logging.debug(f"Found no {metric} results for {network_name}")
+    for query, values in prom_results.items():
+        if not values:
+            logging.debug(f"Found no {query} results for {network_name}")
             continue
-        prometheus_stats[metric] = [
+        metric_name = values[0]["metric"]["__name__"]
+        prometheus_stats[metric_name] = [
             {
                 "link_name": val["metric"][consts.link_name],
                 "link_direction": val["metric"][consts.link_direction],
@@ -207,9 +208,9 @@ def analyze_ewi(network_stats: Iterable, sum_threshold: int) -> None:
     for network_dir, prom_results in network_stats:
         if prom_results is None:
             continue
-        for metric, values in prom_results.items():
-            if not prom_results[metric]:
-                logging.debug(f"Found no {metric} results for {network_dir[0]}")
+        for query, values in prom_results.items():
+            if not prom_results[query]:
+                logging.debug(f"Found no {query} results for {network_dir[0]}")
                 continue
             for result in values:
                 labels = {
@@ -226,8 +227,9 @@ def analyze_ewi(network_stats: Iterable, sum_threshold: int) -> None:
                     )
                 ]
                 if sum_val > sum_threshold:
-                    logging.info(
-                        f"EWI found for link {result['metric'][consts.link_name]}, direction {network_dir[1]}"
+                    logging.debug(
+                        f"{network_dir[0]}: EWI found for link "
+                        f"{result['metric'][consts.link_name]}, direction {network_dir[1]}"
                     )
     PrometheusClient.write_metrics(ewi_stats)
     return None
@@ -280,6 +282,10 @@ def analyze_alignment(
                     node_alignment_status = NodeAlignmentStatus.LARGE_ANGLE
                 if tx_degree - rx_degree > threshold_tx_rx_degree_diff:
                     node_alignment_status = NodeAlignmentStatus.TX_RX_DIFF
+                logging.debug(
+                    f"{network_name}: Alignment status for {link}, direction {key[0]} "
+                    f"is {node_alignment_status}"
+                )
 
                 labels = {
                     consts.network: network_name,
@@ -301,18 +307,19 @@ def analyze_alignment(
 
 def process_node_alignment_metrics(prom_results: Dict, network_name: str) -> Dict:
     node_alignment_results: Dict = {}
-    for metric, values in prom_results.items():
-        if not prom_results[metric]:
-            logging.debug(f"Found no {metric} results for {network_name}")
+    for query, values in prom_results.items():
+        if not values:
+            logging.debug(f"Found no {query} results for {network_name}")
             continue
         results: DefaultDict = defaultdict(dict)
+        metric_name = values[0]["metric"]["__name__"]
         for val in values:
             if not val["values"]:
                 continue
             results[val["metric"][consts.link_name]][
                 (val["metric"][consts.link_direction], val["metric"][consts.node_name])
             ] = int(val["values"][-1][1])
-        node_alignment_results[metric] = results
+        node_alignment_results[metric_name] = results
     return node_alignment_results
 
 
@@ -332,11 +339,11 @@ async def fetch_metrics_from_queries(
         )
     try:
         results: Dict = {}
-        for metric, response in zip(queries, await asyncio.gather(*coros)):
+        for query, response in zip(queries, await asyncio.gather(*coros)):
             if response["status"] != "success":
-                logging.error(f"Failed to fetch {metric} data for {network_name}")
+                logging.error(f"Failed to fetch {query} data for {network_name}")
                 continue
-            results[metric] = response["data"]["result"]
+            results[query] = response["data"]["result"]
         return results
     except ClientRuntimeError:
         logging.exception("Failed to fetch metrics from Prometheus.")

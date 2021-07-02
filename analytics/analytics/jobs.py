@@ -126,9 +126,6 @@ async def estimate_early_weak_interference(
             # and A node getting EWI if tx_direction is Z
             # but the link direction getting EWI is the same as tx_direction
             queries = [f"{query_tx_per} * on (linkName) {query_rx_per}"]
-            logging.info(
-                f"Query for EWI estimates in link direction {direction[0]}: {queries}"
-            )
             coros.append(
                 fetch_metrics_from_queries(
                     client, network_name, queries, start_time, end_time, window_s
@@ -209,6 +206,9 @@ async def estimate_current_interference(
 
         for link_name, intrf_links in results["aggregated_inr"]["n_day_avg"].items():
             for link in intrf_links:
+                logging.debug(
+                    f"{network_name}: INR on {link_name} is {link['inr_curr_power']}"
+                )
                 labels = {
                     consts.network: network_name,
                     consts.link_name: link_name,
