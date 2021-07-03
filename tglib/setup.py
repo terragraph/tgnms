@@ -92,7 +92,9 @@ setup(
         "aiohttp>=3.5.4,<4.0",
         "aiokafka>=0.5.2,<1.0",
         "aiomysql>=0.0.20,<1.0",
-        "sqlalchemy>=1.3.5,<2.0",
+        # sqlalchemy>=1.4 introduced a new change for processing IN expressions which is currently incompatible with NMS services
+        # https://docs.sqlalchemy.org/en/14/changelog/migration_14.html#all-in-expressions-render-parameters-for-each-value-in-the-list-on-the-fly-e-g-expanding-parameters
+        "sqlalchemy==1.3.24",
         "uvloop>=0.14.0,<1.0",
     ],
     extras_require={
