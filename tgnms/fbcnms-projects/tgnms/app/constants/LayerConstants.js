@@ -110,7 +110,7 @@ export const POP_SITE_COLOR = TG_COLOR.BLUE;
 export const CN_SITE_COLOR = TG_COLOR.PINK;
 
 export const SpecialNodeOverlayColors = {
-  pop: {color: TG_COLOR.BLUE},
+  POP: {color: TG_COLOR.BLUE},
   client: {color: TG_COLOR.PINK},
 };
 

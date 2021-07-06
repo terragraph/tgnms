@@ -80,7 +80,7 @@ export default function MapOverlayLegend() {
     [overlaysConfig, selectedOverlays],
   );
 
-  const specialNodeLegend = React.useMemo(
+  const siteTypeLegend = React.useMemo(
     () =>
       Object.keys(SpecialNodeOverlayColors).map(nodeType => ({
         elementColor: SpecialNodeOverlayColors[nodeType].color,
@@ -187,7 +187,10 @@ export default function MapOverlayLegend() {
                 </>
               )}
               <Divider className={classes.resultDivider} />
-              {specialNodeLegend.map(({labelName, elementColor}) => (
+              <Grid item>
+                <SectionName>Site Type</SectionName>
+              </Grid>
+              {siteTypeLegend.map(({labelName, elementColor}) => (
                 <LegendItem
                   shape={SiteLegendShape}
                   color={elementColor}
