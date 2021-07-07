@@ -7,7 +7,7 @@ native modules are compatible with our internal environment.
 To manually update, run
 
     patchelf --set-interpreter \
-      /usr/local/fbcode/platform007/lib/ld-linux-x86-64.so.2 \
-      xplat/third-party/node/bin/node-linux-x64
+      /usr/local/fbcode/platform009/lib/ld-linux-x86-64.so.2 \
+      third-party/node/bin/node-linux-x64
 
-on the binary downloaded by `js1 upgrade node`
+on the node binary
