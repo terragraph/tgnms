@@ -197,7 +197,7 @@ describe('TopologyBuilderPanel', () => {
       fireEvent.click(getByText(/edit node/i));
     });
 
-    expect(getByTestId('add-node-panel')).toBeInTheDocument();
+    expect(getByTestId('add-topology-panel')).toBeInTheDocument();
   });
   test('clicking edit site opens the panel', async () => {
     const topology = mockSingleLink();
@@ -227,7 +227,7 @@ describe('TopologyBuilderPanel', () => {
       fireEvent.click(getByText(/edit site/i));
     });
 
-    expect(getByTestId('add-site-panel')).toBeInTheDocument();
+    expect(getByTestId('add-topology-panel')).toBeInTheDocument();
   });
 });
 

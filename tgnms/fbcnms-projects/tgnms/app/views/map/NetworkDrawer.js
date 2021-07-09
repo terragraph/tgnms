@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import AccessPointsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/AccessPointsPanel';
+import AddTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/TopologyBuilderPanel/AddTopologyPanel';
 import AnnotationsPanel from '@fbcnms/tg-nms/app/views/map/mappanels/AnnotationsPanel/AnnotationsPanel';
 import DefaultRouteHistoryPanel from '@fbcnms/tg-nms/app/views/map/mappanels/DefaultRouteHistoryPanel';
 import Dragger from '@fbcnms/tg-nms/app/components/common/Dragger';
@@ -23,27 +24,21 @@ import RenderTopologyElement from '@fbcnms/tg-nms/app/views/map/RenderTopologyEl
 import ScanServicePanel from '@fbcnms/tg-nms/app/views/map/mappanels/ScanServicePanel/ScanServicePanel';
 import SearchNearby from '@fbcnms/tg-nms/app/views/map/SearchNearby';
 import Slide from '@material-ui/core/Slide';
-import TopologyBuilderPanel from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/TopologyBuilderPanel';
 import UpgradeProgressPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UpgradeProgressPanel';
 import UploadTopologyPanel from '@fbcnms/tg-nms/app/views/map/mappanels/UploadTopologyPanel';
-import useTopologyBuilderForm from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
-import {
-  FORM_TYPE,
-  SlideProps,
-} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {
   PANELS,
   PANEL_STATE,
   usePanelControl,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {UpgradeReqTypeValueMap as UpgradeReqType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
+import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 
-import type {EditTopologyElementParams} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {Props as MapLayersProps} from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
 import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
@@ -83,10 +78,6 @@ type Props = {|
   onNetworkDrawerResize: number => *,
   mapLayersProps: MapLayersProps,
   searchNearbyProps: SearchNearbyProps,
-  siteProps: {
-    hideSite: string => void,
-    unhideSite: string => void,
-  },
   networkTestId?: ?string,
   scanId?: ?string,
 |};
@@ -98,7 +89,6 @@ export default function NetworkDrawer({
   networkTestId,
   onNetworkDrawerResize,
   scanId,
-  siteProps,
 }: Props) {
   const classes = useStyles();
   const drawerDimensions = {
@@ -122,7 +112,6 @@ export default function NetworkDrawer({
     wireless_controller,
     wireless_controller_stats,
   } = context.networkConfig;
-  const {setLocation} = usePlannedSiteContext();
 
   const topologyElements: Array<Element> = [];
   if (selectedElement) {
@@ -179,15 +168,19 @@ export default function NetworkDrawer({
     getIsAnyOpen,
   } = panelControl;
 
-  // this state is for the TopologyBuilderPanel forms
-  const topologyBuilderForm = useTopologyBuilderForm();
-  const {updateForm} = topologyBuilderForm;
-
+  const {selectedTopologyPanel} = useTopologyBuilderContext();
   const shouldOpenOverview = !(
     getIsAnyOpen() &&
     getIsCollapsed(PANELS.OVERVIEW) &&
     getIsCollapsed(PANELS.MAP_LAYERS)
   );
+
+  React.useEffect(() => {
+    if (selectedTopologyPanel != null) {
+      collapseAll();
+      setPanelState(selectedTopologyPanel, PANEL_STATE.OPEN);
+    }
+  }, [selectedTopologyPanel, collapseAll, setPanelState]);
 
   React.useEffect(() => {
     if (!selectedElement && !getIsAnyOpen() && shouldOpenOverview) {
@@ -214,59 +207,6 @@ export default function NetworkDrawer({
       setPanelState(PANELS.UPGRADE_PROGRESS, PANEL_STATE.HIDDEN);
     }
   }, [showUpgradeProgressPanel, getIsHidden, setPanelState]);
-
-  const handleEditTopology = React.useCallback(
-    (
-      params: EditTopologyElementParams,
-      type: $Values<typeof TOPOLOGY_ELEMENT>,
-    ) => {
-      collapseAll();
-      updateForm({
-        params,
-        formType: FORM_TYPE.EDIT,
-      });
-      if (type === TOPOLOGY_ELEMENT.SITE) {
-        if (
-          typeof params?.location !== 'undefined' &&
-          params?.location != null
-        ) {
-          setLocation({...params.location});
-        }
-        setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
-      } else if (type === TOPOLOGY_ELEMENT.NODE) {
-        setPanelState(PANELS.TOPOLOGY_NODE, PANEL_STATE.OPEN);
-      } else if (type === TOPOLOGY_ELEMENT.LINK) {
-        setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
-      }
-    },
-    [collapseAll, updateForm, setPanelState, setLocation],
-  );
-  const handleAddTopology = React.useCallback(
-    (
-      params: EditTopologyElementParams,
-      type: $Values<typeof TOPOLOGY_ELEMENT>,
-    ) => {
-      collapseAll();
-      updateForm({
-        params,
-        formType: FORM_TYPE.CREATE,
-      });
-      if (type === TOPOLOGY_ELEMENT.SITE) {
-        if (
-          typeof params?.location !== 'undefined' &&
-          params?.location != null
-        ) {
-          setLocation({...params.location});
-        }
-        setPanelState(PANELS.TOPOLOGY_SITE, PANEL_STATE.OPEN);
-      } else if (type === TOPOLOGY_ELEMENT.NODE) {
-        setPanelState(PANELS.TOPOLOGY_NODE, PANEL_STATE.OPEN);
-      } else if (type === TOPOLOGY_ELEMENT.LINK) {
-        setPanelState(PANELS.TOPOLOGY_LINK, PANEL_STATE.OPEN);
-      }
-    },
-    [collapseAll, updateForm, setLocation, setPanelState],
-  );
 
   const showOverviewPanel = !(
     mapMode === MAPMODE.NETWORK_TEST || mapMode === MAPMODE.SCAN_SERVICE
@@ -330,6 +270,7 @@ export default function NetworkDrawer({
           onPanelChange={() => toggleOpen(PANELS.MAP_LAYERS)}
         />
         <NetworkPlanningPanel panelControl={panelControl} />
+        <AddTopologyPanel panelControl={panelControl} />
         <L2TunnelPanel panelControl={panelControl} />
         <UploadTopologyPanel panelControl={panelControl} />
 
@@ -372,28 +313,19 @@ export default function NetworkDrawer({
           <SearchNearby
             nodeName={txNode}
             searchNearbyProps={searchNearbyProps}
-            panelControl={panelControl}
-            onAddTopology={handleAddTopology}
           />
         ))}
-
         {topologyElements.map(el => (
           <RenderTopologyElement
             key={el.name}
             element={el}
             panelControl={panelControl}
             searchNearbyProps={searchNearbyProps}
-            onEditTopology={handleEditTopology}
           />
         ))}
-
         <DefaultRouteHistoryPanel panelControl={panelControl} />
         <RemoteOverlayMetadataPanel panelControl={panelControl} />
-        <TopologyBuilderPanel
-          panelControl={panelControl}
-          panelForm={topologyBuilderForm}
-          siteProps={siteProps}
-        />
+
         <AnnotationsPanel panelControl={panelControl} />
         <DrawerToggleButton
           drawerWidth={networkDrawerWidth}

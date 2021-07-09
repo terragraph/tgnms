@@ -26,7 +26,7 @@ import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
@@ -41,16 +41,13 @@ import {withStyles} from '@material-ui/core/styles';
 
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import type {
-  EditLinkParams,
-  EditNodeParams,
-  NearbyNodes,
-} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
-import type {LocationType} from '@fbcnms/tg-nms/shared/types/Topology';
-import type {
+  LinkType,
   NodeType,
   SiteType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import type {LocationType} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {Site} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
   TopologyScanInfo,
@@ -118,8 +115,8 @@ type Props = {
   site: Site,
   nearbyNodes: NearbyNodes,
   onUpdateNearbyNodes: NearbyNodes => any,
-  onAddNode: ($Shape<EditNodeParams>) => any,
-  onAddLink: EditLinkParams => any,
+  onAddNode: ($Shape<NodeType>) => any,
+  onAddLink: ($Shape<LinkType>) => any,
   onAddSite: ($Shape<SiteType>) => any,
 };
 
@@ -401,11 +398,11 @@ class SearchNearbyPanel extends React.Component<Props, State> {
             icon: <CompareArrowsIcon />,
             func: () =>
               onAddLink({
-                linkNode1: node.name,
-                linkNode1Mac: actionsData.radioMac,
-                linkNode2: rxNode.name,
-                linkNode2Mac: actionsData.macAddr,
-                link_type: LinkType.WIRELESS,
+                a_node_name: node.name,
+                a_node_mac: actionsData.radioMac,
+                z_node_name: rxNode.name,
+                z_node_mac: actionsData.macAddr,
+                link_type: LinkTypeValueMap.WIRELESS,
               }),
             disabled: false,
           });

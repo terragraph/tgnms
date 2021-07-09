@@ -43,6 +43,7 @@ import {
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
+
 import type {NetworkHealth} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {
   NodeType as Node,
@@ -113,7 +114,7 @@ type Props = {
   networkLinkHealth: NetworkHealth,
   wapStats?: Object,
   onSelectNode: string => any,
-  onEdit: (s: SiteType) => *,
+  onEdit: (siteName: string) => void,
   expanded: boolean,
   onPanelChange: () => any,
   onClose: () => any,
@@ -310,7 +311,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
   onEditSite() {
     // Edit this site
     const {site, onClose, onEdit} = this.props;
-    onEdit(site);
+    onEdit(site.name);
     onClose();
   }
 

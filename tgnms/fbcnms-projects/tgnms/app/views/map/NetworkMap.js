@@ -300,10 +300,6 @@ class NetworkMapContent extends React.Component<Props, State> {
                             expanded: false,
                             onPanelChange: () => {},
                           }}
-                          siteProps={{
-                            hideSite: this.hideSite,
-                            unhideSite: this.unhideSite,
-                          }}
                           searchNearbyProps={{
                             nearbyNodes: nearbyNodes,
                             onUpdateNearbyNodes: nearbyNodes =>

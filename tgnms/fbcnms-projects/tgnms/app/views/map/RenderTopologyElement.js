@@ -23,8 +23,8 @@ import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import {useTheme} from '@material-ui/styles';
+import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 
-import type {EditTopologyElementParams} from '@fbcnms/tg-nms/app/views/map/mappanels/topologyCreationPanels/useTopologyBuilderForm';
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import type {SearchNearbyProps} from '@fbcnms/tg-nms/app/views/map/NetworkDrawer';
@@ -33,15 +33,10 @@ export default function RenderTopologyElement({
   element,
   panelControl,
   searchNearbyProps,
-  onEditTopology,
 }: {
   element: Element,
   panelControl: PanelStateControl,
   searchNearbyProps: SearchNearbyProps,
-  onEditTopology: (
-    params: EditTopologyElementParams,
-    type: $Values<typeof TOPOLOGY_ELEMENT>,
-  ) => *,
 }) {
   const {setPanelState, getIsHidden, removePanel, collapseAll} = panelControl;
   const theme = useTheme();
@@ -49,6 +44,7 @@ export default function RenderTopologyElement({
   const snackbars = useSnackbars();
 
   const {type, name, expanded} = element;
+  const {editSite, editNode} = useTopologyBuilderContext();
   const {
     networkConfig,
     pinnedElements,
@@ -151,7 +147,7 @@ export default function RenderTopologyElement({
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
           onClose={handleClosePanel}
-          onEdit={params => onEditTopology(params, TOPOLOGY_ELEMENT.NODE)}
+          onEdit={nodeName => editNode(nodeName)}
           {...searchNearbyProps}
           {...routesPropsWithoutNode}
           node={node}
@@ -203,6 +199,7 @@ export default function RenderTopologyElement({
           siteMap={siteMap}
           siteNodes={siteToNodesMap[name] || new Set()}
           nodeMap={nodeMap}
+          nodeToLinksMap={nodeToLinksMap}
           networkLinkHealth={networkLinkHealth}
           wapStats={wapStats}
           onClose={handleClosePanel}
@@ -211,7 +208,7 @@ export default function RenderTopologyElement({
           }
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
-          onEdit={params => onEditTopology(params, TOPOLOGY_ELEMENT.SITE)}
+          onEdit={siteName => editSite(siteName)}
           onUpdateRoutes={onUpdateRoutes}
         />
       </Slide>

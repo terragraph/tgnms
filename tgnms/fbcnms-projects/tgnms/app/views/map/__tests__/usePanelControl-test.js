@@ -55,12 +55,15 @@ describe('usePanelControl', () => {
       result.current.setPanelState(PANELS.IGNITION_STATE, PANEL_STATE.OPEN);
     });
     act(() => {
-      result.current.setPanelState(PANELS.TOPOLOGY_NODE, PANEL_STATE.COLLAPSED);
+      result.current.setPanelState(
+        PANELS.MANUAL_TOPOLOGY,
+        PANEL_STATE.COLLAPSED,
+      );
     });
     expect(result.current.getPanelState(PANELS.IGNITION_STATE)).toBe(
       PANEL_STATE.OPEN,
     );
-    expect(result.current.getPanelState(PANELS.TOPOLOGY_NODE)).toBe(
+    expect(result.current.getPanelState(PANELS.MANUAL_TOPOLOGY)).toBe(
       PANEL_STATE.COLLAPSED,
     );
   });

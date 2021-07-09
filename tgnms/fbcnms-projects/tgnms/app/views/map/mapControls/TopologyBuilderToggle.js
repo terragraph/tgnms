@@ -30,6 +30,9 @@ const useStyles = makeStyles(() => ({
 export default function TopologyBuilderToggle() {
   const classes = useStyles();
   const {
+    createSite,
+    createNode,
+    createLink,
     selectedTopologyPanel,
     setSelectedTopologyPanel,
   } = useTopologyBuilderContext();
@@ -39,20 +42,12 @@ export default function TopologyBuilderToggle() {
     if (selectedTopologyPanel === null) {
       setTopologyEnabled(false);
     }
-  }, [selectedTopologyPanel, setTopologyEnabled]);
-
-  React.useEffect(() => {
-    if (!topologyEnabled) {
-      setSelectedTopologyPanel(null);
-    }
-  }, [setSelectedTopologyPanel, topologyEnabled]);
+  }, [selectedTopologyPanel]);
 
   const handleSelectTopologyPanel = React.useCallback(
     (selectedPanel: $Values<typeof TOPOLOGY_PANEL_OPTIONS>) => {
       if (selectedTopologyPanel !== selectedPanel) {
         setSelectedTopologyPanel(selectedPanel);
-      } else {
-        setSelectedTopologyPanel(null);
       }
     },
     [selectedTopologyPanel, setSelectedTopologyPanel],
@@ -82,26 +77,14 @@ export default function TopologyBuilderToggle() {
       </button>
       {topologyEnabled && (
         <>
-          <button
-            title="Add node"
-            onClick={() =>
-              handleSelectTopologyPanel(TOPOLOGY_PANEL_OPTIONS.NODE)
-            }>
+          <button title="Add planned site" onClick={createSite}>
+            <AddLocationIcon className={classes.icon} />
+          </button>
+          <button title="Add node" onClick={createNode}>
             <RouterIcon className={classes.icon} />
           </button>
-          <button
-            title="Add link"
-            onClick={() =>
-              handleSelectTopologyPanel(TOPOLOGY_PANEL_OPTIONS.LINK)
-            }>
+          <button title="Add link" onClick={createLink}>
             <CompareArrowsIcon className={classes.icon} />
-          </button>
-          <button
-            title="Add planned site"
-            onClick={() =>
-              handleSelectTopologyPanel(TOPOLOGY_PANEL_OPTIONS.SITE)
-            }>
-            <AddLocationIcon className={classes.icon} />
           </button>
           {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
             <button

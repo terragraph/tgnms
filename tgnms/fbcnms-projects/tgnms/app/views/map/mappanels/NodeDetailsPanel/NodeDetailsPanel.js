@@ -36,15 +36,12 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {ContextRouter} from 'react-router-dom';
-import type {
-  EditNodeParams,
-  NearbyNodes,
-} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {
   LinkMap,
   NodeToLinksMap,
 } from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {Props as NodeDetailsProps} from './NodeDetails';
 import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
@@ -63,7 +60,6 @@ type Props = {
   nearbyNodes: NearbyNodes,
   onUpdateNearbyNodes: NearbyNodes => any,
   onClose: () => any,
-  onEdit: EditNodeParams => any,
   expanded: boolean,
   pinned: boolean,
   onPanelChange: () => any,
@@ -78,6 +74,7 @@ type Props = {
     error: string => any,
     warning: string => any,
   },
+  onEdit: string => any,
 } & WithStyles<typeof styles> &
   ForwardRef;
 
@@ -365,16 +362,9 @@ class NodeDetailsPanel extends React.Component<Props, State> {
 
   onEditNode = () => {
     // Edit this node
-    const {onClose, onEdit} = this.props;
-    const {wlan_mac_addrs, ...node} = this.props.node;
-    const params: EditNodeParams = {
-      ...node,
-      ...(node.golay_idx || {txGolayIdx: null, rxGolayIdx: null}),
-      wlan_mac_addrs: wlan_mac_addrs ? wlan_mac_addrs.join(',') : '',
-    };
-    // Format the data according to AddNodePanel state structure
+    const {onClose, onEdit, node} = this.props;
     // (Not all parameters are editable, but send them all anyway)
-    onEdit(params);
+    onEdit(node.name);
     onClose();
   };
 

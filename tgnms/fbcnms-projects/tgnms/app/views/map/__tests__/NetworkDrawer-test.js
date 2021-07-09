@@ -35,7 +35,6 @@ const commonProps = {
     onPanelChange: jest.fn(),
   },
   searchNearbyProps: {nearbyNodes: {}, onUpdateNearbyNodes: jest.fn(() => {})},
-  siteProps: {hideSite: jest.fn(), unhideSite: jest.fn()},
 };
 
 test('overview panel should be open by default', async () => {
