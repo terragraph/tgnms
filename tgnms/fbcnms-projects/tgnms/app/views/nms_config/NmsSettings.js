@@ -402,6 +402,11 @@ export default function NmsSettings() {
                         label="QoS Traffic Config"
                         setting="QOS_CONFIG"
                       />
+                      <SettingInput
+                        label="Onboarding Tutorial"
+                        setting="NETWORK_TUTORIAL"
+                        isFeatureToggle
+                      />
                     </SettingsGroup>
                   </SettingsForm>
                 )}

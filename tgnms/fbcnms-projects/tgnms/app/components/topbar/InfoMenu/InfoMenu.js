@@ -14,9 +14,16 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
+import Tutorials from '@fbcnms/tg-nms/app/components/tutorials/Tutorials';
+import {
+  MODULES,
+  MODULE_TITLES,
+} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {getUIConfig} from '@fbcnms/tg-nms/app/common/uiConfig';
+import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 const useStyles = makeStyles(theme => ({
   tooltip: {
@@ -34,8 +41,13 @@ const useStyles = makeStyles(theme => ({
 export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
   const anchorEl = React.useRef<?HTMLElement>(null);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const {version, env} = getUIConfig();
+  const {COMMIT_DATE, COMMIT_HASH, DOC_URL} = env;
+  const classes = useStyles();
+  const {isOpen, open, close} = useModalState();
+  const {setSelectedTutorial} = useTutorialContext();
 
-  const handleClick = React.useCallback(_ => {
+  const handleClick = React.useCallback(() => {
     setIsMenuOpen(true);
   }, []);
 
@@ -43,10 +55,13 @@ export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
     setIsMenuOpen(false);
   }, []);
 
-  const {version, env} = getUIConfig();
-  const {COMMIT_DATE, COMMIT_HASH, DOC_URL} = env;
-  const classes = useStyles();
-  const {isOpen, open, close} = useModalState();
+  const handleTutorialStart = React.useCallback(
+    module => {
+      setSelectedTutorial(module);
+      handleClose();
+    },
+    [setSelectedTutorial, handleClose],
+  );
 
   const toggleBuildModal = React.useCallback(() => {
     if (isOpen) {
@@ -85,6 +100,22 @@ export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
         transformOrigin={{vertical: 'top', horizontal: 'left'}}
         open={isMenuOpen}
         onClose={handleClose}>
+        {isFeatureEnabled('NETWORK_TUTORIAL') && (
+          <>
+            <MenuItem data-testid="tutorials-button" key="tutorials">
+              <ListItem>
+                <ListItemText primary="4-Link Network Tutorial" />
+              </ListItem>
+            </MenuItem>
+            {Object.keys(MODULES).map(module => (
+              <MenuItem key={module}>
+                <ListItem onClick={() => handleTutorialStart(module)}>
+                  <ListItemText secondary={MODULE_TITLES[module]} />
+                </ListItem>
+              </MenuItem>
+            ))}
+          </>
+        )}
         {DOC_URL && (
           <MenuItem onClick={handleClose}>
             <ListItem component="a" href={DOC_URL} target="_blank">
@@ -110,6 +141,7 @@ export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
         commitDate={COMMIT_DATE}
         commitHash={COMMIT_HASH}
       />
+      {isFeatureEnabled('NETWORK_TUTORIAL') && <Tutorials />}
     </>
   );
 }
