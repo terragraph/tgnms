@@ -79,6 +79,7 @@
     "react-debounce-input": "^3.2.0",
     "react-dom": "^16.8.6",
     "react-hot-loader": "^4.8.0",
+    "react-joyride": "^2.3.0",
     "react-mapbox-gl": "^4.0.2",
     "react-plotly.js": "^2.2.0",
     "react-router-dom": "5.1.2",
