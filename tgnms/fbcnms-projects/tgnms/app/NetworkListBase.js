@@ -17,6 +17,7 @@ import {CONFIG_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
+import {TutorialContextProvider} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 import {generatePath, matchPath} from 'react-router';
 import {getUIConfig} from './common/uiConfig';
 import {makeStyles} from '@material-ui/styles';
@@ -140,21 +141,23 @@ export default function NetworkListBase() {
         }}
         classes={{root: classes.snackbar}}>
         <NmsOptionsContextProvider>
-          <div className={classes.root}>
-            <MaterialTopBar />
-            <main className={classes.main}>
-              <div className={classes.appBarSpacer} />
-              <Switch>
-                <AuthorizedRoute
-                  path={CONFIG_PATH}
-                  component={NmsSettings}
-                  permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
-                />
-                <Route path="/:viewName/:networkName" component={NetworkUI} />
-                <NetworkRedirect defaultNetworkName={defaultNetworkName} />
-              </Switch>
-            </main>
-          </div>
+          <TutorialContextProvider>
+            <div className={classes.root}>
+              <MaterialTopBar />
+              <main className={classes.main}>
+                <div className={classes.appBarSpacer} />
+                <Switch>
+                  <AuthorizedRoute
+                    path={CONFIG_PATH}
+                    component={NmsSettings}
+                    permissions={['NMS_CONFIG_READ', 'NMS_CONFIG_WRITE']}
+                  />
+                  <Route path="/:viewName/:networkName" component={NetworkUI} />
+                  <NetworkRedirect defaultNetworkName={defaultNetworkName} />
+                </Switch>
+              </main>
+            </div>
+          </TutorialContextProvider>
         </NmsOptionsContextProvider>
       </SnackbarProvider>
     </NetworkListContext.Provider>
