@@ -37,6 +37,7 @@ async def process_default_routes(
         if "defaultRoutes" not in info:
             continue
 
+        pops = {node["name"] for node in info["nodes"] if node["pop_node"]}
         # Save wireless links for wireless hop count calculation below
         wireless_link_set = {
             (link["a_node_name"], link["z_node_name"])
@@ -61,6 +62,7 @@ async def process_default_routes(
             labels = {
                 consts.network: network_name,
                 consts.node_name: node_name,
+                "pop": "true" if node_name in pops else "false",
             }
             metrics += [
                 PrometheusMetric(
@@ -84,7 +86,11 @@ async def process_default_routes(
 
     for network_name, node_data in routes_changes.items():
         for node_name, routes_change in node_data.items():
-            labels = {consts.network: network_name, consts.node_name: node_name}
+            labels = {
+                consts.network: network_name,
+                consts.node_name: node_name,
+                "pop": "true" if node_name in pops else "false",
+            }
             metrics += [
                 PrometheusMetric(
                     name="drs_default_routes_changed",

@@ -10,7 +10,7 @@ ptr_params = {
     "test_suite_timeout": 300,
     "required_coverage": {
         "default_routes_service/utils/utilization.py": 100,
-        "TOTAL": 7,
+        "TOTAL": 8,
     },
     "run_flake8": True,
     "run_black": True,
@@ -19,7 +19,7 @@ ptr_params = {
 
 setup(
     name="default_routes_service",
-    version="2021.06.22",
+    version="2021.07.12",
     packages=find_packages(exclude=["tests"]),
     install_requires=["aiohttp", "aiomysql", "alembic>=1.3.3,<2.0", "sqlalchemy"],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
