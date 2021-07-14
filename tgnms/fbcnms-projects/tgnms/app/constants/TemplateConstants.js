@@ -38,15 +38,24 @@ export type ANPNode = {
   active_links?: number,
 };
 
+/**
+ * ANP Sectors contain information about the node they belong to.
+ *    - A unique node is denoted by a site_id and node_id pair.
+ *    - The sector status_type applies to the node as well.
+ *    - Azimuth of node is the same as sector w/ position_in_node=0.
+ */
 export type ANPSector = {
   sector_id: string,
   site_id: string,
   ant_azimuth: number,
-  ant_elevation: number,
-  sector_type: $Values<typeof ANP_NODE_TYPE>,
+  node_type: $Values<typeof ANP_NODE_TYPE>,
   status_type: $Values<typeof ANP_STATUS_TYPE>,
-  is_primary: boolean,
-  name?: string,
+  position_in_node: number, // Index of sector on the node.
+  node_id: number, // Index of node on site (-1 nodes are imaginary).
+  is_primary?: boolean, // TO BE DEPRECATED: no concept of primary nodes/sectors
+  node_capex?: number,
+  node_opex?: number,
+  node_lifetime?: number,
   active_links?: number,
 };
 
@@ -54,12 +63,9 @@ export type ANPLink = {
   link_id: string,
   rx_sector_id: string,
   tx_sector_id: string,
-  tx_node_id: string,
-  rx_node_id: string,
   link_type: $Values<typeof LinkTypeValueMap>,
   tx_beam_azimuth: number,
   rx_beam_azimuth: number,
-  quality: number,
   distance: number,
   proposed_flow: number,
   tx_site_id: string,
@@ -224,9 +230,9 @@ export const basicTemplates: Array<SiteTemplate> = [
 ];
 
 export const uploadFileTypes = {
-  KML: 'KML File Format',
-  ANP: 'ANP File Format',
-  TG: 'TG File Format',
+  KML: 'ANP KML',
+  ANP: 'ANP JSON',
+  TG: 'TG JSON',
 };
 
 export const ANP_STATUS_TYPE = {

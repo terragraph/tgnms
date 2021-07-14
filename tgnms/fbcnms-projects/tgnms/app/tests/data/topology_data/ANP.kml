@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <kml xmlns="http://www.opengis.net/kml/2.2"
+             xmlns:gx="http://www.google.com/kml/ext/2.2">
+        <Document>
+        <name>Reporting Topology</name>
+        <Schema name="site_metadata" id="site_metadata">
+            <SimpleField name="description" type="string"></SimpleField>
+            <SimpleField name="site_hash" type="string"></SimpleField>
+            <SimpleField name="site_type" type="string"></SimpleField>
+            <SimpleField name="status" type="string"></SimpleField>
+        </Schema>
+    
+        <Style id="POP_UNAVAILABLE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/pink-square.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="POP_CANDIDATE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/wht-blank.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="POP_PROPOSED">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/ylw-circle.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="POP_EXISTING">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/purple-stars.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="DN_UNAVAILABLE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/red-square.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="DN_UNREACHABLE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/red-diamond.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="DN_CANDIDATE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/pink-blank.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="DN_PROPOSED">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="DN_EXISTING">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/grn-stars.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="CN_UNAVAILABLE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/purple-square.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="CN_UNREACHABLE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/purple-diamond.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="CN_CANDIDATE">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/orange-blank.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="CN_PROPOSED">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/ltblu-circle.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="CN_EXISTING">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/blu-stars.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="UNKNOWN">
+            <IconStyle>
+                <Icon>
+                    <href>http://maps.google.com/mapfiles/kml/paddle/ltblu-blank.png</href>
+                    <scale>1.0</scale>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="demand_site_0">
+            <IconStyle>
+                <color>ffffff00</color>
+                <scale>0.4</scale>
+                <Icon>
+                    <href>
+                        http://maps.google.com/mapfiles/kml/shapes/shaded_dot.png
+                    </href>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="demand_site_1">
+            <IconStyle>
+                <color>ff00ffff</color>
+                <scale>0.4</scale>
+                <Icon>
+                    <href>
+                        http://maps.google.com/mapfiles/kml/shapes/shaded_dot.png
+                    </href>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="demand_site_2">
+            <IconStyle>
+                <color>ffff00ff</color>
+                <scale>0.4</scale>
+                <Icon>
+                    <href>
+                        http://maps.google.com/mapfiles/kml/shapes/shaded_dot.png
+                    </href>
+                </Icon>
+            </IconStyle>
+            <LabelStyle>
+                <scale>0</scale>
+            </LabelStyle>
+        </Style>
+    
+        <Style id="demand_links">
+            <LineStyle>
+                <color>ffffcc66</color>
+                <width>1</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_UNAVAILABLE">
+            <LineStyle>
+                <color>ff0000ff</color>
+                <width>1</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_UNAVAILABLE">
+            <LineStyle>
+                <color>ff0000ff</color>
+                <width>0.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="wired_link_UNAVAILABLE">
+            <LineStyle>
+                <color>ff000000</color>
+                <width>0.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_UNREACHABLE">
+            <LineStyle>
+                <color>ff00ffff</color>
+                <width>1</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_UNREACHABLE">
+            <LineStyle>
+                <color>ff00ffff</color>
+                <width>0.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="wired_link_UNREACHABLE">
+            <LineStyle>
+                <color>ff000000</color>
+                <width>0.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_CANDIDATE">
+            <LineStyle>
+                <color>ff8e23ff</color>
+                <width>1</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_CANDIDATE">
+            <LineStyle>
+                <color>ff8e23ff</color>
+                <width>0.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="wired_link_CANDIDATE">
+            <LineStyle>
+                <color>ff000000</color>
+                <width>0.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_PROPOSED">
+            <LineStyle>
+                <color>ffff2326</color>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_PROPOSED">
+            <LineStyle>
+                <color>ffff2326</color>
+                <width>1.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="wired_link_PROPOSED">
+            <LineStyle>
+                <color>ff000000</color>
+                <width>1.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_EXISTING">
+            <LineStyle>
+                <color>ff00ff00</color>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_EXISTING">
+            <LineStyle>
+                <color>ff00ff00</color>
+                <width>1.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="wired_link_EXISTING">
+            <LineStyle>
+                <color>ff000000</color>
+                <width>1.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_PROPOSED_high_util">
+            <LineStyle>
+                <color>ff0880fd</color>
+                <width>3.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_PROPOSED_high_util">
+            <LineStyle>
+                <color>ff0880fd</color>
+                <width>2.0</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="link_EXISTING_high_util">
+            <LineStyle>
+                <color>ff0880fd</color>
+                <width>3.5</width>
+            </LineStyle>
+        </Style>
+    
+        <Style id="cn_link_EXISTING_high_util">
+            <LineStyle>
+                <color>ff0880fd</color>
+                <width>2.0</width>
+            </LineStyle>
+        </Style>
+    
+            <ScreenOverlay>
+                <name>Legend</name>
+                <Icon>
+                    <href>
+                    https://i.ibb.co/yVNqqWD/legend-v7.png
+                    </href>
+                </Icon>
+                <overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+                <screenXY x="20" y="50" xunits="pixels" yunits="pixels"/>
+                <rotationXY x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+                <size x="200" y="500" xunits="pixels" yunits="pixels"/>
+            </ScreenOverlay>
+        <Folder id="sites"><name>Sites</name><Folder id="sites_CN"><name>CN</name></Folder><Folder id="sites_DN"><name>DN</name><Folder id="sites_DN_CANDIDATE"><name>CANDIDATE</name>
+    <Placemark>
+        <name>ce801553f74278c59ea06445b0f16975</name>
+        <styleUrl>#DN_CANDIDATE</styleUrl>
+        <ExtendedData>
+            
+        <Data name="Site Type">
+            <value>DN</value>
+        </Data>
+    
+        <Data name="Site Geohash">
+            <value>9mb7ib7upt</value>
+        </Data>
+    
+        <Data name="Altitude">
+            <value>28.477913</value>
+        </Data>
+    
+        <Data name="Status">
+            <value>CANDIDATE</value>
+        </Data>
+    
+        <Data name="Polarity">
+            <value>UNASSIGNED</value>
+        </Data>
+    
+        <Data name="Active Nodes">
+            <value>0</value>
+        </Data>
+    
+        <Data name="Active Sectors">
+            <value>0</value>
+        </Data>
+    
+        <Data name="Active Links">
+            <value>0</value>
+        </Data>
+    
+        <Data name="Location Type">
+            <value>STREET_LEVEL</value>
+        </Data>
+    
+        </ExtendedData>
+        <Point>
+            <altitudeMode>absolute</altitudeMode>
+            <coordinates>-121.778059,38.54806,28.477913</coordinates>
+        </Point>
+    </Placemark>
+    </Folder></Folder><Folder id="sites_POP"><name>POP</name><Folder id="sites_POP_PROPOSED"><name>PROPOSED</name>
+    <Placemark>
+        <name>4caa957a4f6a9eb01eb534165371e7ba</name>
+        <styleUrl>#POP_PROPOSED</styleUrl>
+        <ExtendedData>
+            
+        <Data name="Site Type">
+            <value>POP</value>
+        </Data>
+    
+        <Data name="Site Geohash">
+            <value>9mb7ibgm9s</value>
+        </Data>
+    
+        <Data name="Altitude">
+            <value>30.797157</value>
+        </Data>
+    
+        <Data name="Status">
+            <value>PROPOSED</value>
+        </Data>
+    
+        <Data name="Polarity">
+            <value>ODD</value>
+        </Data>
+    
+        <Data name="Active Nodes">
+            <value>1</value>
+        </Data>
+    
+        <Data name="Active Sectors">
+            <value>1</value>
+        </Data>
+    
+        <Data name="Active Links">
+            <value>0</value>
+        </Data>
+    
+        <Data name="Location Type">
+            <value>STREET_LEVEL</value>
+        </Data>
+    
+        </ExtendedData>
+        <Point>
+            <altitudeMode>absolute</altitudeMode>
+            <coordinates>-121.777546,38.546683,30.797157</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>535e549ce4c8a6f25a7ea9a4359d704f</name>
+        <styleUrl>#POP_PROPOSED</styleUrl>
+        <ExtendedData>
+            
+        <Data name="Site Type">
+            <value>POP</value>
+        </Data>
+    
+        <Data name="Site Geohash">
+            <value>9mb7ibfkt7</value>
+        </Data>
+    
+        <Data name="Altitude">
+            <value>40.639404</value>
+        </Data>
+    
+        <Data name="Status">
+            <value>PROPOSED</value>
+        </Data>
+    
+        <Data name="Polarity">
+            <value>ODD</value>
+        </Data>
+    
+        <Data name="Active Nodes">
+            <value>1</value>
+        </Data>
+    
+        <Data name="Active Sectors">
+            <value>1</value>
+        </Data>
+    
+        <Data name="Active Links">
+            <value>0</value>
+        </Data>
+    
+        <Data name="Location Type">
+            <value>STREET_LEVEL</value>
+        </Data>
+    
+        </ExtendedData>
+        <Point>
+            <altitudeMode>absolute</altitudeMode>
+            <coordinates>-121.779016,38.550788,40.639404</coordinates>
+        </Point>
+    </Placemark>
+    </Folder></Folder></Folder><Folder id="links"><name>Links</name></Folder><Folder id="demand"><name>Demand</name><Folder id="sites_demand"><name>Demand Locations</name>
+    <Placemark>
+        <name>9mb7ib7so9</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.778441,38.548032,0</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>9mb7ibikc1</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.777866,38.548032,0</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>9mb7ibo14h</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.777866,38.548482,0</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>9mb7ibfkn2</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.779016,38.55073,0</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>9mb7ibgmtm</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.777291,38.546683,0</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>9mb7ie50vi</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.779016,38.55118,0</coordinates>
+        </Point>
+    </Placemark>
+    
+    <Placemark>
+        <name>9mb7ibgkck</name>
+        <ExtendedData><SchemaData schemaUrl="#site_metadata">
+            <SimpleData name="site_demand">0.01</SimpleData>
+            <SimpleData name="site_type">DEMAND</SimpleData>
+            <SimpleData name="status">PROPOSED</SimpleData>
+        </SchemaData></ExtendedData>
+        <styleUrl>#demand_site_0</styleUrl>
+        <Point>
+            <coordinates>-121.777866,38.546683,0</coordinates>
+        </Point>
+    </Placemark>
+    </Folder><Folder id="conns_demand"><name>Demand Connections</name>
+                    <Placemark>
+                        <name>link_535e549ce4c8a6f25a7ea9a4359d704f_85ec7c631f85e1614de66f2e56ab240e</name>
+                        <styleUrl>#demand_links</styleUrl>
+                        <LineString>
+                            <altitudeMode>clampToGround</altitudeMode>
+                            <coordinates> -121.779016,38.55073,0
+                            -121.779016,38.550788,0
+                            </coordinates>
+                        </LineString>
+                    </Placemark>
+                    <Placemark>
+                        <name>link_4caa957a4f6a9eb01eb534165371e7ba_9105247123c129053f840887ed3ff5c7</name>
+                        <styleUrl>#demand_links</styleUrl>
+                        <LineString>
+                            <altitudeMode>clampToGround</altitudeMode>
+                            <coordinates> -121.777291,38.546683,0
+                            -121.777546,38.546683,0
+                            </coordinates>
+                        </LineString>
+                    </Placemark>
+                    <Placemark>
+                        <name>link_535e549ce4c8a6f25a7ea9a4359d704f_d2738b0c1b5b3044779beacdb0965fad</name>
+                        <styleUrl>#demand_links</styleUrl>
+                        <LineString>
+                            <altitudeMode>clampToGround</altitudeMode>
+                            <coordinates> -121.779016,38.55118,0
+                            -121.779016,38.550788,0
+                            </coordinates>
+                        </LineString>
+                    </Placemark>
+                    <Placemark>
+                        <name>link_4caa957a4f6a9eb01eb534165371e7ba_dce181091d62bfb78fcc453bcebf56c0</name>
+                        <styleUrl>#demand_links</styleUrl>
+                        <LineString>
+                            <altitudeMode>clampToGround</altitudeMode>
+                            <coordinates> -121.777866,38.546683,0
+                            -121.777546,38.546683,0
+                            </coordinates>
+                        </LineString>
+                    </Placemark></Folder></Folder><Folder id="editpolygons"><name>EditPolygons</name><Folder id="editpolygons_OSMSitesAndPaths"><name>OSMSitesAndPaths</name></Folder><Folder id="editpolygons_OSMPathsAmongSites"><name>OSMPathsAmongSites</name></Folder><Folder id="editpolygons_RemoveLineOfSight"><name>RemoveLineOfSight</name></Folder><Folder id="editpolygons_RemoveSites"><name>RemoveSites</name></Folder><Folder id="editpolygons_SubsetSites"><name>SubsetSites</name></Folder></Folder></Document>
+</kml>

@@ -23,7 +23,7 @@ import {convertType, objectValuesTypesafe} from './ObjectHelpers';
 import type {
   ANPLink,
   ANPLinkUploadKmlType,
-  ANPNode,
+  ANPSector,
   ANPSite,
   ANPSiteUploadKmlType,
   ANPUploadTopologyType,
@@ -112,24 +112,32 @@ export function parseANPJson(input: ANPUploadTopologyType) {
       name: site.site_id,
       location: site.loc,
     }));
-  const nodes = objectValuesTypesafe<ANPNode>(input.nodes)
-    .filter(
-      node =>
-        node.status_type === ANP_STATUS_TYPE.PROPOSED ||
-        node.status_type === ANP_STATUS_TYPE.EXISTING,
-    )
-    .map<NodeTemplate>(node => ({
-      name: node.node_id,
-      node_type:
-        node.node_type === ANP_NODE_TYPE.CN
-          ? ANP_NODE_TYPE.CN
-          : ANP_NODE_TYPE.DN,
-      is_primary: node.is_primary,
-      pop_node: node.node_type === ANP_NODE_TYPE.DN_POP_CONNECTION,
-      site_name: node.site_id,
-      ant_azimuth: node.ant_azimuth,
-      ant_elevation: node.ant_elevation,
-    }));
+
+  const getNodeName = sector => `${sector.site_id}_${sector.node_id}`;
+  const validSectors = objectValuesTypesafe<ANPSector>(input.sectors).filter(
+    sector =>
+      // Use the primary sector as proxy for the node.
+      sector.position_in_node === 0 &&
+      sector.node_id !== -1 && // Ignore imaginary nodes.
+      (sector.status_type === ANP_STATUS_TYPE.PROPOSED ||
+        sector.status_type === ANP_STATUS_TYPE.EXISTING),
+  );
+  const sectorToNode = {};
+  validSectors.forEach(sector => {
+    sectorToNode[sector.sector_id] = getNodeName(sector);
+  });
+  const nodes = validSectors.map<NodeTemplate>(sector => ({
+    name: getNodeName(sector),
+    node_type:
+      sector.node_type === ANP_NODE_TYPE.CN
+        ? ANP_NODE_TYPE.CN
+        : ANP_NODE_TYPE.DN,
+    pop_node: sector.node_type === ANP_NODE_TYPE.DN_POP_CONNECTION,
+    site_name: sector.site_id,
+    ant_azimuth: sector.ant_azimuth,
+    ant_elevation: 0, // In active development from ANP team (7/8/21)
+  }));
+
   const links = objectValuesTypesafe<ANPLink>(input.links)
     .filter(
       link =>
@@ -137,8 +145,8 @@ export function parseANPJson(input: ANPUploadTopologyType) {
         link.status_type === ANP_STATUS_TYPE.EXISTING,
     )
     .map<LinkTemplate>(link => ({
-      a_node_name: link.tx_node_id,
-      z_node_name: link.rx_node_id,
+      a_node_name: sectorToNode[link.tx_sector_id],
+      z_node_name: sectorToNode[link.rx_sector_id],
     }));
 
   return {sites, nodes, links};

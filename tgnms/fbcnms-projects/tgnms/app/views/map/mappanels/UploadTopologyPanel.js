@@ -72,9 +72,12 @@ export default function UploadTopologyPanel({
   const [fileName, setFileName] = useState('');
   const [errorText, setErrorText] = useState('');
   const [uploadTopology, setUploadTopology] = useState(null);
-  const [topologyFileType, setTopologyFileType] = useState(uploadFileTypes.KML);
-  const [kmlNodeNumber, setKmlNodeNumber] = useState('4');
-  const fileReader = new FileReader();
+  const topologyFileTypeDefault = uploadFileTypes.KML;
+  const [topologyFileType, setTopologyFileType] = useState(
+    topologyFileTypeDefault,
+  );
+  const kmlNodeNumberDefault = '4';
+  const [kmlNodeNumber, setKmlNodeNumber] = useState(kmlNodeNumberDefault);
   const snackbars = useSnackbars();
   const {setSelectedTopologyPanel} = useTopologyBuilderContext();
 
@@ -100,13 +103,21 @@ export default function UploadTopologyPanel({
 
   const onClose = React.useCallback(
     status => {
+      resetTopologyInput();
+      setKmlNodeNumber(kmlNodeNumberDefault);
+      setTopologyFileType(topologyFileTypeDefault);
       setSelectedTopologyPanel(null);
       setPanelState(PANELS.TOPOLOGY_UPLOAD, PANEL_STATE.HIDDEN);
       if (status) {
         handleTopologyChangeSnackbar(status);
       }
     },
-    [handleTopologyChangeSnackbar, setPanelState, setSelectedTopologyPanel],
+    [
+      handleTopologyChangeSnackbar,
+      setPanelState,
+      setSelectedTopologyPanel,
+      topologyFileTypeDefault,
+    ],
   );
 
   const parseInput = (
@@ -140,12 +151,50 @@ export default function UploadTopologyPanel({
     }
   };
 
-  fileReader.onloadend = () => {
+  const onSubmit = () => {
+    if (uploadTopology) {
+      uploadTopologyBuilderRequest(uploadTopology, networkName, onClose);
+    }
+  };
+
+  const resetTopologyInput = () => {
+    setFileName('');
+    setLoading(false);
+    setErrorText(false);
+    setUploadTopology(null);
+  };
+
+  const handleFileTypeChange = useCallback(
+    fileType => {
+      setTopologyFileType(fileType);
+      resetTopologyInput();
+    },
+    [setTopologyFileType],
+  );
+
+  const handleNodeNumberChange = useCallback(ev => {
+    setKmlNodeNumber(ev.target.value);
+    resetTopologyInput();
+  }, []);
+
+  const readUploadedFileAsText = async (inputFile: File) => {
+    const fileReader = new FileReader();
+    return new Promise((resolve, _) => {
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.readAsText(inputFile);
+    });
+  };
+
+  const handleChosenFile = async target => {
+    setLoading(true);
+    const file = target.files[0];
+    setFileName(file.name);
+    const result = await readUploadedFileAsText(file);
+
     if (topologyFileType === uploadFileTypes.KML) {
-      const kml = new DOMParser().parseFromString(
-        fileReader.result,
-        'text/xml',
-      );
+      const kml = new DOMParser().parseFromString(result, 'text/xml');
       // remove the styles in xml because kml parser fails with style tags
       const Styles = kml.getElementsByTagName('Style');
       [].forEach.call(Styles, style => {
@@ -157,35 +206,23 @@ export default function UploadTopologyPanel({
       });
       const features = kmlToGeojson(kml).features;
       parseInput(features);
-    } else if (typeof fileReader.result === 'string') {
-      parseInput(JSON.parse(fileReader.result));
+    } else if (typeof result === 'string') {
+      parseInput(JSON.parse(result));
     } else {
       handleReadingFileError();
     }
   };
 
-  const onSubmit = () => {
-    if (uploadTopology) {
-      uploadTopologyBuilderRequest(uploadTopology, networkName, onClose);
+  const getAcceptableUploadFormat = fileType => {
+    switch (fileType) {
+      case uploadFileTypes.ANP:
+      case uploadFileTypes.TG:
+        return '.json';
+      case uploadFileTypes.KML:
+        return '.kml';
+      default:
+        throw new Error(`Unsupported file type ${fileType}`);
     }
-  };
-
-  const handleFileTypeChange = useCallback(
-    fileType => {
-      setTopologyFileType(fileType);
-    },
-    [setTopologyFileType],
-  );
-
-  const handleNodeNumberChange = useCallback(ev => {
-    setKmlNodeNumber(ev.target.value);
-  }, []);
-
-  const handleChosenFile = target => {
-    const file = target.files[0];
-    setFileName(file.name);
-    setLoading(true);
-    setTimeout(() => fileReader.readAsText(file), 500);
   };
 
   return (
@@ -197,6 +234,47 @@ export default function UploadTopologyPanel({
         title="Upload Topology"
         details={
           <Grid container direction="column" spacing={2}>
+            <Grid item>
+              <FormLabel component="legend">
+                <span>File Format</span>
+              </FormLabel>
+              <TextField
+                data-testid="fileFormatInput"
+                defaultValue={topologyFileTypeDefault}
+                select
+                InputLabelProps={{shrink: true}}
+                margin="dense"
+                fullWidth
+                onChange={ev => {
+                  handleFileTypeChange(ev.target.value);
+                }}>
+                {objectValuesTypesafe<string>(uploadFileTypes).map(name => (
+                  <MenuItem key={name} value={name}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            {topologyFileType === uploadFileTypes.KML && (
+              <Grid item>
+                <FormLabel component="legend">
+                  <span>Sectors Per Site </span>
+                </FormLabel>
+                <TextField
+                  defaultValue={kmlNodeNumberDefault}
+                  select
+                  InputLabelProps={{shrink: true}}
+                  margin="dense"
+                  fullWidth
+                  onChange={handleNodeNumberChange}>
+                  {sectorCountOptions.map(name => (
+                    <MenuItem key={name} value={name}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
             <Grid item />
             <Button
               variant="contained"
@@ -207,9 +285,17 @@ export default function UploadTopologyPanel({
               Select File
               <Input
                 data-testid="fileInput"
-                onChange={e => handleChosenFile(e.target)}
+                onChange={e => {
+                  handleChosenFile(e.target);
+                  // When parameters (File Format or Sectors Per Site) change
+                  // the file needs to be re-parsed. This allows the onChange
+                  // to fire even if the same file is uploaded.
+                  e.target.value = '';
+                }}
                 type="file"
-                inputProps={{accept: '.json, .kml'}}
+                inputProps={{
+                  accept: getAcceptableUploadFormat(topologyFileType),
+                }}
                 style={{display: 'none'}}
               />
             </Button>
@@ -228,45 +314,6 @@ export default function UploadTopologyPanel({
                 </Typography>
               </Grid>
             </Grid>
-            <Grid item>
-              <FormLabel component="legend">
-                <span>Select File Format</span>
-              </FormLabel>
-
-              <TextField
-                defaultValue={uploadFileTypes.KML}
-                select
-                InputLabelProps={{shrink: true}}
-                margin="dense"
-                fullWidth
-                onChange={ev => handleFileTypeChange(ev.target.value)}>
-                {objectValuesTypesafe<string>(uploadFileTypes).map(name => (
-                  <MenuItem key={name} value={name}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            {topologyFileType === uploadFileTypes.KML && (
-              <Grid item>
-                <FormLabel component="legend">
-                  <span>Sectors Per Site </span>
-                </FormLabel>
-                <TextField
-                  defaultValue={'4'}
-                  select
-                  InputLabelProps={{shrink: true}}
-                  margin="dense"
-                  fullWidth
-                  onChange={handleNodeNumberChange}>
-                  {sectorCountOptions.map(name => (
-                    <MenuItem key={name} value={name}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-            )}
             <Grid item>
               <UploadTopologyConfirmationModal
                 disabled={uploadTopology ? false : true}
