@@ -19,7 +19,10 @@ export default function PopStaticRouting() {
         configLevel="network"
       />
       <ConfigTaskInput label="GW Address" configField="popParams.GW_ADDR" />
-      <ConfigTaskInput label="POP Address" configField="popParams.POP_ADDR" />
+      <ConfigTaskInput
+        label="POP IP Address"
+        configField="popParams.POP_ADDR"
+      />
       <ConfigTaskInput
         label="POP Interface"
         configField="popParams.POP_IFACE"

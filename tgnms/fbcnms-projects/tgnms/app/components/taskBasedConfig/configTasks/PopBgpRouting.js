@@ -19,7 +19,10 @@ export default function PopBgpRouting() {
         enabledConfigField="envParams.OPENR_USE_FIB_VPP"
         configLevel="network"
       />
-      <ConfigTaskInput label="POP Address" configField="popParams.POP_ADDR" />
+      <ConfigTaskInput
+        label="POP IP Address"
+        configField="popParams.POP_ADDR"
+      />
       <ConfigTaskInput
         label="POP Interface"
         configField="popParams.POP_IFACE"
