@@ -224,8 +224,8 @@ export const PROVISION_POP_STEPS = [
     title: 'View the node configuration',
     content: (
       <div>
-        Select <b>Node Configuration</b> in the menu to view the configurations
-        for this node.
+        Select <b>Configure Node</b> in the menu to view the configurations for
+        this node.
       </div>
     ),
     target: `.${STEP_TARGET.NODE_CONFIG}`,

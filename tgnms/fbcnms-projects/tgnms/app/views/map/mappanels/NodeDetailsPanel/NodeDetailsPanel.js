@@ -126,7 +126,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
         heading: 'Topology',
         actions: [
           {
-            label: 'Node Configuration',
+            label: 'Configure Node',
             func: this.onEditNodeConfig,
             className: STEP_TARGET.NODE_CONFIG,
           },
