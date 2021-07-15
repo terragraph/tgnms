@@ -132,7 +132,6 @@ export const STEP_TARGET = {
   ADD_NODE: 'add-node-tutorial',
   NODE_TYPE: 'select-node-type-tutorial',
   NODE_NAME: 'node-name-tutorial',
-  NODE_MAC: 'node-mac-tutorial',
   SAVE_TOPOLOGY: 'save-topology-tutorial',
   LINK_SECTION: 'link-dropdown-tutorial',
   LINK_FORM: 'link-creation-tutorial',

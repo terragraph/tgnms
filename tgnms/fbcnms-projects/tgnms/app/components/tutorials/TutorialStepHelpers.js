@@ -111,16 +111,9 @@ export function addSiteFlow(siteNumber: $Values<typeof SITE_NUMBERS>) {
       target: `.${STEP_TARGET.NODE_NAME}`,
       placement: 'left',
     },
-    {
-      title: 'Enter the node MAC address',
-      content: 'This step is optional.',
-      target: `.${STEP_TARGET.NODE_MAC}`,
-      placement: 'left',
-    },
     ...addRadioMacFlow(),
     ...(type === 'POP' ? configFlow() : []),
     ...addLinkFlow(siteNumber),
-
     {
       title: 'Save the new topology elements',
       content: (
