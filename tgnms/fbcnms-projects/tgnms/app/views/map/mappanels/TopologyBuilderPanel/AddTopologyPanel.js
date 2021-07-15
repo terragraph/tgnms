@@ -20,6 +20,7 @@ import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {cloneDeep} from 'lodash';
@@ -30,6 +31,7 @@ import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
@@ -69,6 +71,8 @@ export default function AddTopologyPanel({
     formType,
   } = useTopologyBuilderContext();
   const {networkName} = useNetworkContext();
+  const {nextStep} = useTutorialContext();
+
   const {update: onUpdatePlannedSite} = usePlannedSiteContext();
   const azimuthManager = useAzimuthManager();
 
@@ -123,6 +127,7 @@ export default function AddTopologyPanel({
   );
 
   const onSubmit = React.useCallback(async () => {
+    nextStep();
     if (newTopology) {
       if (formType === FORM_TYPE.CREATE) {
         const links = cloneDeep(newTopology.links).filter(link => {
@@ -219,8 +224,8 @@ export default function AddTopologyPanel({
     elementType,
     closePanel,
     azimuthManager,
+    nextStep,
   ]);
-
   const showSites = React.useMemo(() => elementType !== TOPOLOGY_ELEMENT.LINK, [
     elementType,
   ]);
@@ -260,22 +265,26 @@ export default function AddTopologyPanel({
               )}
               {showNodes && (
                 <>
-                  <AssetDropDown
-                    expanded={nodeOpen}
-                    onPanelChange={() => setNodeOpen(!nodeOpen)}
-                    title="Nodes">
-                    <NodeDetails />
-                  </AssetDropDown>
+                  <div className={STEP_TARGET.NODE_SECTION}>
+                    <AssetDropDown
+                      expanded={nodeOpen}
+                      onPanelChange={() => setNodeOpen(!nodeOpen)}
+                      title="Nodes">
+                      <NodeDetails />
+                    </AssetDropDown>
+                  </div>
                   <Divider className={classes.resultDivider} />
                 </>
               )}
               {showLinks && (
-                <AssetDropDown
-                  expanded={linkOpen}
-                  onPanelChange={() => setLinkOpen(!linkOpen)}
-                  title="Links">
-                  <LinkDetails />
-                </AssetDropDown>
+                <div className={STEP_TARGET.LINK_SECTION}>
+                  <AssetDropDown
+                    expanded={linkOpen}
+                    onPanelChange={() => setLinkOpen(!linkOpen)}
+                    title="Links">
+                    <LinkDetails />
+                  </AssetDropDown>
+                </div>
               )}
             </Grid>
             <Grid item container spacing={1} xs={12}>
@@ -295,7 +304,8 @@ export default function AddTopologyPanel({
                   color="primary"
                   size="small"
                   data-testid="add-link-button"
-                  onClick={onSubmit}>
+                  onClick={onSubmit}
+                  className={STEP_TARGET.SAVE_TOPOLOGY}>
                   Save
                 </Button>
               </Grid>

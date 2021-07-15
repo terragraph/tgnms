@@ -30,6 +30,7 @@ import classNames from 'classnames';
 import moment from 'moment';
 import swal from 'sweetalert2';
 import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {
   apiRequest,
   apiServiceRequestWithConfirmation,
@@ -382,7 +383,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
 
         {this.renderSectorOrientation(siteLinks)}
 
-        <List component="nav">
+        <List component="nav" className={STEP_TARGET.SITE_DETAILS}>
           {Array.from(siteNodes).map(node => (
             <ListItem
               button

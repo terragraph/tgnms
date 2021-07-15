@@ -17,6 +17,7 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import {makeStyles} from '@material-ui/styles';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 const useStyles = makeStyles(theme => ({
   actionsButton: {
@@ -45,12 +46,22 @@ type ActionType = {|
   component?: React.ComponentType<*>,
   isDisabled?: boolean,
   'data-testid'?: string,
+  className?: string,
 |};
 
 export default function ActionsMenu({options}: {options: ActionOptions}) {
   const [anchor, setAnchor] = React.useState(null);
   const classes = useStyles();
   const {actionItems, buttonClassName} = options;
+  const {nextStep} = useTutorialContext();
+
+  const handleViewActionsClick = React.useCallback(
+    ev => {
+      setAnchor(ev.currentTarget);
+      nextStep();
+    },
+    [nextStep],
+  );
 
   return (
     <>
@@ -60,7 +71,7 @@ export default function ActionsMenu({options}: {options: ActionOptions}) {
           button
           dense
           aria-haspopup={true}
-          onClick={ev => setAnchor(ev.currentTarget)}>
+          onClick={handleViewActionsClick}>
           <ListItemText
             primary={options.buttonName || 'View Actions'}
             primaryTypographyProps={{variant: 'button'}}
@@ -95,9 +106,11 @@ export default function ActionsMenu({options}: {options: ActionOptions}) {
                       return null;
                     }
                     const testId = itemProps['data-testid'];
+                    const className = itemProps.className;
                     return (
                       <MenuItem
                         data-testid={testId ?? null}
+                        className={className ?? ''}
                         key={label}
                         onClick={() => {
                           setAnchor(null);

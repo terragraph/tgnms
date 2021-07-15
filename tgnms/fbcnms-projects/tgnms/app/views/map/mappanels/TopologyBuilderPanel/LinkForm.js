@@ -14,6 +14,7 @@ import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {cloneDeep} from 'lodash';
 import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
@@ -117,7 +118,11 @@ export default function LinkForm({index}: {index: number}) {
   }, [formState, nodeMap]);
 
   return (
-    <Grid container direction="column" spacing={2}>
+    <Grid
+      container
+      direction="column"
+      spacing={2}
+      className={`${STEP_TARGET.LINK_FORM}-${index}`}>
       <Grid item>
         <Autocomplete
           options={fromNodeMenuItems}

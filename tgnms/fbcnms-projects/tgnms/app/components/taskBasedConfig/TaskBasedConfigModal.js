@@ -21,8 +21,10 @@ import TextField from '@material-ui/core/TextField';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
@@ -50,6 +52,18 @@ export default function TaskBasedConfigModal(props: Props) {
   const {selectedElement, nodeMap} = useNetworkContext();
   const classes = useModalStyles();
   const node = props.node ?? nodeMap[selectedElement?.name || ''];
+  const {nextStep} = useTutorialContext();
+
+  React.useEffect(() => {
+    if (open) {
+      nextStep();
+    }
+  }, [open, nextStep]);
+
+  const handleClose = React.useCallback(() => {
+    nextStep();
+    onClose();
+  }, [onClose, nextStep]);
 
   const configGroup = [
     ...(node?.pop_node
@@ -71,28 +85,24 @@ export default function TaskBasedConfigModal(props: Props) {
 
   return (
     <MaterialModal
-      className={classes.root}
+      className={`${classes.root} ${STEP_TARGET.CONFIG_MODAL}`}
       open={open}
       modalContent={
-        <>
-          <ConfigTaskForm
-            nodeName={node?.name ?? ''}
-            onClose={onClose}
-            editMode={FORM_CONFIG_MODES.NODE}
-            showSubmitButton={true}
-            advancedLink={
-              onAdvancedLinkClick ? (
-                <Button
-                  color="primary"
-                  className={classes.advancedLink}
-                  onClick={onAdvancedLinkClick}>
-                  Go to advanced configuration
-                </Button>
-              ) : null
-            }>
-            {formState.currentConfig.content}
-          </ConfigTaskForm>
-        </>
+        <ConfigTaskForm
+          nodeName={node?.name ?? ''}
+          onClose={handleClose}
+          editMode={FORM_CONFIG_MODES.NODE}
+          showSubmitButton={true}
+          advancedLink={
+            <Button
+              color="primary"
+              className={classes.advancedLink}
+              onClick={onAdvancedLinkClick}>
+              Go to advanced configuration
+            </Button>
+          }>
+          {formState.currentConfig.content}
+        </ConfigTaskForm>
       }
       modalTitle={
         <Grid container direction="row" spacing={0}>

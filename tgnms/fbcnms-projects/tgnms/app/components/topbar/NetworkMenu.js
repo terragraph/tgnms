@@ -13,6 +13,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import StatusIndicator, {StatusIndicatorColor} from '../common/StatusIndicator';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
@@ -60,7 +61,7 @@ export default function NetworkMenu() {
       <Button
         aria-owns={networksMenuAnchor ? 'networks-appbar' : null}
         aria-haspopup="true"
-        className={classes.networkMenuButton}
+        className={`${classes.networkMenuButton} ${STEP_TARGET.NETWORK_NAME}`}
         onClick={openNetworksMenu}
         data-testid="toggle-networks-menu"
         color="inherit">

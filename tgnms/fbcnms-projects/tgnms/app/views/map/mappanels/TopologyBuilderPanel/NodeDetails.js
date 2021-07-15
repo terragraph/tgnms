@@ -10,9 +10,11 @@ import AssetElementWrapper from '@fbcnms/tg-nms/app/views/map/mappanels/Topology
 import Button from '@material-ui/core/Button';
 import NodeForm from '@fbcnms/tg-nms/app/views/map/mappanels/TopologyBuilderPanel/NodeForm';
 import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 const useStyles = makeStyles(() => ({
   addButton: {
@@ -31,13 +33,15 @@ export default function NodeDetails() {
   const classes = useStyles();
   const {site, nodes} = newTopology;
   const siteName = React.useMemo(() => site?.name ?? '', [site]);
+  const {nextStep} = useTutorialContext();
 
   const currentNodeNumber = nodes?.length ?? 0;
 
   const handleAddNode = React.useCallback(() => {
     const newNodes = [...nodes, {name: `${siteName}_${currentNodeNumber}`}];
     updateTopology({nodes: newNodes});
-  }, [currentNodeNumber, siteName, nodes, updateTopology]);
+    nextStep();
+  }, [currentNodeNumber, siteName, nodes, nextStep, updateTopology]);
 
   const handleClose = React.useCallback(
     index => {
@@ -63,7 +67,7 @@ export default function NodeDetails() {
       {nodes.length < 4 && (
         <Button
           color="primary"
-          className={classes.addButton}
+          className={`${classes.addButton} ${STEP_TARGET.ADD_NODE}`}
           fullWidth
           onClick={handleAddNode}>
           + Add Node

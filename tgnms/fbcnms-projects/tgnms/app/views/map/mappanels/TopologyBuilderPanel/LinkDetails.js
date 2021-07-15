@@ -9,8 +9,10 @@ import * as React from 'react';
 import AssetElementWrapper from '@fbcnms/tg-nms/app/views/map/mappanels/TopologyBuilderPanel/AssetElementWrapper';
 import Button from '@material-ui/core/Button';
 import LinkForm from '@fbcnms/tg-nms/app/views/map/mappanels/TopologyBuilderPanel/LinkForm';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {makeStyles} from '@material-ui/styles';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 const useStyles = makeStyles(() => ({
   addButton: {
@@ -26,11 +28,13 @@ export default function LinkDetails() {
   } = useTopologyBuilderContext();
   const classes = useStyles();
   const {links} = newTopology;
+  const {nextStep} = useTutorialContext();
 
   const handleAddLink = React.useCallback(() => {
     const newLinks = [...links, {}];
     updateTopology({links: newLinks});
-  }, [links, updateTopology]);
+    nextStep();
+  }, [links, nextStep, updateTopology]);
 
   const handleClose = React.useCallback(
     index => {
@@ -51,7 +55,7 @@ export default function LinkDetails() {
         ))}
       <Button
         color="primary"
-        className={classes.addButton}
+        className={`${classes.addButton} ${STEP_TARGET.ADD_LINK}`}
         fullWidth
         onClick={handleAddLink}>
         + Add Link

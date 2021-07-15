@@ -65,6 +65,7 @@ const useStyles = makeStyles(theme => ({
   drawerPaper: {
     width: 'inherit',
     height: 'inherit',
+    overflow: 'scroll !important',
   },
 }));
 

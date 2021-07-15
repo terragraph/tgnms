@@ -16,6 +16,7 @@ import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {cloneDeep, merge} from 'lodash';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
@@ -129,6 +130,7 @@ export default function NodeForm({index}: {index: number}) {
     <Grid container direction="column" spacing={2}>
       <Grid item>
         <Autocomplete
+          className={STEP_TARGET.NODE_TYPE}
           options={Object.values(NODE_TYPE_OPTIONS)}
           getOptionLabel={option => option.label}
           onChange={handleTypeSelected}
@@ -146,6 +148,7 @@ export default function NodeForm({index}: {index: number}) {
       <Grid item>
         <TextField
           data-testId="node-name-input"
+          className={STEP_TARGET.NODE_NAME}
           id="name"
           key="name"
           label="Node Name"
@@ -161,6 +164,7 @@ export default function NodeForm({index}: {index: number}) {
           id="mac_addr"
           key="mac_addr"
           label="Node MAC Address"
+          className={STEP_TARGET.NODE_MAC}
           InputLabelProps={{shrink: true}}
           margin="dense"
           fullWidth
@@ -168,7 +172,7 @@ export default function NodeForm({index}: {index: number}) {
           onChange={handleInputChange(val => ({mac_addr: val}))}
         />
       </Grid>
-      <Grid item>
+      <Grid item className={STEP_TARGET.RADIO_MAC_ADDRESS}>
         {formState.wlan_mac_addrs &&
           formState.wlan_mac_addrs.map((wlan_mac, index) => (
             <WlanMacEditor
@@ -185,7 +189,7 @@ export default function NodeForm({index}: {index: number}) {
           </Button>
         )}
       </Grid>
-      <Grid item>
+      <Grid item className={STEP_TARGET.NODE_CONFIG}>
         <Button color="primary" onClick={open}>
           Show Node Configuration
         </Button>

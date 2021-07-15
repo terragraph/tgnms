@@ -14,12 +14,14 @@ import PublishIcon from '@material-ui/icons/Publish';
 import RouterIcon from '@material-ui/icons/Router';
 import TuneIcon from '@material-ui/icons/Tune';
 import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {
   TOPOLOGY_PANEL_OPTIONS,
   useTopologyBuilderContext,
 } from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 const useStyles = makeStyles(() => ({
   icon: {
@@ -36,6 +38,8 @@ export default function TopologyBuilderToggle() {
     selectedTopologyPanel,
     setSelectedTopologyPanel,
   } = useTopologyBuilderContext();
+  const {nextStep} = useTutorialContext();
+
   const [topologyEnabled, setTopologyEnabled] = React.useState(false);
 
   React.useEffect(() => {
@@ -53,11 +57,22 @@ export default function TopologyBuilderToggle() {
     [selectedTopologyPanel, setSelectedTopologyPanel],
   );
 
+  const handleToggleClick = React.useCallback(() => {
+    setTopologyEnabled(!topologyEnabled);
+    nextStep();
+  }, [topologyEnabled, nextStep]);
+
+  const handleSiteClick = React.useCallback(() => {
+    createSite({});
+    nextStep();
+  }, [nextStep, createSite]);
+
   return (
     <MapboxControl
       mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
       data-testid="tg-topology-toggle-container">
       <button
+        className={STEP_TARGET.TOPOLOGY_TOOLBAR}
         style={
           !topologyEnabled
             ? {
@@ -67,7 +82,7 @@ export default function TopologyBuilderToggle() {
             : undefined
         }
         title="Add Topology"
-        onClick={() => setTopologyEnabled(!topologyEnabled)}
+        onClick={handleToggleClick}
         data-testid="tg-topology-toggle">
         {topologyEnabled ? (
           <CloseIcon className={classes.icon} />
@@ -77,7 +92,10 @@ export default function TopologyBuilderToggle() {
       </button>
       {topologyEnabled && (
         <>
-          <button title="Add planned site" onClick={createSite}>
+          <button
+            className={STEP_TARGET.ADD_SITE}
+            title="Add planned site"
+            onClick={handleSiteClick}>
             <AddLocationIcon className={classes.icon} />
           </button>
           <button title="Add node" onClick={createNode}>

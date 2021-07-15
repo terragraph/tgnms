@@ -135,6 +135,7 @@ export const STEP_TARGET = {
   NODE_MAC: 'node-mac-tutorial',
   SAVE_TOPOLOGY: 'save-topology-tutorial',
   LINK_SECTION: 'link-dropdown-tutorial',
+  LINK_FORM: 'link-creation-tutorial',
   ADD_LINK: 'add-link-tutorial',
   RADIO_MAC_ADDRESS: 'wlan-mac-editor-tutorial',
 };

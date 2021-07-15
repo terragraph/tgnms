@@ -24,6 +24,7 @@ import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import {useTheme} from '@material-ui/styles';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
+import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 import type {Element} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
@@ -69,6 +70,7 @@ export default function RenderTopologyElement({
     topology,
     wireless_controller_stats,
   } = networkConfig;
+  const {nextStep} = useTutorialContext();
 
   const pinned = !!pinnedElements.find(
     el => el.type === type && el.name === name,
@@ -84,6 +86,14 @@ export default function RenderTopologyElement({
   useUnmount(() => {
     removePanel(panelKey);
   });
+
+  const handleSelectedNode = React.useCallback(
+    nodeName => {
+      setSelected(TOPOLOGY_ELEMENT.NODE, nodeName);
+      nextStep();
+    },
+    [nextStep, setSelected],
+  );
 
   const isVisible = !getIsHidden(panelKey);
   const handleClosePanel = () => {
@@ -176,9 +186,7 @@ export default function RenderTopologyElement({
             )
           }
           onClose={handleClosePanel}
-          onSelectNode={nodeName =>
-            setSelected(TOPOLOGY_ELEMENT.NODE, nodeName)
-          }
+          onSelectNode={handleSelectedNode}
           pinned={pinned}
           topology={topology}
           onPin={() => togglePin(type, name, !pinned)}
@@ -203,9 +211,7 @@ export default function RenderTopologyElement({
           networkLinkHealth={networkLinkHealth}
           wapStats={wapStats}
           onClose={handleClosePanel}
-          onSelectNode={nodeName =>
-            setSelected(TOPOLOGY_ELEMENT.NODE, nodeName)
-          }
+          onSelectNode={handleSelectedNode}
           pinned={pinned}
           onPin={() => togglePin(type, name, !pinned)}
           onEdit={siteName => editSite(siteName)}

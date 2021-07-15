@@ -14,6 +14,7 @@ import RouterIcon from '@material-ui/icons/Router';
 import TaskBasedConfigModal from '@fbcnms/tg-nms/app/components/taskBasedConfig/TaskBasedConfigModal';
 import swal from 'sweetalert2';
 import {SELECTED_NODE_QUERY_PARAM} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {
   SYSDUMP_PATH,
   SYSDUMP_RESULT,
@@ -127,6 +128,7 @@ class NodeDetailsPanel extends React.Component<Props, State> {
           {
             label: 'Node Configuration',
             func: this.onEditNodeConfig,
+            className: STEP_TARGET.NODE_CONFIG,
           },
           {
             label: 'Edit Node',
@@ -401,7 +403,9 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             <div style={{width: '100%'}}>
               <NodeDetails {...nodeDetailsProps} node={node} />
               <Divider />
-              <ActionsMenu options={{actionItems}} />
+              <div className={STEP_TARGET.NODE_ACTIONS}>
+                <ActionsMenu options={{actionItems}} />
+              </div>
             </div>
           }
           expanded={expanded}

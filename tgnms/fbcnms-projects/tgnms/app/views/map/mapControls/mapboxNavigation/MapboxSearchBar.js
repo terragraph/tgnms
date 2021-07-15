@@ -14,6 +14,7 @@ import React from 'react';
 import SearchBar from '@fbcnms/tg-nms/app/components/common/SearchBar';
 import axios from 'axios';
 import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {getUIEnvVal} from '@fbcnms/tg-nms/app/common/uiConfig';
 import {makeStyles} from '@material-ui/styles';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
@@ -174,7 +175,7 @@ export default function MapboxSearchBar(props: Props) {
       <MapboxControl
         mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
         data-testid="tg-nav-container">
-        <div data-testid="mapbox-search-bar">
+        <div data-testid="mapbox-search-bar" className={STEP_TARGET.SEARCH}>
           <SearchBar
             value={value}
             onChange={handleInput}

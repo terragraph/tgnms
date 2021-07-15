@@ -259,14 +259,14 @@ function linkCreationFlow(
           <b>From Node</b>, choose the name of the DN.
         </div>
       ),
-      target: `.link-creation-tutorial-${index}`,
+      target: `.${STEP_TARGET.LINK_FORM}-${index}`,
       placement: 'left',
     },
     {
       title: 'Select a radio MAC address',
       content:
         'Choose a radio MAC address that belongs to the distribution node (DN).',
-      target: `.link-creation-tutorial-${index}`,
+      target: `.${STEP_TARGET.LINK_FORM}-${index}`,
       placement: 'left',
     },
     {
@@ -277,13 +277,13 @@ function linkCreationFlow(
           <b>To Node</b>, choose the name of the {toNode}.
         </div>
       ),
-      target: `.link-creation-tutorial-${index}`,
+      target: `.${STEP_TARGET.LINK_FORM}-${index}`,
       placement: 'left',
     },
     {
       title: `Select a radio MAC address`,
       content: `Choose a radio MAC address that belongs to the ${toNode}.`,
-      target: `.link-creation-tutorial-${index}`,
+      target: `.${STEP_TARGET.LINK_FORM}-${index}`,
       placement: 'left',
     },
   ];
