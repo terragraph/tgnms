@@ -35,6 +35,7 @@ export type Props = {
   firmwareVersion?: ?string,
   hardwareType?: ?string,
   onClose?: () => void,
+  onSubmit?: () => void,
   advancedLink?: React.Node,
   customText?: string,
   nodeInfo?: ?NodeConfigStatusType,
@@ -59,6 +60,7 @@ export default function ConfigTaskForm(props: Props) {
     firmwareVersion,
     hardwareType,
     onClose,
+    onSubmit,
     advancedLink,
     customText,
     showSubmitButton,
@@ -307,7 +309,7 @@ export default function ConfigTaskForm(props: Props) {
                 data-testid="submit-button"
                 variant="contained"
                 color="primary"
-                onClick={handleSubmitConfig}
+                onClick={onSubmit ? onSubmit : handleSubmitConfig}
                 disabled={!isConfigChanged(draftChanges, currentConfig)}>
                 {customText ?? 'Submit'}
               </Button>

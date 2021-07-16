@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import CnConfig from './configTasks/CnConfig';
 import ConfigTaskForm from './ConfigTaskForm';
@@ -16,7 +17,6 @@ import PopKvstoreParams from './configTasks/PopKvstoreParams';
 import PopRouting from './configTasks/PopRouting';
 import QoSTrafficConfig from './configTasks/QoSTrafficConfig';
 import RadioParams from './configTasks/RadioParams';
-import React from 'react';
 import SysParams from './configTasks/SysParams';
 import TextField from '@material-ui/core/TextField';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
@@ -45,12 +45,21 @@ export type Props = {
   open: boolean,
   modalTitle: string,
   onClose: () => void,
+  onSubmit?: () => void,
   onAdvancedLinkClick?: () => void,
   node?: NodeType,
+  onUpdate?: ({[string]: string}) => {},
 };
 
 export default function TaskBasedConfigModal(props: Props) {
-  const {modalTitle, open, onClose, onAdvancedLinkClick} = props;
+  const {
+    modalTitle,
+    open,
+    onClose,
+    onSubmit,
+    onAdvancedLinkClick,
+    onUpdate,
+  } = props;
   const {selectedElement, nodeMap, networkConfig} = useNetworkContext();
   const classes = useModalStyles();
   const node = props.node ?? nodeMap[selectedElement?.name || ''];
@@ -98,12 +107,14 @@ export default function TaskBasedConfigModal(props: Props) {
         <ConfigTaskForm
           nodeName={node?.name ?? ''}
           onClose={handleClose}
+          onSubmit={onSubmit}
           editMode={FORM_CONFIG_MODES.NODE}
           showSubmitButton={true}
-          nodeInfo={nodeInfo}>
+          nodeInfo={nodeInfo}
+          onUpdate={onUpdate}>
           <>
             {formState.currentConfig.content}
-            {
+            {nodeInfo && (
               <Grid container spacing={2} justify="space-between">
                 <Grid item xs={6}>
                   <Button
@@ -125,7 +136,7 @@ export default function TaskBasedConfigModal(props: Props) {
                   </Button>
                 </Grid>
               </Grid>
-            }
+            )}
           </>
         </ConfigTaskForm>
       }

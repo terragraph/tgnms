@@ -9,7 +9,7 @@ import * as React from 'react';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import TaskBasedConfigModal from '@fbcnms/tg-nms/app/components/taskBasedConfig/TaskBasedConfigModal';
+import NodeConfig from '@fbcnms/tg-nms/app/views/map/mappanels/TopologyBuilderPanel/NodeConfig';
 import TextField from '@material-ui/core/TextField';
 import WlanMacEditor from '@fbcnms/tg-nms/app/views/map/mappanels/TopologyBuilderPanel/WlanMacEditor';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
@@ -19,7 +19,6 @@ import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {cloneDeep, merge} from 'lodash';
-import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 
 const NODE_TYPE_OPTIONS = {
@@ -29,7 +28,6 @@ const NODE_TYPE_OPTIONS = {
 };
 
 export default function NodeForm({index}: {index: number}) {
-  const {isOpen, open, close} = useModalState();
   const {
     elementType,
     formType,
@@ -176,17 +174,7 @@ export default function NodeForm({index}: {index: number}) {
           </Button>
         )}
       </Grid>
-      <Grid item className={STEP_TARGET.NODE_CONFIG}>
-        <Button color="primary" onClick={open}>
-          Show Node Configuration
-        </Button>
-      </Grid>
-      <TaskBasedConfigModal
-        open={isOpen}
-        modalTitle="Node Config"
-        onClose={close}
-        node={formState}
-      />
+      <NodeConfig node={formState} />
     </Grid>
   );
 }

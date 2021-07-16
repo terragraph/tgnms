@@ -28,10 +28,12 @@ import {makeStyles} from '@material-ui/styles';
 import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useNodeConfig} from '@fbcnms/tg-nms/app/hooks/useNodeConfig';
 import {usePlannedSiteContext} from '@fbcnms/tg-nms/app/contexts/PlannedSiteContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
+import {useUpdateConfig} from '@fbcnms/tg-nms/app/hooks/useUpdateConfig';
 
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
@@ -69,9 +71,12 @@ export default function AddTopologyPanel({
     newTopology,
     initialParams,
     formType,
+    nodeConfigs,
   } = useTopologyBuilderContext();
   const {networkName} = useNetworkContext();
   const {nextStep} = useTutorialContext();
+  const updateConfig = useUpdateConfig();
+  const {configParams} = useNodeConfig({});
 
   const {update: onUpdatePlannedSite} = usePlannedSiteContext();
   const azimuthManager = useAzimuthManager();
@@ -213,6 +218,17 @@ export default function AddTopologyPanel({
           handleAddTopologyClose(error.message);
         }
       }
+      try {
+        if (Object.keys(nodeConfigs).length > 0) {
+          await topologyAddedTimeout();
+          await updateConfig.node({
+            drafts: nodeConfigs,
+            currentConfig: configParams.nodeOverridesConfig,
+          });
+        }
+      } catch (error) {
+        handleAddTopologyClose(error.message);
+      }
       closePanel();
     }
   }, [
@@ -225,6 +241,9 @@ export default function AddTopologyPanel({
     closePanel,
     azimuthManager,
     nextStep,
+    configParams,
+    nodeConfigs,
+    updateConfig,
   ]);
   const showSites = React.useMemo(() => elementType !== TOPOLOGY_ELEMENT.LINK, [
     elementType,
@@ -315,4 +334,9 @@ export default function AddTopologyPanel({
       />
     </Slide>
   );
+}
+
+// this is a temporary fix for T95750780
+async function topologyAddedTimeout() {
+  await new Promise(resolve => setTimeout(resolve, 100));
 }

@@ -53,6 +53,11 @@ export type TopologyBuilderContext = {|
   newTopology: InitialParams,
   updateTopology: ($Shape<InitialParams>) => void,
   setNewTopology: ($Shape<InitialParams>) => void,
+  nodeConfigs: {[string]: {[string]: string}},
+  updateNodeConfigs: ({
+    nodeName: string,
+    nodeConfig: {[string]: string},
+  }) => void,
 |};
 
 const empty = () => {};
@@ -71,6 +76,8 @@ const defaultValue: TopologyBuilderContext = {
   newTopology: EMPTY_TOPOLOGY,
   updateTopology: empty,
   setNewTopology: empty,
+  nodeConfigs: {},
+  updateNodeConfigs: empty,
 };
 
 const context = React.createContext<TopologyBuilderContext>(defaultValue);
@@ -104,13 +111,15 @@ export function TopologyBuilderContextProvider({
   const [elementType, setElementType] = React.useState(TOPOLOGY_ELEMENT.SITE);
   const [initialParams, setInitialParams] = React.useState(EMPTY_TOPOLOGY);
   const [newTopology, setNewTopology] = React.useState(EMPTY_TOPOLOGY);
+  const [nodeConfigs, setNodeConfigs] = React.useState({});
 
   React.useEffect(() => {
     //when clicking submit or close on any topology builder form
     //we want to reset topology after all effects have resolved
     if (selectedTopologyPanel === null) {
-      setNewTopology(EMPTY_TOPOLOGY);
       setInitialParams(EMPTY_TOPOLOGY);
+      setNewTopology(EMPTY_TOPOLOGY);
+      setNodeConfigs({});
     }
   }, [selectedTopologyPanel]);
 
@@ -188,6 +197,15 @@ export function TopologyBuilderContextProvider({
     [newTopology],
   );
 
+  const updateNodeConfigs = React.useCallback(
+    updates => {
+      const newConfig = cloneDeep(nodeConfigs);
+      newConfig[updates.nodeName] = updates.nodeConfig;
+      setNodeConfigs(newConfig);
+    },
+    [nodeConfigs],
+  );
+
   return (
     <context.Provider
       value={{
@@ -205,6 +223,8 @@ export function TopologyBuilderContextProvider({
         newTopology,
         updateTopology,
         setNewTopology,
+        nodeConfigs,
+        updateNodeConfigs,
       }}>
       {children}
     </context.Provider>
