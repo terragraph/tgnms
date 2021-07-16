@@ -167,18 +167,31 @@ export function configFlow() {
     {
       title: 'Enter the Local ASN',
       content:
-        'Set the local ASN on the POP that routes traffic to the gateway.',
+        'Set the local autonomous system number (ASN). It can simply be 11.',
       target: `.${STEP_TARGET.CONFIG_MODAL}`,
       placement: 'left',
     },
     {
-      title: 'Enter the IPv6 neighbor address',
+      title: 'Add a BGP neighbor',
       content: (
         <div>
-          Select <b>Add BGP Neighbor</b> to set the IPv6 neighbor address. You
-          might find this on a sticker on the bottom of the router.
+          Select <b>Add BGP Neighbor</b> to set the neighbor’s ASN and IPv6
+          address.
         </div>
       ),
+      target: `.${STEP_TARGET.CONFIG_MODAL}`,
+      placement: 'left',
+    },
+    {
+      title: 'Enter the neighbor’s ASN',
+      content:
+        'Set the neighbor’s autonomous system number (ASN). It must be different from the local ASN and can simply be 12.',
+      target: `.${STEP_TARGET.CONFIG_MODAL}`,
+      placement: 'left',
+    },
+    {
+      title: 'Enter the neighbor’s IPv6 address',
+      content: 'Set the neighbor’s IPv6 address.',
       target: `.${STEP_TARGET.CONFIG_MODAL}`,
       placement: 'left',
     },
