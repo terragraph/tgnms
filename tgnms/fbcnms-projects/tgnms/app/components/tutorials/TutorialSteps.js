@@ -119,7 +119,7 @@ export const INTRO_STEPS = [
             </Grid>
           </Grid>
         </Grid>
-        <Grid item container>
+        <Grid item container spacing={1}>
           <Grid item component="h4">
             Information
           </Grid>
