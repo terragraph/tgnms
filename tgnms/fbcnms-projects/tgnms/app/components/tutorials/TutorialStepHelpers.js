@@ -285,7 +285,7 @@ function linkCreationFlow(
 export function addRadioMacFlow() {
   return [
     {
-      title: 'Add a Radio MAC address',
+      title: 'Add a radio MAC address',
       content: (
         <div>
           Select <b>Add Radio MAC Address</b> to enter at least one address.
