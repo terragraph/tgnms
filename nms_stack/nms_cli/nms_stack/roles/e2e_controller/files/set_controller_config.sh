@@ -7,9 +7,13 @@ E2E_CONTROLLER="e2e_controller-${CONTROLLER_NAME}"
 NODE_IMAGE_PATH="/node_image/${CONTROLLER_NAME}/"
 CONTROLLER_CONFIG_FILE=$(mktemp)
 
-CURL_CMD="curl --fail --noproxy '*'"
+# make all requests internal
+unset http_proxy
+unset https_proxy
+touch headers
+CURL_CMD="curl --fail --noproxy '*' -H @headers"
 if [ -n "$KEYCLOAK_TOKEN" ]; then
-  CURL_CMD="$CURL_CMD -H 'Authorization: Bearer $KEYCLOAK_TOKEN'"
+  echo "Authorization: Bearer $KEYCLOAK_TOKEN" > headers
 fi
 
 # fetch existing controller config

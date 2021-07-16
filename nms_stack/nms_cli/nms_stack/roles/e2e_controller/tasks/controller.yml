@@ -128,3 +128,4 @@
 
 - name: set default controller config values
   command: "docker run --rm --mount type=bind,source={{ e2e_path }}/scripts/set_controller_config.sh,target=/set_controller_config.sh --network=terragraph_net dwdraju/alpine-curl-jq /set_controller_config.sh {{ escaped_controller_name }}{% if keycloak_enabled %} {{ keycloak_token }}{% endif %}"
+  ignore_errors: yes
