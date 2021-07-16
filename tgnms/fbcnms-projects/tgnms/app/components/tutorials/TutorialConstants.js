@@ -84,9 +84,9 @@ export const SITE_ADDITIONAL_CONTENT = {
   },
   [SITE_NUMBERS.THIRD]: {
     [ADDITIONAL_CONTENT.SELECT_SITE]:
-      'This is where the second distribution node (DN) will be.',
+      'Another distribution node (DN) will be placed here.',
     [ADDITIONAL_CONTENT.MOVE_SITE]:
-      'We recommend putting it below the second site, which has the distribution node (DN).',
+      'We recommend putting it below the second site.',
     [ADDITIONAL_CONTENT.SELECT_NODE_TYPE]: 'distribution node (DN).',
     [ADDITIONAL_CONTENT.SELECT_TO_NODE]: [
       'The link will connect the second DN to the first DN.',
