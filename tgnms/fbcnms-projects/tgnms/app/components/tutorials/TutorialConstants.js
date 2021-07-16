@@ -56,8 +56,8 @@ export const TYPE = {
 export const LINK_NODES = {
   [SITE_NUMBERS.FIRST]: [],
   [SITE_NUMBERS.SECOND]: ['POP node'],
-  [SITE_NUMBERS.THIRD]: ['first DN'],
-  [SITE_NUMBERS.FOURTH]: ['second DN', 'POP node'],
+  [SITE_NUMBERS.THIRD]: ['DN at the second site'],
+  [SITE_NUMBERS.FOURTH]: ['DN at the third site', 'POP node'],
 };
 
 export const SITE_ADDITIONAL_CONTENT = {
