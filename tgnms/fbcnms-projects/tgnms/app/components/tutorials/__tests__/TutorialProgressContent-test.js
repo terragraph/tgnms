@@ -20,7 +20,7 @@ test('renders', () => {
       <TutorialProgressContent {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Introduction')).toBeInTheDocument();
+  expect(getByText('1. Introduction')).toBeInTheDocument();
 });
 
 test('subtitle renders', () => {

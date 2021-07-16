@@ -38,8 +38,7 @@ export default function TutorialProgressContent({
         direction="column">
         {objectValuesTypesafe<string>(MODULE_TITLES).map(
           (moduleName, index) => (
-            <Grid item container spacing={1}>
-              <Grid item>{index + 1}.</Grid>
+            <Grid item container spacing={2}>
               <Grid item>
                 <CheckCircleIcon
                   className={
@@ -47,7 +46,9 @@ export default function TutorialProgressContent({
                   }
                 />
               </Grid>
-              <Grid item>{moduleName}</Grid>
+              <Grid item>
+                {index + 1}. {moduleName}
+              </Grid>
             </Grid>
           ),
         )}
