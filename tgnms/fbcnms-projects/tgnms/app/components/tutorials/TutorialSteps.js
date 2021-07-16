@@ -316,7 +316,7 @@ export const ADD_FINAL_SITE_STEPS = [
     content: (
       <TutorialProgressContent
         progress={6}
-        subTitle="You can explore the NMS"
+        subTitle="You can now explore the NMS and see topology information, alerting, advanced configurations and more."
       />
     ),
     target: STEP_TARGET.MODAL_TARGET,

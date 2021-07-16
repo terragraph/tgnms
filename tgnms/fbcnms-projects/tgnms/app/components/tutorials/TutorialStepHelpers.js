@@ -200,7 +200,7 @@ export function configFlow() {
       title: 'Save node configurations',
       content: (
         <div>
-          Select <b>Save</b> to send the new configurations to the node.
+          Select <b>Submit</b> to send the new configurations to the node.
         </div>
       ),
       target: `.${STEP_TARGET.CONFIG_MODAL}`,
