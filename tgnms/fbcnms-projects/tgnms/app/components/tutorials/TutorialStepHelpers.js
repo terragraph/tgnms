@@ -219,7 +219,7 @@ export function addLinkFlow(siteNumber: $Values<typeof SITE_NUMBERS>) {
             content: (
               <div>
                 Expand the <b>Links</b> section to manage links at the new site.
-                You can then view, add and configure links.
+                You can then view, add and edit links.
               </div>
             ),
             target: `.${STEP_TARGET.LINK_SECTION}`,
