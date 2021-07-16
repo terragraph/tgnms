@@ -63,42 +63,34 @@ common_options = {
         "--host",
         default=None,
         multiple=True,
-        help="Hostnames to configure Terragraph Cloud Services",
+        help=(
+            "Hostnames to configure Terragraph Cloud Services. "
+            "This will OVERRIDE the `host_list` in the config-file."
+        ),
     ),
     "ssl-key-file": click.option(
         "-k",
         "--ssl-key-file",
         default=None,
-        help="Private key file for Apache Server (e.g. privkey.pem)",
+        help=(
+            "Private key file for Apache Server (e.g. privkey.pem). "
+            "This will OVERRIDE the `ssl_key_file` in the config-file."
+        ),
     ),
     "ssl-cert-file": click.option(
         "-C",
         "--ssl-cert-file",
         default=None,
-        help="SSL certificate file for Apache Server (e.g. fullchain.pem)",
+        help=(
+            "SSL certificate file for Apache Server (e.g. fullchain.pem). "
+            "This will OVERRIDE the `ssl_cert_file` in the config-file."
+        ),
     ),
     "tags": click.option("-t", "--tags", multiple=True, help="Ansible tags to run"),
     "password": click.option(
         "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
     ),
     "verbose": click.option("-v", "--verbose", count=True, default=0),
-    "masters": click.option(
-        "-m",
-        "--master",
-        "masters",
-        default=None,
-        multiple=True,
-        required=True,
-        help="Control plane nodes for kubernetes",
-    ),
-    "workers": click.option(
-        "-w",
-        "--worker",
-        "workers",
-        default=None,
-        multiple=True,
-        help="Worker nodes for kubernetes",
-    ),
 }
 
 
@@ -284,13 +276,25 @@ def install(
     ctx, config_file, ssl_key_file, ssl_cert_file, host, tags, verbose, password
 ):
     """Install the NMS stack of docker images etc."""
-    if len(host) > 0:
+
+    # Load variables from the config file / defaults
+    variables = load_variables(config_file)
+
+    # Gather hosts.
+    hosts = host or [host['hostname'] for host in (variables['host_list'] or [])]
+    if len(hosts) > 0:
         # TODO For now, all hosts are managers. Later, make this interace nicer.
-        hosts = generate_host_groups(host)
+        hosts = generate_host_groups(hosts)
     else:
-        click.echo("--host is required")
+        click.echo(
+            "Host is required. Please define in the `docker_hosts` section of your "
+            "config.yml or via the --host flag."
+        )
         ctx.exit(1)
 
+    # Get and verify TLS cert/key.
+    ssl_key_file = ssl_key_file if ssl_key_file else variables['ssl_key_file']
+    ssl_cert_file = ssl_cert_file if ssl_cert_file else variables['ssl_cert_file']
     cert_options = [ssl_key_file, ssl_cert_file]
     if any(cert_options) != all(cert_options):
         click.echo(
@@ -309,8 +313,6 @@ def install(
         a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
 
     generated_config = {}
-    # Load variables from the config file / defaults
-    variables = load_variables(config_file)
 
     # Enumerate docker images to be pulled
     docker_images = []

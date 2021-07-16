@@ -102,6 +102,9 @@ class TestNmsCli(NmsTestUtils, unittest.TestCase):
         self.check_command(
             "install -f config.yml -C cert.pem -k key.pem -h fake_host1 -h fake_host2"
         )
+        # Hostnames and ssl cert/key is passed in via config file.
+        self.check_command(f"install -f {get_config_file('test_group_vars')}")
+        self.check_command(f"install -f {get_config_file('test_group_vars')} -C my.cert.pem")
 
     def test_uninstall(self):
         self.check_command("uninstall -h fake_host")
