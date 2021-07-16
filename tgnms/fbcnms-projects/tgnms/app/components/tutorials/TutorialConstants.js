@@ -72,7 +72,7 @@ export const SITE_ADDITIONAL_CONTENT = {
   },
   [SITE_NUMBERS.SECOND]: {
     [ADDITIONAL_CONTENT.SELECT_SITE]:
-      'This is where the first distribution node (DN) will be.',
+      'A distribution node (DN) will be placed here.',
     [ADDITIONAL_CONTENT.MOVE_SITE]:
       'We recommend putting it to the right of the first site, which was the POP.',
     [ADDITIONAL_CONTENT.SELECT_NODE_TYPE]: 'distribution node (DN).',
@@ -110,10 +110,10 @@ export const SITE_ADDITIONAL_CONTENT = {
 };
 
 export const SITE_NUMBERS_VALUES = {
-  [SITE_NUMBERS.FIRST]: {name: 'first', number: 1},
-  [SITE_NUMBERS.SECOND]: {name: 'second', number: 2},
-  [SITE_NUMBERS.THIRD]: {name: 'third', number: 3},
-  [SITE_NUMBERS.FOURTH]: {name: 'last', number: 4},
+  [SITE_NUMBERS.FIRST]: {name: 'first', siteNumber: 1, nodeNumber: 1},
+  [SITE_NUMBERS.SECOND]: {name: 'second', siteNumber: 2, nodeNumber: 1},
+  [SITE_NUMBERS.THIRD]: {name: 'third', siteNumber: 3, nodeNumber: 2},
+  [SITE_NUMBERS.FOURTH]: {name: 'fourth', siteNumber: 4, nodeNumber: 3},
 };
 
 export const STEP_TARGET = {

@@ -297,7 +297,7 @@ export const ADD_FINAL_SITE_STEPS = [
     content: (
       <TutorialProgressContent
         progress={5}
-        subTitle="Next, add the final site and two links"
+        subTitle="Next, add the final site and two links."
       />
     ),
     target: STEP_TARGET.MODAL_TARGET,

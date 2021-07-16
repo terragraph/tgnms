@@ -69,7 +69,7 @@ export function addSiteFlow(siteNumber: $Values<typeof SITE_NUMBERS>) {
     },
     {
       title: 'Change the site name',
-      content: `Choose a new name for this site, such as Site_${SITE_NUMBERS_VALUES[siteNumber].number}. Site names cannot be repeated within a network.`,
+      content: `Choose a new name for this site, such as Site_${SITE_NUMBERS_VALUES[siteNumber].siteNumber}. Site names cannot be repeated within a network.`,
       target: `.${STEP_TARGET.SITE_NAME}`,
       placement: 'left',
     },
@@ -107,7 +107,7 @@ export function addSiteFlow(siteNumber: $Values<typeof SITE_NUMBERS>) {
     },
     {
       title: 'Change the node name',
-      content: `Choose a new name for this node, such as ${type}_${SITE_NUMBERS_VALUES[siteNumber].number}, or keep the name provided. Node names cannot be repeated within a network.`,
+      content: `Choose a new name for this node, such as ${type}_${SITE_NUMBERS_VALUES[siteNumber].nodeNumber}, or keep the name provided. Node names cannot be repeated within a network.`,
       target: `.${STEP_TARGET.NODE_NAME}`,
       placement: 'left',
     },
