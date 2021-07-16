@@ -233,9 +233,32 @@ export const PROVISION_POP_STEPS = [
     placement: 'left',
   },
   {
+    title: 'View full node configuration',
+    content: (
+      <div>
+        Select <b>Show Full configuration</b> in the modal to view the full
+        configuration for this node.
+      </div>
+    ),
+    target: `.${STEP_TARGET.CONFIG_MODAL}`,
+    placement: 'right',
+  },
+  {
     title: 'Provision the POP',
     content:
       'Using these POP node configurations, follow the equipment manufacturer’s guidelines to provision the POP.',
+    target: `.${STEP_TARGET.CONFIG_MODAL}`,
+    placement: 'right',
+  },
+  {
+    title: 'Close full node configuration',
+    content: 'Close the full node configuration modal.',
+    target: `.${STEP_TARGET.CONFIG_MODAL}`,
+    placement: 'right',
+  },
+  {
+    title: 'Close edit configuration modal',
+    content: 'Close the edit configuration modal.',
     target: `.${STEP_TARGET.CONFIG_MODAL}`,
     placement: 'right',
   },
