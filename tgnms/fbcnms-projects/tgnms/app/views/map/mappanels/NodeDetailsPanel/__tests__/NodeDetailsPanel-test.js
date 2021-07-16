@@ -27,6 +27,13 @@ beforeEach(() => {
   initWindowConfig();
 });
 
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/helpers/ConfigHelpers'),
+    'getTopologyNodeList',
+  )
+  .mockReturnValue([{name: 'testNode'}, {name: 'mock filter node'}]);
+
 const testNodeName = 'NODEA';
 const empty = () => {};
 const commonProps = {

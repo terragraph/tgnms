@@ -11,6 +11,7 @@ import ConfigTaskForm from './ConfigTaskForm';
 import Grid from '@material-ui/core/Grid';
 import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
+import ModalConfigGet from '@fbcnms/tg-nms/app/views/config/ModalConfigGet';
 import PopKvstoreParams from './configTasks/PopKvstoreParams';
 import PopRouting from './configTasks/PopRouting';
 import QoSTrafficConfig from './configTasks/QoSTrafficConfig';
@@ -22,19 +23,20 @@ import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
+import {getTopologyNodeList} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 
 import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 
-const useModalStyles = makeStyles(theme => ({
+const useModalStyles = makeStyles(() => ({
   root: {
     width: '60%',
     minWidth: 400,
   },
   advancedLink: {
-    paddingTop: theme.spacing(2),
     float: 'right',
   },
 }));
@@ -49,10 +51,11 @@ export type Props = {
 
 export default function TaskBasedConfigModal(props: Props) {
   const {modalTitle, open, onClose, onAdvancedLinkClick} = props;
-  const {selectedElement, nodeMap} = useNetworkContext();
+  const {selectedElement, nodeMap, networkConfig} = useNetworkContext();
   const classes = useModalStyles();
   const node = props.node ?? nodeMap[selectedElement?.name || ''];
   const {nextStep} = useTutorialContext();
+  const fullNodeConfigModalState = useModalState();
 
   React.useEffect(() => {
     if (open) {
@@ -83,6 +86,10 @@ export default function TaskBasedConfigModal(props: Props) {
     initialState: {currentConfig: configGroup[0]},
   });
 
+  const nodeConfigs = getTopologyNodeList(networkConfig, null);
+  const nodeInfo =
+    nodeConfigs.find(nodeConfig => nodeConfig.name === node?.name) || null;
+
   return (
     <MaterialModal
       className={`${classes.root} ${STEP_TARGET.CONFIG_MODAL}`}
@@ -93,15 +100,33 @@ export default function TaskBasedConfigModal(props: Props) {
           onClose={handleClose}
           editMode={FORM_CONFIG_MODES.NODE}
           showSubmitButton={true}
-          advancedLink={
-            <Button
-              color="primary"
-              className={classes.advancedLink}
-              onClick={onAdvancedLinkClick}>
-              Go to advanced configuration
-            </Button>
-          }>
-          {formState.currentConfig.content}
+          nodeInfo={nodeInfo}>
+          <>
+            {formState.currentConfig.content}
+            {
+              <Grid container spacing={2} justify="space-between">
+                <Grid item xs={6}>
+                  <Button
+                    color="primary"
+                    onClick={fullNodeConfigModalState.open}>
+                    Show Full Configuration
+                  </Button>
+                  <ModalConfigGet
+                    isOpen={fullNodeConfigModalState.isOpen}
+                    onClose={fullNodeConfigModalState.close}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <Button
+                    color="primary"
+                    className={classes.advancedLink}
+                    onClick={onAdvancedLinkClick}>
+                    Go to advanced configuration
+                  </Button>
+                </Grid>
+              </Grid>
+            }
+          </>
         </ConfigTaskForm>
       }
       modalTitle={
