@@ -106,7 +106,7 @@ export default function SiteForm() {
         />
       </Grid>
       <Grid item>
-        <ShowAdvanced>
+        <ShowAdvanced title="Show Advanced Settings">
           <SiteAdvanced
             onChange={handleLocationChange}
             location={formState.location}

@@ -41,7 +41,7 @@ test('expanding advanced on sites shows location detail', () => {
       <AddTopologyPanel {...defaultProps} />
     </TestApp>,
   );
-  fireEvent.click(getByText('Show Advanced'));
+  fireEvent.click(getByText('Show Advanced Settings'));
   expect(
     getByText('The altitude of the site (in meters).'),
   ).toBeInTheDocument();
