@@ -174,7 +174,7 @@ export default function NodeForm({index}: {index: number}) {
           </Button>
         )}
       </Grid>
-      <NodeConfig node={formState} />
+      {formType === FORM_TYPE.CREATE && <NodeConfig node={formState} />}
     </Grid>
   );
 }
