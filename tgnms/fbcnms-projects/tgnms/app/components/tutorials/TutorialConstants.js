@@ -23,8 +23,8 @@ export const MODULE_TITLES = {
   INTRO: 'Introduction',
   POP: 'Add a POP',
   PROVISION_POP: 'Provision the POP',
-  ADD_SECOND_SITE: 'Add first DN and link',
-  ADD_THIRD_SITE: 'Add second DN and link',
+  ADD_SECOND_SITE: 'Add second site and a link',
+  ADD_THIRD_SITE: 'Add third site and a link',
   ADD_FINAL_SITE: 'Add final site and links',
 };
 
