@@ -9,7 +9,7 @@ import ActionsMenu from '@fbcnms/tg-nms/app/views/map/mappanels/ActionsMenu';
 import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import ModalClearNodeAutoConfig from './ModalClearNodeAutoConfig';
-import ModalConfigGet from './ModalConfigGet';
+import ModalConfigGet from '@fbcnms/tg-nms/app/views/config/ModalConfigGet';
 import NodeSelector from '@fbcnms/tg-nms/app/components/taskBasedConfig/NodeSelector';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
@@ -543,9 +543,6 @@ export default function ConfigSidebar(props: Props) {
               <ModalConfigGet
                 isOpen={fullNodeConfigModalState.isOpen}
                 onClose={fullNodeConfigModalState.close}
-                networkConfig={networkConfig}
-                networkName={networkName}
-                nodeInfo={nodeInfo || {}}
               />
             </>
           ) : null}
