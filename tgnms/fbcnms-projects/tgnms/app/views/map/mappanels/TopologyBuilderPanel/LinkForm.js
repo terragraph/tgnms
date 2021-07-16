@@ -134,7 +134,7 @@ export default function LinkForm({index}: {index: number}) {
               {...params}
               InputLabelProps={{shrink: true}}
               margin="dense"
-              label="From"
+              label="From Node"
               data-testid="from-input"
             />
           )}
@@ -152,7 +152,7 @@ export default function LinkForm({index}: {index: number}) {
                 {...params}
                 InputLabelProps={{shrink: true}}
                 margin="dense"
-                label="Radio Mac"
+                label="Radio MAC Address"
               />
             )}
           />
@@ -169,7 +169,7 @@ export default function LinkForm({index}: {index: number}) {
               {...params}
               InputLabelProps={{shrink: true}}
               margin="dense"
-              label="To"
+              label="To Node"
               data-testid="to-input"
             />
           )}
@@ -187,7 +187,7 @@ export default function LinkForm({index}: {index: number}) {
                 {...params}
                 InputLabelProps={{shrink: true}}
                 margin="dense"
-                label="Radio Mac"
+                label="Radio MAC Address"
               />
             )}
           />

@@ -47,8 +47,8 @@ test('render without crashing', () => {
       <LinkForm {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('From')).toBeInTheDocument();
-  expect(getByText('To')).toBeInTheDocument();
+  expect(getByText('From Node')).toBeInTheDocument();
+  expect(getByText('To Node')).toBeInTheDocument();
 });
 
 test('when form values are selected, update is called correctly', () => {

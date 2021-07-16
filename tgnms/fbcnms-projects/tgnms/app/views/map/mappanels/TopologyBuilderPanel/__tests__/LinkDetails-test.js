@@ -39,5 +39,5 @@ test('add link adds a link form', () => {
     </TestApp>,
   );
   fireEvent.click(getByText('+ Add Link'));
-  expect(getByText('From')).toBeInTheDocument();
+  expect(getByText('From Node')).toBeInTheDocument();
 });
