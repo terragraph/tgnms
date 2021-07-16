@@ -261,8 +261,8 @@ function linkCreationFlow(
       title: 'Select the DN',
       content: (
         <div>
-          This link will originate from the distribution node (DN). For{' '}
-          <b>From Node</b>, choose the name of the DN.
+          This link will originate from the distribution node (DN) at this site.
+          For <b>From Node</b>, choose the name of the DN.
         </div>
       ),
       target: `.${STEP_TARGET.LINK_FORM}-${index}`,
