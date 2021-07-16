@@ -34,6 +34,7 @@ export default function NodeForm({index}: {index: number}) {
     updateTopology,
     newTopology,
     initialParams,
+    selectedTopologyPanel,
   } = useTopologyBuilderContext();
   const updateTopologyRef = useLiveRef(updateTopology);
 
@@ -102,10 +103,21 @@ export default function NodeForm({index}: {index: number}) {
   }, [nodeType, updateFormStateRef]);
 
   React.useEffect(() => {
-    const newNodes = nodesRef.current ? cloneDeep(nodesRef.current) : [];
-    newNodes[index] = cloneDeep(formState);
-    updateTopologyRef.current({nodes: newNodes});
-  }, [node, index, formState, nodesRef, updateTopologyRef]);
+    // When panel closes, node updates causing useEffect to submit an update.
+    // If there isn't a selected panel, no submit should happen.
+    if (selectedTopologyPanel) {
+      const newNodes = nodesRef.current ? cloneDeep(nodesRef.current) : [];
+      newNodes[index] = cloneDeep(formState);
+      updateTopologyRef.current({nodes: newNodes});
+    }
+  }, [
+    node,
+    index,
+    formState,
+    nodesRef,
+    updateTopologyRef,
+    selectedTopologyPanel,
+  ]);
 
   const handleTypeSelected = React.useCallback(
     (e: SyntheticInputEvent<HTMLInputElement>) => {
