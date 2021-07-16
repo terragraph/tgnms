@@ -23,7 +23,7 @@ import {
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, isEqual} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
@@ -36,6 +36,10 @@ import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 import {useUpdateConfig} from '@fbcnms/tg-nms/app/hooks/useUpdateConfig';
 
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+
+//in edit node there is only one node. Other modes will have multiple nodes
+const EDIT_NODE_POSITION = 0;
+const NO_CHANGE_MESSAGE = 'No changes to make to node';
 
 const useStyles = makeStyles(theme => ({
   expandIcon: {
@@ -131,6 +135,24 @@ export default function AddTopologyPanel({
     [snackbars],
   );
 
+  const handleEditNodeClose = React.useCallback(
+    (changeMessage: ?string) => {
+      if (
+        changeMessage === 'success' ||
+        changeMessage?.includes(NO_CHANGE_MESSAGE)
+      ) {
+        snackbars.success(
+          'Topology successfully changed! Please wait a few moments for the topology to update.',
+        );
+      } else {
+        snackbars.error(
+          `Topology change failed${changeMessage ? ': ' + changeMessage : ''} `,
+        );
+      }
+    },
+    [snackbars],
+  );
+
   const onSubmit = React.useCallback(async () => {
     nextStep();
     if (newTopology) {
@@ -174,7 +196,6 @@ export default function AddTopologyPanel({
         if (elementType === TOPOLOGY_ELEMENT.SITE) {
           data.sites.push(newTopology.site);
         }
-
         try {
           await sendTopologyBuilderRequest(
             networkName,
@@ -203,16 +224,64 @@ export default function AddTopologyPanel({
           handleAddTopologyClose(error.message);
         }
       } else if (elementType === TOPOLOGY_ELEMENT.NODE) {
+        const nodeName = initialParams.nodes[EDIT_NODE_POSITION].name;
+
         const data = {
-          nodeName: initialParams.nodes[0].name,
-          newNode: newTopology.nodes[0],
+          nodeName,
+          newNode: newTopology.nodes[EDIT_NODE_POSITION],
         };
+
+        const oldWlanMacs =
+          initialParams.nodes[EDIT_NODE_POSITION].wlan_mac_addrs;
+        const newWlanMacs =
+          newTopology.nodes[EDIT_NODE_POSITION].wlan_mac_addrs;
+        if (!isEqual(oldWlanMacs, newWlanMacs)) {
+          const links = cloneDeep(initialParams.links).map(link => {
+            const aMacIndex = oldWlanMacs.findIndex(
+              wlanMac => wlanMac === link.a_node_mac,
+            );
+            if (aMacIndex !== -1) {
+              link.a_node_mac = newWlanMacs[aMacIndex];
+            }
+            const zMacIndex = oldWlanMacs.findIndex(
+              wlanMac => wlanMac === link.z_node_mac,
+            );
+            if (zMacIndex !== -1) {
+              link.z_node_mac = newWlanMacs[zMacIndex];
+            }
+            return link;
+          });
+
+          try {
+            await sendTopologyBuilderRequest(
+              networkName,
+              'deleteNodeWlanMacAddresses',
+              {nodeName, wlanMacs: oldWlanMacs, force: true},
+              () => {},
+            );
+            await sendTopologyBuilderRequest(
+              networkName,
+              'addNodeWlanMacAddresses',
+              {nodeName, wlanMacs: newWlanMacs},
+              () => {},
+            );
+            await sendTopologyBuilderRequest(
+              networkName,
+              'bulkAdd',
+              {links},
+              () => {},
+            );
+            await links.forEach(link => azimuthManager.addLink(link));
+          } catch (error) {
+            handleAddTopologyClose(error.message);
+          }
+        }
         try {
           await sendTopologyBuilderRequest(
             networkName,
             'editNode',
             data,
-            handleAddTopologyClose,
+            handleEditNodeClose,
           );
         } catch (error) {
           handleAddTopologyClose(error.message);
@@ -220,7 +289,6 @@ export default function AddTopologyPanel({
       }
       try {
         if (Object.keys(nodeConfigs).length > 0) {
-          await topologyAddedTimeout();
           await updateConfig.node({
             drafts: nodeConfigs,
             currentConfig: configParams.nodeOverridesConfig,
@@ -244,6 +312,7 @@ export default function AddTopologyPanel({
     configParams,
     nodeConfigs,
     updateConfig,
+    handleEditNodeClose,
   ]);
   const showSites = React.useMemo(() => elementType !== TOPOLOGY_ELEMENT.LINK, [
     elementType,
@@ -334,9 +403,4 @@ export default function AddTopologyPanel({
       />
     </Slide>
   );
-}
-
-// this is a temporary fix for T95750780
-async function topologyAddedTimeout() {
-  await new Promise(resolve => setTimeout(resolve, 100));
 }

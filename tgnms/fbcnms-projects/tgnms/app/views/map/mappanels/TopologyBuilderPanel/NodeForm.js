@@ -18,7 +18,7 @@ import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
-import {cloneDeep, merge} from 'lodash';
+import {cloneDeep} from 'lodash';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 
 const NODE_TYPE_OPTIONS = {
@@ -103,7 +103,7 @@ export default function NodeForm({index}: {index: number}) {
 
   React.useEffect(() => {
     const newNodes = nodesRef.current ? cloneDeep(nodesRef.current) : [];
-    newNodes[index] = merge(cloneDeep(node), formState);
+    newNodes[index] = cloneDeep(formState);
     updateTopologyRef.current({nodes: newNodes});
   }, [node, index, formState, nodesRef, updateTopologyRef]);
 
@@ -170,7 +170,8 @@ export default function NodeForm({index}: {index: number}) {
               nodeName={formState.name}
             />
           ))}
-        {formState.wlan_mac_addrs.length < 4 && (
+        {(formState.wlan_mac_addrs === 'undefined' ||
+          formState.wlan_mac_addrs.length < 4) && (
           <Button color="primary" onClick={handleAddWlanMac}>
             Add Radio MAC Address
           </Button>

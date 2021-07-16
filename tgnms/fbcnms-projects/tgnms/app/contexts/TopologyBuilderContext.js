@@ -9,7 +9,7 @@ import {FORM_TYPE} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {PANELS} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
-import {cloneDeep, merge} from 'lodash';
+import {assign, cloneDeep} from 'lodash';
 import {getWirelessLinkNames} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
@@ -191,10 +191,9 @@ export function TopologyBuilderContextProvider({
   }, []);
 
   const updateTopology = React.useCallback(
-    updates => {
-      setNewTopology(merge(cloneDeep(newTopology), cloneDeep(updates)));
-    },
-    [newTopology],
+    updates =>
+      setNewTopology(cur => assign(cloneDeep(cur), cloneDeep(updates))),
+    [],
   );
 
   const updateNodeConfigs = React.useCallback(
