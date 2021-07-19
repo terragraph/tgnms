@@ -88,7 +88,7 @@ export function mockNetworkConfig(
 
   const config: $Shape<NetworkConfig> = {
     controller_online: true,
-    controller_version: 'RELEASE_M40',
+    controller_version: 'RELEASE_M47',
     id: 1,
     high_availability: {
       primary: {
