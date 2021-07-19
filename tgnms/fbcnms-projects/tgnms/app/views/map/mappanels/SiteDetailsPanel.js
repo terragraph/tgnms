@@ -9,6 +9,7 @@ import * as turf from '@turf/turf';
 import ActionsMenu from './ActionsMenu';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import Button from '@material-ui/core/Button';
+import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
@@ -608,7 +609,11 @@ class SiteDetailsPanel extends React.Component<Props, State> {
       pinned,
       site,
       siteNodes,
+      topology,
     } = this.props;
+
+    const nodeCount = siteNodes.size;
+    const linkCount = this.getSiteLinks(siteNodes, topology.links).length;
 
     return (
       <>
@@ -643,7 +648,19 @@ class SiteDetailsPanel extends React.Component<Props, State> {
                   <RouterIcon />
                 </Grid>
                 <Grid item>
-                  <Typography>Remove {siteNodes.size} nodes</Typography>
+                  <Typography>
+                    Remove {nodeCount} node{nodeCount > 1 ? 's' : ''}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Grid item container spacing={1}>
+                <Grid item>
+                  <CompareArrowsIcon />
+                </Grid>
+                <Grid item>
+                  <Typography>
+                    Remove {linkCount} link{linkCount > 1 ? 's' : ''}
+                  </Typography>
                 </Grid>
               </Grid>
             </Grid>
@@ -665,7 +682,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
                   this.onDeleteSite();
                 }}
                 variant="contained">
-                Remove {1 + siteNodes.size} topology elements
+                Remove {1 + nodeCount + linkCount} topology elements
               </Button>
             </>
           }
