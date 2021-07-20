@@ -262,3 +262,17 @@ test('renders node config change', async () => {
   expect(getByText('test')).toBeInTheDocument();
   expect(defaultProps.onSelectFirmwareVersion).toHaveBeenCalled();
 });
+
+test('renders network actions when button is clicked', () => {
+  mockUseConfigTaskContext.mockReturnValue(mockConfigTaskContextValue());
+  const {getByText} = render(
+    <MaterialTheme>
+      <ConfigSidebar {...defaultProps} />
+    </MaterialTheme>,
+  );
+  expect(getByText(/network optimization/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/network optimization/i));
+  expect(getByText('Actions')).toBeInTheDocument();
+  fireEvent.click(getByText(/clear node auto configuration/i));
+  expect(getByText(/Nodes:/i)).toBeInTheDocument();
+});

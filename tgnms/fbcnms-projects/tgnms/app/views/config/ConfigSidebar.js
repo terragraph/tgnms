@@ -389,7 +389,7 @@ export default function ConfigSidebar(props: Props) {
   if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M41)) {
     actions.push({
       label: 'Clear node auto configuration',
-      func: () => clearNodeAutoConfigModalState.open,
+      func: clearNodeAutoConfigModalState.open,
     });
   }
   const actionItems = [{heading: 'Actions', actions}];
