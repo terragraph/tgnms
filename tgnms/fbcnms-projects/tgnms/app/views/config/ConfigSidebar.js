@@ -365,25 +365,25 @@ export default function ConfigSidebar(props: Props) {
   if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M31)) {
     actions.push({
       label: 'Optimize polarity allocation',
-      func: () => handlePolarityOptCommand(),
+      func: handlePolarityOptCommand,
     });
   }
   if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M38)) {
     actions.push({
       label: 'Optimize golay allocation',
-      func: () => handleGolayOptCommand(),
+      func: handleGolayOptCommand,
     });
   }
   if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M37)) {
     actions.push({
       label: 'Optimize control superframe allocation',
-      func: () => handleControlSuperframeOptCommand(),
+      func: handleControlSuperframeOptCommand,
     });
   }
   if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M42)) {
     actions.push({
       label: 'Optimize channel allocation',
-      func: () => handleChannelOptCommand(),
+      func: handleChannelOptCommand,
     });
   }
   if (!ctrlVerBefore(ctrlVersion, CtrlVerType.M41)) {
