@@ -5,10 +5,38 @@
  * @flow
  */
 import * as MapPanelHelpers from '../MapPanelHelpers';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {mockLink, mockNode} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 
 jest.mock('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil');
 const apiServiceRequestMock: any = require('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil')
   .apiServiceRequest;
+
+test('test empty link array for getNodeLinks', () => {
+  const result = MapPanelHelpers.getNodeLinks(
+    mockNode(),
+    [],
+    LinkTypeValueMap.WIRELESS,
+  );
+  expect(result.length).toEqual(0);
+});
+
+test('links from the node are returned from topology links array', () => {
+  const result = MapPanelHelpers.getNodeLinks(
+    mockNode({name: 'nodeTest'}),
+    [
+      mockLink({a_node_name: 'nodeTest', link_type: LinkTypeValueMap.WIRELESS}),
+      mockLink({a_node_name: 'nodeTest', link_type: LinkTypeValueMap.ETHERNET}),
+      mockLink({a_node_name: 'notTest', link_type: LinkTypeValueMap.WIRELESS}),
+      mockLink({a_node_name: 'spam', link_type: LinkTypeValueMap.WIRELESS}),
+      mockLink({z_node_name: 'nodeTest', link_type: LinkTypeValueMap.WIRELESS}),
+    ],
+    LinkTypeValueMap.WIRELESS,
+  );
+  expect(result.length).toEqual(2);
+  expect(result[0].a_node_name).toEqual('nodeTest');
+  expect(result[1].z_node_name).toEqual('nodeTest');
+});
 
 const mockOnClose = jest.fn();
 
