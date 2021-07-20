@@ -24,15 +24,17 @@ export function getNodeLinks(
 }
 
 /** Make a topology builder request (with confirmation and response alerts). */
-export function sendTopologyBuilderRequest(
+export async function sendTopologyBuilderRequest(
   networkName: string,
   endpoint: string,
   data: {},
   onClose: (?string) => void,
 ) {
-  apiServiceRequest(networkName, endpoint, data)
-    .then(_result => {
-      onClose('success');
-    })
-    .catch(error => onClose(error.message));
+  try {
+    const result = await apiServiceRequest(networkName, endpoint, data);
+    onClose('success');
+    return result;
+  } catch (err) {
+    onClose(err.message);
+  }
 }
