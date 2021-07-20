@@ -337,6 +337,25 @@ export function mockNode(overrides?: $Shape<NodeType>): NodeType {
 }
 
 /**
+ * Creates a fake site which passes flow validation
+ * @param {object} overrides overrides default properties of the mock site
+ * @example
+ * mockNode({name:'11L922'})
+ */
+export function mockSite(overrides?: $Shape<SiteType>): SiteType {
+  return {
+    name: '',
+    location: {
+      latitude: 1,
+      longitude: 1,
+      altitude: 10,
+      accuracy: 100,
+    },
+    ...overrides,
+  };
+}
+
+/**
  * Creates a fake series of node details which passes flow validation
  * @param {object} overrides overrides default properties of mock node details
  * @example
