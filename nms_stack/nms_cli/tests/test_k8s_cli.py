@@ -12,6 +12,10 @@ from click.testing import CliRunner
 from nms_cli.k8s_nms import nms, rage
 
 
+def get_config_file(name):
+    return os.path.join(os.path.dirname(__file__), "configs", name)
+
+
 class FakeLogger:
     """
     Context manager to overwrite nms.rage.get_logger with one that doesn't
@@ -100,18 +104,25 @@ class TestK8sNmsCli(unittest.TestCase):
     def test_install(self):
         self.check_command("install -m fakelabvm")
         self.check_command("install -f config.yml -m fake_host1 -w fake_host2")
+        self.check_command(f"install -f {get_config_file('k8s_config.yml')}")
+        self.check_command(f"install -f {get_config_file('k8s_config.yml')} -m fake_host1")
+        self.check_command(f"install -f {get_config_file('k8s_config.yml')} -w fake_host1")
 
     def test_uninstall(self):
         self.check_command("uninstall -m fake_host1 -w fake_host2")
+        self.check_command(f"uninstall -f {get_config_file('k8s_config.yml')}")
 
     def test_configure(self):
         self.check_command(f"configure -m fake_host1 -t {self.manifests_dir}")
+        self.check_command(f"configure -f {get_config_file('k8s_config.yml')}")
 
     def test_apply(self):
         self.check_command(f"apply -m fake_host1 -t {self.manifests_dir}")
+        self.check_command(f"apply -f {get_config_file('k8s_config.yml')}")
 
     def test_clear(self):
         self.check_command(f"clear -m fake_host1 -t {self.manifests_dir}")
+        self.check_command(f"clear -f {get_config_file('k8s_config.yml')}")
 
     def test_rage(self):
         with FakeLogger() as f:
@@ -132,6 +143,39 @@ class TestK8sNmsCli(unittest.TestCase):
 
     def test_show_defaults(self):
         self.check_command("show-defaults")
+
+    def test_use_config_values_if_no_overrides(self):
+        config_file = get_config_file('k8s_config.yml')
+
+        # Overrides should take priority.
+        def _expect(**kwargs):
+            self.assertCountEqual(kwargs['managers'], ['override.manager'])
+            self.assertCountEqual(kwargs['workers'], ['override.worker1', 'override.worker2'])
+            self.assertEqual(kwargs['ssl_key_file'], 'override.key.pem')
+            self.assertEqual(kwargs['ssl_cert_file'], 'override.cert.pem')
+
+        nms.use_config_values_if_no_overrides(_expect)(
+            config_file=config_file,
+            managers=['override.manager'],
+            workers=['override.worker1', 'override.worker2'],
+            ssl_key_file='override.key.pem',
+            ssl_cert_file='override.cert.pem',
+        )
+
+        # If no overrides, config values should be used.
+        def _expect(**kwargs):
+            self.assertCountEqual(kwargs['managers'], ['host.manager.example.com'])
+            self.assertCountEqual(kwargs['workers'], ['host.worker1.example.com', 'host.worker2.example.com'])
+            self.assertEqual(kwargs['ssl_key_file'], None)
+            self.assertEqual(kwargs['ssl_cert_file'], None)
+
+        nms.use_config_values_if_no_overrides(_expect)(
+            config_file=config_file,
+            managers=[],
+            workers=[],
+            ssl_key_file=None,
+            ssl_cert_file=None,
+        )
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import tarfile
 import tempfile
 import pickle
 import urllib.request
+from functools import wraps
 
 import click
 import pkg_resources
@@ -28,13 +29,6 @@ DEFAULT_CHARTS_YML = os.path.join(os.path.dirname(__file__), "charts.yml")
 common_options = {
     "config-file": click.option(
         "-f", "--config-file", default=None, help="YAML file to load as variable set"
-    ),
-    "host": click.option(
-        "-h",
-        "--host",
-        default=None,
-        multiple=True,
-        help="Hostnames to configure Terragraph Cloud Services",
     ),
     "ssl-key-file": click.option(
         "-k",
@@ -59,7 +53,6 @@ common_options = {
         "managers",
         default=None,
         multiple=True,
-        required=True,
         help="Control plane nodes for Kubernetes",
     ),
     "workers": click.option(
@@ -183,6 +176,42 @@ def add_common_options(*args):
     return wrapper
 
 
+def use_config_values_if_no_overrides(fn):
+    """Use values found in the config file if overrides aren't set.
+
+    Certain CLI fields have an analogous field in the config file. Users
+    may set these fields in either place with priority for CLI over config.
+    Ex.
+        --manager overrides the `managers` field in config.
+        --worker => `workers`
+    """
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if kwargs['config_file']:
+            with open(kwargs['config_file'], "r") as user:
+                config_values = yaml.safe_load(user)
+
+            # If overrides aren't made, fallback to values in config file.
+            if not kwargs.get('managers', True):  # If key doesn't exist, then field isn't an argument to fn.
+                kwargs['managers'] = [manager['hostname'] for manager in (config_values['managers'] or [])]
+            if not kwargs.get('workers', True):
+                kwargs['workers'] = [worker['hostname'] for worker in (config_values['workers'] or [])]
+            if not kwargs.get('ssl_key_file', True):
+                kwargs['ssl_key_file'] = config_values['ssl_key_file']
+            if not kwargs.get('ssl_cert_file', True):
+                kwargs['ssl_cert_file'] = config_values['ssl_cert_file']
+
+        # Validate input.
+        if not any(kwargs.get('managers', [True])):
+            raise RuntimeError(
+                "Manager host is required. Please define in the `managers` section of your "
+                "config.yml or via the --manager flag."
+            )
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
@@ -215,6 +244,7 @@ def cli(ctx, version):
 
 
 @cli.command()
+@use_config_values_if_no_overrides
 @add_common_options("config-file", "tags", "password", "verbose", "managers", "workers")
 @click.pass_context
 @rage.log_command(RAGE_DIR)
@@ -238,6 +268,7 @@ def install(ctx, config_file, tags, verbose, password, workers, managers):
 
 
 @cli.command()
+@use_config_values_if_no_overrides
 @add_common_options("config-file", "tags", "password", "managers", "workers", "verbose")
 @click.option(
     "--purge",
@@ -269,10 +300,11 @@ def uninstall(ctx, config_file, verbose, tags, password, managers, workers, purg
 
 
 @cli.command()
-@add_common_options("managers")
+@use_config_values_if_no_overrides
+@add_common_options("config-file", "managers")
 @click.pass_context
 @rage.log_command(RAGE_DIR)
-def dashboard_token(ctx, managers):
+def dashboard_token(ctx, managers, **_):
     """
     Get a login token for the dashboard at <nms hostname or ip>/kubernetes/
     """
@@ -428,12 +460,13 @@ def read_or_make_certificates(ssl_key_file, ssl_cert_file):
 
 
 @cli.command()
+@use_config_values_if_no_overrides
 @add_common_options(
-    "managers", "workers",
+    "config-file", "managers", "workers",
 )
 @click.pass_context
 @rage.log_command(RAGE_DIR)
-def verify(ctx, managers, workers):
+def verify(ctx, managers, workers, **_):
     """
     Run a series of checks on an existing NMS installation to ensure that it is
     up and running.
@@ -453,12 +486,13 @@ def verify(ctx, managers, workers):
 
     if ":" in remote:
         remote = f"[{remote}]"
-    breakpoint()
+
     requests.get(remote)
     print(remote)
 
 
 @cli.command()
+@use_config_values_if_no_overrides
 @add_common_options(
     "config-file",
     "verbose",
@@ -532,6 +566,7 @@ def template_and_run(ctx, command, check, **configure_kwargs):
 
 
 @cli.command()
+@use_config_values_if_no_overrides
 @add_common_options(
     "config-file",
     "verbose",
@@ -579,6 +614,7 @@ def apply(ctx, charts, skip_charts, **configure_kwargs):
 
 
 @cli.command()
+@use_config_values_if_no_overrides
 @add_common_options(
     "config-file",
     "verbose",
