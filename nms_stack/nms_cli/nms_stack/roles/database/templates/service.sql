@@ -9,14 +9,20 @@ set @createUserQuery = CONCAT (
 set @grantPrivilegesQuery = CONCAT (
   'GRANT ALL PRIVILEGES ON ', @db_name, '.* TO "', @db_user, '"@"%";'
 );
+set @grantGrafanaReaderQuery = CONCAT (
+  'GRANT SELECT ON ', @db_name, '.* TO "grafanaReader"@"%";'
+);
 PREPARE createDatabase from @createDatabaseQuery;
 PREPARE createUser FROM @createUserQuery;
 PREPARE grantPrivileges from @grantPrivilegesQuery;
+PREPARE grantGrafanaReaderPrivileges from @grantGrafanaReaderQuery;
 
 EXECUTE createDatabase;
 EXECUTE createUser;
 EXECUTE grantPrivileges;
+EXECUTE grantGrafanaReaderPrivileges;
 FLUSH PRIVILEGES;
 DEALLOCATE PREPARE createDatabase;
 DEALLOCATE PREPARE createUser;
 DEALLOCATE PREPARE grantPrivileges;
+DEALLOCATE PREPARE grantGrafanaReaderPrivileges;
