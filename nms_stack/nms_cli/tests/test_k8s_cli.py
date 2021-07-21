@@ -103,7 +103,7 @@ class TestK8sNmsCli(unittest.TestCase):
 
     def test_install(self):
         self.check_command("install -m fakelabvm")
-        self.check_command("install -f config.yml -m fake_host1 -w fake_host2")
+        self.check_command("install -m fake_host1 -w fake_host2")
         self.check_command(f"install -f {get_config_file('k8s_config.yml')}")
         self.check_command(f"install -f {get_config_file('k8s_config.yml')} -m fake_host1")
         self.check_command(f"install -f {get_config_file('k8s_config.yml')} -w fake_host1")
