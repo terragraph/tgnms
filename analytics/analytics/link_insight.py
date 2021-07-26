@@ -223,7 +223,7 @@ def analyze_ewi(network_stats: Iterable, sum_threshold: int) -> None:
                     sum_val += int(val[1])
                 ewi_stats += [
                     PrometheusMetric(
-                        "analytics_ewi_status", labels, sum_val > sum_threshold
+                        "analytics_ewi_status", labels, int(sum_val > sum_threshold)
                     )
                 ]
                 if sum_val > sum_threshold:

@@ -36,8 +36,7 @@
           "name": "estimate_current_interference",
           "enabled": true,
           "params": {
-            "n_day" : 30,
-            "use_real_links": true
+            "n_day" : 30
           }
         },
         {

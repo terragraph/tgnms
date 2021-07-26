@@ -158,14 +158,9 @@ async def gauge_cn_power_status(start_time_ms: int, window_s: int) -> None:
     PrometheusClient.write_metrics(metrics)
 
 
-async def estimate_current_interference(
-    start_time_ms: int, n_day: int, use_real_links: bool
-) -> None:
+async def estimate_current_interference(start_time_ms: int, n_day: int) -> None:
     async def get_interference_results(
-        network_name: str,
-        n_day: int,
-        use_real_links: bool,
-        session: aiohttp.ClientSession,
+        network_name: str, n_day: int, session: aiohttp.ClientSession
     ) -> Optional[Dict]:
         try:
             url = (
@@ -175,7 +170,7 @@ async def estimate_current_interference(
             params = {
                 "network_name": network_name,
                 "n_day": n_day,
-                "use_real_links": int(use_real_links),
+                "use_real_links": "False",
             }
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
@@ -190,7 +185,7 @@ async def estimate_current_interference(
     network_names = APIServiceClient.network_names()
     async with aiohttp.ClientSession() as session:
         coros = [
-            get_interference_results(network_name, n_day, use_real_links, session)
+            get_interference_results(network_name, n_day, session)
             for network_name in network_names
         ]
         scan_results = zip(
