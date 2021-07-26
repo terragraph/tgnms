@@ -20,7 +20,7 @@ ptr_params = {
 
 setup(
     name="analytics",
-    version="2021.07.02",
+    version="2021.07.26",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=["numpy>=1.16.4,<2.0"],
