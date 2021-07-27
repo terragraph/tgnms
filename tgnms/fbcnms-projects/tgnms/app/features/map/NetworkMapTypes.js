@@ -38,6 +38,10 @@ export type SelectedOverlays = LayerData<string>;
 // available overlay configs for each layer
 export type OverlaysConfig = LayerData<OverlayConfig>;
 
+export type MetricLegend = {|
+  color: string,
+  label?: string,
+|};
 // which overlays to show
 export type OverlayConfig = {|
   layerId: string,
@@ -45,9 +49,7 @@ export type OverlayConfig = {|
   defaultOverlayId?: string,
   legend: {
     [overlayid: string]: {
-      [metricval: string]: {
-        color: string,
-      },
+      [metricval: string]: MetricLegend,
     },
   },
 |};

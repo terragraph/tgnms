@@ -231,8 +231,9 @@ function getLegendsFromOverlay(overlayConfig, selectedOverlays) {
   const {range, units = ''} = overlay;
 
   return Object.keys(legendConfig).map((element, idx) => {
-    const elementColor = legendConfig[element].color;
-    let labelName = element.replace('_', ' ');
+    const elementLegend = legendConfig[element];
+    const elementColor = elementLegend.color;
+    let labelName = elementLegend.label ?? element.replace('_', ' ');
 
     // Add range label
     if (

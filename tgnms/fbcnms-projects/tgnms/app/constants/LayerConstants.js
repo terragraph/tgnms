@@ -53,10 +53,10 @@ export const LinkOverlayColors = {
     [7]: {color: 'hsl(280,50%,50%)'},
   },
   channel: {
-    [1]: {color: 'hsl(170,50%,50%)'},
-    [2]: {color: 'hsl(30,50%,50%)'},
-    [3]: {color: 'hsl(200,50%,50%)'},
-    [4]: {color: 'hsl(60,50%,50%)'},
+    [1]: {color: 'hsl(170,50%,50%)', label: '1 (58.32 GHz)'},
+    [2]: {color: 'hsl(30,50%,50%)', label: '2 (60.48 GHz)'},
+    [3]: {color: 'hsl(200,50%,50%)', label: '3 (62.64 GHz)'},
+    [4]: {color: 'hsl(60,50%,50%)', label: '4 (64.80 GHz)'},
   },
   superframe: {
     [0]: {color: 'hsl(170,50%,50%)'},

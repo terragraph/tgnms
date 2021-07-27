@@ -33,6 +33,7 @@ import type {
   TopologyOverlayResponse,
 } from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 import type {
+  MetricLegend,
   Overlay,
   OverlaysConfig,
 } from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
@@ -416,7 +417,7 @@ function mapLegendToOverlayConfig(
 ): {
   colorRange: Array<string>,
   range: Array<number>,
-  legendConfig: {[string]: {color: string}},
+  legendConfig: {[string]: MetricLegend},
 } {
   const range = [];
   const colorRange = [];
