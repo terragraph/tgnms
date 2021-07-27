@@ -35,13 +35,11 @@ class ScanTest:
         type: ScanType,
         mode: ScanMode,
         options: Dict[str, Any],
-        tx_wlan_mac: Optional[str] = None,
     ) -> None:
         self.network_name = network_name
         self.type = type
         self.mode = mode
         self.options = options
-        self.tx_wlan_mac = tx_wlan_mac
         self.start_delay_s: Optional[float] = None
         self.end_delay_s: Optional[float] = None
         self.start_token: Optional[int] = None
@@ -78,9 +76,9 @@ class ScanTest:
                     "startTime": int(time.time()) + scan_start_delay_s,
                     **self.options,
                 }
-                if self.tx_wlan_mac is not None:
-                    params["txNode"] = self.tx_wlan_mac
-                    params["rxNodes"] = self.get_rx_wlan_macs(self.tx_wlan_mac)
+                if params.get("tx_wlan_mac") is not None:
+                    params["txNode"] = params["tx_wlan_mac"]
+                    params["rxNodes"] = self.get_rx_wlan_macs(params["tx_wlan_mac"])
 
                 start_scan_resp = await APIServiceClient(timeout=5).request(
                     self.network_name, "startScan", params
@@ -92,7 +90,7 @@ class ScanTest:
                 # Single node IM scan will have only one token
                 self.end_token = (
                     start_scan_resp.get("lastToken")
-                    if self.tx_wlan_mac is None
+                    if params.get("tx_wlan_mac") is None
                     else self.start_token
                 )
                 if self.start_token is None or self.end_token is None:
@@ -103,7 +101,6 @@ class ScanTest:
                             "Cannot create scan result entries."
                         )
                     )
-
                 scan_status_resp = await APIServiceClient(timeout=5).request(
                     self.network_name,
                     "getScanStatus",

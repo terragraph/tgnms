@@ -538,8 +538,9 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             type: integer
           options:
             type: object
-          tx_wlan_mac:
-            type: string
+            tx_wlan_mac:
+              description: tx radio to scan from.
+              type: string
         required:
         - network_name
         - mode
@@ -572,9 +573,8 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     type = ScanType(type)
 
     options = body.get("options", {})
-    tx_wlan_mac = body.get("tx_wlan_mac")
 
-    test = ScanTest(network_name, type, mode, options, tx_wlan_mac)
+    test = ScanTest(network_name, type, mode, options)
     execution_id = await Scheduler.start_execution(test)
     if execution_id is None:
         raise web.HTTPInternalServerError(
@@ -624,8 +624,8 @@ async def handle_get_n_day_analysis(request: web.Request) -> web.Response:  # no
     if n_day <= 0 or n_day > 30:
         raise web.HTTPBadRequest(text=f"Invalid n_day: {n_day}. Expected: (0, 30]")
 
-    use_real_links = request.rel_url.query.get("use_real_links", "True")
-    use_real_links = False if use_real_links == "False" else True
+    use_real_links = request.rel_url.query.get("use_real_links", "False")
+    use_real_links = True if use_real_links == "True" else False
 
     try:
         await Topology.update_topologies(network_name)
