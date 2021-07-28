@@ -100,22 +100,20 @@ export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
         transformOrigin={{vertical: 'top', horizontal: 'left'}}
         open={isMenuOpen}
         onClose={handleClose}>
-        {isFeatureEnabled('NETWORK_TUTORIAL') && (
-          <>
-            <MenuItem data-testid="tutorials-button" key="tutorials">
-              <ListItem>
-                <ListItemText primary="4-Link Network Tutorial" />
+        {isFeatureEnabled('NETWORK_TUTORIAL') && [
+          <MenuItem data-testid="tutorials-button" key="tutorials">
+            <ListItem>
+              <ListItemText primary="4-Link Network Tutorial" />
+            </ListItem>
+          </MenuItem>,
+          ...Object.keys(MODULES).map(module => (
+            <MenuItem key={module}>
+              <ListItem onClick={() => handleTutorialStart(module)}>
+                <ListItemText secondary={MODULE_TITLES[module]} />
               </ListItem>
             </MenuItem>
-            {Object.keys(MODULES).map(module => (
-              <MenuItem key={module}>
-                <ListItem onClick={() => handleTutorialStart(module)}>
-                  <ListItemText secondary={MODULE_TITLES[module]} />
-                </ListItem>
-              </MenuItem>
-            ))}
-          </>
-        )}
+          )),
+        ]}
         {DOC_URL && (
           <MenuItem onClick={handleClose}>
             <ListItem component="a" href={DOC_URL} target="_blank">
