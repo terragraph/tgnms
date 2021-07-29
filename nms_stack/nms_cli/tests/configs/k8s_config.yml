@@ -1,6 +1,53 @@
 # +--------------------------------------------------------+
 # |           NMS Configuration Options                    |
 # +--------------------------------------------------------+
+
+# `ext_nms_hostname` is the DNS name for the host. This can be left as is
+# to dynamically be filled in as long as `managers` section is populated.
+# ext_nms_hostname: host.example.com
+ext_nms_hostname: "{{ ipv6_address if is_ipv6 else ipv4_address }}"
+
+# NMS Web Login
+# Set desired username and password below to login to the NMS.
+nms_username: admin
+nms_password: admin
+
+# Hosts to configure Terragraph Cloud Stack.
+# Will be overridden if you use the --manager amd --worker flags, respectively.
+managers:
+  - hostname: host.manager.example.com
+workers:
+  - hostname: host.worker1.example.com
+  - hostname: host.worker2.example.com
+
+# List of controllers
+# All port numbers must be unique.
+# `controller_list.name` may only contain alphabets, numbers, spaces and
+#  underscores
+controllers_list: []
+# controllers_list:
+# - name: my_example_controller
+#   ctrlr_port: '7007'
+#   agg_port: '8002'
+#   app_port: '17077'
+#   bt_seeder_port: '6881'
+
+# SSL Options
+# `ssl_key_file` is the private key file for Apache Server (e.g. privkey.pem)
+# `ssl_cert_file` is the SSL certificate file for Apache Server (e.g. fullchain.pem)
+# Will be overridden if you use their respective flags.
+ssl_key_file:
+ssl_cert_file:
+
+# If the machine running the cluster is behind a proxy, set these options to
+# your proxy's IP address and add your local subnet to no_proxy
+# http_proxy:
+# https_proxy:
+# no_proxy:
+
+# +--------------------------------------------------------+
+# |           NMS Other Configuration Options              |
+# +--------------------------------------------------------+
 # Certbot args to get free SSL Certificate from letsencrypt.org
 # Both `ext_nms_hostname` and `certbot_user_email` must be changed from the
 # placeholder values in order to be valid.
@@ -11,8 +58,6 @@
 # `ext_nms_hostname` is the DNS name for the host. The name should resolve to
 # the publically reachable IP address for the server if certbot is enabled.
 # `certbot_user_email` is an email to receive certbot notifications.
-# ext_nms_hostname: host.example.com
-ext_nms_hostname: "{{ ipv6_address if is_ipv6 else ipv4_address }}"
 # certbot_user_email: admin@gmail.com
 # certbot_args: --staging
 
@@ -28,44 +73,11 @@ namespace: default
 db_host: "db.{{ namespace }}.svc.cluster.local"
 db_root_user: root
 
-# NMS Web Login
-# Set desired username and password below to login to the NMS.
-nms_username: admin
-nms_password: admin
-
 # Terragraph Software Portal credentials
 # Set api_id and api_key to authenticate NMS with the official Terragraph
 # Software portal.
 nms_software_portal_api_id:
 nms_software_portal_api_key:
-
-# Hosts to configure Terragraph Cloud Stack.
-# Will be overridden if you use the --manager amd --worker flags, respectively.
-managers:
-  - hostname: host.manager.example.com
-workers:
-  - hostname: host.worker1.example.com
-  - hostname: host.worker2.example.com
-
-# SSL Options
-# `ssl_key_file` is the private key file for Apache Server (e.g. privkey.pem)
-# `ssl_cert_file` is the SSL certificate file for Apache Server (e.g. fullchain.pem)
-# Will be overridden if you use their respective flags.
-ssl_key_file:
-ssl_cert_file:
-
-# List of controllers
-#
-# All port numbers must be unique.
-# `controller_list.name` may only contain alphabets, numbers, spaces and
-#  underscores
-controllers_list: []
-# controllers_list:
-# - name: my_example_controller
-#   ctrlr_port: '7007'
-#   agg_port: '8002'
-#   app_port: '17077'
-#   bt_seeder_port: '6881'
 
 # Access token for Mapbox. This can also be configured through the
 # NMS Settings UI
@@ -85,12 +97,6 @@ docker_user: root
 
 # Set to `true` if nms will be running on a single host.
 single_node: "{{ groups['all']|length == 1 }}"
-
-# If the machine running the cluster is behind a proxy, set these options to
-# your proxy's IP address and add your local subnet to no_proxy
-# http_proxy:
-# https_proxy:
-# no_proxy:
 
 # If you are on Centos7, you may need to change this to python2
 ansible_python_interpreter: python3
@@ -288,7 +294,3 @@ gfs_path: "{{ terragraph_hostpath }}/{{ gluster_mount }}"
 # `nginx_worker_connections` is the number of allowed connections per nginx worker.
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
-
-# These are set automatically by the installer
-is_ipv6:
-all_ip_addresses:

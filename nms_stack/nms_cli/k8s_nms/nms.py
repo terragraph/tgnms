@@ -15,8 +15,8 @@ from functools import wraps
 import click
 import pkg_resources
 import yaml
-from . import rage
-from .config import configure_templates
+from nms_cli.k8s_nms import rage
+from nms_cli.k8s_nms.config import configure_templates
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
@@ -376,6 +376,8 @@ def get_variables(user_config_file, managers, workers, verbose):
         os.path.dirname(__file__), "ansible", "group_vars", "passwords.yml"
     )
 
+    # These represent all the variables that we want to run through template_variables
+    # and later saved into `all_variables`.
     with open(default_variables_file, "r") as defaults:
         variables = yaml.safe_load(defaults)
 
@@ -386,6 +388,12 @@ def get_variables(user_config_file, managers, workers, verbose):
     names = variables.keys()
 
     with tempfile.NamedTemporaryFile() as src, tempfile.NamedTemporaryFile() as dest, tempfile.NamedTemporaryFile() as pwdest:
+        # Gather all the variables we need defined. These variables will be partly
+        # filled in by:
+        #   1) the user_config_file passed in
+        #   2) the facts defined in the `template_variables.yml` ansible script
+        #   3) the all.yml variables, this is used implicitely by ansible
+        # See the `Generated templated variables` task inside script.
         templates = [f"{name}: {{{{ {name} }}}}" for name in names]
         templates = "\n".join(templates)
         src.write(templates.encode("utf-8"))
@@ -669,9 +677,12 @@ def quoted_presenter(dumper, data):
 
 @cli.command()
 @click.pass_context
-def show_defaults(ctx):
+@click.option("--full", is_flag=True, help="Generate all configurable options")
+def show_config(ctx, full):
     """
-    Generate full YAML description of configurable options
+    Generate YAML description of configurable options; by default this will
+    contain ONLY the most critical fields to get started. To save, redirect
+    output to a file (`show-config > config.yml`).
     """
     all_file = os.path.join(
         os.path.dirname(__file__), "ansible", "group_vars", "all.yml"
@@ -679,6 +690,21 @@ def show_defaults(ctx):
 
     with open(all_file, "r") as f:
         content = f.read()
+
+    if full:
+        # Get everything except restricted stuff.
+        content = content.partition((
+            "# +--------------------------------------------------------+\n"
+            "# |     !!!!!!    NMS Restricted Options     !!!!!!        |\n"
+            "# +--------------------------------------------------------+\n"
+        ))[0]
+    else:
+        # Get only the critical stuff.
+        content = content.partition((
+            "# +--------------------------------------------------------+\n"
+            "# |           NMS Other Configuration Options              |\n"
+            "# +--------------------------------------------------------+\n"
+        ))[0]
 
     yaml.add_representer(str, quoted_presenter)
     click.echo(highlight(content, YamlLexer(), TerminalFormatter()))

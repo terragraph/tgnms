@@ -12,6 +12,11 @@ from click.testing import CliRunner
 from nms_cli.k8s_nms import nms, rage
 
 
+DEFAULT_VARIABLES_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "k8s_nms", "ansible", "group_vars", "all.yml"
+)
+
+
 def get_config_file(name):
     return os.path.join(os.path.dirname(__file__), "configs", name)
 
@@ -53,11 +58,7 @@ def mock_subprocess(*args, **kwargs):
 
 
 def mock_get_variables(*args, **kwargs):
-    default_variables_file = os.path.join(
-        os.path.dirname(__file__), "..", "k8s_nms", "ansible", "group_vars", "all.yml"
-    )
-
-    with open(default_variables_file, "r") as defaults:
+    with open(DEFAULT_VARIABLES_FILE, "r") as defaults:
         variables = yaml.safe_load(defaults)
 
     return variables
@@ -141,8 +142,42 @@ class TestK8sNmsCli(unittest.TestCase):
             self.assertEqual(command.output.count("ansible-playbook"), 1)
             self.assertEqual(command.output.count("install.yml"), 1)
 
-    def test_show_defaults(self):
-        self.check_command("show-defaults")
+    def test_show_config(self):
+        self.check_command("show-config")
+        self.check_command("show-config --full")
+
+    def test_all_file(self):
+        """
+        Inside the show-config command, we perform string partitioning which relies
+        on the all.yml sections being defined and in the correct order.
+
+        This test ensures that the expected order is preserved.
+        """
+        with open(DEFAULT_VARIABLES_FILE, "r") as f:
+            content = f.read()
+
+        # Critical partition sections are there.
+        self.assertTrue((
+            "# +--------------------------------------------------------+\n"
+            "# |     !!!!!!    NMS Restricted Options     !!!!!!        |\n"
+            "# +--------------------------------------------------------+\n"
+        ) in content)
+        self.assertTrue((
+            "# +--------------------------------------------------------+\n"
+            "# |           NMS Other Configuration Options              |\n"
+            "# +--------------------------------------------------------+\n"
+        ) in content)
+
+        # Sections appear in the correct order
+        ordering = [
+            content.find("NMS Configuration Options"),
+            content.find("NMS Other Configuration Options"),
+            content.find("Bootstrapping the Kubernetes Cluster"),
+            content.find("Core NMS  Options"),
+            content.find("NMS Restricted Options"),
+        ]
+        res = all(i < j for i, j in zip(ordering, ordering[1:]))
+        self.assertTrue(res)
 
     def test_use_config_values_if_no_overrides(self):
         config_file = get_config_file('k8s_config.yml')

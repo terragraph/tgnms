@@ -17,6 +17,8 @@
 - hosts: master
   gather_facts: no
   tasks:
+    # This will create a set of variables to be used in conjunction with
+    # any extra variables passed in and the all.yml vars to fill in the templates.
     - set_fact:
         is_ipv6: "{{ true if hostvars[groups['master'][0]]['ansible_default_ipv6'] != {} else false }}"
     - set_fact:
@@ -46,14 +48,14 @@
         path: "{{ terragraph_docker_path }}/creds.yml"
       register: stat_result
     - name: Check passwords
-      assert: 
+      assert:
         that:
           # TODO: There's probably some way to iterate over the dictionary and do this
           # without expicitly listing everything
           - should_create_passwords
         fail_msg: "Detected that passwords were manually set but already exist on remote: {{ passwords }}, remove them from your config or delete the cached passwords on the remote at {{ terragraph_docker_path }}/creds.yml"
       when: stat_result.stat.exists
-    - name: Generated templated variables
+    - name: Generated templated pw variables
       template:
         force: no
         src: "passwords.yml"
