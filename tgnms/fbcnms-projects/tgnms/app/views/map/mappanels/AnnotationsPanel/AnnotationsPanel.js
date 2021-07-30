@@ -5,7 +5,7 @@
  * @flow
  */
 import * as turf from '@turf/turf';
-import ActionsMenu from '../ActionsMenu';
+import ActionsMenu from '../ActionsMenu/ActionsMenu';
 import Alert from '@material-ui/lab/Alert';
 import AnnotationGroupsForm from './AnnotationGroupsForm';
 import Box from '@material-ui/core/Box';

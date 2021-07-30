@@ -6,7 +6,8 @@
  */
 
 import * as turf from '@turf/turf';
-import ActionsMenu from './ActionsMenu';
+
+import ActionsMenu from './ActionsMenu/ActionsMenu';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import Button from '@material-ui/core/Button';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';

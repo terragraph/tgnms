@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import ActionsMenu from './ActionsMenu';
+import ActionsMenu from './ActionsMenu/ActionsMenu';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
