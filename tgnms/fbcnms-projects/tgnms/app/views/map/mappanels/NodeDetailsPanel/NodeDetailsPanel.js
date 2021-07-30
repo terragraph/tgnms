@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import ActionsMenu from '../ActionsMenu/ActionsMenu';
 import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
 import Divider from '@material-ui/core/Divider';
@@ -13,6 +14,11 @@ import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import TaskBasedConfigModal from '@fbcnms/tg-nms/app/components/taskBasedConfig/TaskBasedConfigModal';
 import swal from 'sweetalert2';
+import {
+  DEFAULT_SCAN_MODE,
+  SCAN_MODE,
+  SCAN_TYPES,
+} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {SELECTED_NODE_QUERY_PARAM} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {
@@ -178,6 +184,22 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             },
           ]
         : []),
+      {
+        heading: 'Scans',
+        actions: [
+          {
+            label: 'Start IM Scan',
+            subMenu: [
+              {
+                actions: node.wlan_mac_addrs.map(mac_addr => ({
+                  label: mac_addr,
+                  func: () => this.onStartRadioIMScan(mac_addr),
+                })),
+              },
+            ],
+          },
+        ],
+      },
     ];
   }
 
@@ -188,6 +210,24 @@ class NodeDetailsPanel extends React.Component<Props, State> {
       pathname: '/network_config/' + networkName,
       search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
     });
+  };
+
+  onStartRadioIMScan = mac_addr => {
+    const {networkName, snackbars} = this.props;
+
+    scanApi
+      .startExecution({
+        networkName: networkName,
+        mode: SCAN_MODE[DEFAULT_SCAN_MODE],
+        type: SCAN_TYPES['IM'],
+        options: {
+          tx_wlan_mac: mac_addr,
+        },
+      })
+      .then(_ =>
+        snackbars.success(`Successfully started radio scan for ${mac_addr}`),
+      )
+      .catch(err => snackbars.error('Failed to start scan. ' + err));
   };
 
   onStartThroughputTest = () => {

@@ -49,6 +49,7 @@ export const startExecution = (inputData: InputStartType) => {
     type: inputData.type,
     network_name: inputData.networkName,
     mode: inputData.mode,
+    options: inputData.options,
   });
 };
 

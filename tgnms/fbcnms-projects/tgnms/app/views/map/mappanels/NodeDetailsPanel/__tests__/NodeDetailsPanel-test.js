@@ -4,7 +4,7 @@
  * @format
  * @flow strict-local
  */
-
+import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
 import {NodeStatusTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
@@ -27,6 +27,10 @@ beforeEach(() => {
   initWindowConfig();
 });
 
+jest.mock('@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil', () => ({
+  startExecution: jest.fn().mockImplementation(() => Promise.resolve()),
+}));
+
 jest
   .spyOn(
     require('@fbcnms/tg-nms/app/helpers/ConfigHelpers'),
@@ -38,7 +42,7 @@ const testNodeName = 'NODEA';
 const empty = () => {};
 const commonProps = {
   nodeDetailsProps: mockNodeDetails(),
-  networkName: '',
+  networkName: 'MockNetworkName',
   nearbyNodes: {},
   nodes: new Set(),
   links: {},
@@ -316,6 +320,36 @@ describe('Actions', () => {
       fireEvent.click(getByText('Edit Node'));
       expect(onEditMock).toHaveBeenCalled();
       expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('Start IM Scan', () => {
+    test('clicking a radio mac starts an IM scan', () => {
+      const mock_node = mockNode({
+        name: 'node1',
+        status: NodeStatusTypeValueMap.ONLINE,
+        site_name: 'site1',
+        wlan_mac_addrs: ['radioMacTest1', 'radioMacTest2', 'radioMacTest3'],
+        mac_addr: 'nodeMacAddrTest',
+      });
+
+      const {getByText, getAllByText} = renderWithRouter(
+        <TestApp>
+          <NodeDetailsPanel {...commonProps} node={mock_node} />
+        </TestApp>,
+      );
+      fireEvent.click(getByText(/View Actions/i));
+      fireEvent.mouseEnter(getByText('Start IM Scan'));
+      const elems = getAllByText('radioMacTest2');
+      fireEvent.click(elems[1]);
+      expect(scanApi.startExecution).toHaveBeenCalledWith({
+        networkName: 'MockNetworkName',
+        mode: 2,
+        type: 2,
+        options: {
+          tx_wlan_mac: 'radioMacTest2',
+        },
+      });
     });
   });
 });

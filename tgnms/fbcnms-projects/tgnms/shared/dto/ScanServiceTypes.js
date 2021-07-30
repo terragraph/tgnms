@@ -18,6 +18,9 @@ export type InputStartType = {
   networkName: string,
   type: $Values<typeof SCAN_TYPES>,
   mode: $Values<typeof SCAN_MODE>,
+  options?: {
+    tx_wlan_mac?: string,
+  },
 };
 
 export type InputGetType = {

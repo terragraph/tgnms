@@ -27,3 +27,22 @@ describe('getExecutionResults', () => {
     expect(results['0'].tx_status).toBe('FINISHED');
   });
 });
+
+describe('startExecution', () => {
+  test('makes an axios request', async () => {
+    const getMock = jest.spyOn(axios, 'post');
+
+    await apiUtil.startExecution({
+      type: 2,
+      mode: 2,
+      networkName: 'MockNetworkName',
+      options: {tx_wlan_mac: 'MockMacAddr'},
+    });
+    expect(getMock).toHaveBeenCalledWith('/scan_service/start', {
+      type: 2,
+      mode: 2,
+      network_name: 'MockNetworkName',
+      options: {tx_wlan_mac: 'MockMacAddr'},
+    });
+  });
+});
