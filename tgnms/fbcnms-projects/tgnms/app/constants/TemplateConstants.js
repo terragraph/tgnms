@@ -33,7 +33,6 @@ export type ANPNode = {
   ant_elevation: number,
   node_type: $Values<typeof ANP_NODE_TYPE>,
   status_type: $Values<typeof ANP_STATUS_TYPE>,
-  is_primary: boolean,
   name?: string,
   active_links?: number,
 };
@@ -52,7 +51,6 @@ export type ANPSector = {
   status_type: $Values<typeof ANP_STATUS_TYPE>,
   position_in_node: number, // Index of sector on the node.
   node_id: number, // Index of node on site (-1 nodes are imaginary).
-  is_primary?: boolean, // TO BE DEPRECATED: no concept of primary nodes/sectors
   node_capex?: number,
   node_opex?: number,
   node_lifetime?: number,
@@ -169,7 +167,6 @@ export const basicTemplates: Array<SiteTemplate> = [
     nodes: [
       {
         node_type: NodeTypeValueMap.CN,
-        is_primary: true,
         pop_node: false,
       },
     ],
@@ -180,22 +177,18 @@ export const basicTemplates: Array<SiteTemplate> = [
     nodes: [
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: true,
         pop_node: false,
       },
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: false,
         pop_node: false,
       },
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: false,
         pop_node: false,
       },
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: false,
         pop_node: false,
       },
     ],
@@ -206,22 +199,18 @@ export const basicTemplates: Array<SiteTemplate> = [
     nodes: [
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: true,
         pop_node: true,
       },
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: false,
         pop_node: true,
       },
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: false,
         pop_node: true,
       },
       {
         node_type: NodeTypeValueMap.DN,
-        is_primary: false,
         pop_node: true,
       },
     ],

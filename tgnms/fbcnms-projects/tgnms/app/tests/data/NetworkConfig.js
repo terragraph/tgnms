@@ -324,7 +324,6 @@ export function mockNode(overrides?: $Shape<NodeType>): NodeType {
   return {
     name: '',
     node_type: NodeTypeValueMap.DN,
-    is_primary: true,
     mac_addr: '',
     pop_node: false,
     status: NodeStatusTypeValueMap.OFFLINE,

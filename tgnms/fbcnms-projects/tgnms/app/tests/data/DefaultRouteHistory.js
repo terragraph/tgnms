@@ -72,7 +72,6 @@ export function testNodeMap(): NodeMap {
     test_node_name: {
       name: 'test_node_name',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:08:11',
       pop_node: false,
       status: 3,
@@ -84,7 +83,6 @@ export function testNodeMap(): NodeMap {
     '11M870.2': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:08:11',
       pop_node: false,
       status: 3,
@@ -96,7 +94,6 @@ export function testNodeMap(): NodeMap {
     '11M870.1': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:08:11',
       pop_node: false,
       status: 3,
@@ -108,7 +105,6 @@ export function testNodeMap(): NodeMap {
     '11M867.2': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:08:11',
       pop_node: false,
       status: 3,
@@ -120,7 +116,6 @@ export function testNodeMap(): NodeMap {
     '11M867.1': {
       name: 'terra314.f1.tg.a404-if',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:08:11',
       pop_node: false,
       status: 3,
@@ -132,7 +127,6 @@ export function testNodeMap(): NodeMap {
     'terra111.f5.tg.a404-if': {
       name: 'terra111.f5.tg.a404-if',
       node_type: 2,
-      is_primary: true,
       mac_addr: '38:3a:21:b0:01:c5',
       pop_node: true,
       status: 3,
@@ -144,7 +138,6 @@ export function testNodeMap(): NodeMap {
     'terra413.f7.tg.a404-if': {
       name: 'terra413.f7.tg.a404-if',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:09:f5',
       pop_node: true,
       status: 3,
@@ -156,7 +149,6 @@ export function testNodeMap(): NodeMap {
     'terra123.f1.tg.a404-if': {
       name: 'terra123.f1.tg.a404-if',
       node_type: 2,
-      is_primary: false,
       mac_addr: '38:3a:21:b0:08:e3',
       pop_node: true,
       status: 3,

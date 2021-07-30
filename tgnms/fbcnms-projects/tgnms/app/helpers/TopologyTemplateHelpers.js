@@ -53,7 +53,6 @@ function createNodeData(overrides?: $Shape<NodeType>): $Shape<NodeType> {
   return {
     name: overrides?.name || '',
     node_type: overrides?.node_type || NodeTypeValueMap.DN,
-    is_primary: overrides?.is_primary || true,
     pop_node: overrides?.pop_node || false,
     site_name: overrides?.site_name || '',
     ant_azimuth: overrides?.ant_azimuth || 0,
@@ -199,7 +198,6 @@ export function parseANPKml(
           uploadResults.nodes.push({
             name: asset.properties.name + '_1',
             node_type: ANP_NODE_TYPE.CN,
-            is_primary: true,
             pop_node: false,
             site_name: asset.properties.name,
           });
@@ -208,7 +206,6 @@ export function parseANPKml(
             uploadResults.nodes.push({
               name: asset.properties.name + '_' + i,
               node_type: ANP_NODE_TYPE.DN,
-              is_primary: i === 1,
               pop_node: false,
               site_name: asset.properties.name,
             });
@@ -218,7 +215,6 @@ export function parseANPKml(
             uploadResults.nodes.push({
               name: asset.properties.name + '_' + i,
               node_type: ANP_NODE_TYPE.DN,
-              is_primary: i === 1,
               pop_node: true,
               site_name: asset.properties.name,
             });

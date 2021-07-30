@@ -4,7 +4,6 @@
     {
       "name": "site1_2",
       "node_type": 2,
-      "is_primary": false,
       "mac_addr": "",
       "pop_node": false,
       "status": 1,
@@ -17,7 +16,6 @@
     {
       "name": "site2_0",
       "node_type": 1,
-      "is_primary": false,
       "mac_addr": "",
       "pop_node": false,
       "status": 1,
