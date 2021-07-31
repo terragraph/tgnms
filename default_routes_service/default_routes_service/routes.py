@@ -109,6 +109,10 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
     # Get node name from request query
     node_name = request.rel_url.query.get("node_name")
 
+    # Get topology
+    topology = await APIServiceClient(timeout=1).request(network_name, "getTopology")
+    node_names = [node["name"] for node in topology["nodes"]]
+
     # Query to fetch all route changes in the given datetime window
     in_qry = select(
         [
@@ -143,7 +147,10 @@ async def handle_get_default_routes_history(request: web.Request) -> web.Respons
                         func.min(DefaultRoutesHistory.node_name),
                     ]
                 )
-                .where(DefaultRoutesHistory.last_updated < start_dt_obj)
+                .where(
+                    (DefaultRoutesHistory.last_updated < start_dt_obj)
+                    & (DefaultRoutesHistory.node_name.in_(node_names))
+                )
                 .group_by(DefaultRoutesHistory.node_name)
             )
         )
