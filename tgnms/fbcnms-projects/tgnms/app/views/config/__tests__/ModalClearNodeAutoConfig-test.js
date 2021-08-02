@@ -9,11 +9,16 @@ import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render, waitForElement} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil');
 const apiServiceRequestMock: any = require('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil')
   .apiServiceRequest;
+
+const snackbarsMock = {error: jest.fn(), success: jest.fn()};
+jest
+  .spyOn(require('@fbcnms/tg-nms/app/hooks/useSnackbar'), 'useSnackbars')
+  .mockReturnValue(snackbarsMock);
 
 const defaultProps = {
   isOpen: true,
@@ -42,8 +47,8 @@ test('closes', () => {
   expect(onCloseMock).toHaveBeenCalled();
 });
 
-test('submit calls success modal on successful api call', async () => {
-  apiServiceRequestMock.mockImplementationOnce(() => Promise.resolve());
+test('submit calls success snackbar on successful api call', async () => {
+  apiServiceRequestMock.mockImplementationOnce(() => Promise.resolve({}));
   const {getByText} = render(
     <TestApp>
       <ModalClearNodeAutoConfig {...defaultProps} />
@@ -52,12 +57,12 @@ test('submit calls success modal on successful api call', async () => {
   const inputPath = nullthrows(document.getElementById('nodePath'));
   fireEvent.change(inputPath, {target: {value: '*'}});
   fireEvent.click(getByText('Submit'));
-  await waitForElement(() => getByText('Auto Configs Cleared'));
-  expect(getByText('Auto Configs Cleared')).toBeInTheDocument();
+  await wait(() => expect(snackbarsMock.success).toHaveBeenCalled());
+  expect(snackbarsMock.success).toHaveBeenCalled();
 });
 
-test('submit calls fail modal on failed api call', async () => {
-  apiServiceRequestMock.mockImplementationOnce(() => Promise.reject());
+test('submit calls fail snackbar on failed api call', async () => {
+  apiServiceRequestMock.mockImplementationOnce(() => Promise.reject({}));
   const {getByText} = render(
     <TestApp>
       <ModalClearNodeAutoConfig {...defaultProps} />
@@ -66,6 +71,6 @@ test('submit calls fail modal on failed api call', async () => {
   const inputPath = nullthrows(document.getElementById('nodePath'));
   fireEvent.change(inputPath, {target: {value: '*'}});
   fireEvent.click(getByText('Submit'));
-  await waitForElement(() => getByText('Clear Config Failed'));
-  expect(getByText('Clear Config Failed')).toBeInTheDocument();
+  await wait(() => expect(snackbarsMock.error).toHaveBeenCalled());
+  expect(snackbarsMock.error).toHaveBeenCalled();
 });

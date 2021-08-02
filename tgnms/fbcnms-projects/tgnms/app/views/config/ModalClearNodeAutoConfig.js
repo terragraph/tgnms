@@ -12,10 +12,10 @@ import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MaterialReactSelect from '@fbcnms/tg-nms/app/components/common/MaterialReactSelect';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import swal from 'sweetalert2';
 import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -33,13 +33,11 @@ type Props = {
 
 export default function ModalClearNodeAutoConfig(props: Props) {
   const classes = useStyles();
+  const snackbars = useSnackbars();
   const {isOpen, onClose} = props;
-
   const {networkName, nodeMap} = useNetworkContext();
-
   const [nodePath, setNodePath] = React.useState('');
   const [nodesSelected, setNodesSelected] = React.useState([]);
-
   const nodes = Object.keys(nodeMap);
 
   const nodeOptions =
@@ -62,19 +60,13 @@ export default function ModalClearNodeAutoConfig(props: Props) {
 
     apiServiceRequest(networkName, 'clearAutoNodeOverridesConfig', data)
       .then(() => {
-        swal({
-          type: 'success',
-          title: 'Auto Configs Cleared',
-          text: 'You have sucessfully cleared the Auto Configs',
-        });
+        snackbars.success('You have sucessfully cleared the Auto Configs');
         onClose();
       })
       .catch(error => {
-        swal({
-          type: 'error',
-          title: 'Clear Config Failed',
-          text: `Your clear configuration attempt failed with the following message:\n\n${error}.`,
-        });
+        snackbars.error(
+          `Your clear configuration attempt failed with the following message: ${error}.`,
+        );
       });
   };
 

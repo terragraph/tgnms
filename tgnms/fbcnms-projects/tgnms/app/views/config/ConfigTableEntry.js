@@ -22,7 +22,6 @@ import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import UndoIcon from '@material-ui/icons/Undo';
 import classNames from 'classnames';
-import swal from 'sweetalert2';
 import {
   BASE_VALUE_LAYERS_TO_SKIP,
   CONFIG_FIELD_DELIMITER,
@@ -40,6 +39,7 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {truncate} from 'lodash';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {ConfigDataLayerType} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 
@@ -153,6 +153,7 @@ export default function ConfigTableEntry(props: Props) {
     colSpan,
   } = props;
 
+  const snackbars = useSnackbars();
   const {onUpdate, editMode, selectedValues} = useConfigTaskContext();
   const {refreshConfig} = selectedValues;
   const {type, desc, deprecated, readOnly} = metadata;
@@ -229,12 +230,7 @@ export default function ConfigTableEntry(props: Props) {
 
     // Validate the field
     if (!validateField(localInputValue, metadata)) {
-      swal({
-        title: 'Error',
-        text: 'That value is not allowed.',
-        type: 'error',
-      });
-      return;
+      return snackbars.error('That value is not allowed.');
     }
     if (localInputValue && field) {
       onUpdate({configField, draftValue: localInputValue});
