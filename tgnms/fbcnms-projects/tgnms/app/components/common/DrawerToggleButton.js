@@ -30,8 +30,6 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       backgroundColor: '#FFF',
     },
-    boxShadow: `-${theme.spacing(0.5)}px 0 ${theme.spacing()}px 0 #ddd`,
-    border: '2px solid #f4f7f9',
     borderRight: 'none',
   },
 }));

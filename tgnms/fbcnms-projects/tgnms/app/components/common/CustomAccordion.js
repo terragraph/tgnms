@@ -23,10 +23,18 @@ import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    margin: `${theme.spacing(0.5)}px 0 `,
+  },
+  expanded: {
+    '&$expanded': {
+      margin: `${theme.spacing(0.5)}px 0 `,
+    },
+  },
   panelHeading: {
     fontSize: theme.typography.pxToRem(15),
     lineHeight: '1rem',
-    color: theme.palette.grey[500],
+    color: '#303846',
     display: 'flex',
     flexGrow: 1,
     flexBasis: '33.33%',
@@ -170,7 +178,10 @@ export default withForwardRef(function CustomAccordion(props: Props) {
 
   return (
     <Accordion
-      classes={className ? {root: className} : {}}
+      classes={{
+        root: `${className ? className : classes.root}`,
+        expanded: classes.expanded,
+      }}
       expanded={expanded}
       onChange={onChange}
       ref={props.fwdRef}

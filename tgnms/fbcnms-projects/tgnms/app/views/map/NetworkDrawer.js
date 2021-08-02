@@ -52,7 +52,6 @@ const useStyles = makeStyles(theme => ({
   appBarSpacer: theme.mixins.toolbar,
   content: {
     height: '100%',
-    padding: theme.spacing(2),
     paddingBottom: theme.spacing(8),
     overflowX: 'hidden',
   },
@@ -61,6 +60,7 @@ const useStyles = makeStyles(theme => ({
     top: 0,
     left: 0,
     bottom: 0,
+    zIndex: theme.zIndex.drawer,
   },
   drawerPaper: {
     width: 'inherit',

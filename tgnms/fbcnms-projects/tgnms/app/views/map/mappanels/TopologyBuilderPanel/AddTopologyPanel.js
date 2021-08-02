@@ -61,6 +61,9 @@ const useStyles = makeStyles(theme => ({
   resultDivider: {
     margin: `${theme.spacing()}px ${theme.spacing(-1.5)}px`,
   },
+  topologyButtons: {
+    paddingTop: theme.spacing(2),
+  },
 }));
 
 export default function AddTopologyPanel({
@@ -338,7 +341,7 @@ export default function AddTopologyPanel({
         expanded={getIsOpen(PANELS.MANUAL_TOPOLOGY)}
         onChange={() => toggleOpen(PANELS.MANUAL_TOPOLOGY)}
         details={
-          <Grid container spacing={2} style={{width: '100%'}}>
+          <Grid container style={{width: '100%'}}>
             <Grid item xs={12}>
               {showSites && (
                 <>
@@ -375,7 +378,13 @@ export default function AddTopologyPanel({
                 </div>
               )}
             </Grid>
-            <Grid item container spacing={1} xs={12}>
+            <Grid item />
+            <Grid
+              item
+              container
+              spacing={1}
+              xs={12}
+              className={classes.topologyButtons}>
               <Grid item xs={6}>
                 <Button
                   fullWidth

@@ -10,20 +10,15 @@ import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
-  dragger: {
-    backgroundColor: '#f4f7f9',
-  },
   horizontal: {
     width: 5,
     height: '100%',
     cursor: 'ew-resize',
-    borderLeft: '1px solid #ddd',
   },
   vertical: {
     height: 5,
     width: '100%',
     cursor: 'ns-resize',
-    borderTop: '1px solid #ddd',
   },
 };
 

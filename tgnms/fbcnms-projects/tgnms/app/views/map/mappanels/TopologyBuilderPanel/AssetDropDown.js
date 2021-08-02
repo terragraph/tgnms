@@ -23,6 +23,7 @@ const useStyles = makeStyles(theme => ({
   },
   titleWrapper: {
     marginLeft: -theme.spacing(1),
+    marginBottom: theme.spacing(),
   },
   resultDivider: {
     margin: `${theme.spacing()}px ${theme.spacing(-1.5)}px`,

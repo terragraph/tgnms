@@ -60,7 +60,7 @@ const useStyles = makeStyles(theme => ({
   draggerContainer: {
     position: 'absolute',
     width: '100%',
-    zIndex: 2,
+    zIndex: theme.zIndex.drawer,
   },
   mapboxMap: {
     '& canvas': {
