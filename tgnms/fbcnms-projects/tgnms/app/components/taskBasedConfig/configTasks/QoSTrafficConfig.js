@@ -8,6 +8,9 @@
 import * as React from 'react';
 import ConfigTaskGroup from '../ConfigTaskGroup';
 import ConfigTaskInput from '../ConfigTaskInput';
+import ConfigTaskMapInput from '../ConfigTaskMapInput';
+import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
 import QoSInterfaceConfig from './QoSInterfaceConfig';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
@@ -33,6 +36,21 @@ export default function QoSTrafficConfig() {
         {currentCpeInterfaces.map(cpeInterface => (
           <QoSInterfaceConfig cpeInterface={cpeInterface} />
         ))}
+        <ConfigTaskMapInput
+          label="DSCP Scheduling Priority"
+          configField="qosConfig.dscpEntries"
+          buttonText="Add Custom DSCP Mapping"
+          customKeyLabel="DSCP Index"
+        />
+        <Grid item container>
+          <FormLabel>
+            <Grid item>Default overwritten values are at indicies:</Grid>
+            <Grid item>10, 14, 18, 20, 22, 26, 28, 30, 34, 36, 38</Grid>
+            <Grid item>
+              For more information visit the Terragraph Operation Docs
+            </Grid>
+          </FormLabel>
+        </Grid>
       </ConfigTaskGroup>
     )
   );
