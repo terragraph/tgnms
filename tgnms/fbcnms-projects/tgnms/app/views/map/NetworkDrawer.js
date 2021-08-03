@@ -107,7 +107,6 @@ export default function NetworkDrawer({
   } = context;
   const {
     topology,
-    ignition_state,
     status_dump,
     upgrade_state,
     wireless_controller,
@@ -274,22 +273,7 @@ export default function NetworkDrawer({
         <AddTopologyPanel panelControl={panelControl} />
         <L2TunnelPanel panelControl={panelControl} />
         <UploadTopologyPanel panelControl={panelControl} />
-
-        <Slide
-          {...SlideProps}
-          unmountOnExit
-          in={!getIsHidden(PANELS.IGNITION_STATE)}>
-          <IgnitionStatePanel
-            expanded={getIsOpen(PANELS.IGNITION_STATE)}
-            onPanelChange={() => toggleOpen(PANELS.IGNITION_STATE)}
-            onClose={() =>
-              setPanelState(PANELS.IGNITION_STATE, PANEL_STATE.HIDDEN)
-            }
-            networkName={networkName}
-            ignitionState={ignition_state}
-            refreshNetworkConfig={context.refreshNetworkConfig}
-          />
-        </Slide>
+        <IgnitionStatePanel panelControl={panelControl} />
 
         <Slide
           {...SlideProps}
@@ -326,7 +310,6 @@ export default function NetworkDrawer({
         ))}
         <DefaultRouteHistoryPanel panelControl={panelControl} />
         <RemoteOverlayMetadataPanel panelControl={panelControl} />
-
         <AnnotationsPanel panelControl={panelControl} />
         <DrawerToggleButton
           drawerWidth={networkDrawerWidth}
