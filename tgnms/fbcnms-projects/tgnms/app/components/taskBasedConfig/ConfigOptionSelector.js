@@ -15,7 +15,15 @@ import Typography from '@material-ui/core/Typography';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {getDefaultSelected} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
+import {makeStyles} from '@material-ui/styles';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+
+const useStyles = makeStyles(theme => ({
+  title: {
+    color: 'black',
+    fontSize: theme.typography.fontSize,
+  },
+}));
 
 export type ConfigOption = {
   name: string,
@@ -26,11 +34,14 @@ export type ConfigOption = {
 
 export default function ConfigOptionSelector({
   options,
+  title,
 }: {
   options: {[string]: ConfigOption},
+  title?: string,
 }) {
   const {configOverrides, onUpdate, selectedValues} = useConfigTaskContext();
   const {refreshConfig} = selectedValues;
+  const classes = useStyles();
 
   const selectedOptionKey = React.useMemo(
     () => getDefaultSelected({options, configData: configOverrides}),
@@ -76,7 +87,10 @@ export default function ConfigOptionSelector({
   );
 
   return option ? (
-    <Grid item container direction="column" spacing={2}>
+    <Grid item container direction="column" spacing={1}>
+      <Grid item className={classes.title}>
+        {title}
+      </Grid>
       <Grid item>
         <FormControl>
           <RadioGroup
