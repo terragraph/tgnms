@@ -31,12 +31,13 @@ const useStyles = makeStyles(theme => ({
 export type Props = {|
   configField: string,
   label?: string,
+  customKeyLabel?: string,
   buttonText?: string,
   onChange?: ({}) => void,
 |};
 
 export default function ConfigTaskMapInput(props: Props) {
-  const {configField, label, buttonText, onChange} = props;
+  const {configField, label, buttonText, onChange, customKeyLabel} = props;
   const classes = useStyles();
   const {configData, configMetadata, onUpdate} = useConfigTaskContext();
   const [configValue, setConfigValue] = React.useState<{
@@ -165,7 +166,7 @@ export default function ConfigTaskMapInput(props: Props) {
               <Grid item>
                 <ConfigTaskInput
                   onChange={change => handleInputChange(change, key)}
-                  label="Key"
+                  label={customKeyLabel ?? 'Key'}
                   initialValue={key}
                 />
               </Grid>
