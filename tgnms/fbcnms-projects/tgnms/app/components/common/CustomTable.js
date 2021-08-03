@@ -199,22 +199,27 @@ class CustomTable extends React.Component<Props, State> {
               }
             }}>
             {({height, width}) => {
+              /**
+               * Width/height passed to Grid must be > 0 or no rows/columns
+               * will show
+               */
+              const tableBodyHeight = Math.max(height - headerHeight, 1);
+              const tableWidth = Math.max(width, 1);
               return (
                 <ScrollSync>
                   {({onScroll, scrollLeft}) => {
-                    const adjustedWidth = width;
                     const columnWidth = ({index}) =>
                       Math.max(
                         columns[index].width, // original width
                         // width to fill larger screen
-                        (adjustedWidth * columns[index].width) / totalW,
+                        (tableWidth * columns[index].width) / totalW,
                       );
                     return (
                       <div>
                         <div
                           style={{
                             height: headerHeight,
-                            width: adjustedWidth - scrollbarSize(),
+                            width: tableWidth - scrollbarSize(),
                           }}>
                           <Grid
                             ref={this.headerGridRef}
@@ -226,17 +231,18 @@ class CustomTable extends React.Component<Props, State> {
                             columnWidth={columnWidth}
                             height={headerHeight}
                             onScroll={onScroll}
-                            overscanColumnCount={0}
+                            // render all columns regardless of width
+                            overscanColumnCount={columns.length}
                             rowCount={1}
                             rowHeight={adjustedHeaderHeight}
                             scrollLeft={scrollLeft}
-                            width={adjustedWidth - scrollbarSize()}
+                            width={tableWidth - scrollbarSize()}
                           />
                         </div>
                         <div
                           style={{
-                            height: height - headerHeight,
-                            width: adjustedWidth,
+                            height: tableBodyHeight,
+                            width: tableWidth,
                           }}>
                           <Grid
                             ref={this.bodyGridRef}
@@ -251,7 +257,7 @@ class CustomTable extends React.Component<Props, State> {
                             className="CustomTable__BodyGrid"
                             columnCount={columnCount}
                             columnWidth={columnWidth}
-                            height={height - headerHeight}
+                            height={tableBodyHeight}
                             onScroll={onScroll}
                             overscanIndicesGetter={
                               accessibilityOverscanIndicesGetter
@@ -260,7 +266,7 @@ class CustomTable extends React.Component<Props, State> {
                             rowCount={displayedData.length}
                             rowHeight={adjustedRowHeight}
                             scrollLeft={scrollLeft}
-                            width={adjustedWidth}
+                            width={tableWidth}
                           />
                         </div>
                       </div>
