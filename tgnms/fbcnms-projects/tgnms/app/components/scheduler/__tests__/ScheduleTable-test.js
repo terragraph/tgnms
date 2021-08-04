@@ -78,6 +78,35 @@ test('renders custom table with rows', () => {
   expect(table);
 });
 
+test('renders scan table with Item column', () => {
+  const props = {
+    ...defaultProps,
+    mode: SCHEDULE_TABLE_TYPES.SCAN,
+  };
+  const {getByText} = render(
+    <Wrapper>
+      <ScheduleTable
+        {...props}
+        rows={[
+          {
+            id: 1,
+            item: 'Site: ff:ff:ff:ff:ff',
+            rowId: '0',
+            filterStatus: 'FINISHED',
+            type: 'IM',
+            start: new Date().toLocaleString(),
+            status: null,
+            mode: 'FINE',
+            actions: null,
+          },
+        ]}
+      />
+    </Wrapper>,
+  );
+  expect(getByText('item'));
+  expect(getByText('Site: ff:ff:ff:ff:ff'));
+});
+
 function Wrapper({children}: {children: React.Node}) {
   return (
     <SnackbarWrapper>

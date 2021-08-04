@@ -119,6 +119,9 @@ export default function ScheduleTable<T>(props: Props<T>) {
 
     const columns = [
       scheduleColumn('type', {width: 130}),
+      ...(mode === SCHEDULE_TABLE_TYPES.SCAN
+        ? [scheduleColumn('item', {width: 160})]
+        : []),
       scheduleColumn('start', {width: 160}),
       scheduleColumn('status', {width: 120}),
       scheduleColumn(mode === SCHEDULE_TABLE_TYPES.SCAN ? 'mode' : 'protocol', {

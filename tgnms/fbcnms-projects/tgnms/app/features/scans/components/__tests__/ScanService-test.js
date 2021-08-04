@@ -14,20 +14,50 @@ import {
   renderAsync,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, render} from '@testing-library/react';
+import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
+import {mockNode} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const getExecutionsMock = jest
   .spyOn(ScanServiceAPIUtil, 'getExecutions')
-  .mockImplementation(() => Promise.resolve([]));
+  .mockImplementation(() =>
+    Promise.resolve([
+      {
+        id: 1,
+        params_id: 1,
+        start_dt: '2020-09-28T20:22:20',
+        end_dt: '2020-09-28T22:37:40',
+        status: 'QUEUED',
+        network_name: 'MyNetwork',
+        type: 'IM',
+        mode: 'FINE',
+        options: {tx_wlan_mac: 'aa:aa:aa:aa:aa'},
+      },
+    ]),
+  );
 
 const getScheduleMock = jest
   .spyOn(ScanServiceAPIUtil, 'getSchedules')
   .mockImplementation(() => Promise.resolve([]));
 
-jest.mock('react-router', () => ({
-  useHistory: () => ({
-    push: jest.fn(),
-  }),
-}));
+jest
+  .mock('react-router', () => ({
+    useHistory: () => ({
+      push: jest.fn(),
+    }),
+  }))
+  .mock('@fbcnms/tg-nms/app/contexts/NetworkContext', () => ({
+    useNetworkContext: () => {
+      return mockNetworkContext({
+        networkName: 'MyNetwork',
+        macToNodeMap: {
+          'aa:aa:aa:aa:aa': 'testNode',
+        },
+        nodeMap: {
+          testNode: mockNode({name: 'MySite'}),
+        },
+      });
+    },
+  }));
 
 const defaultProps = {
   createScanUrl: jest.fn(),

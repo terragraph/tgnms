@@ -33,6 +33,7 @@ export type ScheduleTableRow = {
   type: $Values<typeof NETWORK_TEST_TYPES> | $Keys<typeof SCAN_TYPES>,
   start: React.Node,
   status: React.Node,
+  item?: string,
   protocol?: $Values<typeof PROTOCOL>,
   mode?: $Keys<typeof SCAN_MODE>,
   actions?: React.Node,
