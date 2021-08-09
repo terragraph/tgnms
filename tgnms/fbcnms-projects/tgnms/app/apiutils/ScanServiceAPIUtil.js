@@ -21,6 +21,7 @@ export const scheduleScan = (inputData: InputStartType) => {
     type: inputData.type,
     network_name: inputData.networkName,
     mode: inputData.mode,
+    options: inputData.options,
   });
 };
 
@@ -40,6 +41,7 @@ export const editScanSchedule = ({
       network_name: inputData.networkName,
       type: inputData.type,
       mode: inputData.mode,
+      options: inputData.options,
     },
   });
 };

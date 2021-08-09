@@ -7,28 +7,21 @@
 
 import * as React from 'react';
 import * as scanAPI from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormLabel from '@material-ui/core/FormLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import SchedulerModal from '@fbcnms/tg-nms/app/components/scheduler/SchedulerModal';
-import TextField from '@material-ui/core/TextField';
+import ScanModal, {
+  FULL_NETWORK_SCAN_OPTION,
+  NETWORK_SCAN,
+  createItem,
+} from './ScanModal';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+
 import {
   MODAL_MODE,
   SCAN_MODE,
-  SCAN_SERVICE_MODE,
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
 } from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
-import {makeStyles} from '@material-ui/styles';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
-
-const useStyles = makeStyles(theme => ({
-  selector: {
-    marginTop: theme.spacing(1.5),
-  },
-}));
 
 type Props = {
   id: number,
@@ -36,29 +29,52 @@ type Props = {
   onActionClick: () => void,
   mode: $Keys<typeof SCAN_MODE>,
   initialCronString: string,
+  tx_wlan_mac?: string,
 };
 
 export default function EditScanModal(props: Props) {
-  const classes = useStyles();
   const snackbars = useSnackbars();
-  const {id, onActionClick, type, initialCronString} = props;
-  const {formState, handleInputChange} = useForm({
-    initialState: {mode: props.mode},
-  });
-  const {networkName} = React.useContext(NetworkContext);
+  const {id, onActionClick, type, mode, initialCronString} = props;
+  const {networkName, nodeMap, macToNodeMap} = useNetworkContext();
 
+  // Figure out what the current item selection is (network or radio).
+  let currentItem;
+  if (props.tx_wlan_mac) {
+    const mac = props.tx_wlan_mac;
+    currentItem = createItem(mac, nodeMap[macToNodeMap[mac]]);
+  } else {
+    currentItem = {
+      title: networkName,
+      ...FULL_NETWORK_SCAN_OPTION,
+    };
+  }
+
+  const formProps = useForm({
+    initialState: {
+      type: type,
+      mode: mode,
+      item: currentItem,
+    },
+  });
+
+  const {formState} = formProps;
   const handleSubmit = React.useCallback(
     (cronExpr: ?string, _adhoc: boolean) => {
       if (!cronExpr) {
         return;
+      }
+      const options = {};
+      if (formState.item.value !== NETWORK_SCAN) {
+        options['tx_wlan_mac'] = formState.item.value;
       }
       scanAPI
         .editScanSchedule({
           inputData: {
             cronExpr,
             networkName,
-            type: SCAN_TYPES[type],
+            type: SCAN_TYPES[formState.type],
             mode: SCAN_MODE[formState.mode],
+            options: options,
           },
           scheduleId: id,
         })
@@ -68,50 +84,17 @@ export default function EditScanModal(props: Props) {
         );
       onActionClick();
     },
-    [id, networkName, onActionClick, formState, type, snackbars],
+    [id, networkName, onActionClick, formState, snackbars],
   );
 
-  return (
-    <SchedulerModal
-      buttonTitle="Edit"
-      modalTitle="Edit Scan Schedule"
-      modalScheduleText="Save Changes"
-      onSubmit={handleSubmit}
-      initialCronString={initialCronString}
-      modalMode={MODAL_MODE.EDIT}
-      type={SCAN_SERVICE_TYPES[type]}
-      scheduleParams={{
-        typeSelector: (
-          <TextField
-            className={classes.selector}
-            disabled
-            value={SCAN_SERVICE_TYPES[type]}
-            InputProps={{disableUnderline: true}}
-            fullWidth
-          />
-        ),
-        advancedParams: (
-          <FormGroup row={false}>
-            <FormLabel component="legend">
-              <span>Scan Mode</span>
-            </FormLabel>
-            <TextField
-              select
-              variant="outlined"
-              value={formState.mode}
-              InputLabelProps={{shrink: true}}
-              margin="dense"
-              fullWidth
-              onChange={handleInputChange(val => ({mode: val}))}>
-              {Object.keys(SCAN_SERVICE_MODE).map(mode => (
-                <MenuItem key={mode} value={mode}>
-                  {SCAN_SERVICE_MODE[mode]}
-                </MenuItem>
-              ))}
-            </TextField>
-          </FormGroup>
-        ),
-      }}
-    />
-  );
+  const modalProps = {
+    buttonTitle: 'Edit',
+    modalTitle: 'Edit Scan Schedule',
+    modalScheduleText: 'Save Changes',
+    onSubmit: handleSubmit,
+    type: SCAN_SERVICE_TYPES[formState.type],
+    modalMode: MODAL_MODE.EDIT,
+    initialCronString: initialCronString,
+  };
+  return <ScanModal {...{modalProps, formProps}} />;
 }

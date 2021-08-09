@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as networkTestAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import ScheduleNetworkTestModal from '../ScheduleNetworkTestModal';
 import {
-  ScheduleNetworkTestModalWrapper,
+  ScheduleModalWrapper,
   TestApp,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
@@ -34,9 +34,9 @@ const defaultProps = {
 test('renders without crashing', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleNetworkTestModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Network Test')).toBeInTheDocument();
@@ -45,9 +45,9 @@ test('renders without crashing', () => {
 test('button click opens modal', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleNetworkTestModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Network Test')).toBeInTheDocument();
@@ -59,9 +59,9 @@ test('button click opens modal', () => {
 test('Start Execution calls startExecution api', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleNetworkTestModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Network Test')).toBeInTheDocument();
@@ -74,9 +74,9 @@ test('Start Execution calls startExecution api', () => {
 test('schedule click calls schedule api', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleNetworkTestModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Network Test')).toBeInTheDocument();

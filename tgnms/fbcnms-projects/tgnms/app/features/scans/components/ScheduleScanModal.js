@@ -7,44 +7,41 @@
 
 import * as React from 'react';
 import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormLabel from '@material-ui/core/FormLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import SchedulerModal from '@fbcnms/tg-nms/app/components/scheduler/SchedulerModal';
-import TextField from '@material-ui/core/TextField';
+import ScanModal, {FULL_NETWORK_SCAN_OPTION, NETWORK_SCAN} from './ScanModal';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {
   DEFAULT_SCAN_MODE,
   MODAL_MODE,
   SCAN_MODE,
-  SCAN_SERVICE_MODE,
   SCAN_SERVICE_TYPES,
   SCAN_TYPES,
 } from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
-import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
-
-const useStyles = makeStyles(theme => ({
-  selector: {
-    marginTop: theme.spacing(1.5),
-  },
-}));
 
 type Props = {onActionClick: () => void};
 
 export default function ScheduleScanModal(props: Props) {
-  const classes = useStyles();
   const snackbars = useSnackbars();
   const {networkName} = useNetworkContext();
   const scheduleTypes = Object.keys(SCAN_SERVICE_TYPES);
   const {onActionClick} = props;
-  const {formState, handleInputChange} = useForm({
-    initialState: {type: scheduleTypes[0], mode: DEFAULT_SCAN_MODE},
+
+  const formProps = useForm({
+    initialState: {
+      type: scheduleTypes[0],
+      mode: DEFAULT_SCAN_MODE,
+      item: {title: networkName, ...FULL_NETWORK_SCAN_OPTION},
+    },
   });
 
+  const {formState} = formProps;
   const handleSubmit = React.useCallback(
     (cronExpr: ?string, adhoc: boolean) => {
+      const options = {};
+      if (formState.item.value !== NETWORK_SCAN) {
+        options['tx_wlan_mac'] = formState.item.value;
+      }
       if (cronExpr) {
         scanApi
           .scheduleScan({
@@ -52,6 +49,7 @@ export default function ScheduleScanModal(props: Props) {
             type: SCAN_TYPES[formState.type],
             networkName,
             mode: SCAN_MODE[formState.mode],
+            options: options,
           })
           .then(_ => {
             snackbars.success('Successfully scheduled scan!');
@@ -64,6 +62,7 @@ export default function ScheduleScanModal(props: Props) {
             type: SCAN_TYPES[formState.type],
             networkName,
             mode: SCAN_MODE[formState.mode],
+            options: options,
           })
           .then(_ => snackbars.success('Successfully started scan!'))
           .catch(err => snackbars.error('Failed to start scan: ' + err));
@@ -73,47 +72,14 @@ export default function ScheduleScanModal(props: Props) {
     [networkName, formState, onActionClick, snackbars],
   );
 
-  return (
-    <SchedulerModal
-      buttonTitle="Schedule Scan"
-      modalTitle="Schedule Scan"
-      modalSubmitText="Start Scan"
-      modalScheduleText="Schedule Scan"
-      onSubmit={handleSubmit}
-      type={SCAN_SERVICE_TYPES[formState.type]}
-      scheduleParams={{
-        typeSelector: (
-          <TextField
-            className={classes.selector}
-            disabled
-            value={SCAN_SERVICE_TYPES[formState.type]}
-            InputProps={{disableUnderline: true}}
-            fullWidth
-          />
-        ),
-        advancedParams: (
-          <FormGroup row={false}>
-            <FormLabel component="legend">
-              <span>Scan Mode</span>
-            </FormLabel>
-            <TextField
-              select
-              variant="outlined"
-              value={formState.mode}
-              InputLabelProps={{shrink: true}}
-              margin="dense"
-              fullWidth
-              onChange={handleInputChange(val => ({mode: val}))}>
-              {Object.keys(SCAN_SERVICE_MODE).map(mode => (
-                <MenuItem key={mode} value={mode}>
-                  {SCAN_SERVICE_MODE[mode]}
-                </MenuItem>
-              ))}
-            </TextField>
-          </FormGroup>
-        ),
-      }}
-      modalMode={MODAL_MODE.CREATE}
-    />
-  );
+  const modalProps = {
+    buttonTitle: 'Schedule Scan',
+    modalTitle: 'Schedule Scan',
+    modalSubmitText: 'Start Scan',
+    modalScheduleText: 'Schedule Scan',
+    onSubmit: handleSubmit,
+    type: SCAN_SERVICE_TYPES[formState.type],
+    modalMode: MODAL_MODE.CREATE,
+  };
+  return <ScanModal {...{modalProps, formProps}} />;
 }

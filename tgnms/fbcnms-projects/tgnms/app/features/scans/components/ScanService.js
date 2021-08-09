@@ -37,6 +37,7 @@ import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 
 import type {CreateUrl} from '@fbcnms/tg-nms/app/components/scheduler/SchedulerTypes';
 import type {FilterOptionsType} from '@fbcnms/tg-nms/shared/dto/ScanServiceTypes';
+import type {TableResultType} from '@fbcnms/tg-nms/app/features/scans/ScanServiceTypes';
 
 type Props = {
   createScanUrl: CreateUrl,
@@ -141,14 +142,14 @@ export default function ScanService(props: Props) {
     actionUpdate: shouldUpdate,
   });
 
-  const getItemName = row =>
+  const getItemName = (row, networkName) =>
     row.options.tx_wlan_mac
       ? `${nodeMap[macToNodeMap[row.options.tx_wlan_mac]].site_name}: ${
           row.options.tx_wlan_mac
         }`
-      : 'Network';
+      : `${networkName}`;
 
-  const scanRows = data?.map(row => {
+  const scanRows = data?.map((row: TableResultType) => {
     const mode = row.mode;
     if (row.status === undefined) {
       const {initialFrequency, initialTime, initialDay} = getParsedCronString({
@@ -159,7 +160,7 @@ export default function ScanService(props: Props) {
         id: row.id,
         rowId: 'schedule' + row.id,
         filterStatus: row.enabled ? 'SCHEDULED' : 'PAUSED',
-        item: getItemName(row),
+        item: getItemName(row, row.network_name),
         type: SCAN_SERVICE_TYPES[row.type],
         start: row.enabled ? (
           'Scheduled ' +
@@ -219,6 +220,7 @@ export default function ScanService(props: Props) {
                 mode={row.mode}
                 type={row.type}
                 initialCronString={row.cron_expr || ''}
+                tx_wlan_mac={row.options.tx_wlan_mac}
               />
             }
             onDeleteSchedule={deleteSchedule}
@@ -243,7 +245,7 @@ export default function ScanService(props: Props) {
         rowId: 'execution' + row.id,
         type: SCAN_SERVICE_TYPES[row.type],
         filterStatus: row.status,
-        item: getItemName(row),
+        item: getItemName(row, row.network_name),
         start: getFormattedDateAndTime({date: row.start_dt || ''}),
         status: (
           <Grid container spacing={1}>
@@ -263,7 +265,7 @@ export default function ScanService(props: Props) {
         rowId: 'execution' + row.id,
         type: SCAN_SERVICE_TYPES[row.type],
         filterStatus: row.status,
-        item: getItemName(row),
+        item: getItemName(row, row.network_name),
         start: 'In queue to start',
         status: (
           <Grid container spacing={1}>
@@ -281,7 +283,7 @@ export default function ScanService(props: Props) {
         id: row.id,
         rowId: 'execution' + row.id,
         filterStatus,
-        item: getItemName(row),
+        item: getItemName(row, row.network_name),
         type: SCAN_SERVICE_TYPES[row.type],
         start: getFormattedDateAndTime({date: row.start_dt || ''}),
         status: (

@@ -9,10 +9,15 @@ import * as React from 'react';
 import * as scanServiceAPIUtil from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import ScheduleScanModal from '../ScheduleScanModal';
 import {
-  ScheduleNetworkTestModalWrapper,
+  ScheduleModalWrapper,
   TestApp,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render} from '@testing-library/react';
+import {
+  coerceClass,
+  mockNode,
+  selectAutocompleteItem,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {fireEvent, render, within} from '@testing-library/react';
 
 const startExecutionMock = jest
   .spyOn(scanServiceAPIUtil, 'startExecution')
@@ -34,20 +39,59 @@ const defaultProps = {
 test('renders without crashing', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleScanModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Scan')).toBeInTheDocument();
 });
 
+test('can select a radio to run scan on', () => {
+  const {getByText, getByTestId} = render(
+    <TestApp>
+      <ScheduleModalWrapper
+        contextValue={{
+          networkName: 'MyNetwork',
+          nodeMap: {
+            testNode: mockNode({
+              name: 'MyNode',
+              site_name: 'MySite',
+              wlan_mac_addrs: ['aa:aa:aa:aa:aa'],
+            }),
+          },
+        }}>
+        <ScheduleScanModal {...defaultProps} />
+      </ScheduleModalWrapper>
+    </TestApp>,
+  );
+  expect(getByText('Schedule Scan')).toBeInTheDocument();
+  fireEvent.click(getByText('Schedule Scan'));
+
+  const autocomplete = within(getByTestId('autocomplete')).getByRole('textbox');
+
+  expect(coerceClass(autocomplete, HTMLInputElement).value).toEqual(
+    'MyNetwork',
+  );
+  // perform selection
+  selectAutocompleteItem(autocomplete, 'aa:aa:aa:aa:aa');
+
+  expect(getByText('Start Scan')).toBeInTheDocument();
+  fireEvent.click(getByText('Start Scan'));
+  expect(startExecutionMock).toHaveBeenCalledWith({
+    type: 2,
+    networkName: 'MyNetwork',
+    mode: 2,
+    options: {tx_wlan_mac: 'aa:aa:aa:aa:aa'},
+  });
+});
+
 test('button click opens modal', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleScanModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Scan')).toBeInTheDocument();
@@ -59,9 +103,9 @@ test('button click opens modal', () => {
 test('Start Execution calls startExecution api', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleScanModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Scan')).toBeInTheDocument();
@@ -74,9 +118,9 @@ test('Start Execution calls startExecution api', () => {
 test('schedule click calls schedule api', () => {
   const {getByText, getAllByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <ScheduleScanModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Schedule Scan')).toBeInTheDocument();

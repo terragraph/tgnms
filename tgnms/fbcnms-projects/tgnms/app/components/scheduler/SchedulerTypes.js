@@ -18,6 +18,7 @@ import {
 export type ScheduleParamsType = {
   typeSelector: React.Node,
   advancedParams: React.Node,
+  itemSelector?: React.Node,
 };
 
 export type CreateUrl = {

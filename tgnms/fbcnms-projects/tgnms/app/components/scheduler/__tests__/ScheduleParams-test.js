@@ -26,5 +26,5 @@ test('renders without crashing', () => {
     </TestApp>,
   );
   expect(getByText('Type')).toBeInTheDocument();
-  expect(getByText('Network')).toBeInTheDocument();
+  expect(getByText('Item')).toBeInTheDocument();
 });

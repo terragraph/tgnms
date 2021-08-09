@@ -142,15 +142,20 @@ export function MuiPickersWrapper({children}: {children: React.Node}) {
   );
 }
 
-export function ScheduleNetworkTestModalWrapper({
+export function ScheduleModalWrapper({
   children,
+  contextValue,
 }: {
   children: React.Node,
+  contextValue?: $Shape<NetworkContextType>,
 }) {
   return (
     <SnackbarWrapper>
       <MuiPickersWrapper>
-        <NetworkContextWrapper contextValue={{networkName: 'testNetworkName'}}>
+        <NetworkContextWrapper
+          contextValue={
+            contextValue ? contextValue : {networkName: 'testNetworkName'}
+          }>
           {children}
         </NetworkContextWrapper>
       </MuiPickersWrapper>
@@ -500,4 +505,21 @@ export async function readBlob(blob: Blob, as: BLOB_TYPES = 'text') {
         break;
     }
   });
+}
+
+/**
+ * Given an instance of the autocomplete textbox, this will peform a selection.
+ */
+export function selectAutocompleteItem(
+  autocomplete: HTMLElement,
+  item: string,
+) {
+  // focus on autocomplete field
+  autocomplete.focus();
+  // type item into textbox
+  fireEvent.change(autocomplete, {target: {value: item}});
+  // arrow down to first option
+  fireEvent.keyDown(autocomplete, {key: 'ArrowDown'});
+  // select item
+  fireEvent.keyDown(autocomplete, {key: 'Enter'});
 }

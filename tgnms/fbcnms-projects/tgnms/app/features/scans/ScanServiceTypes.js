@@ -21,7 +21,7 @@ export type TableResultType = {
   type: $Keys<typeof SCAN_TYPES>,
   mode: $Keys<typeof SCAN_MODE>,
   network_name: string,
-  whitelist: Array<string>,
+  whitelist?: Array<string>,
   options: {
     tx_wlan_mac?: string,
   },

@@ -20,7 +20,7 @@ type Props = {
 };
 
 export default function ScheduleParams(props: Props) {
-  const {typeSelector, advancedParams} = props.scheduleParams;
+  const {typeSelector, itemSelector, advancedParams} = props.scheduleParams;
 
   const context = React.useContext(NetworkContext);
 
@@ -37,18 +37,21 @@ export default function ScheduleParams(props: Props) {
           <Grid item container direction="column" spacing={1} xs={6}>
             <Grid item>
               <FormLabel component="legend">
-                <span>Network</span>
+                <span>Item</span>
               </FormLabel>
+              {itemSelector}
             </Grid>
-            <Grid item>
-              <TextField
-                disabled
-                value={context.networkName}
-                InputProps={{disableUnderline: true}}
-                margin="dense"
-                fullWidth
-              />
-            </Grid>
+            {!itemSelector && (
+              <Grid item>
+                <TextField
+                  disabled
+                  value={context.networkName}
+                  InputProps={{disableUnderline: true}}
+                  margin="dense"
+                  fullWidth
+                />
+              </Grid>
+            )}
           </Grid>
         </Grid>
         <Grid item>

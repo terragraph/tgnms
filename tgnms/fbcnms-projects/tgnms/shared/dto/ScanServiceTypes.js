@@ -44,6 +44,9 @@ export type EditScheduleType = {
   network_name: string,
   type: $Values<typeof SCAN_TYPES>,
   mode: $Values<typeof SCAN_MODE>,
+  options?: {
+    tx_wlan_mac?: string,
+  },
 };
 
 export type ExecutionDetailsType = {

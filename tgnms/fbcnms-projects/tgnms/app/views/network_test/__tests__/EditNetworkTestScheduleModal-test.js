@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as networkTestAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
 import EditNetworkTestScheduleModal from '../EditNetworkTestScheduleModal';
 import {
-  ScheduleNetworkTestModalWrapper,
+  ScheduleModalWrapper,
   TestApp,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {fireEvent, render} from '@testing-library/react';
@@ -34,9 +34,9 @@ const defaultProps = {
 test('renders without crashing', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <EditNetworkTestScheduleModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Edit')).toBeInTheDocument();
@@ -45,9 +45,9 @@ test('renders without crashing', () => {
 test('button click opens modal', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <EditNetworkTestScheduleModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Edit')).toBeInTheDocument();
@@ -58,9 +58,9 @@ test('button click opens modal', () => {
 test('Save Changes calls edit api', () => {
   const {getByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <EditNetworkTestScheduleModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Edit')).toBeInTheDocument();
@@ -73,9 +73,9 @@ test('Save Changes calls edit api', () => {
 test('no adhoc should be available', () => {
   const {getByText, queryByText} = render(
     <TestApp>
-      <ScheduleNetworkTestModalWrapper>
+      <ScheduleModalWrapper>
         <EditNetworkTestScheduleModal {...defaultProps} />
-      </ScheduleNetworkTestModalWrapper>
+      </ScheduleModalWrapper>
     </TestApp>,
   );
   expect(getByText('Edit')).toBeInTheDocument();
