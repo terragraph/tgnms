@@ -138,6 +138,7 @@ app.use('/topology', require('../server/topology/routes'));
 app.use('/user', require('../server/user/routes'));
 app.use('/network_test', require('../server/network_test/routes'));
 app.use('/scan_service', require('../server/scan_service/routes'));
+app.use('/topology_history', require('../server/topology_history/routes'));
 app.use('/websockets', require('../server/websockets/routes'));
 app.use('/api/alarms', require('../server/alarms/routes'));
 app.use('/mobileapp', require('../server/mobileapp/routes'));

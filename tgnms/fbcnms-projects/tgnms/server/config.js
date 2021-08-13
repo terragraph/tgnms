@@ -24,6 +24,8 @@ const NETWORKTEST_HOST =
   process.env.NETWORKTEST_HOST || 'http://network_test:8080';
 const SCANSERVICE_HOST =
   process.env.SCANSERVICE_HOST || 'http://scan_service:8080';
+const TOPOLOGY_HISTORY_HOST =
+  process.env.TOPOLOGY_HISTORY_HOST || 'http://topology_service:8080';
 
 const PROXY_ENABLED = process.env.http_proxy && process.env.http_proxy.length;
 
@@ -133,6 +135,7 @@ module.exports = {
   SALT_GEN_ROUNDS: 10,
   NETWORKTEST_HOST,
   SCANSERVICE_HOST,
+  TOPOLOGY_HISTORY_HOST,
   CLIENT_ROOT_URL,
   KEYCLOAK_HTTP_PROXY,
   KEYCLOAK_HOST,
