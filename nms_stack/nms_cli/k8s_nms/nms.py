@@ -372,14 +372,19 @@ def get_variables(user_config_file, managers, workers, verbose):
         os.path.dirname(__file__), "ansible", "group_vars", "all.yml"
     )
 
+    restricted_variables_file = os.path.join(
+        os.path.dirname(__file__), "ansible", "group_vars", "restricted.yml"
+    )
+
     pw_variables_file = os.path.join(
         os.path.dirname(__file__), "ansible", "group_vars", "passwords.yml"
     )
 
     # These represent all the variables that we want to run through template_variables
     # and later saved into `all_variables`.
-    with open(default_variables_file, "r") as defaults:
+    with open(default_variables_file, "r") as defaults, open(restricted_variables_file, "r") as restricted:
         variables = yaml.safe_load(defaults)
+        variables.update(yaml.safe_load(restricted))
 
     if user_config_file:
         with open(user_config_file, "r") as user:
@@ -691,14 +696,7 @@ def show_config(ctx, full):
     with open(all_file, "r") as f:
         content = f.read()
 
-    if full:
-        # Get everything except restricted stuff.
-        content = content.partition((
-            "# +--------------------------------------------------------+\n"
-            "# |     !!!!!!    NMS Restricted Options     !!!!!!        |\n"
-            "# +--------------------------------------------------------+\n"
-        ))[0]
-    else:
+    if not full:
         # Get only the critical stuff.
         content = content.partition((
             "# +--------------------------------------------------------+\n"

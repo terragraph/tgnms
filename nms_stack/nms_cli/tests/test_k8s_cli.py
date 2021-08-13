@@ -17,6 +17,11 @@ DEFAULT_VARIABLES_FILE = os.path.join(
 )
 
 
+RESTRICTED_VARIABLES_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "k8s_nms", "ansible", "group_vars", "restricted.yml"
+)
+
+
 def get_config_file(name):
     return os.path.join(os.path.dirname(__file__), "configs", name)
 
@@ -58,9 +63,9 @@ def mock_subprocess(*args, **kwargs):
 
 
 def mock_get_variables(*args, **kwargs):
-    with open(DEFAULT_VARIABLES_FILE, "r") as defaults:
+    with open(DEFAULT_VARIABLES_FILE, "r") as defaults, open(RESTRICTED_VARIABLES_FILE, "r") as restricted:
         variables = yaml.safe_load(defaults)
-
+        variables.update(yaml.safe_load(restricted))
     return variables
 
 
@@ -159,11 +164,6 @@ class TestK8sNmsCli(unittest.TestCase):
         # Critical partition sections are there.
         self.assertTrue((
             "# +--------------------------------------------------------+\n"
-            "# |     !!!!!!    NMS Restricted Options     !!!!!!        |\n"
-            "# +--------------------------------------------------------+\n"
-        ) in content)
-        self.assertTrue((
-            "# +--------------------------------------------------------+\n"
             "# |           NMS Other Configuration Options              |\n"
             "# +--------------------------------------------------------+\n"
         ) in content)
@@ -174,7 +174,6 @@ class TestK8sNmsCli(unittest.TestCase):
             content.find("NMS Other Configuration Options"),
             content.find("Bootstrapping the Kubernetes Cluster"),
             content.find("Core NMS  Options"),
-            content.find("NMS Restricted Options"),
         ]
         res = all(i < j for i, j in zip(ordering, ordering[1:]))
         self.assertTrue(res)

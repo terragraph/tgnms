@@ -1,0 +1,11 @@
+# +--------------------------------------------------------+
+# |     !!!!!!    NMS Restricted Options     !!!!!!        |
+# +--------------------------------------------------------+
+#
+# These fields are set automatically by the installer. We defined them here
+# so that we know to fetch values for them during the template_variables
+# ansible phase.
+is_ipv6:
+all_ip_addresses:
+keycloak_enabled:
+nms_password_hash:

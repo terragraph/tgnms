@@ -301,15 +301,3 @@ gfs_path: "{{ terragraph_hostpath }}/{{ gluster_mount }}"
 # `nginx_worker_connections` is the number of allowed connections per nginx worker.
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
-
-# +--------------------------------------------------------+
-# |     !!!!!!    NMS Restricted Options     !!!!!!        |
-# +--------------------------------------------------------+
-# (NMS Developer): This section must appear last in this config file.
-#
-# These are set automatically by the installer. We defined them here
-# so that we know to fetch values for them.
-is_ipv6:
-all_ip_addresses:
-keycloak_enabled:
-nms_password_hash:
