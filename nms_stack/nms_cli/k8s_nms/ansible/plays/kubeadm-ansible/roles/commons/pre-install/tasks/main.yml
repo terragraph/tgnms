@@ -1,5 +1,4 @@
 ---
-
 - name: Install Kubernetes packages
   include_tasks: pkg.yml
 
@@ -16,9 +15,13 @@
 
 - name: Enable the br_netfilter module
   shell: |
-    modprobe br_netfilter
+    cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+    overlay
+    br_netfilter
+    EOF
 
-    echo br_netfilter | sudo tee --append /etc/modules
+    sudo modprobe overlay
+    sudo modprobe br_netfilter
 
 - name: Set bridging sysctl parameters
   shell: |
