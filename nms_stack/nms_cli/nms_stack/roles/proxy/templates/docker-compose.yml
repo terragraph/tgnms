@@ -36,7 +36,7 @@ services:
       - "{{ terragraph_docker_path }}/proxy/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
       - "{{ terragraph_docker_path }}/proxy/conf/conf.d:/usr/local/openresty/nginx/conf/conf.d"
       - "{{ terragraph_docker_path }}/proxy/certs:/etc/letsencrypt"
-      - "{{ terragraph_docker_path }}/proxy/users/htpasswd:/usr/local/openresty/nginx/.htpasswd"
+      - "{{ terragraph_docker_path }}/proxy/users/htpasswd/.htpasswd:/usr/local/openresty/nginx/.htpasswd"
       - "{{ sysdump_gfs_path }}:{{ sysdump_gfs_path }}"
       - "{{ e2e_path }}:{{ e2e_path }}"
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && init-cert.sh && /usr/sbin/crond && openresty -g 'daemon off;'"]

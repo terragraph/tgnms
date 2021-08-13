@@ -129,7 +129,9 @@ docker_registry_url: https://secure.cxl-terragraph.com:443/v2
 docker_registry_username:
 docker_registry_password:
 
-keycloak_enabled: false
+# Authentication mode. Allowed values: 'keycloak' | 'http_basic' | 'none'
+auth: keycloak
+
 # Keycloak admin portal credentials
 keycloak_root_user: root
 

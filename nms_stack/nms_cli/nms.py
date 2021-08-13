@@ -54,6 +54,17 @@ def generate_host_groups(host):
     return hosts
 
 
+def generate_common_configs(generated_config, variables):
+    # Determine auth
+    generated_config['keycloak_enabled'] = (
+        variables['auth'] == 'keycloak'
+        if variables.get('auth')
+        else False
+    )
+    # Add more config transformations here.
+    return generated_config
+
+
 common_options = {
     "config-file": click.option(
         "-f", "--config-file", default=None, help="YAML file to load as variable set"
@@ -156,7 +167,7 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
     tags += ("e2e_controller",)
     a = executor(tags, verbose)
 
-    generated_config = {}
+    generated_config = generate_common_configs({}, loaded_config)
     if loaded_config:
         controllers_list = loaded_config["controllers_list"]
         controllers_list = [
@@ -312,7 +323,7 @@ def install(
     if ssl_cert_file is not None:
         a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
 
-    generated_config = {}
+    generated_config = generate_common_configs({}, variables)
 
     # Enumerate docker images to be pulled
     docker_images = []

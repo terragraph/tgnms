@@ -34,7 +34,7 @@ class FakeExecutor:
         return empty_fn
 
     def get_defaults_file(self):
-        return get_config_file("test_group_vars")
+        return get_config_file("swarm_config.yml")
 
 
 class NmsTestUtils:
@@ -103,15 +103,15 @@ class TestSwarmNmsCli(NmsTestUtils, unittest.TestCase):
             "install -f config.yml -C cert.pem -k key.pem -h fake_host1 -h fake_host2"
         )
         # Hostnames and ssl cert/key is passed in via config file.
-        self.check_command(f"install -f {get_config_file('test_group_vars')}")
-        self.check_command(f"install -f {get_config_file('test_group_vars')} -C my.cert.pem")
+        self.check_command(f"install -f {get_config_file('swarm_config.yml')}")
+        self.check_command(f"install -f {get_config_file('swarm_config.yml')} -C my.cert.pem")
 
     def test_uninstall(self):
         self.check_command("uninstall -h fake_host")
 
     def test_upgrade(self):
         self.check_command(
-            f"upgrade -f {get_config_file('test_group_vars')} -c example_first -i example.com -h fake_host"
+            f"upgrade -f {get_config_file('swarm_config.yml')} -c example_first -i example.com -h fake_host"
         )
 
     def test_rage(self):

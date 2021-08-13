@@ -6,7 +6,7 @@
 # NMS Web Login
 # Set desired username and password below to login to the NMS.
 nms_username: admin
-nms_password:
+nms_password: admin
 
 # Terragraph Software Portal credentials
 # Set api_id and api_key to authenticate NMS with the official Terragraph
@@ -131,7 +131,9 @@ docker_registry_url: https://secure.cxl-terragraph.com:443/v2
 docker_registry_username: tgdeploy
 docker_registry_password: 4l5C46xVJ0h74OmRWPK5
 
-keycloak_enabled: false
+# Authentication mode. Allowed values: 'keycloak' | 'http_basic' | 'none'
+auth: keycloak
+
 # Keycloak admin portal credentials
 keycloak_root_user: root
 keycloak_root_password: 7I*xUF9PGpI5W*ig

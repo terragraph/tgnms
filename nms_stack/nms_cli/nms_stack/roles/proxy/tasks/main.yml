@@ -55,6 +55,12 @@
     upstream_docs: docs
     resolver: "127.0.0.11"
 
+- name: create http basic auth
+  copy:
+    content: "{{ nms_username }}:{{ nms_password | password_hash('sha512') }}"
+    dest: "{{ terragraph_docker_path }}/proxy/users/htpasswd/.htpasswd"
+  when: auth == "http_basic"
+
 - name: copy nginx backend stream config
   template:
     src: stream.conf
