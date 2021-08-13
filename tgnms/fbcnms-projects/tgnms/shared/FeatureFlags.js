@@ -32,6 +32,7 @@ export const FEATURE_FLAGS: {[FeatureFlagKey]: FeatureFlagDef} = {
   //beta features
   NMS_SETTINGS_ENABLED: {isDefaultEnabled: true},
   NETWORKTEST_ENABLED: {isDefaultEnabled: true},
+  TOPOLOGY_HISTORY_ENABLED: {isDefaultEnabled: true},
   SCANSERVICE_ENABLED: {isDefaultEnabled: true},
   L2_TUNNELS_ENABLED: {isDefaultEnabled: true},
   JSON_CONFIG_ENABLED: {isDefaultEnabled: true},

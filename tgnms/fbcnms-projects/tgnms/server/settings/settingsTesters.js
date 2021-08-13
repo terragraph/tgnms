@@ -16,6 +16,7 @@ export const TESTER = {
   KEYCLOAK: 'KEYCLOAK',
   PROMETHEUS: 'PROMETHEUS',
   NETWORK_TEST: 'NETWORK_TEST',
+  TOPOLOGY_HISTORY: 'TOPOLOGY_HISTORY',
   SCANSERVICE: 'SCANSERVICE',
   DEFAULT_ROUTES_HISTORY: 'DEFAULT_ROUTES_HISTORY',
   ANP: 'ANP',
@@ -154,6 +155,11 @@ export const TESTER_MAP: {[$Values<typeof TESTER>]: SettingTest} = {
   [TESTER.NETWORK_TEST]: async config => {
     const {NETWORKTEST_HOST} = config;
     await axios.get(`${NETWORKTEST_HOST ?? ''}/schedule`);
+    return {success: true, message: 'Success!'};
+  },
+  [TESTER.TOPOLOGY_HISTORY]: async config => {
+    const {TOPOLOGY_HISTORY_HOST} = config;
+    await axios.get(`${TOPOLOGY_HISTORY_HOST ?? ''}/status`);
     return {success: true, message: 'Success!'};
   },
   [TESTER.SCANSERVICE]: async config => {

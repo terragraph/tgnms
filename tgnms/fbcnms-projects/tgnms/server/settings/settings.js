@@ -202,6 +202,13 @@ export const SETTINGS: Array<SettingDefinition> = [
     tester: TESTER.NETWORK_TEST,
   },
   {
+    key: 'TOPOLOGY_HISTORY_HOST',
+    dataType: 'STRING',
+    requiresRestart: true,
+    validations: ['URL'],
+    tester: TESTER.TOPOLOGY_HISTORY,
+  },
+  {
     key: 'DEFAULT_ROUTES_HISTORY_HOST',
     dataType: 'STRING',
     requiresRestart: true,

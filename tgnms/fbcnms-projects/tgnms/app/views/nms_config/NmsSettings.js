@@ -223,6 +223,20 @@ export default function NmsSettings() {
                       />
                     </SettingsGroup>
                     <SettingsGroup
+                      title="Topology History"
+                      tester={
+                        <SettingsTester keys={['TOPOLOGY_HISTORY_HOST']} />
+                      }>
+                      <SettingInput
+                        label="Enable Topology History"
+                        setting="TOPOLOGY_HISTORY_ENABLED"
+                      />
+                      <SettingInput
+                        label="Topology History URL"
+                        setting="TOPOLOGY_HISTORY_HOST"
+                      />
+                    </SettingsGroup>
+                    <SettingsGroup
                       title="Scan Service"
                       tester={<SettingsTester keys={['SCANSERVICE_HOST']} />}>
                       <SettingInput
