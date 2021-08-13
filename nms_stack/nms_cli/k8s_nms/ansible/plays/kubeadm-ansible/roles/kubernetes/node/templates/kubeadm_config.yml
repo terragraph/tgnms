@@ -12,6 +12,8 @@ nodeRegistration:
   criSocket: /var/run/crio/crio.sock
   name: {{ node_name }}
   taints: null
+  kubeletExtraArgs:
+    node-ip: "{%if is_ipv6%}{{ansible_facts.default_ipv6.address}} {%else%}{{ansible_facts.default_ipv4.address}}{%endif%}"
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:

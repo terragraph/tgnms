@@ -17,6 +17,8 @@ nodeRegistration:
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
+  kubeletExtraArgs:
+    node-ip: "{%if is_ipv6%}{{ansible_facts.default_ipv6.address}} {%else%}{{ansible_facts.default_ipv4.address}}{%endif%}"
 ---
 apiServer:
   timeoutForControlPlane: 4m0s
