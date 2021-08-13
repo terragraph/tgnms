@@ -15,3 +15,9 @@ export type TopologyHistoryResultsType = {
   },
   last_updated: string,
 };
+
+export type TopologyHistoryInput = {
+  networkName: string,
+  startTime: string,
+  endTime?: string,
+};
