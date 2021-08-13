@@ -64,7 +64,7 @@ export const INTRO_STEPS = [
         <Grid item>
           <ol>
             {objectValuesTypesafe<string>(MODULE_TITLES).map(moduleTitle => (
-              <li>{moduleTitle}</li>
+              <li key={moduleTitle}>{moduleTitle}</li>
             ))}
           </ol>
         </Grid>

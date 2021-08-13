@@ -128,6 +128,30 @@ export default function MapLayers(props: Props) {
   return (
     <>
       {buildings_3d ? <BuildingsLayer key="3d-buildings-layer" /> : null}
+      {site_icons && site_icons.id !== OVERLAY_NONE.id ? (
+        <SitesLayer
+          key="sites-layer"
+          onSiteMouseEnter={handleFeatureMouseEnter}
+          onSiteMouseLeave={handleFeatureMouseLeave}
+          topology={topology}
+          topologyConfig={topologyConfig}
+          ctrlVersion={controller_version}
+          selectedSites={selectedSites}
+          onSelectSiteChange={siteName =>
+            setSelected(TOPOLOGY_ELEMENT.SITE, siteName)
+          }
+          nodeMap={nodeMap}
+          siteToNodesMap={siteToNodesMap}
+          plannedSite={plannedSite}
+          onPlannedSiteMoved={onPlannedSiteMoved}
+          overlay={site_icons}
+          nearbyNodes={nearbyNodes}
+          hiddenSites={hiddenSites}
+          offlineWhitelist={offline_whitelist}
+          siteMapOverrides={overlayData.site_icons}
+          routes={routes}
+        />
+      ) : null}
       {link_lines && link_lines.id !== OVERLAY_NONE.id ? (
         <LinksLayer
           key="links-layer"
@@ -155,30 +179,7 @@ export default function MapLayers(props: Props) {
           scanMode={mapMode === MAPMODE.SCAN_SERVICE}
         />
       ) : null}
-      {site_icons && site_icons.id !== OVERLAY_NONE.id ? (
-        <SitesLayer
-          key="sites-layer"
-          onSiteMouseEnter={handleFeatureMouseEnter}
-          onSiteMouseLeave={handleFeatureMouseLeave}
-          topology={topology}
-          topologyConfig={topologyConfig}
-          ctrlVersion={controller_version}
-          selectedSites={selectedSites}
-          onSelectSiteChange={siteName =>
-            setSelected(TOPOLOGY_ELEMENT.SITE, siteName)
-          }
-          nodeMap={nodeMap}
-          siteToNodesMap={siteToNodesMap}
-          plannedSite={plannedSite}
-          onPlannedSiteMoved={onPlannedSiteMoved}
-          overlay={site_icons}
-          nearbyNodes={nearbyNodes}
-          hiddenSites={hiddenSites}
-          offlineWhitelist={offline_whitelist}
-          siteMapOverrides={overlayData.site_icons}
-          routes={routes}
-        />
-      ) : null}
+
       <NodesLayer overlayData={overlayData.nodes} overlay={nodes} />
       {site_name_popups ? <SitePopupsLayer key="popups-layer" /> : null}
       <PolygonLayer

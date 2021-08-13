@@ -503,12 +503,17 @@ class NetworkUI extends React.Component<Props, State> {
               {NETWORK_VIEWS.map(view =>
                 view.permissions ? (
                   <AuthorizedRoute
+                    key={view.path}
                     path={view.path}
                     component={view.component}
                     permissions={view.permissions}
                   />
                 ) : (
-                  <Route path={view.path} component={view.component} />
+                  <Route
+                    key={view.path}
+                    path={view.path}
+                    component={view.component}
+                  />
                 ),
               )}
               <Redirect to="/config" />
