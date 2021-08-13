@@ -70,6 +70,12 @@ export const LinkOverlayColors = {
     poor: {color: TG_COLOR.RED},
     missing: {color: TG_COLOR.GREY},
   },
+  topology: {
+    added: {color: TG_COLOR.GREEN},
+    hardware_change: {color: TG_COLOR.ORANGE},
+    removed: {color: TG_COLOR.RED},
+    no_change: {color: TG_COLOR.GREY},
+  },
 };
 
 export const LinkInterferenceColors = [
@@ -93,6 +99,12 @@ export const SiteOverlayColors = {
     hybrid_even: {color: purple[500]},
     hw_hybrid: {color: TG_COLOR.ORANGE},
     unknown: {color: TG_COLOR.RED},
+  },
+  topology: {
+    added: {color: TG_COLOR.GREEN},
+    hardware_change: {color: TG_COLOR.ORANGE},
+    removed: {color: TG_COLOR.RED},
+    no_change: {color: TG_COLOR.GREY},
   },
 };
 
@@ -393,6 +405,11 @@ export const HISTORICAL_SITE_METRIC_OVERLAYS: Overlays = {
     type: 'health',
     id: 'topology_node_is_online',
   },
+  topology: {
+    name: 'Topology Changes',
+    type: 'topology',
+    id: 'topology_changes',
+  },
 };
 
 export const HISTORICAL_LINK_METRIC_OVERLAYS: Overlays = {
@@ -404,6 +421,11 @@ export const HISTORICAL_LINK_METRIC_OVERLAYS: Overlays = {
     overlayLegendType: 'ignition_status',
     range: [1, 0.5, 0.5, 0],
     bounds: [0, 1],
+  },
+  topology: {
+    name: 'Topology Changes',
+    type: 'topology',
+    id: 'topology_changes',
   },
 };
 
