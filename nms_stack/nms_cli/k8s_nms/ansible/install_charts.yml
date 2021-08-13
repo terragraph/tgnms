@@ -21,20 +21,20 @@
       environment:
         https_proxy: "{{ https_proxy }}"
 
-    - name: Create {{ terragraph_docker_path }}/helm
+    - name: Create {{ terragraph_hostpath }}/helm
       file:
-        path: "{{ terragraph_docker_path }}/helm"
+        path: "{{ terragraph_hostpath }}/helm"
         state: directory
 
     - name: Copy values
       template:
         src: "{{ helm_values_path }}/{{ item['values'] }}"
-        dest: "{{ terragraph_docker_path }}/helm/{{ item['values'] | basename }}"
+        dest: "{{ terragraph_hostpath }}/helm/{{ item['values'] | basename }}"
       loop: "{{ helm_charts['charts'] }}"
 
     - name: Install Helm charts
       ignore_errors: true
-      shell: "helm upgrade --install {{ item['name'] }} {{ item['chart'] }} --values {{ terragraph_docker_path }}/helm/{{ item['values'] | basename }} {% if item['version'] is defined %} --version {{ item['version'] }} {% endif %}"
+      shell: "helm upgrade --install {{ item['name'] }} {{ item['chart'] }} --values {{ terragraph_hostpath }}/helm/{{ item['values'] | basename }} {% if item['version'] is defined %} --version {{ item['version'] }} {% endif %}"
       environment:
         https_proxy: "{{ https_proxy }}"
         no_proxy: "{{ no_proxy }}"

@@ -21,6 +21,8 @@
     # any extra variables passed in and the all.yml vars to fill in the templates.
     - set_fact:
         is_ipv6: "{{ true if hostvars[groups['master'][0]]['ansible_default_ipv6'] != {} else false }}"
+        keycloak_enabled: "{{ auth == 'keycloak' }}"
+        nms_password_hash: "{{ nms_password | password_hash('sha512') }}"
     - set_fact:
         ipv4_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address if not is_ipv6 else '' }}"
         ipv6_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv6'].address if is_ipv6 else '' }}"
@@ -41,11 +43,11 @@
         dest: "{{ tempfile.path }}"
     - name: Create directory if it does not exist
       file:
-        path: "{{ terragraph_docker_path }}"
+        path: "{{ terragraph_hostpath }}"
         state: directory
     - name: Check if creds.yml exists
       stat:
-        path: "{{ terragraph_docker_path }}/creds.yml"
+        path: "{{ terragraph_hostpath }}/creds.yml"
       register: stat_result
     - name: Check passwords
       assert:
@@ -53,13 +55,13 @@
           # TODO: There's probably some way to iterate over the dictionary and do this
           # without expicitly listing everything
           - should_create_passwords
-        fail_msg: "Detected that passwords were manually set but already exist on remote: {{ passwords }}, remove them from your config or delete the cached passwords on the remote at {{ terragraph_docker_path }}/creds.yml"
+        fail_msg: "Detected that passwords were manually set but already exist on remote: {{ passwords }}, remove them from your config or delete the cached passwords on the remote at {{ terragraph_hostpath }}/creds.yml"
       when: stat_result.stat.exists
     - name: Generated templated pw variables
       template:
         force: no
         src: "passwords.yml"
-        dest: "{{ terragraph_docker_path }}/creds.yml"
+        dest: "{{ terragraph_hostpath }}/creds.yml"
       when: should_create_passwords
     - name: Pull remote variables to installer host
       fetch:
@@ -68,7 +70,7 @@
         flat: yes
     - name: Pull remote variables to installer host
       fetch:
-        src: "{{ terragraph_docker_path }}/creds.yml"
+        src: "{{ terragraph_hostpath }}/creds.yml"
         dest: "{{ pw_temp_dest }}"
         flat: yes
       when: should_create_passwords

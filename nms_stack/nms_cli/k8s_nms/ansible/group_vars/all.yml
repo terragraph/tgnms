@@ -69,8 +69,12 @@ ssl_cert_file:
 # certbot_user_email: admin@gmail.com
 # certbot_args: --staging
 
+# Authentication mode. Allowed values: 'keycloak' | 'http_basic' | 'none'
+# Changing this will require you to run `install` and `apply` to take effect.
+auth: keycloak
+
+
 # Keycloak admin portal credentials
-keycloak_enabled: true
 keycloak_root_user: root
 keycloak_db_user: keycloak
 
@@ -287,11 +291,6 @@ upstream_elasticsearch: "tg-es-elasticsearch-master.default.svc.cluster.local"
 # Parent directory for all files, volumes, gfs etc
 terragraph_hostpath: /opt/terragraph
 
-# TODO: Remove these and re-name the template variables once we copy over the
-# config files from nms_stack. Until then we need to keep the sames the same
-# so those templates work correctly.
-terragraph_docker_path: "{{ terragraph_hostpath }}"
-
 use_glusterfs: true
 gluster_bricks: bricks
 gluster_mount: gfs
@@ -312,3 +311,5 @@ nginx_worker_connections: 1024
 # so that we know to fetch values for them.
 is_ipv6:
 all_ip_addresses:
+keycloak_enabled:
+nms_password_hash:

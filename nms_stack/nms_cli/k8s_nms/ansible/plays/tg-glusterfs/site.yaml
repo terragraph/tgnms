@@ -22,7 +22,7 @@
       gluster_volume:
         state: present
         name: glusterfs
-        bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        bricks: "{{ terragraph_hostpath }}/{{ gluster_bricks }}"
         replicas: "{{ groups.all | length }}"
         cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv4') | map(attribute='address') | list }}"
         host: "{{ ansible_default_ipv4.address }}"
@@ -34,7 +34,7 @@
       gluster_volume:
         state: present
         name: glusterfs
-        bricks: "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
+        bricks: "{{ terragraph_hostpath }}/{{ gluster_bricks }}"
         replicas: "{{ groups.all | length }}"
         cluster: "{{ hostvars.values() | map(attribute='ansible_default_ipv6') | map(attribute='address') | list }}"
         host: "{{ ansible_default_ipv6.address }}"
@@ -49,7 +49,7 @@
 
     - name: Ensure replicated gluster volume is mounted (IPv6)
       mount:
-        name: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        name: "{{ terragraph_hostpath }}/{{ gluster_mount }}"
         src: "{{ ansible_default_ipv6.address }}:/glusterfs"
         fstype: glusterfs
         opts: "defaults,_netdev"
@@ -58,7 +58,7 @@
 
     - name: Ensure replicated gluster volume is mounted (IPv4)
       mount:
-        name: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        name: "{{ terragraph_hostpath }}/{{ gluster_mount }}"
         src: "{{ ansible_default_ipv4.address }}:/glusterfs"
         fstype: glusterfs
         opts: "defaults,_netdev"
@@ -67,6 +67,6 @@
 
     - name: Set ownership for replicated gluster mount
       file:
-        path: "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        path: "{{ terragraph_hostpath }}/{{ gluster_mount }}"
         owner: "{{ kubernetes_user }}"
         recurse: yes

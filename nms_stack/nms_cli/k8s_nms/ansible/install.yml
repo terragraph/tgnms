@@ -14,9 +14,9 @@
 
 - hosts: all
   tasks:
-    - name: Create {{ terragraph_docker_path }}
+    - name: Create {{ terragraph_hostpath }}
       file:
-        path: "{{ terragraph_docker_path }}"
+        path: "{{ terragraph_hostpath }}"
         state: directory
       tags:
         - always
@@ -42,30 +42,30 @@
 
 - hosts: all
   tasks:
-    - name: Create {{ terragraph_docker_path }}/config-backups
+    - name: Create {{ terragraph_hostpath }}/config-backups
       file:
-        path: "{{ terragraph_docker_path }}/config-backups"
+        path: "{{ terragraph_hostpath }}/config-backups"
         state: directory
       tags:
         - always
-    - name: Backup installation config file to {{ terragraph_docker_path }}/config-backups
+    - name: Backup installation config file to {{ terragraph_hostpath }}/config-backups
       template:
         src: "{{ config_file_path }}"
-        dest: "{{ terragraph_docker_path }}/config-backups/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
+        dest: "{{ terragraph_hostpath }}/config-backups/config-{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}-{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }}.yml"
       tags:
         - always
-    - name: Create local volume directories in {{ terragraph_docker_path }}
+    - name: Create local volume directories in {{ terragraph_hostpath }}
       file:
         path: "{{ item }}"
         state: directory
         owner: "{{ kubernetes_user }}"
         mode: 0770
       loop:
-        - "{{ terragraph_docker_path }}/local"
-        - "{{ terragraph_docker_path }}/local/mysql"
-        - "{{ terragraph_docker_path }}/local/kafka"
-        - "{{ terragraph_docker_path }}/local/zookeeper"
-        - "{{ terragraph_docker_path }}/local/elasticsearch"
+        - "{{ terragraph_hostpath }}/local"
+        - "{{ terragraph_hostpath }}/local/mysql"
+        - "{{ terragraph_hostpath }}/local/kafka"
+        - "{{ terragraph_hostpath }}/local/zookeeper"
+        - "{{ terragraph_hostpath }}/local/elasticsearch"
       tags:
         - gluster
     # Create the gfs and bricks dirs even if gluster is not installed
@@ -83,8 +83,8 @@
         owner: "{{ kubernetes_user }}"
         mode: 0755
       loop:
-        - "{{ terragraph_docker_path }}/{{ gluster_bricks }}"
-        - "{{ terragraph_docker_path }}/{{ gluster_mount }}"
+        - "{{ terragraph_hostpath }}/{{ gluster_bricks }}"
+        - "{{ terragraph_hostpath }}/{{ gluster_mount }}"
       tags:
         - gluster
 

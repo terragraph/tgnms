@@ -29,6 +29,16 @@ spec:
     requests:
       storage: 1Gi
 ---
+{% if auth == 'http_basic' %}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-basic-auth
+type: Opaque
+stringData:
+  .htpasswd: {{ nms_username }}:{{ nms_password_hash }}
+{% endif %}
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -50,6 +60,11 @@ spec:
         - name: sysdump
           persistentVolumeClaim:
             claimName: sysdump
+        {% if auth == 'http_basic' %}
+        - name: htpasswd
+          secret:
+            secretName: secret-basic-auth
+        {% endif %}
         - name: nginx-conf
           configMap:
             name: nginx-conf
@@ -86,6 +101,10 @@ spec:
             - name: nginx-conf
               mountPath: /usr/local/openresty/nginx/conf/nginx.conf
               subPath: nginx.conf
+            {% if auth == 'http_basic' %}
+            - name: htpasswd
+              mountPath: /usr/local/openresty/nginx/htpasswd
+            {% endif %}
             - name: http-conf
               mountPath: /usr/local/openresty/nginx/conf/conf.d/http.conf
               subPath: http.conf
