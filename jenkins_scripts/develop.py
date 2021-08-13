@@ -84,7 +84,16 @@ projects = {
         "container": "nms",
         "build_cmd": "cd tgnms && docker build . -f fbcnms-projects/tgnms/Dockerfile --network=host --tag nmsv2:dev",
         "image_name": "nmsv2",
+        "swarm_service": "nms_nms",
     },
+    # swarm-only nginx
+    "nginx_swarm": {
+        "deployment": "nginx",
+        "container": "nginx",
+        "build_cmd": "docker build nginx -f nginx/Dockerfile --network=host --tag nginx:dev",
+        "image_name": "nginx",
+    },
+    # K8s only
     "controller-operator": {
         "deployment": "controller-operator",
         "container": "controller-operator",
@@ -111,6 +120,8 @@ for service in msa_services:
         "container": service,
         "build_cmd": f"docker build . -f {folder}/Dockerfile --tag {service}:dev --network=host ",
         "image_name": service,
+        # service name in docker swarm
+        "swarm_service": f'msa_{service.replace("-", "_")}',
     }
 
 
@@ -122,7 +133,15 @@ async def cmd_async(c, **kwargs):
 
 
 async def go_impl(
-    ctx, project, deployment, container, build_cmd, managers, workers, image_name
+    ctx,
+    cluster,
+    project,
+    deployment,
+    container,
+    build_cmd,
+    managers,
+    workers,
+    image_name,
 ):
     if project is not None:
         if project not in projects:
@@ -131,7 +150,8 @@ async def go_impl(
             )
         build_cmd = "cd nmsdev && " + projects[project]["build_cmd"]
         image_name = projects[project]["image_name"]
-        deployment = projects[project]["deployment"]
+        deployment = projects[project].get("deployment")
+        swarm_service = projects[project].get("swarm_service")
         container = projects[project]["container"]
 
     if None in [build_cmd, image_name, deployment, container]:
@@ -179,27 +199,48 @@ async def go_impl(
     ]
     await asyncio.gather(*coros)
 
-    # Add image, tag it with ':dev'
-    coros = [
-        cmd_async(
-            f"ssh {w} podman load --input {image_name}.tar.gz",
-            # stdout=asyncio.subprocess.PIPE,
-            # stderr=asyncio.subprocess.PIPE,
-        )
-        for w in managers + workers
-    ]
-    await asyncio.gather(*coros)
+    if cluster == "k8s":
+        # Add image, tag it with ':dev'
+        coros = [
+            cmd_async(
+                f"ssh {w} podman load --input {image_name}.tar.gz",
+                # stdout=asyncio.subprocess.PIPE,
+                # stderr=asyncio.subprocess.PIPE,
+            )
+            for w in managers + workers
+        ]
+        await asyncio.gather(*coros)
 
-    cprint(col.GREEN, "Setting Kubernetes to use development image")
-    cmd(
-        f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=garbage"
-    )
-    cmd(
-        f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=localhost/{image_name}:dev"
-    )
+        cprint(col.GREEN, "Setting Kubernetes to use development image")
+        cmd(
+            f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=garbage"
+        )
+        cmd(
+            f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=localhost/{image_name}:dev"
+        )
+    elif cluster == "swarm":
+        coros = [
+            cmd_async(
+                f'ssh {w} "docker load < {image_name}.tar.gz"',
+            )
+            for w in managers + workers
+        ]
+        await asyncio.gather(*coros)
+        cprint(col.GREEN, "Setting Docker Swarm to use development image")
+        # we can't automatically update the image for the nginx_proxy_monitor
+        if project == "nginx_swarm":
+            cprint(
+                col.YELLOW,
+                "Please set the image to nginx:dev in /opt/terragraph/proxy/docker-compose.yml on each host. Then run systemctl restart nginx_proxy_monitor",
+            )
+        else:
+            cmd(
+                f"ssh {kube_manager} docker service update --image {image_name}:dev {swarm_service}"
+            )
 
 
 @cli.command()
+@click.option("--cluster", default="k8s", type=click.Choice(["k8s", "swarm"]))
 @click.option("--project")
 @click.option("--build_cmd")
 @click.option("--image_name")
