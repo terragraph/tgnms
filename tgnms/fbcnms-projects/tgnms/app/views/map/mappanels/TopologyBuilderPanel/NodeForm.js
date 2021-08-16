@@ -171,6 +171,18 @@ export default function NodeForm({index}: {index: number}) {
           onChange={handleInputChange(val => ({name: val}))}
         />
       </Grid>
+      <Grid item>
+        <TextField
+          id="mac_addr"
+          key="mac_addr"
+          label="Node MAC Address"
+          InputLabelProps={{shrink: true}}
+          margin="dense"
+          fullWidth
+          value={formState.mac_addr}
+          onChange={handleInputChange(val => ({mac_addr: val}))}
+        />
+      </Grid>
       <Grid item className={STEP_TARGET.RADIO_MAC_ADDRESS}>
         {formState.wlan_mac_addrs &&
           formState.wlan_mac_addrs.map((wlan_mac, index) => (
