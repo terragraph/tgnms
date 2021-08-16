@@ -84,6 +84,7 @@ export default function Tutorials() {
       disableCloseOnEsc={true}
       spotlightClicks={true}
       disableOverlayClose={true}
+      disableScrollParentFix={true}
       scrollDuration={1000}
       spotlightPadding={0}
       disableOverlay={true}

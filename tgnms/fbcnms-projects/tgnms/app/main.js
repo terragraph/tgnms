@@ -23,6 +23,11 @@ import {hot} from 'react-hot-loader';
 const HotNetworkListBase = hot(module)(NetworkListBase);
 const root = document.getElementById('root');
 
+const body = document.body;
+if (body) {
+  body.style.overflow = 'hidden';
+}
+
 if (root) {
   ReactDOM.render(
     <BrowserRouter>
