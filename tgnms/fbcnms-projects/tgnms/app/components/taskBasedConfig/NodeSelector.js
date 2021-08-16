@@ -103,7 +103,10 @@ export default function NodeSelector({
         if (CONFIG_MODES[mode] === CONFIG_MODES.OVERRIDE) {
           correctMode = node.hasOverride;
         }
-        return node.name.includes(searchFilter) && correctMode;
+        return (
+          node.name.toLowerCase().includes(searchFilter.toLowerCase()) &&
+          correctMode
+        );
       }),
     [mode, nodeList, searchFilter],
   );
