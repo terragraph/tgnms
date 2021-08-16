@@ -1,0 +1,330 @@
+2020-12-11T00:55:21.404361+00:00 terragraph vnet[2430]: dpdk_ipsec_process:1076: not enough DPDK crypto resources, default to OpenSSL
+2020-12-11T00:55:21.531518+00:00 terragraph vnet[2430]: dpdk: unsupported tx offloads requested on port 5: multi-segs 
+2020-12-11T00:55:21.531545+00:00 terragraph vnet[2430]: dpdk: unsupported rx offloads requested on port 5: jumbo-frame scatter 
+2020-12-11T00:55:21.543406+00:00 terragraph vnet[2430]: dpdk: unsupported tx offloads requested on port 6: multi-segs 
+2020-12-11T00:55:21.543434+00:00 terragraph vnet[2430]: dpdk: unsupported rx offloads requested on port 6: jumbo-frame scatter 
+2020-12-11T00:55:21.555341+00:00 terragraph vnet[2430]: dpdk: unsupported tx offloads requested on port 7: multi-segs 
+2020-12-11T00:55:21.555365+00:00 terragraph vnet[2430]: dpdk: unsupported rx offloads requested on port 7: jumbo-frame scatter 
+2020-12-11T00:55:21.567285+00:00 terragraph vnet[2430]: dpdk: unsupported tx offloads requested on port 8: multi-segs 
+2020-12-11T00:55:21.567314+00:00 terragraph vnet[2430]: dpdk: unsupported rx offloads requested on port 8: jumbo-frame scatter 
+2020-12-11T00:55:21.597181+00:00 terragraph vnet[2430]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:21.603496+00:00 terragraph vnet[2430]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:21.609873+00:00 terragraph vnet[2430]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:21.616142+00:00 terragraph vnet[2430]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:21.622424+00:00 terragraph vnet[2430]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:25.418477+00:00 terragraph vnet[2430]: dpdk: EAL: Detected 4 lcore(s)
+2020-12-11T00:55:25.418497+00:00 terragraph vnet[2430]: dpdk: EAL: Detected 1 NUMA nodes
+2020-12-11T00:55:25.418512+00:00 terragraph vnet[2430]: dpdk: fslmc: Skipping invalid device (power)
+2020-12-11T00:55:25.418524+00:00 terragraph vnet[2430]: dpdk: EAL: Probing VFIO support...
+2020-12-11T00:55:25.418536+00:00 terragraph vnet[2430]: dpdk: EAL: VFIO support initialized
+2020-12-11T00:55:25.418549+00:00 terragraph vnet[2430]: dpdk: EAL:   using IOMMU type 1 (Type 1)
+2020-12-11T00:55:25.418560+00:00 terragraph vnet[2430]: dpdk: PMD: dpni.6: netdev created
+2020-12-11T00:55:25.418571+00:00 terragraph vnet[2430]: dpdk: PMD: dpni.7: netdev created
+2020-12-11T00:55:25.418583+00:00 terragraph vnet[2430]: dpdk: PMD: dpni.8: netdev created
+2020-12-11T00:55:25.418595+00:00 terragraph vnet[2430]: dpdk: PMD: dpni.9: netdev created
+2020-12-11T00:55:25.418607+00:00 terragraph vnet[2430]: dpdk: PMD: dpni.10: netdev created
+2020-12-11T00:55:25.418621+00:00 terragraph vnet[2430]: dpdk: EAL: PCI device 0000:01:00.0 on NUMA socket -1
+2020-12-11T00:55:25.418637+00:00 terragraph vnet[2430]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-11T00:55:25.418650+00:00 terragraph vnet[2430]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-11T00:55:25.418663+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: CSR at 0x0x1100800000, BAR size 2097152
+2020-12-11T00:55:25.418676+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-11T00:55:25.418691+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.418705+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-11T00:55:25.418717+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: platform_capa 0x0
+2020-12-11T00:55:25.418731+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.418744+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.418755+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: oob_mode to 0
+2020-12-11T00:55:25.418767+00:00 terragraph vnet[2430]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-11T00:55:25.418779+00:00 terragraph vnet[2430]: dpdk: EAL: PCI device 0001:01:00.0 on NUMA socket -1
+2020-12-11T00:55:25.418791+00:00 terragraph vnet[2430]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-11T00:55:25.418804+00:00 terragraph vnet[2430]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-11T00:55:25.418817+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: CSR at 0x0x1100A00000, BAR size 2097152
+2020-12-11T00:55:25.418830+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-11T00:55:25.418843+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.418856+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-11T00:55:25.418871+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: platform_capa 0x0
+2020-12-11T00:55:25.418884+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.418897+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.418908+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: oob_mode to 0
+2020-12-11T00:55:25.418921+00:00 terragraph vnet[2430]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-11T00:55:25.418933+00:00 terragraph vnet[2430]: dpdk: EAL: PCI device 0002:03:00.0 on NUMA socket -1
+2020-12-11T00:55:25.418945+00:00 terragraph vnet[2430]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-11T00:55:25.418957+00:00 terragraph vnet[2430]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-11T00:55:25.418970+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: CSR at 0x0x1100C00000, BAR size 2097152
+2020-12-11T00:55:25.418983+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-11T00:55:25.418995+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419008+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-11T00:55:25.419020+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: platform_capa 0x0
+2020-12-11T00:55:25.419033+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419048+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.419060+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: oob_mode to 0
+2020-12-11T00:55:25.419072+00:00 terragraph vnet[2430]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-11T00:55:25.419084+00:00 terragraph vnet[2430]: dpdk: EAL: PCI device 0002:04:00.0 on NUMA socket -1
+2020-12-11T00:55:25.419096+00:00 terragraph vnet[2430]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-11T00:55:25.419108+00:00 terragraph vnet[2430]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-11T00:55:25.419120+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: CSR at 0x0x1100E00000, BAR size 2097152
+2020-12-11T00:55:25.419133+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-11T00:55:25.419145+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419159+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-11T00:55:25.419171+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: platform_capa 0x0
+2020-12-11T00:55:25.419187+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419199+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.419210+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: oob_mode to 0
+2020-12-11T00:55:25.419222+00:00 terragraph vnet[2430]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-11T00:55:25.419244+00:00 terragraph vnet[2430]: dpdk: EAL:   cannot set up DMA remapping, error 17 (File exists)
+2020-12-11T00:55:25.419258+00:00 terragraph vnet[2430]: dpdk: EAL: Couldn't map new region for DMA
+2020-12-11T00:55:25.419269+00:00 terragraph vnet[2430]: dpdk: Invalid port_id=9
+2020-12-11T00:55:25.419280+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: oob_mode to 0
+2020-12-11T00:55:25.419294+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: Using firmware <wil6436.fw> + board file <0000:01:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-11T00:55:25.419311+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419324+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0000:01:00.0/wil6436.brd'
+2020-12-11T00:55:25.419338+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/lib/firmware/0000:01:00.0/wil6436.brd'
+2020-12-11T00:55:25.419351+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-11T00:55:25.419364+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: Reset in progress. Cannot handle WMI event
+2020-12-11T00:55:25.419377+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A0:F9; 0 MID's
+2020-12-11T00:55:25.419390+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-11T00:55:25.419402+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.419418+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-11T00:55:25.419430+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: p2mp_capable: 1
+2020-12-11T00:55:25.419443+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: wmi_set_pcie_config_params gen 3 lane_count 1
+2020-12-11T00:55:25.419455+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: non_commercial_rf: 1
+2020-12-11T00:55:25.419468+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: registered master for interface 0000:01:00.0
+2020-12-11T00:55:25.419480+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: Connected to in-kernel interface dhd0
+2020-12-11T00:55:25.419492+00:00 terragraph vnet[2430]: dpdk: 0000:01:00.0: added slave entry, interface 0000:01:00.0
+2020-12-11T00:55:25.419503+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: oob_mode to 0
+2020-12-11T00:55:25.419517+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: Using firmware <wil6436.fw> + board file <0001:01:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-11T00:55:25.419530+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419546+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0001:01:00.0/wil6436.brd'
+2020-12-11T00:55:25.419559+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/lib/firmware/0001:01:00.0/wil6436.brd'
+2020-12-11T00:55:25.419573+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-11T00:55:25.419585+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: Reset in progress. Cannot handle WMI event
+2020-12-11T00:55:25.419598+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A0:ED; 0 MID's
+2020-12-11T00:55:25.419610+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-11T00:55:25.419622+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.419635+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-11T00:55:25.419646+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: p2mp_capable: 1
+2020-12-11T00:55:25.419662+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: wmi_set_pcie_config_params gen 3 lane_count 1
+2020-12-11T00:55:25.419674+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: non_commercial_rf: 1
+2020-12-11T00:55:25.419687+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: registered master for interface 0001:01:00.0
+2020-12-11T00:55:25.419699+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: Connected to in-kernel interface dhd1
+2020-12-11T00:55:25.419711+00:00 terragraph vnet[2430]: dpdk: 0001:01:00.0: added slave entry, interface 0001:01:00.0
+2020-12-11T00:55:25.419722+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: oob_mode to 0
+2020-12-11T00:55:25.419736+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: Using firmware <wil6436.fw> + board file <0002:03:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-11T00:55:25.419749+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419765+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0002:03:00.0/wil6436.brd'
+2020-12-11T00:55:25.419778+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/lib/firmware/0002:03:00.0/wil6436.brd'
+2020-12-11T00:55:25.419791+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-11T00:55:25.419803+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: Reset in progress. Cannot handle WMI event
+2020-12-11T00:55:25.419816+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A0:EE; 0 MID's
+2020-12-11T00:55:25.419829+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-11T00:55:25.419841+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.419857+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-11T00:55:25.419869+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: p2mp_capable: 1
+2020-12-11T00:55:25.419882+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: wmi_set_pcie_config_params gen 2 lane_count 2
+2020-12-11T00:55:25.419893+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: non_commercial_rf: 1
+2020-12-11T00:55:25.419906+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: registered master for interface 0002:03:00.0
+2020-12-11T00:55:25.419917+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: Connected to in-kernel interface dhd2
+2020-12-11T00:55:25.419929+00:00 terragraph vnet[2430]: dpdk: 0002:03:00.0: added slave entry, interface 0002:03:00.0
+2020-12-11T00:55:25.419943+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: oob_mode to 0
+2020-12-11T00:55:25.419957+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: Using firmware <wil6436.fw> + board file <0002:04:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-11T00:55:25.419970+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-11T00:55:25.419984+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0002:04:00.0/wil6436.brd'
+2020-12-11T00:55:25.419997+00:00 terragraph vnet[2430]: dpdk: PMD: Unable to open file '/lib/firmware/0002:04:00.0/wil6436.brd'
+2020-12-11T00:55:25.420009+00:00 terragraph vnet[2430]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-11T00:55:25.420025+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: Reset in progress. Cannot handle WMI event
+2020-12-11T00:55:25.420039+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A8:71; 0 MID's
+2020-12-11T00:55:25.420051+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-11T00:55:25.420063+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: keep_radio_on_during_sleep (0)
+2020-12-11T00:55:25.420076+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-11T00:55:25.420087+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: p2mp_capable: 1
+2020-12-11T00:55:25.420099+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: wmi_set_pcie_config_params gen 2 lane_count 2
+2020-12-11T00:55:25.420113+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: non_commercial_rf: 1
+2020-12-11T00:55:25.420126+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: registered master for interface 0002:04:00.0
+2020-12-11T00:55:25.420139+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: Connected to in-kernel interface dhd3
+2020-12-11T00:55:25.420151+00:00 terragraph vnet[2430]: dpdk: 0002:04:00.0: added slave entry, interface 0002:04:00.0
+2020-12-11T00:55:30.034251+00:00 terragraph vnet[2430]: received SIGTERM, exiting...
+2020-12-11T00:55:33.777068+00:00 terragraph vnet[2430]: received SIGTERM, exiting...
+2020-12-11T00:55:46.408402+00:00 terragraph vnet[4195]: dpdk_ipsec_process:1076: not enough DPDK crypto resources, default to OpenSSL
+2020-12-11T00:55:46.536109+00:00 terragraph vnet[4195]: dpdk: unsupported tx offloads requested on port 5: multi-segs 
+2020-12-11T00:55:46.536136+00:00 terragraph vnet[4195]: dpdk: unsupported rx offloads requested on port 5: jumbo-frame scatter 
+2020-12-11T00:55:46.547889+00:00 terragraph vnet[4195]: dpdk: unsupported tx offloads requested on port 6: multi-segs 
+2020-12-11T00:55:46.547923+00:00 terragraph vnet[4195]: dpdk: unsupported rx offloads requested on port 6: jumbo-frame scatter 
+2020-12-11T00:55:46.559562+00:00 terragraph vnet[4195]: dpdk: unsupported tx offloads requested on port 7: multi-segs 
+2020-12-11T00:55:46.559588+00:00 terragraph vnet[4195]: dpdk: unsupported rx offloads requested on port 7: jumbo-frame scatter 
+2020-12-11T00:55:46.571354+00:00 terragraph vnet[4195]: dpdk: unsupported tx offloads requested on port 8: multi-segs 
+2020-12-11T00:55:46.571382+00:00 terragraph vnet[4195]: dpdk: unsupported rx offloads requested on port 8: jumbo-frame scatter 
+2020-12-11T00:55:46.601684+00:00 terragraph vnet[4195]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:46.608006+00:00 terragraph vnet[4195]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:46.614256+00:00 terragraph vnet[4195]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:46.620668+00:00 terragraph vnet[4195]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:46.626961+00:00 terragraph vnet[4195]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-11T00:55:50.050693+00:00 terragraph vnet[4195]: received SIGTERM, exiting...
+2020-12-11T00:55:53.687578+00:00 terragraph vnet[4195]: received SIGTERM, exiting...
+2020-12-12T01:24:48.160855+00:00 terragraph vnet[4808]: dpdk_ipsec_process:1076: not enough DPDK crypto resources, default to OpenSSL
+2020-12-12T01:24:48.287244+00:00 terragraph vnet[4808]: dpdk: unsupported tx offloads requested on port 5: multi-segs 
+2020-12-12T01:24:48.287357+00:00 terragraph vnet[4808]: dpdk: unsupported rx offloads requested on port 5: jumbo-frame scatter 
+2020-12-12T01:24:48.299270+00:00 terragraph vnet[4808]: dpdk: unsupported tx offloads requested on port 6: multi-segs 
+2020-12-12T01:24:48.299299+00:00 terragraph vnet[4808]: dpdk: unsupported rx offloads requested on port 6: jumbo-frame scatter 
+2020-12-12T01:24:48.311098+00:00 terragraph vnet[4808]: dpdk: unsupported tx offloads requested on port 7: multi-segs 
+2020-12-12T01:24:48.311125+00:00 terragraph vnet[4808]: dpdk: unsupported rx offloads requested on port 7: jumbo-frame scatter 
+2020-12-12T01:24:48.322735+00:00 terragraph vnet[4808]: dpdk: unsupported tx offloads requested on port 8: multi-segs 
+2020-12-12T01:24:48.322762+00:00 terragraph vnet[4808]: dpdk: unsupported rx offloads requested on port 8: jumbo-frame scatter 
+2020-12-12T01:24:48.356462+00:00 terragraph vnet[4808]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-12T01:24:48.364755+00:00 terragraph vnet[4808]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-12T01:24:48.373033+00:00 terragraph vnet[4808]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-12T01:24:48.379323+00:00 terragraph vnet[4808]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-12T01:24:48.386406+00:00 terragraph vnet[4808]: tgcfg_interface_event_process:664: ERROR Unable to setup Terragraph data path
+2020-12-12T01:24:52.190545+00:00 terragraph vnet[4808]: dpdk: Interface Wigig2/4/0/0 error -6: Unknown error -6
+2020-12-12T01:24:52.190592+00:00 terragraph vnet[4808]: linux_epoll_file_update:120: epoll_ctl: Bad file descriptor (errno 9)
+2020-12-12T01:24:52.190633+00:00 terragraph vnet[4808]: tgcfg_interface_event_process:659: Unable to set device up: Device failed to start
+2020-12-12T01:24:52.212671+00:00 terragraph vnet[4808]: dpdk: EAL: Detected 4 lcore(s)
+2020-12-12T01:24:52.212693+00:00 terragraph vnet[4808]: dpdk: EAL: Detected 1 NUMA nodes
+2020-12-12T01:24:52.212705+00:00 terragraph vnet[4808]: dpdk: fslmc: Skipping invalid device (power)
+2020-12-12T01:24:52.212716+00:00 terragraph vnet[4808]: dpdk: EAL: Probing VFIO support...
+2020-12-12T01:24:52.212728+00:00 terragraph vnet[4808]: dpdk: EAL: VFIO support initialized
+2020-12-12T01:24:52.212739+00:00 terragraph vnet[4808]: dpdk: EAL:   using IOMMU type 1 (Type 1)
+2020-12-12T01:24:52.212750+00:00 terragraph vnet[4808]: dpdk: PMD: dpni.6: netdev created
+2020-12-12T01:24:52.212761+00:00 terragraph vnet[4808]: dpdk: PMD: dpni.7: netdev created
+2020-12-12T01:24:52.212772+00:00 terragraph vnet[4808]: dpdk: PMD: dpni.8: netdev created
+2020-12-12T01:24:52.212783+00:00 terragraph vnet[4808]: dpdk: PMD: dpni.9: netdev created
+2020-12-12T01:24:52.212800+00:00 terragraph vnet[4808]: dpdk: PMD: dpni.10: netdev created
+2020-12-12T01:24:52.212813+00:00 terragraph vnet[4808]: dpdk: EAL: PCI device 0000:01:00.0 on NUMA socket -1
+2020-12-12T01:24:52.212825+00:00 terragraph vnet[4808]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-12T01:24:52.212837+00:00 terragraph vnet[4808]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-12T01:24:52.212850+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: CSR at 0x0x1100800000, BAR size 2097152
+2020-12-12T01:24:52.212862+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-12T01:24:52.212876+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.212889+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-12T01:24:52.212900+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: platform_capa 0x0
+2020-12-12T01:24:52.212913+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.212925+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.212935+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: oob_mode to 0
+2020-12-12T01:24:52.212947+00:00 terragraph vnet[4808]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-12T01:24:52.212962+00:00 terragraph vnet[4808]: dpdk: EAL: PCI device 0001:01:00.0 on NUMA socket -1
+2020-12-12T01:24:52.212974+00:00 terragraph vnet[4808]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-12T01:24:52.212986+00:00 terragraph vnet[4808]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-12T01:24:52.212998+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: CSR at 0x0x1100A00000, BAR size 2097152
+2020-12-12T01:24:52.213011+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-12T01:24:52.213023+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213036+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-12T01:24:52.213047+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: platform_capa 0x0
+2020-12-12T01:24:52.213060+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213072+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.213085+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: oob_mode to 0
+2020-12-12T01:24:52.213097+00:00 terragraph vnet[4808]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-12T01:24:52.213110+00:00 terragraph vnet[4808]: dpdk: EAL: PCI device 0002:03:00.0 on NUMA socket -1
+2020-12-12T01:24:52.213121+00:00 terragraph vnet[4808]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-12T01:24:52.213133+00:00 terragraph vnet[4808]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-12T01:24:52.213145+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: CSR at 0x0x1100C00000, BAR size 2097152
+2020-12-12T01:24:52.213157+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-12T01:24:52.213170+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213183+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-12T01:24:52.213194+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: platform_capa 0x0
+2020-12-12T01:24:52.213207+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213221+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.213232+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: oob_mode to 0
+2020-12-12T01:24:52.213244+00:00 terragraph vnet[4808]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-12T01:24:52.213256+00:00 terragraph vnet[4808]: dpdk: EAL: PCI device 0002:04:00.0 on NUMA socket -1
+2020-12-12T01:24:52.213268+00:00 terragraph vnet[4808]: dpdk: EAL:   Invalid NUMA socket, default to 0
+2020-12-12T01:24:52.213279+00:00 terragraph vnet[4808]: dpdk: EAL:   probe driver: 17cb:1201 net_wil6210
+2020-12-12T01:24:52.213291+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: CSR at 0x0x1100E00000, BAR size 2097152
+2020-12-12T01:24:52.213303+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: dpdk_wil_dev_init: DPDK platform device init.
+2020-12-12T01:24:52.213316+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213328+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: Board hardware is Talyn-MB, flash doesn't exist
+2020-12-12T01:24:52.213342+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: platform_capa 0x0
+2020-12-12T01:24:52.213355+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213367+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.213378+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: oob_mode to 0
+2020-12-12T01:24:52.213390+00:00 terragraph vnet[4808]: dpdk: PMD: Setting up ethdev on numa socket 0
+2020-12-12T01:24:52.213401+00:00 terragraph vnet[4808]: dpdk: EAL:   cannot set up DMA remapping, error 17 (File exists)
+2020-12-12T01:24:52.213413+00:00 terragraph vnet[4808]: dpdk: EAL: Couldn't map new region for DMA
+2020-12-12T01:24:52.213423+00:00 terragraph vnet[4808]: dpdk: Invalid port_id=9
+2020-12-12T01:24:52.213433+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: oob_mode to 0
+2020-12-12T01:24:52.213450+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: Using firmware <wil6436.fw> + board file <0000:01:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-12T01:24:52.213463+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213477+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0000:01:00.0/wil6436.brd'
+2020-12-12T01:24:52.213490+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/lib/firmware/0000:01:00.0/wil6436.brd'
+2020-12-12T01:24:52.213502+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-12T01:24:52.213514+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: Reset in progress. Cannot handle WMI event
+2020-12-12T01:24:52.213527+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A0:F9; 0 MID's
+2020-12-12T01:24:52.213542+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-12T01:24:52.213555+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.213568+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-12T01:24:52.213580+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: p2mp_capable: 1
+2020-12-12T01:24:52.213592+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: wmi_set_pcie_config_params gen 3 lane_count 1
+2020-12-12T01:24:52.213604+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: non_commercial_rf: 1
+2020-12-12T01:24:52.213617+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: registered master for interface 0000:01:00.0
+2020-12-12T01:24:52.213631+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: Connected to in-kernel interface dhd0
+2020-12-12T01:24:52.213644+00:00 terragraph vnet[4808]: dpdk: 0000:01:00.0: added slave entry, interface 0000:01:00.0
+2020-12-12T01:24:52.213655+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: oob_mode to 0
+2020-12-12T01:24:52.213669+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: Using firmware <wil6436.fw> + board file <0001:01:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-12T01:24:52.213682+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213695+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0001:01:00.0/wil6436.brd'
+2020-12-12T01:24:52.213712+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/lib/firmware/0001:01:00.0/wil6436.brd'
+2020-12-12T01:24:52.213725+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-12T01:24:52.213737+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: Reset in progress. Cannot handle WMI event
+2020-12-12T01:24:52.213750+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A0:ED; 0 MID's
+2020-12-12T01:24:52.213762+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-12T01:24:52.213774+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.213790+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-12T01:24:52.213801+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: p2mp_capable: 1
+2020-12-12T01:24:52.213814+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: wmi_set_pcie_config_params gen 3 lane_count 1
+2020-12-12T01:24:52.213826+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: non_commercial_rf: 1
+2020-12-12T01:24:52.213838+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: registered master for interface 0001:01:00.0
+2020-12-12T01:24:52.213850+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: Connected to in-kernel interface dhd1
+2020-12-12T01:24:52.213867+00:00 terragraph vnet[4808]: dpdk: 0001:01:00.0: added slave entry, interface 0001:01:00.0
+2020-12-12T01:24:52.213878+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: oob_mode to 0
+2020-12-12T01:24:52.213893+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: Using firmware <wil6436.fw> + board file <0002:03:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-12T01:24:52.213906+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.213919+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0002:03:00.0/wil6436.brd'
+2020-12-12T01:24:52.213932+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/lib/firmware/0002:03:00.0/wil6436.brd'
+2020-12-12T01:24:52.213947+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-12T01:24:52.213960+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: Reset in progress. Cannot handle WMI event
+2020-12-12T01:24:52.213973+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A0:EE; 0 MID's
+2020-12-12T01:24:52.213985+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-12T01:24:52.213997+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: keep_radio_on_during_sleep (0)
+2020-12-12T01:24:52.214010+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: config RX buffer length of 2048 for pkbmbuf data room 2048
+2020-12-12T01:24:52.214024+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: p2mp_capable: 1
+2020-12-12T01:24:52.214037+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: wmi_set_pcie_config_params gen 2 lane_count 2
+2020-12-12T01:24:52.214049+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: non_commercial_rf: 1
+2020-12-12T01:24:52.214061+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: registered master for interface 0002:03:00.0
+2020-12-12T01:24:52.214073+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: Connected to in-kernel interface dhd2
+2020-12-12T01:24:52.214085+00:00 terragraph vnet[4808]: dpdk: 0002:03:00.0: added slave entry, interface 0002:03:00.0
+2020-12-12T01:24:52.214116+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: oob_mode to 0
+2020-12-12T01:24:52.214131+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: Using firmware <wil6436.fw> + board file <0002:04:00.0/wil6436.brd>, <wil6436.brd> 
+2020-12-12T01:24:52.214144+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.fw'
+2020-12-12T01:24:52.214157+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/data/firmware/wil6210/0002:04:00.0/wil6436.brd'
+2020-12-12T01:24:52.214170+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to open file '/lib/firmware/0002:04:00.0/wil6436.brd'
+2020-12-12T01:24:52.214187+00:00 terragraph vnet[4808]: dpdk: PMD: Successfully loaded file '/data/firmware/wil6210/wil6436.brd'
+2020-12-12T01:24:52.214200+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: Reset in progress. Cannot handle WMI event
+2020-12-12T01:24:52.214213+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: FW ver. 10.11.0.77(SW 77); MAC 04:CE:14:FE:A8:71; 0 MID's
+2020-12-12T01:24:52.214225+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: FW ready after 0 ms. HW version 0x00000004
+2020-12-12T01:24:52.214237+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: wmi_call(0x0803->0x1803) timeout 50 msec
+2020-12-12T01:24:52.214248+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: wmi_echo failed, rc -62
+2020-12-12T01:24:52.214264+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: Unable to register master for dhd3
+2020-12-12T01:24:52.214276+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: Unhandled event 0x1803
+2020-12-12T01:24:52.214288+00:00 terragraph vnet[4808]: dpdk: PMD: Unable to start dhd: No such device or address
+2020-12-12T01:24:52.214300+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: failed to add platform device, err -6
+2020-12-12T01:24:52.214313+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: Disconnecting from in-kernel interface dhd3
+2020-12-12T01:24:52.214324+00:00 terragraph vnet[4808]: dpdk: PMD: poll thread exit by request
+2020-12-12T01:24:52.214339+00:00 terragraph vnet[4808]: dpdk: 0002:04:00.0: failed to register slave, err -6
+2020-12-12T01:24:58.728363+00:00 terragraph vnet[4808]: vl_msg_api_send_shmem:748: WARNING: client input queue at 3ffff81cfc80 is stuffed...
+2020-12-12T01:24:58.749717+00:00 terragraph vnet[4808]: vl_msg_api_send_shmem:748: WARNING: client input queue at 3ffff81cfc80 is stuffed...
+2020-12-12T01:24:58.770811+00:00 terragraph vnet[4808]: vl_msg_api_send_shmem:748: WARNING: client input queue at 3ffff81cfc80 is stuffed...
+2020-12-12T01:24:58.791928+00:00 terragraph vnet[4808]: vl_msg_api_send_shmem:748: WARNING: client input queue at 3ffff81cfc80 is stuffed...
+2020-12-12T01:25:31.971012+00:00 terragraph vnet[4808]: received signal SIGSEGV, PC unsupported, faulting address 0x10000775e1030
+2020-12-12T01:25:32.062784+00:00 terragraph vnet[4808]: #0  0x0000ffffb734a8ac 0xffffb734a8ac
+2020-12-12T01:25:32.063058+00:00 terragraph vnet[4808]: #1  0x0000ffffb995c648 0xffffb995c648
+2020-12-12T01:25:32.063102+00:00 terragraph vnet[4808]: #2  0x0000ffffb732aa88 vlib_node_runtime_sync_stats + 0x0
+2020-12-12T01:25:32.063137+00:00 terragraph vnet[4808]: #3  0x0000ffffb7338c6c vlib_worker_thread_barrier_release + 0x49c
+2020-12-12T01:25:32.063173+00:00 terragraph vnet[4808]: #4  0x0000ffffb732f54c vlib_node_add_next_with_slot + 0x584
+2020-12-12T01:25:32.063228+00:00 terragraph vnet[4808]: #5  0x0000ffffb7785c78 vnet_rewrite_init + 0x38
+2020-12-12T01:25:32.063266+00:00 terragraph vnet[4808]: #6  0x0000ffffb777f348 adj_nbr_add_or_lock + 0xf0
+2020-12-12T01:25:32.063310+00:00 terragraph vnet[4808]: #7  0x0000ffffb777b3bc fib_path_resolve + 0x22c
+2020-12-12T01:25:32.063546+00:00 terragraph vnet[4808]: #8  0x0000ffffb7776500 0xffffb7776500
+2020-12-12T01:25:32.063580+00:00 terragraph vnet[4808]: #9  0x0000ffffb7776e44 fib_path_list_create + 0x27c
+2020-12-12T01:25:32.063808+00:00 terragraph vnet[4808]: #10 0x0000ffffb7774b14 0xffffb7774b14
+2020-12-12T01:25:32.063848+00:00 terragraph vnet[4808]: #11 0x0000ffffb7772d8c fib_entry_src_action_path_swap + 0xe4
+2020-12-12T01:25:32.063876+00:00 terragraph vnet[4808]: #12 0x0000ffffb77704f4 fib_entry_create + 0x74
+2020-12-12T01:25:32.063925+00:00 terragraph vnet[4808]: #13 0x0000ffffb77691f4 fib_table_entry_update + 0xbc
+2020-12-12T01:25:32.063963+00:00 terragraph vnet[4808]: #14 0x0000ffffb757a3f8 ip6_ll_table_entry_update + 0x100
