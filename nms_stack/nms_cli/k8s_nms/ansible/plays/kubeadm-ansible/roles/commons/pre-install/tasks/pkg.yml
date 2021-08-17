@@ -16,3 +16,5 @@
 
 - name: Install Kubernetes packages
   shell: "apt install -y {{ kubernetes_packages }}"
+- name: Hold Kubernetes packages
+  shell: "apt-mark hold kubeadm kubelet kubectl"
