@@ -30,6 +30,11 @@
     src: "proxy.conf"
     dest: "/etc/systemd/system/crio.service.d"
 
+# https://github.com/cri-o/cri-o/issues/4574
+- name: Disable metacopy for CRI-O
+  shell: |
+    sed -i 's/,metacopy=on//g' /etc/containers/storage.conf
+
 - name: Enable CRI-O
   shell: |
     systemctl daemon-reload
