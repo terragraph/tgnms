@@ -21,7 +21,7 @@ export default function SiteAdvanced({
 
   const handleChange = React.useCallback(
     (ev, label: string) => {
-      onChange({[label]: ev.target.value});
+      onChange({[label]: Number(ev.target.value)});
     },
     [onChange],
   );
