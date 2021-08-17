@@ -103,6 +103,7 @@ export default function UploadTopologyConfirmationModal(props: Props) {
               Cancel
             </Button>
             <Button
+              data-testid="confirm-add-topology-elements"
               className={classes.button}
               color="primary"
               onClick={onSubmit}

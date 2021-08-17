@@ -132,14 +132,10 @@ export default function UploadTopologyPanel({
         setUploadTopology({sites, nodes, links});
       } else if (topologyFileType === uploadFileTypes.TG) {
         const input = convertType<TopologyType>(fileInput);
-        const links = input.links.map(link => ({
-          a_node_name: link.a_node_name,
-          z_node_name: link.z_node_name,
-        }));
         setUploadTopology({
           sites: input.sites,
           nodes: input.nodes,
-          links,
+          links: input.links,
         });
       } else if (topologyFileType === uploadFileTypes.KML) {
         const input = convertType<Array<ANPUploadKmlType>>(fileInput);

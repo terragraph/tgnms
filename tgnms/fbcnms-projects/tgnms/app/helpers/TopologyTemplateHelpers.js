@@ -17,7 +17,10 @@ import {
   LinkTypeValueMap,
   NodeTypeValueMap,
 } from '@fbcnms/tg-nms/shared/types/Topology';
-import {apiServiceRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {
+  apiRequest,
+  apiServiceRequest,
+} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {convertType, objectValuesTypesafe} from './ObjectHelpers';
 
 import type {
@@ -95,7 +98,7 @@ export function uploadTopologyBuilderRequest(
   networkName: string,
   onClose: (message?: string) => void,
 ) {
-  apiServiceRequest(networkName, 'bulkAdd', data)
+  apiRequest({networkName, endpoint: 'bulkAdd', data})
     .then(_result => onClose('success'))
     .catch(error => onClose(error.message));
 }

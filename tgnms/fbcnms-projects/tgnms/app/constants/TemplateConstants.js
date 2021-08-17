@@ -11,6 +11,7 @@ import {
 } from '@fbcnms/tg-nms/shared/types/Topology';
 
 import type {
+  LinkType,
   LocationType,
   NodeType,
   PolarityTypeType,
@@ -115,7 +116,7 @@ export type ApiBuilerInput = {
 export type UploadTopologyType = {
   sites: Array<$Shape<SiteType>>,
   nodes: Array<$Shape<NodeTemplate>>,
-  links: Array<LinkTemplate>,
+  links: Array<$Shape<LinkType>>,
 };
 
 export type ANPUploadTopologyType = {
