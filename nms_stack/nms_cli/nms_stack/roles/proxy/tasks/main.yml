@@ -10,7 +10,7 @@
     - "{{ terragraph_docker_path }}/proxy/certs"
     - "{{ terragraph_docker_path }}/proxy/env"
     - "{{ terragraph_docker_path }}/proxy/conf/conf.d/streams"
-    - "{{ terragraph_docker_path }}/proxy/users"
+    - "{{ terragraph_docker_path }}/proxy/users/htpasswd"
 
 - name: create sysdump path
   file:
