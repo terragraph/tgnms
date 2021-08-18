@@ -9,9 +9,9 @@ ptr_params = {
     "test_suite": "tests.base",
     "test_suite_timeout": 300,
     "required_coverage": {
-        "analytics/link_insight.py": 35,
+        "analytics/link_insight.py": 31,
         "analytics/visibility.py": 39,
-        "TOTAL": 30,
+        "TOTAL": 28,
     },
     "run_flake8": True,
     "run_black": True,
@@ -20,7 +20,7 @@ ptr_params = {
 
 setup(
     name="analytics",
-    version="2021.07.26",
+    version="2021.08.17",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=["numpy>=1.16.4,<2.0"],

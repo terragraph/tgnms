@@ -16,6 +16,7 @@ from .link_insight import (
     analyze_alignment,
     compute_link_foliage,
     fetch_metrics_from_queries,
+    fetch_nodes_ibf_variant,
     analyze_ewi,
 )
 from .utils.topology import fetch_network_info
@@ -67,27 +68,63 @@ async def find_alignment_status(
     step: int = 30,
 ) -> None:
     coros = []
-    metrics = ["tx_beam_idx", "rx_beam_idx"]
+    metrics = [
+        "tx_beam_idx",
+        "rx_beam_idx",
+        "tx_codebook_beam_idx",
+        "rx_codebook_beam_idx",
+    ]
     client = PrometheusClient(timeout=2)
     end_time = int(start_time_ms / 1e3)
     start_time = end_time - sample_period
 
-    network_names = APIServiceClient.network_names()
-    for network_name in network_names:
+    network_info = await fetch_network_info()
+    network_names = []
+    for nw in network_info:
+        network_names.append(nw.name)
         labels = {
-            consts.network: network_name,
+            consts.network: nw.name,
             consts.data_interval_s: "30",
         }
         queries = [client.format_query(metric, labels) for metric in metrics]
         coros.append(
             fetch_metrics_from_queries(
-                client, network_name, queries, start_time, end_time, step
+                client, nw.name, queries, start_time, end_time, step
             )
         )
 
     network_stats = zip(network_names, await asyncio.gather(*coros))
+
+    links: Dict = {}
+    network_node: Dict = {}
+    for nw in network_info:
+        links[nw.name] = {}
+        network_node[nw.name] = {}
+        for link in nw.links:
+            link_name = link["name"]
+            links[nw.name][link_name] = {}
+            links[nw.name][link_name]["a_node_name"] = link["a_node_name"]
+            links[nw.name][link_name]["z_node_name"] = link["z_node_name"]
+            network_node[nw.name][link["a_node_name"]] = {}
+            network_node[nw.name][link["z_node_name"]] = {}
+
+    client = APIServiceClient(timeout=5)
+
+    coros = []
+    for network in network_names:
+        coros.append(fetch_nodes_ibf_variant(client, network, network_node[network]))
+
+    ibf_codebook_variant = {}
+    collect = zip(network_names, await asyncio.gather(*coros))
+    for network, results in collect:
+        ibf_codebook_variant[network] = results[network]
+
     analyze_alignment(
-        network_stats, threshold_misalign_degree, threshold_tx_rx_degree_diff
+        network_stats,
+        links,
+        ibf_codebook_variant,
+        threshold_misalign_degree,
+        threshold_tx_rx_degree_diff,
     )
 
 

@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import asyncio
+import json
 import logging
 import typing
 from collections import defaultdict
@@ -10,6 +11,7 @@ from typing import Any, Collection, DefaultDict, Dict, Iterable, List, Optional
 
 import numpy as np
 from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
+from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
 from .utils.hardware_config import HardwareConfig
@@ -235,8 +237,14 @@ def analyze_ewi(network_stats: Iterable, sum_threshold: int) -> None:
     return None
 
 
+def choose_beam_stats(variant: int, beam: Dict, codebook_beam: Dict) -> Dict:
+    return beam if variant == 0 else codebook_beam
+
+
 def analyze_alignment(
     network_stats: Iterable,
+    links: Dict,
+    ibf_codebook_variant: Dict,
     threshold_misalign_degree: int,
     threshold_tx_rx_degree_diff: int,
 ) -> None:
@@ -248,13 +256,36 @@ def analyze_alignment(
         stats = process_node_alignment_metrics(prom_results, network_name)
         tx_beam_idx_stats = stats.get("tx_beam_idx")
         rx_beam_idx_stats = stats.get("rx_beam_idx")
+        tx_codebook_beam_idx_stats = stats.get("tx_codebook_beam_idx")
+        rx_codebook_beam_idx_stats = stats.get("rx_codebook_beam_idx")
 
-        if tx_beam_idx_stats is None or rx_beam_idx_stats is None:
+        if (
+            tx_beam_idx_stats is None
+            or rx_beam_idx_stats is None
+            or tx_codebook_beam_idx_stats is None
+            or rx_codebook_beam_idx_stats is None
+        ):
             continue
 
-        for link in tx_beam_idx_stats:
-            tx_stats = tx_beam_idx_stats[link]
-            rx_stats = rx_beam_idx_stats.get(link)
+        for link in links[network_name]:
+            a_node = links[network_name][link]["a_node_name"]
+            z_node = links[network_name][link]["z_node_name"]
+
+            if not a_node or not z_node:
+                logging.debug(f"For {link}, missing a_node or z_node.")
+                continue
+
+            tx_stats = choose_beam_stats(
+                ibf_codebook_variant.get(network_name, {}).get(a_node, 0),
+                tx_beam_idx_stats[link],
+                tx_codebook_beam_idx_stats[link],
+            )
+            rx_stats = choose_beam_stats(
+                ibf_codebook_variant.get(network_name, {}).get(z_node, 0),
+                rx_beam_idx_stats[link],
+                rx_codebook_beam_idx_stats[link],
+            )
+
             if not rx_stats:
                 logging.debug(
                     f"For {link}, tx beam stats is available, missing rx beam stats."
@@ -347,4 +378,28 @@ async def fetch_metrics_from_queries(
         return results
     except ClientRuntimeError:
         logging.exception("Failed to fetch metrics from Prometheus.")
+        return None
+
+
+async def fetch_nodes_ibf_variant(
+    client: APIServiceClient, network_name: str, nodes: Dict,
+) -> Optional[Dict]:
+    """Fetch latest ibfCodebookVariant for all nodes in this network"""
+    try:
+        ibf_codebook_variant = {}
+        for node in nodes:
+            result = await client.request(
+                network_name, endpoint="getNodeConfig", params={"node": node}
+            )
+            native = json.loads(result["config"])
+
+            ibf_codebook_variant[node] = (
+                native.get("radioParamsBase", {})
+                .get("fwParams", {})
+                .get("ibfCodebookVariant", 0)
+            )
+
+        return {network_name: ibf_codebook_variant}
+    except ClientRuntimeError:
+        logging.error("Failed to fetch network/nodes ibfCodebookVariant.")
         return None
