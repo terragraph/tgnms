@@ -30,13 +30,10 @@ import StatusIndicator, {
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import moment from 'moment';
-import swal from 'sweetalert2';
-import {LinkTypeValueMap as LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
-import {
-  apiRequest,
-  apiServiceRequestWithConfirmation,
-} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
+import {deleteLinkRequest} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {
@@ -47,12 +44,15 @@ import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {withStyles} from '@material-ui/core/styles';
 
-import type {NetworkHealth} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
+import type {LinkMeta} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
+  LinkType,
   NodeType as Node,
   SiteType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import type {NetworkHealth} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const styles = theme => ({
   iconCentered: {
@@ -114,6 +114,8 @@ type Props = {
   siteMap: {[string]: SiteType},
   siteNodes: Set<string>,
   nodeMap: {[string]: Node},
+  nodeToLinksMap: {[string]: Set<string>},
+  linkMap: {[string]: LinkType & LinkMeta},
   networkLinkHealth: NetworkHealth,
   wapStats?: Object,
   onSelectNode: string => any,
@@ -124,6 +126,12 @@ type Props = {
   onPin: () => any,
   pinned: boolean,
   site: SiteType,
+  azimuthManager: AzimuthManager,
+  snackbars: {
+    success: string => any,
+    error: string => any,
+    warning: string => any,
+  },
   onUpdateRoutes: ({
     node: ?string,
     links: {[string]: number},
@@ -146,7 +154,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     // Find all wireless links associated with nodes on this site
     return links.filter(
       link =>
-        link.link_type === LinkType.WIRELESS &&
+        link.link_type === LinkTypeValueMap.WIRELESS &&
         (siteNodes.has(link.a_node_name) || siteNodes.has(link.z_node_name)),
     );
   }
@@ -264,50 +272,52 @@ class SiteDetailsPanel extends React.Component<Props, State> {
     return angleMap;
   }
 
-  showSwal(success, msg) {
-    swal({
-      title: success ? 'Success!' : 'Failure!',
-      html: `Response:<p><tt>${msg}</tt></p>`,
-      type: success ? 'success' : 'error',
-    });
-  }
-
   async onDeleteSite() {
     // Delete this site
-    const {site, siteNodes, networkName} = this.props;
+    const {
+      site,
+      siteNodes,
+      networkName,
+      nodeToLinksMap,
+      linkMap,
+      nodeMap,
+      azimuthManager,
+      snackbars,
+    } = this.props;
     const siteName = site.name;
     const nodeNames = [...siteNodes];
-    if (siteNodes.size > 0) {
-      try {
-        await Promise.all(
-          nodeNames.map(nodeName =>
-            apiRequest<{nodeName: string}, any>({
-              networkName,
-              endpoint: 'delNode',
-              data: {nodeName},
-            }),
-          ),
-        );
-        const {message, success} = await apiRequest<{siteName: string}, any>({
-          networkName,
-          endpoint: 'delSite',
-          data: {siteName},
-        });
-        this.showSwal(success, message);
-      } catch (err) {
-        this.showSwal(false, err);
-        return;
-      }
-    } else {
-      apiServiceRequestWithConfirmation(
-        networkName,
-        'delSite',
-        {siteName},
-        {
-          desc: `Do you want to permanently delete site <strong>${siteName}</strong>?`,
-          descType: 'html',
-        },
+    const linkNames = [];
+    nodeNames.forEach(nodeName => linkNames.push(...nodeToLinksMap[nodeName]));
+    try {
+      await Promise.all(
+        linkNames.map(linkName => {
+          const link = linkMap[linkName];
+          deleteLinkRequest({
+            nodeMap,
+            link,
+            networkName,
+            azimuthManager,
+          });
+        }),
       );
+      await Promise.all(
+        nodeNames.map(nodeName =>
+          apiRequest<{nodeName: string}, any>({
+            networkName,
+            endpoint: 'delNode',
+            data: {nodeName, force: true},
+          }),
+        ),
+      );
+      const {message} = await apiRequest<{siteName: string}, any>({
+        networkName,
+        endpoint: 'delSite',
+        data: {siteName},
+      });
+      snackbars.success(message);
+    } catch (err) {
+      snackbars.error(err);
+      return;
     }
   }
 

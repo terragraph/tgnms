@@ -25,7 +25,13 @@ beforeEach(() => {
   initWindowConfig();
 });
 
-const {nodeMap, siteToNodesMap, siteMap} = buildTopologyMaps(mockFig0());
+const {
+  nodeMap,
+  siteToNodesMap,
+  siteMap,
+  nodeToLinksMap,
+  linkMap,
+} = buildTopologyMaps(mockFig0());
 const apiRequestSuccessMock = jest.fn(() => Promise.resolve({}));
 jest
   .spyOn(serviceApiUtil, 'apiRequest')
@@ -59,6 +65,14 @@ const commonProps = {
   pinned: false,
   site: mockSite({name: FIG0.SITE1}),
   onUpdateRoutes: empty,
+  nodeToLinksMap,
+  linkMap,
+  azimuthManager: {
+    addLink: jest.fn(),
+    deleteLink: jest.fn(),
+    moveSite: jest.fn(),
+  },
+  snackbars: {error: empty, success: empty, warning: empty},
 };
 
 test('renders', () => {

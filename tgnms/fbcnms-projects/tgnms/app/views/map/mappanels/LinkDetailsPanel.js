@@ -29,7 +29,6 @@ import {
 import {STATS_LINK_QUERY_PARAM} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {TEST_TYPE_CODES} from '@fbcnms/tg-nms/app/constants/ScheduleConstants';
 import {
-  apiRequest,
   apiServiceRequestWithConfirmation,
   requestWithConfirmation,
 } from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
@@ -38,7 +37,11 @@ import {
   objectValuesTypesafe,
 } from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
-import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {deleteLinkRequest} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {
+  formatNumber,
+  toTitleCase,
+} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {get} from 'lodash';
 import {
   hasLinkEverGoneOnline,
@@ -48,7 +51,6 @@ import {
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {mapDefaultRoutes} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
 import {startPartialTest} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
-import {toTitleCase} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -180,91 +182,17 @@ class LinkDetailsPanel extends React.Component<Props, State> {
     const {nodeMap} = this.props;
     // Delete this link
     const {link, networkName, azimuthManager} = this.props;
-
-    // 1. disable auto ignite so when link is turned off it doesn't turn back on
-    // 2. turn link off so we can delete
-    // 3. delete link
-    // 4. enable auto ignite so if same link is formed, it will ignite
-    async function makeRequests({force}: {force: boolean}) {
-      if (force) {
-        try {
-          await apiRequest({
-            networkName,
-            endpoint: 'setIgnitionState',
-            data: {
-              enable: true,
-              linkAutoIgnite: {
-                [link.name]: false,
-              },
-            },
-          });
-        } catch (error) {
-          console.error(error);
-        }
-        try {
-          const aNode = nodeMap[link.a_node_name];
-          const zNode = nodeMap[link.z_node_name];
-          const initiatorNode =
-            aNode.node_type === NodeTypeValueMap.DN ? aNode : zNode;
-          const responderNode =
-            aNode.node_type === NodeTypeValueMap.DN ? zNode : aNode;
-
-          await apiRequest({
-            networkName,
-            endpoint: 'setLinkStatus',
-            data: {
-              initiatorNodeName: initiatorNode.name,
-              responderNodeName: responderNode.name,
-              action: LinkActionType.LINK_DOWN,
-            },
-          });
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      try {
-        const aNodeName = link.a_node_name;
-        const zNodeName = link.z_node_name;
-        await apiRequest<
-          {aNodeName: string, zNodeName: string, force: boolean},
-          any,
-        >({
-          networkName,
-          endpoint: 'delLink',
-          data: {aNodeName, zNodeName, force},
-        });
-      } catch (error) {
-        return {
-          success: false,
-          msg: error,
-        };
-      }
-      try {
-        await apiRequest({
-          networkName,
-          endpoint: 'setIgnitionState',
-          data: {
-            enable: true,
-            linkAutoIgnite: {
-              [link.name]: true,
-            },
-          },
-        });
-      } catch (error) {
-        console.error(error);
-      }
-      await azimuthManager.deleteLink(link);
-      return {
-        success: true,
-        msg: `Link was successfully deleted!`,
-      };
-    }
     requestWithConfirmation(
-      makeRequests,
+      () =>
+        deleteLinkRequest({
+          nodeMap,
+          link,
+          networkName,
+          azimuthManager,
+        }),
       {
-        desc: `Do you want to permanently delete <strong>${link.name}</strong>? This will also disable link auto ignition and dissociate the link.`,
+        desc: `Do you want to permanently delete <strong>${link.name}</strong>? This will also dissociate the link.`,
         descType: 'html',
-        checkbox: 'Force link deletion (even if ignited)',
         processInput: (data, value) => {
           return {...data, force: !!value};
         },

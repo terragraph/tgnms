@@ -70,7 +70,7 @@ describe('Delete Link', () => {
     });
     const {nodeMap} = buildTopologyMaps(mockMultiHop(4, false));
     const props = {...commonProps, nodeMap};
-    const {getByText, getByLabelText} = render(
+    const {getByText} = render(
       <TestApp>
         <LinkDetailsPanel {...props} />
       </TestApp>,
@@ -80,9 +80,6 @@ describe('Delete Link', () => {
     });
     await act(async () => {
       fireEvent.click(getByText('Delete Link'));
-    });
-    await act(async () => {
-      fireEvent.click(getByLabelText(/Force link deletion/i));
     });
     await act(async () => {
       fireEvent.click(getByText(/Confirm/i));
@@ -119,41 +116,6 @@ describe('Delete Link', () => {
       undefined,
     );
   });
-  test('Doesnt send force parameter if force isnt checked', async () => {
-    const mock = jest.spyOn(axios, 'post');
-    mock.mockResolvedValue({
-      data: {
-        success: true,
-      },
-    });
-    const {nodeMap} = buildTopologyMaps(mockMultiHop(4, false));
-    const props = {...commonProps, nodeMap};
-    const {getByText} = render(
-      <TestApp>
-        <LinkDetailsPanel {...props} />
-      </TestApp>,
-    );
-    await act(async () => {
-      fireEvent.click(getByText('View Actions'));
-    });
-    await act(async () => {
-      fireEvent.click(getByText('Delete Link'));
-    });
-    await act(async () => {
-      fireEvent.click(getByText(/Confirm/i));
-    });
-
-    expect(mock).nthCalledWith(
-      1,
-      '/apiservice/test/api/delLink',
-      {
-        aNodeName: 'node0',
-        zNodeName: 'node1',
-        force: false,
-      },
-      undefined,
-    );
-  });
 
   test('If one node is a CN, selects the DN to initiate the dissoc', async () => {
     const mock = jest.spyOn(axios, 'post');
@@ -184,7 +146,7 @@ describe('Delete Link', () => {
     });
 
     const {nodeMap} = buildTopologyMaps(topology);
-    const {getByText, getByLabelText, rerender} = render(
+    const {getByText, rerender} = render(
       <TestApp>
         <LinkDetailsPanel {...commonProps} link={link1} nodeMap={nodeMap} />
       </TestApp>,
@@ -194,9 +156,6 @@ describe('Delete Link', () => {
     });
     await act(async () => {
       fireEvent.click(getByText('Delete Link'));
-    });
-    await act(async () => {
-      fireEvent.click(getByLabelText(/Force link deletion/i));
     });
     await act(async () => {
       fireEvent.click(getByText(/Confirm/i));
@@ -222,9 +181,6 @@ describe('Delete Link', () => {
     });
     await act(async () => {
       fireEvent.click(getByText('Delete Link'));
-    });
-    await act(async () => {
-      fireEvent.click(getByLabelText(/Force link deletion/i));
     });
     await act(async () => {
       fireEvent.click(getByText(/Confirm/i));

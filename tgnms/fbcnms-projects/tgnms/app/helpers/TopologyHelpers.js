@@ -4,10 +4,18 @@
  * @format
  * @flow strict-local
  */
+
 import * as turf from '@turf/turf';
-import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
+import {LinkActionTypeValueMap} from '@fbcnms/tg-nms/shared/types/Controller';
+import {
+  LinkTypeValueMap,
+  NodeTypeValueMap,
+} from '@fbcnms/tg-nms/shared/types/Topology';
+import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {averageAngles} from './MathHelpers';
 import {bearingToAzimuth, locToPos} from './GeoHelpers';
+
+import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import type {
   LinkMap,
   MacToNodeMap,
@@ -17,6 +25,7 @@ import type {
   SiteToNodesMap,
 } from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
+  LinkType,
   NodeType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
@@ -189,5 +198,96 @@ export function getTopologyMaps(obj: {...TopologyMaps}): TopologyMaps {
     nodeToLinksMap,
     siteToNodesMap,
     macToNodeMap,
+  };
+}
+
+/**
+ * In order to correctly delete a link, it is a 4 step process
+ * 1. disable auto ignite so when link is turned off it doesn't turn back on
+ * 2. turn link off so we can delete
+ * 3. delete link
+ * 4. enable auto ignite so if same link is formed, it will ignite
+ *
+ * this function triggers all those steps for a link
+ */
+export async function deleteLinkRequest({
+  nodeMap,
+  link,
+  networkName,
+  azimuthManager,
+}: {
+  nodeMap: {[string]: NodeType},
+  link: LinkType,
+  networkName: string,
+  azimuthManager: AzimuthManager,
+}) {
+  try {
+    await apiRequest({
+      networkName,
+      endpoint: 'setIgnitionState',
+      data: {
+        enable: true,
+        linkAutoIgnite: {
+          [link.name]: false,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  try {
+    const aNode = nodeMap[link.a_node_name];
+    const zNode = nodeMap[link.z_node_name];
+    const initiatorNode =
+      aNode.node_type === NodeTypeValueMap.DN ? aNode : zNode;
+    const responderNode =
+      aNode.node_type === NodeTypeValueMap.DN ? zNode : aNode;
+
+    await apiRequest({
+      networkName,
+      endpoint: 'setLinkStatus',
+      data: {
+        initiatorNodeName: initiatorNode.name,
+        responderNodeName: responderNode.name,
+        action: LinkActionTypeValueMap.LINK_DOWN,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  try {
+    const aNodeName = link.a_node_name;
+    const zNodeName = link.z_node_name;
+    await apiRequest<{aNodeName: string, zNodeName: string, force: boolean}, *>(
+      {
+        networkName,
+        endpoint: 'delLink',
+        data: {aNodeName, zNodeName, force: true},
+      },
+    );
+  } catch (error) {
+    return {
+      success: false,
+      msg: error,
+    };
+  }
+  try {
+    await apiRequest({
+      networkName,
+      endpoint: 'setIgnitionState',
+      data: {
+        enable: true,
+        linkAutoIgnite: {
+          [link.name]: true,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+  await azimuthManager.deleteLink(link);
+  return {
+    success: true,
+    msg: `Link was successfully deleted!`,
   };
 }

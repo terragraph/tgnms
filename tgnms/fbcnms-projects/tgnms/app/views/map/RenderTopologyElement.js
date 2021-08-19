@@ -206,8 +206,9 @@ export default function RenderTopologyElement({
           site={site}
           siteMap={siteMap}
           siteNodes={siteToNodesMap[name] || new Set()}
-          nodeMap={nodeMap}
           nodeToLinksMap={nodeToLinksMap}
+          linkMap={linkMap}
+          nodeMap={nodeMap}
           networkLinkHealth={networkLinkHealth}
           wapStats={wapStats}
           onClose={handleClosePanel}
@@ -216,6 +217,8 @@ export default function RenderTopologyElement({
           onPin={() => togglePin(type, name, !pinned)}
           onEdit={siteName => editSite(siteName)}
           onUpdateRoutes={onUpdateRoutes}
+          azimuthManager={azimuthManager}
+          snackbars={snackbars}
         />
       </Slide>
     );
