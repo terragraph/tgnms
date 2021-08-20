@@ -31,6 +31,17 @@ async def read_timeseries(
     return []
 
 
+def make_joint_query(compound: List[str], joint_query: str, link_query: str) -> str:
+    if joint_query:
+        joint_query += " or "
+    if len(compound) == 2 and compound[1] == "delta":
+        # Harding the delta [1s] part of this query for now.
+        joint_query += f"{compound[1]}({link_query}[1s])"
+    else:
+        joint_query += link_query
+    return joint_query
+
+
 async def generate_route_stats(
     start_time_ms: int,
     client: PrometheusClient,
@@ -69,13 +80,13 @@ async def generate_route_stats(
                     )
         for metric, aggregation in route_metrics.items():
             joint_query = ""
+            # Support aggregation like "max/delta".
+            compound = aggregation.split("/")
             for link_query in link_queries[metric]:
-                if joint_query:
-                    joint_query += " or "
-                joint_query += link_query
+                joint_query = make_joint_query(compound, joint_query, link_query)
             if joint_query:
-                if aggregation in ["max", "min"]:
-                    joint_query = f"{aggregation}({joint_query})"
+                if compound[0] in ["max", "min"]:
+                    joint_query = f"{compound[0]}({joint_query})"
                 else:
                     logging.info(
                         f"Unsupported aggregation function '{aggregation}' for {metric} ."
