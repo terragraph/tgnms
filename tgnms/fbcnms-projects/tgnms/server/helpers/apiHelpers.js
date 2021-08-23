@@ -10,6 +10,7 @@ const request = require('request');
 const logger = require('../log')(module);
 const path = require('path');
 const {API_REQUEST_TIMEOUT} = require('../config');
+import {ValidationError as SequelizeValidationError} from 'sequelize';
 
 import type {Request, Response} from '../types/express';
 import type {Router} from 'express';
@@ -28,6 +29,12 @@ export function createApi(): Router<Request, Response> {
  */
 export function createErrorHandler(res: Response) {
   return (error: Error & {expected?: boolean}) => {
+    if (error instanceof SequelizeValidationError) {
+      console.error(error);
+      const err = (error: SequelizeValidationError);
+      const messages = err.errors.map(e => e.message).join('\n');
+      return res.status(400).send({error: messages});
+    }
     //only return an error message if it's an expected error
     if (error.expected === true) {
       return res.status(400).send({

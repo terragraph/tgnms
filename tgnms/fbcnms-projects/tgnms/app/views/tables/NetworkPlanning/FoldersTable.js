@@ -7,6 +7,7 @@
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import CreateFolderModal from './CreateFolderModal';
+import CreatePlanModal from './CreatePlanModal';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import MenuButton from '@fbcnms/tg-nms/app/components/common/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -29,9 +30,8 @@ import {
   useLocation,
 } from 'react-router-dom';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
-import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {NetworkTableProps} from '../NetworkTables';
+import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export default function FoldersTable({tableHeight}: NetworkTableProps) {
   const location = useLocation();
@@ -39,9 +39,10 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
   const [lastRefreshDate, setLastRefreshDate] = React.useState(
     new Date().getTime(),
   );
-  const [plans, setFolders] = React.useState<?Array<ANPFolder>>();
+  const [plans, setFolders] = React.useState<?Array<PlanFolder>>();
   const loadPlansTask = useTaskState();
   const createFolderModal = useModalState();
+  const createPlanModal = useModalState();
   React.useEffect(() => {
     (async () => {
       try {
@@ -66,7 +67,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
     () => [
       {
         title: 'Name',
-        field: 'folder_name',
+        field: 'name',
         grouping: false,
         width: 100,
       },
@@ -90,11 +91,12 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
       searchFieldStyle: {
         marginRight: '16px',
       },
+      emptyRowsWhenPaging: false,
     }),
     [tableHeight],
   );
 
-  const handleRowClick = (event, row: ANPFolder) => {
+  const handleRowClick = (event, row: PlanFolder) => {
     const match = matchPath(location.pathname, {
       path: PLANNING_BASE_PATH,
     });
@@ -129,6 +131,9 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
           {
             position: 'toolbar',
             Component: CTAComponent,
+            // these props prevent material-table's prop-types from complaining
+            icon: 'none',
+            onClick: empty,
           },
         ]}
         components={{
@@ -142,17 +147,21 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
         onClose={createFolderModal.close}
         onComplete={refreshTable}
       />
+      <CreatePlanModal
+        isOpen={createPlanModal.isOpen}
+        onClose={createPlanModal.close}
+      />
     </>
   );
 }
+function empty() {}
 
 type CTAProps = {|
   onFolderCreated: () => void,
 |};
 export function FoldersTableCTA({onFolderCreated}: CTAProps) {
-  const {setSelectedPlanId} = useNetworkPlanningContext();
   const createFolderModal = useModalState();
-
+  const createPlanModal = useModalState();
   return (
     <>
       <MenuButton
@@ -164,12 +173,16 @@ export function FoldersTableCTA({onFolderCreated}: CTAProps) {
         id="folders-table-cta"
         ButtonProps={{variant: 'outlined'}}>
         <MenuItem onClick={createFolderModal.open}>Folder</MenuItem>
-        <MenuItem onClick={() => setSelectedPlanId('')}>Plan</MenuItem>
+        <MenuItem onClick={createPlanModal.open}>Plan</MenuItem>
       </MenuButton>
       <CreateFolderModal
         isOpen={createFolderModal.isOpen}
         onClose={createFolderModal.close}
         onComplete={onFolderCreated}
+      />
+      <CreatePlanModal
+        isOpen={createPlanModal.isOpen}
+        onClose={createPlanModal.close}
       />
     </>
   );

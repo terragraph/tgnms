@@ -10,7 +10,7 @@ import TextField from '@material-ui/core/TextField';
 import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
-import type {ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export type Props = {|
   folderId: string,
@@ -31,14 +31,14 @@ export default function SelectANPPlan({
 }: Props) {
   const autocompleteState = useModalState();
   const {plans, taskState: loadPlansTask} = useFolderPlans({folderId});
-  const options = React.useMemo<Array<ANPPlan>>(
+  const options = React.useMemo<Array<NetworkPlan>>(
     () => (plans != null ? plans : []),
     [plans],
   );
   const [plan, setPlan] = React.useState();
   React.useEffect(() => {
     if (plans != null && planId != null) {
-      setPlan(plans.find(p => p.id === planId));
+      setPlan(plans.find(p => p.id === parseInt(planId)));
     }
   }, [planId, setPlan, plans]);
   return (
@@ -57,7 +57,7 @@ export default function SelectANPPlan({
       getOptionSelected={(option, value) => {
         return option.id === value.id;
       }}
-      getOptionLabel={opt => opt?.plan_name ?? ''}
+      getOptionLabel={opt => opt?.name ?? ''}
       renderInput={params => (
         <TextField {...params} label={!hideLabel ? 'Select Plan' : null} />
       )}

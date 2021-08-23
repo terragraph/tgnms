@@ -1,0 +1,1067 @@
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @format
+ * @flow
+ */
+import * as path from 'path';
+import ANPAPIClientMock from '../ANPAPIClient';
+import nullthrows from '@fbcnms/util/nullthrows';
+import request from 'supertest';
+import {FILE_ROLE, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {
+  FILE_SOURCE,
+  FILE_STATE,
+  NETWORK_PLAN_STATE,
+} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
+import {vol} from 'memfs';
+import type {FileSourceKey} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import type {NetworkPlanAttributes} from '@fbcnms/tg-nms/server/models/networkPlan';
+import type {NetworkPlanFileAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFile';
+import type {NetworkPlanFolderAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFolder';
+
+const {
+  network_plan_folder,
+  network_plan,
+  network_plan_file,
+} = require('../../models');
+jest.doMock('fs', () => {
+  const {vol, createFsFromVolume} = require('memfs');
+  return createFsFromVolume(vol);
+});
+// use require for helpers so mock isn't hoisted
+const {
+  inputFileRowToInputFile,
+  getBaseDir,
+  makeANPDir,
+} = require('../planningService');
+const fsMock = require('fs');
+
+// Mock out the ANPAPIClient and provide some mock implementations
+jest.mock('../ANPAPIClient');
+const mockPlanFBID = '9999';
+const mockFileFBID = '12345';
+const mockFileRole = FILE_ROLE.DSM_GEOTIFF;
+const mockFile = {
+  file_name: 'dsm',
+  file_extension: 'tiff',
+  file_role: mockFileRole,
+  id: mockFileFBID,
+};
+const getFileMetadataMock = jest.fn().mockResolvedValue(mockFile);
+const createFolderMock = jest.fn(({folder_name}) =>
+  Promise.resolve({id: 12345, folder_name}),
+);
+const createPlanMock = jest.fn(() => Promise.resolve({id: mockPlanFBID}));
+const launchPlanMock = jest.fn(() => Promise.resolve({success: true}));
+const uploadFileMock = jest.fn(() => Promise.resolve(mockFile));
+const createUploadSessionMock = jest.fn(() =>
+  Promise.resolve({id: 'upload:abc123=?sig=abc123'}),
+);
+const updateFileMetadataMock = jest.fn(() => Promise.resolve(mockFile));
+const uploadChunkMock = jest.fn(() => Promise.resolve({h: '123'}));
+const getPlanMock = jest.fn(() => Promise.reject(new Error('Not implemented')));
+(ANPAPIClientMock: any).mockImplementation(() => ({
+  getFileMetadata: getFileMetadataMock,
+  createFolder: createFolderMock,
+  launchPlan: launchPlanMock,
+  createPlan: createPlanMock,
+  uploadFile: uploadFileMock,
+  createUploadSession: createUploadSessionMock,
+  uploadChunk: uploadChunkMock,
+  updateFileMetadata: updateFileMetadataMock,
+  getPlan: getPlanMock,
+}));
+
+jest.mock('axios');
+jest.mock('../../models');
+jest.mock('../../config', () => ({
+  ANP_API_URL: 'test',
+  ANP_CLIENT_ID: 'test',
+  ANP_CLIENT_SECRET: 'test',
+  ANP_PARTNER_ID: 'test',
+  ANP_FILE_DIR: 'data/anp',
+  FACEBOOK_OAUTH_URL: 'test',
+}));
+
+beforeEach(() => {
+  vol.reset();
+});
+const folderFBID = '44561213';
+
+describe('POST /folder', () => {
+  test('Creates a new folder', async () => {
+    const folderName = 'test folder';
+    const shouldBeNull = await network_plan_folder.findOne({
+      where: {name: folderName},
+    });
+    expect(shouldBeNull).toBeNull();
+    await request(setupApp())
+      .post(`/network_plan/folder`)
+      .send({
+        name: folderName,
+      })
+      .expect(200);
+    expect(createFolderMock).toHaveBeenCalledWith({folder_name: folderName});
+    const dbRow = await network_plan_folder.findOne({
+      where: {name: folderName},
+    });
+    expect(dbRow).not.toBeNull();
+  });
+});
+describe('PUT /folder/:id', () => {
+  test('renames a folder', async () => {
+    const originalName = 'test folder';
+    const newName = 'test folder-renamed';
+    const response = await request(setupApp())
+      .post(`/network_plan/folder`)
+      .send({
+        name: originalName,
+      })
+      .expect(200);
+    expect(response.body).toMatchObject({
+      id: expect.any(Number),
+      name: originalName,
+    });
+    // ensure the created db row matches what's returned by the api
+    let dbRow = await network_plan_folder.findByPk(response.body.id);
+    if (dbRow == null) {
+      throw new Error('folder not created');
+    }
+    const createdfolder = dbRow.toJSON();
+    expect(createdfolder).toMatchObject({
+      id: response.body.id,
+      name: originalName,
+    });
+    await request(setupApp())
+      .put(`/network_plan/folder/${response.body.id}`)
+      .send({
+        name: newName,
+      })
+      .expect(200);
+    dbRow = await network_plan_folder.findByPk(response.body.id);
+    if (dbRow == null) {
+      throw new Error('folder not created');
+    }
+    expect(dbRow.name).toBe(newName);
+  });
+});
+describe('GET /folder', () => {
+  test('returns all folders', async () => {
+    await Promise.all([
+      createTestFolder({
+        name: 'test folder 1',
+        fbid: '1',
+      }),
+      createTestFolder({
+        name: 'test folder 2',
+        fbid: '2',
+      }),
+      createTestFolder({
+        name: 'test folder 3',
+        fbid: '3',
+      }),
+    ]);
+    const response = await request(setupApp())
+      .get('/network_plan/folder')
+      .expect(200);
+    if (!Array.isArray(response.body)) {
+      console.error(response.body);
+      throw new Error('expected array body');
+    }
+    expect(response.body).toEqual(
+      expect.arrayContaining([
+        {
+          id: expect.any(Number),
+          name: 'test folder 1',
+        },
+        {
+          id: expect.any(Number),
+          name: 'test folder 2',
+        },
+        {
+          id: expect.any(Number),
+          name: 'test folder 3',
+        },
+      ]),
+    );
+  });
+});
+describe('GET ?folderId', () => {
+  test('returns all plans in folder', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const folder2 = await createTestFolder({name: 'test folder', fbid: '123'});
+    const createdRows = await network_plan.bulkCreate([
+      ({
+        name: 'test-1',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-2',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-3',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      // these items should not be returned
+      ({
+        name: 'test-4',
+        folder_id: folder2.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-5',
+        folder_id: folder2.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+    ]);
+    expect(createdRows.length).toBe(5);
+    const response = await request(setupApp())
+      .get(`/network_plan/plan?folderId=${folder.id}`)
+      .expect(200);
+    expect(response.body.length).toBe(3);
+    expect(response.body).toContainEqual({
+      id: 1,
+      name: 'test-1',
+      folderId: folder.id,
+      dsmFile: expect.any(Object),
+      boundaryFile: expect.any(Object),
+      sitesFile: expect.any(Object),
+      state: NETWORK_PLAN_STATE.DRAFT,
+    });
+    expect(response.body).toContainEqual({
+      id: 2,
+      name: 'test-2',
+      folderId: folder.id,
+      dsmFile: expect.any(Object),
+      boundaryFile: expect.any(Object),
+      sitesFile: expect.any(Object),
+      state: NETWORK_PLAN_STATE.DRAFT,
+    });
+    expect(response.body).toContainEqual({
+      id: 3,
+      name: 'test-3',
+      folderId: folder.id,
+      dsmFile: expect.any(Object),
+      boundaryFile: expect.any(Object),
+      sitesFile: expect.any(Object),
+      state: NETWORK_PLAN_STATE.DRAFT,
+    });
+  });
+  test('returns empty array if no plans found in folder', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+      fbid: '1234',
+    });
+    const folder2 = await createTestFolder({
+      name: 'test folder 2',
+      fbid: '123',
+    });
+    const createdRows = await network_plan.bulkCreate([
+      // these items should not be returned
+      ({
+        name: 'test-4',
+        folder_id: folder2.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-5',
+        folder_id: folder2.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+    ]);
+    expect(createdRows.length).toBe(2);
+    const response = await request(setupApp())
+      .get(`/network_plan/plan?folderId=${folder.id}`)
+      .expect(200);
+    expect(response.body).toHaveLength(0);
+  });
+  test('fetches state of in-progress plans from the ANP api', async () => {
+    const plan1Fbid = '12345';
+    const plan2Fbid = '12346';
+    getPlanMock.mockResolvedValueOnce({
+      id: plan1Fbid,
+      plan_status: PLAN_STATUS.RUNNING,
+    });
+    getPlanMock.mockResolvedValueOnce({
+      id: plan2Fbid,
+      plan_status: PLAN_STATUS.SUCCEEDED,
+    });
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const createdRows = await network_plan.bulkCreate([
+      ({
+        name: 'test-1',
+        fbid: plan1Fbid,
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.RUNNING,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-2',
+        fbid: plan2Fbid,
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.UPLOADING_INPUTS,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-3',
+        fbid: '12347',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-4',
+        fbid: '12348',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.SUCCESS,
+      }: $Shape<NetworkPlanAttributes>),
+    ]);
+    expect(createdRows.length).toBe(4);
+    await request(setupApp())
+      .get(`/network_plan/plan?folderId=${folder.id}`)
+      .expect(200);
+    expect(getPlanMock).toHaveBeenCalledTimes(2);
+    expect(
+      nullthrows(await network_plan.findOne({where: {fbid: plan1Fbid}})).state,
+    ).toBe(NETWORK_PLAN_STATE.RUNNING);
+    expect(
+      nullthrows(await network_plan.findOne({where: {fbid: plan2Fbid}})).state,
+    ).toBe(NETWORK_PLAN_STATE.SUCCESS);
+  });
+});
+describe('POST /plan', () => {
+  test('creates a new plan', async () => {
+    const folder = await createTestFolder({name: 'test folder'});
+    const response = await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        name: 'new draft',
+        folderId: folder.id,
+      })
+      .expect(200);
+    const {body} = response;
+    expect(body).toMatchObject({
+      id: expect.any(Number),
+      name: 'new draft',
+      folderId: folder.id,
+    });
+    const dbResults = (await network_plan.findByPk(body.id))?.toJSON();
+    expect(dbResults).toMatchObject({
+      id: body.id,
+      name: body.name,
+      folder_id: body.folderId,
+    });
+  });
+
+  test('returns an error if required params are not sent', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        folderId: folder.id,
+      })
+      .expect(400);
+    await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        name: 'test',
+      })
+      .expect(400);
+    await request(setupApp()).post('/network_plan/plan').send({}).expect(400);
+  });
+
+  test('can set input files during creation', async () => {
+    const [boundary, dsm, sites] = await createInputFiles();
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const response = await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        name: 'new draft',
+        folderId: folder.id,
+        boundaryFileId: boundary.id,
+        dsmFileId: dsm.id,
+        sitesFileId: sites.id,
+      })
+      .expect(200);
+    const plan = response.body;
+    expect(plan).toMatchObject({
+      id: expect.any(Number),
+      folderId: folder.id,
+      name: 'new draft',
+      dsmFile: expect.any(Object),
+      sitesFile: expect.any(Object),
+      boundaryFile: expect.any(Object),
+    });
+    const planRow = nullthrows(await network_plan.findByPk(plan.id)).toJSON();
+    expect(planRow).toMatchObject({
+      name: 'new draft',
+      folder_id: folder.id,
+      dsm_file_id: dsm.id,
+      boundary_file_id: boundary.id,
+      sites_file_id: sites.id,
+    });
+  });
+});
+describe('PUT /plan/:id', () => {
+  test('renames an existing plan', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const dbPlan = await createTestPlan({
+      name: 'test',
+      folder_id: folder.id,
+    });
+    await request(setupApp())
+      .put(`/network_plan/plan/${dbPlan.id}`)
+      .send({
+        name: 'test-renamed',
+      })
+      .expect(200);
+    const updatedPlan = (await network_plan.findByPk(dbPlan.id))?.toJSON();
+    expect(updatedPlan).toMatchObject({
+      name: 'test-renamed',
+      folder_id: folder.id,
+    });
+  });
+  test('only modifies the plan targeted in the request', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    // one assertion per plan in the db
+    expect.assertions(3);
+    await network_plan.bulkCreate([
+      ({
+        name: 'test-1',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-2',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        name: 'test-3',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+    ]);
+    /**
+     * the rows returned by bulkCreate dont have the all the
+     * column properties like dsm_file_id so use findall for comparing later
+     */
+    const createdPlans = (await network_plan.findAll()).map(x => x.toJSON());
+    const planToUpdate = createdPlans[0];
+    await request(setupApp())
+      .put(`/network_plan/plan/${planToUpdate.id}`)
+      .send({
+        name: 'test-2-renamed',
+        folderId: folder.id,
+      })
+      .expect(200);
+
+    const plansAfterUpdate = (await network_plan.findAll()).map(x =>
+      x.toJSON(),
+    );
+    const notUpdatedPlans = plansAfterUpdate.filter(
+      x => x.id !== planToUpdate.id,
+    );
+    const updatedPlan = plansAfterUpdate.find(x => x.id === planToUpdate.id);
+    // assert that non-updated plans havent changed
+    for (const p of notUpdatedPlans) {
+      const originalRow = createdPlans.find(x => x.id === p.id);
+      expect(originalRow).toMatchObject(p);
+    }
+
+    expect(updatedPlan).toMatchObject({
+      id: planToUpdate.id,
+      name: 'test-2-renamed',
+      folder_id: folder.id,
+    });
+  });
+  test('sets input files', async () => {
+    const [boundary, dsm, sites] = await createInputFiles();
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const dbPlan = await createTestPlan({
+      folder_id: folder.id,
+    });
+    expect(dbPlan.dsm_file_id).not.toBeTruthy();
+    expect(dbPlan.boundary_file_id).not.toBeTruthy();
+    expect(dbPlan.sites_file_id).not.toBeTruthy();
+    await request(setupApp())
+      .put(`/network_plan/plan/${dbPlan.id}`)
+      .send({
+        name: 'test-renamed',
+        boundaryFileId: boundary.id,
+        dsmFileId: dsm.id,
+        sitesFileId: sites.id,
+      })
+      .expect(200);
+    const updatedPlan = (await network_plan.findByPk(dbPlan.id))?.toJSON();
+    expect(updatedPlan).toMatchObject({
+      name: 'test-renamed',
+      folder_id: folder.id,
+      boundary_file_id: boundary.id,
+      dsm_file_id: dsm.id,
+      sites_file_id: sites.id,
+    });
+  });
+});
+
+describe('GET plan/:id', () => {
+  test('should return the plan and its input files', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const [boundary, dsm, sites] = await createInputFiles();
+    const plan = await createTestPlan({
+      folder_id: folder.id,
+      dsm_file_id: dsm.id,
+      boundary_file_id: boundary.id,
+      sites_file_id: sites.id,
+    });
+    const response = await request(setupApp())
+      .get(`/network_plan/plan/${plan.id}`)
+      .expect(200);
+    expect(response.body).toMatchObject({
+      id: plan.id,
+      name: plan.name,
+      folderId: folder.id,
+      dsmFile: inputFileRowToInputFile(dsm),
+      boundaryFile: inputFileRowToInputFile(boundary),
+      sitesFile: inputFileRowToInputFile(sites),
+    });
+  });
+  test('fetches plan state from the ANP api if the draft plan is in-progress', async () => {
+    const plan1Fbid = '12345';
+    const plan2Fbid = '12346';
+    getPlanMock.mockResolvedValueOnce({
+      id: plan1Fbid,
+      plan_status: PLAN_STATUS.RUNNING,
+    });
+    getPlanMock.mockResolvedValueOnce({
+      id: plan2Fbid,
+      plan_status: PLAN_STATUS.SUCCEEDED,
+    });
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const createdRows = await network_plan.bulkCreate([
+      ({
+        id: 1,
+        name: 'test-1',
+        fbid: plan1Fbid,
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.RUNNING,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        id: 2,
+        name: 'test-2',
+        fbid: plan2Fbid,
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.UPLOADING_INPUTS,
+      }: $Shape<NetworkPlanAttributes>),
+      ({
+        id: 3,
+        name: 'test-3',
+        fbid: '12347',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+    ]);
+    expect(createdRows.length).toBe(3);
+    // the first plan stays in the running state
+    expect(
+      (await request(setupApp()).get(`/network_plan/plan/${1}`).expect(200))
+        .body.state,
+    ).toBe(NETWORK_PLAN_STATE.RUNNING);
+    expect(nullthrows(await network_plan.findByPk(1)).state).toBe(
+      NETWORK_PLAN_STATE.RUNNING,
+    );
+    // the second plan should transition into the success state
+    expect(
+      (await request(setupApp()).get(`/network_plan/plan/${2}`).expect(200))
+        .body.state,
+    ).toBe(NETWORK_PLAN_STATE.SUCCESS);
+    expect(nullthrows(await network_plan.findByPk(2)).state).toBe(
+      NETWORK_PLAN_STATE.SUCCESS,
+    );
+    // the third plan should not change states
+    expect(
+      (await request(setupApp()).get(`/network_plan/plan/${3}`).expect(200))
+        .body.state,
+    ).toBe(NETWORK_PLAN_STATE.DRAFT);
+    expect(nullthrows(await network_plan.findByPk(3)).state).toBe(
+      NETWORK_PLAN_STATE.DRAFT,
+    );
+    // getPlan should only be called for running plans
+    expect(getPlanMock).toHaveBeenCalledTimes(2);
+  });
+});
+describe('POST plan/:id/launch', () => {
+  test('returns errors if plan fails validation', async () => {
+    const folder = await createTestFolder({name: 'test folder'});
+    const app = setupApp();
+    const {body: plan} = await request(app)
+      .post('/network_plan/plan')
+      .send({
+        name: 'new draft',
+        folderId: folder.id,
+      })
+      .expect(200);
+    const {body: launchPlanResult} = await request(app).post(
+      `/network_plan/plan/${plan.id}/launch`,
+    );
+    expect(launchPlanResult.state).toBe(NETWORK_PLAN_STATE.ERROR);
+    expect(launchPlanResult.errors).toEqual(
+      expect.arrayContaining([
+        {
+          message: 'Missing DSM file',
+        },
+        {
+          message: 'Missing boundary file',
+        },
+        {
+          message: 'Missing boundary file',
+        },
+      ]),
+    );
+  });
+  test('sets ANP plan status after successful launch', async () => {
+    const [boundary, dsm, sites] = await createInputFiles({
+      source: FILE_SOURCE.fbid,
+    });
+    const folder = await createTestFolder({name: 'test folder'});
+    const {body: plan} = await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        name: 'new draft',
+        folderId: folder.id,
+        boundaryFileId: boundary.id,
+        dsmFileId: dsm.id,
+        sitesFileId: sites.id,
+      })
+      .expect(200);
+    await request(setupApp())
+      .post(`/network_plan/plan/${plan.id}/launch`)
+      .expect(200);
+    expect([NETWORK_PLAN_STATE.RUNNING]).toContain(
+      nullthrows(await network_plan.findByPk(plan.id)).state,
+    );
+  });
+  describe('with local files', () => {
+    test('uploads local files to fb', async () => {
+      const folder = await createTestFolder({name: 'test folder'});
+      const [boundary, dsm, sites] = await createInputFiles();
+      await makeANPDir('inputs');
+      writeInputFile(boundary, Buffer.from('test-1'));
+      writeInputFile(dsm, Buffer.from('test-2'));
+      writeInputFile(sites, Buffer.from('test-3'));
+      expect(boundary.fbid).toBeUndefined();
+      expect(dsm.fbid).toBeUndefined();
+      expect(sites.fbid).toBeUndefined();
+      const {body: plan} = await request(setupApp())
+        .post('/network_plan/plan')
+        .send({
+          name: 'new draft',
+          folderId: folder.id,
+          boundaryFileId: boundary.id,
+          dsmFileId: dsm.id,
+          sitesFileId: sites.id,
+        })
+        .expect(200);
+
+      expect(createUploadSessionMock).not.toHaveBeenCalled();
+      const {body: launchBody} = await request(setupApp())
+        .post(`/network_plan/plan/${plan.id}/launch`)
+        .expect(200);
+      expect(launchBody.state).toBe(NETWORK_PLAN_STATE.RUNNING);
+      // each file is just one chunk so 3 calls
+      expect(createUploadSessionMock).toHaveBeenCalledTimes(3);
+      expect(uploadChunkMock).toHaveBeenCalledTimes(3);
+    });
+    test('transitions the plan into the UPLOADING_INPUTS state', async () => {
+      const folder = await createTestFolder({name: 'test folder'});
+      const [boundary, dsm, sites] = await createInputFiles();
+      await makeANPDir('inputs');
+      writeInputFile(boundary, Buffer.from('test-1'));
+      writeInputFile(dsm, Buffer.from('test-2'));
+      writeInputFile(sites, Buffer.from('test-3'));
+      const {body: plan} = await request(setupApp())
+        .post('/network_plan/plan')
+        .send({
+          name: 'new draft',
+          folderId: folder.id,
+          boundaryFileId: boundary.id,
+          dsmFileId: dsm.id,
+          sitesFileId: sites.id,
+        })
+        .expect(200);
+
+      const {body: launchBody} = await request(setupApp())
+        .post(`/network_plan/plan/${plan.id}/launch`)
+        .expect(200);
+      expect(launchBody.state).toBe(NETWORK_PLAN_STATE.RUNNING);
+      expect(createPlanMock).toHaveBeenCalled();
+      expect(launchPlanMock).toHaveBeenCalled();
+      expect(nullthrows(await network_plan.findByPk(plan.id)).state).toBe(
+        NETWORK_PLAN_STATE.RUNNING,
+      );
+    });
+    test.todo(
+      'if file upload fails, transitions the plan into the ERROR state',
+    );
+    test.todo(
+      'if anp api returns errors after local file upload success, transitions the plan into the ERROR state',
+    );
+  });
+  describe('with only FBID files', () => {
+    test('creates and launches plan', async () => {
+      const [boundary, dsm, sites] = await createInputFiles({
+        source: FILE_SOURCE.fbid,
+      });
+      const folder = await createTestFolder({name: 'test folder'});
+      const {body: createdPlan} = await request(setupApp())
+        .post('/network_plan/plan')
+        .send({
+          name: 'new draft',
+          folderId: folder.id,
+          boundaryFileId: boundary.id,
+          dsmFileId: dsm.id,
+          sitesFileId: sites.id,
+        })
+        .expect(200);
+      const {body: launchBody} = await request(setupApp())
+        .post(`/network_plan/plan/${createdPlan.id}/launch`)
+        .expect(200);
+      expect(launchBody.state).toBe(NETWORK_PLAN_STATE.RUNNING);
+      expect(createPlanMock).toHaveBeenCalledWith({
+        folder_id: folder.fbid,
+        plan_name: createdPlan.name,
+        boundary_polygon: createdPlan.boundaryFile.fbid.toString(),
+        dsm: createdPlan.dsmFile.fbid.toString(),
+        site_list: createdPlan.sitesFile.fbid.toString(),
+      });
+      expect(launchPlanMock).toHaveBeenCalled();
+      const dbRow = nullthrows(await network_plan.findByPk(createdPlan.id));
+      expect(dbRow.state).toBe(NETWORK_PLAN_STATE.RUNNING);
+    });
+    test(
+      'if anp api returns errors, transitions the plan into the ERROR state' +
+        ' and returns errors',
+      async () => {
+        launchPlanMock.mockResolvedValueOnce({success: false});
+        const [boundary, dsm, sites] = await createInputFiles({
+          source: FILE_SOURCE.fbid,
+        });
+        const folder = await createTestFolder({name: 'test folder'});
+        const {body: plan} = await request(setupApp())
+          .post('/network_plan/plan')
+          .send({
+            name: 'new draft',
+            folderId: folder.id,
+            boundaryFileId: boundary.id,
+            dsmFileId: dsm.id,
+            sitesFileId: sites.id,
+          })
+          .expect(200);
+        const {body: launchBody} = await request(setupApp())
+          .post(`/network_plan/plan/${plan.id}/launch`)
+          .expect(500);
+        expect(launchBody.state).toBe(NETWORK_PLAN_STATE.ERROR);
+        expect(nullthrows(await network_plan.findByPk(plan.id)).state).toBe(
+          NETWORK_PLAN_STATE.ERROR,
+        );
+      },
+    );
+    test('assigns the ANP fbid to the plan', async () => {
+      const [boundary, dsm, sites] = await createInputFiles({
+        source: FILE_SOURCE.fbid,
+      });
+      const folder = await createTestFolder({name: 'test folder'});
+      const {body: createdPlan} = await request(setupApp())
+        .post('/network_plan/plan')
+        .send({
+          name: 'new draft',
+          folderId: folder.id,
+          boundaryFileId: boundary.id,
+          dsmFileId: dsm.id,
+          sitesFileId: sites.id,
+        })
+        .expect(200);
+      // there should be no fbid before the plan is submitted to ANP
+      expect(nullthrows(await network_plan.findByPk(createdPlan.id)).fbid).toBe(
+        null,
+      );
+      await request(setupApp())
+        .post(`/network_plan/plan/${createdPlan.id}/launch`)
+        .expect(200);
+
+      expect(nullthrows(await network_plan.findByPk(createdPlan.id)).fbid).toBe(
+        mockPlanFBID,
+      );
+    });
+  });
+});
+describe('DELETE /:id', () => {
+  test('deletes a plan', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const {body: plan} = await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        name: 'new draft',
+        folderId: folder.id,
+      })
+      .expect(200);
+
+    // delete the plan
+    await request(setupApp())
+      .delete(`/network_plan/plan/${plan.id}`)
+      .expect(200);
+
+    const nullPlan = await network_plan.findByPk(plan.id);
+    expect(nullPlan).toBeNull();
+  });
+});
+
+describe('POST /file', () => {
+  test('creates an FBID file reference', async () => {
+    const {body} = await request(setupApp())
+      .post(`/network_plan/file`)
+      .send({
+        source: FILE_SOURCE.fbid,
+        fbid: mockFileFBID,
+      })
+      .expect(200);
+    expect(body).toMatchObject({
+      id: expect.any(Number),
+      role: FILE_ROLE.DSM_GEOTIFF,
+    });
+    const dbRow = nullthrows(
+      await network_plan_file.findByPk(body.id),
+    ).toJSON();
+    expect(dbRow).toMatchObject({
+      id: body.id,
+      role: body.role,
+      name: body.name,
+    });
+  });
+  test('creates a local file reference', async () => {
+    const {body} = await request(setupApp())
+      .post(`/network_plan/file`)
+      .send({
+        source: FILE_SOURCE.local,
+        role: FILE_ROLE.DSM_GEOTIFF,
+        name: 'dsm',
+      })
+      .expect(200);
+    expect(body).toMatchObject({
+      id: expect.any(Number),
+      role: FILE_ROLE.DSM_GEOTIFF,
+    });
+  });
+});
+describe('POST /file/:id', () => {
+  test('writes uploaded filedata to disk', async () => {
+    const file = (
+      await network_plan_file.create(
+        ({
+          name: 'sites.csv',
+          role: FILE_ROLE.URBAN_SITE_FILE,
+          source: FILE_SOURCE.local,
+          state: FILE_STATE.pending,
+        }: $Shape<NetworkPlanFileAttributes>),
+      )
+    ).toJSON();
+    const expectedFilePath = path.join(
+      getBaseDir(),
+      'inputs',
+      `${file.id}-${file.name}`,
+    );
+
+    expectFileExists(expectedFilePath, false);
+    const fileData = Buffer.from('test');
+    await request(setupApp())
+      .post(`/network_plan/file/${file.id}`)
+      .attach('file', fileData, 'sites.csv')
+      .expect(200);
+    expectFileExists(expectedFilePath, true);
+    const writtenFiledata = fsMock.readFileSync(expectedFilePath, 'utf8');
+    expect(writtenFiledata).toBe('test');
+  });
+
+  test('transitions file to ready state once fully uploaded', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    await createTestPlan({
+      folder_id: folder.id,
+    });
+    const file = (
+      await network_plan_file.create(
+        ({
+          name: 'sites.csv',
+          role: FILE_ROLE.URBAN_SITE_FILE,
+          source: FILE_SOURCE.local,
+          state: FILE_STATE.pending,
+        }: $Shape<NetworkPlanFileAttributes>),
+      )
+    ).toJSON();
+
+    const pendingRow = await network_plan_file.findByPk(file.id);
+    expect(pendingRow?.state).toBe(FILE_STATE.pending);
+    const fileData = Buffer.from('test');
+    await request(setupApp())
+      .post(`/network_plan/file/${file.id}`)
+      .attach('file', fileData, 'sites.csv')
+      .expect(200);
+    const readyRow = await network_plan_file.findByPk(file.id);
+    expect(readyRow?.state).toBe(FILE_STATE.ready);
+  });
+});
+describe('GET /file/:id/download', () => {});
+describe('DELETE /file/:id', () => {
+  test('removes the file from the plan and deletes the file from disk', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+
+    // create the expected database objects
+    const planId = 123;
+    const planRow = await network_plan.create(
+      ({
+        id: planId,
+        name: 'test',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+    );
+    const file = (
+      await network_plan_file.create(
+        ({
+          name: 'sites.csv',
+          role: FILE_ROLE.URBAN_SITE_FILE,
+          source: FILE_SOURCE.local,
+          state: FILE_STATE.pending,
+        }: $Shape<NetworkPlanFileAttributes>),
+      )
+    ).toJSON();
+
+    const fileData = Buffer.from('test');
+    await request(setupApp())
+      .post(`/network_plan/file/${file.id}`)
+      .attach('file', fileData, 'sites.csv')
+      .expect(200);
+
+    planRow.sites_file_id = file.id;
+    await planRow.save();
+
+    const expectedFilePath = path.join(
+      getBaseDir(),
+      'inputs',
+      `${file.id}-${file.name}`,
+    );
+    expectFileExists(expectedFilePath, true);
+    const fileRow = await network_plan_file.findByPk(file.id);
+    expect(fileRow).not.toBeNull();
+
+    // send the delete request
+    await request(setupApp())
+      .delete(`/network_plan/file/${file.id}`)
+      .expect(200);
+
+    const shouldBeDeleted = await network_plan_file.findByPk(file.id);
+    expect(shouldBeDeleted).toBeNull();
+    expectFileExists(expectedFilePath, false);
+  });
+});
+
+function setupApp() {
+  return setupTestApp('/network_plan', require('../routes'));
+}
+
+async function createInputFiles(defaults: ?{source?: FileSourceKey}) {
+  const files = (
+    await network_plan_file.bulkCreate([
+      ({
+        id: 10,
+        name: 'boundary.kml',
+        fbid: defaults?.source === FILE_SOURCE.fbid ? '10' : undefined,
+        source: defaults?.source ?? FILE_SOURCE.local,
+        role: FILE_ROLE.BOUNDARY_FILE,
+        state: FILE_STATE.ready,
+      }: $Shape<NetworkPlanFileAttributes>),
+      ({
+        id: 11,
+        name: 'dsm.tiff',
+        fbid: defaults?.source === FILE_SOURCE.fbid ? '11' : undefined,
+        source: defaults?.source ?? FILE_SOURCE.local,
+        role: FILE_ROLE.DSM_GEOTIFF,
+        state: FILE_STATE.ready,
+      }: $Shape<NetworkPlanFileAttributes>),
+      ({
+        id: 12,
+        name: 'sites.csv',
+        fbid: defaults?.source === FILE_SOURCE.fbid ? '12' : undefined,
+        source: defaults?.source ?? FILE_SOURCE.local,
+        role: FILE_ROLE.URBAN_SITE_FILE,
+        state: FILE_STATE.ready,
+      }: $Shape<NetworkPlanFileAttributes>),
+    ])
+  ).map(x => x.toJSON());
+  return files;
+}
+
+function expectFileExists(path: string, exists: boolean) {
+  try {
+    expect(fsMock.existsSync(path)).toBe(exists);
+  } catch (err) {
+    throw new Error(
+      `Expected path: ${path} to ${exists === false ? 'NOT ' : ''}exist`,
+    );
+  }
+}
+
+async function createTestFolder({name, fbid}: {name: string, fbid?: string}) {
+  const folder = await network_plan_folder.create(
+    ({name, fbid: fbid ?? folderFBID}: $Shape<NetworkPlanFolderAttributes>),
+  );
+  return folder.toJSON();
+}
+
+async function createTestPlan(
+  plan: $Shape<NetworkPlanAttributes>,
+): Promise<NetworkPlanAttributes> {
+  const dbPlan = await network_plan.create(
+    ({
+      name: 'test',
+      state: NETWORK_PLAN_STATE.DRAFT,
+      ...plan,
+    }: $Shape<NetworkPlanAttributes>),
+  );
+  return dbPlan.toJSON();
+}
+
+function writeInputFile(inputFile: NetworkPlanFileAttributes, data: Buffer) {
+  const filePath = path.join(
+    getBaseDir(),
+    'inputs',
+    `${inputFile.id}-${inputFile.name}`,
+  );
+  fsMock.writeFileSync(filePath, data);
+}

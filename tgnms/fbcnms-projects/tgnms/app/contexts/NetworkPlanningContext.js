@@ -11,22 +11,24 @@ import {
   getUrlSearchParam,
   setUrlSearchParam,
 } from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
-import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export type LngLat = [number, number];
 export type BBox = [LngLat, LngLat];
 
-type FolderMap = {|[id: string]: ANPFolder|};
+type FolderMap = {|[id: number]: PlanFolder|};
 export type NetworkPlanningContext = {|
   selectedPlanId: ?string,
-  setSelectedPlanId: (planId: ?string) => void,
+  setSelectedPlanId: (planId: ?number | ?string) => void,
   planTopology: ?ANPUploadTopologyType,
   setPlanTopology: ANPUploadTopologyType => void,
+  // planSitesFile: Object,
   folders: ?FolderMap,
   setFolders: (((?FolderMap) => ?FolderMap) | ?FolderMap) => void,
 |};
 
+export const PLAN_ID_NEW = '';
 const PLAN_ID_QUERY_KEY = 'planid';
 const empty = () => {};
 const defaultValue: NetworkPlanningContext = {
@@ -52,11 +54,11 @@ export function NetworkPlanningContextProvider({
 }) {
   const {history, location} = useRouter();
   const setSelectedPlanId = React.useCallback(
-    (planId: ?string) => {
+    (planId: ?number | ?string) => {
       if (planId == null) {
         deleteUrlSearchParam(history, PLAN_ID_QUERY_KEY);
       } else {
-        setUrlSearchParam(history, PLAN_ID_QUERY_KEY, planId);
+        setUrlSearchParam(history, PLAN_ID_QUERY_KEY, planId.toString());
       }
     },
     [history],

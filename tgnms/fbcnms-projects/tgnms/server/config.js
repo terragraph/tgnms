@@ -107,6 +107,7 @@ const ANP_CLIENT_SECRET = process.env.ANP_CLIENT_SECRET;
 const ANP_PARTNER_ID = process.env.ANP_PARTNER_ID;
 const ANP_API_URL = process.env.ANP_API_URL;
 const FACEBOOK_OAUTH_URL = process.env.FACEBOOK_OAUTH_URL;
+const ANP_FILE_DIR = process.env.ANP_FILE_DIR || 'data/anp';
 
 module.exports = {
   API_REQUEST_TIMEOUT,
@@ -155,6 +156,7 @@ module.exports = {
   ANP_PARTNER_ID,
   ANP_API_URL,
   FACEBOOK_OAUTH_URL,
+  ANP_FILE_DIR,
   DEFAULT_ROUTES_HISTORY_HOST,
   STATS_ALLOWED_DELAY_SEC,
   NETWORK_PROVISIONING_FILE,

@@ -12,11 +12,14 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 
-import type {ANPPlan, ANPPlanError} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {
+  NetworkPlan,
+  PlanError,
+} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
-export default function PlanErrors({plan}: {plan: ANPPlan}) {
+export default function PlanErrors({plan}: {plan: NetworkPlan}) {
   const {isLoading, setState} = useTaskState();
-  const [errors, setErrors] = React.useState<?Array<ANPPlanError>>();
+  const [errors, setErrors] = React.useState<?Array<PlanError>>();
   React.useEffect(() => {
     (async () => {
       try {

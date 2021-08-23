@@ -20,6 +20,9 @@ import type {LinkEventAttributes} from './linkEvents';
 import type {LinkMetricAttributes} from './linkMetric';
 import type {MapAnnotationGroupAttributes} from './mapAnnotationGroup';
 import type {MapProfileAttributes} from './mapProfile';
+import type {NetworkPlanAttributes} from './networkPlan';
+import type {NetworkPlanFileAttributes} from './networkPlanFile';
+import type {NetworkPlanFolderAttributes} from './networkPlanFolder';
 import type {TopologyAttributes} from './topology';
 import type {WirelessControllerAttributes} from './wirelessController';
 
@@ -30,6 +33,9 @@ declare class Controller extends _Model<ControllerAttributes> {}
 declare class WirelessController extends _Model<WirelessControllerAttributes> {}
 declare class MapAnnotationGroup extends _Model<MapAnnotationGroupAttributes> {}
 declare class MapProfile extends _Model<MapProfileAttributes> {}
+declare class NetworkPlanFolder extends _Model<NetworkPlanFolderAttributes> {}
+declare class NetworkPlan extends _Model<NetworkPlanAttributes> {}
+declare class NetworkPlanFile extends _Model<NetworkPlanFileAttributes> {}
 
 export type TopologyModel = Topology;
 
@@ -41,6 +47,9 @@ export type Models = {|
   link_metric: typeof LinkMetric,
   map_annotation_group: typeof MapAnnotationGroup,
   map_profile: typeof MapProfile,
+  network_plan_folder: typeof NetworkPlanFolder,
+  network_plan: typeof NetworkPlan,
+  network_plan_file: typeof NetworkPlanFile,
   sequelize: SequelizeClass,
   Sequelize: typeof Sequelize,
 |};

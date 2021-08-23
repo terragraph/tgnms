@@ -10,8 +10,7 @@ import TextField from '@material-ui/core/TextField';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useFolders} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
-
-import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export type Props = {|
   folderId: string,
@@ -20,7 +19,7 @@ export type Props = {|
   hideLabel?: boolean,
 |};
 
-export default function SelectANPFolder({
+export default function SelectPlanFolder({
   folderId,
   onChange,
   id,
@@ -28,14 +27,14 @@ export default function SelectANPFolder({
 }: Props) {
   const autocompleteState = useModalState();
   const {folders, taskState: loadFoldersTask} = useFolders();
-  const options = React.useMemo<Array<ANPFolder>>(
-    () => (folders != null ? objectValuesTypesafe<ANPFolder>(folders) : []),
+  const options = React.useMemo<Array<PlanFolder>>(
+    () => (folders != null ? objectValuesTypesafe<PlanFolder>(folders) : []),
     [folders],
   );
   const [folder, setFolder] = React.useState();
   React.useEffect(() => {
     if (folderId != null && folders != null) {
-      setFolder(folders[folderId]);
+      setFolder(folders[parseInt(folderId)]);
     }
   }, [folderId, setFolder, folders]);
   return (
@@ -54,7 +53,7 @@ export default function SelectANPFolder({
       getOptionSelected={(option, value) => {
         return option.id === value.id;
       }}
-      getOptionLabel={opt => opt?.folder_name ?? ''}
+      getOptionLabel={opt => opt?.name ?? ''}
       renderInput={params => (
         <TextField {...params} label={!hideLabel ? 'Select Folder' : null} />
       )}

@@ -51,6 +51,7 @@ export * from './data/NetworkConfig';
 export * from './data/NmsOptionsContext';
 export * from './data/NetworkListContext';
 export * from './data/ANPTestData';
+export * from './data/NetworkPlanningTestData';
 
 /**
  * DEPRECATED, pass a history object to TestApp instead.

@@ -26,7 +26,8 @@ import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {ANP_SITE_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-import {OUTPUT_FILENAME, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeLinkName} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
@@ -37,25 +38,26 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import type {ANPFileHandle, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   ANPLink,
   ANPSector,
   ANPSite,
   ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-import type {InputFilesByRole} from './PlanEditor';
 import type {
   LinkFeature,
   MapFeatureTopology,
   NodeFeature,
   SiteFeature,
 } from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
+import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 const DEFAULT_MAP_OPTIONS_STATE = {
   enabledStatusTypes: {
     PROPOSED: true,
     UNAVAILABLE: true,
+    CANDIDATE: false,
   },
 };
 type EnabledStatusTypes = {|[$Keys<typeof ANP_STATUS_TYPE>]: boolean|};
@@ -69,18 +71,16 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 export type Props = {|
-  plan: ?ANPPlan,
-  inputFiles: ?InputFilesByRole,
+  plan: ?NetworkPlan,
   onExit: () => void,
   onCopyPlan: () => void,
 |};
-export default function PlanResultsView({
-  plan,
-  inputFiles,
-  onExit,
-  onCopyPlan,
-}: Props) {
+export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
   const classes = useStyles();
+  const {
+    state: loadInputsTaskState,
+    setState: setLoadInputsTaskState,
+  } = useTaskState();
   const {
     state: loadOutputsTaskState,
     setState: setLoadOutputsTaskState,
@@ -96,15 +96,36 @@ export default function PlanResultsView({
     mapboxRef,
     setOverlayData,
   } = useMapContext();
+  const [inputFiles, setInputFiles] = React.useState<?Array<ANPFileHandle>>(
+    null,
+  );
   const [outputFiles, setOutputFiles] = React.useState<?Array<ANPFileHandle>>(
     null,
   );
   const [mapOptions, setMapOptions] = React.useState<MapOptionsState>(
     DEFAULT_MAP_OPTIONS_STATE,
   );
-
   const [shouldZoomToBBox, setShouldZoomToBBox] = React.useState(false);
-  // first, download the plan's output files
+
+  // fetch the plan's input files from ANP
+  React.useEffect(() => {
+    (async () => {
+      try {
+        if (!plan) {
+          return;
+        }
+        setLoadInputsTaskState(TASK_STATE.LOADING);
+        const _inputFiles = await networkPlanningAPIUtil.getPlanInputFiles({
+          id: plan.id.toString(),
+        });
+        setInputFiles(_inputFiles);
+        setLoadInputsTaskState(TASK_STATE.SUCCESS);
+      } catch (err) {
+        setLoadInputsTaskState(TASK_STATE.ERROR);
+      }
+    })();
+  }, [plan, setLoadInputsTaskState, setInputFiles]);
+  // fetch the plan's output files from ANP
   React.useEffect(() => {
     (async () => {
       try {
@@ -112,10 +133,10 @@ export default function PlanResultsView({
           return;
         }
         setLoadOutputsTaskState(TASK_STATE.LOADING);
-        const outputFiles = await networkPlanningAPIUtil.getPlanOutputFiles({
-          id: plan.id,
+        const _outputFiles = await networkPlanningAPIUtil.getPlanOutputFiles({
+          id: plan.id.toString(),
         });
-        setOutputFiles(outputFiles);
+        setOutputFiles(_outputFiles);
         setLoadOutputsTaskState(TASK_STATE.SUCCESS);
       } catch (err) {
         setLoadOutputsTaskState(TASK_STATE.ERROR);
@@ -137,7 +158,7 @@ export default function PlanResultsView({
         if (reportingGraph) {
           setDownloadOutputState(TASK_STATE.LOADING);
           // eslint-disable-next-line max-len
-          const fileData = await networkPlanningAPIUtil.downloadFile<ANPUploadTopologyType>(
+          const fileData = await networkPlanningAPIUtil.downloadANPFile<ANPUploadTopologyType>(
             {
               id: reportingGraph.id,
             },
@@ -214,7 +235,7 @@ export default function PlanResultsView({
     setMapFeatures({sites: {}, links: {}, nodes: {}});
   });
 
-  if (!(plan && inputFiles)) {
+  if (!plan) {
     return null;
   }
   return (
@@ -226,19 +247,19 @@ export default function PlanResultsView({
       data-testid="plan-results">
       <Grid item container justify="space-between" alignItems="center">
         <Typography color="textSecondary" variant="h6">
-          {plan.plan_name}
+          {plan.name}
         </Typography>
-        <PlanStatus status={plan.plan_status} />
+        <PlanStatus state={plan.state} />
       </Grid>
-      {plan.plan_status === PLAN_STATUS.FAILED && <PlanErrors plan={plan} />}
+      {plan.state === NETWORK_PLAN_STATE.ERROR && <PlanErrors plan={plan} />}
       <PlanMapOptions options={mapOptions} onChange={setMapOptions} />
       <Grid item>
         <Typography color="textSecondary">Input Files</Typography>
       </Grid>
-      <PlanInputs files={inputFiles} />
+      {inputFiles && <PlanInputs files={inputFiles} />}
       <Grid item>
         <Typography color="textSecondary">Output Files</Typography>
-        {plan.plan_status === PLAN_STATUS.RUNNING && (
+        {plan.state === NETWORK_PLAN_STATE.RUNNING && (
           <Typography variant="subtitle2" color="textSecondary">
             Plan in-progress
           </Typography>
@@ -247,7 +268,7 @@ export default function PlanResultsView({
 
       {outputFiles && <PlanOutputs files={outputFiles} />}
       <Grid item>
-        {plan.plan_status === PLAN_STATUS.RUNNING && (
+        {plan.state === NETWORK_PLAN_STATE.RUNNING && (
           <Button
             fullWidth
             className={classes.cancelButton}
@@ -258,13 +279,12 @@ export default function PlanResultsView({
             {cancelPlanTask.isLoading && <CircularProgress size={10} />}
           </Button>
         )}
-        {plan.plan_status !== PLAN_STATUS.RUNNING && (
-          <Button fullWidth onClick={onCopyPlan} variant="text">
-            Copy Plan
-          </Button>
-        )}
+        <Button fullWidth onClick={onCopyPlan} variant="text">
+          Copy Plan
+        </Button>
         {(downloadOutputState === TASK_STATE.LOADING ||
-          loadOutputsTaskState === TASK_STATE.LOADING) && (
+          loadOutputsTaskState === TASK_STATE.LOADING ||
+          loadInputsTaskState === TASK_STATE.LOADING) && (
           <Grid item>
             <Grid container justify="center">
               <CircularProgress size={10} />

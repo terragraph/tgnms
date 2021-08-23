@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "yarn run start:dev",
-    "start:dev": "nodemon --delay 80ms --exec 'sudo fuser -k -s 9229/tcp; node -r @fbcnms/babel-register --inspect' -w scripts/server -w server/ -w .settings/ scripts/server",
+    "start:dev": "nodemon --delay 80ms --exec 'sudo fuser -k -s 9229/tcp; node -r @fbcnms/babel-register --inspect' --ignore '**/__tests__/*' -w scripts/server -w server/ -w .settings/ scripts/server",
     "start:debugging": "LOG_LEVEL=debug SQLITE_DB=test.sqlite PORT=8081 node --require '@fbcnms/babel-register' scripts/server.js",
     "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
     "build": "rimraf dist && NODE_ENV=production node -r '@fbcnms/babel-register' ../../node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js --progress --profile --colors",

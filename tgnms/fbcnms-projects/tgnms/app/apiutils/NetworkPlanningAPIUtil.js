@@ -8,22 +8,75 @@
 import axios from 'axios';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import type {
-  ANPCommandResponse,
   ANPFileHandle,
   ANPFileHandleRequest,
-  ANPFolder,
-  ANPPlan,
-  ANPPlanError,
-  CreateANPPlanRequest,
   GraphQueryResponse,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {
+  CreateNetworkPlanRequest,
+  InputFile,
+  LaunchPlanResult,
+  NetworkPlan,
+  PlanError,
+  PlanFolder,
+  UpdateNetworkPlanRequest,
+} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {
   FileUploadChunkResponse,
   FileUploadSessionRequest,
   FileUploadSessionResponse,
 } from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 
-export async function uploadFile({
+export async function createInputFile(
+  req: $Shape<InputFile>,
+): Promise<InputFile> {
+  const response = await axios.post<InputFile, InputFile>(
+    `/network_plan/file`,
+    req,
+  );
+  return response.data;
+}
+export async function updateInputFile(req: InputFile): Promise<InputFile> {
+  const response = await axios.put<InputFile, InputFile>(
+    `/network_plan/file/${req.id}`,
+    req,
+  );
+  return response.data;
+}
+export async function deleteInputFile(req: {id: number}): Promise<void> {
+  await axios.delete<void, void>(`/network_plan/file/${req.id}`, req);
+}
+
+export async function uploadInputFileData({
+  file,
+  fileId,
+  onProgress,
+}: {
+  file: File,
+  fileId: number,
+  onProgress?: (pct: number) => *,
+}): Promise<InputFile> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axios.post(`/network_plan/file/${fileId}`, formData, {
+    onUploadProgress: progressEvent => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total,
+      );
+      if (typeof onProgress === 'function') {
+        onProgress(percentCompleted);
+      }
+    },
+  });
+  return response.data;
+}
+
+/**
+ * ANP API
+ *
+ * These methods are proxied directly to the ANP API
+ */
+export async function uploadANPFile({
   role,
   file,
   onProgress,
@@ -119,8 +172,8 @@ export async function uploadFile({
   return result.data;
 }
 
-export async function createPlan(req: $Shape<CreateANPPlanRequest>) {
-  const response = await axios<CreateANPPlanRequest, ANPPlan>({
+export async function createPlan(req: $Shape<CreateNetworkPlanRequest>) {
+  const response = await axios<CreateNetworkPlanRequest, NetworkPlan>({
     url: `/network_plan/plan`,
     method: 'POST',
     data: req,
@@ -128,17 +181,31 @@ export async function createPlan(req: $Shape<CreateANPPlanRequest>) {
   return response.data;
 }
 
-export async function launchPlan(req: {id: string}) {
-  const response = await axios<void, ANPCommandResponse>({
-    url: `/network_plan/plan/launch/${req.id}`,
+export async function updatePlan(
+  req: UpdateNetworkPlanRequest,
+): Promise<NetworkPlan> {
+  const response = await axios.put<UpdateNetworkPlanRequest, NetworkPlan>(
+    `/network_plan/plan/${req.id}`,
+    req,
+  );
+  return response.data;
+}
+
+export async function launchPlan(req: {id: number}) {
+  const response = await axios<void, LaunchPlanResult>({
+    url: `/network_plan/plan/${req.id}/launch`,
     method: 'POST',
   });
   return response.data;
 }
 
-export async function cancelPlan(req: {id: string}) {
-  const response = await axios<void, ANPCommandResponse>({
-    url: `/network_plan/plan/cancel/${req.id}`,
+export async function deletePlan({id}: {id: number}): Promise<void> {
+  await axios.delete(`/network_plan/plan/${id}`);
+}
+
+export async function cancelPlan(req: {id: number}) {
+  const response = await axios<void, {success: boolean}>({
+    url: `/network_plan/plan/${req.id}/cancel`,
     method: 'POST',
   });
   return response.data;
@@ -155,8 +222,8 @@ export async function getPartnerFiles({role}: {role: string}) {
   return response.data;
 }
 
-export async function getFolders(): Promise<Array<ANPFolder>> {
-  const response = await axios<void, Array<ANPFolder>>({
+export async function getFolders(): Promise<Array<PlanFolder>> {
+  const response = await axios<void, Array<PlanFolder>>({
     url: `/network_plan/folder`,
     method: 'GET',
   });
@@ -167,8 +234,8 @@ export async function getFolder({
   folderId,
 }: {
   folderId: string,
-}): Promise<ANPFolder> {
-  const response = await axios<void, ANPFolder>({
+}): Promise<PlanFolder> {
+  const response = await axios<void, PlanFolder>({
     url: `/network_plan/folder/${folderId}`,
     method: 'GET',
   });
@@ -176,12 +243,24 @@ export async function getFolder({
 }
 
 export async function createFolder(
-  folder: $Shape<ANPFolder>,
-): Promise<ANPFolder> {
-  const response = await axios<$Shape<ANPFolder>, ANPFolder>({
+  folder: $Shape<PlanFolder>,
+): Promise<PlanFolder> {
+  const response = await axios<$Shape<PlanFolder>, PlanFolder>({
     url: `/network_plan/folder`,
     method: 'POST',
     data: folder,
+  });
+  return response.data;
+}
+
+export async function updateFolder({
+  id,
+  name,
+}: $Shape<PlanFolder>): Promise<PlanFolder> {
+  const response = await axios<$Shape<PlanFolder>, PlanFolder>({
+    url: `/network_plan/folder/${id}`,
+    method: 'PUT',
+    data: {name},
   });
   return response.data;
 }
@@ -190,16 +269,16 @@ export async function getPlansInFolder({
   folderId,
 }: {
   folderId: string,
-}): Promise<Array<ANPPlan>> {
-  const response = await axios<void, Array<ANPPlan>>({
+}): Promise<Array<NetworkPlan>> {
+  const response = await axios<void, Array<NetworkPlan>>({
     url: `/network_plan/plan?folderId=${folderId}`,
     method: 'GET',
   });
   return response.data;
 }
 
-export async function getPlan({id}: {id: string}): Promise<ANPPlan> {
-  const response = await axios<void, ANPPlan>({
+export async function getPlan({id}: {id: string}): Promise<NetworkPlan> {
+  const response = await axios<void, NetworkPlan>({
     url: `/network_plan/plan/${id}`,
     method: 'GET',
   });
@@ -232,9 +311,9 @@ export async function getPlanOutputFiles({
 export async function getPlanErrors({
   id,
 }: {
-  id: string,
-}): Promise<Array<ANPPlanError>> {
-  const response = await axios<void, Array<ANPPlanError>>({
+  id: number,
+}): Promise<Array<PlanError>> {
+  const response = await axios<void, Array<PlanError>>({
     url: `/network_plan/plan/${id}/errors`,
     method: 'GET',
   });
@@ -243,7 +322,16 @@ export async function getPlanErrors({
 
 export async function downloadFile<T>({id}: {id: string}): Promise<T> {
   const response = await axios<void, T>({
-    url: `/network_plan/file/${id}`,
+    url: `/network_plan/file/${id}/download`,
+    method: 'GET',
+  });
+  return response.data;
+}
+
+// lazy hack
+export async function downloadANPFile<T>({id}: {id: string}): Promise<T> {
+  const response = await axios<void, T>({
+    url: `/network_plan/file/${id}/anp-download`,
     method: 'GET',
   });
   return response.data;

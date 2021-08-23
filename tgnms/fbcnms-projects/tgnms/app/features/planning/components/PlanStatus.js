@@ -7,43 +7,43 @@
 import * as React from 'react';
 import Chip from '@material-ui/core/Chip';
 import red from '@material-ui/core/colors/red';
-import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {makeStyles} from '@material-ui/styles';
-import type {PlanStatus as PlanStatusType} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {NetworkPlanStateType} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 const useStyles = makeStyles(theme => ({
-  [PLAN_STATUS.IN_PREPARATION]: {
+  [NETWORK_PLAN_STATE.DRAFT]: {
     backgroundColor: theme.palette.grey[300],
     color: theme.palette.grey[400],
   },
-  [PLAN_STATUS.SCHEDULED]: {
-    backgroundColor: theme.palette.grey[300],
-    color: theme.palette.grey[400],
-  },
-  [PLAN_STATUS.RUNNING]: {
+  [NETWORK_PLAN_STATE.UPLOADING_INPUTS]: {
     backgroundColor: theme.palette.primary,
     color: 'white',
   },
-  [PLAN_STATUS.SUCCEEDED]: {
+  [NETWORK_PLAN_STATE.RUNNING]: {
+    backgroundColor: theme.palette.primary,
+    color: 'white',
+  },
+  [NETWORK_PLAN_STATE.SUCCESS]: {
     backgroundColor: theme.palette.success.light,
     color: theme.palette.success.main,
   },
-  [PLAN_STATUS.FAILED]: {
+  [NETWORK_PLAN_STATE.ERROR]: {
     backgroundColor: red[100],
     color: red[400],
   },
-  [PLAN_STATUS.KILLED]: {
+  [NETWORK_PLAN_STATE.CANCELLED]: {
     backgroundColor: theme.palette.grey[300],
     color: theme.palette.grey[400],
   },
 }));
 
-export default function PlanStatus({status}: {status: PlanStatusType}) {
+export default function PlanStatus({state}: {state: NetworkPlanStateType}) {
   const classes = useStyles();
   return (
     <Chip
-      label={status}
-      classes={{root: classes[status] ?? classes[PLAN_STATUS.IN_PREPARATION]}}
+      label={state}
+      classes={{root: classes[state] ?? classes[NETWORK_PLAN_STATE.DRAFT]}}
       size="small"
     />
   );

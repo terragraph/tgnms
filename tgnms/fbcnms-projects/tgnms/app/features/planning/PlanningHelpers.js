@@ -26,3 +26,8 @@ export function isFinalState(status: string): boolean {
   ]);
   return finalStates.has(status);
 }
+
+export function isLaunchedState(status: string): boolean {
+  const launchedStates = new Set([PLAN_STATUS.RUNNING, PLAN_STATUS.SCHEDULED]);
+  return launchedStates.has(status);
+}

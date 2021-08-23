@@ -13,20 +13,27 @@ import {matchPath, useLocation} from 'react-router-dom';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 
 import type {
-  ANPPlan,
-  CreateANPPlanRequest,
-} from '@fbcnms/tg-nms/shared/dto/ANP';
+  InputFile,
+  NetworkPlan,
+} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
+export type PlanFormState = {|
+  id: number,
+  name: string,
+  dsm?: ?InputFile,
+  siteList?: ?InputFile,
+  boundary?: ?InputFile,
+|};
 export function usePlanFormState(): {|
-  planState: CreateANPPlanRequest,
-  updatePlanState: (update: $Shape<CreateANPPlanRequest>) => void,
-  setPlanFormState: (state: $Shape<CreateANPPlanRequest>) => void,
+  planState: PlanFormState,
+  updatePlanState: (update: $Shape<PlanFormState>) => void,
+  setPlanFormState: (state: $Shape<PlanFormState>) => void,
 |} {
-  const [planState, setPlanFormState] = React.useState<
-    $Shape<CreateANPPlanRequest>,
-  >({});
+  const [planState, setPlanFormState] = React.useState<$Shape<PlanFormState>>(
+    {},
+  );
   const updatePlanState = React.useCallback(
-    (update: $Shape<CreateANPPlanRequest>) =>
+    (update: $Shape<PlanFormState>) =>
       setPlanFormState(curr => ({
         ...curr,
         ...update,
@@ -82,7 +89,7 @@ export function useFolders() {
 }
 
 export function useFolderPlans({folderId}: {folderId: string}) {
-  const [plans, setPlans] = React.useState<?Array<ANPPlan>>();
+  const [plans, setPlans] = React.useState<?Array<NetworkPlan>>();
   const loadPlansTask = useTaskState();
   const [lastRefreshDate, setLastRefreshDate] = React.useState(
     new Date().getTime(),

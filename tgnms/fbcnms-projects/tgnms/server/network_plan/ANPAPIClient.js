@@ -8,8 +8,8 @@
 import axios from 'axios';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import {Readable} from 'stream';
-import {pick, trimEnd} from 'lodash';
 import {stringify} from 'querystring';
+import {trimEnd} from 'lodash';
 import type {$AxiosXHR} from 'axios';
 import type {
   ANPCommandResponse,
@@ -113,7 +113,6 @@ export default class ANPAPIClient {
       query: {fields: 'plan_name,plan_status'},
       method: 'GET',
     });
-    console.dir(result);
     return result;
   };
   getPlanInputFiles = async (id: string) => {
@@ -143,19 +142,6 @@ export default class ANPAPIClient {
     });
     return result.data;
   };
-
-  createUploadSession = async (req: $Shape<FileUploadSessionRequest>) => {
-    return this.graphRequest<
-      FileUploadSessionRequest,
-      FileUploadSessionResponse,
-    >({
-      endpoint: 'app/uploads',
-      query: {
-        ...req,
-      },
-      method: 'POST',
-    });
-  };
   downloadFile = async ({
     id,
   }: {
@@ -168,49 +154,51 @@ export default class ANPAPIClient {
       method: 'GET',
       responseType: 'stream',
     });
-    logAxiosResponse(response);
     return response;
   };
+  createUploadSession = async (req: $Shape<FileUploadSessionRequest>) => {
+    return this.graphRequest<
+      FileUploadSessionRequest,
+      FileUploadSessionResponse,
+    >({
+      endpoint: 'app/uploads',
+      query: {
+        ...req,
+      },
+      method: 'POST',
+    });
+  };
   uploadChunk = async ({
-    file_id,
-    data,
-    headers,
-    query,
-    chunkSize,
+    uploadHandle,
+    chunkData,
+    offset,
+    length,
   }: {
-    file_id: string,
-    data: Buffer,
-    chunkSize: number,
-    headers: Headers,
-    query: QueryMap,
+    uploadHandle: string,
+    chunkData: Buffer,
+    length: number,
+    offset: number,
   }) => {
     // Chunk size is user input. Validate it against the max
-    if (chunkSize > DEFAULT_FILE_UPLOAD_CHUNK_SIZE) {
+    if (length > DEFAULT_FILE_UPLOAD_CHUNK_SIZE) {
       throw new Error(
-        `Request body length( ${chunkSize} exceeded Maximum chunk size (${DEFAULT_FILE_UPLOAD_CHUNK_SIZE})`,
+        `Request body length( ${length} exceeded Maximum chunk size (${DEFAULT_FILE_UPLOAD_CHUNK_SIZE})`,
       );
     }
-    const rangeHeaderNames = ['file_offset'];
-    const rangeHeaders = pick(headers, rangeHeaderNames);
-    if (Object.keys(rangeHeaders).length !== rangeHeaderNames.length) {
-      throw new Error('Headers required: ' + rangeHeaderNames.join());
-    }
     const result = await this.graphRequest({
-      endpoint: file_id,
-      data,
+      endpoint: uploadHandle,
+      data: chunkData,
       method: 'POST',
       headers: {
-        ...rangeHeaders,
+        file_offset: offset.toString(),
         'Content-Type': 'multipart/form-data',
-        'content-length': chunkSize,
       },
-      query,
     });
     return result;
   };
 
   createFolder = ({folder_name}: $Shape<ANPFolder>) => {
-    return this.makeRequest<$Shape<ANPFolder>>({
+    return this.makeRequest<{id: string}>({
       id: this.config.partnerId,
       edge: 'folders',
       method: 'POST',
@@ -221,13 +209,13 @@ export default class ANPAPIClient {
     });
   };
 
-  createPlan = ({
+  createPlan({
     folder_id,
     plan_name,
     boundary_polygon,
     dsm,
     site_list,
-  }: CreateANPPlanRequest): Promise<ANPPlan> => {
+  }: CreateANPPlanRequest): Promise<ANPPlan> {
     return this.makeRequest<ANPPlan>({
       id: folder_id,
       edge: 'terragraph_basic_plan',
@@ -239,22 +227,22 @@ export default class ANPAPIClient {
         site_list,
       },
     });
-  };
+  }
 
-  launchPlan = ({id}: {id: string}) => {
+  launchPlan({id}: {id: string}) {
     return this.makeRequest<ANPCommandResponse>({
       id,
       edge: 'launch',
       method: 'POST',
     });
-  };
-  cancelPlan = ({id}: {id: string}) => {
+  }
+  cancelPlan({id}: {id: string}) {
     return this.makeRequest<ANPCommandResponse>({
       id,
       edge: 'cancel',
       method: 'POST',
     });
-  };
+  }
 
   getPartnerFilesByRole = ({
     role,
@@ -299,7 +287,7 @@ export default class ANPAPIClient {
         ),
       );
     }
-    const response = await this.makeRequest({
+    const response = await this.makeRequest<ANPFileHandle>({
       id: this.config.partnerId,
       edge: 'files',
       method: 'POST',
@@ -382,6 +370,7 @@ export default class ANPAPIClient {
       headers,
       method,
     });
+    logAxiosResponse(response);
     return response.data;
   }
 

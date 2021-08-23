@@ -7,88 +7,93 @@
  */
 import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import PublishIcon from '@material-ui/icons/Publish';
-import TextField from '@material-ui/core/TextField';
+import SelectANPPartnerFile from './SelectANPPartnerFile';
 import Typography from '@material-ui/core/Typography';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {bytesToMB} from '@fbcnms/tg-nms/app/helpers/MathHelpers';
+import {makeStyles} from '@material-ui/styles';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
-import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {InputFile} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 type SelectOrUploadFileProps = {|
+  id: string,
   label: string,
   // comma separated list of file extensions to accept
   role: string,
   fileTypes: string,
-  initialValue?: ?ANPFileHandle,
-  onChange: (f: ANPFileHandle) => *,
+  initialValue?: ?InputFile,
+  onChange: (f: InputFile) => *,
 |};
 
-export default function SelectOrUploadANPFile({
+const useStyles = makeStyles(_theme => ({
+  fileName: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+}));
+
+export default function SelectOrUploadInputFile({
+  id,
   label,
   fileTypes,
   onChange,
   role,
   initialValue,
 }: SelectOrUploadFileProps) {
+  const classes = useStyles();
   // state for the MaterialModal open/close
   const {isOpen, open, close} = useModalState();
   // state for autocomplete open/close
-  const autocompleteState = useModalState();
-  const [selectedFile, setSelectedFile] = React.useState<?ANPFileHandle>(null);
+  const [selectedFile, setSelectedFile] = React.useState<?InputFile>(null);
   React.useEffect(() => {
     if (initialValue != null) {
       setSelectedFile(initialValue);
     }
   }, [initialValue]);
-  const [files, setFiles] = React.useState<Array<ANPFileHandle>>([]);
-  const loadFilesTask = useTaskState();
-  React.useEffect(() => {
-    (async () => {
-      try {
-        loadFilesTask.setState(TASK_STATE.LOADING);
-        const response = await networkPlanningAPIUtil.getPartnerFiles({role});
-        if (Array.isArray(response.data)) {
-          setFiles(response.data);
-          loadFilesTask.setState(TASK_STATE.SUCCESS);
-        } else {
-          throw new Error(`Could not load files`);
-        }
-      } catch (err) {
-        loadFilesTask.setState(TASK_STATE.ERROR);
-        loadFilesTask.setMessage(err.message);
-      }
-    })();
-  }, [role, loadFilesTask, setFiles]);
 
-  const handleFileSelected = React.useCallback((event, file) => {
-    setSelectedFile(file);
-  }, []);
-  const handleUploadComplete = React.useCallback(
-    file => {
-      setFiles(existing => [file, ...existing]);
+  /**
+   * User has selected a file which has already been uploaded to FB and is
+   * immutable.
+   */
+  const handleFBIDFileSelected = React.useCallback(
+    async file => {
       setSelectedFile(file);
     },
-    [setFiles, setSelectedFile],
+    [setSelectedFile],
   );
-  const handleConfirm = React.useCallback(() => {
+  const handleUploadComplete = React.useCallback(
+    async file => {
+      /**
+       * Remove the old input file from the plan.
+       * For now, this will prevent us from using multiple files of the same
+       * role on one plan (like ANP's multiple DSM feature).
+       * Likely we'll just use a flag in the future.
+       */
+      if (selectedFile != null) {
+        await networkPlanningAPIUtil.deleteInputFile({id: selectedFile.id});
+      }
+      setSelectedFile(file);
+    },
+    [selectedFile, setSelectedFile],
+  );
+  const handleConfirm = React.useCallback(async () => {
     if (selectedFile) {
       onChange(selectedFile);
       close();
     }
   }, [onChange, selectedFile, close]);
+  const labelId = `${id}-label`;
   return (
     <>
       <Grid item container>
         <Grid item xs={12}>
-          <Typography variant="body2" color="textSecondary">
+          <Typography variant="body2" color="textSecondary" id={labelId}>
             {label}
           </Typography>
         </Grid>
@@ -99,13 +104,15 @@ export default function SelectOrUploadANPFile({
           justify="space-between"
           alignItems="center">
           <Grid item xs={8}>
-            {loadFilesTask.isSuccess && (
-              <Typography variant="body2">
-                {selectedFile
-                  ? `${selectedFile.file_name}.${selectedFile.file_extension}`
-                  : 'None Selected'}
-              </Typography>
-            )}
+            <Typography className={classes.fileName} variant="body2">
+              {selectedFile ? selectedFile.name : 'None Selected'}
+              <input
+                name={`${id}`}
+                type="hidden"
+                value={selectedFile?.id ?? ''}
+                aria-labelledby={labelId}
+              />
+            </Typography>
           </Grid>
           <Grid item xs={4}>
             <Button
@@ -114,17 +121,7 @@ export default function SelectOrUploadANPFile({
               variant="outlined"
               size="small"
               fontSize="small"
-              endIcon={
-                loadFilesTask.isLoading ? (
-                  <CircularProgress
-                    style={{
-                      opacity: loadFilesTask.isLoading ? '1.0' : '0',
-                    }}
-                    color="inherit"
-                    size={10}
-                  />
-                ) : null
-              }>
+              data-testid={`${id}-btn`}>
               Browse
             </Button>
           </Grid>
@@ -135,44 +132,20 @@ export default function SelectOrUploadANPFile({
         onClose={close}
         modalTitle="Select File"
         modalContentText={'Select how you want to choose the file'}
+        data-testid="select-or-upload-anpfile"
         modalContent={
           <>
             <Grid
               container
               justify="space-between"
               direction="column"
-              spacing={3}
-              data-testid="select-or-upload-anpfile">
+              spacing={3}>
               <Grid item xs={12}>
-                <Autocomplete
-                  open={autocompleteState.isOpen}
-                  onOpen={autocompleteState.open}
-                  onClose={autocompleteState.close}
-                  options={
-                    selectedFile != null ? [selectedFile].concat(files) : files
-                  }
-                  getOptionSelected={(option, value) => option.id === value.id}
-                  getOptionLabel={option => option.file_name}
-                  loading={loadFilesTask.isLoading}
+                <SelectANPPartnerFile
+                  id={`${id}-partnerfile`}
                   value={selectedFile}
-                  onChange={handleFileSelected}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label="Select Existing File"
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {loadFilesTask.isLoading ? (
-                              <CircularProgress color="inherit" size={20} />
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
+                  onChange={handleFBIDFileSelected}
+                  role={role}
                 />
               </Grid>
               <Grid item xs={12} container justify="center">
@@ -217,27 +190,33 @@ function FileUpload({
   onComplete,
 }: {
   role: string,
-  onComplete: (x: ANPFileHandle) => *,
+  onComplete: (x: InputFile) => *,
   label: string,
   // comma separated list of file extensions to accept
   fileTypes: string,
 }) {
+  const classes = useStyles();
   const uploadFileTask = useTaskState();
   const [file, setFile] = React.useState<?File>(null);
   const [progress, setProgress] = React.useState(0);
-
   const handleStartUpload = React.useCallback(async () => {
     if (file) {
       try {
         uploadFileTask.setState(TASK_STATE.LOADING);
-        const uploadedFile = await networkPlanningAPIUtil.uploadFile({
-          file: file,
+        const fileRef = await networkPlanningAPIUtil.createInputFile({
           name: file?.name,
           role: role,
-          onProgress: setProgress,
+          source: 'local',
+        });
+        await networkPlanningAPIUtil.uploadInputFileData({
+          file: file,
+          fileId: fileRef.id,
+          onProgress: pct => {
+            setProgress(pct);
+          },
         });
         uploadFileTask.setState(TASK_STATE.SUCCESS);
-        onComplete(uploadedFile);
+        onComplete(fileRef);
       } catch (err) {
         uploadFileTask.setState(TASK_STATE.ERROR);
         uploadFileTask.setMessage(err.message);
@@ -250,7 +229,9 @@ function FileUpload({
       {file != null && (
         <Grid item container spacing={2}>
           <Grid item>
-            <Typography>{file.name}</Typography>
+            <Typography classes={{root: classes.fileName}}>
+              {file.name}
+            </Typography>
             <Typography color="textSecondary">
               {bytesToMB(file.size)}MB
             </Typography>
@@ -306,10 +287,9 @@ function FileSelect({label, fileTypes, icon, onChange}: FileSelectProps) {
         endIcon={icon || <PublishIcon />}>
         {label}
         <Input
-          data-testid="fileInput"
           onChange={handleFileSelected}
           type="file"
-          inputProps={{accept: fileTypes}}
+          inputProps={{accept: fileTypes, 'data-testid': 'fileInput'}}
           style={{display: 'none'}}
         />
       </Button>

@@ -9,12 +9,12 @@ import ANPFileDownloadButton from './ANPFileDownloadButton';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
-import type {InputFilesByRole} from './PlanEditor';
+import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 
-export default function PlanInputs({files}: {files: InputFilesByRole}) {
-  const dsm = files[FILE_ROLE.DSM_GEOTIFF];
-  const sites = files[FILE_ROLE.URBAN_SITE_FILE];
-  const boundary = files[FILE_ROLE.BOUNDARY_FILE];
+export default function PlanInputs({files}: {files: Array<ANPFileHandle>}) {
+  const dsm = files.find(x => x?.file_role === FILE_ROLE.DSM_GEOTIFF);
+  const sites = files.find(x => x?.file_role === FILE_ROLE.URBAN_SITE_FILE);
+  const boundary = files.find(x => x?.file_role === FILE_ROLE.BOUNDARY_FILE);
   return (
     <Grid item container direction="column">
       {dsm && (

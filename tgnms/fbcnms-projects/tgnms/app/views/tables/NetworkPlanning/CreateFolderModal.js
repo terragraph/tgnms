@@ -16,7 +16,7 @@ import Typography from '@material-ui/core/Typography';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
-import type {ANPFolder} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 type Props = {|
   isOpen: boolean,
@@ -29,7 +29,9 @@ export default function CreateFolderModal({
   onComplete,
 }: Props) {
   const taskState = useTaskState();
-  const {formState, handleInputChange} = useForm<ANPFolder>({initialState: {}});
+  const {formState, handleInputChange} = useForm<PlanFolder>({
+    initialState: {},
+  });
   const handleSubmitClick = React.useCallback(async () => {
     try {
       taskState.reset();
@@ -74,9 +76,9 @@ export default function CreateFolderModal({
           )}
           <Grid item xs={8}>
             <TextField
-              id="folder_name"
-              onChange={handleInputChange(x => ({folder_name: x}))}
-              value={formState.folder_name}
+              id="name"
+              onChange={handleInputChange(x => ({name: x}))}
+              value={formState.name}
               placeholder="Folder Name"
               disabled={taskState.isLoading}
             />
@@ -104,6 +106,6 @@ export default function CreateFolderModal({
   );
 }
 
-function validate(folder: ANPFolder) {
-  return !isNullOrEmptyString(folder.folder_name);
+function validate(folder: PlanFolder) {
+  return !isNullOrEmptyString(folder.name);
 }

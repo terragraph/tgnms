@@ -9,68 +9,83 @@ import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlan
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
-import SelectANPFolder from './SelectANPFolder';
-import SelectOrUploadANPFile from './SelectOrUploadANPFile';
+import SelectOrUploadInputFile from './SelectOrUploadInputFile';
 import TextField from '@material-ui/core/TextField';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
-import type {
-  ANPFileHandle,
-  ANPPlan,
-  CreateANPPlanRequest,
-} from '@fbcnms/tg-nms/shared/dto/ANP';
-
-export type InputFilesByRole = {|[role: string]: ANPFileHandle|};
+import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import type {PlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 
 export default function PlanEditor({
   folderId,
   plan,
-  inputFiles,
   onExit,
+  onPlanUpdated,
   onPlanLaunched,
 }: {
-  plan: ?ANPPlan,
-  inputFiles: ?InputFilesByRole,
+  plan: NetworkPlan,
   folderId: string,
   onExit: () => void,
-  onPlanLaunched: string => void | Promise<void>,
+  onPlanUpdated: NetworkPlan => void,
+  onPlanLaunched: number => void | Promise<void>,
 }) {
   // reconstruct the form-state from plan and input files
   const {planState, updatePlanState, setPlanFormState} = usePlanFormState();
   React.useEffect(() => {
-    const formState: CreateANPPlanRequest = {
-      dsm: inputFiles ? inputFiles[FILE_ROLE.DSM_GEOTIFF]?.id : '',
-      folder_id: folderId,
-      plan_name: plan?.plan_name ?? '',
-      boundary_polygon: inputFiles
-        ? inputFiles[FILE_ROLE.BOUNDARY_FILE]?.id
-        : '',
-      site_list: inputFiles ? inputFiles[FILE_ROLE.URBAN_SITE_FILE]?.id : '',
+    const formState: PlanFormState = {
+      id: plan.id,
+      name: plan?.name ?? '',
+      dsm: plan.dsmFile,
+      boundary: plan.boundaryFile,
+      siteList: plan.sitesFile,
     };
     setPlanFormState(formState);
-  }, [plan, inputFiles, folderId, setPlanFormState]);
+  }, [plan, folderId, setPlanFormState]);
   const startPlanTask = useTaskState();
+  const savePlanTask = useTaskState();
+  const handleSavePlanClicked = React.useCallback(async () => {
+    try {
+      savePlanTask.loading();
+      const {id, name, dsm, boundary, siteList} = planState;
+      for (const f of [dsm, boundary, siteList]) {
+        if (f == null) {
+          continue;
+        }
+        if (f.id == null) {
+          const file = await networkPlanningAPIUtil.createInputFile({
+            ...f,
+          });
+          f.id = file.id;
+        }
+      }
+      const updatedPlan = await networkPlanningAPIUtil.updatePlan({
+        id,
+        name,
+        dsmFileId: dsm?.id,
+        boundaryFileId: boundary?.id,
+        sitesFileId: siteList?.id,
+      });
+      onPlanUpdated(updatedPlan);
+      savePlanTask.success();
+    } catch (err) {
+      savePlanTask.error();
+      savePlanTask.setMessage(err.message);
+    }
+  }, [planState, onPlanUpdated, savePlanTask]);
   const handleStartPlanClicked = React.useCallback(async () => {
     try {
       startPlanTask.loading();
-      if (!validatePlanState(planState)) {
-        return;
-      }
-      const createPlanResult = await networkPlanningAPIUtil.createPlan({
-        ...planState,
-      });
       const _launchPlanResult = await networkPlanningAPIUtil.launchPlan({
-        id: createPlanResult.id,
+        id: plan.id,
       });
-      startPlanTask.success();
-      onPlanLaunched(createPlanResult.id);
+      onPlanLaunched(plan.id);
     } catch (err) {
       startPlanTask.error();
       startPlanTask.setMessage(err.message);
     }
-  }, [onPlanLaunched, planState, startPlanTask]);
+  }, [onPlanLaunched, plan, startPlanTask]);
 
   return (
     <Grid
@@ -84,39 +99,36 @@ export default function PlanEditor({
           id="plan-name"
           label="Name"
           fullWidth
-          value={planState.plan_name ?? ''}
+          value={planState.name ?? ''}
           onChange={e => {
-            updatePlanState({plan_name: e.target.value});
+            updatePlanState({name: e.target.value});
           }}
         />
       </Grid>
-      <Grid item>
-        <SelectANPFolder
-          id="folderid"
-          folderId={planState.folder_id}
-          onChange={fId => updatePlanState({folder_id: fId})}
-        />
-      </Grid>
-      <SelectOrUploadANPFile
+
+      <SelectOrUploadInputFile
+        id="select-dsm-file"
         label="Select DSM File"
         fileTypes=".tif"
         role={FILE_ROLE.DSM_GEOTIFF}
-        initialValue={inputFiles ? inputFiles[FILE_ROLE.DSM_GEOTIFF] : null}
-        onChange={f => updatePlanState({dsm: f.id})}
+        initialValue={planState.dsm ?? null}
+        onChange={f => updatePlanState({dsm: f})}
       />
-      <SelectOrUploadANPFile
+      <SelectOrUploadInputFile
+        id="select-sites-file"
         label="Select Sites File"
         fileTypes=".csv"
         role={FILE_ROLE.URBAN_SITE_FILE}
-        initialValue={inputFiles ? inputFiles[FILE_ROLE.URBAN_SITE_FILE] : null}
-        onChange={f => updatePlanState({site_list: f.id})}
+        initialValue={planState.siteList ?? null}
+        onChange={f => updatePlanState({siteList: f})}
       />
-      <SelectOrUploadANPFile
+      <SelectOrUploadInputFile
+        id="select-boundary-file"
         label="Select Boundary File"
         fileTypes=".kml,.kmz"
         role={FILE_ROLE.BOUNDARY_FILE}
-        initialValue={inputFiles ? inputFiles[FILE_ROLE.BOUNDARY_FILE] : null}
-        onChange={f => updatePlanState({boundary_polygon: f.id})}
+        initialValue={planState.boundary ?? null}
+        onChange={f => updatePlanState({boundary: f})}
       />
       <Grid item container justify="flex-end" spacing={1}>
         <Grid item>
@@ -126,7 +138,17 @@ export default function PlanEditor({
         </Grid>
         <Grid item>
           <Button
-            disabled={!validatePlanState(planState)}
+            disabled={!validateSavePlan(planState)}
+            onClick={handleSavePlanClicked}
+            variant="contained"
+            color="primary"
+            size="small">
+            Save Plan {savePlanTask.isLoading && <CircularProgress size={10} />}
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button
+            disabled={!validateSubmitPlan(planState)}
             onClick={handleStartPlanClicked}
             variant="contained"
             color="primary"
@@ -140,17 +162,32 @@ export default function PlanEditor({
   );
 }
 
-function validatePlanState(state: $Shape<CreateANPPlanRequest>): boolean {
+function validateSavePlan(state: $Shape<PlanFormState>): boolean {
   try {
     if (!state) {
       return false;
     }
-    const {plan_name, boundary_polygon, dsm, site_list} = state;
+    const {name} = state;
+    if (isNullOrEmptyString(name)) {
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+function validateSubmitPlan(state: $Shape<PlanFormState>): boolean {
+  try {
+    if (!state) {
+      return false;
+    }
+    const {name, boundary, dsm, siteList} = state;
     if (
-      isNullOrEmptyString(plan_name) ||
-      isNullOrEmptyString(boundary_polygon) ||
-      isNullOrEmptyString(dsm) ||
-      isNullOrEmptyString(site_list)
+      isNullOrEmptyString(name) ||
+      boundary == null ||
+      dsm == null ||
+      siteList == null
     ) {
       return false;
     }

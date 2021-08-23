@@ -6,6 +6,9 @@
  */
 
 import * as mime from 'mime-types';
+const fs = require('fs');
+import ANPAPIClient from './ANPAPIClient';
+import PlanningService from './planningService';
 import {
   ANP_API_URL,
   ANP_CLIENT_ID,
@@ -13,11 +16,12 @@ import {
   ANP_PARTNER_ID,
   FACEBOOK_OAUTH_URL,
 } from '../config';
-import {createApi} from '../helpers/apiHelpers';
+import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import {createApi, createErrorHandler} from '../helpers/apiHelpers';
+const logger = require('../log')(module);
+const multer = require('multer');
+
 const router = createApi();
-
-import ANPAPIClient from './ANPAPIClient';
-
 const apiClient = new ANPAPIClient({
   anpBaseURL: ANP_API_URL,
   oAuthBaseURL: FACEBOOK_OAUTH_URL,
@@ -27,174 +31,149 @@ const apiClient = new ANPAPIClient({
     client_secret: ANP_CLIENT_SECRET,
   },
 });
+const planningService = new PlanningService({anpApi: apiClient});
+const handleFileUpload = makeFileUploadMiddleware(planningService);
 
-// create a new upload session with the facebook graph API
-router.post('/file/uploads', (req, res) => {
-  return apiClient
-    .createUploadSession(req.body)
-    .then(uploadSession => {
-      res.json(uploadSession);
-    })
-    .catch(err => {
-      return res.status(500).send(err.message);
-    });
-});
-// upload the actual file data
-router.post('/file/upload/:id', (req, res) => {
-  const {chunkSize, sig} = req.query;
-  if (!chunkSize || !sig) {
-    return res.status(400).send('missing required params');
-  }
-  return apiClient
-    .uploadChunk({
-      file_id: req.params.id,
-      /**
-       * req is a ReadableStream. Passing a ReadableStream to the axios body
-       * the bytes are copied without buffering the entire chunk into memory.
-       */
-      data: req,
-      /**
-       * The request to facebook needs a content-length header,
-       * but this can't be known until the entire stream is read so
-       * the client must also pass this length.
-       */
-      chunkSize: chunkSize,
-      headers: req.headers,
-      query: {sig},
-    })
-    .then(result => {
-      res.json(result);
-    })
-    .catch(err => {
-      return res.status(500).send(err.message);
-    });
-});
-// update a file's metadata
-router.put('/file', (req, res) => {
-  return apiClient
-    .updateFileMetadata(req.body)
-    .then(result => res.json(result))
-    .catch(err => {
-      console.dir(err);
-      res.status(500).send(err.message);
-    });
-});
-router.get('/plan/:id', (req, res) => {
-  return apiClient
-    .getPlan(req.params.id)
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
-});
-router.get('/plan/:id/inputs', (req, res) => {
-  return apiClient
-    .getPlanInputFiles(req.params.id)
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
-});
-router.get('/plan/:id/outputs', (req, res) => {
-  return apiClient
-    .getPlanOutputFiles(req.params.id)
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
-});
-router.get('/plan/:id/errors', (req, res) => {
-  return apiClient
-    .getPlanErrors(req.params.id)
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
-});
 router.get('/folder', (req, res) => {
-  return apiClient
+  return planningService
     .getFolders()
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
-});
-router.get('/folder/:id', (req, res) => {
-  return apiClient
-    .getFolderById({id: req.params.id})
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
-});
-router.post('/folder', (req, res) => {
-  return apiClient
-    .createFolder(req.body)
-    .then(x => res.json(x))
-    .catch(err => res.status(500).send(err.message));
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
 });
 
-router.get('/plan', async (req, res) => {
+router.get('/folder/:id', (req, res) => {
+  return planningService
+    .getFolder({id: req.params.id})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.post('/folder', (req, res) => {
+  return planningService
+    .createFolder(req.body)
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.put('/folder/:id', (req, res) => {
+  return planningService
+    .updateFolder({id: req.params.id, ...req.body})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.post('/plan', (req, res) => {
+  return planningService
+    .createNetworkPlan(req.body)
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.put('/plan/:id', (req, res) => {
+  return planningService
+    .updateNetworkPlan({id: req.params.id, ...req.body})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.get('/plan/:id', (req, res) => {
+  return planningService
+    .getNetworkPlan({id: req.params.id})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.delete('/plan/:id', (req, res) => {
+  return planningService
+    .deleteNetworkPlan({id: parseInt(req.params.id)})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.post('/plan/:id/launch', (req, res) => {
+  return planningService
+    .startLaunchPlan({id: parseInt(req.params.id)})
+    .then(result => {
+      if (result.state === NETWORK_PLAN_STATE.ERROR) {
+        return res.status(500).json(result);
+      }
+      return res.json(result);
+    })
+    .catch(createErrorHandler(res));
+});
+
+router.post('/plan/:id/cancel', (req, res) => {
+  return planningService
+    .cancelNetworkPlan(req.params.id)
+    .then(result => res.json(result))
+    .catch(err => res.status(500).json(err.message));
+});
+
+router.get('/plan', (req, res) => {
+  return planningService
+    .getPlansInFolder({folderId: req.query.folderId})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.post('/file', (req, res) => {
+  return planningService
+    .createInputFile(req.body)
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.put('/file/:id', (req, res) => {
+  return planningService
+    .updateInputFile({id: parseInt(req.params.id), ...req.body})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.post('/file/:id', handleFileUpload.single('file'), (req, res) => {
+  return planningService
+    .handleDraftFileUploaded({id: parseInt(req.params.id), fileData: req.file})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.delete('/file/:id', (req, res) => {
+  return planningService
+    .deleteInputFile({id: parseInt(req.params.id)})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
+router.get('/file/:id/download', async (req, res) => {
   try {
-    const {folderId} = req.query;
-    if (!folderId) {
-      return res
-        .status(400)
-        .send({error: `folderId query parameter is required`});
-    }
-    const folder = await apiClient.getFolderById({id: folderId});
-    if (!folder) {
-      return res
-        .status(404)
-        .send({error: `No folder found with id: ${folderId}`});
-    }
-    const plansInFolder = await apiClient.getPlansInFolder({
-      folder_id: folder.id,
+    const {id} = req.params;
+    const fileMetadata = await planningService.getInputFile({
+      id,
     });
-    return res.json(plansInFolder);
+    if (fileMetadata == null) {
+      return res.status(404).send({error: 'File not found'});
+    }
+    const stream = await planningService.downloadFileStream(id);
+    res.set(
+      'Content-Disposition',
+      stream.headers
+        ? stream?.headers['content-disposition'] ?? 'inline'
+        : 'inline',
+    );
+    res.set(
+      'Content-Type',
+      mime.contentType(fileMetadata.name.split('.').slice(-1)[0]),
+    );
+    return stream.data.pipe(res);
   } catch (err) {
-    console.dir(err);
     return res.status(500).send({error: err.message});
   }
 });
 
-// create plan object
-router.post('/plan', async (req, res) => {
+// lazy hack
+router.get('/file/:fbid/anp-download', async (req, res) => {
   try {
-    const {plan_name, boundary_polygon, folder_id, dsm, site_list} = req.body;
-    const plan = await apiClient.createPlan({
-      folder_id: folder_id,
-      plan_name: plan_name,
-      boundary_polygon: boundary_polygon,
-      dsm: dsm,
-      site_list: site_list,
-    });
-    return res.json(plan);
-  } catch (err) {
-    console.dir(err);
-    console.dir(err.data);
-    return res.status(500).json(err.message);
-  }
-});
-
-router.post('/plan/launch/:id', (req, res) => {
-  return apiClient
-    .launchPlan({
-      id: req.params.id,
-    })
-    .then(result => res.json(result))
-    .catch(err => res.status(500).json(err.message));
-});
-router.post('/plan/cancel/:id', (req, res) => {
-  return apiClient
-    .cancelPlan({
-      id: req.params.id,
-    })
-    .then(result => res.json(result))
-    .catch(err => res.status(500).json(err.message));
-});
-
-router.get('/file', (req, res) => {
-  const {role} = req.query;
-  return apiClient
-    .getPartnerFilesByRole({role})
-    .then(files => res.json(files))
-    .catch(err => {
-      res.status(500).send(err.message);
-    });
-});
-
-router.get('/file/:id', async (req, res) => {
-  try {
-    const {id} = req.params;
+    const {fbid: id} = req.params;
     const metadata = await apiClient.getFileMetadata({id});
     if (!metadata) {
       return res.status(404).send({error: 'File not found'});
@@ -215,15 +194,62 @@ router.get('/file/:id', async (req, res) => {
   }
 });
 
-// get a plan file's metadata
-router.get('/file/:id/metadata', (req, res) => {
-  const {id} = req.params;
+router.get('/plan/:id/outputs', (req, res) => {
+  return planningService
+    .getPlanOutputFiles(req.params.id)
+    .then(x => res.json(x))
+    .catch(err => res.status(500).send(err.message));
+});
+
+router.get('/plan/:id/inputs', (req, res) => {
+  return planningService
+    .getPlanInputFiles(req.params.id)
+    .then(x => res.json(x))
+    .catch(err => res.status(500).send(err.message));
+});
+
+router.get('/plan/:id/errors', (req, res) => {
   return apiClient
-    .getFileMetadata({id})
-    .then(data => res.json(data))
+    .getPlanErrors(req.params.id)
+    .then(x => res.json(x))
+    .catch(err => res.status(500).send(err.message));
+});
+
+router.get('/file', (req, res) => {
+  const {role} = req.query;
+  return apiClient
+    .getPartnerFilesByRole({role})
+    .then(files => res.json(files))
     .catch(err => {
       res.status(500).send(err.message);
     });
 });
+
+function makeFileUploadMiddleware(p: PlanningService) {
+  const uploadTempStorage = '/tmp/anp-uploads';
+  const storage = multer.diskStorage({
+    destination: (req, file, done) => {
+      if (!fs.existsSync(uploadTempStorage)) {
+        fs.mkdirSync(uploadTempStorage, {recursive: true});
+      }
+      done(null, uploadTempStorage);
+    },
+  });
+  return multer({
+    storage,
+    fileFilter: async (req, file, cb) => {
+      try {
+        const fileId = req.params.id;
+        const verified = await p.verifyFileUpload({id: fileId});
+        if (!verified) {
+          logger.error(`File not verified: ${file.originalname}`);
+        }
+        cb(null, verified);
+      } catch (err) {
+        cb(err);
+      }
+    },
+  });
+}
 
 module.exports = router;

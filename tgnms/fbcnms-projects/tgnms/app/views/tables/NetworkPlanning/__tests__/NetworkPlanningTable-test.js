@@ -17,31 +17,36 @@ import {
   testHistory,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, waitForElement, within} from '@testing-library/react';
-import type {ANPFolder, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {
+  NetworkPlan,
+  PlanFolder,
+} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
+// prevents getContext errors from jsdom
+jest.mock('jspdf', () => ({}));
 
-const folders: Array<ANPFolder> = [
+const folders: Array<PlanFolder> = [
   {
-    id: '1',
-    folder_name: 'folder 1',
-    folder_description: '',
+    id: 1,
+    name: 'folder 1',
   },
   {
-    id: '2',
-    folder_name: 'folder 2',
-    folder_description: '',
+    id: 2,
+    name: 'folder 2',
   },
 ];
-const folder1Plans: Array<ANPPlan> = [
+const folder1Plans: Array<NetworkPlan> = [
   {
-    id: '1',
-    plan_name: 'plan 1',
-    plan_status: 'SUCCEEDED',
+    id: 1,
+    folderId: 1,
+    name: 'plan 1',
+    state: 'SUCCESS',
   },
   {
-    id: '2',
-    plan_name: 'plan 2',
-    plan_status: 'SUCCEEDED',
+    id: 2,
+    folderId: 1,
+    name: 'plan 2',
+    state: 'SUCCESS',
   },
 ];
 
@@ -162,6 +167,6 @@ describe('CTAs', () => {
     act(() => {
       fireEvent.click(btn);
     });
-    expect(history.location.search).toBe('?planid=');
+    expect(getByTestId('create-plan-modal')).toBeInTheDocument();
   });
 });

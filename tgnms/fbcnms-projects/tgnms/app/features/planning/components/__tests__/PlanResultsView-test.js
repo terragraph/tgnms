@@ -8,21 +8,18 @@
 import * as React from 'react';
 import * as networkPlanningAPIUtilMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import PlanResultsView from '../PlanResultsView';
-import {
-  FILE_ROLE,
-  OUTPUT_FILENAME,
-  PLAN_STATUS,
-} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {
   TestApp,
   mockANPFile,
-  mockANPPlan,
+  mockNetworkPlan,
   renderAsync,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent} from '@testing-library/react';
-import type {ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {AddJestTypes} from 'jest';
+import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
 
 const apiMock: $ObjMapi<
@@ -37,30 +34,16 @@ const mockANPJsonPlan = {
   links: {},
 };
 const commonProps = {
-  inputFiles: {
-    [FILE_ROLE.BOUNDARY_FILE]: mockANPFile({
-      id: '5',
-      file_role: FILE_ROLE.BOUNDARY_FILE,
-    }),
-    [FILE_ROLE.URBAN_SITE_FILE]: mockANPFile({
-      id: '6',
-      file_role: FILE_ROLE.URBAN_SITE_FILE,
-    }),
-    [FILE_ROLE.DSM_GEOTIFF]: mockANPFile({
-      id: '7',
-      file_role: FILE_ROLE.DSM_GEOTIFF,
-    }),
-  },
   onExit: jest.fn(),
   onCopyPlan: jest.fn(),
 };
 beforeEach(() => {
-  apiMock.getPlan.mockImplementation(({id}: {id: string}) =>
+  apiMock.getPlan.mockImplementation(({id}: {id: number}) =>
     Promise.resolve(
-      mockANPPlan({
+      mockNetworkPlan({
         id,
-        plan_name: 'test plan',
-        plan_status: PLAN_STATUS.SUCCEEDED,
+        name: 'test plan',
+        state: NETWORK_PLAN_STATE.SUCCESS,
       }),
     ),
   );
@@ -77,27 +60,31 @@ afterEach(() => {
 describe('Cancel Plan', () => {
   test('cancel plan button shows for running plans', async () => {
     const {getByText, getByTestId} = await renderAsync(
-      <TestView plan={mockANPPlan({plan_status: PLAN_STATUS.RUNNING})} />,
+      <TestView plan={mockNetworkPlan({state: NETWORK_PLAN_STATE.RUNNING})} />,
     );
     expect(getByTestId('plan-results')).toBeInTheDocument();
     expect(getByText('Cancel Plan')).toBeInTheDocument();
   });
   test('cancel plan button doesnt show for killed/failed/succeeded plans', async () => {
     const {queryByText, getByTestId, rerender} = await renderAsync(
-      <TestView plan={mockANPPlan({plan_status: PLAN_STATUS.FAILED})} />,
+      <TestView plan={mockNetworkPlan({state: NETWORK_PLAN_STATE.ERROR})} />,
     );
     expect(getByTestId('plan-results')).toBeInTheDocument();
     expect(queryByText('Cancel Plan')).not.toBeInTheDocument();
     await act(async () => {
       rerender(
-        <TestView plan={mockANPPlan({plan_status: PLAN_STATUS.SCHEDULED})} />,
+        <TestView
+          plan={mockNetworkPlan({state: NETWORK_PLAN_STATE.CANCELLED})}
+        />,
       );
     });
     expect(getByTestId('plan-results')).toBeInTheDocument();
     expect(queryByText('Cancel Plan')).not.toBeInTheDocument();
     await act(async () => {
       rerender(
-        <TestView plan={mockANPPlan({plan_status: PLAN_STATUS.SUCCEEDED})} />,
+        <TestView
+          plan={mockNetworkPlan({state: NETWORK_PLAN_STATE.SUCCESS})}
+        />,
       );
     });
     expect(getByTestId('plan-results')).toBeInTheDocument();
@@ -107,7 +94,7 @@ describe('Cancel Plan', () => {
   test('clicking cancel plan button calls the cancel plan api', async () => {
     const {getByText} = await renderAsync(
       <TestView
-        plan={mockANPPlan({id: '24', plan_status: PLAN_STATUS.RUNNING})}
+        plan={mockNetworkPlan({id: 24, state: NETWORK_PLAN_STATE.RUNNING})}
       />,
     );
     const btn = getByText('Cancel Plan');
@@ -117,12 +104,12 @@ describe('Cancel Plan', () => {
     await act(async () => {
       fireEvent.click(btn);
     });
-    expect(apiMock.cancelPlan).toHaveBeenCalledWith({id: '24'});
+    expect(apiMock.cancelPlan).toHaveBeenCalledWith({id: 24});
     expect(commonProps.onExit).toHaveBeenCalled();
   });
 });
 
-function TestView({plan}: {plan: ANPPlan}) {
+function TestView({plan}: {plan: NetworkPlan}) {
   return (
     <TestApp>
       <NetworkPlanningContextProvider>

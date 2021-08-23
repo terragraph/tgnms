@@ -7,13 +7,14 @@
 
 import * as React from 'react';
 import * as apiMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
-import SelectOrUploadANPFile from '../SelectOrUploadANPFile';
+import SelectOrUploadInputFile from '../SelectOrUploadInputFile';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {act, fireEvent} from '@testing-library/react';
 import {renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {waitForElementToBeRemoved} from '@testing-library/dom';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
 const commonProps = {
+  id: 'test',
   label: 'Select Test File',
   role: FILE_ROLE.DSM_GEOTIFF,
   fileTypes: '.tiff',
@@ -27,7 +28,7 @@ describe('Modal', () => {
   test('modal opens when user clicks browse,closes when user clicks cancel', async () => {
     jest.spyOn(apiMock, 'getPartnerFiles').mockResolvedValue({data: null});
     const {getByText, queryByTestId} = await renderAsync(
-      <SelectOrUploadANPFile {...commonProps} />,
+      <SelectOrUploadInputFile {...commonProps} />,
     );
     const getModal = () => queryByTestId('select-or-upload-anpfile');
     expect(getModal()).not.toBeInTheDocument();

@@ -3,4 +3,5 @@ yarn-error.log
 **/.env
 coverage
 fbcnms-projects/tgnms/.settings/*.json
+fbcnms-projects/tgnms/data/
 .vscode
