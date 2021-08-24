@@ -284,9 +284,10 @@ class SitesLayer extends React.Component<Props> {
         );
 
         // Check for special properties, and render "inner" circles if needed
-        const siteNodes = siteToNodesMap
-          ? Array.from(siteToNodesMap[site.name])
-          : [];
+        const siteNodes =
+          siteToNodesMap && siteToNodesMap[site.name]
+            ? Array.from(siteToNodesMap[site.name])
+            : [];
         const hasPop =
           nodeMap !== undefined &&
           siteNodes.find(nodeName => nodeMap[nodeName].pop_node) !== undefined;
