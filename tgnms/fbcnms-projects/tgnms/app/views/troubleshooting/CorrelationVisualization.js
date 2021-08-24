@@ -60,7 +60,7 @@ export default function CorrelationVisualization({
   const classes = useStyles();
   const {nodeToLinksMap, networkName} = useNetworkContext();
   const [data, setData] = React.useState(null);
-  const [defaultRouteHistory, setDefaultRouteHistory] = React.useState(null);
+  const [defaultRouteHistory, setDefaultRouteHistory] = React.useState([]);
   const [events, setEvents] = React.useState([]);
   const [showConfigEvent, setShowConfigEvent] = React.useState(true);
   const [showRouteEvent, setShowRouteEvent] = React.useState(true);
@@ -125,17 +125,17 @@ export default function CorrelationVisualization({
   }, []);
 
   const processDefaultRoutes = React.useCallback(async () => {
+    if (selectedNodeName == null) {
+      return;
+    }
     const defaultRoutes = await getDefaultRouteHistory({
       networkName,
-      nodeName: selectedNodeName ?? '',
+      nodeName: selectedNodeName,
       startTime: new Date(startTime).toISOString().split('.')[0],
       endTime: new Date(endTime).toISOString().split('.')[0],
     });
 
-    const tempDefaultRouteHistory =
-      defaultRoutes != null ? defaultRoutes?.history : [];
-
-    setDefaultRouteHistory(tempDefaultRouteHistory);
+    setDefaultRouteHistory(defaultRoutes?.history ?? []);
   }, [selectedNodeName, startTime, endTime, networkName]);
 
   React.useEffect(() => {
@@ -146,7 +146,7 @@ export default function CorrelationVisualization({
     const newEvents = [];
 
     // add config and topology events
-    elasticSearchData?.hits?.hits.forEach(log => {
+    elasticSearchData?.hits?.hits?.forEach(log => {
       const apiPath = log._source.path;
       const apiData = log._source.body;
       const logTimeStamp = log._source['@timestamp'];
@@ -229,7 +229,7 @@ export default function CorrelationVisualization({
 
     // add route events
     if (defaultRouteHistory !== null) {
-      defaultRouteHistory.forEach(defaultRoute => {
+      defaultRouteHistory?.forEach(defaultRoute => {
         const timeStamp = defaultRoute.last_updated.split('.')[0];
         newEvents.push({
           id: defaultRoute.last_updated,
