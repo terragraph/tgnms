@@ -79,7 +79,7 @@ const useStyles = makeStyles(theme => ({
 type EventType = {
   color: string,
   id: string,
-  timeStamp: string,
+  timeStamp: string | number,
   visible: boolean,
   type: $Values<typeof EVENT_TYPES>,
   timelinePercent: number,

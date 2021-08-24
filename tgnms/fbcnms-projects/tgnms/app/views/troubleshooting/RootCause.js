@@ -68,6 +68,7 @@ export default function RootCause() {
   const {networkConfig} = useNetworkContext();
   const history = useHistory();
   const classes = useStyles();
+  const urlWithoutOverlay = new URL(window.location);
 
   const initiallySelectedNode = React.useMemo(() => {
     const values = new URL(window.location).searchParams;
@@ -90,10 +91,14 @@ export default function RootCause() {
       const newMode = e.target.value;
       if (NODE_FILTER_MODES[newMode] === NODE_FILTER_MODES.NETWORK) {
         setSelectedNode(null);
+        urlWithoutOverlay.searchParams.delete('node');
+        history.replace(
+          `${urlWithoutOverlay.pathname}${urlWithoutOverlay.search}`,
+        );
       }
       setMode(newMode);
     },
-    [setMode],
+    [setMode, history, urlWithoutOverlay],
   );
 
   const [timeOffset, setTimeOffset] = React.useState(TIME_OPTIONS.WEEK);

@@ -28,8 +28,8 @@ import {getUIEnvVal} from '../../common/uiConfig';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
-const TIMELINE_START_PERCENT = 14.5;
-const TIMELINE_WIDTH_PERCENT = 100 - TIMELINE_START_PERCENT;
+const TIMELINE_START_PERCENT = 8;
+const TIMELINE_WIDTH_PERCENT = 78;
 
 const ROUTE_GREY = '#8C8C8C';
 const CONFIG_BLUE = '#80aaff';
@@ -71,14 +71,11 @@ export default function CorrelationVisualization({
 
   const startTime = React.useMemo(
     () =>
-      timeToSeconds(
-        new Date().getTime() -
-          TIME_DIFFERENCE_IN_MINUTES[timeOffset] * MILLISECONDS_TO_MINUTES,
-      ),
+      new Date().getTime() -
+      TIME_DIFFERENCE_IN_MINUTES[timeOffset] * MILLISECONDS_TO_MINUTES,
     [timeOffset],
   );
-  const endTime = React.useMemo(() => timeToSeconds(new Date().getTime()), []);
-
+  const endTime = React.useMemo(() => new Date().getTime(), []);
   const links = [...(nodeToLinksMap[selectedNodeName ?? ''] ?? [])];
 
   React.useEffect(() => {
@@ -98,8 +95,8 @@ export default function CorrelationVisualization({
       try {
         const response = await queryDataArray(
           queries,
-          startTime,
-          endTime,
+          timeToSeconds(startTime),
+          timeToSeconds(endTime),
           STEP_SIZE,
           networkName,
         );
@@ -116,7 +113,7 @@ export default function CorrelationVisualization({
       const elasticUrl = `${elasticBaseUrlRef.current}/fluentd-log-server*/_search?size=1000`;
       try {
         const response = await axios.get(elasticUrl);
-        setElasticSearchData(response.data);
+        setElasticSearchData(response.data?.hits?.hits);
       } catch (err) {
         console.error(err.message);
       }
@@ -146,10 +143,10 @@ export default function CorrelationVisualization({
     const newEvents = [];
 
     // add config and topology events
-    elasticSearchData?.hits?.hits?.forEach(log => {
+    elasticSearchData?.forEach(log => {
       const apiPath = log._source.path;
       const apiData = log._source.body;
-      const logTimeStamp = log._source['@timestamp'];
+      const logTimeStamp = log._source['@timestamp'] * 1000;
       const timelinePercent =
         TIMELINE_START_PERCENT +
         (1 -
@@ -164,11 +161,12 @@ export default function CorrelationVisualization({
       if (nodeCorrelation) {
         if (
           apiPath.includes(EVENT_TYPES.NODE_CONFIG_CHANGE) &&
+          selectedNodeName != null &&
           apiData.includes(selectedNodeName)
         ) {
           newEvents.push({
             id: log._id,
-            timeStamp: log._source['@timestamp'],
+            timeStamp: logTimeStamp,
             type: EVENT_TYPES.NODE_CONFIG_CHANGE,
             color: CONFIG_BLUE,
             timelinePercent,
@@ -179,7 +177,7 @@ export default function CorrelationVisualization({
         if (apiPath.includes(EVENT_TYPES.NETWORK_CONFIG_CHANGE)) {
           newEvents.push({
             id: log._id,
-            timeStamp: log._source['@timestamp'],
+            timeStamp: logTimeStamp,
             type: EVENT_TYPES.NETWORK_CONFIG_CHANGE,
             color: CONFIG_BLUE,
             timelinePercent,
@@ -190,7 +188,7 @@ export default function CorrelationVisualization({
         } else if (apiPath.includes(EVENT_TYPES.DELETE_LINK)) {
           newEvents.push({
             id: log._id,
-            timeStamp: log._source['@timestamp'],
+            timeStamp: logTimeStamp,
             type: EVENT_TYPES.DELETE_LINK,
             color: TOPOLOGY_ORANGE,
             timelinePercent,
@@ -199,7 +197,7 @@ export default function CorrelationVisualization({
         } else if (apiPath.includes(EVENT_TYPES.ADD_LINK)) {
           newEvents.push({
             id: log._id,
-            timeStamp: log._source['@timestamp'],
+            timeStamp: logTimeStamp,
             type: EVENT_TYPES.ADD_LINK,
             color: TOPOLOGY_ORANGE,
             timelinePercent,
@@ -208,7 +206,7 @@ export default function CorrelationVisualization({
         } else if (apiPath.includes(EVENT_TYPES.BULK_ADD)) {
           newEvents.push({
             id: log._id,
-            timeStamp: log._source['@timestamp'],
+            timeStamp: logTimeStamp,
             type: EVENT_TYPES.BULK_ADD,
             color: TOPOLOGY_ORANGE,
             timelinePercent,
@@ -217,7 +215,7 @@ export default function CorrelationVisualization({
         } else if (apiPath.includes(EVENT_TYPES.ADD_NODE)) {
           newEvents.push({
             id: log._id,
-            timeStamp: log._source['@timestamp'],
+            timeStamp: logTimeStamp,
             type: EVENT_TYPES.ADD_NODE,
             color: TOPOLOGY_ORANGE,
             timelinePercent,
@@ -228,9 +226,16 @@ export default function CorrelationVisualization({
     });
 
     // add route events
-    if (defaultRouteHistory !== null) {
+    if (defaultRouteHistory !== null && nodeCorrelation) {
       defaultRouteHistory?.forEach(defaultRoute => {
-        const timeStamp = defaultRoute.last_updated.split('.')[0];
+        const time = new Date(defaultRoute.last_updated);
+        time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
+        const timeStamp = time.toLocaleString();
+
+        if (time.getTime() < startTime) {
+          return;
+        }
+
         newEvents.push({
           id: defaultRoute.last_updated,
           timeStamp,
