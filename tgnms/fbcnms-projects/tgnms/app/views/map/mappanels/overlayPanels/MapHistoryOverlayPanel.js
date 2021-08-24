@@ -11,6 +11,7 @@ import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
 import Slider from 'rc-slider';
 import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
 import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {
   HISTORICAL_LINK_METRIC_OVERLAYS,
@@ -22,9 +23,11 @@ import {
   MINUTES_IN_DAY,
   STEP_SIZE,
   SiteOverlayColors,
+  TG_COLOR,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {KeyboardDatePicker} from '@material-ui/pickers';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {cloneDeep, isEqual} from 'lodash';
 import {
   createQuery,
   queryDataArray,
@@ -34,6 +37,7 @@ import {
   getUrlSearchParam,
   setUrlSearchParam,
 } from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
+import {getTopologyHistory} from '@fbcnms/tg-nms/app/apiutils/TopologyHistoryAPIUtil';
 import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useHistory, useLocation} from 'react-router-dom';
@@ -42,6 +46,8 @@ import type {
   PrometheusDataType,
   PrometheusValue,
 } from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
+
+import type {TopologyHistoryResultsType} from '@fbcnms/tg-nms/shared/dto/TopologyHistoryTypes';
 
 const LINK_OVERLAYS = {
   ...LINK_METRIC_OVERLAYS,
@@ -54,7 +60,10 @@ const topologyPrometheusIDs = {
 };
 
 const linkOverlayList = objectValuesTypesafe(LINK_OVERLAYS).filter(
-  overlay => overlay.type === 'metric' || overlay.id === 'none',
+  overlay =>
+    overlay.type === 'metric' ||
+    overlay.type === 'topology' ||
+    overlay.id === 'none',
 );
 const siteOverlayList = objectValuesTypesafe(HISTORICAL_SITE_METRIC_OVERLAYS);
 
@@ -70,7 +79,9 @@ const DATE_TO_STRING_PARAMS = [
   },
 ];
 
-const styles = theme => ({
+const TIME_OFFSET = new Date().getTimezoneOffset() * MILLISECONDS_TO_MINUTES;
+
+const useStyles = makeStyles(theme => ({
   formContainer: {
     flexDirection: 'column',
   },
@@ -91,15 +102,13 @@ const styles = theme => ({
   centered: {
     textAlign: 'center',
   },
-});
+}));
 
-type Props = {};
-
-const useStyles = makeStyles(styles);
-export default function MapHistoryOverlayPanel({}: Props) {
+export default function MapHistoryOverlayPanel() {
   const classes = useStyles();
   const location = useLocation();
   const history = useHistory();
+  const cancelSource = axios.CancelToken.source();
   const {networkName, siteToNodesMap} = React.useContext(NetworkContext);
   const {updateNetworkMapOptions, networkMapOptions} = React.useContext(
     NmsOptionsContext,
@@ -110,9 +119,17 @@ export default function MapHistoryOverlayPanel({}: Props) {
     setOverlaysConfig,
     setIsOverlayLoading,
   } = useMapContext();
-  const [historicalData, setHistoricalData] = React.useState(
-    networkMapOptions.historicalData,
+
+  const [historicalStats, setHistoricalStats] = React.useState(
+    networkMapOptions?.historicalData?.stats,
   );
+  const [historicalTopology, setHistoricalTopology] = React.useState(
+    networkMapOptions?.historicalData?.topology ?? [],
+  );
+  const [historicalTopologyIndex, setHistoricalTopologyIndex] = React.useState(
+    0,
+  );
+
   const [historicalDate, setHistoricalDate] = React.useState(
     networkMapOptions.historicalDate,
   );
@@ -122,7 +139,7 @@ export default function MapHistoryOverlayPanel({}: Props) {
   const [errorMessage, setErrorMessage] = React.useState<?string>(null);
   // used to prevent refetching if restoring from nmsoptions
   const lastFetchedDateRef = React.useRef<?string>(
-    networkMapOptions.historicalDate && networkMapOptions.historicalData
+    networkMapOptions.historicalDate && historicalStats
       ? networkMapOptions.historicalDate.toISOString()
       : null,
   );
@@ -146,23 +163,6 @@ export default function MapHistoryOverlayPanel({}: Props) {
     },
     [setHistoricalDate, onSliderChange],
   );
-
-  React.useEffect(() => {
-    setOverlaysConfig({
-      link_lines: {
-        layerId: 'link_lines',
-        overlays: linkOverlayList,
-        legend: LinkOverlayColors,
-        defaultOverlayId: topologyPrometheusIDs.link,
-      },
-      site_icons: {
-        layerId: 'site_icons',
-        overlays: siteOverlayList,
-        legend: SiteOverlayColors,
-        defaultOverlayId: topologyPrometheusIDs.node,
-      },
-    });
-  }, [setOverlaysConfig]);
 
   // Fetch all data for the day
   React.useEffect(() => {
@@ -197,14 +197,19 @@ export default function MapHistoryOverlayPanel({}: Props) {
       });
 
       try {
-        const response = await queryDataArray(
-          queries,
-          start,
-          end,
-          STEP_SIZE,
-          networkName,
-        );
-        setHistoricalData(response.data);
+        const [dataResponse, topologyResponse] = await Promise.all([
+          queryDataArray(queries, start, end, STEP_SIZE, networkName),
+          getTopologyHistory({
+            inputData: {
+              startTime: new Date(start * 1000).toISOString().split('Z')[0],
+              endTime: new Date(end * 1000).toISOString().split('Z')[0],
+              networkName,
+            },
+            cancelToken: cancelSource.token,
+          }),
+        ]);
+        setHistoricalTopology(topologyResponse);
+        setHistoricalStats(dataResponse.data);
       } catch (err) {
         setErrorMessage(err.message);
       } finally {
@@ -218,41 +223,124 @@ export default function MapHistoryOverlayPanel({}: Props) {
     setErrorMessage,
     setIsOverlayLoading,
     updateNetworkMapOptions,
+    cancelSource,
   ]);
+
+  React.useEffect(() => {
+    const selectedTopology = historicalTopology.find((topology, index) => {
+      if (!historicalTopology[index + 1]) {
+        return;
+      }
+      const currentTopologyTime =
+        new Date(topology.last_updated).getTime() - TIME_OFFSET;
+      const nextTopologytime =
+        new Date(historicalTopology[index + 1].last_updated).getTime() -
+        TIME_OFFSET;
+
+      const isCurrentTopology =
+        currentTopologyTime < selectedTime.getTime() &&
+        nextTopologytime > selectedTime.getTime();
+      if (isCurrentTopology) {
+        setHistoricalTopologyIndex(index);
+      }
+      return isCurrentTopology;
+    });
+    if (selectedTopology?.topology) {
+      updateNetworkMapOptions({historicalTopology: selectedTopology.topology});
+    }
+  }, [historicalTopology, selectedTime, updateNetworkMapOptions]);
 
   // Filter and display the data for the selected time of day
   React.useEffect(() => {
+    let linkOverlayData = {};
+    let siteMapOverrides = {};
+    const removedTopology = {};
     if (overlays.link_lines) {
       const overlay = overlays.link_lines;
-      const linkOverlayData = getHistoricalLinkOverlayMetrics(
-        historicalData,
-        overlay,
-        selectedTime,
-      );
-      const siteMapOverrides = getHistoricalSiteMap(
-        historicalData,
-        siteToNodesMap,
-        selectedTime,
-      );
-      if (historicalData) {
-        setOverlayData({
-          link_lines: linkOverlayData,
-          site_icons: siteMapOverrides,
-        });
+      if (overlay.type === 'topology') {
+        const {overlayData, removedLinks} = getTopologyLinkOverlay(
+          historicalTopology,
+          historicalTopologyIndex,
+          overlay.id,
+        );
+        linkOverlayData = overlayData;
+        removedTopology.links = removedLinks;
+      } else {
+        linkOverlayData = getHistoricalLinkOverlayMetrics(
+          historicalStats,
+          overlay,
+          selectedTime,
+        );
       }
     }
+    if (overlays.site_icons) {
+      const overlay = overlays.site_icons;
+      if (overlay.type === 'topology') {
+        const {overlayData, removedSites} = getTopologySiteOverlay(
+          historicalTopology,
+          historicalTopologyIndex,
+        );
+        siteMapOverrides = overlayData;
+        removedTopology.sites = removedSites;
+      } else {
+        siteMapOverrides = getHistoricalSiteMap(
+          historicalStats,
+          siteToNodesMap,
+          selectedTime,
+        );
+      }
+    }
+    if (historicalStats) {
+      setOverlayData({
+        link_lines: linkOverlayData,
+        site_icons: siteMapOverrides,
+      });
+    }
+    // if topology was removed it needs to be added to visualization
+    if (
+      Object.keys(removedTopology).length > 0 &&
+      historicalTopology[historicalTopologyIndex]?.topology
+    ) {
+      const updatedHistoricalTopology = cloneDeep(
+        historicalTopology[historicalTopologyIndex].topology,
+      );
+      updatedHistoricalTopology.sites.push(...(removedTopology?.sites ?? []));
+      updatedHistoricalTopology.links.push(...(removedTopology?.links ?? []));
+      updateNetworkMapOptions({
+        historicalTopology: updatedHistoricalTopology,
+      });
+    }
   }, [
-    historicalData,
+    historicalStats,
     selectedTime,
     overlays.link_lines,
     setOverlayData,
     siteToNodesMap,
+    historicalTopology,
+    historicalTopologyIndex,
+    overlays,
+    updateNetworkMapOptions,
   ]);
 
   React.useEffect(() => {
     if (getUrlSearchParam('mapMode', location) !== MAPMODE.HISTORICAL) {
       setUrlSearchParam(history, 'mapMode', MAPMODE.HISTORICAL);
     }
+
+    setOverlaysConfig({
+      link_lines: {
+        layerId: 'link_lines',
+        overlays: linkOverlayList,
+        legend: LinkOverlayColors,
+        defaultOverlayId: topologyPrometheusIDs.link,
+      },
+      site_icons: {
+        layerId: 'site_icons',
+        overlays: siteOverlayList,
+        legend: SiteOverlayColors,
+        defaultOverlayId: topologyPrometheusIDs.node,
+      },
+    });
     // only run once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -265,9 +353,14 @@ export default function MapHistoryOverlayPanel({}: Props) {
   useUnmount(() => {
     updateNetworkMapOptions({
       historicalDate: historicalDate,
+      historicalTopology: {},
       selectedTime,
-      historicalData,
+      historicalData: {
+        stats: historicalStats,
+        topology: historicalTopology,
+      },
     });
+    setOverlayData({});
     deleteUrlSearchParam(history, 'mapMode');
     deleteUrlSearchParam(history, 'date');
   });
@@ -319,19 +412,18 @@ export default function MapHistoryOverlayPanel({}: Props) {
 }
 
 function getHistoricalLinkOverlayMetrics(
-  historicalData: ?{
+  historicalStats: ?{
     [string]: Array<PrometheusDataType>,
   },
   overlay: Overlay,
   selectedTime: Date,
 ) {
   let linkOverlayData;
-
   if (overlay && overlay.metrics) {
     linkOverlayData = overlay.metrics.reduce(
       (linkOverlayDataAggregator, metric) => {
         const metricData = formatHistoricalLinkOverlayData(
-          historicalData,
+          historicalStats,
           metric,
           selectedTime,
         );
@@ -353,7 +445,7 @@ function getHistoricalLinkOverlayMetrics(
     );
   } else {
     linkOverlayData = formatHistoricalLinkOverlayData(
-      historicalData,
+      historicalStats,
       overlay.id,
       selectedTime,
     );
@@ -362,7 +454,7 @@ function getHistoricalLinkOverlayMetrics(
 }
 
 function getHistoricalSiteMap(
-  historicalData: ?{
+  historicalStats: ?{
     [string]: Array<PrometheusDataType>,
   },
   siteToNodesMap: {[string]: Set<string>},
@@ -372,7 +464,7 @@ function getHistoricalSiteMap(
 
   return Object.keys(siteToNodesMap).reduce((final, siteName) => {
     const siteNodes = [...siteToNodesMap[siteName]];
-    const nodeData = historicalData?.[topologyPrometheusIDs.node];
+    const nodeData = historicalStats?.[topologyPrometheusIDs.node];
     if (siteNodes.length === 0 || !nodeData) {
       final[siteName] = SiteOverlayColors.health.planned.color;
     } else {
@@ -402,7 +494,7 @@ function getHistoricalSiteMap(
 }
 
 function formatHistoricalLinkOverlayData(
-  historicalData: ?{
+  historicalStats: ?{
     [string]: Array<PrometheusDataType>,
   },
   overlayId: string,
@@ -410,13 +502,12 @@ function formatHistoricalLinkOverlayData(
 ) {
   const timeStamp = selectedTime.getTime() / 1000;
 
-  if (!historicalData || !historicalData[overlayId]) {
+  if (!historicalStats || !historicalStats[overlayId]) {
     return {};
   }
-
-  return historicalData[overlayId].reduce((overlayData, data) => {
+  return historicalStats[overlayId].reduce((overlayData, data) => {
     const currentLinkName = data.metric.linkName || '';
-    const currentLinkData = historicalData[overlayId].filter(
+    const currentLinkData = historicalStats[overlayId].filter(
       element => element.metric.linkName === currentLinkName,
     );
     if (currentLinkData.length === 2) {
@@ -445,9 +536,97 @@ function findValuesByTimeStamp(data: ?PrometheusValue, timeStamp: number) {
     return null;
   }
   return data.reduce((final, [time, value]) => {
-    if (time === timeStamp) {
+    if (time <= timeStamp) {
       final = value;
     }
     return final;
   }, undefined);
+}
+
+function getTopologyLinkOverlay(
+  historicalTopology: Array<TopologyHistoryResultsType>,
+  index: number,
+  overalyId: string,
+) {
+  const currentLinks = historicalTopology[index]?.topology.links;
+  const prevLinks = historicalTopology[index - 1]?.topology.links;
+  const overlayData = {};
+  currentLinks?.forEach(link => {
+    const prevLink = prevLinks?.find(prevLink => prevLink.name === link.name);
+    // if link name doesn't exist in previous list, this is new
+    if (prevLinks && !prevLink) {
+      overlayData[link.name] = {A: {[overalyId]: 0}, Z: {[overalyId]: 0}};
+    }
+    // link mac addresses or nodes changed this link is changed
+    else if (prevLinks && !isEqual(prevLink, link)) {
+      overlayData[link.name] = {A: {[overalyId]: 1}, Z: {[overalyId]: 1}};
+    }
+    // else link is the same
+    else {
+      overlayData[link.name] = {A: {[overalyId]: 3}, Z: {[overalyId]: 3}};
+    }
+  });
+
+  // if link doesn't exist in cur list, but exists in prev list it is removed
+  const removedLinks = prevLinks?.filter(
+    prevLink => !currentLinks.find(link => link.name === prevLink.name),
+  );
+  removedLinks?.forEach(
+    link =>
+      (overlayData[link.name] = {A: {[overalyId]: 2}, Z: {[overalyId]: 2}}),
+  );
+  return {overlayData, removedLinks};
+}
+
+function getTopologySiteOverlay(
+  historicalTopology: Array<TopologyHistoryResultsType>,
+  index: number,
+) {
+  const currentSites = historicalTopology[index]?.topology.sites;
+  const prevSites = historicalTopology[index - 1]?.topology.sites;
+  const overlayData = {};
+  currentSites?.forEach(site => {
+    const prevSite = prevSites?.find(prevSite => prevSite.name === site.name);
+    // site name doesn't exist in previous list, this is new
+    if (prevSites && !prevSite) {
+      overlayData[site.name] = TG_COLOR.GREEN;
+    }
+    // if site name exists but nodes are different site is changed
+    else if (
+      prevSites &&
+      !isHistoricalSiteNodesEqual(
+        historicalTopology,
+        index,
+        index - 1,
+        site.name,
+      )
+    ) {
+      overlayData[site.name] = TG_COLOR.ORANGE;
+    }
+    // else site is the same
+    else {
+      overlayData[site.name] = TG_COLOR.GREY;
+    }
+  });
+  // if site doesn't exist in cur list, but exists in prev list it is removed
+  const removedSites = prevSites?.filter(
+    prevSite => !currentSites.find(site => site.name === prevSite.name),
+  );
+  removedSites?.forEach(site => (overlayData[site.name] = TG_COLOR.RED));
+  return {overlayData, removedSites};
+}
+
+function isHistoricalSiteNodesEqual(
+  historicalTopology: Array<TopologyHistoryResultsType>,
+  index1: number,
+  index2: number,
+  siteName: string,
+) {
+  const nodes1 = historicalTopology[index1].topology.nodes.filter(
+    node => node.site_name === siteName,
+  );
+  const nodes2 = historicalTopology[index2].topology.nodes.filter(
+    node => node.site_name === siteName,
+  );
+  return isEqual(nodes1, nodes2);
 }

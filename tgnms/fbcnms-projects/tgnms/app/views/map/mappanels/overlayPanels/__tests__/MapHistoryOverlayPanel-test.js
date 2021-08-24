@@ -9,6 +9,10 @@ import * as React from 'react';
 import MapHistoryOverlayPanel from '../MapHistoryOverlayPanel';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {
+  MILLISECONDS_TO_MINUTES,
+  MINUTES_IN_DAY,
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {
   MapContextWrapper,
   NmsOptionsContextWrapper,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
@@ -18,8 +22,10 @@ import {
   renderAsync,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
-import {act, fireEvent} from '@testing-library/react';
+import {act, fireEvent, wait} from '@testing-library/react';
+import {mockFig0} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {mockNetworkMapOptions} from '@fbcnms/tg-nms/app/tests/data/NmsOptionsContext';
+
 import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import type {NmsOptionsContextType} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 
@@ -105,6 +111,63 @@ test('render with default provider succeeds', async () => {
   expect(getByTestId('map-history-overlay-panel')).toBeInTheDocument();
 });
 
+test('topology history api triggers update network map options with valid historical topology', async () => {
+  const topology = mockFig0();
+
+  const _axiosMock = jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
+  const _topologyHistoryMock = jest
+    .spyOn(
+      require('@fbcnms/tg-nms/app/apiutils/TopologyHistoryAPIUtil'),
+      'getTopologyHistory',
+    )
+    .mockImplementation(() =>
+      Promise.resolve([
+        {topology, last_updated: new Date().getTime()},
+        {
+          topology: {},
+          last_updated:
+            new Date().getTime() + MILLISECONDS_TO_MINUTES * MINUTES_IN_DAY,
+        },
+      ]),
+    );
+
+  const updateMock = jest.fn();
+
+  await renderAsync(
+    <Wrapper optionsValue={{updateNetworkMapOptions: updateMock}}>
+      <MapHistoryOverlayPanel />
+    </Wrapper>,
+  );
+  await wait(() => {
+    expect(updateMock).toHaveBeenCalledWith({historicalTopology: topology});
+  });
+});
+
+test('topology history api does not trigger update network map options with no historical topology', async () => {
+  const _axiosMock = jest
+    .spyOn(require('axios'), 'get')
+    .mockImplementation(() => Promise.resolve({data: {}}));
+  const _topologyHistoryMock = jest
+    .spyOn(
+      require('@fbcnms/tg-nms/app/apiutils/TopologyHistoryAPIUtil'),
+      'getTopologyHistory',
+    )
+    .mockImplementation(() => Promise.resolve([]));
+
+  const updateMock = jest.fn();
+
+  await renderAsync(
+    <Wrapper optionsValue={{updateNetworkMapOptions: updateMock}}>
+      <MapHistoryOverlayPanel />
+    </Wrapper>,
+  );
+  await wait(() => {
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+});
+
 function Wrapper({
   children,
   mapValue,
@@ -119,6 +182,7 @@ function Wrapper({
       <MuiPickersWrapper>
         <NmsOptionsContextWrapper
           contextValue={{
+            ...optionsValue,
             networkMapOptions: mockNetworkMapOptions(
               (optionsValue || {}).networkMapOptions,
             ),

@@ -21,7 +21,6 @@ export type UpdateNetworkMapOptions = ($Shape<NetworkMapOptions>) => void;
 
 export function defaultNetworkMapOptions() {
   const historicalDate = getHistoricalDate(location);
-
   const now = new Date();
   const defaultDate: Date = historicalDate
     ? new Date(historicalDate)
@@ -36,6 +35,7 @@ export function defaultNetworkMapOptions() {
 
   return {
     historicalDate: defaultDate,
+    historicalTopology: {},
     selectedTime: defaultTime,
   };
 }

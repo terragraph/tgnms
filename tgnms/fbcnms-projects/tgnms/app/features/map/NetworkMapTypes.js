@@ -14,7 +14,9 @@ import type {
 import type {
   LocationType,
   TemporaryTopologyType,
+  TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import type {TopologyHistoryResultsType} from '@fbcnms/tg-nms/shared/dto/TopologyHistoryTypes';
 
 export type MapLayerConfig = {
   layerId: string,
@@ -83,8 +85,9 @@ export type NetworkMapOptions = $Shape<{
   selectedLayers: SelectedLayersType,
   selectedOverlays: SelectedOverlays,
   historicalDate: Date,
+  historicalTopology: $Shape<TopologyType>,
   selectedTime: Date,
-  historicalData: ?{},
+  historicalData: {stats: ?{}, topology: Array<TopologyHistoryResultsType>},
   testExecutionData: ?{results: {}, type: $Values<typeof TOPOLOGY_ELEMENT>},
   scanLinkData: ?{},
   temporaryTopology?: ?TemporaryTopologyType,
