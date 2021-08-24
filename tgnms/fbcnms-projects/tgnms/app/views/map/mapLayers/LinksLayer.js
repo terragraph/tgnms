@@ -184,6 +184,16 @@ class LinksLayer extends React.Component<Props> {
       }
       return clr;
     }
+
+    if (overlay.type === 'topology') {
+      return values?.map(
+        value =>
+          objectValuesTypesafe<{[string]: string}>(LinkOverlayColors.topology)[
+            value
+          ]?.color,
+      );
+    }
+
     if (overlay.type === 'golay' && typeof values === 'number') {
       if (values === undefined) {
         return LinkOverlayColors.metric.missing.color;
@@ -264,7 +274,8 @@ class LinksLayer extends React.Component<Props> {
         value === null ||
         typeof value === 'undefined' ||
         overlay.id === 'link_health' ||
-        overlay.id === 'link_online'
+        overlay.id === 'link_online' ||
+        overlay.type === 'topology'
       ) {
         return '';
       }

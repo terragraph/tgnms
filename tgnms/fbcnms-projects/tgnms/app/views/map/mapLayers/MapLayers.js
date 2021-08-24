@@ -105,7 +105,6 @@ export default function MapLayers(props: Props) {
   const {
     controller_version,
     ignition_state,
-    topology,
     topologyConfig,
     offline_whitelist,
   } = networkConfig;
@@ -124,6 +123,12 @@ export default function MapLayers(props: Props) {
       temporarySelectedAsset,
     });
   };
+
+  const topology =
+    networkMapOptions.historicalTopology &&
+    Object.keys(networkMapOptions.historicalTopology).length > 0
+      ? networkMapOptions.historicalTopology
+      : networkConfig.topology;
 
   return (
     <>

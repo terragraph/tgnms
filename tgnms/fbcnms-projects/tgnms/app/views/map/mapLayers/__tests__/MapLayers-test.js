@@ -9,20 +9,36 @@ import * as React from 'react';
 import LinksLayer from '../LinksLayer';
 import MapLayers from '../MapLayers';
 import SitesLayer from '../SitesLayer';
-import {Layer} from 'react-mapbox-gl';
 import {
+  FIG0,
   MapContextWrapper,
   NetworkContextWrapper,
+  NmsOptionsContextWrapper,
   TestApp,
+  mockFig0,
+  mockNetworkMapOptions,
   mockTopology,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {OVERLAY_NONE} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {
+  HISTORICAL_LINK_METRIC_OVERLAYS,
+  OVERLAY_NONE,
+  TG_COLOR,
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {Layer} from 'react-mapbox-gl';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {
+  getLayerById,
+  getLineByLinkName,
+  getPropValue,
+} from '@fbcnms/tg-nms/app/tests/mapHelpers';
 import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {mockNetworkContext} from '@fbcnms/tg-nms/app/tests/data/NetworkContext';
 import {render} from '@testing-library/react';
 
 import type {MapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NetworkMapOptions} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {Props} from '../MapLayers';
 
 const sitesLayerSpy = jest.spyOn(SitesLayer, 'render');
@@ -30,8 +46,10 @@ const linksLayerSpy = jest.spyOn(LinksLayer, 'render');
 const buildingsLayerSpy = jest.spyOn(require('../BuildingsLayer'), 'default');
 const sitePopupsLayerSpy = jest.spyOn(require('../SitePopupsLayer'), 'default');
 
+const {nodeMap, siteToNodesMap, siteMap} = buildTopologyMaps(mockFig0());
+
 const commonProps: Props = {
-  context: mockNetworkContext(),
+  context: mockNetworkContext({nodeMap, siteToNodesMap, siteMap}),
   nearbyNodes: {},
   hiddenSites: new Set(),
 };
@@ -111,12 +129,101 @@ test('renders with wrong linkname for linkmap', () => {
   expect(sitePopupsLayerSpy).toHaveBeenCalled();
 });
 
+test('renders historical topology if it exists', () => {
+  render(
+    <Wrapper
+      mapValue={{
+        selectedLayers: {
+          buildings_3d: true,
+          site_name_popups: true,
+          area_polygons: true,
+        },
+      }}
+      optionsMapVals={{
+        historicalTopology: mockFig0(),
+      }}
+      networkContextValue={{nodeMap, siteToNodesMap, siteMap}}>
+      <MapLayers {...commonProps} />
+    </Wrapper>,
+  );
+  expect(Layer).toHaveBeenCalled();
+  expect(sitesLayerSpy).toHaveBeenCalled();
+  expect(linksLayerSpy).toHaveBeenCalled();
+});
+
+test('renders historical topology with correct colors based on data', () => {
+  const {container} = render(
+    <Wrapper
+      mapValue={{
+        selectedLayers: {
+          buildings_3d: true,
+          site_name_popups: true,
+          area_polygons: true,
+        },
+        overlays: {
+          link_lines: HISTORICAL_LINK_METRIC_OVERLAYS.topology,
+          site_icons: OVERLAY_NONE,
+          nodes: OVERLAY_NONE,
+        },
+        overlayData: {
+          link_lines: {
+            [FIG0.LINK1]: {
+              A: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 0},
+              Z: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 0},
+            },
+            [FIG0.LINK2]: {
+              A: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 1},
+              Z: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 1},
+            },
+            [FIG0.LINK3]: {
+              A: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 2},
+              Z: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 2},
+            },
+            [FIG0.LINK4]: {
+              A: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 3},
+              Z: {[HISTORICAL_LINK_METRIC_OVERLAYS.topology.id]: 3},
+            },
+          },
+          site_icons: {},
+          nodes: {},
+        },
+      }}
+      optionsMapVals={{
+        historicalTopology: mockFig0(),
+      }}
+      networkContextValue={{nodeMap, siteToNodesMap, siteMap}}>
+      <MapLayers {...commonProps} />
+    </Wrapper>,
+  );
+  const layer = getLayerById(container, 'link-normal');
+  const link1 = getLineByLinkName(layer, FIG0.LINK1)[0];
+  const link2 = getLineByLinkName(layer, FIG0.LINK2)[0];
+  const link3 = getLineByLinkName(layer, FIG0.LINK3)[0];
+  const link4 = getLineByLinkName(layer, FIG0.LINK4)[0];
+  expect(link1).not.toBeNull();
+  expect(link2).not.toBeNull();
+  expect(link3).not.toBeNull();
+  expect(link4).not.toBeNull();
+  const link1Props = getPropValue(link1, 'properties');
+  const link2Props = getPropValue(link2, 'properties');
+  const link3Props = getPropValue(link3, 'properties');
+  const link4Props = getPropValue(link4, 'properties');
+  expect(link1Props?.linkColor).toBe(TG_COLOR.GREEN);
+  expect(link2Props?.linkColor).toBe(TG_COLOR.ORANGE);
+  expect(link3Props?.linkColor).toBe(TG_COLOR.RED);
+  expect(link4Props?.linkColor).toBe(TG_COLOR.GREY);
+});
+
 function Wrapper({
   children,
   mapValue,
+  optionsMapVals,
+  networkContextValue,
 }: {
   children: React.Node,
   mapValue?: $Shape<MapContext>,
+  optionsMapVals?: $Shape<NetworkMapOptions>,
+  networkContextValue?: $Shape<NetworkContextType>,
 }) {
   const topology = mockTopology();
   topology.__test.addSite({
@@ -136,10 +243,16 @@ function Wrapper({
             },
           },
           networkConfig: mockNetworkConfig({topology}),
+          ...networkContextValue,
         }}>
-        <MapContextWrapper contextValue={mapValue}>
-          {children}
-        </MapContextWrapper>
+        <NmsOptionsContextWrapper
+          contextValue={{
+            networkMapOptions: mockNetworkMapOptions(optionsMapVals),
+          }}>
+          <MapContextWrapper contextValue={mapValue}>
+            {children}
+          </MapContextWrapper>
+        </NmsOptionsContextWrapper>
       </NetworkContextWrapper>
     </TestApp>
   );
