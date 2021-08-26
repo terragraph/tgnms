@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
+import asyncio
 import glob
 import io
 import os
+import pickle
+import signal
 import subprocess
 import sys
 import tarfile
-import asyncio
 import tempfile
-import pickle
 import urllib.request
 
 import click
@@ -41,6 +42,11 @@ def cmd(c, **kwargs):
     subprocess.run(c, shell=True, cwd=cwd, check=True, **kwargs)
 
 
+def read(cmd: str) -> str:
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True, check=True)
+    return p.stdout.decode("utf-8").strip()
+
+
 @click.group(invoke_without_command=True)
 @click.option("--version", is_flag=True, default=False, help="Show version")
 @click.pass_context
@@ -65,7 +71,10 @@ def get_scp_dest(dest):
 
 @cli.command()
 @click.option(
-    "-m", "--machines", multiple=True, help="Node IP",
+    "-m",
+    "--machines",
+    multiple=True,
+    help="Node IP",
 )
 @click.pass_context
 def prepare(ctx, machines):
@@ -100,6 +109,13 @@ projects = {
         "build_cmd": "docker build . -f k8s_controller_operator/Dockerfile --network=host --tag controller-operator:dev",
         "image_name": "controller-operator",
     },
+    "dev_proxy": {
+        "deployment": "dev_proxy",
+        "container": "dev_proxy",
+        "build_cmd": "docker build dev_proxy -f dev_proxy/Dockerfile --network=host --tag dev_proxy:dev",
+        "image_name": "dev_proxy",
+        "swarm_service": "dev_proxy",
+    },
 }
 
 msa_services = [
@@ -132,17 +148,7 @@ async def cmd_async(c, **kwargs):
     await proc.communicate()
 
 
-async def go_impl(
-    ctx,
-    cluster,
-    project,
-    deployment,
-    container,
-    build_cmd,
-    managers,
-    workers,
-    image_name,
-):
+async def prepare_image(cluster, builder, hosts, project):
     if project is not None:
         if project not in projects:
             raise RuntimeError(
@@ -159,58 +165,69 @@ async def go_impl(
             f"All of these must be specified: {build_cmd=} {image_name=} {deployment=} {container=}"
         )
 
-    # Select the build machine
-    kube_manager = managers[0]
-    docker_builder = "root@2620:10d:c0bf:1800:250:56ff:fe93:9a4a"
-
     cprint(
         col.BLUE,
-        f"Building on {docker_builder} and deploying to k8s on {kube_manager}",
+        f"Building on {builder} and deploying to {','.join(hosts)}",
     )
 
-    cprint(col.GREEN, f"Copying local files to {docker_builder}:~/nmsdev")
+    cprint(col.GREEN, f"Copying local files to {builder}:~/nmsdev")
     cmd("cd .. && cp ../.gitignore .")
-    cmd(f"ssh {docker_builder} 'rm -rf ~/nmsdev && mkdir ~/nmsdev'")
+    cmd(f"ssh {builder} 'rm -rf ~/nmsdev && mkdir ~/nmsdev'")
     cmd(
-        f'cd .. && rsync -aP --exclude "third-party" --inplace --filter=":- .gitignore" nms/ {get_scp_dest(docker_builder)}:~/nmsdev',
+        f'cd .. && rsync -aP --exclude "third-party" --inplace --filter=":- .gitignore" nms/ {get_scp_dest(builder)}:~/nmsdev',
         stdout=subprocess.PIPE,
     )
 
     # Run the remote build command
     cprint(col.GREEN, "Building Dockerfile")
-    cmd(f"ssh {docker_builder} '{build_cmd}'")
+    cmd(f"ssh {builder} '{build_cmd}'")
 
     # Tar up the image
     cprint(col.GREEN, "Distributing Dockerfile to workers")
-    cmd(f"ssh {docker_builder} docker save -o {image_name}.tar.gz {image_name}:dev")
+    cmd(f"ssh {builder} docker save -o {image_name}.tar.gz {image_name}:dev")
 
     # Copy tar to all nodes
-    # cmd(
-    #     f"scp {get_scp_dest(docker_builder)}:~/{image_name}.tar.gz /tmp/{image_name}.tar.gz"
-    # )
     cmd(
-        f"rsync -aP --inplace {get_scp_dest(docker_builder)}:~/{image_name}.tar.gz /tmp/{image_name}.tar.gz"
+        f"rsync -aP --inplace {get_scp_dest(builder)}:~/{image_name}.tar.gz /tmp/{image_name}.tar.gz"
     )
-
     coros = [
         cmd_async(f"rsync -aP --inplace /tmp/{image_name}.tar.gz {get_scp_dest(w)}:~")
-        # cmd_async(f"scp /tmp/{image_name}.tar.gz {get_scp_dest(w)}:~")
-        for w in managers + workers
+        for w in hosts
     ]
     await asyncio.gather(*coros)
-
     if cluster == "k8s":
-        # Add image, tag it with ':dev'
         coros = [
             cmd_async(
                 f"ssh {w} podman load --input {image_name}.tar.gz",
-                # stdout=asyncio.subprocess.PIPE,
-                # stderr=asyncio.subprocess.PIPE,
             )
-            for w in managers + workers
+            for w in hosts
         ]
-        await asyncio.gather(*coros)
+    elif cluster == "swarm":
+        coros = [
+            cmd_async(
+                f'ssh {w} "docker load < {image_name}.tar.gz"',
+            )
+            for w in hosts
+        ]
+    await asyncio.gather(*coros)
 
+
+async def go_impl(
+    ctx,
+    cluster,
+    project,
+    managers,
+    workers,
+):
+    builder = "root@2620:10d:c0bf:1800:250:56ff:fe93:9a4a"
+    kube_manager = managers[0]
+    hosts = managers + workers
+    await prepare_image(cluster, builder, hosts, project)
+
+    image_name = projects[project]["image_name"]
+    swarm_service = projects[project]["swarm_service"]
+
+    if cluster == "k8s":
         cprint(col.GREEN, "Setting Kubernetes to use development image")
         cmd(
             f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=garbage"
@@ -219,13 +236,6 @@ async def go_impl(
             f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=localhost/{image_name}:dev"
         )
     elif cluster == "swarm":
-        coros = [
-            cmd_async(
-                f'ssh {w} "docker load < {image_name}.tar.gz"',
-            )
-            for w in managers + workers
-        ]
-        await asyncio.gather(*coros)
         cprint(col.GREEN, "Setting Docker Swarm to use development image")
         # we can't automatically update the image for the nginx_proxy_monitor
         if project == "nginx_swarm":
@@ -239,13 +249,56 @@ async def go_impl(
             )
 
 
+async def devproxy_impl(ctx, cluster, host, rm, daemon):
+    if rm:
+        return remove_devproxy(cluster, host)
+    project_name = "dev_proxy"
+    builder = "root@2620:10d:c0bf:1800:250:56ff:fe93:9a4a"
+    await prepare_image(cluster, builder, [host], project_name)
+    if cluster == "k8s":
+        cprint(col.RED, "K8s support not implemented")
+        return ctx.exit(1)
+    elif cluster == "swarm":
+        cprint(
+            col.GREEN,
+            "Starting proxy",
+        )
+
+        id_format = "{{.ID}}"
+        proxy_id = read(
+            f"ssh {host} docker ps --filter 'name={project_name}' --format '{id_format}'"
+        )
+        if proxy_id:
+            print(f"Removing existing proxy container: {proxy_id}")
+            cmd(f"ssh {host} docker rm -f {project_name}")
+        cmd(
+            f"ssh {host} docker run -d --network terragraph_net -p 8080:80 -p 3389:3306 --name {project_name} {project_name}:dev"
+        )
+    if not daemon:
+        cprint(
+            col.GREEN,
+            "Press Ctrl+c to stop the proxy. Pass the --daemon flag to run the proxy in the background",
+        )
+        signal.signal(signal.SIGINT, lambda sig, frame: remove_devproxy(cluster, host))
+        signal.pause()
+    else:
+        cprint(
+            col.GREEN,
+            "Proxy running in the background. Pass the --rm flag to stop it",
+        )
+
+
+def remove_devproxy(cluster, host):
+    cprint(col.GREEN, "Stopping development proxy")
+    if cluster == "k8s":
+        pass
+    else:
+        cmd(f"ssh {host} docker rm -f dev_proxy")
+
+
 @cli.command()
 @click.option("--cluster", default="k8s", type=click.Choice(["k8s", "swarm"]))
 @click.option("--project")
-@click.option("--build_cmd")
-@click.option("--image_name")
-@click.option("--deployment")
-@click.option("--container")
 @click.option(
     "-m",
     "--manager",
@@ -272,7 +325,6 @@ def go(*args, **kwargs):
 @click.option("--project")
 @click.option("--build_cmd")
 @click.option("--image_name")
-@click.option("--deployment")
 @click.option("--container")
 @click.option(
     "-m",
@@ -292,9 +344,7 @@ def go(*args, **kwargs):
     help="Worker nodes for Kubernetes",
 )
 @click.pass_context
-def reset(
-    ctx, project, deployment, container, build_cmd, managers, workers, image_name
-):
+def reset(ctx, project, container, build_cmd, managers, workers, image_name):
     kube_manager = managers[0]
     if project is not None:
         if project not in projects:
@@ -316,6 +366,23 @@ def reset(
     cmd(
         f"ssh {kube_manager} kubectl set image deployment/{deployment} {container}=secure.cxl-terragraph.com:443/{image_name}:latest"
     )
+
+
+@cli.command(help="Deploy a development proxy to the cluster")
+@click.option("--cluster", default="k8s", type=click.Choice(["k8s", "swarm"]))
+@click.option("--host")
+@click.option(
+    "--rm", default=False, is_flag=True, help="Stop a proxy running in the background"
+)
+@click.option(
+    "--daemon",
+    default=False,
+    is_flag=True,
+    help="Run the proxy in the background. Pass the --rm flag to stop a proxy running in the background.",
+)
+@click.pass_context
+def devproxy(*args, **kwargs):
+    asyncio.run(devproxy_impl(*args, **kwargs))
 
 
 if __name__ == "__main__":
