@@ -255,6 +255,7 @@ async def devproxy_impl(ctx, cluster, host, rm, daemon):
     project_name = "dev_proxy"
     builder = "root@2620:10d:c0bf:1800:250:56ff:fe93:9a4a"
     await prepare_image(cluster, builder, [host], project_name)
+
     if cluster == "k8s":
         cprint(col.RED, "K8s support not implemented")
         return ctx.exit(1)
@@ -272,8 +273,10 @@ async def devproxy_impl(ctx, cluster, host, rm, daemon):
             print(f"Removing existing proxy container: {proxy_id}")
             cmd(f"ssh {host} docker rm -f {project_name}")
         cmd(
-            f"ssh {host} docker run -d --network terragraph_net -p 8080:80 -p 3389:3306 --name {project_name} {project_name}:dev"
+            f"ssh {host} docker run -d --network terragraph_net -p 3128:3128 -p 3389:3306 --name {project_name} {project_name}:dev"
         )
+        cprint(col.GREEN, "Configuring SSH tunnel")
+        cmd(f"ssh -M -S /tmp/devproxy-socket -fnNT -L 3128:localhost:3128 {host}")
     if not daemon:
         cprint(
             col.GREEN,
@@ -294,6 +297,8 @@ def remove_devproxy(cluster, host):
         pass
     else:
         cmd(f"ssh {host} docker rm -f dev_proxy")
+    cprint(col.GREEN, "Stopping SSH tunnel")
+    cmd(f"ssh -S /tmp/devproxy-socket -O exit {host}")
 
 
 @cli.command()
