@@ -18,14 +18,10 @@ import {makeStyles} from '@material-ui/styles';
 
 import type {UploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
-const useModalStyles = makeStyles(theme => ({
+const useModalStyles = makeStyles(() => ({
   root: {
     width: '40%',
     minWidth: 400,
-  },
-  button: {
-    margin: theme.spacing(1),
-    float: 'right',
   },
 }));
 
@@ -44,15 +40,14 @@ export default function UploadTopologyConfirmationModal(props: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const classes = useModalStyles();
 
-  const siteCount = uploadTopology?.sites.length || 0;
-  const nodeCount = uploadTopology?.nodes.length || 0;
-  const linkCount = uploadTopology?.links.length || 0;
+  const siteCount = uploadTopology?.sites?.length || 0;
+  const nodeCount = uploadTopology?.nodes?.length || 0;
+  const linkCount = uploadTopology?.links?.length || 0;
   const totalCount = siteCount + nodeCount + linkCount;
 
   return (
     <>
       <Button
-        className={classes.button}
         fullWidth={fullWidth}
         variant="contained"
         color="primary"
@@ -96,17 +91,17 @@ export default function UploadTopologyConfirmationModal(props: Props) {
         modalTitle={`The following items will be added to ${networkName}`}
         modalActions={
           <>
-            <Button
-              className={classes.button}
-              onClick={() => setIsOpen(false)}
-              variant="outlined">
+            <Button onClick={() => setIsOpen(false)} variant="outlined">
               Cancel
             </Button>
             <Button
               data-testid="confirm-add-topology-elements"
-              className={classes.button}
+              disabled={totalCount == 0}
               color="primary"
-              onClick={onSubmit}
+              onClick={() => {
+                setIsOpen(false);
+                onSubmit();
+              }}
               variant="contained">
               Add {totalCount} topology elements
             </Button>

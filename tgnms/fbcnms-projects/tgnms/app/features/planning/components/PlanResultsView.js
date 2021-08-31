@@ -22,6 +22,7 @@ import PlanOutputs from './PlanOutputs';
 import PlanStatus from './PlanStatus';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
+import UploadTopologyConfirmationModal from '@fbcnms/tg-nms/app/views/map/mappanels/UploadTopologyConfirmationModal';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {ANP_SITE_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
@@ -29,6 +30,10 @@ import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
+import {
+  handleTopologyChangeSnackbar,
+  uploadTopologyBuilderRequest,
+} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeLinkName} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {makeStyles} from '@material-ui/styles';
@@ -37,7 +42,10 @@ import {
   objectValuesTypesafe,
 } from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
+import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   ANPLink,
@@ -46,24 +54,16 @@ import type {
   ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {
+  EnabledStatusTypes,
+  MapOptionsState,
+} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
+import type {
   LinkFeature,
   MapFeatureTopology,
   NodeFeature,
   SiteFeature,
 } from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-
-const DEFAULT_MAP_OPTIONS_STATE = {
-  enabledStatusTypes: {
-    PROPOSED: true,
-    UNAVAILABLE: true,
-    CANDIDATE: false,
-  },
-};
-type EnabledStatusTypes = {|[$Keys<typeof ANP_STATUS_TYPE>]: boolean|};
-type MapOptionsState = {|
-  enabledStatusTypes: EnabledStatusTypes,
-|};
 
 const useStyles = makeStyles(theme => ({
   cancelButton: {
@@ -89,7 +89,15 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     state: downloadOutputState,
     setState: setDownloadOutputState,
   } = useTaskState();
-  const {planTopology, setPlanTopology} = useNetworkPlanningContext();
+  const {networkName} = useNetworkContext();
+  const snackbars = useSnackbars();
+  const {
+    planTopology,
+    setPlanTopology,
+    mapOptions,
+    setMapOptions,
+  } = useNetworkPlanningContext();
+  const manager = useNetworkPlanningManager();
   const {
     mapFeatures,
     setMapFeatures,
@@ -102,9 +110,7 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
   const [outputFiles, setOutputFiles] = React.useState<?Array<ANPFileHandle>>(
     null,
   );
-  const [mapOptions, setMapOptions] = React.useState<MapOptionsState>(
-    DEFAULT_MAP_OPTIONS_STATE,
-  );
+
   const [shouldZoomToBBox, setShouldZoomToBBox] = React.useState(false);
 
   // fetch the plan's input files from ANP
@@ -217,6 +223,18 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     }
   }, [cancelPlanTask, onExit, plan]);
 
+  const handleCommitPlan = React.useCallback(() => {
+    const onClose = status => {
+      if (status) {
+        handleTopologyChangeSnackbar(status, snackbars);
+      }
+    };
+    uploadTopologyBuilderRequest(
+      manager.selectedTopology,
+      networkName,
+      onClose,
+    );
+  }, [manager.selectedTopology, networkName, snackbars]);
   /**
    * only zoom to the plan's bbox once, after the plan has been
    * converted into map features.
@@ -282,6 +300,15 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
         <Button fullWidth onClick={onCopyPlan} variant="text">
           Copy Plan
         </Button>
+        {plan.state === NETWORK_PLAN_STATE.SUCCESS && (
+          <UploadTopologyConfirmationModal
+            fullWidth
+            disabled={false}
+            onSubmit={handleCommitPlan}
+            uploadTopology={manager.selectedTopology}
+            customText="Commit Plan to Network"
+          />
+        )}
         {(downloadOutputState === TASK_STATE.LOADING ||
           loadOutputsTaskState === TASK_STATE.LOADING ||
           loadInputsTaskState === TASK_STATE.LOADING) && (
@@ -385,11 +412,7 @@ function PlanMapOptions({
   );
 }
 
-function planToMapFeatures(
-  plan: ANPUploadTopologyType,
-  enabledStatusTypes: EnabledStatusTypes,
-): MapFeatureTopology {
-  const links = {};
+function getEnabledStatusKeys(enabledStatusTypes: EnabledStatusTypes) {
   /**
    * EnabledStatusTypes maps from status type key->boolean. Convert this to a
    * set of enabled status types
@@ -400,6 +423,16 @@ function planToMapFeatures(
       lookup.add(ANP_STATUS_TYPE[key]);
     }
   }
+  return lookup;
+}
+
+function planToMapFeatures(
+  plan: ANPUploadTopologyType,
+  enabledStatusTypes: EnabledStatusTypes,
+): MapFeatureTopology {
+  const links = {};
+  const lookup = getEnabledStatusKeys(enabledStatusTypes);
+
   if (plan.links != null) {
     for (const planLink of objectValuesTypesafe<ANPLink>(plan.links)) {
       if (!lookup.has(planLink.status_type)) {

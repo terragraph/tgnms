@@ -63,6 +63,37 @@
         "max_deployment_optimizer": 3,
         "closing_loops": 3
       }
+    },
+    "site3": {
+      "site_id": "site3",
+      "loc": {
+        "latitude": 33.549853,
+        "longitude": -123.779472,
+        "altitude": 23.367722
+      },
+      "polarity": 4,
+      "site_type": 2,
+      "site_capex": 1500.0,
+      "site_opex": 0.0,
+      "site_lifetime": 10,
+      "status_type": 2,
+      "site_hash": "9mb7ibebgp",
+      "breakdowns": 0,
+      "active_sectors": 0,
+      "times_on_mcs_route": 0,
+      "name": "site1",
+      "active_links": 0,
+      "location_type": 1,
+      "building_id": -1,
+      "optimizer_status": {
+        "pre_optimizer": 2,
+        "steiner_tree": 2,
+        "min_cost_optimizer": 2,
+        "adversarial": false,
+        "max_coverage_optimizer": 2,
+        "max_deployment_optimizer": 2,
+        "closing_loops": 2
+      }
     }
   },
   "sectors": {

@@ -27,13 +27,14 @@ import {
   convertType,
   objectValuesTypesafe,
 } from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
-import {kml as kmlToGeojson} from '@mapbox/togeojson';
-import {makeStyles} from '@material-ui/styles';
 import {
+  handleTopologyChangeSnackbar,
   parseANPJson,
   parseANPKml,
   uploadTopologyBuilderRequest,
 } from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
+import {kml as kmlToGeojson} from '@mapbox/togeojson';
+import {makeStyles} from '@material-ui/styles';
 import {
   sectorCountOptions,
   uploadFileTypes,
@@ -86,21 +87,6 @@ export default function UploadTopologyPanel({
     [setErrorText],
   );
 
-  const handleTopologyChangeSnackbar = useCallback(
-    (changeMessage: ?string) => {
-      if (changeMessage === 'success') {
-        snackbars.success(
-          'Topology successfully changed! Please wait a few moments for the topology to update.',
-        );
-      } else {
-        snackbars.error(
-          `Topology change failed${changeMessage ? ':' + changeMessage : ''} `,
-        );
-      }
-    },
-    [snackbars],
-  );
-
   const onClose = React.useCallback(
     status => {
       resetTopologyInput();
@@ -109,13 +95,13 @@ export default function UploadTopologyPanel({
       setSelectedTopologyPanel(null);
       setPanelState(PANELS.TOPOLOGY_UPLOAD, PANEL_STATE.HIDDEN);
       if (status) {
-        handleTopologyChangeSnackbar(status);
+        handleTopologyChangeSnackbar(status, snackbars);
       }
     },
     [
-      handleTopologyChangeSnackbar,
       setPanelState,
       setSelectedTopologyPanel,
+      snackbars,
       topologyFileTypeDefault,
     ],
   );
@@ -311,11 +297,13 @@ export default function UploadTopologyPanel({
               </Grid>
             </Grid>
             <Grid item>
-              <UploadTopologyConfirmationModal
-                disabled={uploadTopology ? false : true}
-                onSubmit={onSubmit}
-                uploadTopology={uploadTopology}
-              />
+              <div className={classes.button}>
+                <UploadTopologyConfirmationModal
+                  disabled={uploadTopology ? false : true}
+                  onSubmit={onSubmit}
+                  uploadTopology={uploadTopology}
+                />
+              </div>
               <Button
                 className={classes.button}
                 variant="outlined"

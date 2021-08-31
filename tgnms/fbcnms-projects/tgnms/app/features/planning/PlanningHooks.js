@@ -8,8 +8,10 @@ import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {PLANNING_FOLDER_PATH} from '@fbcnms/tg-nms/app/constants/paths';
+import {getEnabledStatusKeys} from './PlanningHelpers';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {matchPath, useLocation} from 'react-router-dom';
+import {parseANPJson} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 
 import type {
@@ -121,4 +123,30 @@ export function useFolderPlans({folderId}: {folderId: string}) {
     refresh,
     taskState: loadPlansTask,
   };
+}
+
+export function useNetworkPlanningManager() {
+  const _networkPlanningContext = useNetworkPlanningContext();
+
+  // Represents the topology that will be committed to the network.
+  // This is in TG JSON form.
+  const selectedTopology = React.useMemo(() => {
+    return parseANPJson(
+      _networkPlanningContext.planTopology,
+      getEnabledStatusKeys(
+        _networkPlanningContext.mapOptions.enabledStatusTypes,
+      ),
+    );
+  }, [
+    _networkPlanningContext.planTopology,
+    _networkPlanningContext.mapOptions.enabledStatusTypes,
+  ]);
+
+  const result = React.useMemo(
+    () => ({
+      selectedTopology: selectedTopology,
+    }),
+    [selectedTopology],
+  );
+  return result;
 }

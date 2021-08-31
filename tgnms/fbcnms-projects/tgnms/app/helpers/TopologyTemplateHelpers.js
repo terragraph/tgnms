@@ -93,6 +93,21 @@ export function templateTopologyBuilderRequest(input: ApiBuilerInput) {
     .catch(error => onClose(error.message));
 }
 
+export function handleTopologyChangeSnackbar(
+  changeMessage: ?string,
+  snackbars: any,
+) {
+  if (changeMessage === 'success') {
+    snackbars.success(
+      'Topology successfully changed! Please wait a few moments for the topology to update.',
+    );
+  } else {
+    snackbars.error(
+      `Topology change failed${changeMessage ? ':' + changeMessage : ''} `,
+    );
+  }
+}
+
 export function uploadTopologyBuilderRequest(
   data: UploadTopologyType,
   networkName: string,
@@ -103,13 +118,17 @@ export function uploadTopologyBuilderRequest(
     .catch(error => onClose(error.message));
 }
 
-export function parseANPJson(input: ANPUploadTopologyType) {
+export function parseANPJson(
+  input: ?ANPUploadTopologyType,
+  acceptableStatus: Set<number> = new Set<number>([
+    ANP_STATUS_TYPE.PROPOSED,
+    ANP_STATUS_TYPE.EXISTING,
+  ]),
+) {
+  if (!input) return {sites: [], nodes: [], links: []};
+
   const sites = objectValuesTypesafe<ANPSite>(input.sites)
-    .filter(
-      site =>
-        site.status_type === ANP_STATUS_TYPE.PROPOSED ||
-        site.status_type === ANP_STATUS_TYPE.EXISTING,
-    )
+    .filter(site => acceptableStatus.has(site.status_type))
     .map<SiteType>(site => ({
       name: site.site_id,
       location: site.loc,
@@ -121,8 +140,7 @@ export function parseANPJson(input: ANPUploadTopologyType) {
       // Use the primary sector as proxy for the node.
       sector.position_in_node === 0 &&
       sector.node_id !== -1 && // Ignore imaginary nodes.
-      (sector.status_type === ANP_STATUS_TYPE.PROPOSED ||
-        sector.status_type === ANP_STATUS_TYPE.EXISTING),
+      acceptableStatus.has(sector.status_type),
   );
   const sectorToNode = {};
   validSectors.forEach(sector => {
@@ -141,11 +159,7 @@ export function parseANPJson(input: ANPUploadTopologyType) {
   }));
 
   const links = objectValuesTypesafe<ANPLink>(input.links)
-    .filter(
-      link =>
-        link.status_type === ANP_STATUS_TYPE.PROPOSED ||
-        link.status_type === ANP_STATUS_TYPE.EXISTING,
-    )
+    .filter(link => acceptableStatus.has(link.status_type))
     .map<LinkTemplate>(link => ({
       a_node_name: sectorToNode[link.tx_sector_id],
       z_node_name: sectorToNode[link.rx_sector_id],
@@ -155,9 +169,11 @@ export function parseANPJson(input: ANPUploadTopologyType) {
 }
 
 export function parseANPKml(
-  input: Array<ANPSiteUploadKmlType | ANPLinkUploadKmlType>,
+  input: ?Array<ANPSiteUploadKmlType | ANPLinkUploadKmlType>,
   sectorCount: number,
 ) {
+  if (!input) return {sites: [], nodes: [], links: []};
+
   const {sites, links} = input.reduce(
     (
       result: {
