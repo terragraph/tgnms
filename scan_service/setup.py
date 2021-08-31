@@ -10,7 +10,7 @@ ptr_params = {
     "test_suite_timeout": 600,
     "required_coverage": {
         "scan_service/analysis/connectivity.py": 100,
-        "scan_service/utils/data_loader.py": 63,
+        "scan_service/utils/data_loader.py": 62,
         "scan_service/utils/hardware_config.py": 100,
         "scan_service/utils/stats.py": 100,
         "scan_service/utils/time.py": 100,
@@ -24,7 +24,7 @@ ptr_params = {
 
 setup(
     name="scan_service",
-    version="2021.07.27",
+    version="2021.08.31",
     python_requires=">=3.7",
     packages=find_packages(exclude=["tests"]),
     install_requires=[

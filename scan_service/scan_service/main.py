@@ -33,6 +33,7 @@ async def scan_results_handler(
     n_days: int,
     use_real_links: bool,
     min_connectivity_snr: int,
+    discard_on_tx_incomplete: bool,
 ) -> None:
     """Consume scan results, perform analysis, and write to database."""
     try:
@@ -63,7 +64,9 @@ async def scan_results_handler(
         logging.exception("Failed to write scan results to disk.")
 
     # Prepare to analyze scan results
-    im_data = await get_im_data(scan_result["data"], network_name, n_days)
+    im_data = await get_im_data(
+        scan_result["data"], network_name, n_days, discard_on_tx_incomplete
+    )
 
     # Analyze scan results and write all results to the database
     await write_results(
@@ -128,6 +131,7 @@ async def async_main(
     n_days: int,
     use_real_links: bool,
     min_connectivity_snr: int,
+    discard_on_tx_incomplete: bool,
     enable_alerts: bool,
 ) -> None:
     """Consume and store scan data, and perform analysis when scans are complete."""
@@ -152,6 +156,7 @@ async def async_main(
                     n_days,
                     use_real_links,
                     min_connectivity_snr,
+                    discard_on_tx_incomplete,
                 )
             )
         elif msg.topic == "events":
@@ -173,6 +178,7 @@ def main() -> None:
         n_days = config["n_days"]
         use_real_links = config["use_real_links"]
         min_connectivity_snr = config["min_connectivity_snr"]
+        discard_on_tx_incomplete = config["discard_on_tx_incomplete"]
         enable_alerts = config["enable_alerts"]
     except (json.JSONDecodeError, OSError, KeyError):
         logging.exception("Failed to parse configuration file.")
@@ -185,6 +191,7 @@ def main() -> None:
             n_days,
             use_real_links,
             min_connectivity_snr,
+            discard_on_tx_incomplete,
             enable_alerts,
         ),
         {APIServiceClient, KafkaConsumer, MySQLClient, PrometheusClient},

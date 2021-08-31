@@ -4,5 +4,6 @@
   "n_days": 30,
   "use_real_links": false,
   "min_connectivity_snr": 0,
+  "discard_on_tx_incomplete" : false,
   "enable_alerts": true
 }

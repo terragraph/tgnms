@@ -82,7 +82,9 @@ def aggregate_current_responses(
     return current_stats, to_db
 
 
-async def get_im_data(scan: Dict, network_name: str, n_days: int) -> Optional[Dict]:
+async def get_im_data(
+    scan: Dict, network_name: str, n_days: int, discard_on_tx_incomplete: bool
+) -> Optional[Dict]:
     """Aggregate IM scan data for a TX node."""
     tx_node = scan["txNode"]
     logging.info(
@@ -99,7 +101,8 @@ async def get_im_data(scan: Dict, network_name: str, n_days: int) -> Optional[Di
         logging.error(
             f"Scan is not COMPLETE for tx node {tx_node}, token {tx_res['token']}"
         )
-        return None
+        if discard_on_tx_incomplete:
+            return None
 
     # Aggregate rx responses over repeated measurements
     current_stats, to_db = aggregate_current_responses(scan["responses"], tx_node)
