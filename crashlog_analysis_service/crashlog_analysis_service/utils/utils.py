@@ -5,9 +5,14 @@ import asyncio
 import logging
 
 from elasticsearch import AsyncElasticsearch
+from sqlalchemy import insert
 from typing import Any, DefaultDict, Dict, List, Tuple
 
+from tglib.clients import MySQLClient
+
+from .crash_details import CrashDetails
 from .crash_key import CrashKey
+from ..models import CrashAnalysisResults
 
 
 def get_prometheus_label_from_key(key: CrashKey) -> Dict[str, str]:
@@ -49,3 +54,27 @@ async def get_crash_logs_from_elasticsearch(
             ).append(hit_source["log"])
 
     return crash_logs
+
+
+async def save_crash_details_to_db(crash_details: List[CrashDetails]) -> None:
+    """Add a new crashes to the DB."""
+    values = []
+    for crash in crash_details:
+        values.append(
+            {
+                "node_id": crash.node_id,
+                "crash_type": crash.crash_type,
+                "crash_time": crash.crash_time,
+                "application": crash.application,
+                "affected_function": crash.affected_function,
+                "affected_lines": "".join(crash.affected_lines),
+            }
+        )
+
+    if values:
+        async with MySQLClient().lease() as sa_conn:
+            insert_crash_query = insert(CrashAnalysisResults).values(values)
+
+            await sa_conn.execute(insert_crash_query)
+            await sa_conn.connection.commit()
+            logging.info(f"Added {len(values)} crash(es) to the database.")

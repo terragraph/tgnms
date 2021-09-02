@@ -4,13 +4,10 @@
 import asyncio
 import logging
 
-from collections import defaultdict
-from elasticsearch import AsyncElasticsearch, RequestsHttpConnection
-from sqlalchemy import func, insert, select
-from typing import Any, DefaultDict, Dict, List, Tuple
+from elasticsearch import AsyncElasticsearch
+from typing import Dict, List, Tuple
 
-from tglib.clients import MySQLClient
-from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric, consts
+from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric
 
 from .utils.crash_analysis_runner import analyze_log, group_crashes
 from .utils.crash_details import CrashDetails
@@ -18,12 +15,14 @@ from .utils.crash_key import CrashKey
 from .utils.utils import (
     get_crash_logs_from_elasticsearch,
     get_prometheus_label_from_key,
+    save_crash_details_to_db,
 )
 
 
 async def analyze_crash_logs(
     start_time_ms: int, es: AsyncElasticsearch, es_indices: List[str]
 ) -> None:
+
     # Step 1. Read and process logs into List[str]
     # Step 2. Run log through crash analyzer and create a CrashDetails for it
     # Step 3. Write the crash detail to SQL
@@ -41,6 +40,7 @@ async def analyze_crash_logs(
         crash_details.extend(analyze_log(log, log_file, node_name))
 
     # --- Step 3 ---
+    await save_crash_details_to_db(crash_details)
 
     # --- Step 4 ---
     metrics: List[PrometheusMetric] = []
