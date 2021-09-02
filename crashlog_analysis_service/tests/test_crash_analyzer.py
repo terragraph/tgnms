@@ -3,15 +3,14 @@
 
 import unittest
 import sys
+from typing import AnyStr, Dict, List, Optional, Tuple
 
-sys.path.append("..")
+sys.path.append("../")
 try:
     from crashlog_analysis_service.utils.crash_analyzer import CrashAnalyzer
     from crashlog_analysis_service.utils.crash_details import CrashDetails
 except BaseException:
     raise
-
-from typing import AnyStr, Dict, List, Optional, Tuple
 
 """
 Test class for CrashAnalyzer
@@ -72,7 +71,7 @@ class CrashAnalyzerTestCase(unittest.TestCase):
         test_cases: Dict[str, Optional[str]] = {
             "openr-stack.30500.Fri_Jun_11_16_31_50_UTC_2021": "16:31:50",
             "openr-stack.30500.Fri_Jun_11_16/31/50/UTC_2021": "16:31:50",
-            "openr-stack.30500.Fri_Jun_11_16_31_50_20_123_2021": None,
+            "openr-stack.30500.Fri_Jun_11_16_31_50_20_123_2021": "",
         }
         crashAnalyzer = CrashAnalyzer()
         for test_str in test_cases:
@@ -116,7 +115,7 @@ class CrashAnalyzerTestCase(unittest.TestCase):
             test_res = crashAnalyzer._extract_thread_stack_trace(
                 test_thread, self.stack_trace_lines
             )
-            self.assertEqual(len([] if test_res == None else test_res), exp_res)
+            self.assertEqual(len([] if test_res is None else test_res), exp_res)
 
     def test_parse_stack_trace_log(self):
         # filepath -> len(test_res.affected_lines)
@@ -133,7 +132,7 @@ class CrashAnalyzerTestCase(unittest.TestCase):
                 lines = crash_file.readlines()
             test_res = crashAnalyzer.parse_stack_trace_log(lines, "", "", None)
             self.assertEqual(
-                len([] if test_res == None else test_res.affected_lines), exp_res
+                len([] if test_res is None else test_res.affected_lines), exp_res
             )
 
     def test_find_error_msg(self):

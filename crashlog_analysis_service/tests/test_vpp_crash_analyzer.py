@@ -3,6 +3,7 @@
 
 import unittest
 import sys
+from typing import AnyStr, Dict, List, Optional, Tuple
 
 sys.path.append("../")
 try:
@@ -11,8 +12,6 @@ try:
     from crashlog_analysis_service.utils.crash_details import CrashDetails
 except BaseException:
     raise
-
-from typing import AnyStr, Dict, List, Optional, Tuple
 
 """
 Test class for VppCrashAnalyzer

@@ -3,19 +3,21 @@
 
 import unittest
 import sys
+from typing import AnyStr, Dict, List, Optional, Tuple
 
 sys.path.append("../")
 try:
-    import crashlog_analysis_service.utils.crash_analysis_runner as crash_analysis_runner
-
+    from crashlog_analysis_service.utils.crash_analysis_runner import (
+        extract_application_type,
+        analyze_log,
+        group_crashes,
+    )
     from crashlog_analysis_service.utils.crash_analyzer import CrashAnalyzer
     from crashlog_analysis_service.utils.vpp_crash_analyzer import VppCrashAnalyzer
     from crashlog_analysis_service.utils.crash_details import CrashDetails
     from crashlog_analysis_service.utils.crash_key import CrashKey
 except BaseException:
     raise
-
-from typing import AnyStr, Dict, List, Optional, Tuple
 
 """
 Test class for CrashAnalysisRunner
@@ -68,7 +70,7 @@ class CrashAnalysisRunnerTestCase(unittest.TestCase):
         }
         for test_file_path in test_cases:
             exp_application_type = test_cases[test_file_path]
-            test_res = crash_analysis_runner.extract_application_type(test_file_path)
+            test_res = extract_application_type(test_file_path)
             self.assertEqual(test_res, exp_application_type)
 
     def test_analyze_log(self):
@@ -82,9 +84,7 @@ class CrashAnalysisRunnerTestCase(unittest.TestCase):
         }
         for test_file in test_cases:
             exp_res = test_cases[test_file]
-            test_res = crash_analysis_runner.analyze_log(
-                self.file_path_to_lines[test_file], test_file
-            )
+            test_res = analyze_log(self.file_path_to_lines[test_file], test_file)
             # print(test_file)
             self.assertEqual(len(test_res), exp_res)
 
@@ -99,11 +99,7 @@ class CrashAnalysisRunnerTestCase(unittest.TestCase):
         ]
         crashes = []
         for test_file in test_files:
-            crashes.extend(
-                crash_analysis_runner.analyze_log(
-                    self.file_path_to_lines[test_file], test_file
-                )
-            )
+            crashes.extend(analyze_log(self.file_path_to_lines[test_file], test_file))
         # base crash key -> len(test_res_groups)
         test_cases: Dict[CrashKey, int] = {
             # Test group by application
@@ -111,17 +107,17 @@ class CrashAnalysisRunnerTestCase(unittest.TestCase):
             # Test group by crash type
             CrashKey(crash_type=""): 3,
             # Test group by time
-            CrashKey(crash_time=""): 3,
+            CrashKey(crash_time=""): 4,
             # Test group by node id
             CrashKey(node_id=""): 1,
             # Test group by application and crash type
             CrashKey(application="", crash_type=""): 3,
             # Test group by application, crash type, and time
-            CrashKey(application="", crash_type="", crash_time=""): 3,
+            CrashKey(application="", crash_type="", crash_time=""): 4,
         }
         for base_key in test_cases:
             exp_res = test_cases[base_key]
-            test_res_groups = crash_analysis_runner.group_crashes(crashes, base_key)
+            test_res_groups = group_crashes(crashes, base_key)
             self.assertEqual(len(test_res_groups), exp_res)
 
 
