@@ -1,0 +1,20 @@
+{
+  "num_consumers": 10,
+  "pipelines": {
+    "pipeline 1": {
+      "period": 60,
+      "jobs": [
+        {
+          "name": "analyze_crash_logs",
+          "enabled": true,
+          "es_indices": [
+            "fluentd-log-node-e2e_minion-*",
+            "fluentd-log-node-exabgp-*",
+            "fluentd-log-node-fib_vpp-*",
+            "fluentd-log-node-openr-*"
+          ]
+        }
+      ]
+    }
+  }
+}

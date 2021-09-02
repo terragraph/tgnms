@@ -127,6 +127,7 @@ msa_services = [
     "analytics",
     "topology-service",
     "queryservice",
+    "crashlog-analysis-service",
 ]
 
 for service in msa_services:
