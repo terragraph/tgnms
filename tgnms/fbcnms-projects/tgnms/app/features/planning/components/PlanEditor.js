@@ -15,6 +15,7 @@ import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
+import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {PlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 
@@ -31,6 +32,7 @@ export default function PlanEditor({
   onPlanUpdated: NetworkPlan => void,
   onPlanLaunched: number => void | Promise<void>,
 }) {
+  const snackbars = useSnackbars();
   // reconstruct the form-state from plan and input files
   const {planState, updatePlanState, setPlanFormState} = usePlanFormState();
   React.useEffect(() => {
@@ -45,47 +47,55 @@ export default function PlanEditor({
   }, [plan, folderId, setPlanFormState]);
   const startPlanTask = useTaskState();
   const savePlanTask = useTaskState();
+  const savePlan = React.useCallback(async () => {
+    const {id, name, dsm, boundary, siteList} = planState;
+    for (const f of [dsm, boundary, siteList]) {
+      if (f == null) {
+        continue;
+      }
+      if (f.id == null) {
+        const file = await networkPlanningAPIUtil.createInputFile({
+          ...f,
+        });
+        f.id = file.id;
+      }
+    }
+    const updatedPlan = await networkPlanningAPIUtil.updatePlan({
+      id,
+      name,
+      dsmFileId: dsm?.id,
+      boundaryFileId: boundary?.id,
+      sitesFileId: siteList?.id,
+    });
+    onPlanUpdated(updatedPlan);
+  }, [planState, onPlanUpdated]);
+
   const handleSavePlanClicked = React.useCallback(async () => {
     try {
       savePlanTask.loading();
-      const {id, name, dsm, boundary, siteList} = planState;
-      for (const f of [dsm, boundary, siteList]) {
-        if (f == null) {
-          continue;
-        }
-        if (f.id == null) {
-          const file = await networkPlanningAPIUtil.createInputFile({
-            ...f,
-          });
-          f.id = file.id;
-        }
-      }
-      const updatedPlan = await networkPlanningAPIUtil.updatePlan({
-        id,
-        name,
-        dsmFileId: dsm?.id,
-        boundaryFileId: boundary?.id,
-        sitesFileId: siteList?.id,
-      });
-      onPlanUpdated(updatedPlan);
+      await savePlan();
       savePlanTask.success();
+      snackbars.success('Successfully saved plan.');
     } catch (err) {
       savePlanTask.error();
       savePlanTask.setMessage(err.message);
+      snackbars.error(`An issue occured while saving the plan: ${err.message}`);
     }
-  }, [planState, onPlanUpdated, savePlanTask]);
+  }, [savePlan, savePlanTask, snackbars]);
   const handleStartPlanClicked = React.useCallback(async () => {
     try {
       startPlanTask.loading();
+      await savePlan();
       const _launchPlanResult = await networkPlanningAPIUtil.launchPlan({
         id: plan.id,
       });
       onPlanLaunched(plan.id);
+      startPlanTask.success();
     } catch (err) {
       startPlanTask.error();
       startPlanTask.setMessage(err.message);
     }
-  }, [onPlanLaunched, plan, startPlanTask]);
+  }, [onPlanLaunched, plan, startPlanTask, savePlan]);
 
   return (
     <Grid
@@ -130,34 +140,41 @@ export default function PlanEditor({
         initialValue={planState.boundary ?? null}
         onChange={f => updatePlanState({boundary: f})}
       />
-      <Grid item container justify="flex-end" spacing={1}>
-        <Grid item>
-          <Button onClick={onExit} variant="outlined" size="small">
-            Cancel
-          </Button>
+      {!startPlanTask.isLoading && (
+        <Grid item container justify="flex-end" spacing={1}>
+          <Grid item>
+            <Button onClick={onExit} variant="outlined" size="small">
+              Cancel
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              disabled={!validateSavePlan(planState) || savePlanTask.isLoading}
+              onClick={handleSavePlanClicked}
+              variant="contained"
+              color="primary"
+              size="small">
+              Save Plan{'   '}
+              {savePlanTask.isLoading && <CircularProgress size={10} />}
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              disabled={!validateSubmitPlan(planState)}
+              onClick={handleStartPlanClicked}
+              variant="contained"
+              color="primary"
+              size="small">
+              Start Plan
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Button
-            disabled={!validateSavePlan(planState)}
-            onClick={handleSavePlanClicked}
-            variant="contained"
-            color="primary"
-            size="small">
-            Save Plan {savePlanTask.isLoading && <CircularProgress size={10} />}
-          </Button>
+      )}
+      {startPlanTask.isLoading && (
+        <Grid container justify="center">
+          <CircularProgress size={20} />
         </Grid>
-        <Grid item>
-          <Button
-            disabled={!validateSubmitPlan(planState)}
-            onClick={handleStartPlanClicked}
-            variant="contained"
-            color="primary"
-            size="small">
-            Start Plan{' '}
-            {startPlanTask.isLoading && <CircularProgress size={10} />}
-          </Button>
-        </Grid>
-      </Grid>
+      )}
     </Grid>
   );
 }

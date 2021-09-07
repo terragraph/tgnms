@@ -132,6 +132,71 @@ test('Uploading new files adds them to the form state', async () => {
     boundaryFileId: 3,
   });
 });
+
+/**
+ * The Start Plan procedure reads the plan form from DB; thus we need to ensure
+ * that the plan is saved before starting.
+ */
+test('launching a plan saves the form first', async () => {
+  const updatePlanMock = jest
+    .spyOn(apiUtilMock, 'updatePlan')
+    .mockImplementation(() => Promise.resolve());
+  const launchPlanMock = jest
+    .spyOn(apiUtilMock, 'launchPlan')
+    .mockImplementation(() => Promise.resolve());
+  let _fileidCounter = 1;
+  jest
+    .spyOn(apiUtilMock, 'createInputFile')
+    .mockImplementation(file => ({id: _fileidCounter++, ...file}));
+  jest
+    .spyOn(apiUtilMock, 'uploadInputFileData')
+    .mockImplementationOnce(() => Promise.resolve());
+  const renderResult = await renderAsync(
+    <TestApp>
+      <PlanEditor {...commonProps} />
+    </TestApp>,
+  );
+  const {getByLabelText, getByText} = renderResult;
+
+  // Upload files
+  await testUploadInputFile(renderResult, 'select-dsm-file', {
+    name: 'dsm.tiff',
+    size: 100000,
+  });
+  await testUploadInputFile(renderResult, 'select-sites-file', {
+    name: 'sites-file.csv',
+    size: 1000,
+  });
+  await testUploadInputFile(renderResult, 'select-boundary-file', {
+    name: 'boundary.kml',
+    size: 10000,
+  });
+
+  expect(
+    coerceClass(getByLabelText('Select DSM File'), HTMLInputElement).value,
+  ).toBe('1');
+  expect(
+    coerceClass(getByLabelText('Select Sites File'), HTMLInputElement).value,
+  ).toBe('2');
+  expect(
+    coerceClass(getByLabelText('Select Boundary File'), HTMLInputElement).value,
+  ).toBe('3');
+  expect(updatePlanMock).not.toHaveBeenCalled();
+
+  // Start the plan.
+  await act(async () => {
+    fireEvent.click(getByText(/Start Plan/i));
+  });
+  expect(updatePlanMock).toHaveBeenCalledWith({
+    id: 1,
+    name: 'test plan',
+    dsmFileId: 1,
+    sitesFileId: 2,
+    boundaryFileId: 3,
+  });
+  expect(launchPlanMock).toHaveBeenCalledWith({id: 1});
+});
+
 test('Selecting fbid files creates an input file if necessary', async () => {
   const updatePlanMock = jest
     .spyOn(apiUtilMock, 'updatePlan')
@@ -275,18 +340,6 @@ async function testSelectInputFile(
     within(modal).getByTestId(`${inputId}-partnerfile`),
   ).getByRole('textbox');
   selectAutocompleteItem(autocomplete, fileName);
-  // act(() => {
-  //   autocomplete.focus();
-  // });
-  // act(() => {
-  //   fireEvent.change(autocomplete, {target: {value: fileName}});
-  // });
-  // act(() => {
-  //   fireEvent.keyDown(autocomplete, {key: 'ArrowDown'});
-  // });
-  // act(() => {
-  //   fireEvent.keyDown(autocomplete, {key: 'Enter'});
-  // });
   await act(async () => {
     fireEvent.click(within(modal).getByText(/Confirm/i));
   });
