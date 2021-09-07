@@ -463,7 +463,9 @@ export default class PlanningService {
    * Query the ANP API for the plan's current state and update in the db
    */
   async syncANPPlan(id: number): Promise<NetworkPlanAttributes> {
-    const planRow = await network_plan.findByPk(id);
+    const planRow = await network_plan.findByPk(id, {
+      include: includeInputFiles(),
+    });
     if (planRow == null) {
       throw new Error('Plan not found');
     }

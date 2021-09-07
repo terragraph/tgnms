@@ -545,6 +545,39 @@ describe('GET plan/:id', () => {
       sitesFile: inputFileRowToInputFile(sites),
     });
   });
+  test('should return the plan and its input files when running', async () => {
+    const plan1Fbid = '12345';
+    getPlanMock.mockResolvedValueOnce({
+      id: plan1Fbid,
+      plan_status: PLAN_STATUS.SUCCEEDED,
+    });
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const [boundary, dsm, sites] = await createInputFiles();
+    const plan = await createTestPlan({
+      state: NETWORK_PLAN_STATE.RUNNING,
+      fbid: plan1Fbid,
+      folder_id: folder.id,
+      dsm_file_id: dsm.id,
+      boundary_file_id: boundary.id,
+      sites_file_id: sites.id,
+    });
+    const response = await request(setupApp())
+      .get(`/network_plan/plan/${plan.id}`)
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      id: plan.id,
+      name: plan.name,
+      folderId: folder.id,
+      dsmFile: inputFileRowToInputFile(dsm),
+      boundaryFile: inputFileRowToInputFile(boundary),
+      sitesFile: inputFileRowToInputFile(sites),
+      // Since state was RUNNING, we update with ANP
+      state: NETWORK_PLAN_STATE.SUCCESS,
+    });
+  });
   test('fetches plan state from the ANP api if the draft plan is in-progress', async () => {
     const plan1Fbid = '12345';
     const plan2Fbid = '12346';
