@@ -18,6 +18,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MapIcon from '@material-ui/icons/Map';
 import PlanErrors from './PlanErrors';
 import PlanInputs from './PlanInputs';
+import PlanKPIView from './PlanKPIView';
 import PlanOutputs from './PlanOutputs';
 import PlanStatus from './PlanStatus';
 import Switch from '@material-ui/core/Switch';
@@ -269,6 +270,9 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
         </Typography>
         <PlanStatus state={plan.state} />
       </Grid>
+      {plan.state === NETWORK_PLAN_STATE.SUCCESS && (
+        <PlanKPIView planId={plan.id} />
+      )}
       {plan.state === NETWORK_PLAN_STATE.ERROR && <PlanErrors plan={plan} />}
       <PlanMapOptions options={mapOptions} onChange={setMapOptions} />
       <Grid item>

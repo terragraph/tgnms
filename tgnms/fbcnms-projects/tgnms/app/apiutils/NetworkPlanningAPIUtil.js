@@ -10,6 +10,7 @@ import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/Facebook
 import type {
   ANPFileHandle,
   ANPFileHandleRequest,
+  ANPPlanMetrics,
   GraphQueryResponse,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
@@ -283,6 +284,18 @@ export async function getPlan({id}: {id: string}): Promise<NetworkPlan> {
     method: 'GET',
   });
   return response.data;
+}
+
+export async function getPlanMetrics({
+  id,
+}: {
+  id: string,
+}): Promise<$PropertyType<ANPPlanMetrics, 'metrics'>> {
+  const response = await axios<void, ANPPlanMetrics>({
+    url: `/network_plan/plan/${id}/metrics`,
+    method: 'GET',
+  });
+  return response.data.metrics;
 }
 
 export async function getPlanInputFiles({

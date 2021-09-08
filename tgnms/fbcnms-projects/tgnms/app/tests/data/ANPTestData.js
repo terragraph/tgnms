@@ -5,7 +5,11 @@
  * @flow
  */
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
-import type {ANPFileHandle, ANPPlan} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {
+  ANPFileHandle,
+  ANPPlan,
+  ANPPlanMetrics,
+} from '@fbcnms/tg-nms/shared/dto/ANP';
 
 export function mockANPPlan(overrides?: $Shape<ANPPlan>): $Shape<ANPPlan> {
   return {
@@ -27,4 +31,14 @@ export function mockANPFile(
     id: '1',
     ...(overrides ?? {}),
   };
+}
+
+export function mockANPPlanMetrics(): ANPPlanMetrics {
+  const fs = require('fs');
+  const path = require('path');
+  const json = fs.readFileSync(
+    path.resolve(path.join(__dirname, 'planning_data/ANPPlanMetrics.json')),
+    'utf8',
+  );
+  return JSON.parse(json);
 }

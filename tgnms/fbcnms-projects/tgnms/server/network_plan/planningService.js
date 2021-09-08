@@ -524,6 +524,21 @@ export default class PlanningService {
     return planRowToNetworkPlan(plan);
   }
 
+  async getNetworkPlanMetrics({id}: {id: number}) {
+    const planRow = await network_plan.findByPk(id);
+    if (planRow == null) {
+      throw new Error('Plan not found');
+    }
+    if (planRow.fbid == null) {
+      throw new Error('Plan not launched');
+    }
+    if (planRow.state != NETWORK_PLAN_STATE.SUCCESS) {
+      throw new Error('Plan not completed');
+    }
+    const metrics = await this.anpApi.getPlanMetrics(planRow.fbid);
+    return metrics;
+  }
+
   async createInputFile(req: InputFile): Promise<InputFile> {
     const inputFile: $Shape<NetworkPlanFileAttributes> = {
       source: req.source,

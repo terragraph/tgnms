@@ -195,6 +195,19 @@ describe('Commit Plan to Network', () => {
   });
 });
 
+test('Shows plan kpi view if plan is complete', async () => {
+  const {getByTestId} = await renderAsync(
+    <TestView plan={mockNetworkPlan({state: NETWORK_PLAN_STATE.SUCCESS})} />,
+  );
+  expect(getByTestId('plan-kpi-view')).toBeInTheDocument();
+});
+test('Doesnt show plan kpi view if plan is not complete', async () => {
+  const {queryByTestId} = await renderAsync(
+    <TestView plan={mockNetworkPlan({state: NETWORK_PLAN_STATE.RUNNING})} />,
+  );
+  expect(queryByTestId('plan-kpi-view')).not.toBeInTheDocument();
+});
+
 function TestView({plan}: {plan: NetworkPlan}) {
   return (
     <TestApp>

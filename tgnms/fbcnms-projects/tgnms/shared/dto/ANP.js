@@ -76,6 +76,20 @@ export type ANPPlan = {|
 export type ANPPlanError = {|
   error_message: string,
 |};
+export type ANPPlanMetrics = {|
+  metrics: Array<ANPMetricContainer>,
+|};
+export type ANPMetricContainer = {|
+  metric: ANPMetric,
+  value: ANPMetricValue,
+|};
+export type ANPMetric = {|
+  metric_type: string,
+  cut_type: string,
+  cut_value: string,
+  order: string,
+|};
+export type ANPMetricValue = {|value: number, missing_data: boolean|};
 
 export type CreateANPPlanRequest = {|
   folder_id: string,
@@ -135,4 +149,58 @@ export const FILE_ROLE = {
   TELEPORT_FILE: 'TELEPORT_FILE',
   DATA_INGESTION_PARAMS_JSON: 'DATA_INGESTION_PARAMS_JSON',
   URBAN_ASP_CANDIDATE_SITE_FILE: 'URBAN_ASP_CANDIDATE_SITE_FILE',
+};
+
+export const METRIC_TYPE = {
+  ACTIVE_DN_DN_LINKS: 'Active DN-DN Links',
+  ACTIVE_SECTORS: 'Active Sectors',
+  ADDITIONAL_TCO: 'Additional TCO',
+  AVAILABILITY: 'Availability',
+  AVERAGE_HOPS: 'Average Hops',
+  AVERAGE_LINK_CAPACITY_UTILIZATION: 'Average Link Capacity Utilization',
+  AVERAGE_ONE_WAY_LATENCY: 'Average One-Way Latency',
+  CN_NODES: 'CN Nodes',
+  CN_SITES: 'CN Sites',
+  CAPEX_PER_CN_CONNECTED: 'CapEx Per CN Connected',
+  CAPEX: 'CapEx',
+  DN_NODES: 'DN Nodes',
+  DN_SITES: 'DN Sites',
+  DN_DN_LINK_DISTANCE: 'DN-DN Link Distance',
+  DEMAND_LOCATIONS: 'Demand Locations',
+  MAXIMUM_HOPS: 'Maximum Hops',
+  MAXIMUM_LINK_CAPACITY_UTILIZATION: 'Maximum Link Capacity Utilization',
+  MAXIMUM_ONE_WAY_LATENCY: 'Maximum One-Way Latency',
+  MINIMUM_HOPS: 'Minimum Hops',
+  MINIMUM_LINK_CAPACITY_UTILIZATION: 'Minimum Link Capacity Utilization',
+  MINIMUM_ONE_WAY_LATENCY: 'Minimum One-Way Latency',
+  P2MP_LINKS: 'P2MP Links',
+  POP_SITES: 'POP Sites',
+  PERCENT_DEMAND_WITH_BANDWIDTH: 'Percent Demand with Bandwidth',
+  SINGLE_DN_SITE_FIALURE_DISRUPTION: 'Single DN Site Fialure Disruption',
+  SINGLE_LINK_FAILURE_DISRUPTION: 'Single Link Failure Disruption',
+  SINGLE_POP_SITE_FAILURE_DISRUPTION: 'Single POP Site Failure Disruption',
+  TCO: 'TCO',
+  TOTAL_BANDWIDTH_REQUIRED: 'Total Bandwidth Required',
+  MINIMUM_GUARANTEED_BANDWIDTH: 'Minimum Guaranteed Bandwidth',
+  TOTAL_LINKS: 'Total Links',
+  TOTAL_NETWORK_BANDWIDTH: 'Total Network Bandwidth',
+  TOTAL_NODES: 'Total Nodes',
+  TOTAL_SECTORS: 'Total Sectors',
+  TOTAL_SITES: 'Total Sites',
+  WIRED_LINKS: 'Wired Links',
+  WIRELESS_LINKS: 'Wireless Links',
+};
+
+export const CUT_TYPE = {
+  DEMAND_FEATURE: 'Demand Feature',
+  INCLUDE_EXISTING_NETWORK: 'Include Existing Network',
+  INCLUDE_OVERSUBSCRIPTION: 'Include Oversubscription',
+  MCS: 'MCS',
+  PERCENTAGE_OF_DEMAND_LOCATIONS: 'Percentage of Demand Locations',
+  ROUTING_TYPE: 'Routing Type',
+  SECTOR_TYPE: 'Sector Type',
+  STATISTICAL_MEASUREMENT: 'Statistical Measurement',
+  STATUS: 'Status',
+  TOPLINE: 'Topline',
+  YEAR: 'Year',
 };

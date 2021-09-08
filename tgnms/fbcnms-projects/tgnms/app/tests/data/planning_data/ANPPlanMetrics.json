@@ -1,0 +1,1541 @@
+{
+    "metrics": [
+        {
+            "metric": {
+                "metric_type": "Active DN-DN Links",
+                "cut_type": "Topline",
+                "cut_value": "Topline",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2904,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Active Sectors",
+                "cut_type": "Sector Type",
+                "cut_value": "CN Sectors",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1588,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Active Sectors",
+                "cut_type": "Sector Type",
+                "cut_value": "DN Sectors on DN Sites",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 3099,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Active Sectors",
+                "cut_type": "Sector Type",
+                "cut_value": "DN Sectors on POP Sites",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 22,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Active Sectors",
+                "cut_type": "Sector Type",
+                "cut_value": "P2MP Sectors",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2904,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "0",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2703188,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "1",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "10",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2703188,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "11",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "12",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "13",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "14",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "2",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "3",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "4",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "5",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "6",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "7",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "8",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Additional TCO",
+                "cut_type": "Year",
+                "cut_value": "9",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "0",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 98.6299,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "1",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 99.3974,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "10",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "100",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "25",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "5",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "50",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "75",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "90",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "95",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Availability",
+                "cut_type": "Percentage of Demand Locations",
+                "cut_value": "99",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average Hops",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 9.058564231738,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average Hops",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 8.4836272040302,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2.2759022829507,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "Optimized",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 5.4901898320316,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2.026051907551,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average One-Way Latency",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.024498110831234,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Average One-Way Latency",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.021908690176322,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CN Nodes",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1588,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CN Nodes",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1768,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CN Sites",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1588,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CN Sites",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1777,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CN Sites",
+                "cut_type": "Status",
+                "cut_value": "Connectable Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1654,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CapEx Per CN Connected",
+                "cut_type": "Topline",
+                "cut_value": "Topline",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1702.2594458438,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CapEx",
+                "cut_type": "Include Existing Network",
+                "cut_value": "With Existing Network",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2703188,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "CapEx",
+                "cut_type": "Include Existing Network",
+                "cut_value": "Without Existing Network",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2703188,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN Nodes",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1562,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN Nodes",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1791,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN Sites",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1551,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN Sites",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1778,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN-DN Link Distance",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Average",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 61.254862606963,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN-DN Link Distance",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Maximum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 179.28769465359,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "DN-DN Link Distance",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Minimum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 6.241152813724,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Demand Locations",
+                "cut_type": "Demand Feature",
+                "cut_value": "Connected to a POP",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Demand Locations",
+                "cut_type": "Demand Feature",
+                "cut_value": "Disconnected",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 180,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Demand Locations",
+                "cut_type": "Demand Feature",
+                "cut_value": "Multiple Edge Disjoint Path from any POP",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1510,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Demand Locations",
+                "cut_type": "Demand Feature",
+                "cut_value": "Total",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1768,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum Hops",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 29,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum Hops",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 28,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 98.884298113474,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "Optimized",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 100,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 99.810716268368,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum One-Way Latency",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.072,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Maximum One-Way Latency",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.073,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Guaranteed Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.005048551036528,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Guaranteed Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "Optimized",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.024697910962679,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Guaranteed Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.0034071071693722,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Hops",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Hops",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "Optimized",
+                "order": "NONE"
+            },
+            "value": {
+                "value": -2.2204460492503e-15,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum Link Capacity Utilization",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum One-Way Latency",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.003,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Minimum One-Way Latency",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.002,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "P2MP Links",
+                "cut_type": "Topline",
+                "cut_value": "Topline",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 4473,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "POP Sites",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 11,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "POP Sites",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 13,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Percent Demand with Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 89.819004524887,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Percent Demand with Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "Optimized",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 89.819004524887,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Percent Demand with Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 87.443438914027,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single DN Site Fialure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Average",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.1779497098646,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single DN Site Fialure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Maximum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 26,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single DN Site Fialure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Minimum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single Link Failure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Average",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0.034072471606274,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single Link Failure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Maximum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 26,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single Link Failure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Minimum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single POP Site Failure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Average",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single POP Site Failure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Maximum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Single POP Site Failure Disruption",
+                "cut_type": "Statistical Measurement",
+                "cut_value": "Minimum",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "0",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2703188,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "1",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "10",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2703188,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "11",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "12",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "13",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "14",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "2",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "3",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "4",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "5",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "6",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "7",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "8",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "TCO",
+                "cut_type": "Year",
+                "cut_value": "9",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 0,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Bandwidth Required",
+                "cut_type": "Include Oversubscription",
+                "cut_value": "With Oversubscription",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 44.199999999999,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Bandwidth Required",
+                "cut_type": "Include Oversubscription",
+                "cut_value": "Without Oversubscription",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 44.199999999999,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "10",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 143,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "11",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 186,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "12",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 2361,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "4",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "5",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "6",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 6,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "7",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 9,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "8",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 93,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Links",
+                "cut_type": "MCS",
+                "cut_value": "9",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 98,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Network Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "MCS-Based",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 39.342006065479,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Network Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "Optimized",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 39.220282608734,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Network Bandwidth",
+                "cut_type": "Routing Type",
+                "cut_value": "Shortest Path",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 39.329330135256,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Nodes",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 3150,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Nodes",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 3559,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Sectors",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 4709,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Sectors",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 5336,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Sites",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 3150,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Total Sites",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 3568,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Wired Links",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1551,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Wired Links",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 1778,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Wireless Links",
+                "cut_type": "Status",
+                "cut_value": "Active",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 4492,
+                "missing_data": false
+            }
+        },
+        {
+            "metric": {
+                "metric_type": "Wireless Links",
+                "cut_type": "Status",
+                "cut_value": "Candidate",
+                "order": "NONE"
+            },
+            "value": {
+                "value": 65928,
+                "missing_data": false
+            }
+        }
+    ],
+    "id": "1813512478854171"
+}

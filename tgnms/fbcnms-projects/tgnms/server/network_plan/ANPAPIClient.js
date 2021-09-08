@@ -16,6 +16,7 @@ import type {
   ANPFileHandle,
   ANPFolder,
   ANPPlan,
+  ANPPlanMetrics,
   CreateANPPlanRequest,
   GraphQueryResponse,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
@@ -97,7 +98,7 @@ export default class ANPAPIClient {
     const result = await this.makeRequest<GraphQueryResponse<ANPPlan>>({
       id: folder_id,
       edge: 'plans',
-      query: {fields: 'id,plan_name,plan_status'},
+      query: {fields: 'id,plan_name,plan_status,expected_completion_time'},
       method: 'GET',
     });
     /**
@@ -110,7 +111,7 @@ export default class ANPAPIClient {
   getPlan = async (id: string) => {
     const result = await this.makeRequest<ANPPlan>({
       id,
-      query: {fields: 'plan_name,plan_status'},
+      query: {fields: 'plan_name,plan_status,expected_completion_time'},
       method: 'GET',
     });
     return result;
@@ -141,6 +142,14 @@ export default class ANPAPIClient {
       method: 'GET',
     });
     return result.data;
+  };
+  getPlanMetrics = async (id: string) => {
+    const result = this.makeRequest<ANPPlanMetrics>({
+      id,
+      query: {fields: 'metrics'},
+      method: 'GET',
+    });
+    return result;
   };
   downloadFile = async ({
     id,

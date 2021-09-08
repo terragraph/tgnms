@@ -83,6 +83,13 @@ router.get('/plan/:id', (req, res) => {
     .catch(createErrorHandler(res));
 });
 
+router.get('/plan/:id/metrics', (req, res) => {
+  return planningService
+    .getNetworkPlanMetrics({id: req.params.id})
+    .then(result => res.json(result))
+    .catch(createErrorHandler(res));
+});
+
 router.delete('/plan/:id', (req, res) => {
   return planningService
     .deleteNetworkPlan({id: parseInt(req.params.id)})
