@@ -1,6 +1,9 @@
 FROM openresty/openresty:alpine
 
-RUN apk add ca-certificates certbot certbot-nginx
+RUN apk add ca-certificates certbot certbot-nginx iptables ip6tables
+
+COPY init-iptables.sh ${HTTPD_PREFIX}/bin
+RUN chmod 755 ${HTTPD_PREFIX}/bin/init-iptables.sh
 
 COPY init-cert.sh ${HTTPD_PREFIX}/bin
 RUN chmod 755 ${HTTPD_PREFIX}/bin/init-cert.sh

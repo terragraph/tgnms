@@ -116,6 +116,12 @@ projects = {
         "image_name": "dev_proxy",
         "swarm_service": "dev_proxy",
     },
+    "nms_nginx": {
+        "deployment": "nms_nginx",
+        "container": "nms_nginx",
+        "build_cmd": "docker build nginx -f nginx/Dockerfile --network=host --tag nms_nginx:dev",
+        "image_name": "nms_nginx",
+    },
 }
 
 msa_services = [
