@@ -235,11 +235,9 @@ class NetworkUI extends React.Component<Props, State> {
             status: NETWORK_UI_STATUS.CONTROLLER_OFFLINE,
           });
         }
-        if (this.state.status == NETWORK_UI_STATUS.OK) {
-          this.setState({
-            status: NETWORK_UI_STATUS.OK,
-          });
-        }
+        this.setState({
+          status: NETWORK_UI_STATUS.OK,
+        });
         this.processNetworkConfig(topology, networkName);
       })
       .catch(error => {
@@ -540,10 +538,10 @@ class NetworkUI extends React.Component<Props, State> {
       let errorText = 'Error... Attempting to reconnect.';
       switch (this.state.status) {
         case NETWORK_UI_STATUS.NETWORKING_ERROR:
-          errorText = 'NMS Backend offline. Attempting to reconnect.';
+          errorText = 'NMS backend offline. Attempting to reconnect.';
           break;
         case NETWORK_UI_STATUS.CONTROLLER_OFFLINE:
-          errorText = `The Controller for this network is offline. Attempting to reconnect.`;
+          errorText = `The controller for this network is offline. Attempting to reconnect.`;
           break;
       }
       return <LoadingBox text={errorText} data-testid="loading-error" />;

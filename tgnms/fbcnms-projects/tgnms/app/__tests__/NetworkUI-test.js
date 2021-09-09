@@ -41,6 +41,19 @@ test('renders tables page when topology exists', async () => {
   expect(getByTestId('network-tables-tabs')).toBeInTheDocument();
 });
 
+test('if nodejs backend is down, then comes back up - shows UI', async () => {
+  const getMock = jest.spyOn(topologyAPIUtilMock, 'getTopology');
+  getMock.mockRejectedValueOnce(new Error('Network Error'));
+  getMock.mockResolvedValueOnce(mockNetworkConfig());
+  const {getByTestId, getByText, rerender} = await renderAsync(
+    <NetworkUITest />,
+  );
+  expect(getByTestId('loading-error')).toBeInTheDocument();
+  expect(getByText(/NMS Backend offline/i)).toBeInTheDocument();
+  await rerender(<NetworkUITest key="1" />);
+  expect(getByTestId('network-tables-tabs')).toBeInTheDocument();
+});
+
 test(
   'if nodejs backend is down, renders' + ' "nms backend offline" error message',
   async () => {
