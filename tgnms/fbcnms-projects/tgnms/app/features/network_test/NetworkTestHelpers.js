@@ -6,6 +6,7 @@
  */
 
 import * as testApi from '@fbcnms/tg-nms/app/apiutils/NetworkTestAPIUtil';
+import swal from 'sweetalert2';
 import {
   EXECUTION_DEFS,
   NETWORK_TEST_TYPES,
@@ -91,7 +92,7 @@ export function isTestRunning(status: $Keys<typeof TEST_EXECUTION_STATUS>) {
   );
 }
 
-export function startPartialTest({
+export async function startPartialTest({
   networkName,
   allowlist,
   testType,
@@ -102,30 +103,43 @@ export function startPartialTest({
   testType: $Keys<typeof NETWORK_TEST_TYPES>,
   history: RouterHistory,
 }) {
-  testApi
-    .startPartialExecution({
+  try {
+    const response = await testApi.startPartialExecution({
       networkName,
       allowlist,
       testType,
-    })
-    .then(response => {
-      if (!response) {
-        throw new Error(response.data.msg);
-      }
-      const id = response.data.execution_id;
-      const url = new URL(
-        createTestMapLink({
-          executionId: id,
-          networkName,
-        }),
-        window.location.origin,
-      );
-      url.search = location.search;
-      if (id) {
-        url.searchParams.set('test', id);
-        url.searchParams.set('mapMode', MAPMODE.NETWORK_TEST);
-      }
-      // can't use an absolute url in react-router
-      history.push(`${url.pathname}${url.search}`);
     });
+    if (!response) {
+      throw new Error(response.data.msg);
+    }
+    const id = response.data.execution_id;
+    const url = new URL(
+      createTestMapLink({
+        executionId: id,
+        networkName,
+      }),
+      window.location.origin,
+    );
+    url.search = location.search;
+    if (id) {
+      url.searchParams.set('test', id);
+      url.searchParams.set('mapMode', MAPMODE.NETWORK_TEST);
+    }
+    // can't use an absolute url in react-router
+    history.push(`${url.pathname}${url.search}`);
+  } catch (err) {
+    if (err.response && err.response.status === 409) {
+      swal({
+        title: 'Error',
+        html: `Could not start network test. Too many tests running.`,
+        type: 'error',
+      });
+    } else {
+      swal({
+        title: 'Error',
+        html: `Could not start network test.`,
+        type: 'error',
+      });
+    }
+  }
 }
