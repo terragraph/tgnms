@@ -39,7 +39,7 @@ def get_commit_info() -> Dict[str, str]:
 
 def build(args: argparse.Namespace) -> None:
     command = ["docker", "build", "-f", f"{args.dir}/Dockerfile"]
-    if args.branch == "origin/master":
+    if re.search(r"origin/(main|master)", args.branch):
         if args.stage:
             command += ["--target", args.stage]
             release = "dev"

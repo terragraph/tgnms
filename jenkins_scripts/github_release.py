@@ -114,7 +114,7 @@ def release(ctx, tag, asset, name, draft, force):
                 "name": tag,
                 "tag_name": tag,
                 "draft": draft,
-                # Mark master-branch releases as prerelease and lts as main releases
+                # Mark main-branch releases as prerelease and lts as main releases
                 "prerelease": False if "lts" in tag else True,
                 "body": "NMS installer",
             },
@@ -185,7 +185,7 @@ def read(cmd: str) -> str:
 
 
 def get_release(branch):
-    if branch == "origin/master":
+    if re.search(r"origin/(main|master)", branch):
         release = "latest"
     elif m := re.search(r"origin/releases/lts-nms-(\d{2}\.\d{1,2})", branch):
         release = m.group(1)
