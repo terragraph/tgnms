@@ -21,6 +21,7 @@
     "start:remoteoverlaytest": "nodemon -w scripts/remoteOverlayTest/ scripts/remoteOverlayTest/testserver --exec 'node -r @fbcnms/babel-register'"
   },
   "dependencies": {
+    "cron-parser": "^2.16.3",
     "@date-io/moment": "1.x",
     "@fbcnms/alarms": "0.2.3",
     "@fbcnms/auth": "^0.1.0",
