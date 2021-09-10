@@ -22,8 +22,6 @@ import type {
   PlanFolder,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
-// prevents getContext errors from jsdom
-jest.mock('jspdf', () => ({}));
 
 const folders: Array<PlanFolder> = [
   {

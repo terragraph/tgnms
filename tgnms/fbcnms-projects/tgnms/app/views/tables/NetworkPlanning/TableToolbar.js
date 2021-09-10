@@ -6,8 +6,7 @@
  */
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import {MTableAction} from 'material-table';
-import {MTableToolbar} from 'material-table';
+import {MTableAction, MTableToolbar} from '@material-table/core';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
