@@ -13,6 +13,7 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {MapOptionsState} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
+import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export type LngLat = [number, number];
@@ -39,6 +40,8 @@ export type NetworkPlanningContext = {|
   setMapOptions: (
     (MapOptionsState => MapOptionsState) | MapOptionsState,
   ) => void,
+  plan: ?NetworkPlan,
+  setPlan: NetworkPlan => void,
 |};
 
 export const PLAN_ID_NEW = '';
@@ -53,6 +56,8 @@ const defaultValue: NetworkPlanningContext = {
   setFolders: empty,
   mapOptions: DEFAULT_MAP_OPTIONS_STATE,
   setMapOptions: empty,
+  plan: null,
+  setPlan: empty,
 };
 
 const context = React.createContext<NetworkPlanningContext>(defaultValue);
@@ -67,6 +72,7 @@ export type ProviderProps = {|
   planTopology?: ?ANPUploadTopologyType,
   folders?: ?FolderMap,
   mapOptions?: MapOptionsState,
+  plan?: ?NetworkPlan,
 |};
 
 export function NetworkPlanningContextProvider({
@@ -74,6 +80,7 @@ export function NetworkPlanningContextProvider({
   mapOptions = DEFAULT_MAP_OPTIONS_STATE,
   planTopology = null,
   folders = null,
+  plan = null,
 }: ProviderProps) {
   const {history, location} = useRouter();
   const setSelectedPlanId = React.useCallback(
@@ -99,6 +106,7 @@ export function NetworkPlanningContextProvider({
   ] = React.useState<?ANPUploadTopologyType>(planTopology);
   const [_folders, setFolders] = React.useState<?FolderMap>(folders);
 
+  const [_plan, setPlan] = React.useState<?NetworkPlan>(plan);
   return (
     <context.Provider
       value={{
@@ -110,6 +118,8 @@ export function NetworkPlanningContextProvider({
         setFolders,
         mapOptions: _mapOptions,
         setMapOptions,
+        plan: _plan,
+        setPlan,
       }}>
       {children}
     </context.Provider>

@@ -22,11 +22,16 @@ import {
   Link,
   generatePath,
   matchPath,
+  useHistory,
   useLocation,
   useParams,
 } from 'react-router-dom';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
-import {PLANNING_BASE_PATH} from '@fbcnms/tg-nms/app/constants/paths';
+import {
+  PLANNING_BASE_PATH,
+  PLANNING_FOLDER_PATH,
+  PLANNING_PLAN_PATH,
+} from '@fbcnms/tg-nms/app/constants/paths';
 import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
@@ -39,6 +44,8 @@ import type {TaskState} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 
 export default function PlansTable({tableHeight}: NetworkTableProps) {
   const match = useParams();
+  const location = useLocation();
+  const history = useHistory();
   const folderId = match?.folderId ?? '';
   const createPlanModal = useModalState();
   const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
@@ -102,9 +109,18 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
 
   const handleRowClick = React.useCallback(
     (event, row: NetworkPlan) => {
+      const match = matchPath(location.pathname, {
+        path: PLANNING_FOLDER_PATH,
+      });
+      const newPath = generatePath(PLANNING_PLAN_PATH, {
+        view: match?.params?.view ?? '',
+        networkName: match?.params?.networkName ?? '',
+        folderId: match?.params?.folderId ?? '',
+      });
+      history.push(newPath);
       setSelectedPlanId(row.id);
     },
-    [setSelectedPlanId],
+    [setSelectedPlanId, location, history],
   );
   return (
     <>

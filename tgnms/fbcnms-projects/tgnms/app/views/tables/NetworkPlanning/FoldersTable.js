@@ -101,8 +101,8 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
       path: PLANNING_BASE_PATH,
     });
     const newPath = generatePath(PLANNING_FOLDER_PATH, {
-      view: match?.params.view ?? '',
-      networkName: match?.params.networkName ?? '',
+      view: match?.params?.view ?? '',
+      networkName: match?.params?.networkName ?? '',
       folderId: row.id,
     });
     history.push(newPath);

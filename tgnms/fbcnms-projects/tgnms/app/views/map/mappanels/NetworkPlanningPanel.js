@@ -29,7 +29,6 @@ import {useInterval} from '@fbcnms/ui/hooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 
-import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
 export default function NetworkPlanningPanel({
@@ -92,8 +91,12 @@ export default function NetworkPlanningPanel({
 
 function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   const folderId = usePlanningFolderId();
-  const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
-  const [plan, setPlan] = React.useState<?NetworkPlan>();
+  const {
+    plan,
+    setPlan,
+    selectedPlanId,
+    setSelectedPlanId,
+  } = useNetworkPlanningContext();
   // the plan is immutable once it is launched
   const isViewResultsMode =
     !isNullOrEmptyString(selectedPlanId) &&
@@ -124,7 +127,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
         }
       }
     })();
-  }, [selectedPlanId, setLoadPlanTaskState, refreshDate]);
+  }, [selectedPlanId, setLoadPlanTaskState, refreshDate, setPlan]);
   useInterval(() => {
     if (plan != null && isLaunchedState(plan?.state)) {
       refresh();
