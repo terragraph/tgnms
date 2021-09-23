@@ -28,7 +28,7 @@ const useModalStyles = makeStyles(() => ({
 type Props = {
   onSubmit: () => void,
   disabled: boolean,
-  uploadTopology: ?UploadTopologyType,
+  uploadTopology: ?(UploadTopologyType | (() => UploadTopologyType)),
   customText?: string,
   fullWidth?: boolean,
 };
@@ -39,10 +39,22 @@ export default function UploadTopologyConfirmationModal(props: Props) {
 
   const [isOpen, setIsOpen] = useState(false);
   const classes = useModalStyles();
+  const [topology, setTopology] = React.useState<?UploadTopologyType>({});
 
-  const siteCount = uploadTopology?.sites?.length || 0;
-  const nodeCount = uploadTopology?.nodes?.length || 0;
-  const linkCount = uploadTopology?.links?.length || 0;
+  // We only call uploadTopology() when the modal opens, for efficiency.
+  React.useEffect(() => {
+    if (isOpen) {
+      setTopology(
+        typeof uploadTopology === 'function'
+          ? uploadTopology()
+          : uploadTopology,
+      );
+    }
+  }, [uploadTopology, isOpen]);
+
+  const siteCount = topology?.sites?.length || 0;
+  const nodeCount = topology?.nodes?.length || 0;
+  const linkCount = topology?.links?.length || 0;
   const totalCount = siteCount + nodeCount + linkCount;
 
   return (

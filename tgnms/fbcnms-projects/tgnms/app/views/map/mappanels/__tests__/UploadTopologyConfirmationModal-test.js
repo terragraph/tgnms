@@ -12,7 +12,7 @@ import {
   TestApp,
   renderWithRouter,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent} from '@testing-library/react';
+import {act, fireEvent} from '@testing-library/react';
 
 const defaultProps = {
   onSubmit: jest.fn(),
@@ -62,4 +62,24 @@ test('onclick calls onSubmit', () => {
   ).toBeInTheDocument();
   fireEvent.click(getByText('Add 3 topology elements'));
   expect(defaultProps.onSubmit).toHaveBeenCalled();
+});
+
+test('opening modal triggers topology to be set', () => {
+  const mockUploadTopology = jest.fn();
+  const {getByText} = renderWithRouter(
+    <TestApp>
+      <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
+        <UploadTopologyConfirmationModal
+          {...defaultProps}
+          uploadTopology={mockUploadTopology}
+        />
+      </NetworkContextWrapper>
+    </TestApp>,
+  );
+  expect(getByText('Upload')).toBeInTheDocument();
+  expect(mockUploadTopology).not.toHaveBeenCalled();
+  act(() => {
+    fireEvent.click(getByText('Upload'));
+  });
+  expect(mockUploadTopology).toHaveBeenCalled();
 });
