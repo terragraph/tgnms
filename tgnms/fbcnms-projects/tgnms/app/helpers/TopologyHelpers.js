@@ -179,6 +179,37 @@ export function makeLinkName(a: string, z: string) {
 }
 
 /**
+ * TG nodes typically named <site>_<node>.
+ * Node names are sorted alphabetically.
+ */
+export function makeNodeName(site: string, node: number) {
+  return `${site}_${node}`;
+}
+
+/**
+ * Get the general link type for a link.
+ *
+ * Wireless backhaul and access links can just be grouped
+ * under 'wireless'.
+ */
+export function getLinkType(link_type: number) {
+  const WIRELESS = [
+    LinkTypeValueMap['WIRELESS'],
+    LinkTypeValueMap['WIRELESS_BACKHAUL'],
+    LinkTypeValueMap['WIRELESS_ACCESS'],
+  ];
+  const ETHERNET = [LinkTypeValueMap['ETHERNET']];
+
+  if (WIRELESS.includes(link_type)) {
+    return LinkTypeValueMap['WIRELESS'];
+  } else if (ETHERNET.includes(link_type)) {
+    return LinkTypeValueMap['ETHERNET'];
+  } else {
+    throw new Error('Link type does not exist.');
+  }
+}
+
+/**
  * Extracts the topologymaps object from an object which contains
  * the maps such as NetworkContext
  */

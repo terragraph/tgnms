@@ -8,6 +8,8 @@
 import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {pickBy} from 'lodash';
+import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 export type EnabledStatusTypes = {|[$Keys<typeof ANP_STATUS_TYPE>]: boolean|};
 export type MapOptionsState = {|
@@ -51,4 +53,22 @@ export function getEnabledStatusKeys(enabledStatusTypes: EnabledStatusTypes) {
     }
   }
   return lookup;
+}
+
+export function filterANPTopology(
+  topology: ?ANPUploadTopologyType,
+  options: MapOptionsState,
+): ANPUploadTopologyType {
+  if (topology == null) return {};
+  let {links, nodes, sites, sectors} = topology;
+
+  // Filter on the currently enabled status types.
+  const enabledStatusTypes = getEnabledStatusKeys(options.enabledStatusTypes);
+  links = pickBy(links, e => enabledStatusTypes.has(e.status_type));
+  nodes = pickBy(nodes, e => enabledStatusTypes.has(e.status_type));
+  sites = pickBy(sites, e => enabledStatusTypes.has(e.status_type));
+  sectors = pickBy(sectors, e => enabledStatusTypes.has(e.status_type));
+
+  // Add more filters here as needed.
+  return {links, nodes, sites, sectors};
 }

@@ -71,6 +71,30 @@ const mockANPJsonPlan = {
   sectors: {},
   links: {},
 };
+
+jest.mock(
+  '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager',
+  () => ({
+    useNetworkPlanningManager: () => ({
+      filteredTopology: mockANPJsonPlan,
+      getPendingTopology: () => ({
+        sites: [
+          {
+            name: 'site1',
+            location: {
+              altitude: 26.367722,
+              longitude: -121.779472,
+              latitude: 38.549853,
+            },
+          },
+        ],
+        links: [],
+        nodes: [],
+      }),
+    }),
+  }),
+);
+
 const commonProps = {
   onExit: jest.fn(),
   onCopyPlan: jest.fn(),

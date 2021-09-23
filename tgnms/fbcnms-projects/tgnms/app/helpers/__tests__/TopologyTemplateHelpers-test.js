@@ -69,4 +69,40 @@ describe('parseANPJson', () => {
     expect(response.links.length).toEqual(0);
     expect(response.nodes.length).toEqual(0);
   });
+
+  it('should ignore elements on the block list', () => {
+    const input = convertType<ANPUploadTopologyType>(
+      JSON.parse(mockUploadANPJson()),
+    );
+
+    // Sanity Check
+    let response = parseANPJson(input);
+    let sites = response.sites.map(site => site.name);
+    expect(sites.includes('site1')).toBeTruthy();
+    expect(sites.includes('site2')).toBeTruthy();
+    let nodes = response.nodes.map(node => node.name);
+    expect(nodes.includes('site1_2')).toBeTruthy();
+    expect(nodes.includes('site2_0')).toBeTruthy();
+    let links = response.links.map(link => link.name);
+    expect(links.includes('link-site1_2-site2_0')).toBeTruthy();
+
+    // Block certain sites.
+    response = parseANPJson(
+      input,
+      new Set<number>([ANP_STATUS_TYPE.PROPOSED, ANP_STATUS_TYPE.EXISTING]),
+      {
+        sites: new Set<string>(['site1']),
+        nodes: new Set<string>(['site1_2']),
+        links: new Set<string>(),
+      },
+    );
+    sites = response.sites.map(site => site.name);
+    expect(sites.includes('site1')).toBeFalsy(); // blocked
+    expect(sites.includes('site2')).toBeTruthy();
+    nodes = response.nodes.map(node => node.name);
+    expect(nodes.includes('site1_2')).toBeFalsy(); // blocked
+    expect(nodes.includes('site2_0')).toBeTruthy();
+    links = response.links.map(link => link.name);
+    expect(links.includes('link-site1_2-site2_0')).toBeTruthy();
+  });
 });

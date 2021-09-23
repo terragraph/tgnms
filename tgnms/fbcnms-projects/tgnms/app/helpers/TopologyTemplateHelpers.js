@@ -22,6 +22,7 @@ import {
   apiServiceRequest,
 } from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {convertType, objectValuesTypesafe} from './ObjectHelpers';
+import {getLinkType, makeLinkName, makeNodeName} from './TopologyHelpers';
 
 import type {
   ANPLink,
@@ -40,6 +41,8 @@ import type {
   NodeType,
   SiteType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+
+import {isEmpty} from 'lodash';
 
 function createLinkData(overrides?: LinkTemplate): $Shape<LinkType> {
   return {
@@ -118,23 +121,42 @@ export function uploadTopologyBuilderRequest(
     .catch(error => onClose(error.message));
 }
 
+/**
+ * Parses a ANP json file (a "reporting_graph" json file) into
+ * TG JSON format.
+ *
+ * `blocklist` - used to forcully exclude certain sites/links/nodes
+ * from the output. This is based on their derived name (see makeNodeName,
+ * makeLinkName and site_id field).
+ */
 export function parseANPJson(
   input: ?ANPUploadTopologyType,
   acceptableStatus: Set<number> = new Set<number>([
     ANP_STATUS_TYPE.PROPOSED,
     ANP_STATUS_TYPE.EXISTING,
   ]),
+  blocklist: {
+    sites: Set<string>,
+    links: Set<string>,
+    nodes: Set<string>,
+  } = {
+    sites: new Set<string>(),
+    links: new Set<string>(),
+    nodes: new Set<string>(),
+  },
 ) {
-  if (!input) return {sites: [], nodes: [], links: []};
+  if (!input || isEmpty(input)) return {sites: [], nodes: [], links: []};
 
-  const sites = objectValuesTypesafe<ANPSite>(input.sites)
+  // Create sites.
+  const sites: Array<SiteType> = objectValuesTypesafe<ANPSite>(input.sites)
     .filter(site => acceptableStatus.has(site.status_type))
     .map<SiteType>(site => ({
       name: site.site_id,
       location: site.loc,
-    }));
+    }))
+    .filter(site => !blocklist.sites.has(site.name));
 
-  const getNodeName = sector => `${sector.site_id}_${sector.node_id}`;
+  // Create nodes.
   const validSectors = objectValuesTypesafe<ANPSector>(input.sectors).filter(
     sector =>
       // Use the primary sector as proxy for the node.
@@ -144,35 +166,51 @@ export function parseANPJson(
   );
   const sectorToNode = {};
   validSectors.forEach(sector => {
-    sectorToNode[sector.sector_id] = getNodeName(sector);
+    sectorToNode[sector.sector_id] = makeNodeName(
+      sector.site_id,
+      sector.node_id,
+    );
   });
-  const nodes = validSectors.map<NodeTemplate>(sector => ({
-    name: getNodeName(sector),
-    node_type:
-      sector.node_type === ANP_NODE_TYPE.CN
-        ? ANP_NODE_TYPE.CN
-        : ANP_NODE_TYPE.DN,
-    pop_node: sector.node_type === ANP_NODE_TYPE.DN_POP_CONNECTION,
-    site_name: sector.site_id,
-    ant_azimuth: sector.ant_azimuth,
-    ant_elevation: 0, // In active development from ANP team (7/8/21)
-  }));
+  const nodes: Array<NodeTemplate> = validSectors
+    .map<NodeTemplate>(sector => ({
+      name: makeNodeName(sector.site_id, sector.node_id),
+      node_type:
+        sector.node_type === ANP_NODE_TYPE.CN
+          ? ANP_NODE_TYPE.CN
+          : ANP_NODE_TYPE.DN,
+      pop_node: sector.node_type === ANP_NODE_TYPE.DN_POP_CONNECTION,
+      site_name: sector.site_id,
+      ant_azimuth: sector.ant_azimuth,
+      ant_elevation: 0, // In active development from ANP team (7/8/21)
+    }))
+    .filter(node => !blocklist.nodes.has(node.name));
 
-  const links = objectValuesTypesafe<ANPLink>(input.links)
+  // Create links.
+  const links: Array<LinkTemplate> = objectValuesTypesafe<ANPLink>(input.links)
     .filter(link => acceptableStatus.has(link.status_type))
     .map<LinkTemplate>(link => ({
+      name: makeLinkName(
+        sectorToNode[link.tx_sector_id],
+        sectorToNode[link.rx_sector_id],
+      ),
+      link_type: getLinkType(link.link_type),
+      a_node_mac: '',
       a_node_name: sectorToNode[link.tx_sector_id],
+      z_node_mac: '',
       z_node_name: sectorToNode[link.rx_sector_id],
-    }));
+      is_alive: false,
+      linkup_attempts: 0,
+    }))
+    .filter(link => !blocklist.links.has(link.name));
 
-  return {sites, nodes, links};
+  return {links, nodes, sites};
 }
 
 export function parseANPKml(
   input: ?Array<ANPSiteUploadKmlType | ANPLinkUploadKmlType>,
   sectorCount: number,
 ) {
-  if (!input) return {sites: [], nodes: [], links: []};
+  if (!input || isEmpty(input)) return {sites: [], nodes: [], links: []};
 
   const {sites, links} = input.reduce(
     (

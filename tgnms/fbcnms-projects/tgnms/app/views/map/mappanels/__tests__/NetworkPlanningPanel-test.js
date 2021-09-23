@@ -104,6 +104,9 @@ describe('Copy Plan', () => {
       name: 'test plan V2',
       id: CREATED_PLAN_ID,
       state: NETWORK_PLAN_STATE.DRAFT,
+      boundaryFile: mockBoundary,
+      sitesFile: mockSites,
+      dsmFile: mockDsm,
     });
     apiMock.createPlan.mockResolvedValueOnce(mockNetworkPlan(createdPlan));
     // first getPlan should return the original plan
@@ -138,6 +141,7 @@ describe('Copy Plan', () => {
      * start plan should create the plan, launch it,
      * then navigate view the created plan
      */
+    expect(apiMock.createPlan).toHaveBeenCalledTimes(1);
     expect(apiMock.createPlan).toHaveBeenCalledWith({
       name: 'test plan V2',
       folderId: FOLDER_ID,
@@ -145,6 +149,7 @@ describe('Copy Plan', () => {
       sitesFileId: 6,
       dsmFileId: 7,
     });
+    expect(apiMock.getPlan).toHaveBeenCalledTimes(2);
 
     expect(history.location.search).toBe(`?planid=${CREATED_PLAN_ID}`);
     expect(getByTestId('plan-editor')).toBeInTheDocument();
@@ -169,6 +174,7 @@ describe('Launch Plan', () => {
       dsmFile: mockDsm,
     });
     apiMock.getPlan.mockResolvedValueOnce(plan);
+    apiMock.updatePlan.mockResolvedValueOnce(plan);
     apiMock.launchPlan.mockResolvedValueOnce({success: true});
     const history = testHistory(`${PLANNING_BASE_PATH}/folder/1`);
     history.replace({search: '?planid=1'});
@@ -181,11 +187,14 @@ describe('Launch Plan', () => {
       'test plan',
     );
     expect(apiMock.getPlan).toHaveBeenCalledTimes(1);
+    expect(apiMock.updatePlan).not.toHaveBeenCalled();
     expect(apiMock.launchPlan).not.toHaveBeenCalled();
     const startPlan = getByText('Start Plan');
     await act(async () => {
       fireEvent.click(startPlan);
     });
+    expect(apiMock.updatePlan).toHaveBeenCalledTimes(1);
+    expect(apiMock.launchPlan).toHaveBeenCalledTimes(1);
     expect(apiMock.launchPlan).toHaveBeenCalledWith({id: 1});
     expect(apiMock.getPlan).toHaveBeenCalledTimes(2);
     expect(getByTestId('plan-results')).toBeInTheDocument();

@@ -17,7 +17,7 @@ import {act, fireEvent} from '@testing-library/react';
 const defaultProps = {
   onSubmit: jest.fn(),
   disabled: false,
-  uploadTopology: {sites: [{}, {}, {}], nodes: [], links: []},
+  getUploadTopology: () => ({sites: [{}, {}, {}], nodes: [], links: []}),
 };
 
 test('renders without crashing', () => {
@@ -71,7 +71,7 @@ test('opening modal triggers topology to be set', () => {
       <NetworkContextWrapper contextValue={{networkName: 'testName'}}>
         <UploadTopologyConfirmationModal
           {...defaultProps}
-          uploadTopology={mockUploadTopology}
+          getUploadTopology={mockUploadTopology}
         />
       </NetworkContextWrapper>
     </TestApp>,

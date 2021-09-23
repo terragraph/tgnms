@@ -301,7 +301,7 @@ export default function UploadTopologyPanel({
                 <UploadTopologyConfirmationModal
                   disabled={uploadTopology ? false : true}
                   onSubmit={onSubmit}
-                  uploadTopology={uploadTopology}
+                  getUploadTopology={() => uploadTopology}
                 />
               </div>
               <Button

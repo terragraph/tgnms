@@ -40,9 +40,11 @@ export type TaskState = {|
   TASK_STATE: typeof TASK_STATE,
 |};
 
-export default function useTaskState(options?: {
+export type TaskStateOptions = {
   initialState?: TaskStateKey,
-}): TaskState {
+};
+
+export default function useTaskState(options?: TaskStateOptions): TaskState {
   const taskStateRef = React.useRef<TaskState>(({}: $Shape<TaskState>));
   const [state, setState] = React.useState<TaskStateKey>(
     options?.initialState ?? TASK_STATE.IDLE,

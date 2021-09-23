@@ -338,11 +338,7 @@ export default function ScanConnectivity(props: Props) {
               fullWidth={true}
               disabled={false}
               onSubmit={handleAddLink}
-              uploadTopology={{
-                sites: [],
-                nodes: [],
-                links: [{a_node_name: '', z_node_name: ''}],
-              }}
+              getUploadTopology={null}
               customText={`Add Link To ${networkName}`}
             />
             {possibleBackupLink && (
@@ -350,11 +346,7 @@ export default function ScanConnectivity(props: Props) {
                 fullWidth={true}
                 disabled={false}
                 onSubmit={handleAddBackupLink}
-                uploadTopology={{
-                  sites: [],
-                  nodes: [],
-                  links: [{a_node_name: '', z_node_name: ''}],
-                }}
+                getUploadTopology={null}
                 customText={`Add Link As CN backup link To ${networkName}`}
               />
             )}
@@ -421,7 +413,7 @@ export default function ScanConnectivity(props: Props) {
                 <UploadTopologyConfirmationModal
                   disabled={false}
                   onSubmit={handleAddAllBackupLinks}
-                  uploadTopology={potentialTopologyAddition}
+                  getUploadTopology={() => potentialTopologyAddition}
                   customText="Add All Possible Backup Links"
                 />
               </>

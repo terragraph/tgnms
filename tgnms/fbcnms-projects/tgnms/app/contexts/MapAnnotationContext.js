@@ -25,13 +25,11 @@ import type {
   MapAnnotationGroup,
   MapAnnotationGroupIdent,
 } from '@fbcnms/tg-nms/shared/dto/MapAnnotations';
+import type {SetState} from '@fbcnms/tg-nms/app/helpers/ContextHelpers';
 
 // for now, only use one annotation group
 export const ANNOTATION_DEFAULT_GROUP = 'default';
 
-type SetState<S> = {
-  ((S => S) | S): void,
-};
 type UpdateFeatureProperties = {
   (id: FeatureId, properties: $Shape<AnnotationProperties>): void,
 };

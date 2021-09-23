@@ -95,7 +95,7 @@ export type NodeTemplate = $Shape<NodeType> & {
   hardware?: HardwareType,
 };
 
-export type LinkTemplate = {
+export type LinkTemplate = $Shape<LinkType> & {
   a_node_name: string,
   z_node_name: string,
 };

@@ -103,6 +103,7 @@ export type MapFeatureTopology = {|
 |};
 
 export type LinkFeature = {|
+  link_id?: string, // Represents the original link ID
   name: string,
   a_node_name: string,
   z_node_name: string,
@@ -117,12 +118,14 @@ export const SITE_FEATURE_TYPE = {
 };
 
 export type SiteFeature = {|
+  site_id?: string, // Represents the original site ID
   name: string,
   location: LocationType,
   properties: Object,
   site_type: $Values<typeof SITE_FEATURE_TYPE>,
 |};
 export type NodeFeature = {|
+  node_id?: string, // Represents the original node ID
   name: string,
   site_name: string,
   // does this even make sense for multi-radio nodes?

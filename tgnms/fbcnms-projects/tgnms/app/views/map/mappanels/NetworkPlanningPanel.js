@@ -12,9 +12,9 @@ import Grid from '@material-ui/core/Grid';
 import PlanEditor from '@fbcnms/tg-nms/app/features/planning/components/PlanEditor';
 import PlanResultsView from '@fbcnms/tg-nms/app/features/planning/components/PlanResultsView';
 import Slide from '@material-ui/core/Slide';
-import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {
   PANELS,
   PANEL_STATE,
@@ -28,9 +28,20 @@ import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useInterval} from '@fbcnms/ui/hooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
-
+import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
+/**
+ * What happens when you click on a plan in the PlansTable:
+ *
+ * 1. Somewhere selectedPlanId has changed...
+ * 2. Load plan from API and save to context.
+ * 3. Load this new plan's input and output files from ANP.
+ * 4. Download the "reporting graph" file from ANP and save it to
+ *    the context as planTopology.
+ *     - this will be used to create the map, table, and our
+ *       pending topology. See `useNetworkPlanningManager` for more.
+ */
 export default function NetworkPlanningPanel({
   panelControl,
 }: {
@@ -94,50 +105,147 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   const {
     plan,
     setPlan,
+    loadPlanTask,
     selectedPlanId,
     setSelectedPlanId,
+    setRefreshDate,
+    setPlanTopology,
+    refreshDate,
+    _pendingTopology,
+    _setPendingTopology,
+
+    // I/O files
+    setInputFiles,
+    loadInputFilesTask,
+    outputFiles,
+    setOutputFiles,
+    loadOutputFilesTask,
+    downloadOutputTask,
   } = useNetworkPlanningContext();
-  // the plan is immutable once it is launched
-  const isViewResultsMode =
-    !isNullOrEmptyString(selectedPlanId) &&
-    plan?.state !== NETWORK_PLAN_STATE.DRAFT;
-  const {
-    state: loadPlanTaskState,
-    setState: setLoadPlanTaskState,
-  } = useTaskState();
-  const [refreshDate, setRefreshDate] = React.useState(new Date().getTime());
-  const refresh = React.useCallback(
-    () => setRefreshDate(new Date().getTime()),
-    [setRefreshDate],
-  );
-  // If a plan is selected, load it from the API and hydrate the form
+
+  // 1. Somewhere selectedPlanId has changed...
+  // 2. Load plan from API and save to context.
   React.useEffect(() => {
     (async () => {
       if (!isNullOrEmptyString(selectedPlanId)) {
         try {
-          setLoadPlanTaskState(TASK_STATE.LOADING);
+          loadPlanTask.loading();
           // load basic plan data and its input files
           const plan = await networkPlanningAPIUtil.getPlan({
             id: selectedPlanId,
           });
           setPlan(plan);
-          setLoadPlanTaskState(TASK_STATE.SUCCESS);
+          loadPlanTask.success();
         } catch (err) {
-          setLoadPlanTaskState(TASK_STATE.ERROR);
+          loadPlanTask.error();
         }
+      } else {
+        loadPlanTask.loading();
+        setPlan(null);
+        loadPlanTask.success();
       }
     })();
-  }, [selectedPlanId, setLoadPlanTaskState, refreshDate, setPlan]);
+  }, [setPlan, selectedPlanId, loadPlanTask, refreshDate]);
+
+  // 3. Load this new plan's input and output files from ANP.
+  React.useEffect(() => {
+    (async () => {
+      try {
+        if (!plan) {
+          setInputFiles(null);
+          return;
+        }
+        loadInputFilesTask.loading();
+        const _inputFiles = await networkPlanningAPIUtil.getPlanInputFiles({
+          id: plan.id.toString(),
+        });
+        setInputFiles(_inputFiles);
+        loadInputFilesTask.success();
+      } catch (err) {
+        loadInputFilesTask.error();
+      }
+    })();
+  }, [plan, loadInputFilesTask, setInputFiles]);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        if (!plan) {
+          setOutputFiles(null);
+          return;
+        }
+        loadOutputFilesTask.loading();
+        const _outputFiles = await networkPlanningAPIUtil.getPlanOutputFiles({
+          id: plan.id.toString(),
+        });
+        setOutputFiles(_outputFiles);
+        loadOutputFilesTask.success();
+      } catch (err) {
+        loadOutputFilesTask.error();
+      }
+    })();
+  }, [plan, loadOutputFilesTask, setOutputFiles]);
+
+  // 4. Download the "reporting graph" file from ANP and save it to the context.
+  React.useEffect(() => {
+    (async () => {
+      // Pick out the "reporting graph" file.
+      const _reportingGraph = outputFiles?.find(
+        f => f.file_name === OUTPUT_FILENAME.REPORTING_GRAPH_JSON,
+      );
+      try {
+        if (_reportingGraph) {
+          downloadOutputTask.loading();
+          // eslint-disable-next-line max-len
+          const fileData = await networkPlanningAPIUtil.downloadANPFile<ANPUploadTopologyType>(
+            {
+              id: _reportingGraph.id,
+            },
+          );
+
+          setPlanTopology(fileData);
+          downloadOutputTask.success();
+        } else {
+          setPlanTopology(null);
+        }
+      } catch (err) {
+        console.error(err.message);
+        downloadOutputTask.error();
+      }
+    })();
+  }, [outputFiles, downloadOutputTask, setPlanTopology]);
+
+  // the plan is immutable once it is launched
+  const isViewResultsMode = React.useMemo(
+    () =>
+      !isNullOrEmptyString(selectedPlanId) &&
+      plan?.state !== NETWORK_PLAN_STATE.DRAFT,
+    [selectedPlanId, plan],
+  );
+
+  const refresh = React.useCallback(
+    () => setRefreshDate(new Date().getTime()),
+    [setRefreshDate],
+  );
+
   useInterval(() => {
     if (plan != null && isLaunchedState(plan?.state)) {
       refresh();
     }
   }, 5000);
+
   const handlePlanLaunched = React.useCallback(
     (_planId: number) => {
       refresh();
     },
     [refresh],
+  );
+
+  const handlePlanUpdated = React.useCallback(
+    p => {
+      setSelectedPlanId(p.id);
+    },
+    [setSelectedPlanId],
   );
 
   const handleCopyPlan = React.useCallback(() => {
@@ -159,12 +267,11 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
         sitesFileId: planParams?.sitesFile?.id,
         boundaryFileId: planParams?.boundaryFile?.id,
       });
-      setPlan(newPlan);
       setSelectedPlanId(newPlan.id);
     })();
-  }, [setSelectedPlanId, setPlan, plan, folderId]);
+  }, [setSelectedPlanId, plan, folderId]);
 
-  if (loadPlanTaskState === TASK_STATE.LOADING && plan == null) {
+  if (loadPlanTask.isLoading && plan == null) {
     return (
       <Grid container justify="center">
         <CircularProgress size={25} />
@@ -189,9 +296,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
       plan={plan}
       onExit={onExit}
       onPlanLaunched={handlePlanLaunched}
-      onPlanUpdated={p => {
-        setPlan(p);
-      }}
+      onPlanUpdated={handlePlanUpdated}
     />
   );
 }

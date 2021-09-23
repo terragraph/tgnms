@@ -24,30 +24,25 @@ import PlanStatus from './PlanStatus';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 import UploadTopologyConfirmationModal from '@fbcnms/tg-nms/app/views/map/mappanels/UploadTopologyConfirmationModal';
-import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import useUnmount from '@fbcnms/tg-nms/app/hooks/useUnmount';
 import {ANP_SITE_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {SITE_FEATURE_TYPE} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
 import {
   handleTopologyChangeSnackbar,
   uploadTopologyBuilderRequest,
 } from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
+import {isEmpty} from 'lodash';
 import {locToPos} from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeLinkName} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {makeStyles} from '@material-ui/styles';
-import {
-  objectEntriesTypesafe,
-  objectValuesTypesafe,
-} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
+import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
-import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   ANPLink,
   ANPSector,
@@ -55,15 +50,12 @@ import type {
   ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {
-  EnabledStatusTypes,
-  MapOptionsState,
-} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
-import type {
   LinkFeature,
   MapFeatureTopology,
   NodeFeature,
   SiteFeature,
 } from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
+import type {MapOptionsState} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
 import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 const useStyles = makeStyles(theme => ({
@@ -78,122 +70,38 @@ export type Props = {|
 |};
 export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
   const classes = useStyles();
-  const {
-    state: loadInputsTaskState,
-    setState: setLoadInputsTaskState,
-  } = useTaskState();
-  const {
-    state: loadOutputsTaskState,
-    setState: setLoadOutputsTaskState,
-  } = useTaskState();
-  const {
-    state: downloadOutputState,
-    setState: setDownloadOutputState,
-  } = useTaskState();
   const {networkName} = useNetworkContext();
   const snackbars = useSnackbars();
   const {
-    planTopology,
-    setPlanTopology,
+    inputFiles,
+    loadInputFilesTask,
+    outputFiles,
+    loadOutputFilesTask,
+    downloadOutputTask,
     mapOptions,
     setMapOptions,
   } = useNetworkPlanningContext();
-  const manager = useNetworkPlanningManager();
+  const {filteredTopology, getPendingTopology} = useNetworkPlanningManager();
+
   const {
     mapFeatures,
     setMapFeatures,
     mapboxRef,
     setOverlayData,
   } = useMapContext();
-  const [inputFiles, setInputFiles] = React.useState<?Array<ANPFileHandle>>(
-    null,
-  );
-  const [outputFiles, setOutputFiles] = React.useState<?Array<ANPFileHandle>>(
-    null,
-  );
 
   const [shouldZoomToBBox, setShouldZoomToBBox] = React.useState(false);
 
-  // fetch the plan's input files from ANP
+  // get the filtered planTopology and convert into mapFeatures to be rendered
   React.useEffect(() => {
-    (async () => {
-      try {
-        if (!plan) {
-          return;
-        }
-        setLoadInputsTaskState(TASK_STATE.LOADING);
-        const _inputFiles = await networkPlanningAPIUtil.getPlanInputFiles({
-          id: plan.id.toString(),
-        });
-        setInputFiles(_inputFiles);
-        setLoadInputsTaskState(TASK_STATE.SUCCESS);
-      } catch (err) {
-        setLoadInputsTaskState(TASK_STATE.ERROR);
-      }
-    })();
-  }, [plan, setLoadInputsTaskState, setInputFiles]);
-  // fetch the plan's output files from ANP
-  React.useEffect(() => {
-    (async () => {
-      try {
-        if (!plan) {
-          return;
-        }
-        setLoadOutputsTaskState(TASK_STATE.LOADING);
-        const _outputFiles = await networkPlanningAPIUtil.getPlanOutputFiles({
-          id: plan.id.toString(),
-        });
-        setOutputFiles(_outputFiles);
-        setLoadOutputsTaskState(TASK_STATE.SUCCESS);
-      } catch (err) {
-        setLoadOutputsTaskState(TASK_STATE.ERROR);
-      }
-    })();
-  }, [plan, setLoadOutputsTaskState, setOutputFiles]);
-
-  const reportingGraph = React.useMemo<?ANPFileHandle>(
-    () =>
-      outputFiles?.find(
-        f => f.file_name === OUTPUT_FILENAME.REPORTING_GRAPH_JSON,
-      ),
-    [outputFiles],
-  );
-  // download the plan's reporting graph json and set planTopology
-  React.useEffect(() => {
-    (async () => {
-      try {
-        if (reportingGraph) {
-          setDownloadOutputState(TASK_STATE.LOADING);
-          // eslint-disable-next-line max-len
-          const fileData = await networkPlanningAPIUtil.downloadANPFile<ANPUploadTopologyType>(
-            {
-              id: reportingGraph.id,
-            },
-          );
-          setPlanTopology(fileData);
-          setShouldZoomToBBox(true);
-          setDownloadOutputState(TASK_STATE.SUCCESS);
-        }
-      } catch (err) {
-        console.error(err.message);
-        setDownloadOutputState(TASK_STATE.ERROR);
-      }
-    })();
-  }, [reportingGraph, setDownloadOutputState, setPlanTopology]);
-
-  // filter planTopology and convert into mapFeatures to be rendered
-  React.useEffect(() => {
-    if (planTopology != null) {
-      const features = planToMapFeatures(
-        planTopology,
-        mapOptions.enabledStatusTypes,
-      );
-
+    if (!isEmpty(filteredTopology)) {
+      const features = planToMapFeatures(filteredTopology);
+      setShouldZoomToBBox(true);
       /**
        * reindex links using tg's link naming scheme instead of
        * anp's unique linkid. overlayData depends on this
        */
-      const linkLines = objectValuesTypesafe(planTopology.links).reduce(
+      const linkLines = objectValuesTypesafe(filteredTopology.links).reduce(
         (map, link) => {
           const linkName = makeLinkName(link.rx_sector_id, link.tx_sector_id);
           map[linkName] = link;
@@ -203,12 +111,12 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
       );
       setOverlayData({
         link_lines: linkLines,
-        site_icons: planTopology.sites,
-        nodes: planTopology.sectors,
+        site_icons: filteredTopology.sites,
+        nodes: filteredTopology.sectors,
       });
       setMapFeatures(features);
     }
-  }, [planTopology, mapOptions, setMapFeatures, setOverlayData]);
+  }, [filteredTopology, setShouldZoomToBBox, setMapFeatures, setOverlayData]);
 
   const cancelPlanTask = useTaskState();
   const handleCancelPlan = React.useCallback(async () => {
@@ -230,12 +138,9 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
         handleTopologyChangeSnackbar(status, snackbars);
       }
     };
-    uploadTopologyBuilderRequest(
-      manager.selectedTopology,
-      networkName,
-      onClose,
-    );
-  }, [manager.selectedTopology, networkName, snackbars]);
+    uploadTopologyBuilderRequest(getPendingTopology(), networkName, onClose);
+  }, [getPendingTopology, networkName, snackbars]);
+
   /**
    * only zoom to the plan's bbox once, after the plan has been
    * converted into map features.
@@ -309,13 +214,13 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
             fullWidth
             disabled={false}
             onSubmit={handleCommitPlan}
-            uploadTopology={manager.selectedTopology}
+            getUploadTopology={getPendingTopology}
             customText="Commit Plan to Network"
           />
         )}
-        {(downloadOutputState === TASK_STATE.LOADING ||
-          loadOutputsTaskState === TASK_STATE.LOADING ||
-          loadInputsTaskState === TASK_STATE.LOADING) && (
+        {(downloadOutputTask.isLoading ||
+          loadOutputFilesTask.isLoading ||
+          loadInputFilesTask.isLoading) && (
           <Grid item>
             <Grid container justify="center">
               <CircularProgress size={10} />
@@ -416,32 +321,10 @@ function PlanMapOptions({
   );
 }
 
-function getEnabledStatusKeys(enabledStatusTypes: EnabledStatusTypes) {
-  /**
-   * EnabledStatusTypes maps from status type key->boolean. Convert this to a
-   * set of enabled status types
-   */
-  const lookup = new Set<number>();
-  for (const [key, enabled] of objectEntriesTypesafe(enabledStatusTypes)) {
-    if (enabled) {
-      lookup.add(ANP_STATUS_TYPE[key]);
-    }
-  }
-  return lookup;
-}
-
-function planToMapFeatures(
-  plan: ANPUploadTopologyType,
-  enabledStatusTypes: EnabledStatusTypes,
-): MapFeatureTopology {
+function planToMapFeatures(plan: ANPUploadTopologyType): MapFeatureTopology {
   const links = {};
-  const lookup = getEnabledStatusKeys(enabledStatusTypes);
-
   if (plan.links != null) {
     for (const planLink of objectValuesTypesafe<ANPLink>(plan.links)) {
-      if (!lookup.has(planLink.status_type)) {
-        continue;
-      }
       const link = mapANPLinkToFeature(planLink);
       if (link != null) {
         links[link.name] = link;
@@ -451,9 +334,6 @@ function planToMapFeatures(
   const sites = {};
   if (plan.sites != null) {
     for (const planSite of objectValuesTypesafe<ANPSite>(plan.sites)) {
-      if (!lookup.has(planSite.status_type)) {
-        continue;
-      }
       const site = mapANPSiteToFeature(planSite);
       sites[site.name] = site;
     }
@@ -461,9 +341,6 @@ function planToMapFeatures(
   const nodes = {};
   if (plan.sectors != null) {
     for (const planNode of objectValuesTypesafe<ANPSector>(plan.sectors)) {
-      if (!lookup.has(planNode.status_type)) {
-        continue;
-      }
       const node = mapANPNodeToFeature(planNode);
       nodes[node.name] = node;
     }
@@ -481,6 +358,7 @@ function mapANPLinkToFeature(link: ANPLink): ?LinkFeature {
     return null;
   }
   return {
+    link_id: link.link_id,
     name: makeLinkName(a, z),
     a_node_name: a,
     z_node_name: z,
@@ -504,6 +382,7 @@ function mapANPSiteToFeature(site: ANPSite): SiteFeature {
       siteFeatureType = SITE_FEATURE_TYPE.DN;
   }
   return {
+    site_id: site_id,
     name: site_id,
     location: loc,
     properties: site,
@@ -513,6 +392,7 @@ function mapANPSiteToFeature(site: ANPSite): SiteFeature {
 function mapANPNodeToFeature(node: ANPSector): NodeFeature {
   const {sector_id, site_id, ant_azimuth} = node;
   return {
+    node_id: sector_id,
     name: sector_id,
     site_name: site_id,
     ant_azimuth: ant_azimuth,
