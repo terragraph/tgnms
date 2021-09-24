@@ -52,6 +52,7 @@ describe('parseANPJson', () => {
 
     expect(response.links.length).toBe(1);
     expect(response.links[0]).toMatchObject({
+      name: 'link-site1_2-site2_0',
       a_node_name: 'site1_2',
       z_node_name: 'site2_0',
     });

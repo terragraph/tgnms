@@ -16,13 +16,18 @@ import {makeStyles} from '@material-ui/styles';
 
 import IconButton from '@material-ui/core/IconButton';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
+import {
+  ANP_SITE_TYPE_PRETTY,
+  ANP_STATUS_TYPE_PRETTY,
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {Link, generatePath, matchPath, useLocation} from 'react-router-dom';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
 } from '@fbcnms/tg-nms/app/constants/paths';
-import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+import {isEmpty} from 'lodash';
+import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager';
 import type {NetworkTableProps} from '../NetworkTables';
@@ -36,16 +41,82 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export type RowSchema = {
-  id: ?string,
-  type: 'site' | 'link',
+const linkColumns = [
+  {
+    title: 'Name',
+    field: 'id',
+    width: 5,
+  },
+  {
+    title: 'MCS',
+    field: 'mcs',
+    width: 10,
+  },
+  {
+    title: 'SNR',
+    field: 'snr',
+    width: 10,
+  },
+  {
+    title: 'Capacity',
+    field: 'capacity',
+    width: 10,
+  },
+  {
+    title: 'Length',
+    field: 'length',
+    width: 10,
+  },
+];
+
+const siteColumns = [
+  {
+    title: 'Name',
+    field: 'id',
+    width: 5,
+  },
+  {
+    title: 'Site Type',
+    field: 'site_type',
+    width: 10,
+  },
+  {
+    title: 'Latitude',
+    field: 'latitude',
+    width: 10,
+  },
+  {
+    title: 'Longitude',
+    field: 'longitude',
+    width: 10,
+  },
+  {
+    title: 'Status',
+    field: 'status_type',
+    width: 10,
+  },
+];
+
+export type SiteRowSchema = {
+  id: string,
+  latitude: number,
+  longitude: number,
+  site_type: string,
+  status_type: string,
+};
+
+export type LinkRowSchema = {
+  id: string,
+  mcs: number,
+  snr: number,
+  capacity: number,
+  length: number,
 };
 
 export default function TopologyTable({tableHeight}: NetworkTableProps) {
   const classes = useStyles();
   const {plan} = useNetworkPlanningContext();
-  const {setPendingTopology} = useNetworkPlanningManager();
-  const {mapFeatures} = useMapContext();
+  const {filteredTopology, setPendingTopology} = useNetworkPlanningManager();
 
   const tableOptions = React.useMemo(
     () => ({
@@ -61,38 +132,33 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
     [tableHeight],
   );
 
-  const columns = React.useMemo(
-    () => [
-      {
-        title: 'Name',
-        field: 'id',
-        width: 10,
-      },
-    ],
-    [],
-  );
+  const sites: SiteRowSchema[] = React.useMemo(() => {
+    return !isEmpty(filteredTopology?.sites)
+      ? objectValuesTypesafe(filteredTopology.sites).map(site => {
+          return {
+            id: site.site_id,
+            latitude: site?.loc.latitude,
+            longitude: site?.loc.longitude,
+            site_type: ANP_SITE_TYPE_PRETTY[site?.site_type],
+            status_type: ANP_STATUS_TYPE_PRETTY[site?.status_type],
+          };
+        })
+      : [];
+  }, [filteredTopology]);
 
-  const sites: RowSchema[] = React.useMemo(
-    () =>
-      mapFeatures?.sites
-        ? Object.keys(mapFeatures.sites).map(key => ({
-            id: mapFeatures.sites[key].site_id,
-            type: 'site',
-          }))
-        : [],
-    [mapFeatures],
-  );
-
-  const links: RowSchema[] = React.useMemo(
-    () =>
-      mapFeatures?.links
-        ? Object.keys(mapFeatures.links).map(key => ({
-            id: mapFeatures.links[key].link_id,
-            type: 'link',
-          }))
-        : [],
-    [mapFeatures],
-  );
+  const links: LinkRowSchema[] = React.useMemo(() => {
+    return !isEmpty(filteredTopology?.links)
+      ? objectValuesTypesafe(filteredTopology.links).map(link => {
+          return {
+            id: link.link_id,
+            mcs: link?.MCS,
+            snr: link?.SNR,
+            capacity: link?.capacity,
+            length: link?.distance,
+          };
+        })
+      : [];
+  }, [filteredTopology]);
 
   const sitesSelectionCallback = React.useCallback(
     rows => {
@@ -136,7 +202,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
               title={''}
               className={classes.table}
               data={sites}
-              columns={columns}
+              columns={siteColumns}
               options={tableOptions}
               onSelectionChange={sitesSelectionCallback}
             />
@@ -155,7 +221,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
             <MaterialTable
               title={''}
               data={links}
-              columns={columns}
+              columns={linkColumns}
               options={tableOptions}
               onSelectionChange={linksSelectionCallback}
             />

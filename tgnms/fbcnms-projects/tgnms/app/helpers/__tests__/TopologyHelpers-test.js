@@ -12,9 +12,11 @@ import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   buildTopologyMaps,
   getLinkType,
+  makeLink,
   makeLinkName,
   makeNodeName,
 } from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import type {ANPLink} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 const apiRequestSuccessMock = jest.fn(() => Promise.resolve({}));
 
@@ -39,6 +41,26 @@ test('calling useDelete returns initial loading', async () => {
   const result = await TopologyHelpers.deleteLinkRequest(defaultProps);
   expect(apiRequestSuccessMock).toHaveBeenCalled();
   expect(result.success).toBe(true);
+});
+
+test('makeLink produced correct format', () => {
+  const anpLink: $Shape<ANPLink> = {
+    tx_sector_id: 'bbbb',
+    rx_sector_id: 'aaaa',
+    link_type: 2,
+  };
+  expect(
+    makeLink(anpLink, {bbbb: 'bbbb_name', aaaa: 'aaaa_name'}),
+  ).toMatchObject({
+    name: 'link-aaaa_name-bbbb_name',
+    link_type: 2,
+    a_node_mac: '',
+    a_node_name: 'aaaa_name',
+    z_node_mac: '',
+    z_node_name: 'bbbb_name',
+    is_alive: false,
+    linkup_attempts: 0,
+  });
 });
 
 test('makeLinkName produces the correct format', () => {

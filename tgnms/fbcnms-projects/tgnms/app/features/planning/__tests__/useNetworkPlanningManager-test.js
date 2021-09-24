@@ -43,58 +43,79 @@ describe('useNetworkPlanningManager', () => {
     _planTopology = JSON.parse(mockUploadANPJson(__dirname, 'mockANP.json'));
   });
 
-  test('should update filtered topology', async () => {
-    const {result, rerender} = renderHook(() => useNetworkPlanningManager(), {
-      wrapper,
-      initialProps: {
+  describe('filtered topology', () => {
+    test('should update filtered topology', async () => {
+      const {result, rerender} = renderHook(() => useNetworkPlanningManager(), {
+        wrapper,
+        initialProps: {
+          mapOptions: {
+            enabledStatusTypes: {
+              PROPOSED: false,
+              UNAVAILABLE: false,
+              CANDIDATE: true,
+            },
+          },
+          planTopology: _planTopology,
+        },
+      });
+
+      // Sanity check
+      let sites = Object.keys(result.current.filteredTopology.sites);
+      expect(sites.length).toEqual(1);
+      expect(sites.includes('site3')).toBeTruthy();
+
+      // Change the mapOptions
+      rerender({
         mapOptions: {
           enabledStatusTypes: {
             PROPOSED: false,
-            UNAVAILABLE: false,
+            UNAVAILABLE: true,
             CANDIDATE: true,
           },
         },
         planTopology: _planTopology,
-      },
-    });
+      });
+      sites = Object.keys(result.current.filteredTopology.sites);
+      expect(sites.length).toEqual(2);
+      expect(sites.includes('site3')).toBeTruthy();
+      expect(sites.includes('site4')).toBeTruthy();
 
-    // Sanity check
-    let sites = Object.keys(result.current.filteredTopology.sites);
-    expect(sites.length).toEqual(1);
-    expect(sites.includes('site3')).toBeTruthy();
-
-    // Change the mapOptions
-    rerender({
-      mapOptions: {
-        enabledStatusTypes: {
-          PROPOSED: false,
-          UNAVAILABLE: true,
-          CANDIDATE: true,
+      // Change the planTopology
+      delete _planTopology.sites['site4'];
+      rerender({
+        mapOptions: {
+          enabledStatusTypes: {
+            PROPOSED: false,
+            UNAVAILABLE: true,
+            CANDIDATE: true,
+          },
         },
-      },
-      planTopology: _planTopology,
+        planTopology: _planTopology,
+      });
+      sites = Object.keys(result.current.filteredTopology.sites);
+      expect(sites.length).toEqual(1);
+      expect(sites.includes('site3')).toBeTruthy();
+      expect(sites.includes('site4')).toBeFalsy();
     });
-    sites = Object.keys(result.current.filteredTopology.sites);
-    expect(sites.length).toEqual(2);
-    expect(sites.includes('site3')).toBeTruthy();
-    expect(sites.includes('site4')).toBeTruthy();
-
-    // Change the planTopology
-    delete _planTopology.sites['site4'];
-    rerender({
-      mapOptions: {
-        enabledStatusTypes: {
-          PROPOSED: false,
-          UNAVAILABLE: true,
-          CANDIDATE: true,
+    test('should only select one of the duplicate links', async () => {
+      const {result} = renderHook(() => useNetworkPlanningManager(), {
+        wrapper,
+        initialProps: {
+          mapOptions: {
+            enabledStatusTypes: {
+              PROPOSED: true,
+              UNAVAILABLE: false,
+              CANDIDATE: true,
+            },
+          },
+          planTopology: _planTopology,
         },
-      },
-      planTopology: _planTopology,
+      });
+
+      const links = Object.keys(result.current.filteredTopology.links);
+      expect(links.length).toEqual(1);
+      expect(links.includes('link20_30')).toBeTruthy();
     });
-    sites = Object.keys(result.current.filteredTopology.sites);
-    expect(sites.length).toEqual(1);
-    expect(sites.includes('site3')).toBeTruthy();
-    expect(sites.includes('site4')).toBeFalsy();
   });
 
   describe('setPendingTopology and getPendingTopology', () => {
@@ -131,10 +152,7 @@ describe('useNetworkPlanningManager', () => {
       expect(siteNames.includes('site3'));
 
       let nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(3);
-      expect(nodeNames.includes('site1_0'));
-      expect(nodeNames.includes('site3_0'));
-      expect(nodeNames.includes('site3_1'));
+      expect(nodeNames.length).toEqual(0);
 
       let linkNames = res.links.map(link => link.name);
       expect(linkNames.length).toBe(0);
@@ -155,11 +173,9 @@ describe('useNetworkPlanningManager', () => {
       expect(siteNames.includes('site3'));
 
       nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(4);
-      expect(nodeNames.includes('site1_0'));
+      expect(nodeNames.length).toEqual(2);
       expect(nodeNames.includes('site2_0'));
       expect(nodeNames.includes('site3_0'));
-      expect(nodeNames.includes('site3_1'));
 
       linkNames = res.links.map(link => link.name);
       expect(linkNames.length).toEqual(1);
@@ -199,9 +215,8 @@ describe('useNetworkPlanningManager', () => {
       expect(siteNames.includes('site3'));
 
       const nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(2);
+      expect(nodeNames.length).toEqual(1);
       expect(nodeNames.includes('site3_0'));
-      expect(nodeNames.includes('site3_1'));
 
       const linkNames = res.links.map(link => link.name);
       expect(linkNames.length).toEqual(1);
@@ -255,11 +270,9 @@ describe('useNetworkPlanningManager', () => {
       expect(siteNames.includes('site3'));
 
       let nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(4);
-      expect(nodeNames.includes('site1_0'));
+      expect(nodeNames.length).toEqual(2);
       expect(nodeNames.includes('site2_0'));
       expect(nodeNames.includes('site3_0'));
-      expect(nodeNames.includes('site3_1'));
 
       let linkNames = res.links.map(link => link.name);
       expect(linkNames.length).toEqual(1);
@@ -277,10 +290,7 @@ describe('useNetworkPlanningManager', () => {
       expect(siteNames.includes('site3'));
 
       nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(3);
-      expect(nodeNames.includes('site1_0'));
-      expect(nodeNames.includes('site3_0'));
-      expect(nodeNames.includes('site3_1'));
+      expect(nodeNames.length).toEqual(0);
 
       linkNames = res.links.map(link => link.name);
       expect(linkNames.length).toBe(0);

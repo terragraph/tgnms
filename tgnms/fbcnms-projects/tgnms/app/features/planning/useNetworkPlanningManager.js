@@ -6,11 +6,14 @@
  */
 import * as React from 'react';
 import {filterANPTopology, getEnabledStatusKeys} from './PlanningHelpers';
+import {makeLinkName} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {parseANPJson} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-
+import type {
+  ANPLink,
+  ANPUploadTopologyType,
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 export type PendingTopologyElement = {id: string};
 
 export function useNetworkPlanningManager() {
@@ -41,7 +44,23 @@ export function useNetworkPlanningManager() {
   // The pending topology should be a subset of what's on the map.
   const filteredTopology = React.useMemo(() => {
     const res = filterANPTopology(planTopology, mapOptions);
-    return res;
+
+    // The ANP plan may contains duplicate for some links but not all.
+    // It doesn't matter which we choose because they'll be
+    // normalized in parseANPJson to be the correct format (i.e. node
+    // ordering). So we'll just choose the first seen one.
+    const newLinks: {[string]: ANPLink} = {};
+    const seen = new Set();
+    for (const key of Object.keys(res.links || [])) {
+      const link = res.links[key];
+      const linkName = makeLinkName(link.rx_sector_id, link.tx_sector_id);
+
+      if (!seen.has(linkName)) {
+        newLinks[key] = link;
+        seen.add(linkName);
+      }
+    }
+    return {...res, links: newLinks};
   }, [planTopology, mapOptions]);
 
   // Setter for the internal(?) version of pendingTopology
@@ -83,12 +102,6 @@ export function useNetworkPlanningManager() {
     const addSite = site_id => {
       const site = filteredTopology.sites[site_id];
       result.sites[site_id] = site;
-
-      // Add all sectors on the site.
-      sitesToSectors[site_id].forEach(
-        sector_id =>
-          (result.sectors[sector_id] = filteredTopology.sectors[sector_id]),
-      );
     };
 
     // Add sites.
@@ -101,6 +114,11 @@ export function useNetworkPlanningManager() {
       // Add sites connected to the link.
       addSite(link.rx_site_id);
       addSite(link.tx_site_id);
+      // Add sectors connected to the link.
+      result.sectors[link.rx_sector_id] =
+        filteredTopology.sectors[link.rx_sector_id];
+      result.sectors[link.tx_sector_id] =
+        filteredTopology.sectors[link.tx_sector_id];
     }
 
     const res = parseANPJson(

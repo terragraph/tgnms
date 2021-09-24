@@ -72,6 +72,8 @@ export type ANPLink = {
   status_type: $Values<typeof ANP_STATUS_TYPE>,
   capacity: number,
   altitudes: Array<number>,
+  MCS: number,
+  SNR: number,
 };
 
 export type ANPKmlFeature = {
@@ -232,6 +234,13 @@ export const ANP_STATUS_TYPE = {
   EXISTING: 4,
 };
 
+export const ANP_STATUS_TYPE_PRETTY = {
+  [ANP_STATUS_TYPE.UNAVAILABLE]: 'Unavailable',
+  [ANP_STATUS_TYPE.CANDIDATE]: 'Candidate',
+  [ANP_STATUS_TYPE.PROPOSED]: 'Proposed',
+  [ANP_STATUS_TYPE.EXISTING]: 'Existing',
+};
+
 export const ANP_NODE_TYPE = {
   CN: 1,
   DN: 2,
@@ -244,6 +253,13 @@ export const ANP_SITE_TYPE = {
   DN: 2,
   POP: 3,
   DEMAND: 4,
+};
+
+export const ANP_SITE_TYPE_PRETTY = {
+  [ANP_SITE_TYPE.CN]: 'CN',
+  [ANP_SITE_TYPE.DN]: 'DN',
+  [ANP_SITE_TYPE.POP]: 'POP',
+  [ANP_SITE_TYPE.DEMAND]: 'DEMAND',
 };
 
 export const kmlFeatureType = {site: 'Point', link: 'LineString'};

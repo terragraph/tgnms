@@ -15,6 +15,7 @@ import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {averageAngles} from './MathHelpers';
 import {bearingToAzimuth, locToPos} from './GeoHelpers';
 
+import type {ANPLink} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import type {
   LinkMap,
@@ -166,6 +167,27 @@ export function getWirelessLinkNames({
   }
 
   return links;
+}
+
+/**
+ * TG Links need to be ordered in alphabetical order in order
+ * to be accepted by the controller.
+ */
+export function makeLink(link: ANPLink, sectorToNodeName: {[string]: string}) {
+  const order = [
+    sectorToNodeName[link.tx_sector_id],
+    sectorToNodeName[link.rx_sector_id],
+  ].sort();
+  return {
+    name: makeLinkName(order[0], order[1]),
+    link_type: getLinkType(link.link_type),
+    a_node_mac: '',
+    a_node_name: order[0],
+    z_node_mac: '',
+    z_node_name: order[1],
+    is_alive: false,
+    linkup_attempts: 0,
+  };
 }
 
 /**

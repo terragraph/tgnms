@@ -22,7 +22,7 @@ import {
   apiServiceRequest,
 } from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {convertType, objectValuesTypesafe} from './ObjectHelpers';
-import {getLinkType, makeLinkName, makeNodeName} from './TopologyHelpers';
+import {makeLink, makeNodeName} from './TopologyHelpers';
 
 import type {
   ANPLink,
@@ -164,9 +164,9 @@ export function parseANPJson(
       sector.node_id !== -1 && // Ignore imaginary nodes.
       acceptableStatus.has(sector.status_type),
   );
-  const sectorToNode = {};
+  const sectorToNodeName = {};
   validSectors.forEach(sector => {
-    sectorToNode[sector.sector_id] = makeNodeName(
+    sectorToNodeName[sector.sector_id] = makeNodeName(
       sector.site_id,
       sector.node_id,
     );
@@ -188,19 +188,7 @@ export function parseANPJson(
   // Create links.
   const links: Array<LinkTemplate> = objectValuesTypesafe<ANPLink>(input.links)
     .filter(link => acceptableStatus.has(link.status_type))
-    .map<LinkTemplate>(link => ({
-      name: makeLinkName(
-        sectorToNode[link.tx_sector_id],
-        sectorToNode[link.rx_sector_id],
-      ),
-      link_type: getLinkType(link.link_type),
-      a_node_mac: '',
-      a_node_name: sectorToNode[link.tx_sector_id],
-      z_node_mac: '',
-      z_node_name: sectorToNode[link.rx_sector_id],
-      is_alive: false,
-      linkup_attempts: 0,
-    }))
+    .map<LinkTemplate>(link => makeLink(link, sectorToNodeName))
     .filter(link => !blocklist.links.has(link.name));
 
   return {links, nodes, sites};

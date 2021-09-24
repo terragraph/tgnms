@@ -31,7 +31,7 @@ describe('filterANPTopology', () => {
       },
     });
     expect(Object.keys(res.sectors).length).toEqual(5);
-    expect(Object.keys(res.links).length).toEqual(1);
+    expect(Object.keys(res.links).length).toEqual(2);
     expect(Object.keys(res.sites).length).toEqual(2);
 
     res = filterANPTopology(topology, {
