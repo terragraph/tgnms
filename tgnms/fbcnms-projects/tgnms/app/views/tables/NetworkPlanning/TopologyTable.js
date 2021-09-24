@@ -37,6 +37,7 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
   },
   header: {
+    width: '100%',
     paddingLeft: theme.spacing(1),
   },
 }));
