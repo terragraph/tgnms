@@ -1,4 +1,14 @@
 ---
+- name: Install Python
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: false
+  tasks:
+    - name: Install Python if the system doesn't have python installed by default.  Centos/Redhat doesnt come with python installed by default
+      raw: test -e /usr/bin/apt && (apt -y update && apt install -y python-minimal) || (yum -y install python3)
+
 - name: Run validation and common
   hosts: all
   become: true

@@ -3,7 +3,7 @@
   yum_repository:
     name: epel
     description: EPEL YUM repo
-    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/Everything/$basearch/
     gpgcheck: no
 
 - name: update centos/rhel
@@ -22,5 +22,23 @@
   loop:
     - gcc
     - "{{ pip_package }}"
-    - python-devel.x86_64
+    - python3
+    - python3-devel
     - rsync
+
+- name: Remove packages 
+  yum:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - podman
+    - containers-common
+
+- name: install modprobe ip6table_mangle
+  shell: sudo modprobe ip6table_mangle
+
+- name: install docker 
+  include_role:
+    name: ansible-role-docker
+  vars:
+    docker_package: docker-ce
