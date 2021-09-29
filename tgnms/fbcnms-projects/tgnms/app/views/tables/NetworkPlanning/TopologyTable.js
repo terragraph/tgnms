@@ -40,6 +40,13 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
     paddingLeft: theme.spacing(1),
   },
+  noDropShadow: {
+    borderBottom: '1px solid ' + theme.palette.divider,
+    boxShadow: 'none',
+    '&:last-child': {
+      borderRadius: 0,
+    },
+  },
 }));
 
 const linkColumns = [
@@ -210,7 +217,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
           </div>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion className={classes.noDropShadow}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="links-panel-content"
