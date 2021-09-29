@@ -36,6 +36,9 @@ const useStyles = makeStyles(theme => ({
   table: {
     width: '100%',
   },
+  padding: {
+    padding: '0',
+  },
   header: {
     width: '100%',
     paddingLeft: theme.spacing(1),
@@ -204,7 +207,8 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
           id="sites-panel-header">
           <Typography>Sites</Typography>
         </AccordionSummary>
-        <AccordionDetails>
+
+        <AccordionDetails className={classes.padding}>
           <div className={classes.table}>
             <MaterialTable
               title={''}
@@ -224,7 +228,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
           id="links-panel-header">
           <Typography>Links</Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails className={classes.padding}>
           <div className={classes.table}>
             <MaterialTable
               title={''}
