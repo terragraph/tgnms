@@ -36,6 +36,9 @@ const useStyles = makeStyles(theme => ({
   table: {
     width: '100%',
   },
+  icon: {
+    flexDirection: 'row-reverse',
+  },
   padding: {
     padding: '0',
   },
@@ -204,7 +207,8 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="sites-panel-content"
-          id="sites-panel-header">
+          id="sites-panel-header"
+          className={classes.icon}>
           <Typography>Sites</Typography>
         </AccordionSummary>
 
@@ -225,7 +229,8 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="links-panel-content"
-          id="links-panel-header">
+          id="links-panel-header"
+          className={classes.icon}>
           <Typography>Links</Typography>
         </AccordionSummary>
         <AccordionDetails className={classes.padding}>
