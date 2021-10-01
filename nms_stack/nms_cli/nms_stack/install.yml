@@ -19,7 +19,7 @@
     http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
     https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
   roles:
-    - { role: validation, tags: ["validate_config"] }
+    - { role: validate_config, tags: ["validate_config"] }
     - { role: common, tags: ["common"] }
 
 - name: Create managers

@@ -1,0 +1,23 @@
+---
+- set_fact:
+    validation_errors: []
+# These tasks are meant as post-install validation for running clusters
+- name: networking validations
+  include: network_validation.yml
+
+- name: swarm validations
+  include: swarm_validation.yml
+  # only needs to be run once per-swarm
+  run_once: true
+
+- name: database validations
+  include: db_validation.yml
+  run_once: true
+
+- name: nms validations
+  include: nms_validation.yml
+  run_once: true
+
+- fail:
+    msg: "VALIDATION ERRORS: \n\n{{validation_errors | reject('eq', '') | join('\n-------------------------------------------------------------------\n\n')}}"
+  when: validation_errors | reject('eq', '') | list | count > 0

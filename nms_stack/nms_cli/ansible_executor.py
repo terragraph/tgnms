@@ -28,7 +28,6 @@ class ansible_executor:
         self.inventory_file = os.path.join("nms_stack", "inventory")
         self.group_vars_all = os.path.join("nms_stack", "group_vars", "all")
         self.load_inventory()
-        self.ssl_certs = None
         self.uninstall_opts = None
         Options = namedtuple(
             "Options",
@@ -89,9 +88,6 @@ class ansible_executor:
             sources=pkg_resources.resource_filename("nms_cli", self.inventory_file),
         )
 
-    def ssl_cert_files(self, key_file, cert_file):
-        self.ssl_certs = {"ssl_key_file": key_file, "ssl_cert_file": cert_file}
-
     def uninstall_options(
         self,
         skip_backup,
@@ -110,20 +106,13 @@ class ansible_executor:
             "force": force,
         }
 
-    # TODO: Split up to make less "complex"
     def run(  # noqa: C901
         self, hosts, playbook, config_file=None, generated_config=None, password=None
     ):
         extra_vars = {}
         if config_file:
-            extra_vars = self.loader.load_from_file(config_file)
             # record the absolute path to the config file
             extra_vars["install_config_file"] = os.path.abspath(config_file)
-
-        if self.ssl_certs is not None:
-            for k, v in self.ssl_certs.items():
-                extra_vars[k] = v
-
         if self.uninstall_opts is not None:
             for k, v in self.uninstall_opts.items():
                 extra_vars[k] = v
@@ -178,7 +167,7 @@ class ansible_executor:
         return play.run()
 
     def version_info(self):
-        """ return full ansible version info """
+        """return full ansible version info"""
         ansible_version_string = __version__
         ansible_version = ansible_version_string.split()[0]
         ansible_versions = ansible_version.split(".")

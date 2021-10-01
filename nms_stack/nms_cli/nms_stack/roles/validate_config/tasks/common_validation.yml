@@ -26,7 +26,7 @@
       - "{{ item }} is defined"
       - "{{ item }} != None"
       - "{{ item }} != ''"
-    msg: "{{ item }} must be defined, you may need to re-run 'nms show-defaults' to generate the 'passwords:' map then add that to your existing config.yml. You may also need to message the Terragraph team to get a mapbox access token."
+    msg: "{{ item }} must be defined, you may need to re-run 'nms show-defaults' to generate the 'passwords:' map then add that to your existing config.yml."
   loop:
     - passwords.grafana_db_writer
     - passwords.grafana_db_reader

@@ -1,0 +1,12 @@
+---
+# NMS-specific tests
+- name: Check if NMS is up
+  command: docker run --rm --network=terragraph_net byrnedo/alpine-curl -L --noproxy '*' nms/healthcheck:80
+  register: result
+  retries: "3"
+  delay: "1"
+  failed_when: result.rc >= 1
+  until: result.rc == 0
+  changed_when: false
+- set_fact:
+    validation_errors: "{{validation_errors + [result.stdout] if result.rc else validation_errors}}"

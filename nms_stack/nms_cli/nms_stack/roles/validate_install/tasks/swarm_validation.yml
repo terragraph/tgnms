@@ -1,0 +1,27 @@
+---
+# Generic swarm checks
+# Check that workers are ready and reachable
+- name: "Check that workers are up"
+  shell: >
+    docker node ls --format {{'\"{{.HOSTNAME}} {{.STATUS}} {{.AVAILABILITY}}\"'}} |
+    awk '$2 != "Ready" || $3 != "Reachable" {print $1 " " $2 " " $3 "\n"}'
+  register: result
+  failed_when: result.stdout != ""
+  changed_when: false
+  ignore_errors: yes
+- set_fact:
+    validation_errors: "{{validation_errors + [result.stdout] if result.stdout != '' else validation_errors}}"
+- name: Check that services are up
+  # formats the docker services like: service_name 1/1 - where 1/1 is the desired vs actual count for a service
+  # The -F arg of awk splits on a space or a /, meaning the output will look like: service_name($1) desired($2) actual($3)
+  # Note: this can't always catch a crash-looping service
+  # The syntax: {{ '"{{}}"' }} is used to escape the docker formatting delimiters in ansible
+  shell: >
+    docker service ls --format {{ '"{{.Name}} {{.Replicas}}"' }} |
+    awk -F '[[:blank:]/]' '$2 != $3 {print $1 " is not healthy. " $2 " replicas of " $3 "\n"}'
+  register: result
+  failed_when: result.stdout != ""
+  changed_when: false
+  ignore_errors: yes
+- set_fact:
+    validation_errors: "{{validation_errors + [result.stdout] if result.stdout != '' else validation_errors}}"

@@ -7,6 +7,7 @@ import re
 import secrets
 import string
 import sys
+from functools import update_wrapper
 
 import click
 import oyaml as yaml
@@ -19,6 +20,7 @@ from pygments.lexers import YamlLexer
 
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
+VALIDATE_PLAYBOOK = "validate.yml"
 
 RAGE_DIR = os.path.join(os.path.expanduser("~"), ".nms_logs")
 
@@ -35,7 +37,6 @@ def record_version(logger):
 
 def generate_host_groups(host):
     """Generate hostgroup info given a list of hosts."""
-    # TODO skb For now, all hosts are managers. Later, make this interface nicer.
     hosts = [(h, ["managers"], None, {}) for h in host]
 
     # MySQL, Prometheus, and BQS do not write their data to glusterfs due to
@@ -54,15 +55,73 @@ def generate_host_groups(host):
     return hosts
 
 
-def generate_common_configs(generated_config, variables):
+# Hosts can be passed as click options(ctx) or the config file(variables)
+def gather_hosts(ctx, installer_opts, variables):
+    hosts = installer_opts.host or [
+        host["hostname"] for host in (variables["host_list"] or [])
+    ]
+    if len(hosts) > 0:
+        hosts = generate_host_groups(hosts)
+    else:
+        click.echo(
+            "Host is required. Please define in the `host_list` section of your "
+            "config.yml or via the --host flag."
+        )
+        ctx.exit(1)
+    return hosts
+
+
+def generate_variables(ctx, installer_opts):
+    config_file = installer_opts.config_file
+    variables = load_variables(config_file)
+    gather_certs(ctx, installer_opts, variables)
+    generated_config = generate_common_configs(variables)
+    variables.update(generated_config)
+    return variables
+
+
+def generate_common_configs(variables):
+    # computed vars that don't come directly from config.yml
+    generated_config = {}
     # Determine auth
-    generated_config['keycloak_enabled'] = (
-        variables['auth'] == 'keycloak'
-        if variables.get('auth')
-        else False
+    generated_config["keycloak_enabled"] = (
+        variables["auth"] == "keycloak" if variables.get("auth") else False
     )
-    # Add more config transformations here.
+    generated_config["docker_images"] = gather_docker_images(variables)
     return generated_config
+
+
+def gather_docker_images(variables):
+    # Enumerate docker images to be pulled
+    docker_images = []
+    for key in variables.keys():
+        if re.match("^[a-z0-9_]+_image", key):
+            image = variables[key]
+            docker_images.append(image)
+    return docker_images
+
+
+def gather_certs(ctx, installer_opts, variables):
+    # Get and verify TLS cert/key.
+    ssl_key_file = installer_opts.ssl_key_file or variables["ssl_key_file"]
+    ssl_cert_file = installer_opts.ssl_cert_file or variables["ssl_cert_file"]
+    cert_options = [ssl_key_file, ssl_cert_file]
+    if any(cert_options) != all(cert_options):
+        click.echo(
+            "pebcak: ssl-key-file and ssl-cert-file are mutually "
+            + "necessary. i.e. define both or none",
+            err=True,
+        )
+        ctx.exit(3)
+    variables["ssl_cert_file"] = os.path.abspath(ssl_cert_file)
+    variables["ssl_key_file"] = os.path.abspath(ssl_key_file)
+
+
+def prepare_ansible(ctx, installer_opts, variables):
+    tags = installer_opts.tags
+    verbose = installer_opts.verbose
+    a = executor(tags, verbose)
+    return a
 
 
 common_options = {
@@ -116,6 +175,28 @@ def add_common_options(*args):
     return wrapper
 
 
+class InstallerOpts(object):
+    def __init__(self, *args, **kwargs):
+        self.config_file = kwargs.get("config_file")
+        self.ssl_key_file = kwargs.get("ssl_key_file")
+        self.ssl_cert_file = kwargs.get("ssl_cert_file")
+        self.host = kwargs.get("host")
+        self.tags = kwargs.get("tags")
+        self.verbose = kwargs.get("verbose")
+        self.password = kwargs.get("password")
+
+
+def add_installer_opts(f):
+    @add_common_options(
+        *common_options.keys(),
+    )
+    @click.pass_context
+    def wrapper(ctx, *args, **kwargs):
+        return ctx.invoke(f, InstallerOpts(**kwargs), *args)
+
+    return update_wrapper(wrapper, f)
+
+
 @click.group(invoke_without_command=True)
 @click.option("--version", is_flag=True, default=False, help="Show version and exit")
 @click.option("--short", is_flag=True, default=False, help="Short version")
@@ -167,7 +248,7 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
     tags += ("e2e_controller",)
     a = executor(tags, verbose)
 
-    generated_config = generate_common_configs({}, loaded_config)
+    generated_config = generate_common_configs(loaded_config)
     if loaded_config:
         controllers_list = loaded_config["controllers_list"]
         controllers_list = [
@@ -272,74 +353,23 @@ def load_variables(config_file):
 
 
 @cli.command()
-@add_common_options(
-    "config-file",
-    "ssl-key-file",
-    "ssl-cert-file",
-    "host",
-    "tags",
-    "password",
-    "verbose",
-)
+@add_installer_opts
 @click.pass_context
 @rage.log_command(RAGE_DIR)
-def install(
-    ctx, config_file, ssl_key_file, ssl_cert_file, host, tags, verbose, password
-):
+def install(ctx, installer_opts):
     """Install the NMS stack of docker images etc."""
-
-    # Load variables from the config file / defaults
-    variables = load_variables(config_file)
-
-    # Gather hosts.
-    hosts = host or [host['hostname'] for host in (variables['host_list'] or [])]
-    if len(hosts) > 0:
-        # TODO For now, all hosts are managers. Later, make this interace nicer.
-        hosts = generate_host_groups(hosts)
-    else:
-        click.echo(
-            "Host is required. Please define in the `docker_hosts` section of your "
-            "config.yml or via the --host flag."
-        )
-        ctx.exit(1)
-
-    # Get and verify TLS cert/key.
-    ssl_key_file = ssl_key_file if ssl_key_file else variables['ssl_key_file']
-    ssl_cert_file = ssl_cert_file if ssl_cert_file else variables['ssl_cert_file']
-    cert_options = [ssl_key_file, ssl_cert_file]
-    if any(cert_options) != all(cert_options):
-        click.echo(
-            "pebcak: ssl-key-file and ssl-cert-file are mutually "
-            + "necessary. i.e. define both or none",
-            err=True,
-        )
-        ctx.exit(3)
-
-    if password:
+    password = False
+    if installer_opts.password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
-
-    a = executor(tags, verbose)
-
-    if ssl_cert_file is not None:
-        a.ssl_cert_files(os.path.abspath(ssl_key_file), os.path.abspath(ssl_cert_file))
-
-    generated_config = generate_common_configs({}, variables)
-
-    # Enumerate docker images to be pulled
-    docker_images = []
-    for key in variables.keys():
-        if re.match("^[a-z0-9_]+_image", key):
-            image = variables[key]
-            docker_images.append(image)
-
-    generated_config["docker_images"] = docker_images
-
+    variables = generate_variables(ctx, installer_opts)
+    hosts = gather_hosts(ctx, installer_opts, variables)
+    a = prepare_ansible(ctx, installer_opts, variables)
     sys.exit(
         a.run(
             hosts,
             INSTALL_PLAYBOOK,
-            config_file=config_file,
-            generated_config=generated_config,
+            config_file=installer_opts.config_file,
+            generated_config=variables,
             password=password,
         )
     )
@@ -413,6 +443,28 @@ def uninstall(
     sys.exit(
         a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
     )
+
+
+@cli.command()
+@add_installer_opts
+@click.pass_context
+@rage.log_command(RAGE_DIR)
+def validate(ctx, installer_opts):
+    password = False
+    if installer_opts.password:
+        password = click.prompt("SSH/sudo password", hide_input=True, default=None)
+    config_file = installer_opts.config_file
+    variables = generate_variables(ctx, installer_opts)
+    hosts = gather_hosts(ctx, installer_opts, variables)
+    a = prepare_ansible(ctx, installer_opts, variables)
+    results = a.run(
+        hosts,
+        VALIDATE_PLAYBOOK,
+        config_file=config_file,
+        generated_config=variables,
+        password=password,
+    )
+    sys.exit(results)
 
 
 @cli.command(name="rage")

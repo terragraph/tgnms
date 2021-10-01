@@ -1,0 +1,13 @@
+---
+- name: Run pre-install validation
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: yes
+  environment:
+    http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+    https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+  roles:
+    - { role: validate_config, tags: ["validate_config"] }
+    - { role: validate_install, tags: ["validate_install"] }

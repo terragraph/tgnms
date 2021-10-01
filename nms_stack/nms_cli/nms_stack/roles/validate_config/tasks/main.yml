@@ -1,4 +1,5 @@
 ---
+# These tasks are meant as pre-install validation
 - name: common_validations
   include: common_validation.yml
   tags: ["common"]

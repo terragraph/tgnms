@@ -1,0 +1,31 @@
+---
+- set_fact:
+    peer_ipv4_addresses: "{{ query('inventory_hostnames', 'all') | difference(inventory_hostname) | map('extract', hostvars, 'ansible_default_ipv4' ) | map(attribute='address') | list}}"
+    peer_ipv6_addresses: "{{ query('inventory_hostnames', 'all') | difference(inventory_hostname) | map('extract', hostvars, 'ansible_default_ipv6' ) | map(attribute='address') | list}}"
+# Check that nodes and containers can communicate
+- name: Ping other nodes on host network (ip4)
+  shell: ping -c 2 -w 0.2 {{item}}
+  loop: "{{peer_ipv4_addresses}}"
+  when: groups['all'] | length > 1
+  register: result
+  changed_when: false
+  ignore_errors: yes
+  failed_when: result.rc
+- vars:
+    has_errors: "{{result.results | rejectattr('rc', 'eq', 0) | list | count > 0}}"
+    results: "{{result.results | map(attribute='stdout') | list}}"
+  set_fact:
+    validation_errors: "{{validation_errors + results if has_errors else validation_errors}}"
+- name: Ping other nodes on host network (ip6)
+  shell: ping -c 2 -w 0.2 {{item}}
+  loop: "{{peer_ipv6_addresses}}"
+  when: groups['all'] | length > 1
+  register: result
+  changed_when: false
+  ignore_errors: yes
+  failed_when: result.rc
+- vars:
+    has_errors: "{{result.results | rejectattr('rc', 'eq', 0) | list | count > 0}}"
+    results: "{{result.results | map(attribute='stdout') | list}}"
+  set_fact:
+    validation_errors: "{{validation_errors + results if has_errors else validation_errors}}"
