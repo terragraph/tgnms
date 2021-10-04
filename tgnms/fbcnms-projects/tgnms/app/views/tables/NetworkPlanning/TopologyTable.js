@@ -32,6 +32,10 @@ import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlan
 import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager';
 import type {NetworkTableProps} from '../NetworkTables';
 
+const noBoxShadow = {
+  boxShadow: 'none',
+};
+
 const useStyles = makeStyles(theme => ({
   table: {
     width: '100%',
@@ -48,7 +52,7 @@ const useStyles = makeStyles(theme => ({
   },
   noDropShadow: {
     borderBottom: '1px solid ' + theme.palette.divider,
-    boxShadow: 'none',
+    ...noBoxShadow,
     '&:last-child': {
       borderRadius: 0,
     },
@@ -187,6 +191,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
     },
     [setPendingTopology],
   );
+
   return (
     <>
       <Grid
@@ -203,7 +208,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
         </Grid>
       </Grid>
       <br />
-      <Accordion>
+      <Accordion className={classes.noDropShadow}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="sites-panel-content"
@@ -221,6 +226,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
               columns={siteColumns}
               options={tableOptions}
               onSelectionChange={sitesSelectionCallback}
+              style={noBoxShadow}
             />
           </div>
         </AccordionDetails>
@@ -241,6 +247,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
               columns={linkColumns}
               options={tableOptions}
               onSelectionChange={linksSelectionCallback}
+              style={noBoxShadow}
             />
           </div>
         </AccordionDetails>
