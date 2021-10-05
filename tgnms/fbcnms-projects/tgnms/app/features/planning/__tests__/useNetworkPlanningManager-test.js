@@ -39,6 +39,21 @@ describe('useNetworkPlanningManager', () => {
     </TestApp>
   );
 
+  const setupHook = () =>
+    renderHook(() => useNetworkPlanningManager(), {
+      wrapper,
+      initialProps: {
+        mapOptions: {
+          enabledStatusTypes: {
+            PROPOSED: true,
+            UNAVAILABLE: true,
+            CANDIDATE: true,
+          },
+        },
+        planTopology: _planTopology,
+      },
+    });
+
   beforeEach(() => {
     _planTopology = JSON.parse(
       mockUploadANPJson(__dirname, 'planning_mock_ANP.json'),
@@ -115,66 +130,110 @@ describe('useNetworkPlanningManager', () => {
       });
 
       const links = Object.keys(result.current.filteredTopology.links);
-      expect(links.length).toEqual(1);
+      expect(links.length).toEqual(2);
       expect(links.includes('link20_30')).toBeTruthy();
+      expect(links.includes('link20_30_duplicate')).toBeFalsy();
     });
   });
 
-  describe('setPendingTopology and getPendingTopology', () => {
+  describe('setPendingTopology', () => {
     test('should work with link and site selections', () => {
-      const {result} = renderHook(() => useNetworkPlanningManager(), {
-        wrapper,
-        initialProps: {
-          mapOptions: {
-            enabledStatusTypes: {
-              PROPOSED: true,
-              UNAVAILABLE: true,
-              CANDIDATE: true,
-            },
-          },
-          planTopology: _planTopology,
-        },
-      });
+      const {result} = setupHook();
 
       // Select site1 and site3
       act(() => {
-        result.current.setPendingTopology('sites', ['site1', 'site3']);
+        result.current.setPendingTopology({sites: ['site1', 'site3']});
       });
 
-      let res = result.current.getPendingTopology();
-      let siteNames = res.sites.map(site => site.name);
-      expect(siteNames.length).toEqual(2);
-      expect(siteNames.includes('site1'));
-      expect(siteNames.includes('site3'));
+      let res = result.current.pendingTopology;
+      let siteNames = res.sites;
+      expect(siteNames.size).toEqual(2);
+      expect(siteNames.has('site1'));
+      expect(siteNames.has('site3'));
 
-      let nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(0);
-
-      let linkNames = res.links.map(link => link.name);
-      expect(linkNames.length).toBe(0);
+      let linkNames = res.links;
+      expect(linkNames.size).toBe(0);
 
       // Select link from node 20 to node 30
       act(() => {
-        result.current.setPendingTopology('links', ['link20_30']);
+        result.current.setPendingTopology({links: ['link20_30']});
       });
 
-      res = result.current.getPendingTopology();
-      siteNames = res.sites.map(site => site.name);
-      expect(siteNames.length).toEqual(3);
-      expect(siteNames.includes('site1')); // site1 still here from the prev selection
+      res = result.current.pendingTopology;
+      siteNames = res.sites;
+      expect(siteNames.size).toEqual(3);
+      expect(siteNames.has('site1')); // site1 still here from the prev selection
+      expect(siteNames.has('site2'));
+      expect(siteNames.has('site3'));
+
+      linkNames = res.links;
+      expect(linkNames.size).toEqual(1);
+      expect(linkNames.has('link-site2_0-site3_0'));
+    });
+    test('when unselecting all sites, should still add in all necessary sites for links', () => {
+      const {result} = setupHook();
+      // Select site1
+      act(() => {
+        result.current.setPendingTopology({sites: ['site1']});
+      });
+      // Select link from node 20 to node 30
+      act(() => {
+        result.current.setPendingTopology({links: ['link20_30']});
+      });
+
+      let res = result.current.pendingTopology;
+      let siteNames = res.sites;
+      expect(siteNames.size).toEqual(3);
+      expect(siteNames.has('site1'));
+      expect(siteNames.has('site2'));
+      expect(siteNames.has('site3'));
+
+      let linkNames = res.links;
+      expect(linkNames.size).toEqual(1);
+      expect(linkNames.has('link-site2_0-site3_0'));
+
+      // Don't selected any sites
+      act(() => {
+        result.current.setPendingTopology({sites: []});
+      });
+
+      // Sites file should still have the necessary sites
+      res = result.current.pendingTopology;
+      siteNames = res.sites;
+      expect(siteNames.size).toEqual(2);
+      expect(siteNames.has('site2'));
+      expect(siteNames.has('site3'));
+
+      linkNames = res.links;
+      expect(linkNames.size).toEqual(1);
+      expect(linkNames.has('link-site2_0-site3_0'));
+    });
+  });
+
+  describe('getTopologyToCommit', () => {
+    test('should work with link and site selections', () => {
+      const {result} = setupHook();
+
+      // Select link from node 20 to node 30
+      act(() => {
+        result.current.setPendingTopology({links: ['link20_30']});
+      });
+
+      const res = result.current.getTopologyToCommit();
+      const siteNames = res.sites.map(site => site.name);
+      expect(siteNames.length).toEqual(2);
       expect(siteNames.includes('site2'));
       expect(siteNames.includes('site3'));
 
-      nodeNames = res.nodes.map(node => node.name);
+      const nodeNames = res.nodes.map(node => node.name);
       expect(nodeNames.length).toEqual(2);
       expect(nodeNames.includes('site2_0'));
       expect(nodeNames.includes('site3_0'));
 
-      linkNames = res.links.map(link => link.name);
+      const linkNames = res.links.map(link => link.name);
       expect(linkNames.length).toEqual(1);
       expect(linkNames.includes('link-site2_0-site3_0'));
     });
-
     test('should only contain elements that are NOT in the current topology', () => {
       const {result} = renderHook(() => useNetworkPlanningManager(), {
         wrapper,
@@ -196,10 +255,10 @@ describe('useNetworkPlanningManager', () => {
       });
       // Select link from node 20 to node 30
       act(() => {
-        result.current.setPendingTopology('links', ['link20_30']);
+        result.current.setPendingTopology({links: ['link20_30']});
       });
 
-      const res = result.current.getPendingTopology();
+      const res = result.current.getTopologyToCommit();
       const siteNames = res.sites.map(site => site.name);
       expect(siteNames.length).toEqual(1);
       expect(siteNames.includes('site3'));
@@ -212,69 +271,89 @@ describe('useNetworkPlanningManager', () => {
       expect(linkNames.length).toEqual(1);
       expect(linkNames.includes('link-site2_0-site3_0'));
     });
+  });
 
-    // We have two material table selections coalescing into one
-    // pendingTopology state object; thus some weird things can happen
-    test('when unselecting all of one type, leaves the other intact', () => {
-      // This tests one scenario: ensure completely unselecting one leaves
-      // the other intact.
-
-      const {result} = renderHook(() => useNetworkPlanningManager(), {
-        wrapper,
-        initialProps: {
-          mapOptions: {
-            enabledStatusTypes: {
-              PROPOSED: true,
-              UNAVAILABLE: true,
-              CANDIDATE: true,
-            },
-          },
-          planTopology: _planTopology,
-        },
-      });
+  describe('appendPendingTopology', () => {
+    test('should work with link and site appends', () => {
+      const {result} = setupHook();
 
       act(() => {
-        // Select site1 and site3
-        result.current.setPendingTopology('sites', ['site1', 'site3']);
+        result.current.appendPendingTopology(['site1'], 'sites');
       });
+      let res = result.current.pendingTopology;
+      let siteNames = res.sites;
+      expect(siteNames.size).toEqual(1);
+      expect(siteNames.has('site1'));
 
       act(() => {
-        // Select link from node 20 to node 30
-        result.current.setPendingTopology('links', ['link20_30']);
+        result.current.appendPendingTopology(['site2'], 'sites');
       });
+      res = result.current.pendingTopology;
+      siteNames = res.sites;
+      expect(siteNames.size).toEqual(2);
+      expect(siteNames.has('site1'));
+      expect(siteNames.has('site2'));
 
-      let res = result.current.getPendingTopology();
-      let siteNames = res.sites.map(site => site.name);
-      expect(siteNames.length).toEqual(3);
-      expect(siteNames.includes('site1'));
-      expect(siteNames.includes('site2'));
-      expect(siteNames.includes('site3'));
-
-      let nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(2);
-      expect(nodeNames.includes('site2_0'));
-      expect(nodeNames.includes('site3_0'));
-
-      let linkNames = res.links.map(link => link.name);
-      expect(linkNames.length).toEqual(1);
-      expect(linkNames.includes('link-site2_0-site3_0'));
-
-      // Unselect ALL links
+      // Select link from node 20 to node 30
       act(() => {
-        result.current.setPendingTopology('links', []);
+        result.current.appendPendingTopology(['link20_30'], 'links');
       });
 
-      res = result.current.getPendingTopology();
-      siteNames = res.sites.map(site => site.name);
-      expect(siteNames.length).toEqual(2);
-      expect(siteNames.includes('site1'));
-      expect(siteNames.includes('site3'));
+      res = result.current.pendingTopology;
+      siteNames = res.sites;
+      expect(siteNames.size).toEqual(3);
+      expect(siteNames.has('site1'));
+      expect(siteNames.has('site2'));
+      expect(siteNames.has('site3'));
 
-      nodeNames = res.nodes.map(node => node.name);
-      expect(nodeNames.length).toEqual(0);
+      const linkNames = res.links;
+      expect(linkNames.size).toEqual(1);
+      expect(linkNames.has('link-site2_0-site3_0'));
+    });
+  });
 
-      linkNames = res.links.map(link => link.name);
-      expect(linkNames.length).toBe(0);
+  describe('removeFromPendingTopology', () => {
+    test('remove link should remove its sites', () => {
+      const {result} = setupHook();
+
+      act(() => {
+        result.current.appendPendingTopology(['link20_30'], 'links');
+      });
+      // Sanity check
+      let res = result.current.pendingTopology;
+      expect(res.sites.size).toEqual(2);
+      expect(res.links.size).toEqual(1);
+
+      act(() => {
+        result.current.removeFromPendingTopology(['link20_30'], 'links');
+      });
+      // Should remove two sites and 1 link.
+      res = result.current.pendingTopology;
+      expect(res.sites.size).toEqual(0);
+      expect(res.links.size).toEqual(0);
+    });
+    test('remove site should remove its links', () => {
+      const {result} = setupHook();
+
+      act(() => {
+        result.current.appendPendingTopology(
+          ['link20_30', 'link10_30'],
+          'links',
+        );
+      });
+      // Sanity check
+      let res = result.current.pendingTopology;
+      expect(res.sites.size).toEqual(3);
+      expect(res.links.size).toEqual(2);
+
+      act(() => {
+        result.current.removeFromPendingTopology(['site2'], 'sites');
+      });
+      res = result.current.pendingTopology;
+      expect(res.sites.size).toEqual(2);
+      expect(res.sites.has('site1'));
+      expect(res.sites.has('site3'));
+      expect(res.links.size).toEqual(1);
     });
   });
 });

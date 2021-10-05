@@ -72,7 +72,7 @@ export type NetworkPlanningContext = {|
 
   // Represents the sites and links that have been selected for commit.
   // This may included elements that have already been committed to the
-  // network. Deduplication is done inside getPendingTopology.
+  // network. Deduplication is done inside getTopologyToCommit.
   _pendingTopology: PendingTopology,
   _setPendingTopology: SetState<PendingTopology>,
 

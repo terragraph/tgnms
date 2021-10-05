@@ -137,7 +137,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
   const {
     filteredTopology,
     setPendingTopology,
-    rawPendingTopology,
+    pendingTopology,
   } = useNetworkPlanningManager();
 
   const tableOptions = React.useMemo(
@@ -156,7 +156,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
   );
 
   const sites: SiteRowSchema[] = React.useMemo(() => {
-    const checkedSites = rawPendingTopology.sites;
+    const checkedSites = pendingTopology.sites;
     return !isEmpty(filteredTopology?.sites)
       ? objectValuesTypesafe(filteredTopology.sites).map(site => {
           return {
@@ -171,10 +171,10 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
           };
         })
       : [];
-  }, [filteredTopology, rawPendingTopology]);
+  }, [filteredTopology, pendingTopology]);
 
   const links: LinkRowSchema[] = React.useMemo(() => {
-    const checkedLinks = rawPendingTopology.links;
+    const checkedLinks = pendingTopology.links;
     return !isEmpty(filteredTopology?.links)
       ? objectValuesTypesafe(filteredTopology.links).map(link => {
           return {
@@ -187,24 +187,18 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
           };
         })
       : [];
-  }, [filteredTopology, rawPendingTopology]);
+  }, [filteredTopology, pendingTopology]);
 
   const sitesSelectionCallback = React.useCallback(
     (rows: SiteRowSchema[]) => {
-      setPendingTopology(
-        'sites',
-        rows.map(e => e.id),
-      );
+      setPendingTopology({sites: rows.map(e => e.id)});
     },
     [setPendingTopology],
   );
 
   const linksSelectionCallback = React.useCallback(
     (rows: LinkRowSchema[]) => {
-      setPendingTopology(
-        'links',
-        rows.map(e => e.id),
-      );
+      setPendingTopology({links: rows.map(e => e.id)});
     },
     [setPendingTopology],
   );

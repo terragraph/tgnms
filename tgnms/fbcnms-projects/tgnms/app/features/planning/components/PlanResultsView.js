@@ -81,7 +81,11 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     mapOptions,
     setMapOptions,
   } = useNetworkPlanningContext();
-  const {filteredTopology, getPendingTopology} = useNetworkPlanningManager();
+  const {
+    filteredTopology,
+    getTopologyToCommit,
+    setPendingTopology,
+  } = useNetworkPlanningManager();
 
   const {
     mapFeatures,
@@ -138,8 +142,11 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
         handleTopologyChangeSnackbar(status, snackbars);
       }
     };
-    uploadTopologyBuilderRequest(getPendingTopology(), networkName, onClose);
-  }, [getPendingTopology, networkName, snackbars]);
+    uploadTopologyBuilderRequest(getTopologyToCommit(), networkName, onClose);
+
+    // Clear selection once request is sent.
+    setPendingTopology({links: [], sites: []});
+  }, [getTopologyToCommit, setPendingTopology, networkName, snackbars]);
 
   /**
    * only zoom to the plan's bbox once, after the plan has been
@@ -214,7 +221,7 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
             fullWidth
             disabled={false}
             onSubmit={handleCommitPlan}
-            getUploadTopology={getPendingTopology}
+            getUploadTopology={getTopologyToCommit}
             customText="Commit Plan to Network"
           />
         )}

@@ -15,6 +15,8 @@ import type {
   ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
+export type PendingTopologyType = 'sites' | 'links';
+
 export function useNetworkPlanningManager() {
   const {
     planTopology,
@@ -62,26 +64,107 @@ export function useNetworkPlanningManager() {
     return {...res, links: newLinks};
   }, [planTopology, mapOptions]);
 
-  // Setter for the internal(?) version of pendingTopology
+  // Sets the sites/links in the pendingTopology.
   // (i.e. _pendingTopology which is a very lean version of what's been
   // selected for commit)
   const setPendingTopology = React.useCallback(
-    (type: 'sites' | 'links', elements: string[]) => {
-      _setPendingTopology(prevPendingTopology => ({
-        ...prevPendingTopology,
-        [(type: string)]: new Set<string>(elements),
-      }));
+    ({sites, links}: {sites?: string[], links?: string[]}) => {
+      _setPendingTopology(prevPendingTopology => {
+        // If no sites/links were passed in, assume we are using
+        // the previous one.
+        sites = sites ?? Array.from(prevPendingTopology.sites);
+        links = links ?? Array.from(prevPendingTopology.links);
+
+        // Add in sites required by links.
+        const additionalSites = [];
+        for (const link_id of links) {
+          const link = filteredTopology.links[link_id];
+          additionalSites.push(link.tx_site_id);
+          additionalSites.push(link.rx_site_id);
+        }
+
+        const newPendingTopology = {
+          links: new Set<string>(links),
+          sites: new Set<string>([...sites, ...additionalSites]),
+        };
+        return {
+          ...prevPendingTopology,
+          ...newPendingTopology,
+        };
+      });
     },
-    [_setPendingTopology],
+    [filteredTopology, _setPendingTopology],
   );
 
-  // Getter for the internal(?) version of pendingTopology
-  // (i.e. _pendingTopology which is a very lean version of what's been
-  // selected for commit)
+  const appendPendingTopology = React.useCallback(
+    (elements: string[], type: PendingTopologyType) => {
+      const newSelection = new Set<string>([
+        ..._pendingTopology[type],
+        ...elements,
+      ]);
+      setPendingTopology({[(type: string)]: Array.from(newSelection)});
+    },
+    [_pendingTopology, setPendingTopology],
+  );
+
+  // 1. When removing a link, the sites that were added would be removed
+  //    unless there are other links going to that site.
+  // 2. If you manually deselect a site that has a link going from it,
+  //    then the link(s) from that site get deselected but the sites on
+  //    the other end of the link stay.
+  const removeFromPendingTopology = React.useCallback(
+    (elements: string[], type: PendingTopologyType) => {
+      let newLinks, newSites;
+      const toBeRemoved = new Set(elements);
+      if (type === 'links') {
+        newLinks = [..._pendingTopology.links].filter(
+          id => !toBeRemoved.has(id),
+        );
+        // Remove the sites associated with the link too.
+        // Sites required by newLinks are re-added in
+        // setPendingTopology
+        newSites = new Set([..._pendingTopology.sites]);
+        for (const link_id of toBeRemoved) {
+          const link = filteredTopology.links[link_id];
+          newSites.delete(link.tx_site_id);
+          newSites.delete(link.rx_site_id);
+        }
+      } else {
+        newSites = [..._pendingTopology.sites].filter(
+          id => !toBeRemoved.has(id),
+        );
+        // Remove any link connected to that site.
+        newLinks = new Set([..._pendingTopology.links]);
+        for (const link_id of _pendingTopology.links) {
+          const link = filteredTopology.links[link_id];
+          if (
+            toBeRemoved.has(link.tx_site_id) ||
+            toBeRemoved.has(link.rx_site_id)
+          ) {
+            newLinks.delete(link_id);
+          }
+        }
+      }
+      setPendingTopology({
+        links: Array.from(newLinks),
+        sites: Array.from(newSites),
+      });
+    },
+    [_pendingTopology, setPendingTopology, filteredTopology],
+  );
+
+  const isInPendingTopology = React.useCallback(
+    (element: string, type: PendingTopologyType) =>
+      _pendingTopology[type].has(element),
+    [_pendingTopology],
+  );
+
+  // Gets the full set of nodes/links/sites derived from the
+  // pendingTopology.
   //
-  // This will return the NEW topology elements that will be added to
-  // the network.
-  const getPendingTopology = React.useCallback(() => {
+  // This will return the NEW topology elements that will be
+  // added to the network.
+  const getTopologyToCommit = React.useCallback(() => {
     const result: ANPUploadTopologyType = {
       sites: {},
       nodes: {}, // not used in this section
@@ -141,19 +224,13 @@ export function useNetworkPlanningManager() {
     currentSites,
   ]);
 
-  const result = React.useMemo(
-    () => ({
-      rawPendingTopology: _pendingTopology,
-      filteredTopology,
-      setPendingTopology,
-      getPendingTopology,
-    }),
-    [
-      _pendingTopology,
-      filteredTopology,
-      setPendingTopology,
-      getPendingTopology,
-    ],
-  );
-  return result;
+  return {
+    pendingTopology: _pendingTopology,
+    filteredTopology,
+    appendPendingTopology,
+    setPendingTopology,
+    removeFromPendingTopology,
+    isInPendingTopology,
+    getTopologyToCommit,
+  };
 }

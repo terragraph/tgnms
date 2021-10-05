@@ -47,7 +47,7 @@ describe('TopologyTable', () => {
   test('the pending topology elements should be checked on load', async () => {
     jest.spyOn(mockManager, 'useNetworkPlanningManager').mockReturnValue({
       filteredTopology: planTopology,
-      rawPendingTopology: {
+      pendingTopology: {
         sites: new Set<string>(['site1', 'site2']),
         links: new Set<string>(['link10_20']),
       },
