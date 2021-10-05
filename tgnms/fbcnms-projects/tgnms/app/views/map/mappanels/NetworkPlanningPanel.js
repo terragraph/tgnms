@@ -111,8 +111,6 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
     setRefreshDate,
     setPlanTopology,
     refreshDate,
-    _pendingTopology,
-    _setPendingTopology,
 
     // I/O files
     setInputFiles,

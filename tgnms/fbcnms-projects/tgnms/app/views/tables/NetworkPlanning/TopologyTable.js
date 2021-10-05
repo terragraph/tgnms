@@ -59,7 +59,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const linkColumns = [
+const LINK_COLUMNS = [
   {
     title: 'Name',
     field: 'id',
@@ -87,7 +87,7 @@ const linkColumns = [
   },
 ];
 
-const siteColumns = [
+const SITE_COLUMNS = [
   {
     title: 'Name',
     field: 'id',
@@ -134,12 +134,17 @@ export type LinkRowSchema = {
 export default function TopologyTable({tableHeight}: NetworkTableProps) {
   const classes = useStyles();
   const {plan} = useNetworkPlanningContext();
-  const {filteredTopology, setPendingTopology} = useNetworkPlanningManager();
+  const {
+    filteredTopology,
+    setPendingTopology,
+    rawPendingTopology,
+  } = useNetworkPlanningManager();
 
   const tableOptions = React.useMemo(
     () => ({
       selection: true,
       pageSize: 5,
+      pageSizeOptions: [5, 10],
       maxBodyHeight:
         tableHeight != null
           ? tableHeight -
@@ -151,6 +156,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
   );
 
   const sites: SiteRowSchema[] = React.useMemo(() => {
+    const checkedSites = rawPendingTopology.sites;
     return !isEmpty(filteredTopology?.sites)
       ? objectValuesTypesafe(filteredTopology.sites).map(site => {
           return {
@@ -159,12 +165,16 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
             longitude: site?.loc.longitude,
             site_type: ANP_SITE_TYPE_PRETTY[site?.site_type],
             status_type: ANP_STATUS_TYPE_PRETTY[site?.status_type],
+            // No documentation for tableData :( but here's something:
+            // https://github.com/mbrn/material-table/issues/2180
+            tableData: {checked: checkedSites.has(site.site_id)},
           };
         })
       : [];
-  }, [filteredTopology]);
+  }, [filteredTopology, rawPendingTopology]);
 
   const links: LinkRowSchema[] = React.useMemo(() => {
+    const checkedLinks = rawPendingTopology.links;
     return !isEmpty(filteredTopology?.links)
       ? objectValuesTypesafe(filteredTopology.links).map(link => {
           return {
@@ -173,21 +183,28 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
             snr: link?.SNR,
             capacity: link?.capacity,
             length: link?.distance,
+            tableData: {checked: checkedLinks.has(link.link_id)},
           };
         })
       : [];
-  }, [filteredTopology]);
+  }, [filteredTopology, rawPendingTopology]);
 
   const sitesSelectionCallback = React.useCallback(
-    rows => {
-      setPendingTopology(rows, 'sites');
+    (rows: SiteRowSchema[]) => {
+      setPendingTopology(
+        'sites',
+        rows.map(e => e.id),
+      );
     },
     [setPendingTopology],
   );
 
   const linksSelectionCallback = React.useCallback(
-    rows => {
-      setPendingTopology(rows, 'links');
+    (rows: LinkRowSchema[]) => {
+      setPendingTopology(
+        'links',
+        rows.map(e => e.id),
+      );
     },
     [setPendingTopology],
   );
@@ -223,7 +240,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
               title={''}
               className={classes.table}
               data={sites}
-              columns={siteColumns}
+              columns={SITE_COLUMNS}
               options={tableOptions}
               onSelectionChange={sitesSelectionCallback}
               style={noBoxShadow}
@@ -244,7 +261,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
             <MaterialTable
               title={''}
               data={links}
-              columns={linkColumns}
+              columns={LINK_COLUMNS}
               options={tableOptions}
               onSelectionChange={linksSelectionCallback}
               style={noBoxShadow}

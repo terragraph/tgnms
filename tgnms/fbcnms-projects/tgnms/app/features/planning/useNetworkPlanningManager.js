@@ -14,7 +14,6 @@ import type {
   ANPLink,
   ANPUploadTopologyType,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-export type PendingTopologyElement = {id: string};
 
 export function useNetworkPlanningManager() {
   const {
@@ -67,11 +66,13 @@ export function useNetworkPlanningManager() {
   // (i.e. _pendingTopology which is a very lean version of what's been
   // selected for commit)
   const setPendingTopology = React.useCallback(
-    (elements: PendingTopologyElement[], type: 'sites' | 'links') => {
-      const res = new Set<string>(elements.map(e => e.id));
-      _setPendingTopology({..._pendingTopology, [(type: string)]: res});
+    (type: 'sites' | 'links', elements: string[]) => {
+      _setPendingTopology(prevPendingTopology => ({
+        ...prevPendingTopology,
+        [(type: string)]: new Set<string>(elements),
+      }));
     },
-    [_pendingTopology, _setPendingTopology],
+    [_setPendingTopology],
   );
 
   // Getter for the internal(?) version of pendingTopology
@@ -142,11 +143,17 @@ export function useNetworkPlanningManager() {
 
   const result = React.useMemo(
     () => ({
+      rawPendingTopology: _pendingTopology,
       filteredTopology,
       setPendingTopology,
       getPendingTopology,
     }),
-    [filteredTopology, setPendingTopology, getPendingTopology],
+    [
+      _pendingTopology,
+      filteredTopology,
+      setPendingTopology,
+      getPendingTopology,
+    ],
   );
   return result;
 }

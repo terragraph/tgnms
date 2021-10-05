@@ -40,7 +40,9 @@ describe('useNetworkPlanningManager', () => {
   );
 
   beforeEach(() => {
-    _planTopology = JSON.parse(mockUploadANPJson(__dirname, 'mockANP.json'));
+    _planTopology = JSON.parse(
+      mockUploadANPJson(__dirname, 'planning_mock_ANP.json'),
+    );
   });
 
   describe('filtered topology', () => {
@@ -136,13 +138,7 @@ describe('useNetworkPlanningManager', () => {
 
       // Select site1 and site3
       act(() => {
-        result.current.setPendingTopology(
-          [
-            {id: 'site1', type: 'site'},
-            {id: 'site3', type: 'site'},
-          ],
-          'sites',
-        );
+        result.current.setPendingTopology('sites', ['site1', 'site3']);
       });
 
       let res = result.current.getPendingTopology();
@@ -159,10 +155,7 @@ describe('useNetworkPlanningManager', () => {
 
       // Select link from node 20 to node 30
       act(() => {
-        result.current.setPendingTopology(
-          [{id: 'link20_30', type: 'link'}],
-          'links',
-        );
+        result.current.setPendingTopology('links', ['link20_30']);
       });
 
       res = result.current.getPendingTopology();
@@ -203,10 +196,7 @@ describe('useNetworkPlanningManager', () => {
       });
       // Select link from node 20 to node 30
       act(() => {
-        result.current.setPendingTopology(
-          [{id: 'link20_30', type: 'link'}],
-          'links',
-        );
+        result.current.setPendingTopology('links', ['link20_30']);
       });
 
       const res = result.current.getPendingTopology();
@@ -245,21 +235,12 @@ describe('useNetworkPlanningManager', () => {
 
       act(() => {
         // Select site1 and site3
-        result.current.setPendingTopology(
-          [
-            {id: 'site1', type: 'site'},
-            {id: 'site3', type: 'site'},
-          ],
-          'sites',
-        );
+        result.current.setPendingTopology('sites', ['site1', 'site3']);
       });
 
       act(() => {
         // Select link from node 20 to node 30
-        result.current.setPendingTopology(
-          [{id: 'link20_30', type: 'link'}],
-          'links',
-        );
+        result.current.setPendingTopology('links', ['link20_30']);
       });
 
       let res = result.current.getPendingTopology();
@@ -280,7 +261,7 @@ describe('useNetworkPlanningManager', () => {
 
       // Unselect ALL links
       act(() => {
-        result.current.setPendingTopology([], 'links');
+        result.current.setPendingTopology('links', []);
       });
 
       res = result.current.getPendingTopology();

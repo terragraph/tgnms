@@ -22,7 +22,9 @@ describe('suggest name', () => {
 
 describe('filterANPTopology', () => {
   test('filters out elements based on status types', () => {
-    const topology = JSON.parse(mockUploadANPJson(__dirname, 'mockANP.json'));
+    const topology = JSON.parse(
+      mockUploadANPJson(__dirname, 'planning_mock_ANP.json'),
+    );
     let res = filterANPTopology(topology, {
       enabledStatusTypes: {
         PROPOSED: true,
