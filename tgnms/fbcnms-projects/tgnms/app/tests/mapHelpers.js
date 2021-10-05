@@ -6,6 +6,8 @@
  */
 
 import MapboxGlMock from 'mapbox-gl';
+import {Feature as FeatureMock, Layer as LayerMock} from 'react-mapbox-gl';
+
 import type {GeoFeatureCollection} from '@turf/turf';
 
 /**
@@ -101,6 +103,63 @@ export function getPropValue(node: HTMLElement, propName: string) {
     return null;
   }
   return JSON.parse(attr);
+}
+
+/**
+ * Gets the callback function passed in.
+ *
+ * Example:
+ *    <Layer id='myLayer' onClick={myFn}/>
+ *
+ *    const fn = getLayerCallback('myLayer', 'onClick')
+ *
+ * Components can be rerendered with new updated callbacks,
+ * to get onClick the second time `myLayer` was rerendered:
+ *
+ *    const fn = getLayerCallback('myLayer', 'onClick', 2)
+ */
+export function getLayerCallback(
+  id: string,
+  callback: string,
+  occurance: number = 1,
+) {
+  return _getPropCallback(LayerMock, id, callback, occurance);
+}
+
+/**
+ * Gets the callback function passed in.
+ *
+ * Example:
+ *    <Feature id='myFeature' onClick={myFn}/>
+ *
+ *    const fn = getFeatureCallback('myFeature', 'onClick')
+ *
+ * Components can be rerendered with new updated callbacks,
+ * to get onClick the second time `myFeature` was rerendered:
+ *
+ *    const fn = getFeatureCallback('myFeature', 'onClick', 2)
+ */
+export function getFeatureCallback(
+  id: string,
+  callback: string,
+  occurance: number = 1,
+) {
+  return _getPropCallback(FeatureMock, id, callback, occurance);
+}
+
+function _getPropCallback(
+  mock: any,
+  id: string,
+  callback: string,
+  occurance: number,
+) {
+  for (const call of mock.mock.calls) {
+    if (call[0].id == id) {
+      occurance -= 1;
+      if (occurance == 0) return call[0][callback];
+    }
+  }
+  throw new Error(`Callback ${callback} not found in ${id}.`);
 }
 
 export function getSourceFeatureCollection(

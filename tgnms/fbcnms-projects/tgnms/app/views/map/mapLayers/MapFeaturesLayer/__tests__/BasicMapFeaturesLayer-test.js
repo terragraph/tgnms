@@ -6,10 +6,10 @@
  */
 
 import * as React from 'react';
-import MapFeaturesLayer, {
+import BasicMapFeaturesLayer, {
   LINKS_SOURCE_ID,
   SITES_SOURCE_ID,
-} from '../MapFeaturesLayer';
+} from '../BasicMapFeaturesLayer';
 import {
   CN_SITE_COLOR,
   LinkOverlayColors,
@@ -19,6 +19,7 @@ import {FIG0, mockFig0} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {
   LINK_METRIC_OVERLAYS,
   OVERLAY_NONE,
+  SITE_TEST_OVERLAYS,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {MapContextWrapper, TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {color} from 'd3-color';
@@ -34,7 +35,7 @@ const mockFeatures = topologyToMapFeatures(topology);
 const mapContext: $Shape<MapContext> = {
   overlays: {
     link_lines: LINK_METRIC_OVERLAYS.mcs,
-    site_icons: OVERLAY_NONE,
+    site_icons: SITE_TEST_OVERLAYS.health,
     nodes: OVERLAY_NONE,
   },
   mapFeatures: mockFeatures,
@@ -53,7 +54,7 @@ const mapContext: $Shape<MapContext> = {
 test('basic rendering', () => {
   const {container} = render(
     <Wrapper mapContext={mapContext}>
-      <MapFeaturesLayer />
+      <BasicMapFeaturesLayer />
     </Wrapper>,
   );
   const linkFeatures = getSourceFeatureCollection(container, LINKS_SOURCE_ID);

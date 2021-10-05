@@ -414,6 +414,7 @@ export function mockMapboxRef(): MapboxMap {
     loadImage: jest.fn<any, any>((path, cb) => cb(null, {})),
     addImage: jest.fn<any, any>((k, v) => images.set(k, v)),
     hasImage: jest.fn<any, any>(key => images.has(key)),
+    setFilter: jest.fn(),
     triggerRepaint: jest.fn(),
     __baseElement: baseElement,
   };

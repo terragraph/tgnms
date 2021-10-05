@@ -1,0 +1,198 @@
+{
+  "desc": "Version = Reporting Topology.",
+  "sites": {
+    "site1": {
+      "site_id": "site1",
+      "loc": {
+        "latitude": 38.549853,
+        "longitude": -121.779472,
+        "altitude": 26.367722
+      },
+      "polarity": 4,
+      "site_type": 2,
+      "site_capex": 1500.0,
+      "site_opex": 0.0,
+      "site_lifetime": 10,
+      "status_type": 3,
+      "site_hash": "9mb7ibebgp",
+      "breakdowns": 0,
+      "active_sectors": 0,
+      "times_on_mcs_route": 0,
+      "name": "site1",
+      "active_links": 0,
+      "location_type": 1,
+      "building_id": -1,
+      "optimizer_status": {
+        "pre_optimizer": 2,
+        "steiner_tree": 2,
+        "min_cost_optimizer": 2,
+        "adversarial": false,
+        "max_coverage_optimizer": 2,
+        "max_deployment_optimizer": 2,
+        "closing_loops": 2
+      }
+    },
+    "site2": {
+      "site_id": "site2",
+      "loc": {
+        "latitude": 38.550253,
+        "longitude": -121.781208,
+        "altitude": 27.795412
+      },
+      "polarity": 4,
+      "site_type": 1,
+      "site_capex": 1500.0,
+      "site_opex": 0.0,
+      "site_lifetime": 10,
+      "status_type": 3,
+      "site_hash": "9mb7ibbdo0",
+      "breakdowns": 11,
+      "active_sectors": 1,
+      "times_on_mcs_route": 3,
+      "hops": 1,
+      "name": "site2",
+      "active_links": 1,
+      "location_type": 1,
+      "building_id": -1,
+      "optimizer_status": {
+        "pre_optimizer": 2,
+        "steiner_tree": 3,
+        "min_cost_optimizer": 3,
+        "adversarial": false,
+        "max_coverage_optimizer": 3,
+        "max_deployment_optimizer": 3,
+        "closing_loops": 3
+      }
+    },
+    "site3": {
+      "site_id": "site3",
+      "loc": {
+        "latitude": 33.549853,
+        "longitude": -123.779472,
+        "altitude": 23.367722
+      },
+      "polarity": 4,
+      "site_type": 2,
+      "site_capex": 1500.0,
+      "site_opex": 0.0,
+      "site_lifetime": 10,
+      "status_type": 3,
+      "site_hash": "9mb7ibebgp",
+      "breakdowns": 0,
+      "active_sectors": 0,
+      "times_on_mcs_route": 0,
+      "name": "site1",
+      "active_links": 0,
+      "location_type": 1,
+      "building_id": -1,
+      "optimizer_status": {
+        "pre_optimizer": 2,
+        "steiner_tree": 2,
+        "min_cost_optimizer": 2,
+        "adversarial": false,
+        "max_coverage_optimizer": 2,
+        "max_deployment_optimizer": 2,
+        "closing_loops": 2
+      }
+    }
+  },
+  "sectors": {
+    "sector10": {
+      "sector_id": "sector10",
+      "site_id": "site1",
+      "ant_azimuth": 279.0,
+      "node_type": 2,
+      "status_type": 3,
+      "node_capex": 250.0,
+      "node_opex": 0.0,
+      "node_lifetime": 10,
+      "active_links": 1,
+      "node_id": 2,
+      "position_in_node": 0
+    },
+    "sector11": {
+      "sector_id": "sector11",
+      "site_id": "site1",
+      "ant_azimuth": 111.0,
+      "node_type": 2,
+      "status_type": 3,
+      "node_capex": 250.0,
+      "node_opex": 0.0,
+      "node_lifetime": 10,
+      "active_links": 0,
+      "node_id": 2,
+      "position_in_node": 1
+    },
+    "sector20": {
+      "sector_id": "sector20",
+      "site_id": "site2",
+      "ant_azimuth": 115.84550667643184,
+      "node_type": 1,
+      "status_type": 3,
+      "node_capex": 150.0,
+      "node_opex": 0.0,
+      "node_lifetime": 10,
+      "active_links": 1,
+      "node_id": 0,
+      "position_in_node": 0
+    },
+    "sector_imaginary": {
+      "sector_id": "sector_imaginary",
+      "site_id": "site2",
+      "ant_azimuth": 222.0,
+      "node_type": 2,
+      "status_type": 3,
+      "node_capex": 222.0,
+      "node_opex": 222.0,
+      "node_lifetime": 20,
+      "active_links": 0,
+      "node_id": -1,
+      "position_in_node": 0
+    }
+  },
+  "links": {
+    "link10_20": {
+      "link_id": "link10_20",
+      "tx_sector_id": "sector10",
+      "rx_sector_id": "sector20",
+      "link_type": 4,
+      "tx_beam_azimuth": 286.4141388415794,
+      "rx_beam_azimuth": 106.41413884157942,
+      "distance": 157.34266699767514,
+      "proposed_flow": 0,
+      "tx_site_id": "site1",
+      "rx_site_id": "site2",
+      "status_type": 3,
+      "capacity": 1.8,
+      "altitudes": [26.367721557617188, 27.795412063598633],
+      "link_hash": "9mb7ibbdo0_CN-9mb7ibebgp_DN",
+      "MCS": 12,
+      "SNR": 18.0,
+      "RSL": -56.0,
+      "balanced_utilization": 0,
+      "mcs_based_utilization": 0,
+      "p2mp": false,
+      "breakdowns": 0,
+      "times_on_mcs_route": 0,
+      "SINR": 18.0,
+      "tx_dev": 7.414138841579415,
+      "rx_dev": 166.58586115842058,
+      "el_dev": 0.5198742155905633,
+      "RSL_interference": -56.0,
+      "optimizer_status": {
+        "pre_optimizer": 2,
+        "steiner_tree": 2,
+        "min_cost_optimizer": 2,
+        "adversarial": false,
+        "max_coverage_optimizer": 2,
+        "max_deployment_optimizer": 2,
+        "closing_loops": 2
+      }
+    }
+  },
+  "rf_connectivity": {},
+  "net_connectivity": {},
+  "demand_sites": {},
+  "pop_capacity": 10,
+  "oversubscription": 1.0
+}

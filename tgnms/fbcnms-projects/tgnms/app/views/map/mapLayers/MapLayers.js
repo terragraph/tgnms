@@ -9,10 +9,10 @@ import AlertsLayer from './AlertsLayer';
 import BuildingsLayer from './BuildingsLayer';
 import DrawToggle from '@fbcnms/tg-nms/app/views/map/mapControls/DrawToggle';
 import LinksLayer from './LinksLayer';
-import MapFeaturesLayer from './MapFeaturesLayer';
 import McsEstimateLayer from './McsEstimateLayer';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import NodesLayer from './NodesLayer/NodesLayer';
+import PlanMapFeaturesLayer from './MapFeaturesLayer/PlanMapFeaturesLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
@@ -198,7 +198,7 @@ export default function MapLayers(props: Props) {
       {isFeatureEnabled('ALERTS_LAYER_ENABLED') && alert_popups && (
         <AlertsLayer />
       )}
-      {mapMode === MAPMODE.PLANNING && <MapFeaturesLayer />}
+      {mapMode === MAPMODE.PLANNING && <PlanMapFeaturesLayer />}
     </>
   );
 }
