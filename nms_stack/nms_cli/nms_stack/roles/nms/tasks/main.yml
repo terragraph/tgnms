@@ -10,6 +10,8 @@
     - "{{ logs_gfs_path }}"
     - "{{ nms_path }}/docker_volumes"
     - "{{ nms_path }}/docker_volumes/settings"
+    - "{{ nms_path }}/docker_volumes/data"
+    - "{{ nms_path }}/docker_volumes/data/anp"
     - "{{ nms_path }}/env"
     - "{{ nms_path }}/grafana"
     - "{{ nms_path }}/grafana/dashboards"

@@ -14,6 +14,7 @@ services:
     volumes:
       - {{ logs_gfs_path }}:/nodelogs
       - {{ nms_path }}/docker_volumes/settings:/app/fbcnms-projects/tgnms/.settings
+      - {{ nms_path }}/docker_volumes/data/anp:/app/fbcnms-projects/tgnms/data/anp
       - {{ sysdump_gfs_path }}:/app/fbcnms-projects/tgnms/sysdump
     networks:
       - terragraph_net
