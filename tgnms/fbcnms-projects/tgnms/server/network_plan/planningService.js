@@ -10,6 +10,7 @@ const {
   network_plan_folder,
   network_plan_file,
 } = require('../models');
+const mv = require('mv');
 import * as fs from 'fs';
 import * as path from 'path';
 import ANPAPIClient from './ANPAPIClient';
@@ -643,7 +644,7 @@ export default class PlanningService {
        * This will overwrite the existing file.
        */
       await new Promise((res, rej) => {
-        fs.rename(currentPath, newPath, err => {
+        mv(currentPath, newPath, err => {
           if (err) {
             return rej(err);
           }
