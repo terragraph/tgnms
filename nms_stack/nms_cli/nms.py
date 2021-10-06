@@ -177,24 +177,25 @@ def add_common_options(*args):
 
 class InstallerOpts(object):
     def __init__(self, *args, **kwargs):
-        self.config_file = kwargs.get("config_file")
-        self.ssl_key_file = kwargs.get("ssl_key_file")
-        self.ssl_cert_file = kwargs.get("ssl_cert_file")
-        self.host = kwargs.get("host")
-        self.tags = kwargs.get("tags")
-        self.verbose = kwargs.get("verbose")
-        self.password = kwargs.get("password")
+        self.config_file = kwargs.pop("config_file", None)
+        self.ssl_key_file = kwargs.pop("ssl_key_file", None)
+        self.ssl_cert_file = kwargs.pop("ssl_cert_file", None)
+        self.host = kwargs.pop("host", None)
+        self.tags = kwargs.pop("tags", None)
+        self.verbose = kwargs.pop("verbose", None)
+        self.password = kwargs.pop("password", None)
+        self.other_options = kwargs
 
 
-def add_installer_opts(f):
-    @add_common_options(
-        *common_options.keys(),
-    )
-    @click.pass_context
-    def wrapper(ctx, *args, **kwargs):
-        return ctx.invoke(f, InstallerOpts(**kwargs), *args)
+def add_installer_opts(common_opts=common_options.keys()):
+    def fn_wrapper(f):
+        @add_common_options(*common_opts)
+        @click.pass_context
+        def wrapper(ctx, *args, **kwargs):
+            return ctx.invoke(f, InstallerOpts(**kwargs), *args)
 
-    return update_wrapper(wrapper, f)
+        return update_wrapper(wrapper, f)
+    return fn_wrapper
 
 
 @click.group(invoke_without_command=True)
@@ -353,12 +354,12 @@ def load_variables(config_file):
 
 
 @cli.command()
-@add_installer_opts
+@add_installer_opts()
 @click.pass_context
 @rage.log_command(RAGE_DIR)
 def install(ctx, installer_opts):
     """Install the NMS stack of docker images etc."""
-    password = False
+    password = None
     if installer_opts.password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
     variables = generate_variables(ctx, installer_opts)
@@ -376,7 +377,6 @@ def install(ctx, installer_opts):
 
 
 @cli.command()
-@add_common_options("config-file", "host", "tags", "password", "verbose")
 @click.option(
     "--remove-docker",
     is_flag=True,
@@ -405,52 +405,49 @@ def install(ctx, installer_opts):
     is_flag=True,
     help="[Dangerous] Ignore any errors and continue uninstalling",
 )
+@add_installer_opts(common_opts=["config-file", "host", "tags", "password", "verbose"])
 @click.pass_context
 @rage.log_command(RAGE_DIR)
-def uninstall(
-    ctx,
-    config_file,
-    host,
-    verbose,
-    tags,
-    remove_docker,
-    remove_gluster,
-    delete_data,
-    backup_file,
-    skip_backup,
-    password,
-    force,
-):
+def uninstall(ctx, installer_opts):
     """Uninstall the NMS stack of docker images etc."""
-    if not host:
+    other_options = installer_opts.other_options
+    if not installer_opts.host:
         click.echo("--host is required")
         ctx.exit(1)
 
-    if password:
+    password = None
+    if installer_opts.password:  # Use password
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
 
-    a = executor(tags, verbose)
-    a.uninstall_options(
-        skip_backup,
-        delete_data,
-        os.path.abspath(backup_file),
-        remove_docker,
-        remove_gluster,
-        force,
-    )
+    a = executor(installer_opts.tags, installer_opts.verbose)
 
-    hosts = generate_host_groups(host)
+    variables = generate_variables(ctx, installer_opts)
+    variables.update({
+        "skip_backup": other_options.get('skip_backup'),
+        "delete_data": other_options.get('delete_data'),
+        "backup_file": os.path.abspath(other_options.get('backup_file')),
+        "remove_docker": other_options.get('remove_docker'),
+        "remove_gluster": other_options.get('remove_gluster'),
+        "force": other_options.get('force'),
+    })
+    hosts = generate_host_groups(installer_opts.host)
     sys.exit(
-        a.run(hosts, UNINSTALL_PLAYBOOK, config_file=config_file, password=password)
+        a.run(
+            hosts,
+            UNINSTALL_PLAYBOOK,
+            config_file=installer_opts.config_file,
+            generated_config=variables,
+            password=password,
+        )
     )
 
 
 @cli.command()
-@add_installer_opts
+@add_installer_opts()
 @click.pass_context
 @rage.log_command(RAGE_DIR)
 def validate(ctx, installer_opts):
-    password = False
+    password = None
     if installer_opts.password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
     config_file = installer_opts.config_file

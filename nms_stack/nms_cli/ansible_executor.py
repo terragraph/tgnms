@@ -88,24 +88,6 @@ class ansible_executor:
             sources=pkg_resources.resource_filename("nms_cli", self.inventory_file),
         )
 
-    def uninstall_options(
-        self,
-        skip_backup,
-        delete_data,
-        backup_file,
-        remove_docker,
-        remove_gluster,
-        force,
-    ):
-        self.uninstall_opts = {
-            "skip_backup": skip_backup,
-            "delete_data": delete_data,
-            "backup_file": backup_file,
-            "remove_docker": remove_docker,
-            "remove_gluster": remove_gluster,
-            "force": force,
-        }
-
     def run(  # noqa: C901
         self, hosts, playbook, config_file=None, generated_config=None, password=None
     ):
@@ -113,9 +95,6 @@ class ansible_executor:
         if config_file:
             # record the absolute path to the config file
             extra_vars["install_config_file"] = os.path.abspath(config_file)
-        if self.uninstall_opts is not None:
-            for k, v in self.uninstall_opts.items():
-                extra_vars[k] = v
 
         if generated_config:
             extra_vars.update(generated_config)
