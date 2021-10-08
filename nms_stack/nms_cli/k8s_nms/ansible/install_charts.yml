@@ -34,7 +34,7 @@
 
     - name: Install Helm charts
       ignore_errors: true
-      shell: "helm upgrade --install {{ item['name'] }} {{ item['chart'] }} --values {{ terragraph_hostpath }}/helm/{{ item['values'] | basename }} {% if item['version'] is defined %} --version {{ item['version'] }} {% endif %}"
+      shell: "helm upgrade -n {{ namespace }} --install {{ item['name'] }} {{ item['chart'] }} --values {{ terragraph_hostpath }}/helm/{{ item['values'] | basename }} {% if item['version'] is defined %} --version {{ item['version'] }} {% endif %}"
       environment:
         https_proxy: "{{ https_proxy }}"
         no_proxy: "{{ no_proxy }}"

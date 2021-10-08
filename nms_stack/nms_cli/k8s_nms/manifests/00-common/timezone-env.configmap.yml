@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: "{{ namespace }}"
   name: time-zone
 data:
   TZ_FILE: /usr/share/zoneinfo/America/Los_Angeles

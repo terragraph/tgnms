@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: {{ namespace }}
   name: kafka-log4j-properties
 data:
   log4j.properties: |
@@ -10,6 +11,7 @@ data:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  namespace: {{ namespace }}
   name: kafka
   labels:
     type: local
@@ -34,6 +36,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  namespace: {{ namespace }}
   name: kafka
 spec:
   storageClassName: local
@@ -46,6 +49,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: {{ namespace }}
   name:  create-kafka-topics
 data:
   create-topics.sh: |
@@ -54,6 +58,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
+  namespace: {{ namespace }}
   name: create-kafka-topics
 spec:
   ttlSecondsAfterFinished: 0
