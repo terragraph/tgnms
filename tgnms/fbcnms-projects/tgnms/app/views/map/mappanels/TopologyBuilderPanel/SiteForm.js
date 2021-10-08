@@ -94,7 +94,7 @@ export default function SiteForm() {
       <Grid item>
         <TextField
           className="site-name-tutorial"
-          data-testId="site-name-input"
+          data-testid="site-name-input"
           id="name"
           key="name"
           label="Site Name"

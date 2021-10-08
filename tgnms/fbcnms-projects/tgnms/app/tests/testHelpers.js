@@ -43,6 +43,7 @@ import type {RenderOptionsWithoutCustomQueries} from '@testing-library/react';
 import type {RenderResult} from '@testing-library/react';
 import type {RouterHistory} from 'react-router-dom';
 import type {RoutesContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
+import type {TopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import type {UIConfig} from '@fbcnms/tg-nms/shared/dto/UI';
 import type {User} from '@fbcnms/tg-nms/shared/auth/User';
 
@@ -524,4 +525,22 @@ export function selectAutocompleteItem(
   fireEvent.keyDown(autocomplete, {key: 'ArrowDown'});
   // select item
   fireEvent.keyDown(autocomplete, {key: 'Enter'});
+}
+
+export function mockTopologyBuilderContext(
+  overrides?: $Shape<TopologyBuilderContext> = {},
+): TopologyBuilderContext {
+  return {
+    elementType: '',
+    updateTopology: jest.fn,
+    newTopology: {
+      site: {name: 'testSite'},
+      nodes: [{name: 'site1-0'}],
+      links: [],
+    },
+    initialParams: {},
+    selectedTopologyPanel: 'testPanel',
+    setSelectedTopologyPanel: _ => {},
+    ...overrides,
+  };
 }

@@ -20,10 +20,15 @@ import type {
 } from '@fbcnms/tg-nms/shared/types/Topology';
 import type {TopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 
+export type MoveSitePayload = {
+  siteName: string,
+  newSite: SiteType,
+};
+
 export type AzimuthManager = {|
   addLink: LinkType => Promise<void>,
   deleteLink: LinkType => Promise<void>,
-  moveSite: SiteType => Promise<void>,
+  moveSite: MoveSitePayload => Promise<void>,
 |};
 /**
  * Update node azimuths in response to topology changes
@@ -116,19 +121,45 @@ export function useAzimuthManager() {
    * When a site is moved, recompute the azimuths of every node on this site and
    * every node it has a wireless link with.
    */
-  const moveSite = async (updatedSite: SiteType) => {
+  const moveSite = async ({siteName, newSite}: MoveSitePayload) => {
+    // In the event that the site is renamed, we need to make sure the
+    // site's nodes get the new site name.
+    const refactoredNodes = Array.from(
+      topologyMaps.siteToNodesMap[siteName],
+    ).map(nodeName => ({
+      ...topologyMaps.nodeMap[nodeName],
+      site_name: newSite.name,
+    }));
+    // Reconstruct our topology maps with the new site.
     const newTopologyMap = {
       ...topologyMaps,
       siteMap: {
         ...topologyMaps.siteMap,
-        [updatedSite.name]: {
-          ...updatedSite,
+        [newSite.name]: {
+          ...newSite,
         },
       },
+      siteToNodesMap: {
+        ...topologyMaps.siteToNodesMap,
+        [newSite.name]: topologyMaps.siteToNodesMap[siteName],
+      },
+      nodeMap: {
+        ...topologyMaps.nodeMap,
+        ...refactoredNodes.reduce((map, node) => {
+          map[node.name] = node;
+          return map;
+        }, {}),
+      },
     };
+    if (newSite.name != siteName) {
+      // Remove any reference to the old site
+      delete newTopologyMap.siteMap[siteName];
+      delete newTopologyMap.siteToNodesMap[siteName];
+    }
+
     const siteNodes = Array.from(
-      newTopologyMap.siteToNodesMap[updatedSite.name],
-    ).map(name => nodeMap[name]);
+      newTopologyMap.siteToNodesMap[newSite.name],
+    ).map(name => newTopologyMap.nodeMap[name]);
     let peers: Array<NodeType> = [];
     for (const node of siteNodes) {
       peers = peers.concat(

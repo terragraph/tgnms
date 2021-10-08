@@ -225,7 +225,10 @@ describe('moveSite', () => {
         ),
       });
       await act(async () => {
-        await result.current.moveSite(site);
+        await result.current.moveSite({
+          siteName: siteName,
+          newSite: site,
+        });
       });
       expect(apiRequestMock).toHaveBeenCalledTimes(4);
       for (const nodeName of siteNodes.concat(sitePeers)) {

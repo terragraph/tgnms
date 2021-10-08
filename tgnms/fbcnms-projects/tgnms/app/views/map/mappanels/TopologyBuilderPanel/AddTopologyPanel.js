@@ -35,6 +35,7 @@ import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBui
 import {useTutorialContext} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 import {useUpdateConfig} from '@fbcnms/tg-nms/app/hooks/useUpdateConfig';
 
+import type {MoveSitePayload} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
 //in edit node there is only one node. Other modes will have multiple nodes
@@ -211,7 +212,7 @@ export default function AddTopologyPanel({
           handleAddTopologyClose(error.message);
         }
       } else if (elementType === TOPOLOGY_ELEMENT.SITE) {
-        const data = {
+        const data: MoveSitePayload = {
           siteName: initialParams.site.name,
           newSite: newTopology.site,
         };
@@ -222,7 +223,7 @@ export default function AddTopologyPanel({
             data,
             handleAddTopologyClose,
           );
-          await azimuthManager.moveSite(initialParams.site);
+          await azimuthManager.moveSite(data);
         } catch (error) {
           handleAddTopologyClose(error.message);
         }
@@ -400,7 +401,7 @@ export default function AddTopologyPanel({
                   variant="contained"
                   color="primary"
                   size="small"
-                  data-testid="add-link-button"
+                  data-testid="save-topology-button"
                   onClick={onSubmit}
                   className={STEP_TARGET.SAVE_TOPOLOGY}>
                   Save

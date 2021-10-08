@@ -10,8 +10,7 @@ import NodeForm from '../NodeForm';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 import {mockNetworkConfig} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
-
-import type {TopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
+import {mockTopologyBuilderContext} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 const defaultProps = {
   index: 0,
@@ -92,20 +91,3 @@ test('when no form values are selected, no update is called', () => {
   });
   expect(mockUpdateTopology).not.toHaveBeenCalled();
 });
-
-export function mockTopologyBuilderContext(
-  overrides?: $Shape<TopologyBuilderContext> = {},
-): TopologyBuilderContext {
-  return {
-    elementType: '',
-    updateTopology: jest.fn,
-    newTopology: {
-      site: {name: 'testSite'},
-      nodes: [{name: 'site1-0'}],
-      links: [],
-    },
-    initialParams: {},
-    selectedTopologyPanel: 'testPanel',
-    ...overrides,
-  };
-}

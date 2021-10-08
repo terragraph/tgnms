@@ -159,7 +159,7 @@ export default function NodeForm({index}: {index: number}) {
       )}
       <Grid item>
         <TextField
-          data-testId="node-name-input"
+          data-testid="node-name-input"
           className={STEP_TARGET.NODE_NAME}
           id="name"
           key="name"

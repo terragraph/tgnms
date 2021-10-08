@@ -32,7 +32,7 @@ export default function SiteAdvanced({
         id="latitude"
         key="latitude"
         label="Latitude"
-        data-testId="latitude-input"
+        data-testid="latitude-input"
         type="number"
         InputLabelProps={{shrink: true}}
         inputProps={{step: 0.00001}}
