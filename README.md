@@ -9,8 +9,8 @@ This repo contains code for the Terragraph Network Management System (TGNMS).
 TGNMS is deployed via Ansible scripts run by an installer tool.
 
 ```bash
-git clone https://github.com/facebookexternal/terragraph-apps.git
-cd terragraph-apps/nms_stack
+git clone https://github.com/terragraph/tgnms
+cd tgnms/nms_stack
 python -m pip install .
 
 # Verify the installer tool was installed correctly
