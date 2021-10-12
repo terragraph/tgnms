@@ -169,7 +169,7 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
         - network_name
         - mode
     produces:
-    - text/plain
+    - application/json
     responses:
       "200":
         description: Successful operation.
@@ -212,7 +212,13 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
     test = ScanTest(network_name, type, mode, options)
     schedule_id = await Scheduler.add_schedule(schedule, test)
 
-    return web.Response(text=f"Added scan test schedule with ID: {schedule_id}")
+    return web.json_response(
+        {
+            "status": "success",
+            "message": f"Added scan test schedule with ID: {schedule_id}",
+            "schedule_id": schedule_id,
+        }
+    )
 
 
 @routes.put("/schedule/{schedule_id:[0-9]+}")
@@ -223,7 +229,7 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     tags:
     - Scan Service
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: path
       name: schedule_id
@@ -306,7 +312,13 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     if not await Scheduler.modify_schedule(schedule_id, schedule, test):
         raise web.HTTPInternalServerError(text="Failed to modify scan test schedule")
 
-    return web.Response(text="Successfully updated scan test schedule")
+    return web.json_response(
+        {
+            "status": "success",
+            "message": f"Successfully updated scan test schedule ID: {schedule_id}",
+            "schedule_id": schedule_id,
+        }
+    )
 
 
 @routes.delete("/schedule/{schedule_id:[0-9]+}")
@@ -317,7 +329,7 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     tags:
     - Scan Service
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: path
       name: schedule_id
@@ -341,7 +353,13 @@ async def handle_delete_schedule(request: web.Request) -> web.Response:
     if not await Scheduler.delete_schedule(schedule_id):
         raise web.HTTPInternalServerError(text="Failed to delete scan test schedule")
 
-    return web.Response(text="Successfully deleted scan test schedule")
+    return web.json_response(
+        {
+            "status": "success",
+            "message": f"Successfully deleted scan test schedule: {schedule_id}",
+            "schedule_id": schedule_id,
+        }
+    )
 
 
 @routes.get("/execution")
@@ -522,7 +540,7 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     tags:
     - Scan Service
     produces:
-    - text/plain
+    - application/json
     parameters:
     - in: body
       name: execution
@@ -580,7 +598,13 @@ async def handle_start_execution(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(
             text="Failed to start a new scan test. Check scan service logs."
         )
-    return web.Response(text=f"Started new scan test execution with ID: {execution_id}")
+    return web.json_response(
+        {
+            "status": "success",
+            "message": f"Started new scan test execution with ID: {execution_id}",
+            "execution_id": execution_id,
+        }
+    )
 
 
 @routes.get("/n_day_analysis")
