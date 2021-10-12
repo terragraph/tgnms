@@ -63,27 +63,27 @@ const LINK_COLUMNS = [
   {
     title: 'Name',
     field: 'id',
-    width: 5,
+    width: '40%',
   },
   {
     title: 'MCS',
     field: 'mcs',
-    width: 10,
+    width: '15%',
   },
   {
     title: 'SNR',
     field: 'snr',
-    width: 10,
+    width: '15%',
   },
   {
     title: 'Capacity',
     field: 'capacity',
-    width: 10,
+    width: '15%',
   },
   {
     title: 'Length',
     field: 'length',
-    width: 10,
+    width: '15%',
   },
 ];
 
@@ -91,27 +91,27 @@ const SITE_COLUMNS = [
   {
     title: 'Name',
     field: 'id',
-    width: 5,
+    width: '40%',
   },
   {
     title: 'Site Type',
     field: 'site_type',
-    width: 10,
+    width: '15%',
   },
   {
     title: 'Latitude',
     field: 'latitude',
-    width: 10,
+    width: '15%',
   },
   {
     title: 'Longitude',
     field: 'longitude',
-    width: 10,
+    width: '15%',
   },
   {
     title: 'Status',
     field: 'status_type',
-    width: 10,
+    width: '15%',
   },
 ];
 
