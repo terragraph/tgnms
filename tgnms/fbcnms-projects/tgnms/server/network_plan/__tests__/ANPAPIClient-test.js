@@ -32,6 +32,22 @@ test('throws an error when initialized with invalid config', () => {
     makeClient({anpBaseURL: '', oAuthBaseURL: '', partnerId: 'null'}),
   ).toThrow();
 });
+test('getInputFile works', async () => {
+  jest.spyOn(axiosMock, 'default').mockResolvedValue({status: 200, data: {}});
+  const client = makeClient();
+  client.accessToken = 'abc123';
+  await client.getInputFile('myInputFileId');
+  expect(axiosMock).toHaveBeenLastCalledWith({
+    method: 'GET',
+    url:
+      'https://terragraph-api.fbconnectivity.com/myInputFileId?fields=file_name%2Cfile_extension%2Cfile_role%2Cfile_status',
+    headers: {
+      Authorization: 'OAuth abc123',
+    },
+    responseType: 'json',
+    data: undefined,
+  });
+});
 describe('OAuth', () => {
   test('all ANP requests contain the OAuth access token', async () => {
     jest.spyOn(axiosMock, 'default').mockResolvedValue({status: 200, data: {}});

@@ -22,8 +22,9 @@ import {
   NETWORK_PLAN_STATE,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {constants as FS_CONSTANTS} from 'fs';
-import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {INPUT_FILE_STATE, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {getInputFileFields} from '../models/networkPlan';
+import {pollConditionally} from '@fbcnms/tg-nms/server/helpers/poll';
 import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   CreateNetworkPlanRequest,
@@ -225,7 +226,6 @@ export default class PlanningService {
       })
     ).map(i => i.toJSON());
 
-    // try {
     await Promise.all(
       inputFiles.map(async inputFile => {
         const localFilePath = getInputFilePath({file: inputFile});
@@ -260,6 +260,23 @@ export default class PlanningService {
               where: {id: inputFile.id},
             },
           );
+          // poll to ensure uploaded files are READY
+          try {
+            await pollConditionally({
+              fn: async () => await this.anpApi.getInputFile(anpFile.id),
+              fnCondition: (result: ANPFileHandle) =>
+                result.file_status == INPUT_FILE_STATE.READY,
+              ms: 500,
+              numCallsTimeout: 20,
+            });
+          } catch {
+            throw new Error('Timeout while waiting for files to be ready.');
+          }
+
+          // TODO T103397040 (Tommy): Known bug where READY isn't completely
+          // accurate since the file handle field may still be null. Solution
+          // is to wait for 2 seconds.
+          await new Promise(res => setTimeout(res, 2000));
         } catch (err) {
           console.error(err);
         } finally {

@@ -204,3 +204,5 @@ export const CUT_TYPE = {
   TOPLINE: 'Topline',
   YEAR: 'Year',
 };
+
+export const INPUT_FILE_STATE = {READY: 'READY'};

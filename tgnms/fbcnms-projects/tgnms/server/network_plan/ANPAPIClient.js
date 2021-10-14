@@ -125,6 +125,21 @@ export default class ANPAPIClient {
     });
     return result.data;
   };
+
+  /**
+   * Get the metadata information for a specific file.
+   * `id` is the input file id.
+   */
+  getInputFile = async (id: string) => {
+    const result = await this.makeRequest<ANPFileHandle>({
+      id,
+      query: {
+        fields: 'file_name,file_extension,file_role,file_status',
+      },
+      method: 'GET',
+    });
+    return result;
+  };
   getPlanOutputFiles = async (id: string) => {
     const result = await this.makeRequest<GraphQueryResponse<ANPFileHandle>>({
       id,

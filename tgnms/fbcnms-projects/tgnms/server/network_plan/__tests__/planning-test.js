@@ -16,6 +16,7 @@ import {
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 import {vol} from 'memfs';
+
 import type {FileSourceKey} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {NetworkPlanAttributes} from '@fbcnms/tg-nms/server/models/networkPlan';
 import type {NetworkPlanFileAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFile';
@@ -62,6 +63,11 @@ const createUploadSessionMock = jest.fn(() =>
 const updateFileMetadataMock = jest.fn(() => Promise.resolve(mockFile));
 const uploadChunkMock = jest.fn(() => Promise.resolve({h: '123'}));
 const getPlanMock = jest.fn(() => Promise.reject(new Error('Not implemented')));
+const getInputFileMock = jest
+  .fn()
+  .mockReturnValueOnce({file_status: 'PENDING'})
+  .mockReturnValueOnce({file_status: 'PENDING'})
+  .mockReturnValue({file_status: 'READY'});
 (ANPAPIClientMock: any).mockImplementation(() => ({
   getFileMetadata: getFileMetadataMock,
   createFolder: createFolderMock,
@@ -72,6 +78,7 @@ const getPlanMock = jest.fn(() => Promise.reject(new Error('Not implemented')));
   uploadChunk: uploadChunkMock,
   updateFileMetadata: updateFileMetadataMock,
   getPlan: getPlanMock,
+  getInputFile: getInputFileMock,
 }));
 
 jest.mock('axios');
@@ -673,6 +680,41 @@ describe('POST plan/:id/launch', () => {
       ]),
     );
   });
+  test('poll for input files READY before launch', async () => {
+    const folder = await createTestFolder({name: 'test folder'});
+    const [boundary, dsm, sites] = await createInputFiles();
+    await makeANPDir('inputs');
+    writeInputFile(boundary, Buffer.from('test-1'));
+    writeInputFile(dsm, Buffer.from('test-2'));
+    writeInputFile(sites, Buffer.from('test-3'));
+    expect(boundary.fbid).toBeUndefined();
+    expect(dsm.fbid).toBeUndefined();
+    expect(sites.fbid).toBeUndefined();
+    const {body: plan} = await request(setupApp())
+      .post('/network_plan/plan')
+      .send({
+        name: 'new draft',
+        folderId: folder.id,
+        boundaryFileId: boundary.id,
+        dsmFileId: dsm.id,
+        sitesFileId: sites.id,
+      })
+      .expect(200);
+
+    expect(createUploadSessionMock).not.toHaveBeenCalled();
+    const {body: launchBody} = await request(setupApp())
+      .post(`/network_plan/plan/${plan.id}/launch`)
+      .expect(200);
+    expect(launchBody.state).toBe(NETWORK_PLAN_STATE.RUNNING);
+    // each file is just one chunk so 3 calls
+    expect(createUploadSessionMock).toHaveBeenCalledTimes(3);
+    expect(uploadChunkMock).toHaveBeenCalledTimes(3);
+    // 1st file gets PENDING, PENDING, READY
+    // 2nd file gets READY
+    // 3rd file gets READY
+    expect(getInputFileMock).toHaveBeenCalledTimes(5);
+  });
+
   test('sets ANP plan status after successful launch', async () => {
     const [boundary, dsm, sites] = await createInputFiles({
       source: FILE_SOURCE.fbid,
