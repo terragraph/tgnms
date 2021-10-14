@@ -8,19 +8,17 @@ import * as React from 'react';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import BackButton from './BackButton';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
-import IconButton from '@material-ui/core/IconButton';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import {
   ANP_SITE_TYPE_PRETTY,
   ANP_STATUS_TYPE_PRETTY,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-import {Link, generatePath, matchPath, useLocation} from 'react-router-dom';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   PLANNING_FOLDER_PATH,
@@ -212,7 +210,12 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
         spacing={1}
         className={classes.header}>
         <Grid item>
-          <BackButton />
+          <BackButton
+            from={PLANNING_PLAN_PATH}
+            to={PLANNING_FOLDER_PATH}
+            label="Back to Plans"
+            data-testid="back-to-plans"
+          />
         </Grid>
         <Grid item>
           <Typography variant="h6">Plan: {plan?.name}</Typography>
@@ -264,33 +267,5 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
         </AccordionDetails>
       </Accordion>
     </>
-  );
-}
-
-function BackButton() {
-  const {setSelectedPlanId} = useNetworkPlanningContext();
-  const {pathname} = useLocation();
-  const backUrl = React.useMemo(() => {
-    const match = matchPath(pathname, {
-      path: PLANNING_PLAN_PATH,
-    });
-    const newPath = generatePath(PLANNING_FOLDER_PATH, {
-      view: match?.params?.view ?? '',
-      networkName: match?.params?.networkName ?? '',
-      folderId: match?.params?.folderId ?? '',
-    });
-    return newPath;
-  }, [pathname]);
-  return (
-    <IconButton
-      data-testid="back-to-plans"
-      aria-label="Back to plans"
-      onClick={() => setSelectedPlanId(null)}
-      component={Link}
-      to={backUrl}
-      size="small"
-      edge="start">
-      <ArrowBackIcon fontSize="small" />
-    </IconButton>
   );
 }

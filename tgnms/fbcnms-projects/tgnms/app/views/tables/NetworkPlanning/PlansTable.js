@@ -5,11 +5,10 @@
  * @flow
  */
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import BackButton from './BackButton';
 import Button from '@material-ui/core/Button';
 import CreatePlanModal from './CreatePlanModal';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import PlanStatus from '@fbcnms/tg-nms/app/features/planning/components/PlanStatus';
 import React from 'react';
@@ -18,20 +17,19 @@ import Typography from '@material-ui/core/Typography';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
-import {
-  Link,
-  generatePath,
-  matchPath,
-  useHistory,
-  useLocation,
-  useParams,
-} from 'react-router-dom';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   PLANNING_BASE_PATH,
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
 } from '@fbcnms/tg-nms/app/constants/paths';
+import {
+  generatePath,
+  matchPath,
+  useHistory,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
 import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
@@ -128,7 +126,12 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
         title={
           <Grid container alignContent="center" alignItems="center" spacing={1}>
             <Grid item>
-              <BackButton />
+              <BackButton
+                from={PLANNING_FOLDER_PATH}
+                to={PLANNING_BASE_PATH}
+                label="Back to Folders"
+                data-testid="back-to-folders"
+              />
             </Grid>
             <Grid item>
               <Typography variant="h6">Folder: {folder?.name}</Typography>
@@ -164,33 +167,6 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
         onComplete={() => refreshPlans()}
       />
     </>
-  );
-}
-
-function BackButton() {
-  const {setSelectedPlanId} = useNetworkPlanningContext();
-  const {pathname} = useLocation();
-  const backUrl = React.useMemo(() => {
-    const match = matchPath(pathname, {
-      path: PLANNING_BASE_PATH,
-    });
-    const newPath = generatePath(PLANNING_BASE_PATH, {
-      view: match?.params.view ?? '',
-      networkName: match?.params.networkName ?? '',
-    });
-    return newPath;
-  }, [pathname]);
-  return (
-    <IconButton
-      data-testid="back-to-folders"
-      aria-label="Back to folders"
-      onClick={() => setSelectedPlanId(null)}
-      component={Link}
-      to={backUrl}
-      size="small"
-      edge="start">
-      <ArrowBackIcon fontSize="small" />
-    </IconButton>
   );
 }
 
