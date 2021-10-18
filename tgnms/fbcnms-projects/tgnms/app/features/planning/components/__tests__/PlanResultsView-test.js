@@ -9,9 +9,9 @@ import * as React from 'react';
 import * as TopologyTemplateHelpersMock from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import * as networkPlanningAPIUtilMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import PlanResultsView from '../PlanResultsView';
+import {FILE_ROLE, OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {
   TestApp,
   mockANPFile,
@@ -113,8 +113,16 @@ beforeEach(() => {
     ),
   );
   apiMock.getPlanOutputFiles.mockResolvedValue([
-    mockANPFile({id: '8', file_name: OUTPUT_FILENAME.REPORTING_GRAPH_JSON}),
-    mockANPFile({id: '9', file_name: OUTPUT_FILENAME.SITES_OPTIMIZED_CSV}),
+    mockANPFile({
+      id: '8',
+      file_name: OUTPUT_FILENAME.REPORTING_GRAPH_JSON,
+      file_role: FILE_ROLE.URBAN_TOPOLOGY_JSON,
+    }),
+    mockANPFile({
+      id: '9',
+      file_name: OUTPUT_FILENAME.SITES_OPTIMIZED_CSV,
+      file_role: FILE_ROLE.URBAN_SITE_FILE,
+    }),
   ]);
   apiMock.downloadANPFile.mockResolvedValue(mockANPJsonPlan);
 });

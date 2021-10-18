@@ -52,18 +52,12 @@ export const OUTPUT_FILE = {
  * Map from OUTPUT_FILE to the file_name field returned by the reporting api
  */
 export const OUTPUT_FILENAME = {
-  [OUTPUT_FILE.SITES_OPTIMIZED_CSV]:
-    '(6_Report KPIs & Financial Metrics) sites_optimized_csv',
-  [OUTPUT_FILE.LINKS_OPTIMIZED_CSV]:
-    '(6_Report KPIs & Financial Metrics) links_optimized_csv',
-  [OUTPUT_FILE.METRICS_OPTIMIZED_PLAN_TXT]:
-    '(6_Report KPIs & Financial Metrics) metrics_optimized_plan_txt',
-  [OUTPUT_FILE.NODES_OPTIMIZED_CSV]:
-    '(6_Report KPIs & Financial Metrics) nodes_optimized_csv',
-  [OUTPUT_FILE.REPORTING_GRAPH_JSON]:
-    '(6_Report KPIs & Financial Metrics) reporting_graph_json',
-  [OUTPUT_FILE.REPORTING_GRAPH_KML]:
-    '(6_Report KPIs & Financial Metrics) reporting_graph_kml',
+  [OUTPUT_FILE.SITES_OPTIMIZED_CSV]: 'sites_optimized_csv',
+  [OUTPUT_FILE.LINKS_OPTIMIZED_CSV]: 'links_optimized_csv',
+  [OUTPUT_FILE.METRICS_OPTIMIZED_PLAN_TXT]: 'metrics_optimized_plan_txt',
+  [OUTPUT_FILE.NODES_OPTIMIZED_CSV]: 'nodes_optimized_csv',
+  [OUTPUT_FILE.REPORTING_GRAPH_JSON]: 'reporting_graph_json',
+  [OUTPUT_FILE.REPORTING_GRAPH_KML]: 'reporting_graph_kml',
 };
 
 export type OutputFileKey = $Keys<typeof OUTPUT_FILE>;

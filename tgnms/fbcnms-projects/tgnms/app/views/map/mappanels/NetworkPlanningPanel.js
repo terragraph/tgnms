@@ -12,9 +12,9 @@ import Grid from '@material-ui/core/Grid';
 import PlanEditor from '@fbcnms/tg-nms/app/features/planning/components/PlanEditor';
 import PlanResultsView from '@fbcnms/tg-nms/app/features/planning/components/PlanResultsView';
 import Slide from '@material-ui/core/Slide';
+import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-import {OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {
   PANELS,
   PANEL_STATE,
@@ -189,7 +189,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
     (async () => {
       // Pick out the "reporting graph" file.
       const _reportingGraph = outputFiles?.find(
-        f => f.file_name === OUTPUT_FILENAME.REPORTING_GRAPH_JSON,
+        f => f.file_role === FILE_ROLE.URBAN_TOPOLOGY_JSON,
       );
       try {
         if (_reportingGraph) {

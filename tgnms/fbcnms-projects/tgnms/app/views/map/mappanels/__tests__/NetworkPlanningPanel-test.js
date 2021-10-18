@@ -8,13 +8,14 @@
 import * as React from 'react';
 import * as networkPlanningAPIUtilMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import NetworkPlanningPanel from '../NetworkPlanningPanel';
-import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {FILE_ROLE, OUTPUT_FILENAME} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {PLANNING_BASE_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {
   TestApp,
   coerceClass,
+  mockANPFile,
   mockInputFile,
   mockNetworkPlan,
   mockPanelControl,
@@ -77,6 +78,56 @@ test('loads the currently selected plan', async () => {
   expect(apiMock.getPlanInputFiles).toHaveBeenCalled();
   expect(getByTestId('plan-results')).toBeInTheDocument();
   expect(getByText('test plan')).toBeInTheDocument();
+});
+
+test('loads the reporting graph json', async () => {
+  const history = testHistory();
+  history.replace({search: '?planid=1'});
+  const panelControl = mockPanelControl({
+    getIsOpen: jest.fn(() => true),
+    getIsHidden: jest.fn(() => false),
+  });
+
+  // Mock output files
+  apiMock.getPlanOutputFiles.mockResolvedValue([
+    mockANPFile({
+      id: '8',
+      file_name: OUTPUT_FILENAME.REPORTING_GRAPH_JSON,
+      file_role: FILE_ROLE.URBAN_TOPOLOGY_JSON,
+    }),
+    mockANPFile({
+      id: '9',
+      file_name: OUTPUT_FILENAME.SITES_OPTIMIZED_CSV,
+      file_role: FILE_ROLE.URBAN_SITE_FILE,
+    }),
+  ]);
+
+  // Ensure reporting graph is downloaded and set correctly.
+  const mockSetPlanTopology = jest.fn();
+  apiMock.downloadANPFile.mockResolvedValue({
+    sites: {success: {}},
+    nodes: {},
+    links: {},
+    sectors: {},
+  });
+  const {getByText} = await renderAsync(
+    <TestApp history={history}>
+      <NetworkPlanningContextProvider
+        planTopology={{sites: {}, nodes: {}, links: {}, sectors: {}}}
+        setPlanTopology={mockSetPlanTopology}>
+        <NetworkPlanningPanel panelControl={panelControl} />
+      </NetworkPlanningContextProvider>
+    </TestApp>,
+  );
+  expect(apiMock.getPlanOutputFiles).toHaveBeenCalled();
+  expect(getByText(OUTPUT_FILENAME.REPORTING_GRAPH_JSON)).toBeInTheDocument();
+  expect(getByText(OUTPUT_FILENAME.SITES_OPTIMIZED_CSV)).toBeInTheDocument();
+  expect(mockSetPlanTopology).toHaveBeenCalledWith({
+    sites: {success: {}},
+    nodes: {},
+    links: {},
+    sectors: {},
+  });
 });
 
 test('if plan status is draft, render the plan editor', async () => {
