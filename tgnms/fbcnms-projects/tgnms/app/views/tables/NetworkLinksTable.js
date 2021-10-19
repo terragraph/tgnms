@@ -46,7 +46,9 @@ import type {Node} from 'react';
 
 // Invalid analyzer value, ignore any fields that have this value.
 const INVALID_VALUE = 255;
-
+const LINKS_TABLE_HEIGHTS = {
+  FILTERS: 74,
+};
 const styles = theme => {
   return {
     root: {
@@ -416,7 +418,7 @@ function LinksTable({
       minBodyHeight:
         tableHeight != null
           ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
+            LINKS_TABLE_HEIGHTS.FILTERS -
             NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
           : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       maxBodyHeight:

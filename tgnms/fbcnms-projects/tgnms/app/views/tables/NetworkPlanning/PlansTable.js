@@ -82,13 +82,20 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
     }),
     [selectedPlanId],
   );
+
   const tableOptions = React.useMemo(
     () => ({
       showTitle: true,
+      minBodyHeight:
+        tableHeight != null
+          ? tableHeight -
+            NETWORK_TABLE_HEIGHTS.MTABLE_PAGINATION -
+            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
+          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       maxBodyHeight:
         tableHeight != null
           ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
+            NETWORK_TABLE_HEIGHTS.MTABLE_PAGINATION -
             NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
           : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       pageSize: 20,

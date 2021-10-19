@@ -74,15 +74,17 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
     ],
     [],
   );
-  const tableOptions = React.useMemo(
-    () => ({
+  const tableOptions = React.useMemo(() => {
+    const computedheight =
+      tableHeight != null
+        ? tableHeight -
+          NETWORK_TABLE_HEIGHTS.MTABLE_PAGINATION -
+          NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
+        : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT;
+    return {
       showTitle: true,
-      maxBodyHeight:
-        tableHeight != null
-          ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
-            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
+      minBodyHeight: computedheight,
+      maxBodyHeight: computedheight,
       pageSize: 20,
       pageSizeOptions: [20, 50, 100],
       padding: 'dense',
@@ -92,9 +94,8 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
         marginRight: '16px',
       },
       emptyRowsWhenPaging: false,
-    }),
-    [tableHeight],
-  );
+    };
+  }, [tableHeight]);
 
   const handleRowClick = (event, row: PlanFolder) => {
     const match = matchPath(location.pathname, {
