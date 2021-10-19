@@ -146,7 +146,7 @@ export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
             </Alert>
           )}
           <Grid item xs={12}>
-            <FormLabel htmlFor="folderId">Select Folder</FormLabel>
+            <FormLabel htmlFor="folderId">Project</FormLabel>
             <SelectANPFolder
               folderId={formState.folderId}
               onChange={fId => {
@@ -186,10 +186,10 @@ export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
             <Grid item xs={12} style={{paddingTop: 0}}>
               {isNullOrEmptyString(formState.folderId) && (
                 <FormHelperText classes={{root: classes.errorHelperText}}>
-                  Please select a folder first
+                  Please select a project first
                 </FormHelperText>
               )}
-              <FormLabel htmlFor="paramSourceID">Select Plan</FormLabel>
+              <FormLabel htmlFor="paramSourceID">Plan</FormLabel>
               <SelectANPPlan
                 folderId={formState.folderId}
                 planId={formState.paramSourceId}
@@ -230,7 +230,7 @@ export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
             color="primary"
             onClick={handleSubmitClick}
             variant="contained">
-            Submit{' '}
+            Continue{' '}
             {taskState.isLoading && (
               <CircularProgress size={10} style={{marginLeft: 5}} />
             )}
