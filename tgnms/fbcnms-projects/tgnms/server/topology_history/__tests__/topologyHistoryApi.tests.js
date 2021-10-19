@@ -10,9 +10,9 @@
  */
 
 import axios from 'axios';
-import express from 'express';
 import request from 'supertest';
 import {mockTopologyResults} from '../../../app/tests/data/TopologyHistoryApi';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 
 jest.mock('axios');
 
@@ -34,7 +34,5 @@ describe('/topology/ returns the historical topology', () => {
 });
 
 function setupApp() {
-  const app = express();
-  app.use('/topology_service', require('../routes'));
-  return app;
+  return setupTestApp('/topology_service', require('../routes').default);
 }

@@ -5,12 +5,11 @@
  * @flow strict-local
  */
 
-import type {ExpressRequest, ExpressResponse} from 'express';
-const express = require('express');
-const router: express.Router<
-  ExpressRequest,
-  ExpressResponse,
-> = express.Router();
+import {Api} from '../Api';
+
+type HealthResponse = {|
+  status: $Values<typeof STATUS>,
+|};
 
 const STATUS = {
   UP: 'UP',
@@ -18,16 +17,19 @@ const STATUS = {
   DOWN: 'DOWN',
 };
 
-type HealthResponse = {|
-  status: $Values<typeof STATUS>,
-|};
+export default class HealthcheckRoute extends Api {
+  async init() {
+    this.initLogger(__filename);
+  }
+  makeRoutes() {
+    const router = this.createApi();
+    router.get('/', (req, res) => {
+      const response: HealthResponse = {
+        status: STATUS.UP,
+      };
 
-router.get('/', (req: ExpressRequest, res: ExpressResponse) => {
-  const response: HealthResponse = {
-    status: STATUS.UP,
-  };
-
-  return res.status(200).json(response);
-});
-
-module.exports = router;
+      return res.status(200).json(response);
+    });
+    return router;
+  }
+}

@@ -17,6 +17,6 @@ function setupApp() {
   const app = express();
   // this should be an open route
   app.use(access());
-  app.use('/healthcheck', require('../routes'));
+  app.use('/healthcheck', new (require('../routes').default)().makeRoutes());
   return app;
 }

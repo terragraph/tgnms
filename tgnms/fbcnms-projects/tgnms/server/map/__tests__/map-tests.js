@@ -16,7 +16,7 @@ const {map_annotation_group} = require('../../models');
 import type {GeoFeature} from '@turf/turf';
 import type {MapAnnotationGroupAttributes} from '../../models/mapAnnotationGroup';
 
-const setupApp = () => setupTestApp('/map', require('../routes'));
+const setupApp = () => setupTestApp('/map', require('../routes').default);
 
 describe('GET /annotations/:network', () => {
   test('returns empty array if network has no groups', async () => {

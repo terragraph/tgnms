@@ -10,6 +10,7 @@
 
 import ApplicationUser from '../user/User';
 const express = require('express');
+import {Api} from '../Api';
 import {json} from 'body-parser';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {OpenidUserInfoClaims, TokenSet} from 'openid-client';
@@ -93,10 +94,12 @@ export function mockLogin(): (user: User, (err: ?Error) => mixed) => void {
   );
 }
 
-export function setupTestApp(urlPath: string, routes: any) {
+export function setupTestApp(urlPath: string, routes: Class<Api>) {
   const app = express<ExpressRequest, ExpressResponse>();
   app.use(json());
-  app.use(urlPath, routes);
+  const r = new routes();
+  r.init();
+  app.use(urlPath, r.makeRoutes());
   app.use(function (err, req: ExpressRequest, res: ExpressResponse, _next) {
     console.error(err.stack);
     res.status(500).send(err.stack);

@@ -5,8 +5,8 @@
  * @flow
  */
 
-import express from 'express';
 import request from 'supertest';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 
 jest.mock('request');
 jest.mock('../../../models');
@@ -157,7 +157,5 @@ function mockGetNetworkConfig(networkName: string) {
 }
 
 function setupApp() {
-  const app = express();
-  app.use('/api/v1', require('../routes'));
-  return app;
+  return setupTestApp('/api/v1', require('../routes').default);
 }

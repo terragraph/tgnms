@@ -18,7 +18,7 @@ info:
       `,
 };
 
-const setupApp = () => setupTestApp('/docs', require('../routes'));
+const setupApp = () => setupTestApp('/docs', require('../routes').default);
 
 describe('GET /docs/msa/:serviceName', () => {
   test('requests docs to msa service', async () => {

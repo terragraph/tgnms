@@ -5,17 +5,16 @@
  * @flow
  */
 
-import type {ExpressRequest, ExpressResponse, Middleware} from 'express';
-jest.mock('../../websockets/service');
-import express from 'express';
-import request from 'supertest';
-jest.mock('request');
-const requestMock = require('request');
-const stream = require('stream');
 import manager from '../../websockets/service';
+import request from 'supertest';
 import superagent from 'superagent';
 import {Buffer} from 'buffer';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
+const requestMock = require('request');
+const stream = require('stream');
 
+jest.mock('../../websockets/service');
+jest.mock('request');
 jest.mock('../../middleware/otp', () => ({
   __esmodule: true,
   otpMiddleware: jest.fn(() => (_req, _res, next) => next()),
@@ -134,16 +133,7 @@ describe('/', () => {
 });
 
 function setupApp() {
-  const app = express();
-  app.use(require('body-parser').json());
-  const routes: Middleware = require('../routes');
-  app.use('/nodeupdateservice', routes);
-  app.use((err: Error, _req: ExpressRequest, _res: ExpressResponse, _next) => {
-    // better error logging during testing
-    console.error(err);
-    throw err;
-  });
-  return app;
+  return setupTestApp('/nodeupdateservice', require('../routes').default);
 }
 
 function makeStreamingDownloadMock() {

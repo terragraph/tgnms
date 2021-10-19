@@ -5,8 +5,8 @@
  * @flow
  *
  */
-import express from 'express';
 import request from 'supertest';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 
 test.skip('throws a 500 error if configuration is missing', async () => {
   const errorLogMock = jest.fn();
@@ -37,8 +37,5 @@ test('returns 200 and json if configuration is valid', async () => {
 });
 
 function setupApp() {
-  const app = express();
-  // $FlowFixMe: Found when upgrading to 0.125.1, pretty sure flow is wrong.
-  app.use('/mobileapp', require('../routes'));
-  return app;
+  return setupTestApp('/mobileapp', require('../routes').default);
 }

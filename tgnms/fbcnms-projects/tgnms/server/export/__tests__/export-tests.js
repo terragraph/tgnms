@@ -4,8 +4,8 @@
  * @format
  * @flow
  */
-import express from 'express';
 import request from 'supertest';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 const xml2js = require('xml2js');
 import type {TopologyType} from '../../../shared/types/Topology';
 jest.mock('../../models');
@@ -182,8 +182,5 @@ function mockGetNetworkState() {
 }
 
 function setupApp() {
-  const app = express();
-  // $FlowFixMe found while upgrading to 0.125.1
-  app.use('/export', require('../routes'));
-  return app;
+  return setupTestApp('/export', require('../routes').default);
 }

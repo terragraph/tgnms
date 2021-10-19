@@ -5,10 +5,10 @@
  * @flow
  *
  */
-import express from 'express';
 import request from 'supertest';
 import {Buffer} from 'buffer';
 import {URL} from 'url';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 const fsMock = require('fs');
 
 const NETWORK_UPGRADE_IMAGES_REL_PATH = 'static/tg-binaries';
@@ -64,7 +64,5 @@ test('imageUrl should contain a one-time-password for e2e to access nms', async 
 });
 
 function setupApp() {
-  const app = express();
-  app.use('/controller', require('../routes'));
-  return app;
+  return setupTestApp('/controller', require('../routes').default);
 }

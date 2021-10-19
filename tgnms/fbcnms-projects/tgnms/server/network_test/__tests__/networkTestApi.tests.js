@@ -10,13 +10,13 @@
  */
 
 import axios from 'axios';
-import express from 'express';
 import request from 'supertest';
 import {
   mockExecutionResults,
   mockExecutions,
   mockSchedules,
 } from '../../../app/tests/data/NetworkTestApi';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 
 jest.mock('axios');
 
@@ -102,7 +102,5 @@ describe('DELETE /schedule/:scheduleId', () => {
 });
 
 function setupApp() {
-  const app = express();
-  app.use('/network_test', require('../routes'));
-  return app;
+  return setupTestApp('/network_test', require('../routes').default);
 }

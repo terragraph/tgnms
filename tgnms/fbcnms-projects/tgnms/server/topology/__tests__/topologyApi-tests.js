@@ -5,12 +5,12 @@
  * @flow
  */
 import moment from 'moment';
-import request from 'supertest';
-const {link_event, controller, topology} = require('../../models');
-const {refreshNetworkHealth} = require('../model');
 import nullthrows from '@fbcnms/util/nullthrows';
+import request from 'supertest';
 import {getNetworkById} from '../network';
 import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
+const {link_event, controller, topology} = require('../../models');
+const {refreshNetworkHealth} = require('../model');
 import type {LinkEventAttributes} from '../../models/linkEvents';
 import type {NetworkInstanceConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import type {TopologyAttributes} from '@fbcnms/tg-nms/server/models/topology';
@@ -155,7 +155,7 @@ describe('api contract tests', () => {
 });
 
 function setupApp() {
-  return setupTestApp('/topology', require('../routes'));
+  return setupTestApp('/topology', require('../routes').default);
 }
 
 async function seedLinkHealth({

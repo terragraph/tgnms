@@ -5,14 +5,13 @@
  * @flow
  *
  */
-import bodyParser from 'body-parser';
-import express from 'express';
 import request from 'supertest';
+import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 const fsMock = require('fs');
-const PATH = './sysdump';
 
 jest.mock('fs', () => new (require('memfs').Volume)());
 
+const PATH = './sysdump';
 beforeEach(() => {
   fsMock.mkdirSync(PATH, {recursive: true});
   fsMock.writeFileSync(PATH + '/test1', 'test1');
@@ -44,9 +43,5 @@ test('/delete endpoint deletes in filesystem', async () => {
 });
 
 function setupApp() {
-  const app = express();
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({extended: true}));
-  app.use('/sysdump', require('../routes'));
-  return app;
+  return setupTestApp('/sysdump', require('../routes').default);
 }

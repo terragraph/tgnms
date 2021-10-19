@@ -2,6 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 if (!process.env.NODE_ENV) {
@@ -36,7 +37,6 @@ const {runMigrations, runSeeders} = require('./initDatabase');
 const {initializeNetworks} = require('./initNetworks');
 const logger = require('../server/log')(module);
 const access = require('../server/middleware/access').default;
-const {isFeatureEnabled} = require('../server/settings/settings');
 const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? process.env.PORT : 80;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
@@ -46,6 +46,7 @@ const {
   makeStartupState,
   startupMiddleware,
 } = require('../server/middleware/startup');
+const {setupRoutes} = require('../server/setupRoutes');
 
 const startupState = makeStartupState();
 axiosSetup();
@@ -58,9 +59,9 @@ app.use(startupMiddleware(startupState));
 if (process.env.WEBSOCKETS_ENABLED) {
   require('express-ws')(app);
 }
-app.listen(port, '', err => {
+app.listen(parseInt(port), '', err => {
   if (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
   if (devMode) {
     logger.info('<=========== DEVELOPER MODE ===========>');
@@ -123,58 +124,30 @@ app.use(
   express.static(path.join(__dirname, '..', 'static', 'images', 'favicon.ico')),
 );
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
-app.use('/api/v1', require('../server/api/v1/routes'));
-app.use('/apiservice', require('../server/apiservice/routes'));
-app.use('/controller', require('../server/controller/routes'));
-app.use('/dashboards', require('../server/dashboard/routes'));
-app.use('/docker', require('../server/docker/routes'));
-app.use('/events', require('../server/events/routes'));
-app.use('/export', require('../server/export/routes'));
-app.use('/import', require('../server/import/routes'));
-app.use('/map', require('../server/map/routes'));
-app.use('/metrics', require('../server/metrics/routes'));
-app.use('/nodeupdateservice', require('../server/nodeupdateservice/routes'));
-app.use('/topology', require('../server/topology/routes'));
-app.use('/user', require('../server/user/routes'));
-app.use('/network_test', require('../server/network_test/routes'));
-app.use('/scan_service', require('../server/scan_service/routes'));
-app.use('/topology_history', require('../server/topology_history/routes'));
-app.use('/websockets', require('../server/websockets/routes'));
-app.use('/api/alarms', require('../server/alarms/routes'));
-app.use('/mobileapp', require('../server/mobileapp/routes'));
-app.use('/healthcheck', require('../server/healthcheck/routes'));
-app.use('/settings', require('../server/settings/routes'));
-if (isFeatureEnabled('NETWORK_PLANNING_ENABLED')) {
-  app.use('/network_plan', require('../server/network_plan/routes'));
-}
-app.use(
-  '/default_route_history',
-  require('../server/default_route_history/routes'),
-);
-app.use('/sysdump', require('../server/sysdump/routes'));
-app.use('/openapi', require('../server/openapi/routes'));
-
-// First-time stuff
-topologyPeriodic.startPeriodicTasks();
-
-app.use(
-  webpackSmartMiddleware({
-    devMode,
-    devWebpackConfig: require('../config/webpack.config.js'),
-    distPath: paths.distPath,
-  }),
-);
-
-// Catch All
-app.get('*', (req, res) => {
-  const configObj = buildUIConfig(req);
-  res.render('index', {
-    staticDist: staticDist,
-    configJson: JSON.stringify(configObj),
-  });
-});
 
 (async function main() {
+  await setupRoutes(app);
+
+  // First-time stuff
+  topologyPeriodic.startPeriodicTasks();
+
+  app.use(
+    webpackSmartMiddleware({
+      devMode,
+      devWebpackConfig: require('../config/webpack.config.js'),
+      distPath: paths.distPath,
+    }),
+  );
+
+  // Catch All
+  app.get('*', (req, res) => {
+    const configObj = buildUIConfig(req);
+    res.render('index', {
+      staticDist: staticDist,
+      configJson: JSON.stringify(configObj),
+    });
+  });
+
   // loop and wait for a database connection
   startupState.setStep(STARTUP_STEPS.DATABASE_CONFIGURE);
   for (;;) {
@@ -236,7 +209,7 @@ function configureWebpackSmartMiddleware() {
   const fbcLog = require('@fbcnms/logging');
   fbcLog.configure({
     LOG_FORMAT: process.env.NODE_ENV === 'development' ? 'shell' : 'json',
-    LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+    LOG_LEVEL: (process.env.LOG_LEVEL: any) || 'info',
   });
   const webpackSmartMiddleware = require('@fbcnms/express-middleware/webpackSmartMiddleware')
     .default;
@@ -269,7 +242,7 @@ function configureSessionMaxAge() {
 }
 
 function makeDBErrorMessage(error: Error) {
-  const {config} = sequelize;
+  const {config} = (sequelize: any);
   const connString = [
     `MYSQL_HOST=${config.host}`,
     `MYSQL_USER=${config.username}`,

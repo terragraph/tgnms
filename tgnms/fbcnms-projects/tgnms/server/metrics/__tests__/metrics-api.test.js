@@ -204,5 +204,5 @@ function queryToQS(query: Object): {[string]: string} {
 }
 
 function setupApp() {
-  return setupTestApp('/metrics', require('../routes'));
+  return setupTestApp('/metrics', require('../routes').default);
 }

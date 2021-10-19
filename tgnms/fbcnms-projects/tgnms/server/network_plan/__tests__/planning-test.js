@@ -1067,7 +1067,7 @@ describe('DELETE /file/:id', () => {
 });
 
 function setupApp() {
-  return setupTestApp('/network_plan', require('../routes'));
+  return setupTestApp('/network_plan', require('../routes').default);
 }
 
 async function createInputFiles(defaults: ?{source?: FileSourceKey}) {

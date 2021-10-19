@@ -5,27 +5,31 @@
  */
 
 import axios from 'axios';
-
-const express = require('express');
+import {Api} from '../Api';
 const {TOPOLOGY_HISTORY_HOST} = require('../config');
 
-const router = express.Router();
-
-router.get('/topology', (req, res) => {
-  return axios({
-    method: 'get',
-    url: `${TOPOLOGY_HISTORY_HOST}/topology`,
-    params: req.query,
-  })
-    .then(result => res.status(200).send(result.data.topologies))
-    .catch(error => {
-      if (error.response === undefined) {
-        return res.status(500).send('Response undefined');
-      }
-      return res
-        .status(error.response.status)
-        .send(error.response.statusMessage);
+export default class MyRoute extends Api {
+  async init() {
+    this.initLogger(__filename);
+  }
+  makeRoutes() {
+    const router = this.createApi();
+    router.get('/topology', (req, res) => {
+      return axios({
+        method: 'get',
+        url: `${TOPOLOGY_HISTORY_HOST}/topology`,
+        params: req.query,
+      })
+        .then(result => res.status(200).send(result.data.topologies))
+        .catch(error => {
+          if (error.response === undefined) {
+            return res.status(500).send('Response undefined');
+          }
+          return res
+            .status(error.response.status)
+            .send(error.response.statusMessage);
+        });
     });
-});
-
-module.exports = router;
+    return router;
+  }
+}
