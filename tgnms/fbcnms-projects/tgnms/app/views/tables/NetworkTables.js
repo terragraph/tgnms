@@ -177,6 +177,10 @@ export default function NetworkTables(props: Props) {
     }
   };
 
+  const renderPlanningTab = pathname => {
+    return !pathname.startsWith('/tables/');
+  };
+
   return (
     <div className={classes.root}>
       <Grid container className={classes.menuBar}>
@@ -229,18 +233,19 @@ export default function NetworkTables(props: Props) {
                 value={TABLE_TYPE.scans}
               />
             )}
-            {isFeatureEnabled('NETWORK_PLANNING_ENABLED') && (
-              <Tab
-                classes={{
-                  root: classes.tabRoot,
-                }}
-                disableRipple
-                label="Planning"
-                component={Link}
-                to={makeTablePath(TABLE_TYPE.planning)}
-                value={TABLE_TYPE.planning}
-              />
-            )}
+            {isFeatureEnabled('NETWORK_PLANNING_ENABLED') &&
+              renderPlanningTab(pathname) && (
+                <Tab
+                  classes={{
+                    root: classes.tabRoot,
+                  }}
+                  disableRipple
+                  label="Planning"
+                  component={Link}
+                  to={makeTablePath(TABLE_TYPE.planning)}
+                  value={TABLE_TYPE.planning}
+                />
+              )}
           </Tabs>
         </Grid>
         <Grid container item xs={4} justify="flex-end" alignItems="center">

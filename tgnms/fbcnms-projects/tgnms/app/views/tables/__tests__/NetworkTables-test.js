@@ -47,9 +47,9 @@ test('Shows nodes table by default', () => {
   );
   expect(getByTestId('network-nodes-table')).toBeInTheDocument();
 });
-test('Clicking tabs shows the correct tables', () => {
+test('Clicking tabs shows the correct tables in map nodes path', () => {
   const {getByTestId, getByText} = render(
-    <TestApp route="/tables/testnetwork">
+    <TestApp route="/map/testnetwork/nodes">
       <NetworkContextWrapper contextValue={{networkName: 'testnetwork'}}>
         <NetworkTables {...defaultProps} />
       </NetworkContextWrapper>
@@ -81,6 +81,42 @@ test('Clicking tabs shows the correct tables', () => {
     fireEvent.click(planningTab);
   });
   expect(getByTestId('network-planning-table')).toBeInTheDocument();
+  act(() => {
+    fireEvent.click(nodesTab);
+  });
+  expect(getByTestId('network-nodes-table')).toBeInTheDocument();
+});
+test('Clicking tabs shows the correct tables in tables path', () => {
+  const {getByTestId, getByText} = render(
+    <TestApp route="/tables/testnetwork">
+      <NetworkContextWrapper contextValue={{networkName: 'testnetwork'}}>
+        <NetworkTables {...defaultProps} />
+      </NetworkContextWrapper>
+    </TestApp>,
+    {baseElement: document?.body ?? undefined},
+  );
+  expect(getByTestId('network-nodes-table')).toBeInTheDocument();
+  const tabs = within(getByTestId('network-tables-tabs'));
+  const nodesTab = tabs.getByText(/nodes/i);
+  const linksTab = tabs.getByText(/links/i);
+  const testsTab = tabs.getByText(/tests/i);
+  const scansTab = tabs.getByText(/scans/i);
+  const planningTab = tabs.queryByText(/planning/i);
+  expect(planningTab).toBeNull();
+
+  act(() => {
+    fireEvent.click(linksTab);
+  });
+  expect(getByTestId('network-links-table')).toBeInTheDocument();
+  act(() => {
+    fireEvent.click(testsTab);
+  });
+  expect(getByText(/Schedule Network Test/i)).toBeInTheDocument();
+
+  act(() => {
+    fireEvent.click(scansTab);
+  });
+  expect(getByText(/Schedule Scan/i)).toBeInTheDocument();
   act(() => {
     fireEvent.click(nodesTab);
   });
