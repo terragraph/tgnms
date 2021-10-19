@@ -30,10 +30,11 @@ type NetworkNodeRowType = {
   minion_restarts: ?number,
   hw_board_id: ?string,
 };
+
 const useStyles = makeStyles(_theme => ({
   root: {
     height: '100%',
-    overflow: 'auto',
+    overflow: 'hidden',
   },
 }));
 export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
@@ -193,6 +194,7 @@ export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
         padding: 4,
       },
       tableLayout: 'fixed',
+      emptyRowsWhenPaging: false,
     }),
     [makeRowStyle, tableHeight],
   );
