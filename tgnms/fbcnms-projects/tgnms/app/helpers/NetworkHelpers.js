@@ -81,7 +81,9 @@ export function renderAvailabilityWithColor(
   const livenessPercent = parseFloat(livenessPercentString);
   return (
     <span style={{color: availabilityColor(livenessPercent)}}>
-      {isNaN(livenessPercent) ? 'N/A' : (livenessPercentString ?? 0) + '%'}
+      {isNaN(livenessPercent)
+        ? 'N/A'
+        : Math.round(livenessPercent).toFixed(0) + '%'}
     </span>
   );
 }

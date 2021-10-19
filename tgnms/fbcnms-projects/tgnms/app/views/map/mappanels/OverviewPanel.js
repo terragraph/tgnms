@@ -525,17 +525,18 @@ class OverviewPanel extends React.Component<Props, State> {
             {TIME_WINDOWS.filter(
               ({hours}) => hours === context.networkHealthTimeWindowHrs,
             ).map(({title}) => title)}
-            )
+            ){this.renderAvailabilityConfig(context)}
           </Typography>
-          <Typography variant="body2" style={{color: 'grey'}}>
+          <Typography
+            variant="body2"
+            style={{color: 'grey'}}
+            data-testid="link-availability-value">
             {availability.wirelessLinksCount
               ? renderAvailabilityWithColor(
                   formatNumber(availability.alivePercAvg),
                 )
               : '-'}
           </Typography>
-
-          {this.renderAvailabilityConfig(context)}
         </div>
 
         <div className={classes.detail}>

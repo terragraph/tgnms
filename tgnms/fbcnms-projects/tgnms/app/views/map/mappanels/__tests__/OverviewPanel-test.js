@@ -47,7 +47,7 @@ describe('OverviewPanel', () => {
         return health;
       }, {});
 
-      const {getByText} = render(
+      const {getByTestId} = render(
         <OverviewPanel
           {...commonProps}
           networkConfig={mockNetworkConfig({
@@ -61,8 +61,7 @@ describe('OverviewPanel', () => {
         />,
         {wrapper: TestApp},
       );
-
-      expect(getByText('100%')).toBeInTheDocument();
+      expect(getByTestId('link-availability-value').textContent).toBe('100%');
     });
   });
 
