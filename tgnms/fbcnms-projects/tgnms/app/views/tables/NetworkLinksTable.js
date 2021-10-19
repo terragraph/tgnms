@@ -6,7 +6,6 @@
  */
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
-import CustomTable from '@fbcnms/tg-nms/app/components/common/CustomTable';
 import DashboardLink from '@fbcnms/tg-nms/app/components/common/DashboardLink';
 import Divider from '@material-ui/core/Divider';
 import FormControl from '@material-ui/core/FormControl';
@@ -14,15 +13,17 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import GrafanaIcon from '@fbcnms/tg-nms/app/components/common/GrafanaIcon';
+import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import ReactPlotlyEventChart from './ReactPlotlyEventChart';
+import grey from '@material-ui/core/colors/grey';
 import {
   LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
-import {SortDirection} from 'react-virtualized';
+import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   TIME_WINDOWS,
   TOPOLOGY_ELEMENT,
@@ -40,6 +41,7 @@ import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 import type {LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {NetworkContextType} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {NetworkTableProps} from './NetworkTables';
 import type {Node} from 'react';
 
 // Invalid analyzer value, ignore any fields that have this value.
@@ -71,57 +73,24 @@ const LinkTable = {
   ANALYZER: 'ANALYZER',
 };
 
-type Props = {||};
+type Props = {|...NetworkTableProps|};
 
 type State = {
-  selectedLink: ?string,
   topLink: ?string,
-  keepTopLink: boolean,
   hideDnToDnLinks: boolean,
   hideWired: boolean,
-  sortBy: string,
-  sortDirection: $Values<typeof SortDirection>,
   linkTable: $Values<typeof LinkTable>,
 };
 
-export default function NetworkLinksTableNew({}: Props) {
+export default function NetworkLinksTableNew({tableHeight}: Props) {
   const [state, updateState] = useNetworkLinksTableState({
-    // Selected element (derived from NetworkContext)
-    selectedLink: null,
-    topLink: null,
-    keepTopLink: false,
     // Link filters
     hideDnToDnLinks: false,
     hideWired: true,
-    // Keep track of current sort state
-    sortBy: 'name',
-    sortDirection: SortDirection.ASC,
     // The type of link table to display
     linkTable: LinkTable.EVENTS_CHART,
   });
-
-  const context = useNetworkContext();
-  const {selectedElement} = context;
   const classes = useStyles();
-  React.useEffect(() => {
-    if (selectedElement && selectedElement.type === TOPOLOGY_ELEMENT.LINK) {
-      if (state.selectedLink !== selectedElement.name) {
-        if (state.keepTopLink) {
-          updateState({
-            selectedLink: selectedElement.name,
-            keepTopLink: false,
-          });
-        } else {
-          updateState({
-            selectedLink: selectedElement.name,
-            topLink: selectedElement.name,
-          });
-        }
-      }
-    } else {
-      updateState({selectedLink: null, topLink: null});
-    }
-  }, [selectedElement, updateState, state.selectedLink, state.keepTopLink]);
   return (
     <>
       <div className={classes.tableOptions} data-testid="network-links-table">
@@ -183,7 +152,11 @@ export default function NetworkLinksTableNew({}: Props) {
         </FormControl>
       </div>
       <Divider variant="middle" />
-      <LinksTable state={state} updateState={updateState} />
+      <LinksTable
+        state={state}
+        updateState={updateState}
+        tableHeight={tableHeight}
+      />
     </>
   );
 }
@@ -199,16 +172,15 @@ function useNetworkLinksTableState(initialState?: $Shape<State>) {
 
 function LinksTable({
   state,
-  updateState,
+  tableHeight,
 }: {|
   state: State,
   updateState: ($Shape<State>) => void,
+  tableHeight: ?number,
 |}) {
-  const rowHeight = 80;
-  const headerHeight = 80;
-  const overscanRowCount = 10;
-  const {linkTable, sortBy, sortDirection, selectedLink} = state;
+  const {linkTable} = state;
   const context = useNetworkContext();
+  const {selectedElement, setSelected} = context;
   let columns;
   let data;
 
@@ -216,253 +188,257 @@ function LinksTable({
     () => [
       {
         filter: true,
-        isKey: true,
-        key: 'name',
-        label: 'Name',
-        render: (cell, row, style) => (
-          <GrafanaLinkCell {...{cell, row, style}} />
-        ),
+        field: 'name',
+        title: 'Name',
+        render: row => <GrafanaLinkCell row={row} />,
         sort: true,
-        sortFunc: (a, b, order) => linkSortFunc(state, a, b, order),
         width: 350,
       },
       {
-        key: 'alive',
-        label: 'Alive',
+        field: 'alive',
+        title: 'Alive',
         render: renderStatusColor,
         sort: true,
         width: 100,
       },
       {
-        key: 'availability_chart',
-        label: 'Availability Chart',
+        field: 'availability_chart',
+        title: 'Availability Chart',
         appendAvailWindow: true,
-        render: (cell, row, style) => (
-          <LinkAvailabilityCell {...{cell, row, style}} />
+        render: row => (
+          <LinkAvailabilityCell row={row} style={{width: 810, height: 80}} />
         ),
         sort: true,
         width: 810,
       },
       {
-        key: 'avail_perc',
-        label: 'Availability',
+        field: 'avail_perc',
+        title: 'Availability',
         appendAvailWindow: true,
-        render: (cell, row, style) => <AlivePercCell {...{cell, row, style}} />,
+        render: row => <AlivePercCell row={row} />,
         sort: true,
         width: 120,
       },
       {
-        key: 'linkup_attempts',
-        label: 'Ignition Attempts (1d)',
+        field: 'linkup_attempts',
+        title: 'Ignition Attempts (1d)',
         sort: true,
         width: 100,
       },
       {
-        key: 'distance',
-        label: 'Length (m)',
-        render: (cell, row, style) => <DistanceCell {...{cell, row, style}} />,
+        field: 'distance',
+        title: 'Length (m)',
+        render: row => <DistanceCell distance={row.distance} />,
         sort: true,
         width: 120,
       },
     ],
-    [state],
+    [],
   );
 
   const analyzerChartColumns = React.useMemo(
     () => [
       {
         filter: true,
-        isKey: true,
-        key: 'name',
-        label: 'Name',
-        render: (cell, row, style) => (
-          <GrafanaLinkCell {...{cell, row, style}} />
-        ),
+        field: 'name',
+        title: 'Name',
+        render: row => <GrafanaLinkCell row={row} />,
         sort: true,
-        sortFunc: (a, b, order) => linkSortFunc(state, a, b, order),
         width: 350,
       },
       {
         filter: true,
-        key: 'a_node_name',
-        label: 'A-Node',
+        field: 'a_node_name',
+        title: 'A-Node',
         sort: true,
-        width: 140,
+        width: 200,
       },
       {
         filter: true,
-        key: 'z_node_name',
-        label: 'Z-Node',
+        field: 'z_node_name',
+        title: 'Z-Node',
         sort: true,
-        width: 140,
+        width: 200,
       },
       {
-        key: 'alive',
-        label: 'Alive',
+        field: 'alive',
+        title: 'Alive',
         render: renderStatusColor,
-        sort: true,
-        width: 60,
-      },
-      {
-        key: 'mcs',
-        label: 'Avg MCS',
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'mcs'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        tooltip: 'Modulation and Coding Scheme',
-        width: 60,
-      },
-      {
-        key: 'snr',
-        label: 'Avg SNR',
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'snr'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        tooltip: 'Signal-to-noise ratio',
-        width: 60,
-      },
-      {
-        key: 'per',
-        label: 'Avg PER',
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'per'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        tooltip: 'Packet Error Rate',
-        width: 60,
-      },
-      {
-        key: 'tput',
-        label: 'Avg tput(PPS)',
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'tput'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        tooltip: 'Throughput (packets per second)',
-        width: 60,
-      },
-      {
-        key: 'txpower',
-        label: 'Avg txPower',
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'txpower'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        tooltip: 'Transmission power',
-        width: 60,
-      },
-      {
-        key: 'fw_restarts',
-        label: '#Restarts',
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'fw_restarts'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        width: 60,
-      },
-      {
-        key: 'tx_beam_angle',
-        label: <span>TX Beam &deg;</span>,
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'tx_beam_angle'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        sortFunc: beamAngleSortFunc,
-        width: 60,
-      },
-      {
-        key: 'rx_beam_angle',
-        label: <span>RX Beam &deg;</span>,
-        render: (cell, row, style) => (
-          <FloatPointCell tpxx={'rx_beam_angle'} {...{cell, row, style}} />
-        ),
-        sort: true,
-        sortFunc: beamAngleSortFunc,
-        width: 60,
-      },
-      {
-        key: 'alive_perc',
-        label: 'Uptime',
-        appendAvailWindow: true,
-        render: (cell, row, style) => <AlivePercCell {...{cell, row, style}} />,
         sort: true,
         width: 80,
       },
       {
-        key: 'distance',
-        label: 'Distance (m)',
-        render: (cell, row, style) => <DistanceCell {...{cell, row, style}} />,
+        field: 'mcs',
+        title: 'Avg MCS',
+        render: row => <FloatPointCell tpxx={'mcs'} row={row} />,
         sort: true,
-        width: 60,
+        tooltip: 'Modulation and Coding Scheme',
+        width: 80,
+      },
+      {
+        field: 'snr',
+        title: 'Avg SNR',
+        render: row => <FloatPointCell tpxx={'snr'} row={row} />,
+        sort: true,
+        tooltip: 'Signal-to-noise ratio',
+        width: 80,
+      },
+      {
+        field: 'per',
+        title: 'Avg PER',
+        render: row => <FloatPointCell tpxx={'per'} row={row} />,
+        sort: true,
+        tooltip: 'Packet Error Rate',
+        width: 80,
+      },
+      {
+        field: 'tput',
+        title: 'Avg tput(PPS)',
+        render: row => <FloatPointCell tpxx={'tput'} row={row} />,
+        sort: true,
+        tooltip: 'Throughput (packets per second)',
+        width: 80,
+      },
+      {
+        field: 'txpower',
+        title: 'Avg txPower',
+        render: row => <FloatPointCell tpxx={'txpower'} row={row} />,
+        sort: true,
+        tooltip: 'Transmission power',
+        width: 80,
+      },
+      {
+        field: 'fw_restarts',
+        title: '#Restarts',
+        render: row => <FloatPointCell tpxx={'fw_restarts'} row={row} />,
+        sort: true,
+        width: 80,
+      },
+      {
+        field: 'tx_beam_angle',
+        title: <span>TX Beam &deg;</span>,
+        render: row => <FloatPointCell tpxx={'tx_beam_angle'} row={row} />,
+        sort: true,
+        sortFunc: beamAngleSortFunc,
+        width: 80,
+      },
+      {
+        field: 'rx_beam_angle',
+        title: <span>RX Beam &deg;</span>,
+        render: row => <FloatPointCell tpxx={'rx_beam_angle'} row={row} />,
+        sort: true,
+        sortFunc: beamAngleSortFunc,
+        width: 80,
+      },
+      {
+        field: 'alive_perc',
+        title: 'Uptime',
+        appendAvailWindow: true,
+        render: row => <AlivePercCell row={row} />,
+        sort: true,
+        width: 80,
+      },
+      {
+        field: 'distance',
+        title: 'Distance (m)',
+        render: row => <DistanceCell distance={row.distance} />,
+        sort: true,
+        width: 80,
       },
     ],
-    [state],
+    [],
   );
 
   const minimalChartColumns = React.useMemo(
     () => [
       {
         filter: true,
-        isKey: true,
-        key: 'name',
-        label: 'Name',
-        render: (cell, row, style) => (
-          <GrafanaLinkCell {...{cell, row, style}} />
-        ),
+        field: 'name',
+        title: 'Name',
+        render: row => <GrafanaLinkCell row={row} />,
         sort: true,
-        sortFunc: (a, b, order) => linkSortFunc(state, a, b, order),
         width: 350,
       },
-      {filter: true, key: 'a_node_name', label: 'A-Node', width: 180},
-      {filter: true, key: 'z_node_name', label: 'Z-Node', width: 180},
+      {filter: true, field: 'a_node_name', title: 'A-Node', width: 180},
+      {filter: true, field: 'z_node_name', title: 'Z-Node', width: 180},
       {
-        key: 'alive',
-        label: 'Alive',
+        field: 'alive',
+        title: 'Alive',
         render: renderStatusColor,
         sort: true,
         width: 100,
       },
       {
-        key: 'alive_perc',
-        label: 'Uptime',
+        field: 'alive_perc',
+        title: 'Uptime',
         appendAvailWindow: true,
-        render: (cell, row, style) => <AlivePercCell {...{cell, row, style}} />,
+        render: row => <AlivePercCell row={row} />,
         sort: true,
         width: 140,
       },
-      {key: 'type', label: 'Type', width: 100},
+      {field: 'type', title: 'Type', width: 100},
       {
-        key: 'linkup_attempts',
-        label: 'Ignition Attempts (1d)',
+        field: 'linkup_attempts',
+        title: 'Ignition Attempts (1d)',
         sort: true,
         width: 100,
       },
       {
-        key: 'distance',
-        label: 'Distance (m)',
-        render: (cell, row, style) => <DistanceCell {...{cell, row, style}} />,
+        field: 'distance',
+        title: 'Distance (m)',
+        render: row => <DistanceCell distance={row.distance} />,
         sort: true,
         width: 120,
       },
     ],
-    [state],
+    [],
   );
 
-  const handleRowSelect = row => {
-    // Select a row
-    updateState({keepTopLink: true});
-    context.setSelected(TOPOLOGY_ELEMENT.LINK, row.name);
-  };
+  const handleRowSelect = React.useCallback(
+    (e, row) => {
+      setSelected(TOPOLOGY_ELEMENT.LINK, row.name);
+    },
+    [setSelected],
+  );
 
-  const onSortChange = (sortBy, sortDirection) => {
-    updateState({
-      sortBy,
-      sortDirection,
-      topLink: sortBy === 'name' ? state.topLink : null,
-    });
-  };
+  const makeRowStyle = React.useCallback(
+    (rowData: LinkType) => ({
+      backgroundColor:
+        selectedElement?.type === TOPOLOGY_ELEMENT.LINK &&
+        rowData.name === selectedElement?.name
+          ? grey[300]
+          : undefined,
+    }),
+    [selectedElement],
+  );
+  const tableOptions = React.useMemo(
+    () => ({
+      minBodyHeight:
+        tableHeight != null
+          ? tableHeight -
+            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
+            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
+          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
+      maxBodyHeight:
+        tableHeight != null
+          ? tableHeight -
+            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
+            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
+          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
+      padding: 'dense',
+      showTitle: false,
+      grouping: false,
+      filtering: true,
+      pageSize: 20,
+      emptyRowsWhenPaging: false,
+      search: false,
+      showTitle: false,
+      toolbar: false,
+      rowStyle: makeRowStyle,
+      tableLayout: 'fixed',
+    }),
+    [tableHeight, makeRowStyle],
+  );
 
   if (linkTable === LinkTable.ANALYZER) {
     columns = insertTimeWindowText(
@@ -484,20 +460,12 @@ function LinksTable({
     data = getTableRows(state, context);
   }
   return (
-    <CustomTable
-      rowHeight={rowHeight}
-      headerHeight={headerHeight}
-      overscanRowCount={overscanRowCount}
+    <MaterialTable
+      title="Links"
       columns={columns}
       data={data}
-      sortBy={sortBy}
-      sortDirection={sortDirection}
-      onRowSelect={handleRowSelect}
-      onSortChange={(sortBy, sortDirection) =>
-        onSortChange(sortBy, sortDirection)
-      }
-      selected={selectedLink ? [selectedLink] : []}
-      additionalRenderParams={{context}}
+      onRowClick={handleRowSelect}
+      options={tableOptions}
     />
   );
 }
@@ -693,18 +661,18 @@ function insertTimeWindowText(columns, networkHealthTimeWindowHrs) {
     ) {
       return {
         ...column,
-        label: `${column.label} (${availWindowTitle[0]})`,
+        title: `${column.title} (${availWindowTitle[0]})`,
       };
     }
     return column;
   });
 }
 
-function GrafanaLinkCell({cell, row}: {cell: string, row: $Shape<LinkType>}) {
+function GrafanaLinkCell({row}: {row: $Shape<LinkType>}) {
   const classes = useStyles();
   return (
     <>
-      <div className={classes.cell}>{cell}</div>
+      <div className={classes.cell}>{row.name}</div>
       <DashboardLink data-testid="grafana-link" linkName={row.name}>
         <Button
           className={classes.button}
@@ -719,14 +687,7 @@ function GrafanaLinkCell({cell, row}: {cell: string, row: $Shape<LinkType>}) {
   );
 }
 
-function LinkAvailabilityCell({
-  row,
-  style,
-}: {
-  cell: number,
-  row: Object,
-  style: Object,
-}) {
+function LinkAvailabilityCell({row, style}: {row: Object, style: Object}) {
   const {linkMap, networkLinkHealth} = useNetworkContext();
   if (row && row.name) {
     const link = linkMap[row.name];
@@ -758,74 +719,69 @@ function LinkAvailabilityCell({
   return null;
 }
 
-function AlivePercCell({cell, row}: {cell: number, row: Object}) {
+function AlivePercCell({row}: {row: Object}) {
   let cellColor = 'red';
   let cellText = '-';
+  const perc = row.alive_perc;
   if (row.type === 'Wired') {
     // color wired links as unavailable
     cellColor = 'grey';
     cellText = 'X';
-  } else if (cell) {
-    cellText = formatNumber(cell, 2);
-    cellColor = availabilityColor(cell);
+  } else if (perc) {
+    cellText = formatNumber(perc, 2);
+    cellColor = availabilityColor(perc);
   }
   return <span style={{color: cellColor}}>{'' + cellText}</span>;
 }
 
-function DistanceCell({cell}: {cell: number, row: Object}) {
-  return <span>{formatNumber(cell, 1)}</span>;
+function DistanceCell({distance}: {distance: number}) {
+  return <span>{formatNumber(distance, 1)}</span>;
 }
 
 // round and set color
-function FloatPointCell({
-  tpxx,
-  cell,
-}: {
-  tpxx: string,
-  cell: number,
-  row: Object,
-}) {
+function FloatPointCell({tpxx, row}: {tpxx: string, row: Object}) {
   let cellColor = 'red';
   let cellText = '-';
-  if (!isNaN(cell)) {
+  const val = row[tpxx];
+  if (!isNaN(val)) {
     switch (tpxx) {
       case 'mcs':
-        if (cell === INVALID_VALUE) {
+        if (val === INVALID_VALUE) {
           cellText = 'N/A';
           cellColor = 'black';
         } else {
-          cellText = formatNumber(cell, 1);
+          cellText = formatNumber(val, 1);
           // if value>thresh1 green, elseif >thresh2 orange, else red
-          cellColor = variableColorUp(cell, 9, 5);
+          cellColor = variableColorUp(val, 9, 5);
         }
         break;
       case 'snr':
-        cellText = formatNumber(cell, 1);
-        cellColor = variableColorUp(cell, 12, 9);
+        cellText = formatNumber(val, 1);
+        cellColor = variableColorUp(val, 12, 9);
         break;
       case 'txpower':
-        cellText = formatNumber(cell, 1);
+        cellText = formatNumber(val, 1);
         // TODO - combine link metrics overlay thresholds
-        cellColor = variableColorDown(cell, 9, 19);
+        cellColor = variableColorDown(val, 9, 19);
         break;
       case 'tput':
-        cellText = formatNumber(cell, 0);
-        cellColor = variableColorUp(cell, 0, 0);
+        cellText = formatNumber(val, 0);
+        cellColor = variableColorUp(val, 0, 0);
         break;
       case 'per':
-        cellText = formatNumber(cell, 2) + '%'; //cell.toExponential(2);
+        cellText = formatNumber(val, 2) + '%'; //cell.toExponential(2);
         // if value<thresh1 green, elseif <thresh2 orange, else red
-        cellColor = variableColorDown(cell, 0.5, 1);
+        cellColor = variableColorDown(val, 0.5, 1);
         break;
       case 'fw_restarts':
-        cellText = formatNumber(cell, 0);
-        cellColor = variableColorDown(cell, 0, 1);
+        cellText = formatNumber(val, 0);
+        cellColor = variableColorDown(val, 0, 1);
         break;
       case 'tx_beam_angle':
       case 'rx_beam_angle':
-        cellText = beamAngleToOrientation(cell);
+        cellText = beamAngleToOrientation(val);
         // beam angles 0-35=green, 36-40=yellow, 41+=red
-        cellColor = variableColorDown(Math.abs(cell), 35, 40);
+        cellColor = variableColorDown(Math.abs(val), 35, 40);
         break;
     }
   }
@@ -853,38 +809,6 @@ function variableColorDown(value, thresh1, thresh2) {
   }
 }
 
-function linkSortFuncHelper(
-  a: LinkType,
-  b: LinkType,
-  order: $Keys<typeof SortDirection>,
-) {
-  if (order === SortDirection.DESC) {
-    if (a.name > b.name) {
-      return -1;
-    } else if (a.name < b.name) {
-      return 1;
-    }
-    // both entries have the same name, sort based on a/z node name
-    if (a.a_node_name > a.z_node_name) {
-      return -1;
-    } else {
-      return 1;
-    }
-  } else {
-    if (a.name < b.name) {
-      return -1;
-    } else if (a.name > b.name) {
-      return 1;
-    }
-    // both entries have the same name, sort based on a/z node name
-    if (a.a_node_name < a.z_node_name) {
-      return -1;
-    } else {
-      return 1;
-    }
-  }
-}
-
 function beamAngleSortFunc(a, b, order) {
   // use -1 as beam angle when sorting if unset
   const aAbs = Math.abs(
@@ -899,33 +823,6 @@ function beamAngleSortFunc(a, b, order) {
   );
   const sortVal = aAbs === bAbs ? 0 : aAbs > bAbs ? 1 : -1;
   return order === 'ASC' ? sortVal : -sortVal;
-}
-
-function linkSortFunc(
-  state: State,
-  a: LinkType,
-  b: LinkType,
-  order: $Keys<typeof SortDirection>,
-) {
-  // order is desc or asc
-  const {topLink} = state;
-  if (topLink) {
-    // Move selected link to the top
-    if (a.name === topLink) {
-      if (a.name === b.name) {
-        return linkSortFuncHelper(a, b, order);
-      } else {
-        return -1;
-      }
-    } else if (b.name === topLink) {
-      if (a.name === b.name) {
-        return linkSortFuncHelper(a, b, order);
-      } else {
-        return 1;
-      }
-    }
-  }
-  return linkSortFuncHelper(a, b, order);
 }
 
 function formatAnalyzerValue(

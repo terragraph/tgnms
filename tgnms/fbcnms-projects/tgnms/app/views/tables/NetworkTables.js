@@ -274,7 +274,7 @@ export default function NetworkTables(props: Props) {
       <Switch>
         <Route
           path={`${NETWORK_BASE}/${TABLE_TYPE.links}`}
-          render={() => <NetworkLinksTable />}
+          render={() => <NetworkLinksTable {...tableProps} />}
         />
         <Route
           path={`${NETWORK_BASE}/${TABLE_TYPE.tests}`}
