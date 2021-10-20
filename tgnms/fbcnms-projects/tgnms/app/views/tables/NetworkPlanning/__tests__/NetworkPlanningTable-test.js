@@ -55,7 +55,7 @@ test('renders the folders table by default', async () => {
       <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
     </TestApp>,
   );
-  expect(getByText(/Folders/i)).toBeInTheDocument();
+  expect(getByText(/Projects/i)).toBeInTheDocument();
   expect(getByText(/folder 1/i)).toBeInTheDocument();
   expect(getByText(/folder 2/i)).toBeInTheDocument();
 });
@@ -72,7 +72,7 @@ test('if user selects a folder, navigates to the plans table', async () => {
   await act(async () => {
     fireEvent.click(getByText(/folder 1/i));
   });
-  expect(getByText(/Folder: folder 1/i)).toBeInTheDocument();
+  expect(getByText(/Project: folder 1/i)).toBeInTheDocument();
   expect(getByText(/plan 1/i)).toBeInTheDocument();
   expect(getByText(/plan 2/i)).toBeInTheDocument();
   expect(queryByText(/folder 2/i)).not.toBeInTheDocument();
@@ -116,14 +116,14 @@ test('if user clicks back button on the plans table, goes back to folders table'
   await act(async () => {
     fireEvent.click(getByText(/folder 1/i));
   });
-  expect(getByText(/Folder: folder 1/i)).toBeInTheDocument();
+  expect(getByText(/Project: folder 1/i)).toBeInTheDocument();
   expect(getByText(/plan 1/i)).toBeInTheDocument();
   expect(getByText(/plan 2/i)).toBeInTheDocument();
   expect(queryByText(/folder 2/i)).not.toBeInTheDocument();
   await act(async () => {
-    fireEvent.click(getByTestId('back-to-folders'));
+    fireEvent.click(getByTestId('back-to-projects'));
   });
-  expect(queryByText(/Folder: folder 1/i)).not.toBeInTheDocument();
+  expect(queryByText(/Project: folder 1/i)).not.toBeInTheDocument();
   expect(queryByText(/plan 1/i)).not.toBeInTheDocument();
   expect(queryByText(/plan 2/i)).not.toBeInTheDocument();
   expect(getByText(/folder 2/i)).toBeInTheDocument();
@@ -145,12 +145,12 @@ test('if user clicks back button on the topology table, goes back to plans table
     fireEvent.click(getByText(/plan 1/i));
   });
   expect(getByText('Plan:')).toBeInTheDocument();
-  expect(queryByText(/Folder: folder 1/i)).not.toBeInTheDocument();
+  expect(queryByText(/Project: folder 1/i)).not.toBeInTheDocument();
   // Go Back
   await act(async () => {
     fireEvent.click(getByTestId('back-to-plans'));
   });
-  expect(queryByText(/Folder: folder 1/i)).toBeInTheDocument();
+  expect(queryByText(/Project: folder 1/i)).toBeInTheDocument();
   expect(queryByText(/plan 1/i)).toBeInTheDocument();
   expect(queryByText(/plan 2/i)).toBeInTheDocument();
   expect(queryByText('Plan:')).not.toBeInTheDocument();

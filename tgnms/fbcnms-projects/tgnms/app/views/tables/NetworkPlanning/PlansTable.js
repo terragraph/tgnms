@@ -136,12 +136,12 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
               <BackButton
                 from={PLANNING_FOLDER_PATH}
                 to={PLANNING_BASE_PATH}
-                label="Back to Folders"
-                data-testid="back-to-folders"
+                label="Back to Projects"
+                data-testid="back-to-projects"
               />
             </Grid>
             <Grid item>
-              <Typography variant="h6">Folder: {folder?.name}</Typography>
+              <Typography variant="h6">Project: {folder?.name}</Typography>
             </Grid>
           </Grid>
         }

@@ -122,7 +122,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
   return (
     <>
       <MaterialTable
-        title="Folders"
+        title="Projects"
         data={plans}
         options={tableOptions}
         columns={columns}
