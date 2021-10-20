@@ -74,13 +74,14 @@ export default function CreateFolderModal({
               </Grid>
             </Alert>
           )}
-          <Grid item xs={8}>
+          <Grid item xs={12}>
             <TextField
               id="name"
               onChange={handleInputChange(x => ({name: x}))}
               value={formState.name}
               placeholder="Folder Name"
               disabled={taskState.isLoading}
+              fullWidth
             />
           </Grid>
         </Grid>
