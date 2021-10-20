@@ -39,4 +39,13 @@ export async function getHealth({
   return response.data;
 }
 
-export async function create() {}
+export async function startTopologyScan({
+  networkName,
+  txNode,
+}: {
+  networkName: string,
+  txNode: string,
+}) {
+  const response = await axios.post(`/topology/scan/${networkName}`, {txNode});
+  return response.data;
+}

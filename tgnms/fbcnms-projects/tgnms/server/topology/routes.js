@@ -5,6 +5,7 @@
  * @flow
  */
 
+import apiServiceClient from '../apiservice/apiServiceClient';
 import {Api} from '../Api';
 const {
   addRequester,
@@ -15,6 +16,7 @@ const {
   getNetworkState,
   reloadInstanceConfig,
   removeRequester,
+  getApiActiveControllerAddress,
 } = require('./model');
 const {LINK_HEALTH_TIME_WINDOW_HOURS, IS_KUBERNETES} = require('../config');
 const {
@@ -344,6 +346,27 @@ export default class MyRoute extends Api {
         });
       },
     );
+
+    router.post('/scan/:topology', async (req, res) => {
+      try {
+        const {topology} = req.params;
+        const {api_ip, api_port} = getApiActiveControllerAddress({
+          topology,
+        });
+        const accessToken = req.user?.getAccessToken() ?? '';
+        const response = await apiServiceClient.userRequest({
+          host: api_ip,
+          port: api_port,
+          data: req.body,
+          apiMethod: 'startTopologyScan',
+          accessToken,
+          timeout: 90 * 1000,
+        });
+        return res.json(response.data);
+      } catch (err) {
+        return res.status(500).json({error: err.message});
+      }
+    });
     return router;
   }
 }

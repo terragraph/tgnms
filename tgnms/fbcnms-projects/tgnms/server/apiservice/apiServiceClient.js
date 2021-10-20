@@ -28,9 +28,10 @@ export type Request = {|
   // TODO: rename this
   apiMethod: string,
   // axios request config
-  config: any,
+  config?: any,
   // json http body
   data: any,
+  timeout?: number,
 |};
 
 export type AuthenticatedRequest = {
@@ -51,6 +52,7 @@ export class ApiServiceClient {
     apiMethod,
     data,
     accessToken,
+    timeout,
   }: AuthenticatedRequest) => {
     if (
       LOGIN_ENABLED &&
@@ -64,7 +66,7 @@ export class ApiServiceClient {
       apiMethod,
       data,
       accessToken,
-      config: {timeout: API_REQUEST_TIMEOUT},
+      config: {timeout: timeout ?? API_REQUEST_TIMEOUT},
     });
   };
 

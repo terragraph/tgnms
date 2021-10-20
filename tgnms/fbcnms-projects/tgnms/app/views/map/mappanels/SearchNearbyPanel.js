@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as topologyAPIUtil from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
 import AddLocationIcon from '@material-ui/icons/AddLocation';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Collapse from '@material-ui/core/Collapse';
@@ -28,15 +29,12 @@ import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
-  apiServiceRequest,
-  getErrorTextFromE2EAck,
-} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
-import {
   approxDistance,
   renderSnrWithColor,
   renderSnrWithIcon,
 } from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {getErrorTextFromE2EAck} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {withStyles} from '@material-ui/core/styles';
 
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
@@ -242,15 +240,14 @@ class SearchNearbyPanel extends React.Component<Props, State> {
     }
 
     const radioMac = node.wlan_mac_addrs[radioScanIndex];
-    const data = {txNode: radioMac};
     // Make API request
-    apiServiceRequest(networkName, 'startTopologyScan', data)
-      .then(response => {
+    topologyAPIUtil
+      .startTopologyScan({networkName, txNode: radioMac})
+      .then(({responders}) => {
         if (!this._isMounted) {
           return; // component no longer mounted, so discard response
         }
 
-        const {responders} = response.data;
         let radiosByResponder = nearbyNodes[node.name];
         if (radiosByResponder === null) {
           radiosByResponder = {};
