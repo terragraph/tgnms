@@ -55,14 +55,14 @@ test('initializes the form with the plan', async () => {
   expect(coerceClass(getByLabelText('Name'), HTMLInputElement).value).toBe(
     'test plan',
   );
+  expect(coerceClass(getByLabelText('DSM File'), HTMLInputElement).value).toBe(
+    mockPlan.dsmFile?.id?.toString(),
+  );
   expect(
-    coerceClass(getByLabelText('Select DSM File'), HTMLInputElement).value,
-  ).toBe(mockPlan.dsmFile?.id?.toString());
-  expect(
-    coerceClass(getByLabelText('Select Sites File'), HTMLInputElement).value,
+    coerceClass(getByLabelText('Sites File'), HTMLInputElement).value,
   ).toBe(mockPlan.sitesFile?.id?.toString());
   expect(
-    coerceClass(getByLabelText('Select Boundary File'), HTMLInputElement).value,
+    coerceClass(getByLabelText('Boundary File'), HTMLInputElement).value,
   ).toBe(mockPlan.boundaryFile?.id?.toString());
 });
 
@@ -111,14 +111,14 @@ test('Uploading new files adds them to the form state', async () => {
     size: 10000,
   });
 
+  expect(coerceClass(getByLabelText('DSM File'), HTMLInputElement).value).toBe(
+    '1',
+  );
   expect(
-    coerceClass(getByLabelText('Select DSM File'), HTMLInputElement).value,
-  ).toBe('1');
-  expect(
-    coerceClass(getByLabelText('Select Sites File'), HTMLInputElement).value,
+    coerceClass(getByLabelText('Sites File'), HTMLInputElement).value,
   ).toBe('2');
   expect(
-    coerceClass(getByLabelText('Select Boundary File'), HTMLInputElement).value,
+    coerceClass(getByLabelText('Boundary File'), HTMLInputElement).value,
   ).toBe('3');
   expect(updatePlanMock).not.toHaveBeenCalled();
   await act(async () => {
@@ -172,14 +172,14 @@ test('launching a plan saves the form first', async () => {
     size: 10000,
   });
 
+  expect(coerceClass(getByLabelText('DSM File'), HTMLInputElement).value).toBe(
+    '1',
+  );
   expect(
-    coerceClass(getByLabelText('Select DSM File'), HTMLInputElement).value,
-  ).toBe('1');
-  expect(
-    coerceClass(getByLabelText('Select Sites File'), HTMLInputElement).value,
+    coerceClass(getByLabelText('Sites File'), HTMLInputElement).value,
   ).toBe('2');
   expect(
-    coerceClass(getByLabelText('Select Boundary File'), HTMLInputElement).value,
+    coerceClass(getByLabelText('Boundary File'), HTMLInputElement).value,
   ).toBe('3');
   expect(updatePlanMock).not.toHaveBeenCalled();
 

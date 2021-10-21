@@ -118,7 +118,7 @@ export default function PlanEditor({
 
       <SelectOrUploadInputFile
         id="select-dsm-file"
-        label="Select DSM File"
+        label="DSM File"
         fileTypes=".tif"
         role={FILE_ROLE.DSM_GEOTIFF}
         initialValue={planState.dsm ?? null}
@@ -126,7 +126,7 @@ export default function PlanEditor({
       />
       <SelectOrUploadInputFile
         id="select-sites-file"
-        label="Select Sites File"
+        label="Sites File"
         fileTypes=".csv"
         role={FILE_ROLE.URBAN_SITE_FILE}
         initialValue={planState.siteList ?? null}
@@ -134,7 +134,7 @@ export default function PlanEditor({
       />
       <SelectOrUploadInputFile
         id="select-boundary-file"
-        label="Select Boundary File"
+        label="Boundary File"
         fileTypes=".kml,.kmz"
         role={FILE_ROLE.BOUNDARY_FILE}
         initialValue={planState.boundary ?? null}
