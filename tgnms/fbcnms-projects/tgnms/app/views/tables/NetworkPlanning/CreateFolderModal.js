@@ -37,7 +37,7 @@ export default function CreateFolderModal({
       taskState.reset();
       taskState.loading();
       if (!validate(formState)) {
-        throw new Error('Folder name is required');
+        throw new Error('Project name is required');
       }
       await networkPlanningAPIUtil.createFolder(formState);
       taskState.success();
@@ -52,19 +52,19 @@ export default function CreateFolderModal({
     <MaterialModal
       open={isOpen}
       onClose={onClose}
-      modalTitle={'Create new plan folder'}
+      modalTitle={'Add new project'}
       modalContent={
         <Grid container direction="column">
           {taskState.isSuccess && (
             <Alert color="success" severity="success">
-              <Typography>Folder created</Typography>
+              <Typography>Project created</Typography>
             </Alert>
           )}
           {taskState.isError && (
             <Alert color="error" severity="error">
               <Grid item container direction="column">
                 <Grid item>
-                  <Typography>Creating folder failed</Typography>
+                  <Typography>Creating project failed</Typography>
                 </Grid>
                 {taskState.message && (
                   <Grid item>
@@ -79,7 +79,7 @@ export default function CreateFolderModal({
               id="name"
               onChange={handleInputChange(x => ({name: x}))}
               value={formState.name}
-              placeholder="Folder Name"
+              placeholder="Project Name"
               disabled={taskState.isLoading}
               fullWidth
             />
