@@ -76,6 +76,7 @@ jest.mock(
   '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager',
   () => ({
     useNetworkPlanningManager: () => ({
+      pendingTopologyCount: 0,
       setPendingTopology: jest.fn(),
       filteredTopology: mockANPJsonPlan,
       getTopologyToCommit: () => ({

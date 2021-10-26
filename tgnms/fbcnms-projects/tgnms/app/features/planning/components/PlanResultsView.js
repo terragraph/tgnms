@@ -19,6 +19,7 @@ import MapIcon from '@material-ui/icons/Map';
 import PlanErrors from './PlanErrors';
 import PlanInputs from './PlanInputs';
 import PlanKPIView from './PlanKPIView';
+import PlanMultiSelectionView from './PlanMultiSelectionView';
 import PlanOutputs from './PlanOutputs';
 import PlanStatus from './PlanStatus';
 import Switch from '@material-ui/core/Switch';
@@ -59,6 +60,19 @@ export type Props = {|
 export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
   const classes = useStyles();
   const {networkName} = useNetworkContext();
+  const {
+    filteredTopology,
+    getTopologyToCommit,
+    setPendingTopology,
+    pendingTopologyCount,
+  } = useNetworkPlanningManager();
+  const {
+    mapFeatures,
+    setMapFeatures,
+    mapboxRef,
+    setOverlayData,
+  } = useMapContext();
+  const [shouldZoomToBBox, setShouldZoomToBBox] = React.useState(false);
   const snackbars = useSnackbars();
   const {
     inputFiles,
@@ -68,23 +82,10 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     downloadOutputTask,
     mapOptions,
     setMapOptions,
+    _pendingTopologyCount,
   } = useNetworkPlanningContext();
-  const {
-    filteredTopology,
-    getTopologyToCommit,
-    setPendingTopology,
-  } = useNetworkPlanningManager();
 
-  const {
-    mapFeatures,
-    setMapFeatures,
-    mapboxRef,
-    setOverlayData,
-  } = useMapContext();
-
-  const [shouldZoomToBBox, setShouldZoomToBBox] = React.useState(false);
-
-  // get the filtered planTopology and convert into mapFeatures to be rendered
+  // Get the filtered plan topology and convert into mapFeatures to be rendered.
   React.useEffect(() => {
     if (!isEmpty(filteredTopology)) {
       const features = planToMapFeatures(filteredTopology);
@@ -109,6 +110,24 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
       setMapFeatures(features);
     }
   }, [filteredTopology, setShouldZoomToBBox, setMapFeatures, setOverlayData]);
+
+  /**
+   * only zoom to the plan's bbox once, after the plan has been
+   * converted into map features.
+   */
+  React.useEffect(() => {
+    if (shouldZoomToBBox && mapFeatures != null) {
+      const bbox = getBBox(objectValuesTypesafe(mapFeatures.sites));
+      if (bbox) {
+        mapboxRef?.fitBounds(bbox);
+        setShouldZoomToBBox(false);
+      }
+    }
+  }, [shouldZoomToBBox, mapFeatures, mapboxRef]);
+
+  useUnmount(() => {
+    setMapFeatures({sites: {}, links: {}, nodes: {}});
+  });
 
   const cancelPlanTask = useTaskState();
   const handleCancelPlan = React.useCallback(async () => {
@@ -136,27 +155,15 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     setPendingTopology({links: [], sites: []});
   }, [getTopologyToCommit, setPendingTopology, networkName, snackbars]);
 
-  /**
-   * only zoom to the plan's bbox once, after the plan has been
-   * converted into map features.
-   */
-  React.useEffect(() => {
-    if (shouldZoomToBBox && mapFeatures != null) {
-      const bbox = getBBox(objectValuesTypesafe(mapFeatures.sites));
-      if (bbox) {
-        mapboxRef?.fitBounds(bbox);
-        setShouldZoomToBBox(false);
-      }
-    }
-  }, [shouldZoomToBBox, mapFeatures, mapboxRef]);
-
-  useUnmount(() => {
-    setMapFeatures({sites: {}, links: {}, nodes: {}});
-  });
-
   if (!plan) {
     return null;
   }
+  /**
+   * We will either show:
+   *  1. single selection view
+   *  2. multi selection view
+   *  3. general plan results
+   */
   return (
     <Grid
       container
@@ -164,47 +171,57 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
       spacing={2}
       wrap="nowrap"
       data-testid="plan-results">
-      <Grid item container justify="space-between" alignItems="center">
-        <Typography color="textSecondary" variant="h6">
-          {plan.name}
-        </Typography>
-        <PlanStatus state={plan.state} />
-      </Grid>
-      {plan.state === NETWORK_PLAN_STATE.SUCCESS && (
-        <PlanKPIView planId={plan.id} />
+      {pendingTopologyCount >= 1 && (
+        <PendingTopologyViews pendingTopologyCount={pendingTopologyCount} />
       )}
-      {plan.state === NETWORK_PLAN_STATE.ERROR && <PlanErrors plan={plan} />}
-      <PlanMapOptions options={mapOptions} onChange={setMapOptions} />
-      <Grid item>
-        <Typography color="textSecondary">Input Files</Typography>
-      </Grid>
-      {inputFiles && <PlanInputs files={inputFiles} />}
-      <Grid item>
-        <Typography color="textSecondary">Output Files</Typography>
-        {plan.state === NETWORK_PLAN_STATE.RUNNING && (
-          <Typography variant="subtitle2" color="textSecondary">
-            Plan in-progress
-          </Typography>
-        )}
-      </Grid>
-
-      {outputFiles && <PlanOutputs files={outputFiles} />}
-      <Grid item>
-        {plan.state === NETWORK_PLAN_STATE.RUNNING && (
-          <Button
-            fullWidth
-            className={classes.cancelButton}
-            disabled={cancelPlanTask.isLoading}
-            onClick={handleCancelPlan}
-            variant="text">
-            Cancel Plan{' '}
-            {cancelPlanTask.isLoading && <CircularProgress size={10} />}
-          </Button>
-        )}
-        <Button fullWidth onClick={onCopyPlan} variant="text">
-          Copy Plan
-        </Button>
-        {plan.state === NETWORK_PLAN_STATE.SUCCESS && (
+      {pendingTopologyCount == 0 && (
+        <>
+          <Grid item container justify="space-between" alignItems="center">
+            <Typography color="textSecondary" variant="h6">
+              {plan.name}
+            </Typography>
+            <PlanStatus state={plan.state} />
+          </Grid>
+          {plan.state === NETWORK_PLAN_STATE.SUCCESS && (
+            <PlanKPIView planId={plan.id} />
+          )}
+          {plan.state === NETWORK_PLAN_STATE.ERROR && (
+            <PlanErrors plan={plan} />
+          )}
+          <PlanMapOptions options={mapOptions} onChange={setMapOptions} />
+          <Grid item>
+            <Typography color="textSecondary">Input Files</Typography>
+          </Grid>
+          {inputFiles && <PlanInputs files={inputFiles} />}
+          <Grid item>
+            <Typography color="textSecondary">Output Files</Typography>
+            {plan.state === NETWORK_PLAN_STATE.RUNNING && (
+              <Typography variant="subtitle2" color="textSecondary">
+                Plan in-progress
+              </Typography>
+            )}
+          </Grid>
+          {outputFiles && <PlanOutputs files={outputFiles} />}
+          <Grid item>
+            {plan.state === NETWORK_PLAN_STATE.RUNNING && (
+              <Button
+                fullWidth
+                className={classes.cancelButton}
+                disabled={cancelPlanTask.isLoading}
+                onClick={handleCancelPlan}
+                variant="text">
+                Cancel Plan
+                {cancelPlanTask.isLoading && <CircularProgress size={10} />}
+              </Button>
+            )}
+            <Button fullWidth onClick={onCopyPlan} variant="text">
+              Copy Plan
+            </Button>
+          </Grid>
+        </>
+      )}
+      {plan.state === NETWORK_PLAN_STATE.SUCCESS && !pendingTopologyCount && (
+        <Grid item>
           <UploadTopologyConfirmationModal
             fullWidth
             disabled={false}
@@ -212,17 +229,17 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
             getUploadTopology={getTopologyToCommit}
             customText="Commit Plan to Network"
           />
-        )}
-        {(downloadOutputTask.isLoading ||
-          loadOutputFilesTask.isLoading ||
-          loadInputFilesTask.isLoading) && (
-          <Grid item>
-            <Grid container justify="center">
-              <CircularProgress size={10} />
-            </Grid>
+        </Grid>
+      )}
+      {(downloadOutputTask.isLoading ||
+        loadOutputFilesTask.isLoading ||
+        loadInputFilesTask.isLoading) && (
+        <Grid item>
+          <Grid container justify="center">
+            <CircularProgress size={10} />
           </Grid>
-        )}
-      </Grid>
+        </Grid>
+      )}
     </Grid>
   );
 }
@@ -313,6 +330,23 @@ function PlanMapOptions({
         </FormGroup>
       </FormControl>
     </Grid>
+  );
+}
+
+function PendingTopologyViews({
+  pendingTopologyCount,
+}: {
+  pendingTopologyCount: number,
+}) {
+  return (
+    <>
+      {pendingTopologyCount == 1 && 'Item details coming soon...'}
+      {pendingTopologyCount > 1 && (
+        <Grid item>
+          <PlanMultiSelectionView />
+        </Grid>
+      )}
+    </>
   );
 }
 

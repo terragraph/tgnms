@@ -31,7 +31,7 @@ const DEFAULT_MAP_OPTIONS_STATE = {
   },
 };
 
-const DEFAULT_PENDING_TOPOLOGY = {
+const DEFAULT_PENDING_TOPOLOGY: PendingTopology = {
   links: new Set(),
   sites: new Set(),
 };
@@ -75,6 +75,10 @@ export type NetworkPlanningContext = {|
   // network. Deduplication is done inside getTopologyToCommit.
   _pendingTopology: PendingTopology,
   _setPendingTopology: SetState<PendingTopology>,
+  // Represents the UN-EXPANDED count of the selected topology elements.
+  // This doesn't include the sites implicitely added by selecting links.
+  _pendingTopologyCount: number,
+  _setPendingTopologyCount: SetState<number>,
 
   // I/O files states
   inputFiles: ?Array<ANPFileHandle>,
@@ -108,6 +112,8 @@ const defaultValue: NetworkPlanningContext = {
   setRefreshDate: empty,
   _pendingTopology: DEFAULT_PENDING_TOPOLOGY,
   _setPendingTopology: empty,
+  _pendingTopologyCount: 0,
+  _setPendingTopologyCount: empty,
   inputFiles: null,
   setInputFiles: empty,
   loadInputFilesTask: emptyTask,
@@ -127,6 +133,7 @@ export function useNetworkPlanningContext(): NetworkPlanningContext {
 export type NetworkPlanningContextProviderProps = {|
   children: React.Node,
   planTopology?: ?ANPUploadTopologyType,
+  pendingTopology?: PendingTopology,
   setPlanTopology?: () => void,
   folders?: ?FolderMap,
   mapOptions?: MapOptionsState,
@@ -141,10 +148,11 @@ export type NetworkPlanningContextProviderProps = {|
  */
 export function NetworkPlanningContextProvider({
   children,
-  mapOptions = null,
-  setMapOptions = null,
-  planTopology = null,
-  setPlanTopology = null,
+  mapOptions: overrideMapOptions = null,
+  setMapOptions: overrideSetMapOptions = null,
+  planTopology: overridePlanTopology = null,
+  setPlanTopology: overrideSetPlanTopology = null,
+  pendingTopology: overridePendingTopology = null,
   folders = null,
   plan = null,
 }: NetworkPlanningContextProviderProps) {
@@ -165,28 +173,41 @@ export function NetworkPlanningContextProvider({
   );
 
   // Create map options state
-  if (!!mapOptions != !!setMapOptions)
-    throw new Error('Supply both mapOptions and setMapOptions, or neither.');
+  if (overrideSetMapOptions && !overrideMapOptions) {
+    throw new Error(
+      'If you input setMapOptions, you have to include mapOptions as well.',
+    );
+  }
   const [_mapOptions, _setMapOptions] = React.useState<MapOptionsState>(
-    DEFAULT_MAP_OPTIONS_STATE,
+    overrideMapOptions || DEFAULT_MAP_OPTIONS_STATE,
   );
+  const [mapOptions, setMapOptions] = overrideSetMapOptions
+    ? [overrideMapOptions, overrideSetMapOptions]
+    : [_mapOptions, _setMapOptions];
 
   // Create plan topology state
-  if (!!planTopology != !!setPlanTopology) {
+  if (overrideSetPlanTopology && !overridePlanTopology) {
     throw new Error(
-      'Supply both planTopology and setPlanTopology, or neither.',
+      'If you input setPlanTopology, you have to include planTopology as well.',
     );
   }
   const [
     _planTopology,
     _setPlanTopology,
-  ] = React.useState<?ANPUploadTopologyType>();
+  ] = React.useState<?ANPUploadTopologyType>(overridePlanTopology);
+  const [planTopology, setPlanTopology] = overrideSetPlanTopology
+    ? [overridePlanTopology, overrideSetPlanTopology]
+    : [_planTopology, _setPlanTopology];
 
-  // Create pending topology state.
+  // Create pending topology state. These are private because they should
+  // only be used in conjunction with useNetworkPlanningManager
   const [
     _pendingTopology,
     _setPendingTopology,
-  ] = React.useState<PendingTopology>(DEFAULT_PENDING_TOPOLOGY);
+  ] = React.useState<PendingTopology>(
+    overridePendingTopology || DEFAULT_PENDING_TOPOLOGY,
+  );
+  const [_pendingTopologyCount, _setPendingTopologyCount] = React.useState(0);
 
   // Create plan state.
   const {
@@ -219,12 +240,14 @@ export function NetworkPlanningContextProvider({
         plan: _plan,
         setPlan: _setPlan,
         loadPlanTask,
-        planTopology: planTopology ? planTopology : _planTopology,
-        setPlanTopology: setPlanTopology ? setPlanTopology : _setPlanTopology,
+        // Use overrides if passed in.
+        planTopology,
+        setPlanTopology,
         folders: _folders,
         setFolders,
-        mapOptions: mapOptions ? mapOptions : _mapOptions,
-        setMapOptions: setMapOptions ? setMapOptions : _setMapOptions,
+        // Use overrides if passed in.
+        mapOptions,
+        setMapOptions,
         refreshDate,
         setRefreshDate,
 
@@ -242,6 +265,8 @@ export function NetworkPlanningContextProvider({
         // by anyone BUT useNetworkPlanningManager.
         _pendingTopology,
         _setPendingTopology,
+        _pendingTopologyCount,
+        _setPendingTopologyCount,
       }}>
       {children}
     </context.Provider>

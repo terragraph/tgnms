@@ -23,6 +23,8 @@ export function useNetworkPlanningManager() {
     mapOptions,
     _pendingTopology,
     _setPendingTopology,
+    _pendingTopologyCount,
+    _setPendingTopologyCount,
   } = useNetworkPlanningContext();
 
   // Gather the current topology.
@@ -75,6 +77,8 @@ export function useNetworkPlanningManager() {
         sites = sites ?? Array.from(prevPendingTopology.sites);
         links = links ?? Array.from(prevPendingTopology.links);
 
+        _setPendingTopologyCount(sites.length + links.length);
+
         // Add in sites required by links.
         const additionalSites = [];
         for (const link_id of links) {
@@ -83,17 +87,13 @@ export function useNetworkPlanningManager() {
           additionalSites.push(link.rx_site_id);
         }
 
-        const newPendingTopology = {
+        return {
           links: new Set<string>(links),
           sites: new Set<string>([...sites, ...additionalSites]),
         };
-        return {
-          ...prevPendingTopology,
-          ...newPendingTopology,
-        };
       });
     },
-    [filteredTopology, _setPendingTopology],
+    [filteredTopology, _setPendingTopology, _setPendingTopologyCount],
   );
 
   const appendPendingTopology = React.useCallback(
@@ -226,6 +226,7 @@ export function useNetworkPlanningManager() {
 
   return {
     pendingTopology: _pendingTopology,
+    pendingTopologyCount: _pendingTopologyCount,
     filteredTopology,
     appendPendingTopology,
     setPendingTopology,
