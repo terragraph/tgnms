@@ -15,6 +15,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
+import {createLinkName} from '../PlanningHelpers';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager';
 
@@ -66,7 +67,7 @@ export default function PlanMultiSelectionView() {
     pendingTopology.links.forEach(linkId => {
       const link = filteredTopology.links[linkId];
       _selectedLinks[link.link_id] = {
-        name: `${link.tx_site_id} to ${link.rx_site_id}`,
+        name: createLinkName(link, filteredTopology.sites),
         metrics: {},
       };
 
@@ -86,7 +87,7 @@ export default function PlanMultiSelectionView() {
     const _selectedSites = Object.keys(siteToSelectedNodes).reduce(
       (result, siteId) => {
         result[siteId] = {
-          name: siteId,
+          name: filteredTopology.sites[siteId].name,
           metrics: {Nodes: siteToSelectedNodes[siteId].size},
         };
         return result;

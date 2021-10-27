@@ -9,6 +9,10 @@ import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {pickBy} from 'lodash';
+import type {
+  ANPLink,
+  ANPSite,
+} from '@fbcnms/tg-nms/app/constants/TemplateConstants.js';
 import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 export type EnabledStatusTypes = {|[$Keys<typeof ANP_STATUS_TYPE>]: boolean|};
@@ -71,4 +75,12 @@ export function filterANPTopology(
 
   // Add more filters here as needed.
   return {links, nodes, sites, sectors};
+}
+
+/**
+ * This is the link name used during the planning stage.
+ * It should be from site name to site name
+ */
+export function createLinkName(link: ANPLink, sites: {[string]: ANPSite}) {
+  return `${sites[link.tx_site_id].name} to ${sites[link.rx_site_id].name}`;
 }

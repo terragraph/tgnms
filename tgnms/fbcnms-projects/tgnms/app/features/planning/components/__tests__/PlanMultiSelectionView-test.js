@@ -18,6 +18,13 @@ describe('PlanMultiSelectionView', () => {
     const {getByText, queryAllByTestId, queryByText} = await renderAsync(
       <TestApp>
         <NetworkPlanningContextProvider
+          mapOptions={{
+            enabledStatusTypes: {
+              PROPOSED: true,
+              UNAVAILABLE: true,
+              CANDIDATE: true,
+            },
+          }}
           planTopology={planTopology}
           pendingTopology={{
             links: new Set(['link10_20']),
@@ -32,21 +39,21 @@ describe('PlanMultiSelectionView', () => {
     act(() => {
       fireEvent.click(getByText('3 Sites'));
     });
-    expect(getByText('site1')).toBeInTheDocument();
-    expect(getByText('site2')).toBeInTheDocument();
-    expect(getByText('site3')).toBeInTheDocument();
+    expect(getByText('Site1Name')).toBeInTheDocument();
+    expect(getByText('Site2Name')).toBeInTheDocument();
+    expect(getByText('Site3Name')).toBeInTheDocument();
     act(() => {
       fireEvent.click(getByText('1 Links'));
     });
-    expect(queryByText('site1 to site2')).toBeInTheDocument();
+    expect(queryByText('Site1Name to Site2Name')).toBeInTheDocument();
 
     // Remove Link
     act(() => {
       fireEvent.click(queryAllByTestId('remove-plan-item')[3]);
     });
-    expect(getByText('site3')).toBeInTheDocument();
-    expect(queryByText('site1')).not.toBeInTheDocument();
-    expect(queryByText('site2')).not.toBeInTheDocument();
-    expect(queryByText('site1 to site2')).not.toBeInTheDocument();
+    expect(getByText('Site3Name')).toBeInTheDocument();
+    expect(queryByText('Site1Name')).not.toBeInTheDocument();
+    expect(queryByText('Site2Name')).not.toBeInTheDocument();
+    expect(queryByText('Site1Name to Site2Name')).not.toBeInTheDocument();
   });
 });

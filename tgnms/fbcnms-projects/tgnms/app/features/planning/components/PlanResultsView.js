@@ -21,6 +21,7 @@ import PlanInputs from './PlanInputs';
 import PlanKPIView from './PlanKPIView';
 import PlanMultiSelectionView from './PlanMultiSelectionView';
 import PlanOutputs from './PlanOutputs';
+import PlanSingleSelectionView from './PlanSingleSelectionView';
 import PlanStatus from './PlanStatus';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
@@ -340,7 +341,11 @@ function PendingTopologyViews({
 }) {
   return (
     <>
-      {pendingTopologyCount == 1 && 'Item details coming soon...'}
+      {pendingTopologyCount == 1 && (
+        <Grid item>
+          <PlanSingleSelectionView />
+        </Grid>
+      )}
       {pendingTopologyCount > 1 && (
         <Grid item>
           <PlanMultiSelectionView />

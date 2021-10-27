@@ -21,11 +21,6 @@ export const PolarityTypeValueMap = {
   HYBRID_EVEN: 4,
 };
 
-export type LinkTypeType =
-  | 'WIRELESS'
-  | 'ETHERNET'
-  | 'WIRELESS_BACKHAUL'
-  | 'WIRELESS_ACCESS';
 export const LinkTypeValueMap = {
   // Derived from the topology.thrift file
   WIRELESS: 1,

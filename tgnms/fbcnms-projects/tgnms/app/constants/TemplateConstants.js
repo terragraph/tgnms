@@ -19,12 +19,20 @@ import type {
 } from '@fbcnms/tg-nms/shared/types/Topology';
 
 export type ANPSite = {
+  name: string,
   site_id: string,
   loc: LocationType,
   desc: string,
   polarity: PolarityTypeType,
   site_type: $Values<typeof ANP_SITE_TYPE>,
   status_type: $Values<typeof ANP_STATUS_TYPE>,
+  device_sku: string,
+  site_capex: number,
+  breakdowns: number,
+  active_sectors: number,
+  times_on_mcs_route: number,
+  hops: number,
+  active_links: number,
 };
 
 export type ANPNode = {
@@ -60,6 +68,7 @@ export type ANPSector = {
 
 export type ANPLink = {
   link_id: string,
+  link_hash: string,
   rx_sector_id: string,
   tx_sector_id: string,
   link_type: $Values<typeof LinkTypeValueMap>,
@@ -74,6 +83,11 @@ export type ANPLink = {
   altitudes: Array<number>,
   MCS: number,
   SNR: number,
+  RSL: number,
+  SINR: number,
+  breakdowns: number,
+  times_on_mcs_route: number,
+  RSL_interference: number,
 };
 
 export type ANPKmlFeature = {
