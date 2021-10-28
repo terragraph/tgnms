@@ -12,6 +12,7 @@ import NodeOffline from '@fbcnms/tg-nms/app/components/troubleshootingAutomation
 import NodePolarity from './NodePolarity';
 import NodeRadioMacs from './NodeRadioMacs';
 import NodeSoftwareVersion from './NodeSoftwareVersion';
+import NodeTunnels from './NodeTunnels';
 import PopOffline from '@fbcnms/tg-nms/app/components/troubleshootingAutomation/PopOffline';
 import React from 'react';
 import StatusText from '@fbcnms/tg-nms/app/components/common/StatusText';
@@ -168,6 +169,7 @@ export default function NodeDetails(props: Props) {
         node={node}
         networkConfig={networkConfig}
       />
+      <NodeTunnels nodeName={node.name} />
       <NodeEthernetLinks node={node} topology={topology} />
       {statusReport && statusReport.version ? (
         <NodeSoftwareVersion version={statusReport.version} />
