@@ -41,9 +41,9 @@ test('renders modal when clicked', () => {
   );
   expect(getByText('Upload')).toBeInTheDocument();
   fireEvent.click(getByText('Upload'));
-  expect(getByText('3 new sites')).toBeInTheDocument();
+  expect(getByText('3 sites')).toBeInTheDocument();
   expect(
-    getByText('The following items will be added to testName'),
+    getByText('The following will be added to the network:'),
   ).toBeInTheDocument();
 });
 
@@ -58,9 +58,9 @@ test('onclick calls onSubmit', () => {
   expect(getByText('Upload')).toBeInTheDocument();
   fireEvent.click(getByText('Upload'));
   expect(
-    getByText('The following items will be added to testName'),
+    getByText('The following will be added to the network:'),
   ).toBeInTheDocument();
-  fireEvent.click(getByText('Add 3 topology elements'));
+  fireEvent.click(getByText('Add to Network'));
   expect(defaultProps.onSubmit).toHaveBeenCalled();
 });
 

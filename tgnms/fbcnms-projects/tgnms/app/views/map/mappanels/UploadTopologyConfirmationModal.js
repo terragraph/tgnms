@@ -10,8 +10,7 @@ import Button from '@material-ui/core/Button';
 import CompareArrowsIcon from '@material-ui/icons/CompareArrows';
 import Grid from '@material-ui/core/Grid';
 import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
-import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
@@ -35,7 +34,6 @@ type Props = {
 
 export default function UploadTopologyConfirmationModal(props: Props) {
   const {onSubmit, disabled, getUploadTopology, customText, fullWidth} = props;
-  const {networkName} = useContext(NetworkContext);
 
   const [isOpen, setIsOpen] = useState(false);
   const classes = useModalStyles();
@@ -75,7 +73,7 @@ export default function UploadTopologyConfirmationModal(props: Props) {
                 <AddLocationIcon />
               </Grid>
               <Grid item>
-                <Typography>{siteCount} new sites</Typography>
+                <Typography>{siteCount} sites</Typography>
               </Grid>
             </Grid>
             <Grid item container spacing={1}>
@@ -83,7 +81,7 @@ export default function UploadTopologyConfirmationModal(props: Props) {
                 <RouterIcon />
               </Grid>
               <Grid item>
-                <Typography>{nodeCount} new nodes</Typography>
+                <Typography>{nodeCount} nodes</Typography>
               </Grid>
             </Grid>
             <Grid item container spacing={1}>
@@ -91,12 +89,12 @@ export default function UploadTopologyConfirmationModal(props: Props) {
                 <CompareArrowsIcon />
               </Grid>
               <Grid item>
-                <Typography>{linkCount} new links</Typography>
+                <Typography>{linkCount} links</Typography>
               </Grid>
             </Grid>
           </Grid>
         }
-        modalTitle={`The following items will be added to ${networkName}`}
+        modalTitle={`The following will be added to the network:`}
         modalActions={
           <>
             <Button onClick={() => setIsOpen(false)} variant="outlined">
@@ -111,7 +109,7 @@ export default function UploadTopologyConfirmationModal(props: Props) {
                 onSubmit();
               }}
               variant="contained">
-              Add {totalCount} topology elements
+              Add to Network
             </Button>
           </>
         }
