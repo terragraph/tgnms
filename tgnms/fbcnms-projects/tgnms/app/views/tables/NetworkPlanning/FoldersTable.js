@@ -66,7 +66,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
   const columns = React.useMemo(
     () => [
       {
-        title: 'Name',
+        title: 'Projects',
         field: 'name',
         grouping: false,
         width: 100,
@@ -82,7 +82,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
           NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
         : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT;
     return {
-      showTitle: true,
+      showTitle: false,
       minBodyHeight: computedheight,
       maxBodyHeight: computedheight,
       pageSize: 20,
