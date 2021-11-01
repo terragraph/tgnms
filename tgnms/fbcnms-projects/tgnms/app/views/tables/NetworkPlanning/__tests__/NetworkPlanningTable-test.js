@@ -196,7 +196,7 @@ describe('CTAs', () => {
     });
     const cta = getByTestId('folders-table-cta');
     expect(cta).toBeInTheDocument();
-    expect(within(cta).getByText(/folder/i)).toBeInTheDocument();
+    expect(within(cta).getByText(/project/i)).toBeInTheDocument();
     expect(within(cta).getByText(/plan/i)).toBeInTheDocument();
   });
   test('plans table shows add plan CTA', async () => {

@@ -173,7 +173,7 @@ export function FoldersTableCTA({onFolderCreated}: CTAProps) {
         }
         id="folders-table-cta"
         ButtonProps={{variant: 'outlined'}}>
-        <MenuItem onClick={createFolderModal.open}>Folder</MenuItem>
+        <MenuItem onClick={createFolderModal.open}>Project</MenuItem>
         <MenuItem onClick={createPlanModal.open}>Plan</MenuItem>
       </MenuButton>
       <CreateFolderModal
