@@ -134,7 +134,7 @@ export default class ANPAPIClient {
     const result = await this.makeRequest<ANPFileHandle>({
       id,
       query: {
-        fields: 'file_name,file_extension,file_role,file_status,file_handle',
+        fields: 'file_name,file_extension,file_role,file_status',
       },
       method: 'GET',
     });

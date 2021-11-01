@@ -21,7 +21,6 @@ export type ANPFileHandle = {|
   file_extension: string,
   file_role: string,
   file_status: string,
-  file_handle: string,
   id: string,
 |};
 

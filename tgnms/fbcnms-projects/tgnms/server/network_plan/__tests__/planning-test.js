@@ -65,9 +65,9 @@ const uploadChunkMock = jest.fn(() => Promise.resolve({h: '123'}));
 const getPlanMock = jest.fn(() => Promise.reject(new Error('Not implemented')));
 const getInputFileMock = jest
   .fn()
-  .mockReturnValueOnce({file_handle: null})
-  .mockReturnValueOnce({file_handle: null})
-  .mockReturnValue({file_handle: 'my_file_handle'});
+  .mockReturnValueOnce({file_status: 'PENDING'})
+  .mockReturnValueOnce({file_status: 'PENDING'})
+  .mockReturnValue({file_status: 'READY'});
 (ANPAPIClientMock: any).mockImplementation(() => ({
   getFileMetadata: getFileMetadataMock,
   createFolder: createFolderMock,

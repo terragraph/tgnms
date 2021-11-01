@@ -22,7 +22,7 @@ import {
   NETWORK_PLAN_STATE,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {constants as FS_CONSTANTS} from 'fs';
-import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {INPUT_FILE_STATE, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {getInputFileFields} from '../models/networkPlan';
 import {pollConditionally} from '@fbcnms/tg-nms/server/helpers/poll';
 import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
@@ -264,11 +264,10 @@ export default class PlanningService {
           try {
             await pollConditionally({
               fn: async () => await this.anpApi.getInputFile(anpFile.id),
-              // TODO T104729791: Due to inaccuracies of file_status we
-              // use the file_handle to determine readiness.
-              fnCondition: (result: ANPFileHandle) => !!result.file_handle,
-              ms: 1000,
-              numCallsTimeout: 60 * 10, // ~ 10 minutes
+              fnCondition: (result: ANPFileHandle) =>
+                result.file_status == INPUT_FILE_STATE.READY,
+              ms: 500,
+              numCallsTimeout: 20,
             });
           } catch {
             throw new Error('Timeout while waiting for files to be ready.');
