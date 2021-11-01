@@ -40,7 +40,7 @@ test('getInputFile works', async () => {
   expect(axiosMock).toHaveBeenLastCalledWith({
     method: 'GET',
     url:
-      'https://terragraph-api.fbconnectivity.com/myInputFileId?fields=file_name%2Cfile_extension%2Cfile_role%2Cfile_status',
+      'https://terragraph-api.fbconnectivity.com/myInputFileId?fields=file_name%2Cfile_extension%2Cfile_role%2Cfile_status%2Cfile_handle',
     headers: {
       Authorization: 'OAuth abc123',
     },

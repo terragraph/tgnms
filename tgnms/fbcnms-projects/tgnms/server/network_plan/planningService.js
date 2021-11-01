@@ -22,7 +22,7 @@ import {
   NETWORK_PLAN_STATE,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {constants as FS_CONSTANTS} from 'fs';
-import {INPUT_FILE_STATE, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {getInputFileFields} from '../models/networkPlan';
 import {pollConditionally} from '@fbcnms/tg-nms/server/helpers/poll';
 import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
@@ -264,19 +264,15 @@ export default class PlanningService {
           try {
             await pollConditionally({
               fn: async () => await this.anpApi.getInputFile(anpFile.id),
-              fnCondition: (result: ANPFileHandle) =>
-                result.file_status == INPUT_FILE_STATE.READY,
-              ms: 500,
-              numCallsTimeout: 20,
+              // TODO T104729791: Due to inaccuracies of file_status we
+              // use the file_handle to determine readiness.
+              fnCondition: (result: ANPFileHandle) => !!result.file_handle,
+              ms: 1000,
+              numCallsTimeout: 60 * 10, // ~ 10 minutes
             });
           } catch {
             throw new Error('Timeout while waiting for files to be ready.');
           }
-
-          // TODO T103397040 (Tommy): Known bug where READY isn't completely
-          // accurate since the file handle field may still be null. Solution
-          // is to wait for 2 seconds.
-          await new Promise(res => setTimeout(res, 2000));
         } catch (err) {
           console.error(err);
         } finally {
