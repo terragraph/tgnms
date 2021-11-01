@@ -45,6 +45,9 @@ class LinkTest(BaseTest):
             allowlist_set = set(self.allowlist)
             self.assets = []
             for link in topology["links"]:
+                if not link["is_alive"]:
+                    logging.error(f"Skipping {link['name']} because it is not alive")
+                    continue
                 if link["link_type"] != LinkType.WIRELESS:
                     continue
                 if self.allowlist and link["name"] not in allowlist_set:

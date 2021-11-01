@@ -3,9 +3,10 @@
 
 import logging
 import random
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from terragraph_thrift.Controller.ttypes import IperfTransportProtocol
+from terragraph_thrift.Topology.ttypes import NodeStatusType
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
@@ -43,25 +44,26 @@ class NodeTest(BaseTest):
             topology = await client.request(self.network_name, "getTopology")
             nodes: List[str] = []
             name_to_mac: Dict[str, str] = {}
-            if self.allowlist:
-                allowlist_set = set(self.allowlist)
-                for node in topology["nodes"]:
-                    if node["pop_node"]:
-                        name_to_mac[node["name"]] = node["mac_addr"]
-                    elif node["name"] in allowlist_set:
-                        name_to_mac[node["name"]] = node["mac_addr"]
-                        nodes.append(node["name"])
-            else:
-                # Shuffle the nodes to avoid picking the same site representative each time
-                random.shuffle(topology["nodes"])
-                site_to_node_rep: Dict[str, str] = {}
-                for node in topology["nodes"]:
-                    if node["pop_node"]:
-                        name_to_mac[node["name"]] = node["mac_addr"]
-                    elif node["site_name"] not in site_to_node_rep:
-                        name_to_mac[node["name"]] = node["mac_addr"]
-                        site_to_node_rep[node["site_name"]] = node["name"]
-                nodes = list(site_to_node_rep.values())
+            seen_sites: Set[str] = set()
+            allowlist_set = set(self.allowlist)
+
+            # Shuffle the nodes to avoid picking the same site representative each time
+            random.shuffle(topology["nodes"])
+            for node in topology["nodes"]:
+                node_name = node["name"]
+                node_mac = node["mac_addr"]
+                site_name = node["site_name"]
+
+                if node["pop_node"]:
+                    name_to_mac[node_name] = node_mac
+                elif node["status"] != NodeStatusType.ONLINE:
+                    logging.error(f"Skipping {node_name} because it is not 'ONLINE'")
+                elif (allowlist_set and node_name in allowlist_set) or (
+                    site_name not in seen_sites
+                ):
+                    name_to_mac[node_name] = node_mac
+                    nodes.append(node_name)
+                    seen_sites.add(site_name)
 
             default_routes = (
                 await client.request(
