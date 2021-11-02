@@ -8,7 +8,7 @@ import os
 import re
 import sys
 
-from .crash_analyzer import CrashAnalyzer
+from .crash_analyzer import CrashAnalyzer, LogSource
 from .vpp_crash_analyzer import VppCrashAnalyzer
 from .crash_details import CrashDetails
 from .crash_key import CrashKey
@@ -88,7 +88,11 @@ def extract_application_type(log_path: str) -> str:
 
 
 def analyze_log(
-    log_lines: List[str], log_path: str, node_id: str = ""
+    log_source: LogSource,
+    log_lines: List[str],
+    log_path: str,
+    node_id: str = "",
+    timestamp: str = "",
 ) -> List[CrashDetails]:
     """Analyze the log based on application type.
     Return a list of all found crashes for the application
@@ -98,10 +102,12 @@ def analyze_log(
     app_type: str = extract_application_type(log_path)
     return (
         APPLICATION_TYPES[app_type].run_error_parsers(
+            log_source=log_source,
             log_path=log_path,
             log_lines=log_lines,
             node_id=node_id,
             application=app_type,
+            timestamp=timestamp,
         )
         if app_type in APPLICATION_TYPES
         else []
@@ -147,7 +153,9 @@ def main():
     for filepath in glob.glob(path + "/*", recursive=True):
         with open(filepath, "r") as crash_file:
             file_lines: List[str] = crash_file.readlines()
-            found_crashes = analyze_log(file_lines, filepath)
+            found_crashes = analyze_log(
+                log_source=LogSource.LOG_FILE, log_lines=file_lines, log_path=filepath
+            )
             analyzed_crash_details.extend(found_crashes)
 
     # summarize the crash details

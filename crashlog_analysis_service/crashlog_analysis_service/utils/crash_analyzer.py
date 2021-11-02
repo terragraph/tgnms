@@ -7,6 +7,7 @@ import re
 import sys
 
 from .crash_details import CrashDetails
+from enum import IntEnum
 from typing import AnyStr, Dict, List, Optional, Tuple
 from re import Match
 
@@ -38,6 +39,15 @@ TIMESTAMP_RE = re.compile("(\d\d):(\d\d):(\d\d)\.(\d+)")
 
 # File path timestamp format
 FILE_PATH_TIMESTAMP_RE = re.compile("(\d\d).(\d\d).(\d\d).([a-zA-Z]+)")
+
+STACK_TRACE_CONTENT_MARKER = "Dumping stack trace file"
+
+
+class LogSource(IntEnum):
+    """List of possible log sources."""
+
+    LOG_FILE = 1
+    ELASTICSEARCH = 2
 
 
 class CrashAnalyzer:
@@ -137,6 +147,7 @@ class CrashAnalyzer:
         match: Optional[Match[str]] = None
         i: int = 0
         # Look for the signal/crash type
+
         while match is None and i < len(log_lines):
             match = STACK_TRACE_TERMINATED_SIGNAL_RE.match(log_lines[i])
             i += 1
@@ -174,6 +185,26 @@ class CrashAnalyzer:
                 affected_lines=affected_lines,
             )
         return None
+
+    def extract_stack_trace_logs(
+        self, log_lines: List[str], application: str
+    ) -> List[str]:
+        """Extract the lines containing the crash stack trace contents
+        added to the application log."""
+
+        # Search for the known crash/stack file marker
+        LOG.debug(f"Extracting crash stack traces from {application} log")
+        for idx, log in enumerate(log_lines):
+            # This marker is only present in non-VPP application logs. VPP has its own CrashAnalyzer.
+            if STACK_TRACE_CONTENT_MARKER in log:
+                # Strip away whitespace markers inserted for multi-line logs
+                stack_lines = [line.lstrip() for line in log_lines[idx].splitlines()]
+                LOG.info(
+                    f"Found stack trace in {application} log with {len(stack_lines)} lines"
+                )
+                return stack_lines
+
+        return []
 
     def parse_crash_stack_trace(
         self,
@@ -243,37 +274,58 @@ class CrashAnalyzer:
         return found_errors
 
     def run_error_parsers(
-        self, log_path: str, log_lines: List[str], node_id: str, application: str
+        self,
+        log_source: LogSource,
+        log_path: str,
+        log_lines: List[str],
+        node_id: str,
+        application: str,
+        timestamp: str,
     ) -> List[CrashDetails]:
         """Given a list of log lines, run a series of parsers to extract
         crash and error message related information. Returns a list
         of CrashDetails on each found crash and/or error message.
         """
         found_crashes: List[CrashDetails] = []
-        crash_time = self.extract_time_from_log_path(log_path=log_path)
-        if "stack" in log_path:
-            # Assume the line are from an application stack trace log,
-            # ie. the log path contains "stack", and parse to extract crash details
-            stack_trace_details = self.parse_stack_trace_log(
-                log_lines=log_lines,
+
+        if log_source == LogSource.LOG_FILE:
+            stack_trace_lines = log_lines
+            crash_time = self.extract_time_from_log_path(log_path=log_path)
+        # For ES, extract stack traces from the application log
+        elif log_source == LogSource.ELASTICSEARCH:
+            stack_trace_lines = self.extract_stack_trace_logs(
+                log_lines=log_lines, application=application
+            )
+            crash_time = timestamp
+
+        if stack_trace_lines:
+            # Now parse the stack trace for useful CrashDetails
+            crash_details = self.parse_stack_trace_log(
+                log_lines=stack_trace_lines,
                 node_id=node_id,
                 application=application,
                 crash_time=crash_time,
             )
+
             # If the parsing was successful, add to found_crashes
-            if (
-                stack_trace_details is not None
-                and stack_trace_details.crash_type is not None
-            ):
-                found_crashes.append(stack_trace_details)
+            if crash_details is not None and crash_details.crash_type is not None:
+                LOG.info(
+                    f"Parsed and found crashes in stack trace logs \n: {crash_details}"
+                )
+                found_crashes.append(crash_details)
         else:
-            LOG.info(f"{log_path} is not an application stack trace log.")
+            # No stack trace information found
+            LOG.debug(f"{node_id}/{log_path} did not parse crash stack traces.")
 
         # If there are no crashes found yet,
-        # ie. log is not an application stack trace or parsing was unsuccessful
+        # Parsing was unsuccessful
         # then look for specific error messages and append CrashDetails
         # containing the surrounding lines or stack traces caused by the error messages
-        if len(found_crashes) == 0:
+
+        if not found_crashes:
+            LOG.debug(
+                f"{node_id}/{log_path} log did not have crash stack traces. Trying to find error messages"
+            )
             for error_msg_re_str in self.ERROR_MSGS_RE:
                 found_crashes.extend(
                     self.find_error_msg(

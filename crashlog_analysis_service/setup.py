@@ -23,6 +23,7 @@ setup(
         "alembic>=1.3.3,<2.0",
         "sqlalchemy",
         "elasticsearch",
+        "python-dateutil",
     ],
     extras_require={"ci": ["ptr"], "docs": ["aiohttp-swagger>=1.0.9,<2.0"]},
     test_suite=ptr_params["test_suite"],

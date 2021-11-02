@@ -7,7 +7,7 @@ from typing import AnyStr, Dict, List, Optional, Tuple
 
 sys.path.append("../")
 try:
-    from crashlog_analysis_service.utils.crash_analyzer import CrashAnalyzer
+    from crashlog_analysis_service.utils.crash_analyzer import CrashAnalyzer, LogSource
     from crashlog_analysis_service.utils.crash_details import CrashDetails
 except BaseException:
     raise
@@ -166,7 +166,12 @@ class CrashAnalyzerTestCase(unittest.TestCase):
         for test_file in test_cases:
             exp_res = test_cases[test_file]
             test_res = crashAnalyzer.run_error_parsers(
-                test_file, self.file_path_to_lines[test_file], "", ""
+                log_source=LogSource.LOG_FILE,
+                log_path=test_file,
+                log_lines=self.file_path_to_lines[test_file],
+                node_id="",
+                application="",
+                timestamp="",
             )
             self.assertEqual(len(test_res), exp_res)
 

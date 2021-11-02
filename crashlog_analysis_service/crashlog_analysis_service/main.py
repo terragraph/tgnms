@@ -75,7 +75,7 @@ async def consume(queue: asyncio.Queue, es: AsyncElasticsearch) -> NoReturn:
 
 
 async def async_main(config: Dict[str, Any]) -> None:
-    logging.info("#### Starting the 'crash_analysis_service' ####")
+    logging.info("#### Starting the 'crashlog_analysis_service' ####")
     logging.debug(f"service config: {config}")
 
     q: asyncio.Queue = asyncio.Queue()

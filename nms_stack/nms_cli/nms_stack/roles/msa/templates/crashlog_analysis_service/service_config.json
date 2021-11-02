@@ -10,8 +10,9 @@
           "es_indices": [
             "fluentd-log-node-e2e_minion-*",
             "fluentd-log-node-exabgp-*",
-            "fluentd-log-node-fib_vpp-*",
-            "fluentd-log-node-openr-*"
+            "fluentd-log-node-openr-*",
+            "fluentd-log-node-stats_agent-*",
+            "fluentd-log-node-vpp_vnet-*"
           ]
         }
       ]

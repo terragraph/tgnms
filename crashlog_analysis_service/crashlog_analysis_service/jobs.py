@@ -4,6 +4,7 @@
 import asyncio
 import logging
 
+from dateutil.parser import isoparse
 from elasticsearch import AsyncElasticsearch
 from typing import Dict, List, Tuple
 
@@ -12,6 +13,7 @@ from tglib.clients.prometheus_client import PrometheusClient, PrometheusMetric
 from .utils.crash_analysis_runner import analyze_log, group_crashes
 from .utils.crash_details import CrashDetails
 from .utils.crash_key import CrashKey
+from .utils.crash_analyzer import LogSource
 from .utils.utils import (
     get_crash_logs_from_elasticsearch,
     get_prometheus_label_from_key,
@@ -31,40 +33,53 @@ async def analyze_crash_logs(
 
     # --- Step 1 ---
     crash_logs: Dict[
-        Tuple[str, str], List[str]
+        Tuple[str, str, str], List[str]
     ] = await get_crash_logs_from_elasticsearch(start_time_ms, es_indices, es)
 
     # --- Step 2 ---
-    crash_details: List[CrashDetails] = []
-    for (node_name, log_file), log in crash_logs.items():
-        crash_details.extend(analyze_log(log, log_file, node_name))
+    crash_list: List[CrashDetails] = []
+    for (node_name, log_file, timestamp), log in crash_logs.items():
+        crash_list.extend(
+            analyze_log(
+                log_source=LogSource.ELASTICSEARCH,
+                log_lines=log,
+                log_path=log_file,
+                node_id=node_name,
+                timestamp=timestamp,
+            )
+        )
 
     # --- Step 3 ---
-    await save_crash_details_to_db(crash_details)
+    # await save_crash_details_to_db(crash_list)
 
     # --- Step 4 ---
     metrics: List[PrometheusMetric] = []
-    crash_groups: List[CrashKey] = [
-        CrashKey(crash_type=""),
-        CrashKey(crash_time=""),
-        CrashKey(node_id=""),
-        CrashKey(application=""),
-    ]
-    # group by crash type
-    for group in crash_groups:
-        grouped_crashes = group_crashes(crash_details, group)
-        for group_key in grouped_crashes:
-            metrics.append(
-                PrometheusMetric(
-                    name="crash_analysis_crash_count",
-                    labels=get_prometheus_label_from_key(group_key),
-                    value=len(grouped_crashes[group_key]),
-                    time=start_time_ms,
-                )
+    for crash in crash_list:
+        labels = {
+            "crash_type": crash.crash_type,
+            "application": crash.application,
+            "node_id": crash.node_id,
+        }
+        dt = isoparse(crash.crash_time)
+        crash_time_ms = int(dt.timestamp() * 1000)
+        logging.info(
+            f"Found crash! {crash.node_id}/{crash.application} "
+            f"crashed due to {crash.crash_type} at {crash_time_ms}"
+        )
+
+        metrics.append(
+            PrometheusMetric(
+                name="crash_analysis_crash_count",
+                labels=labels,
+                value=1,
+                time=crash_time_ms,
             )
+        )
 
     PrometheusClient.write_metrics(metrics=metrics)
-    logging.info(f"Published crash_analysis_crash_count metric(s) to Prometheus.")
+    logging.info(
+        f"Published {len(crash_list)} crash_analysis_crash_count(s)" + " to Prometheus."
+    )
 
     # --- Step 5 ---
     # add_crash_detail()

@@ -30,11 +30,11 @@ def get_prometheus_label_from_key(key: CrashKey) -> Dict[str, str]:
 
 async def get_crash_logs_from_elasticsearch(
     start_time_ms: int, indexes: List[str], es: AsyncElasticsearch
-) -> Dict[Tuple[str, str], List[str]]:
+) -> Dict[Tuple[str, str, str], List[str]]:
     """Get the application crash logs from elasticsearch"""
 
-    # map from (node_name, log_file) -> log
-    crash_logs: Dict[Tuple[str, str], List[str]] = {}
+    # map from (node_name, log_file, timestamp) -> log
+    crash_logs: Dict[Tuple[str, str, str], List[str]] = {}
     # query to find application logs
     # from the last 1 minute
     body = {
@@ -49,8 +49,16 @@ async def get_crash_logs_from_elasticsearch(
         for hit in result["hits"]["hits"]:
             hit_source = hit["_source"]
             # Assumes that hit[log] is a string and not a list of strings
+            logging.debug(
+                f"Queried Elastic Search logs from {hit_source['node_name']}/{hit_source['log_file']}"
+            )
             crash_logs.setdefault(
-                (hit_source["node_name"], hit_source["log_file"]), []
+                (
+                    hit_source["node_name"],
+                    hit_source["log_file"],
+                    hit_source["@timestamp"],
+                ),
+                [],
             ).append(hit_source["log"])
 
     return crash_logs

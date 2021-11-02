@@ -5,7 +5,7 @@ import os
 import re
 import sys
 
-from .crash_analyzer import CrashAnalyzer
+from .crash_analyzer import CrashAnalyzer, LogSource
 from .crash_details import CrashDetails
 from typing import AnyStr, Dict, List, Optional, Tuple
 from re import Match
@@ -88,3 +88,33 @@ class VppCrashAnalyzer(CrashAnalyzer):
             affected_function=function_name,
             affected_lines=stack_trace,
         )
+
+    def run_error_parsers(
+        self,
+        log_source: LogSource,
+        log_path: str,
+        log_lines: List[str],
+        node_id: str,
+        application: str,
+        timestamp: str,
+    ) -> List[CrashDetails]:
+        """Given a list of VPP vnet log lines that may contain the VPP stack trace, find
+        error messages and extract stack traces if possible. Please note that
+        VPP stack content from gdb are not present in the application log. Returns a list
+        of CrashDetails on each found crash and/or error message.
+        """
+        found_crashes: List[CrashDetails] = []
+        crash_time = self.extract_time_from_log_path(log_path=log_path)
+
+        for error_msg_re_str in self.ERROR_MSGS_RE:
+            found_crashes.extend(
+                self.find_error_msg(
+                    error_msg_re_str=error_msg_re_str,
+                    log_lines=log_lines,
+                    node_id=node_id,
+                    application=application,
+                    crash_time=crash_time,
+                )
+            )
+
+        return found_crashes
