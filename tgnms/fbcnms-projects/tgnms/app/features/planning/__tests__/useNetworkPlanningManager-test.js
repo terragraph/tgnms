@@ -271,6 +271,13 @@ describe('useNetworkPlanningManager', () => {
       expect(linkNames.length).toEqual(1);
       expect(linkNames.includes('link-site2_0-site3_0'));
     });
+    test('should default to the whole topology if none is selected', () => {
+      const {result} = setupHook();
+      const res = result.current.getTopologyToCommit();
+      expect(res.sites.length).toEqual(4);
+      expect(res.nodes.length).toEqual(3);
+      expect(res.links.length).toEqual(2);
+    });
   });
 
   describe('appendPendingTopology', () => {

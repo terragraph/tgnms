@@ -109,8 +109,17 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
         nodes: filteredTopology.sectors,
       });
       setMapFeatures(features);
+
+      // When component is exited, clear the pendingTopology
+      return () => setPendingTopology({links: [], sites: []});
     }
-  }, [filteredTopology, setShouldZoomToBBox, setMapFeatures, setOverlayData]);
+  }, [
+    filteredTopology,
+    setShouldZoomToBBox,
+    setMapFeatures,
+    setOverlayData,
+    setPendingTopology,
+  ]);
 
   /**
    * only zoom to the plan's bbox once, after the plan has been
@@ -221,7 +230,7 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
           </Grid>
         </>
       )}
-      {plan.state === NETWORK_PLAN_STATE.SUCCESS && !pendingTopologyCount && (
+      {plan.state === NETWORK_PLAN_STATE.SUCCESS && (
         <Grid item>
           <UploadTopologyConfirmationModal
             fullWidth

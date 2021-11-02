@@ -171,6 +171,16 @@ export function useNetworkPlanningManager() {
       sectors: {},
       links: {},
     };
+    let pendingTopology;
+    if (_pendingTopologyCount == 0) {
+      // If nothing is selected, default to all elements.
+      pendingTopology = {
+        links: new Set(Object.keys(filteredTopology.links)),
+        sites: new Set(Object.keys(filteredTopology.sites)),
+      };
+    } else {
+      pendingTopology = _pendingTopology;
+    }
 
     // Map from sites to sectors (aka nodes).
     const sitesToSectors = {};
@@ -189,10 +199,10 @@ export function useNetworkPlanningManager() {
     };
 
     // Add sites.
-    for (const site_id of _pendingTopology.sites) addSite(site_id);
+    for (const site_id of pendingTopology.sites) addSite(site_id);
 
     // Add links.
-    for (const link_id of _pendingTopology.links) {
+    for (const link_id of pendingTopology.links) {
       const link = filteredTopology.links[link_id];
       result.links[link_id] = link;
       // Add sites connected to the link.
@@ -217,6 +227,7 @@ export function useNetworkPlanningManager() {
     return res;
   }, [
     _pendingTopology,
+    _pendingTopologyCount,
     filteredTopology,
     mapOptions.enabledStatusTypes,
     currentNodes,
