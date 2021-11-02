@@ -28,6 +28,7 @@
     file: service.yml
   with_items:
     - { name: "analytics", has_database: false, roles: "tg_topology_read" }
+    - { name: "crashlog_analysis_service", has_database: true}
     - { name: "default_routes_service", has_database: true, roles: "tg_management_read,tg_topology_read" }
     - { name: "network_health_service", has_database: true, roles: "tg_topology_read" }
     - { name: "network_test", has_database: true, roles: "tg_management_read,tg_performance_read,tg_performance_write,tg_topology_read" }

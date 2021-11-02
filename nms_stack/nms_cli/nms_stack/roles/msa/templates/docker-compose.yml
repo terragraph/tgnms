@@ -19,6 +19,22 @@ services:
       options:
         max-size: "20m"
         max-file: "10"
+  crashlog_analysis_service:
+    image: {{ msa_crashlog_analysis_service_image }}
+    env_file:
+      - {{ msa_gfs_path }}/env/crashlog_analysis_service.env
+    volumes:
+      - {{ msa_gfs_path }}/config/config.json:/usr/local/crashlog_analysis_service/config.json
+      - {{ msa_gfs_path }}/config/crashlog_analysis_service/alembic.ini:/usr/local/crashlog_analysis_service/alembic.ini
+      - {{ msa_gfs_path }}/config/crashlog_analysis_service/service_config.json:/usr/local/crashlog_analysis_service/service_config.json
+    networks:
+      - terragraph_net
+    command: ["/bin/sh", "-c", "alembic upgrade head && crashlog_analysis_service"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
   default_routes_service:
     image: {{ msa_default_routes_service_image }}
     env_file:
