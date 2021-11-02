@@ -93,7 +93,7 @@ export type NetworkPlanningContext = {|
 |};
 
 export const PLAN_ID_NEW = '';
-const PLAN_ID_QUERY_KEY = 'planid';
+export const PLAN_ID_QUERY_KEY = 'planid';
 const empty = () => {};
 const emptyTask: $Shape<TaskState> = {};
 const defaultValue: NetworkPlanningContext = {

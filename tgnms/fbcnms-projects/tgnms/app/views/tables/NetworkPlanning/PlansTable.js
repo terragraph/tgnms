@@ -17,12 +17,17 @@ import Typography from '@material-ui/core/Typography';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   PLANNING_BASE_PATH,
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
 } from '@fbcnms/tg-nms/app/constants/paths';
+import {
+  PLAN_ID_QUERY_KEY,
+  useNetworkPlanningContext,
+} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {
   generatePath,
   matchPath,
@@ -32,7 +37,6 @@ import {
 } from 'react-router-dom';
 import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
-import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import type {
   NetworkPlan,
   PlanFolder,
@@ -46,7 +50,7 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
   const history = useHistory();
   const folderId = match?.folderId ?? '';
   const createPlanModal = useModalState();
-  const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
+  const {plan, selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
   const {folder} = useLoadFolder({folderId});
   const {
     plans,
@@ -113,7 +117,15 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
   );
 
   const handleRowClick = React.useCallback(
-    (event, row: NetworkPlan) => {
+    (_, row: NetworkPlan) => {
+      setSelectedPlanId(row.id);
+    },
+    [setSelectedPlanId],
+  );
+
+  // Open the Topology Table only if the plan is SUCCESS.
+  React.useEffect(() => {
+    if (selectedPlanId && plan?.state === NETWORK_PLAN_STATE.SUCCESS) {
       const match = matchPath(location.pathname, {
         path: PLANNING_FOLDER_PATH,
       });
@@ -122,11 +134,12 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
         networkName: match?.params?.networkName ?? '',
         folderId: match?.params?.folderId ?? '',
       });
-      history.push(newPath);
-      setSelectedPlanId(row.id);
-    },
-    [setSelectedPlanId, location, history],
-  );
+      history.replace({
+        pathname: newPath,
+        search: `?${PLAN_ID_QUERY_KEY}=${selectedPlanId}`,
+      });
+    }
+  }, [selectedPlanId, location, history, plan]);
   return (
     <>
       <MaterialTable

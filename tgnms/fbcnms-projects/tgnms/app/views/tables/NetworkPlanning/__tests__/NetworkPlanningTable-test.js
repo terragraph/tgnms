@@ -78,7 +78,7 @@ test('if user selects a folder, navigates to the plans table', async () => {
   expect(queryByText(/folder 2/i)).not.toBeInTheDocument();
 });
 
-test('if user selects a plan, navigates to the topology table', async () => {
+test('if user selects a plan, navigates to the topology table if SUCCESS', async () => {
   jest.spyOn(apiUtilMock, 'getFolder').mockResolvedValue(folders[0]);
   jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
@@ -102,6 +102,32 @@ test('if user selects a plan, navigates to the topology table', async () => {
     fireEvent.click(getByText(/plan 1/i));
   });
   expect(getByText(/Plan: plan 1/i)).toBeInTheDocument();
+});
+test('if user selects a plan, stays on plan table if plan is not SUCCESS', async () => {
+  jest.spyOn(apiUtilMock, 'getFolder').mockResolvedValue(folders[0]);
+  jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
+  jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
+  const {getByText, queryByText} = await renderAsync(
+    <TestApp route={PLANNING_BASE_PATH}>
+      <NetworkPlanningContextProvider
+        plan={{
+          id: 1,
+          folderId: 1,
+          name: 'plan 1',
+          state: 'DRAFT',
+        }}>
+        <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
+      </NetworkPlanningContextProvider>
+    </TestApp>,
+  );
+  await act(async () => {
+    fireEvent.click(getByText(/folder 1/i));
+  });
+  await act(async () => {
+    fireEvent.click(getByText(/plan 1/i));
+  });
+  expect(queryByText(/Plan: plan 1/i)).not.toBeInTheDocument();
+  expect(queryByText('Back to Projects')).toBeInTheDocument();
 });
 
 test('if user clicks back button on the plans table, goes back to folders table', async () => {
@@ -135,7 +161,15 @@ test('if user clicks back button on the topology table, goes back to plans table
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
   const {getByText, getByTestId, queryByText} = await renderAsync(
     <TestApp route={PLANNING_BASE_PATH}>
-      <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
+      <NetworkPlanningContextProvider
+        plan={{
+          id: 1,
+          folderId: 1,
+          name: 'plan 1',
+          state: 'SUCCESS',
+        }}>
+        <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
+      </NetworkPlanningContextProvider>
     </TestApp>,
   );
   await act(async () => {
@@ -144,16 +178,13 @@ test('if user clicks back button on the topology table, goes back to plans table
   await act(async () => {
     fireEvent.click(getByText(/plan 1/i));
   });
-  expect(getByText('Plan:')).toBeInTheDocument();
-  expect(queryByText(/Project: folder 1/i)).not.toBeInTheDocument();
+  expect(getByText(/Plan: plan 1/i)).toBeInTheDocument();
   // Go Back
   await act(async () => {
     fireEvent.click(getByTestId('back-to-plans'));
   });
-  expect(queryByText(/Project: folder 1/i)).toBeInTheDocument();
   expect(queryByText(/plan 1/i)).toBeInTheDocument();
   expect(queryByText(/plan 2/i)).toBeInTheDocument();
-  expect(queryByText('Plan:')).not.toBeInTheDocument();
 });
 
 /**
@@ -177,7 +208,6 @@ test('if user selects a plan, sets the planid querystring', async () => {
   act(() => {
     fireEvent.click(plan1);
   });
-  expect(history.location.pathname).toBe(folder1Path + '/plan');
   expect(history.location.search).toBe('?planid=1');
 });
 

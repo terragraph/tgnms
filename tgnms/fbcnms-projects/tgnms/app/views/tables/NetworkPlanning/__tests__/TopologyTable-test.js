@@ -9,7 +9,12 @@ import * as mockManager from '@fbcnms/tg-nms/app/features/planning/useNetworkPla
 import TopologyTable from '../TopologyTable';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {PLANNING_PLAN_PATH} from '@fbcnms/tg-nms/app/constants/paths';
-import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {Route} from 'react-router-dom';
+import {
+  TestApp,
+  renderAsync,
+  testHistory,
+} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act, fireEvent} from '@testing-library/react';
 import {mockUploadANPJson} from '@fbcnms/tg-nms/app/tests/data/UploadTopology';
 
@@ -75,5 +80,20 @@ describe('TopologyTable', () => {
       fireEvent.click(getByText('Links'));
     });
     expect(getByText('1 row(s) selected')).toBeInTheDocument();
+  });
+
+  it('should navigate to plans table if plan is null', async () => {
+    const history = testHistory('/test/test/planning/folder/1/plan?planid=2');
+    await renderAsync(
+      <TestApp history={history}>
+        <NetworkPlanningContextProvider plan={null}>
+          <Route
+            path="/:view/:networkName/planning/folder/:folderId/plan"
+            component={TopologyTable}
+          />
+        </NetworkPlanningContextProvider>
+      </TestApp>,
+    );
+    expect(history.location.pathname).toEqual('/test/test/planning/folder/1');
   });
 });

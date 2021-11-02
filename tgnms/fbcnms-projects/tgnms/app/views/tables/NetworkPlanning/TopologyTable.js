@@ -24,6 +24,12 @@ import {
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
 } from '@fbcnms/tg-nms/app/constants/paths';
+import {
+  generatePath,
+  matchPath,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 import {isEmpty} from 'lodash';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
@@ -131,6 +137,8 @@ export type LinkRowSchema = {
 
 export default function TopologyTable({tableHeight}: NetworkTableProps) {
   const classes = useStyles();
+  const history = useHistory();
+  const {pathname} = useLocation();
   const {plan} = useNetworkPlanningContext();
   const {
     filteredTopology,
@@ -152,6 +160,21 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
     }),
     [tableHeight],
   );
+
+  // Open the Plans Table if no plan is selected anymore.
+  React.useEffect(() => {
+    if (!plan) {
+      const match = matchPath(pathname, {
+        path: PLANNING_PLAN_PATH,
+      });
+      const newPath = generatePath(PLANNING_FOLDER_PATH, {
+        view: match?.params?.view ?? '',
+        networkName: match?.params?.networkName ?? '',
+        folderId: match?.params?.folderId ?? '',
+      });
+      history.push(newPath);
+    }
+  }, [pathname, plan, history]);
 
   const sites: SiteRowSchema[] = React.useMemo(() => {
     const checkedSites = pendingTopology.sites;
