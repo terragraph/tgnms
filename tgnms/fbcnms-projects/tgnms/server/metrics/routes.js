@@ -197,6 +197,10 @@ export default class Metrics extends Api {
         metricName: `resets_${metricName}`,
         prometheusQuery: `resets(${metricName}{network="${topologyName}"}${timeWindow})`,
       }));
+      prometheusQueryList.push({
+        metricName: 'availability',
+        prometheusQuery: `avg_over_time(topology_node_is_online{network="${topologyName}"}${timeWindow})`,
+      });
 
       Promise.all(
         prometheusQueryList.map(({prometheusQuery}) => {

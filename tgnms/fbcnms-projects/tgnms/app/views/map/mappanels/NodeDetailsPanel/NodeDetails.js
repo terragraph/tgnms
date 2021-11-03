@@ -26,11 +26,10 @@ import {
   renderAvailabilityWithColor,
 } from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
 import {makeStyles} from '@material-ui/styles';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
-import type {
-  NetworkState as NetworkConfig,
-  NetworkHealth,
-} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {NetworkState as NetworkConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {NetworkNodeStats} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {
   NodeType,
   TopologyType,
@@ -49,35 +48,37 @@ export type Props = {
   ctrlVersion: string,
   node: NodeType,
   statusReport?: ?StatusReportType,
-  networkNodeHealth: NetworkHealth,
   networkConfig: NetworkConfig,
   onSelectLink: string => any,
   onSelectSite: string => any,
   topology: TopologyType,
 };
 
-function getAvailability(node: NodeType, networkNodeHealth: NetworkHealth) {
-  const nodeHealth = networkNodeHealth.events || {};
-  let alivePerc = 0;
-  if (nodeHealth.hasOwnProperty(node.name)) {
-    alivePerc = nodeHealth[node.name].linkAlive;
+function getAvailabilityPct(node: NodeType, stats: NetworkNodeStats) {
+  const health = stats[node.name];
+  if (!health) {
+    return 0;
   }
-  return alivePerc;
+  const availability = parseFloat(health['availability']);
+  if (isNaN(availability)) {
+    return 0;
+  }
+  return availability * 100;
 }
 
 export default function NodeDetails(props: Props) {
   const classes = useStyles();
+  const {networkNodeHealthPrometheus} = useNetworkContext();
   const {
     ctrlVersion,
     node,
     statusReport,
-    networkNodeHealth,
     networkConfig,
     topology,
     onSelectSite,
     onSelectLink,
   } = props;
-  const availability = getAvailability(node, networkNodeHealth);
+  const availability = getAvailabilityPct(node, networkNodeHealthPrometheus);
 
   // Combine some node properties in one string
   let nodeType =

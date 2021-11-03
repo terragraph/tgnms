@@ -26,7 +26,7 @@ export function mockNetworkContext(
     networkName: '',
     networkConfig: mockNetworkConfig(),
     networkLinkHealth: {startTime: 0, endTime: 0, events: {}},
-    networkNodeHealth: {startTime: 0, endTime: 0, events: {}},
+    networkNodeHealthPrometheus: {},
     networkAnalyzerData: {},
     networkLinkMetrics: {},
     refreshNetworkConfig: () => {},

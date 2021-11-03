@@ -28,7 +28,6 @@ export type NetworkContextType = {|
   setAvailabilityWindow: number => void,
 
   networkLinkHealth: NetworkHealth,
-  networkNodeHealth: NetworkHealth,
   networkNodeHealthPrometheus: NetworkNodeStats,
   networkAnalyzerData: {},
   networkLinkMetrics: {},
@@ -112,7 +111,6 @@ const NetworkContext = React.createContext<NetworkContextType>({
   networkConfig: ({}: $Shape<NetworkState>),
   networkHealthTimeWindowHrs: 24,
   networkLinkHealth: {},
-  networkNodeHealth: {},
   networkNodeHealthPrometheus: {},
   networkAnalyzerData: {},
 

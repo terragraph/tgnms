@@ -41,7 +41,6 @@ export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
     nodeMap,
     networkConfig,
     networkNodeHealthPrometheus,
-    networkNodeHealth,
     setSelected,
     selectedElement,
   } = useNetworkContext();
@@ -124,12 +123,6 @@ export default function NetworkNodesTable({tableHeight}: NetworkTableProps) {
           minionRestarts = Number.parseInt(
             networkNodeHealthPrometheus[node.name]['resets_e2e_minion_uptime'],
           );
-        } else if (
-          networkNodeHealth &&
-          networkNodeHealth.hasOwnProperty('events') &&
-          networkNodeHealth.events.hasOwnProperty(node.name)
-        ) {
-          minionRestarts = networkNodeHealth.events[node.name].events.length;
         }
         return {
           name: node.name,

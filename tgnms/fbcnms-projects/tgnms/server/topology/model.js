@@ -44,7 +44,6 @@ type TopologyConfigMap = {|
 |};
 
 const networkLinkHealth = {};
-const networkNodeHealth = {};
 // hold the network configuration (primary/backup)
 let networkInstanceConfig: {|[string]: NetworkInstanceConfig|} = {};
 
@@ -78,10 +77,6 @@ export function getAllTopologyNames(): Array<string> {
 
 export function getNetworkLinkHealth(topologyName: string) {
   return _.get(networkLinkHealth, topologyName);
-}
-
-export function getNetworkNodeHealth(topologyName: string) {
-  return _.get(networkNodeHealth, topologyName);
 }
 
 export function getAllNetworkConfigs() {

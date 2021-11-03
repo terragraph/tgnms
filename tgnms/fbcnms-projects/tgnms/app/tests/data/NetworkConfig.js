@@ -368,7 +368,6 @@ export function mockNodeDetails(
 ): NodeDetailsProps {
   return {
     node: mockNode({name: 'NODEA'}),
-    networkNodeHealth: {startTime: 0, endTime: 0, events: {}},
     networkConfig: mockNetworkConfig(),
     topology: mockTopology(),
     ctrlVersion: '',

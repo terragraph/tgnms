@@ -12,7 +12,6 @@ const {
   fetchNetworkHealthFromDb,
   getAllNetworkConfigs,
   getNetworkLinkHealth,
-  getNetworkNodeHealth,
   getNetworkState,
   reloadInstanceConfig,
   removeRequester,
@@ -64,20 +63,6 @@ export default class MyRoute extends Api {
           res.json(networkLinkHealth);
         } else {
           this.logger.debug('No link health cache found for %s', topologyName);
-          res.status(404).json({msg: 'No cache'});
-        }
-      },
-    );
-
-    router.get(
-      '/node_health/:topologyName',
-      (req: Request, res: Response, _next) => {
-        const {topologyName} = req.params;
-        const networkNodeHealth = getNetworkNodeHealth(topologyName);
-        if (networkNodeHealth) {
-          res.json(networkNodeHealth);
-        } else {
-          this.logger.debug('No node health cache found for %s', topologyName);
           res.status(404).json({msg: 'No cache'});
         }
       },

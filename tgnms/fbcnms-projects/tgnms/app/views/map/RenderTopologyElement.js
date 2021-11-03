@@ -50,7 +50,6 @@ export default function RenderTopologyElement({
     networkConfig,
     pinnedElements,
     networkName,
-    networkNodeHealth,
     networkLinkHealth,
     networkLinkMetrics,
     nodeMap,
@@ -146,7 +145,6 @@ export default function RenderTopologyElement({
             statusReport: node
               ? status_dump.statusReports[node.mac_addr]
               : null,
-            networkNodeHealth,
             networkConfig: networkConfig,
             onSelectLink: linkName =>
               setSelected(TOPOLOGY_ELEMENT.LINK, linkName),

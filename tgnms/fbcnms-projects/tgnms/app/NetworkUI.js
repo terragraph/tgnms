@@ -85,7 +85,6 @@ type State = {
   macToNodeMap: MacToNodeMap,
   nodeToLinksMap: NodeToLinksMap,
   networkConfig: NetworkState,
-  networkNodeHealth: NetworkHealth,
   networkNodeHealthPrometheus: NetworkNodeStats,
   networkLinkHealth: NetworkHealth,
   networkAnalyzerData: Object,
@@ -123,7 +122,6 @@ class NetworkUI extends React.Component<Props, State> {
     pinnedElements: [],
 
     // Network health stats
-    networkNodeHealth: {},
     networkNodeHealthPrometheus: {},
     networkLinkHealth: {},
     networkAnalyzerData: {},
@@ -187,7 +185,6 @@ class NetworkUI extends React.Component<Props, State> {
       siteToNodesMap: {},
       selectedElement: null,
       pinnedElements: [],
-      networkNodeHealth: ({}: NetworkHealth),
       networkNodeHealthPrometheus: ({}: NetworkNodeStats),
       networkLinkHealth: ({}: NetworkHealth),
       networkAnalyzerData: {},
@@ -467,7 +464,6 @@ class NetworkUI extends React.Component<Props, State> {
             networkConfig: this.state.networkConfig,
             networkHealthTimeWindowHrs: this.state.networkHealthTimeWindowHrs,
             networkLinkHealth: this.state.networkLinkHealth,
-            networkNodeHealth: this.state.networkNodeHealth,
             networkNodeHealthPrometheus: this.state.networkNodeHealthPrometheus,
             networkAnalyzerData: this.state.networkAnalyzerData,
             networkLinkMetrics: {

@@ -62,7 +62,7 @@ export default function NodeTunnels(props: Props) {
       </div>
       <div>
         {Object.entries(tunnelConfig).map(([tunnelName, tunnelInfo]) => (
-          <TunnelInfo name={tunnelName} info={tunnelInfo} />
+          <TunnelInfo key={tunnelName} name={tunnelName} info={tunnelInfo} />
         ))}
       </div>
     </>
@@ -91,7 +91,7 @@ function TunnelInfo({name, info}: TunnelInfoProps) {
           </Typography>
         </div>
       </Button>
-      <Collapse in={open} classes={classes.nested}>
+      <Collapse in={open} classes={{nested: classes.nested}}>
         <div className={classes.spaceBetween}>
           <Typography variant="subtitle2">Local Interface</Typography>
           <Typography variant="body2">{info.localInterface}</Typography>
