@@ -40,6 +40,7 @@ export default function SelectPlanFolder({
   return (
     <Autocomplete
       id={id}
+      data-testid={`${id}-autocomplete`}
       size="small"
       open={autocompleteState.isOpen}
       onOpen={autocompleteState.open}

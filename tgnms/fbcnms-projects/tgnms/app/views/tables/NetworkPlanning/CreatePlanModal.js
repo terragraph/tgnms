@@ -85,10 +85,25 @@ export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
         throw new Error('Please fill all required fields');
       }
       taskState.loading();
-      const createdPlan = await networkPlanningAPIUtil.createPlan({
+      let requestParams = {
         name: formState.planName,
         folderId: parseInt(formState.folderId),
-      });
+      };
+      // Copy input files if copying an existing plan.
+      if (formState?.paramSourceId) {
+        const plan = await networkPlanningAPIUtil.getPlan({
+          id: formState?.paramSourceId,
+        });
+        requestParams = {
+          ...requestParams,
+          dsmFileId: plan?.dsmFile?.id,
+          boundaryFileId: plan?.boundaryFile?.id,
+          sitesFileId: plan?.sitesFile?.id,
+        };
+      }
+      const createdPlan = await networkPlanningAPIUtil.createPlan(
+        requestParams,
+      );
       setSelectedPlanId(createdPlan.id);
       taskState.success();
       if (onComplete) {
@@ -167,7 +182,13 @@ export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
                 aria-label="Copy plan parameters?"
                 name="plan_copy_parameters"
                 value={formState.paramSource}
-                onChange={e => updateFormState({paramSource: e.target.value})}
+                onChange={e =>
+                  updateFormState({
+                    paramSource: e.target.value,
+                    // Ensure we don't accidentally copy a plan.
+                    paramSourceId: null,
+                  })
+                }
                 row>
                 <FormControlLabel
                   value={PARAM_SOURCE.NEW}
