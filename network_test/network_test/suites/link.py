@@ -22,7 +22,8 @@ class LinkTest(BaseTest):
         allowlist: List[str],
     ) -> None:
         # Set default test configurations
-        iperf_options["protocol"] = IperfTransportProtocol.UDP
+        if "protocol" not in iperf_options:
+            iperf_options["protocol"] = IperfTransportProtocol.UDP
         if "bitrate" not in iperf_options:
             iperf_options["bitrate"] = 100000000  # 100 MB/s
 
