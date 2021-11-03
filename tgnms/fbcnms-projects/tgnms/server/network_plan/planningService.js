@@ -266,8 +266,8 @@ export default class PlanningService {
               fn: async () => await this.anpApi.getInputFile(anpFile.id),
               fnCondition: (result: ANPFileHandle) =>
                 result.file_status == INPUT_FILE_STATE.READY,
-              ms: 500,
-              numCallsTimeout: 20,
+              ms: 1000,
+              numCallsTimeout: 60 * 15, // ~ 15 min
             });
           } catch {
             throw new Error('Timeout while waiting for files to be ready.');
