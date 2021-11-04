@@ -14,11 +14,6 @@
     - 'deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates universe'
     - 'deb-src http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates universe'
 
-- name: prevent upgrading docker-ce
-  dpkg_selections:
-    name: docker-ce
-    selection: hold
-
 - name: update ubuntu
   apt:
     update_cache: yes

@@ -11,14 +11,14 @@
   include_role:
     name: ansible-role-docker
   vars:
-    docker_package: docker-ce=5:20.10.1~3-0~ubuntu-focal
+    docker_package: docker-ce
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '20'
 
 - name: install docker (ubuntu 18)
   include_role:
     name: ansible-role-docker
   vars:
-    docker_package: docker-ce=5:20.10.1~3-0~ubuntu-bionic
+    docker_package: docker-ce
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
 
 - name: install glusterfs
