@@ -79,7 +79,7 @@ def push(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Docker resgistry CLI parser for TG")
+    parser = argparse.ArgumentParser(description="Docker registry CLI parser for TG")
     subparsers = parser.add_subparsers(title="actions")
     subparsers.required = True
 
