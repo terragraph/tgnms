@@ -135,7 +135,7 @@ export default function PlanEditor({
       <SelectOrUploadInputFile
         id="select-boundary-file"
         label="Boundary File"
-        fileTypes=".kml,.kmz"
+        fileTypes=".kml"
         role={FILE_ROLE.BOUNDARY_FILE}
         initialValue={planState.boundary ?? null}
         onChange={f => updatePlanState({boundary: f})}
