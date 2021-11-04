@@ -30,7 +30,7 @@ rm -f ${OUTPUT_FILE}
 
 # Install Test Deps
 echo "Making venv"
-python3.7 -m venv ${BASE_VENV}
+python3 -m venv ${BASE_VENV}
 ${BASE_VENV}/bin/pip install --upgrade pip==20.3.3 setuptools==51.0.0 wheel==0.36.2
 ${BASE_VENV}/bin/pip install --no-cache-dir ansible==${ANSIBLE_VERSION} pex==2.1.21 requests==2.25.1
 
@@ -45,7 +45,7 @@ ${BASE_VENV}/bin/python setup.py bdist_wheel
 
 # build pex
 echo "Build pex"
-${BASE_VENV}/bin/pex --wheel --python=python3.7 -v --disable-cache -f dist -f . ansible==$ANSIBLE_VERSION -e nms_cli.main -o ${OUTPUT_FILE} .
+${BASE_VENV}/bin/pex --wheel --python=python3 -v --disable-cache -f dist -f . ansible==$ANSIBLE_VERSION -e nms_cli.main -o ${OUTPUT_FILE} .
 
 # pex sanity test
 echo "pex sanity test"
