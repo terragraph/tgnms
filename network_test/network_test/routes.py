@@ -11,7 +11,7 @@ from aiohttp import web
 from croniter import croniter
 from tglib.clients import APIServiceClient
 
-from .models import NetworkTestStatus, NetworkTestType
+from .models import NetworkTestDirection, NetworkTestStatus, NetworkTestType
 from .scheduler import Schedule, Scheduler
 from .suites import (
     BaseTest,
@@ -54,6 +54,12 @@ async def handle_get_schedules(request: web.Request) -> web.Response:  # noqa: C
       description: The name of the network.
       type: string
     - in: query
+      name: direction
+      description: The network test traffic direction.
+      items:
+        type: string
+        enum: [bidirectional_parallel, bidirectional_sequential]
+    - in: query
       name: protocol
       description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
       type: array
@@ -83,6 +89,15 @@ async def handle_get_schedules(request: web.Request) -> web.Response:  # noqa: C
 
     network_name = request.rel_url.query.get("network_name")
 
+    direction = request.rel_url.query.get("direction")
+    if direction is not None:
+        try:
+            direction = {NetworkTestDirection(d) for d in direction.split(",")}
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text="'direction' must be a comma-separated list of valid traffic directions"
+            )
+
     protocol = request.rel_url.query.get("protocol")
     if protocol is not None:
         try:
@@ -105,7 +120,7 @@ async def handle_get_schedules(request: web.Request) -> web.Response:  # noqa: C
             "schedules": [
                 dict(row)
                 for row in await Scheduler.list_schedules(
-                    test_type, network_name, protocol, partial
+                    test_type, network_name, direction, protocol, partial
                 )
             ]
         },
@@ -149,7 +164,7 @@ async def handle_get_schedule(request: web.Request) -> web.Response:
 
 
 @routes.post("/schedule")
-async def handle_add_schedule(request: web.Request) -> web.Response:
+async def handle_add_schedule(request: web.Request) -> web.Response:  # noqa: C901
     """
     ---
     description: Add a new network test schedule.
@@ -171,6 +186,9 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
             enum: [parallel_link, parallel_node, sequential_link, sequential_node]
           network_name:
             type: string
+          direction:
+            type: string
+            enum: [bidirectional_parallel, bidirectional_sequential]
           iperf_options:
             type: object
           allowlist:
@@ -217,18 +235,25 @@ async def handle_add_schedule(request: web.Request) -> web.Response:
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
+    direction = body.get("direction", "bidirectional_parallel")
+    if direction is None:
+        raise web.HTTPBadRequest(text="Missing required 'direction' param")
+    if not NetworkTestDirection.has_value(direction):
+        raise web.HTTPBadRequest(text=f"Invalid 'direction': {direction}")
+    direction = NetworkTestDirection(direction)
+
     iperf_options = body.get("iperf_options", {})
     allowlist = body.get("allowlist", [])
 
     test: BaseTest
     if test_type == NetworkTestType.PARALLEL_LINK:
-        test = ParallelLinkTest(network_name, iperf_options, allowlist)
+        test = ParallelLinkTest(network_name, direction, iperf_options, allowlist)
     elif test_type == NetworkTestType.PARALLEL_NODE:
-        test = ParallelNodeTest(network_name, iperf_options, allowlist)
+        test = ParallelNodeTest(network_name, direction, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_LINK:
-        test = SequentialLinkTest(network_name, iperf_options, allowlist)
+        test = SequentialLinkTest(network_name, direction, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_NODE:
-        test = SequentialNodeTest(network_name, iperf_options, allowlist)
+        test = SequentialNodeTest(network_name, direction, iperf_options, allowlist)
 
     schedule_id = await Scheduler.add_schedule(schedule, test)
     return web.json_response(
@@ -267,6 +292,9 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
             type: string
           network_name:
             type: string
+          direction:
+            type: string
+            enum: [bidirectional_parallel, bidirectional_sequential]
           iperf_options:
             type: object
           allowlist:
@@ -311,11 +339,24 @@ async def handle_modify_schedule(request: web.Request) -> web.Response:
     if network_name not in APIServiceClient.network_names():
         raise web.HTTPBadRequest(text=f"Invalid network name: {network_name}")
 
+    direction = body.get("direction", "bidirectional_parallel")
+    if direction is None:
+        raise web.HTTPBadRequest(text="Missing required 'direction' param")
+    if not NetworkTestDirection.has_value(direction):
+        raise web.HTTPBadRequest(text=f"Invalid 'direction': {direction}")
+    direction = NetworkTestDirection(direction)
+
     iperf_options = body.get("iperf_options", {})
     allowlist = body.get("allowlist", [])
 
     if not await Scheduler.modify_schedule(
-        schedule_id, enabled, cron_expr, network_name, iperf_options, allowlist
+        schedule_id,
+        enabled,
+        cron_expr,
+        network_name,
+        direction,
+        iperf_options,
+        allowlist,
     ):
         raise web.HTTPInternalServerError(text="Failed to modify network test schedule")
 
@@ -381,6 +422,12 @@ async def handle_get_executions(request: web.Request) -> web.Response:  # noqa: 
       description: The name of the network.
       type: string
     - in: query
+      name: direction
+      description: The network test traffic direction.
+      items:
+        type: string
+        enum: [bidirectional_parallel, bidirectional_sequential]
+    - in: query
       name: protocol
       description: A comma-separated list of iperf transport protocols (6=TCP, 17=UDP).
       type: array
@@ -419,6 +466,15 @@ async def handle_get_executions(request: web.Request) -> web.Response:  # noqa: 
             )
 
     network_name = request.rel_url.query.get("network_name")
+
+    direction = request.rel_url.query.get("direction")
+    if direction is not None:
+        try:
+            direction = {NetworkTestDirection(d) for d in direction.split(",")}
+        except ValueError:
+            raise web.HTTPBadRequest(
+                text="'direction' must be a comma-separated list of valid traffic directions"
+            )
 
     protocol = request.rel_url.query.get("protocol")
     if protocol is not None:
@@ -460,7 +516,13 @@ async def handle_get_executions(request: web.Request) -> web.Response:  # noqa: 
             "executions": [
                 dict(row)
                 for row in await Scheduler.list_executions(
-                    test_type, network_name, protocol, partial, status, start_dt
+                    test_type,
+                    network_name,
+                    direction,
+                    protocol,
+                    partial,
+                    status,
+                    start_dt,
                 )
             ]
         },
@@ -504,7 +566,7 @@ async def handle_get_execution(request: web.Request) -> web.Response:
 
 
 @routes.post("/execution")
-async def handle_start_execution(request: web.Request) -> web.Response:
+async def handle_start_execution(request: web.Request) -> web.Response:  # noqa: C901
     """
     ---
     description: Start a new network test execution.
@@ -524,6 +586,9 @@ async def handle_start_execution(request: web.Request) -> web.Response:
             enum: [parallel_link, parallel_node, sequential_link, sequential_node]
           network_name:
             type: string
+          direction:
+            type: string
+            enum: [bidirectional_parallel, bidirectional_sequential]
           iperf_options:
             type: object
           allowlist:
@@ -560,18 +625,25 @@ async def handle_start_execution(request: web.Request) -> web.Response:
     if await Scheduler.is_network_busy(network_name):
         raise web.HTTPConflict(text=f"A test is already running on '{network_name}'")
 
+    direction = body.get("direction", "bidirectional_parallel")
+    if direction is None:
+        raise web.HTTPBadRequest(text="Missing required 'direction' param")
+    if not NetworkTestDirection.has_value(direction):
+        raise web.HTTPBadRequest(text=f"Invalid 'direction': {direction}")
+    direction = NetworkTestDirection(direction)
+
     iperf_options = body.get("iperf_options", {})
     allowlist = body.get("allowlist", [])
 
     test: BaseTest
     if test_type == NetworkTestType.PARALLEL_LINK:
-        test = ParallelLinkTest(network_name, iperf_options, allowlist)
+        test = ParallelLinkTest(network_name, direction, iperf_options, allowlist)
     elif test_type == NetworkTestType.PARALLEL_NODE:
-        test = ParallelNodeTest(network_name, iperf_options, allowlist)
+        test = ParallelNodeTest(network_name, direction, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_LINK:
-        test = SequentialLinkTest(network_name, iperf_options, allowlist)
+        test = SequentialLinkTest(network_name, direction, iperf_options, allowlist)
     elif test_type == NetworkTestType.SEQUENTIAL_NODE:
-        test = SequentialNodeTest(network_name, iperf_options, allowlist)
+        test = SequentialNodeTest(network_name, direction, iperf_options, allowlist)
 
     if not await test.prepare():
         raise web.HTTPInternalServerError(text="Failed to prepare network test assets")

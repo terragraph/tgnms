@@ -14,6 +14,7 @@ from tglib.clients import APIServiceClient, MySQLClient
 from tglib.exceptions import ClientRuntimeError
 
 from .models import (
+    NetworkTestDirection,
     NetworkTestExecution,
     NetworkTestParams,
     NetworkTestResult,
@@ -274,19 +275,19 @@ class Scheduler:
             test: BaseTest
             if row.test_type == NetworkTestType.PARALLEL_LINK:
                 test = ParallelLinkTest(
-                    row.network_name, row.iperf_options, row.allowlist
+                    row.network_name, row.direction, row.iperf_options, row.allowlist
                 )
             elif row.test_type == NetworkTestType.PARALLEL_NODE:
                 test = ParallelNodeTest(
-                    row.network_name, row.iperf_options, row.allowlist
+                    row.network_name, row.direction, row.iperf_options, row.allowlist
                 )
             elif row.test_type == NetworkTestType.SEQUENTIAL_LINK:
                 test = SequentialLinkTest(
-                    row.network_name, row.iperf_options, row.allowlist
+                    row.network_name, row.direction, row.iperf_options, row.allowlist
                 )
             elif row.test_type == NetworkTestType.SEQUENTIAL_NODE:
                 test = SequentialNodeTest(
-                    row.network_name, row.iperf_options, row.allowlist
+                    row.network_name, row.direction, row.iperf_options, row.allowlist
                 )
 
             schedule = Schedule(row.enabled, row.cron_expr)
@@ -307,6 +308,7 @@ class Scheduler:
                 schedule_id=schedule_id,
                 test_type=test.test_type,
                 network_name=test.network_name,
+                direction=test.direction,
                 iperf_options=test.iperf_options,
                 allowlist=test.allowlist or None,
             )
@@ -325,6 +327,7 @@ class Scheduler:
         enabled: bool,
         cron_expr: str,
         network_name: str,
+        direction: NetworkTestDirection,
         iperf_options: Dict[str, Any],
         allowlist: List[str],
     ) -> bool:
@@ -349,13 +352,21 @@ class Scheduler:
 
             test: BaseTest
             if params_row.test_type == NetworkTestType.PARALLEL_LINK:
-                test = ParallelLinkTest(network_name, iperf_options, allowlist)
+                test = ParallelLinkTest(
+                    network_name, direction, iperf_options, allowlist
+                )
             elif params_row.test_type == NetworkTestType.PARALLEL_NODE:
-                test = ParallelNodeTest(network_name, iperf_options, allowlist)
+                test = ParallelNodeTest(
+                    network_name, direction, iperf_options, allowlist
+                )
             elif params_row.test_type == NetworkTestType.SEQUENTIAL_LINK:
-                test = SequentialLinkTest(network_name, iperf_options, allowlist)
+                test = SequentialLinkTest(
+                    network_name, direction, iperf_options, allowlist
+                )
             elif params_row.test_type == NetworkTestType.SEQUENTIAL_NODE:
-                test = SequentialNodeTest(network_name, iperf_options, allowlist)
+                test = SequentialNodeTest(
+                    network_name, direction, iperf_options, allowlist
+                )
 
             # Insert new params row if the values differ
             if not (
@@ -367,6 +378,7 @@ class Scheduler:
                     schedule_id=schedule_id,
                     test_type=params_row.test_type,
                     network_name=test.network_name,
+                    direction=test.direction,
                     iperf_options=test.iperf_options,
                     allowlist=test.allowlist or None,
                 )
@@ -413,6 +425,7 @@ class Scheduler:
                 insert_params_query = insert(NetworkTestParams).values(
                     test_type=test.test_type,
                     network_name=test.network_name,
+                    direction=test.direction,
                     iperf_options=test.iperf_options,
                     allowlist=test.allowlist or None,
                 )
@@ -532,6 +545,7 @@ class Scheduler:
                 [
                     NetworkTestParams.test_type,
                     NetworkTestParams.network_name,
+                    NetworkTestParams.direction,
                     NetworkTestParams.iperf_options,
                     NetworkTestParams.allowlist,
                     NetworkTestExecution,
@@ -554,6 +568,7 @@ class Scheduler:
     async def list_schedules(
         test_type: Optional[Set[NetworkTestType]] = None,
         network_name: Optional[str] = None,
+        direction: Optional[Set[NetworkTestDirection]] = None,
         protocol: Optional[Set[int]] = None,
         partial: Optional[bool] = None,
     ) -> Iterable:
@@ -566,6 +581,7 @@ class Scheduler:
                         NetworkTestParams.id.label("params_id"),
                         NetworkTestParams.test_type,
                         NetworkTestParams.network_name,
+                        NetworkTestParams.direction,
                         NetworkTestParams.iperf_options,
                         NetworkTestParams.allowlist,
                     ]
@@ -591,6 +607,8 @@ class Scheduler:
                 query = query.where(NetworkTestParams.test_type.in_(test_type))
             if network_name is not None:
                 query = query.where(NetworkTestParams.network_name == network_name)
+            if direction is not None:
+                query = query.where(NetworkTestParams.direction.in_(direction))
             if protocol is not None:
                 query = query.where(
                     NetworkTestParams.iperf_options["protocol"].in_(protocol)
@@ -616,6 +634,7 @@ class Scheduler:
                         NetworkTestExecution,
                         NetworkTestParams.test_type,
                         NetworkTestParams.network_name,
+                        NetworkTestParams.direction,
                         NetworkTestParams.iperf_options,
                         NetworkTestParams.allowlist,
                     ]
@@ -648,6 +667,7 @@ class Scheduler:
     async def list_executions(
         test_type: Optional[Set[NetworkTestType]] = None,
         network_name: Optional[str] = None,
+        direction: Optional[Set[NetworkTestDirection]] = None,
         protocol: Optional[Set[int]] = None,
         partial: Optional[bool] = None,
         status: Optional[Set[NetworkTestStatus]] = None,
@@ -660,6 +680,7 @@ class Scheduler:
                     NetworkTestExecution,
                     NetworkTestParams.test_type,
                     NetworkTestParams.network_name,
+                    NetworkTestParams.direction,
                     NetworkTestParams.iperf_options,
                     NetworkTestParams.allowlist,
                 ]
@@ -676,6 +697,8 @@ class Scheduler:
                 query = query.where(NetworkTestParams.test_type.in_(test_type))
             if network_name is not None:
                 query = query.where(NetworkTestParams.network_name == network_name)
+            if direction is not None:
+                query = query.where(NetworkTestParams.direction.in_(direction))
             if protocol is not None:
                 query = query.where(
                     NetworkTestParams.iperf_options["protocol"].in_(protocol)

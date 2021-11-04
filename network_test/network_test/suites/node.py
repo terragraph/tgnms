@@ -10,7 +10,7 @@ from terragraph_thrift.Topology.ttypes import NodeStatusType
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from ..models import NetworkTestType
+from ..models import NetworkTestDirection, NetworkTestType
 from .base import BaseTest, TestAsset
 
 
@@ -19,6 +19,7 @@ class NodeTest(BaseTest):
         self,
         network_name: str,
         test_type: NetworkTestType,
+        direction: NetworkTestDirection,
         iperf_options: Dict[str, Any],
         allowlist: List[str],
     ) -> None:
@@ -29,7 +30,7 @@ class NodeTest(BaseTest):
             iperf_options["protocol"] = IperfTransportProtocol.TCP
             iperf_options["omitSec"] = 2  # 2 seconds
 
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)
 
     async def prepare(self) -> bool:  # noqa: C901
         """Prepare the network test assets.

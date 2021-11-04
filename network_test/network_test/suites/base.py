@@ -13,7 +13,12 @@ from sqlalchemy import insert
 from tglib.clients import APIServiceClient, MySQLClient
 from tglib.exceptions import ClientRuntimeError
 
-from ..models import NetworkTestResult, NetworkTestStatus, NetworkTestType
+from ..models import (
+    NetworkTestDirection,
+    NetworkTestResult,
+    NetworkTestStatus,
+    NetworkTestType,
+)
 
 
 @dataclasses.dataclass
@@ -30,11 +35,13 @@ class BaseTest(abc.ABC):
         self,
         network_name: str,
         test_type: NetworkTestType,
+        direction: NetworkTestDirection,
         iperf_options: Dict[str, Any],
         allowlist: Optional[List[str]],
     ) -> None:
         self.network_name = network_name
         self.test_type = test_type
+        self.direction = direction
         iperf_options["json"] = True
         self.iperf_options = iperf_options
         self.allowlist: List[str] = allowlist or []
@@ -60,10 +67,13 @@ class BaseTest(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
     def estimate_duration(self) -> timedelta:
         """Estimate the test duration."""
-        pass
+        return timedelta(
+            seconds=2
+            if self.direction == NetworkTestDirection.BIDIRECTIONAL_SEQUENTIAL
+            else 1
+        )
 
     async def stop(self) -> bool:
         """Stop the test.

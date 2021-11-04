@@ -10,36 +10,52 @@ from .link import LinkTest
 from .node import NodeTest
 from .parallel import ParallelTest
 from .sequential import SequentialTest
-from ..models import NetworkTestType
+from ..models import NetworkTestDirection, NetworkTestType
 
 
 class ParallelLinkTest(LinkTest, ParallelTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
+        self,
+        network_name: str,
+        direction: NetworkTestDirection,
+        iperf_options: Dict[str, Any],
+        allowlist: List[str],
     ) -> None:
         test_type = NetworkTestType.PARALLEL_LINK
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)
 
 
 class ParallelNodeTest(NodeTest, ParallelTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
+        self,
+        network_name: str,
+        direction: NetworkTestDirection,
+        iperf_options: Dict[str, Any],
+        allowlist: List[str],
     ) -> None:
         test_type = NetworkTestType.PARALLEL_NODE
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)
 
 
 class SequentialLinkTest(LinkTest, SequentialTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
+        self,
+        network_name: str,
+        direction: NetworkTestDirection,
+        iperf_options: Dict[str, Any],
+        allowlist: List[str],
     ) -> None:
         test_type = NetworkTestType.SEQUENTIAL_LINK
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)
 
 
 class SequentialNodeTest(NodeTest, SequentialTest):
     def __init__(
-        self, network_name: str, iperf_options: Dict[str, Any], allowlist: List[str]
+        self,
+        network_name: str,
+        direction: NetworkTestDirection,
+        iperf_options: Dict[str, Any],
+        allowlist: List[str],
     ) -> None:
         test_type = NetworkTestType.SEQUENTIAL_NODE
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)

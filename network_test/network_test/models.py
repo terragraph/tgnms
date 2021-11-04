@@ -51,6 +51,15 @@ class NetworkTestHealth(enum.Enum):
     MISSING = 5
 
 
+class NetworkTestDirection(enum.Enum):
+    BIDIRECTIONAL_PARALLEL = "bidirectional_parallel"
+    BIDIRECTIONAL_SEQUENTIAL = "bidirectional_sequential"
+
+    @classmethod
+    def has_value(cls, value: str) -> bool:
+        return any(value == item.value for item in cls)
+
+
 Base: Any = declarative_base()
 
 
@@ -73,6 +82,7 @@ class NetworkTestParams(Base):
     )
     test_type = Column(Enum(NetworkTestType), nullable=False)
     network_name = Column(String(255), index=True, nullable=False)
+    direction = Column(Enum(NetworkTestDirection), nullable=False)
     iperf_options = Column(JSON, nullable=False)
     allowlist = Column(JSON(none_as_null=True), nullable=True)
 

@@ -9,7 +9,7 @@ from terragraph_thrift.Topology.ttypes import LinkType
 from tglib.clients import APIServiceClient
 from tglib.exceptions import ClientRuntimeError
 
-from ..models import NetworkTestType
+from ..models import NetworkTestDirection, NetworkTestType
 from .base import BaseTest, TestAsset
 
 
@@ -18,6 +18,7 @@ class LinkTest(BaseTest):
         self,
         network_name: str,
         test_type: NetworkTestType,
+        direction: NetworkTestDirection,
         iperf_options: Dict[str, Any],
         allowlist: List[str],
     ) -> None:
@@ -27,7 +28,7 @@ class LinkTest(BaseTest):
         if "bitrate" not in iperf_options:
             iperf_options["bitrate"] = 100000000  # 100 MB/s
 
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)
 
     async def prepare(self) -> bool:
         """Prepare the network test assets.

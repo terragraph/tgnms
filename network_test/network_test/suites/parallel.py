@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 from tglib.clients import APIServiceClient
 
 from .base import BaseTest
-from ..models import NetworkTestType
+from ..models import NetworkTestDirection, NetworkTestType
 
 
 class ParallelTest(BaseTest):
@@ -17,6 +17,7 @@ class ParallelTest(BaseTest):
         self,
         network_name: str,
         test_type: NetworkTestType,
+        direction: NetworkTestDirection,
         iperf_options: Dict[str, Any],
         allowlist: List[str],
     ) -> None:
@@ -24,7 +25,7 @@ class ParallelTest(BaseTest):
         if "timeSec" not in iperf_options:
             iperf_options["timeSec"] = 300  # 5 minutes
 
-        super().__init__(network_name, test_type, iperf_options, allowlist)
+        super().__init__(network_name, test_type, direction, iperf_options, allowlist)
 
     async def start(self, execution_id: int, use_link_local: bool) -> None:
         """Start a parallel test (i.e. on all assets simultaneously)."""
@@ -77,7 +78,14 @@ class ParallelTest(BaseTest):
                 },
             ]
 
-        await self.save(requests, values)
+        if self.direction == NetworkTestDirection.BIDIRECTIONAL_PARALLEL:
+            await self.save(requests, values)
+        elif self.direction == NetworkTestDirection.BIDIRECTIONAL_SEQUENTIAL:
+            if await self.save(requests[0::2], values[0::2]):
+                await asyncio.sleep(self.iperf_options["timeSec"])
+            await self.save(requests[1::2], values[1::2])
 
     def estimate_duration(self) -> timedelta:
-        return timedelta(seconds=self.iperf_options["timeSec"])
+        return timedelta(
+            seconds=self.iperf_options["timeSec"] * super().estimate_duration().seconds
+        )
