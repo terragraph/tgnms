@@ -139,7 +139,7 @@ test('if plan status is draft, render the plan editor', async () => {
   const {getByLabelText, getByTestId} = await testRender({history});
   expect(apiMock.getPlan).toHaveBeenCalled();
   expect(getByTestId('plan-editor')).toBeInTheDocument();
-  expect(coerceClass(getByLabelText('Name'), HTMLInputElement).value).toBe(
+  expect(coerceClass(getByLabelText('Plan Name'), HTMLInputElement).value).toBe(
     'test plan',
   );
 });
@@ -204,9 +204,9 @@ describe('Copy Plan', () => {
 
     expect(history.location.search).toBe(`?planid=${CREATED_PLAN_ID}`);
     expect(getByTestId('plan-editor')).toBeInTheDocument();
-    expect(coerceClass(getByLabelText('Name'), HTMLInputElement).value).toBe(
-      'test plan V2',
-    );
+    expect(
+      coerceClass(getByLabelText('Plan Name'), HTMLInputElement).value,
+    ).toBe('test plan V2');
     expect(getByText('boundary_file.kml')).toBeInTheDocument();
     expect(getByText('urban_site_file.csv')).toBeInTheDocument();
     expect(getByText('dsm_geotiff.tiff')).toBeInTheDocument();
@@ -234,13 +234,13 @@ describe('Launch Plan', () => {
     });
     // ensure it renders the plan editor
     expect(getByTestId('plan-editor')).toBeInTheDocument();
-    expect(coerceClass(getByLabelText('Name'), HTMLInputElement).value).toBe(
-      'test plan',
-    );
+    expect(
+      coerceClass(getByLabelText('Plan Name'), HTMLInputElement).value,
+    ).toBe('test plan');
     expect(apiMock.getPlan).toHaveBeenCalledTimes(1);
     expect(apiMock.updatePlan).not.toHaveBeenCalled();
     expect(apiMock.launchPlan).not.toHaveBeenCalled();
-    const startPlan = getByText('Start Plan');
+    const startPlan = getByText('Create Plan');
     await act(async () => {
       fireEvent.click(startPlan);
     });

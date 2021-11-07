@@ -107,7 +107,7 @@ export default function PlanEditor({
       <Grid item>
         <TextField
           id="plan-name"
-          label="Name"
+          label="Plan Name"
           fullWidth
           value={planState.name ?? ''}
           onChange={e => {
@@ -165,7 +165,7 @@ export default function PlanEditor({
               variant="contained"
               color="primary"
               size="small">
-              Start Plan
+              Create Plan
             </Button>
           </Grid>
         </Grid>

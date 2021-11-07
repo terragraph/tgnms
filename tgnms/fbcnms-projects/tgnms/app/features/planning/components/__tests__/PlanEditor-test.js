@@ -52,7 +52,7 @@ test('initializes the form with the plan', async () => {
       <PlanEditor {...commonProps} plan={mockPlan} />
     </TestApp>,
   );
-  expect(coerceClass(getByLabelText('Name'), HTMLInputElement).value).toBe(
+  expect(coerceClass(getByLabelText('Plan Name'), HTMLInputElement).value).toBe(
     'test plan',
   );
   expect(coerceClass(getByLabelText('DSM File'), HTMLInputElement).value).toBe(
@@ -185,7 +185,7 @@ test('launching a plan saves the form first', async () => {
 
   // Start the plan.
   await act(async () => {
-    fireEvent.click(getByText(/Start Plan/i));
+    fireEvent.click(getByText(/Create Plan/i));
   });
   expect(updatePlanMock).toHaveBeenCalledWith({
     id: 1,
