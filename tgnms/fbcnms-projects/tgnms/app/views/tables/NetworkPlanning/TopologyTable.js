@@ -36,29 +36,38 @@ import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlan
 import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager';
 import type {NetworkTableProps} from '../NetworkTables';
 
-const noBoxShadow = {
+const tableStyle = {
   boxShadow: 'none',
+  width: '100%',
 };
-
 const useStyles = makeStyles(theme => ({
-  table: {
-    width: '100%',
-  },
-  icon: {
+  summaryRoot: {
     flexDirection: 'row-reverse',
+    '&.Mui-expanded': {
+      minHeight: 'inherit',
+      margin: '0 0',
+    },
   },
-  padding: {
+  summaryContent: {
+    '&.Mui-expanded': {
+      margin: '0 0',
+    },
+  },
+  details: {
     padding: '0',
   },
   header: {
     width: '100%',
     paddingLeft: theme.spacing(1),
   },
-  noDropShadow: {
+  accordion: {
     borderBottom: '1px solid ' + theme.palette.divider,
-    ...noBoxShadow,
+    boxShadow: 'none',
     '&:last-child': {
       borderRadius: 0,
+    },
+    '&.Mui-expanded': {
+      margin: '0 0',
     },
   },
 }));
@@ -268,51 +277,51 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
           <Typography variant="h6">Plan: {plan?.name}</Typography>
         </Grid>
       </Grid>
-      <br />
-      <Accordion className={classes.noDropShadow}>
+      <Accordion className={classes.accordion}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="sites-panel-content"
           id="sites-panel-header"
-          className={classes.icon}>
+          classes={{
+            root: classes.summaryRoot,
+            content: classes.summaryContent,
+          }}>
           <Typography>Sites</Typography>
         </AccordionSummary>
 
-        <AccordionDetails className={classes.padding}>
-          <div className={classes.table}>
-            <MaterialTable
-              title={''}
-              className={classes.table}
-              data={sites}
-              columns={SITE_COLUMNS}
-              options={tableOptions}
-              onRowClick={siteRowClick}
-              onSelectionChange={sitesSelectionCallback}
-              style={noBoxShadow}
-            />
-          </div>
+        <AccordionDetails className={classes.details}>
+          <MaterialTable
+            style={tableStyle}
+            title={''}
+            data={sites}
+            columns={SITE_COLUMNS}
+            options={tableOptions}
+            onRowClick={siteRowClick}
+            onSelectionChange={sitesSelectionCallback}
+          />
         </AccordionDetails>
       </Accordion>
-      <Accordion className={classes.noDropShadow}>
+      <Accordion className={classes.accordion}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="links-panel-content"
           id="links-panel-header"
-          className={classes.icon}>
+          classes={{
+            root: classes.summaryRoot,
+            content: classes.summaryContent,
+          }}>
           <Typography>Links</Typography>
         </AccordionSummary>
-        <AccordionDetails className={classes.padding}>
-          <div className={classes.table}>
-            <MaterialTable
-              title={''}
-              data={links}
-              columns={LINK_COLUMNS}
-              options={tableOptions}
-              onRowClick={linkRowClick}
-              onSelectionChange={linksSelectionCallback}
-              style={noBoxShadow}
-            />
-          </div>
+        <AccordionDetails className={classes.details}>
+          <MaterialTable
+            style={tableStyle}
+            title={''}
+            data={links}
+            columns={LINK_COLUMNS}
+            options={tableOptions}
+            onRowClick={linkRowClick}
+            onSelectionChange={linksSelectionCallback}
+          />
         </AccordionDetails>
       </Accordion>
     </>
