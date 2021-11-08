@@ -11,10 +11,8 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import BackButton from './BackButton';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import {makeStyles} from '@material-ui/styles';
-
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
+import Typography from '@material-ui/core/Typography';
 import {
   ANP_SITE_TYPE_PRETTY,
   ANP_STATUS_TYPE_PRETTY,
@@ -24,6 +22,7 @@ import {
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
 } from '@fbcnms/tg-nms/app/constants/paths';
+import {createLinkName} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
 import {
   generatePath,
   matchPath,
@@ -31,6 +30,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import {isEmpty} from 'lodash';
+import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {useNetworkPlanningManager} from '@fbcnms/tg-nms/app/features/planning/useNetworkPlanningManager';
@@ -66,7 +66,7 @@ const useStyles = makeStyles(theme => ({
 const LINK_COLUMNS = [
   {
     title: 'Name',
-    field: 'id',
+    field: 'name',
     width: '40%',
   },
   {
@@ -94,7 +94,7 @@ const LINK_COLUMNS = [
 const SITE_COLUMNS = [
   {
     title: 'Name',
-    field: 'id',
+    field: 'name',
     width: '40%',
   },
   {
@@ -184,6 +184,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
       ? objectValuesTypesafe(filteredTopology.sites).map(site => {
           return {
             id: site.site_id,
+            name: site.name,
             latitude: site?.loc.latitude,
             longitude: site?.loc.longitude,
             site_type: ANP_SITE_TYPE_PRETTY[site?.site_type],
@@ -202,6 +203,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
       ? objectValuesTypesafe(filteredTopology.links).map(link => {
           return {
             id: link.link_id,
+            name: createLinkName(link, filteredTopology.sites),
             mcs: link?.MCS,
             snr: link?.SNR,
             capacity: link?.capacity,
