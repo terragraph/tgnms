@@ -36,14 +36,11 @@ import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRou
 import {getNodesInRoute} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
 import {getWirelessLinkNames} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
+import {makeStyles} from '@material-ui/styles';
 import {startPartialTest} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {supportsTopologyScan} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
-import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {useHistory} from 'react-router-dom';
 
-import type {ContextRouter} from 'react-router-dom';
-import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {
   LinkMap,
   NodeToLinksMap,
@@ -52,16 +49,15 @@ import type {NearbyNodes} from '@fbcnms/tg-nms/app/features/map/MapPanelTypes';
 import type {Props as NodeDetailsProps} from './NodeDetails';
 import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
 import type {RoutesContext as Routes} from '@fbcnms/tg-nms/app/contexts/RouteContext';
-import type {Theme, WithStyles} from '@material-ui/core/styles';
 
-const styles = (theme: Theme) => ({
+const useStyles = makeStyles(theme => ({
   iconCentered: {
     verticalAlign: 'middle',
     paddingRight: theme.spacing(1),
   },
-});
+}));
 
-type Props = {
+type Props = {|
   nodeDetailsProps: NodeDetailsProps,
   networkName: string,
   nearbyNodes: NearbyNodes,
@@ -71,7 +67,6 @@ type Props = {
   pinned: boolean,
   onPanelChange: () => any,
   onPin: () => any,
-  ...ContextRouter,
   ...Routes,
   node: NodeType,
   nodeToLinksMap: NodeToLinksMap,
@@ -82,138 +77,40 @@ type Props = {
     warning: string => any,
   },
   onEdit: string => any,
-} & WithStyles<typeof styles> &
-  ForwardRef;
+|};
 
-type State = {configModalOpen: boolean};
+type State = {|configModalOpen: boolean|};
 
-class NodeDetailsPanel extends React.Component<Props, State> {
-  state = {configModalOpen: false};
-  actionItems;
-  P2MPLinkNames;
+export default React.forwardRef<*, *>(function NodeDetailsPanelNew(
+  props: Props,
+  fwdRef,
+) {
+  const classes = useStyles();
+  const history = useHistory();
+  const {
+    expanded,
+    onPanelChange,
+    onClose,
+    onPin,
+    node,
+    nodeDetailsProps,
+    linkMap,
+    nodeToLinksMap,
+  } = props;
+  const [state, setState] = React.useState<State>({configModalOpen: false});
+  const {configModalOpen} = state;
+  const P2MPLinkNames = getWirelessLinkNames({node, linkMap, nodeToLinksMap});
 
-  constructor(props) {
-    super(props);
-    const {nodeDetailsProps, node, linkMap, nodeToLinksMap} = props;
-
-    this.P2MPLinkNames = getWirelessLinkNames({node, linkMap, nodeToLinksMap});
-
-    this.actionItems = [
-      {
-        heading: 'Commands',
-        actions: [
-          {
-            label: 'Reboot Node',
-            func: this.onRebootNode,
-          },
-          {
-            label: 'Restart Minion',
-            func: this.onRestartMinion,
-          },
-          ...(isFeatureEnabled('GET_SYSDUMP_ENABLED')
-            ? [
-                {
-                  label: 'Get Sysdump',
-                  func: this.onGetSysdump,
-                },
-              ]
-            : []),
-          ...(supportsTopologyScan(nodeDetailsProps.ctrlVersion)
-            ? [
-                {
-                  label: 'Search Nearby',
-                  func: this.onSearchNearby,
-                },
-              ]
-            : []),
-        ],
-      },
-      {
-        heading: 'Topology',
-        actions: [
-          {
-            label: 'Configure Node',
-            func: this.onEditNodeConfig,
-            className: STEP_TARGET.NODE_CONFIG,
-          },
-          {
-            label: 'Edit Node',
-            func: this.onEditNode,
-          },
-          {
-            label: 'Delete Node',
-            func: this.onDeleteNode,
-          },
-        ],
-      },
-      ...(isFeatureEnabled('DEFAULT_ROUTES_HISTORY_ENABLED')
-        ? [
-            {
-              heading: 'Troubleshooting',
-              actions: [
-                {
-                  label: 'Show Routes',
-                  func: this.onShowRoutes,
-                },
-              ],
-            },
-          ]
-        : []),
-      ...(isFeatureEnabled('NETWORKTEST_ENABLED')
-        ? [
-            {
-              heading: 'Tests',
-              actions: [
-                {
-                  label: 'Start Throughput Test',
-                  func: this.onStartThroughputTest,
-                },
-                {
-                  label: 'Start Incremental Route Test',
-                  func: this.onStartIncrementalRouteTest,
-                },
-                ...(this.P2MPLinkNames.length > 1
-                  ? [
-                      {
-                        label: 'Start P2MP Node Test',
-                        func: this.onStartP2MPTest,
-                      },
-                    ]
-                  : []),
-              ],
-            },
-          ]
-        : []),
-      {
-        heading: 'Scans',
-        actions: [
-          {
-            label: 'Start IM Scan',
-            subMenu: [
-              {
-                actions: node.wlan_mac_addrs.map(mac_addr => ({
-                  label: mac_addr,
-                  func: () => this.onStartRadioIMScan(mac_addr),
-                })),
-              },
-            ],
-          },
-        ],
-      },
-    ];
-  }
-
-  handleToConfigTable = () => {
-    const {history, networkName, node} = this.props;
-
+  const handleToConfigTable = () => {
+    const {networkName, node} = props;
     history.push({
       pathname: '/network_config/' + networkName,
       search: `?${SELECTED_NODE_QUERY_PARAM}=${node.name}`,
     });
   };
 
-  onStartRadioIMScan = mac_addr => {
-    const {networkName, snackbars} = this.props;
+  const onStartRadioIMScan = mac_addr => {
+    const {networkName, snackbars} = props;
 
     scanApi
       .startExecution({
@@ -230,8 +127,8 @@ class NodeDetailsPanel extends React.Component<Props, State> {
       .catch(err => snackbars.error('Failed to start scan. ' + err));
   };
 
-  onStartThroughputTest = () => {
-    const {networkName, node, history} = this.props;
+  const onStartThroughputTest = () => {
+    const {networkName, node} = props;
 
     startPartialTest({
       networkName,
@@ -241,8 +138,8 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     });
   };
 
-  onStartIncrementalRouteTest = async () => {
-    const {networkName, node, history, snackbars} = this.props;
+  const onStartIncrementalRouteTest = async () => {
+    const {networkName, node, snackbars} = props;
     try {
       const currentRoute = await currentDefaultRouteRequest({
         networkName,
@@ -264,20 +161,20 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     }
   };
 
-  onStartP2MPTest = () => {
-    const {networkName, history} = this.props;
+  const onStartP2MPTest = () => {
+    const {networkName} = props;
 
     startPartialTest({
       networkName,
-      allowlist: this.P2MPLinkNames,
+      allowlist: P2MPLinkNames,
       history,
       testType: TEST_TYPE_CODES.PARALLEL_LINK,
     });
   };
 
-  onRebootNode = () => {
+  const onRebootNode = () => {
     // Reboot this node
-    const {node, networkName} = this.props;
+    const {node, networkName} = props;
     const data = {nodes: [node.name], secondsToReboot: 5};
     apiServiceRequestWithConfirmation(networkName, 'rebootNode', data, {
       desc: `Do you want to reboot node <strong>${node.name}</strong>?`,
@@ -289,17 +186,17 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     });
   };
 
-  onEditNodeConfig = () => {
-    this.setState({configModalOpen: true});
+  const onEditNodeConfig = () => {
+    setState({configModalOpen: true});
   };
 
-  handleConfigModalClose = () => {
-    this.setState({configModalOpen: false});
+  const handleConfigModalClose = () => {
+    setState({configModalOpen: false});
   };
 
-  onRestartMinion = () => {
+  const onRestartMinion = () => {
     // Reboot this node
-    const {node, networkName} = this.props;
+    const {node, networkName} = props;
     const data = {nodes: [node.name], secondsToRestart: 2};
     apiServiceRequestWithConfirmation(networkName, 'restartMinion', data, {
       desc:
@@ -309,17 +206,17 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     });
   };
 
-  onSearchNearby = () => {
+  const onSearchNearby = () => {
     // Show the "Search Nearby" panel
-    const {node, nearbyNodes, onUpdateNearbyNodes} = this.props;
+    const {node, nearbyNodes, onUpdateNearbyNodes} = props;
     if (!nearbyNodes.hasOwnProperty(node.name)) {
       onUpdateNearbyNodes({...nearbyNodes, [node.name]: null});
     }
   };
 
-  onGetSysdump = async () => {
+  const onGetSysdump = async () => {
     // Request a sysdump from this node
-    const {node, networkName} = this.props;
+    const {node, networkName} = props;
     const data = {node: node.name};
     let filename = '';
 
@@ -337,7 +234,9 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     await requestWithConfirmation(
       makeRequest,
       {
-        desc: `Do you want to request a sysdump from node <strong>${node.name}</strong>?`,
+        desc:
+          `Do you want to request a sysdump from node` +
+          ` <strong>${node.name}</strong>?`,
         descType: 'html',
         onResultsOverride: params => {
           const {success, msg} = params;
@@ -345,7 +244,9 @@ class NodeDetailsPanel extends React.Component<Props, State> {
             filename = msg;
             swal({
               title: 'Success!',
-              html: `Sysdump requested. Uploading <strong>${msg}</strong> to the fileserver.`,
+              html:
+                `Sysdump requested. Uploading ` +
+                `<strong>${msg}</strong> to the fileserver.`,
               type: 'success',
             });
           } else {
@@ -373,9 +274,10 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     }
 
     if (result === SYSDUMP_RESULT.SUCCESS) {
+      const sysdumpPath = `${SYSDUMP_PATH}/download/${filename}`;
       swal({
         title: 'Success!',
-        html: `Sysdump available <a href=${`${SYSDUMP_PATH}/download/${filename}`}>here</a>`,
+        html: `Sysdump available <a href=${sysdumpPath}>here</a>`,
         type: 'success',
       });
     } else if (result === SYSDUMP_RESULT.ERROR) {
@@ -387,9 +289,9 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     }
   };
 
-  onDeleteNode = () => {
+  const onDeleteNode = () => {
     // Delete this node
-    const {node, networkName} = this.props;
+    const {node, networkName} = props;
     const data = {nodeName: node.name};
     apiServiceRequestWithConfirmation(networkName, 'delNode', data, {
       desc: `Do you want to permanently delete node
@@ -402,70 +304,155 @@ class NodeDetailsPanel extends React.Component<Props, State> {
     });
   };
 
-  onEditNode = () => {
+  const onEditNode = () => {
     // Edit this node
-    const {onClose, onEdit, node} = this.props;
+    const {onClose, onEdit, node} = props;
     // (Not all parameters are editable, but send them all anyway)
     onEdit(node.name);
     onClose();
   };
 
-  onShowRoutes = () => {
+  const onShowRoutes = () => {
     // Show Routes from this node
-    const {node, onUpdateRoutes} = this.props;
+    const {node, onUpdateRoutes} = props;
     onUpdateRoutes({
       node: node.name,
       links: {},
       nodes: new Set(),
     });
   };
-
-  render() {
-    const {
-      classes,
-      expanded,
-      onPanelChange,
-      onClose,
-      onPin,
-      node,
-      nodeDetailsProps,
-    } = this.props;
-    const {configModalOpen} = this.state;
-
-    const actionItems = this.actionItems;
-
-    return (
-      <>
-        <CustomAccordion
-          title={node.name}
-          titleIcon={<RouterIcon classes={{root: classes.iconCentered}} />}
-          details={
-            <div style={{width: '100%'}}>
-              <NodeDetails {...nodeDetailsProps} node={node} />
-              <Divider />
-              <div className={STEP_TARGET.NODE_ACTIONS}>
-                <ActionsMenu options={{actionItems}} />
-              </div>
+  const actionItems = [
+    {
+      heading: 'Commands',
+      actions: [
+        {
+          label: 'Reboot Node',
+          func: onRebootNode,
+        },
+        {
+          label: 'Restart Minion',
+          func: onRestartMinion,
+        },
+        ...(isFeatureEnabled('GET_SYSDUMP_ENABLED')
+          ? [
+              {
+                label: 'Get Sysdump',
+                func: onGetSysdump,
+              },
+            ]
+          : []),
+        ...(supportsTopologyScan(nodeDetailsProps.ctrlVersion)
+          ? [
+              {
+                label: 'Search Nearby',
+                func: onSearchNearby,
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      heading: 'Topology',
+      actions: [
+        {
+          label: 'Configure Node',
+          func: onEditNodeConfig,
+          className: STEP_TARGET.NODE_CONFIG,
+        },
+        {
+          label: 'Edit Node',
+          func: onEditNode,
+        },
+        {
+          label: 'Delete Node',
+          func: onDeleteNode,
+        },
+      ],
+    },
+    ...(isFeatureEnabled('DEFAULT_ROUTES_HISTORY_ENABLED')
+      ? [
+          {
+            heading: 'Troubleshooting',
+            actions: [
+              {
+                label: 'Show Routes',
+                func: onShowRoutes,
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(isFeatureEnabled('NETWORKTEST_ENABLED')
+      ? [
+          {
+            heading: 'Tests',
+            actions: [
+              {
+                label: 'Start Throughput Test',
+                func: onStartThroughputTest,
+              },
+              {
+                label: 'Start Incremental Route Test',
+                func: onStartIncrementalRouteTest,
+              },
+              ...(P2MPLinkNames.length > 1
+                ? [
+                    {
+                      label: 'Start P2MP Node Test',
+                      func: onStartP2MPTest,
+                    },
+                  ]
+                : []),
+            ],
+          },
+        ]
+      : []),
+    {
+      heading: 'Scans',
+      actions: [
+        {
+          label: 'Start IM Scan',
+          subMenu: [
+            {
+              actions: node.wlan_mac_addrs.map(mac_addr => ({
+                label: mac_addr,
+                func: () => onStartRadioIMScan(mac_addr),
+              })),
+            },
+          ],
+        },
+      ],
+    },
+  ];
+  return (
+    <>
+      <CustomAccordion
+        title={node.name}
+        titleIcon={<RouterIcon classes={{root: classes.iconCentered}} />}
+        details={
+          <div style={{width: '100%'}}>
+            <NodeDetails {...nodeDetailsProps} node={node} />
+            <Divider />
+            <div className={STEP_TARGET.NODE_ACTIONS}>
+              <ActionsMenu options={{actionItems}} />
             </div>
-          }
-          expanded={expanded}
-          onChange={onPanelChange}
-          onClose={onClose}
-          onPin={onPin}
-          pinned={this.props.pinned}
-          showLoadingBar={true}
-          showTitleCopyTooltip={true}
-          fwdRef={this.props.fwdRef}
-        />
-        <TaskBasedConfigModal
-          open={configModalOpen}
-          modalTitle="Node Configuration"
-          onClose={this.handleConfigModalClose}
-          onAdvancedLinkClick={this.handleToConfigTable}
-        />
-      </>
-    );
-  }
-}
-
-export default withForwardRef(withStyles(styles)(withRouter(NodeDetailsPanel)));
+          </div>
+        }
+        expanded={expanded}
+        onChange={onPanelChange}
+        onClose={onClose}
+        onPin={onPin}
+        pinned={props.pinned}
+        showLoadingBar={true}
+        showTitleCopyTooltip={true}
+        fwdRef={fwdRef}
+      />
+      <TaskBasedConfigModal
+        open={configModalOpen}
+        modalTitle="Node Configuration"
+        onClose={handleConfigModalClose}
+        onAdvancedLinkClick={handleToConfigTable}
+      />
+    </>
+  );
+});
