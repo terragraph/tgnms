@@ -143,6 +143,8 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
   const {
     filteredTopology,
     setPendingTopology,
+    appendPendingTopology,
+    removeFromPendingTopology,
     pendingTopology,
   } = useNetworkPlanningManager();
 
@@ -210,6 +212,16 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
       : [];
   }, [filteredTopology, pendingTopology]);
 
+  const siteRowClick = React.useCallback(
+    (_, row: SiteRowSchema) => {
+      if (pendingTopology.sites.has(row.id)) {
+        removeFromPendingTopology([row.id], 'sites');
+      } else {
+        appendPendingTopology([row.id], 'sites');
+      }
+    },
+    [pendingTopology, appendPendingTopology, removeFromPendingTopology],
+  );
   const sitesSelectionCallback = React.useCallback(
     (rows: SiteRowSchema[]) => {
       setPendingTopology({sites: rows.map(e => e.id)});
@@ -217,6 +229,16 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
     [setPendingTopology],
   );
 
+  const linkRowClick = React.useCallback(
+    (_, row: LinkRowSchema) => {
+      if (pendingTopology.links.has(row.id)) {
+        removeFromPendingTopology([row.id], 'links');
+      } else {
+        appendPendingTopology([row.id], 'links');
+      }
+    },
+    [pendingTopology, appendPendingTopology, removeFromPendingTopology],
+  );
   const linksSelectionCallback = React.useCallback(
     (rows: LinkRowSchema[]) => {
       setPendingTopology({links: rows.map(e => e.id)});
@@ -262,6 +284,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
               data={sites}
               columns={SITE_COLUMNS}
               options={tableOptions}
+              onRowClick={siteRowClick}
               onSelectionChange={sitesSelectionCallback}
               style={noBoxShadow}
             />
@@ -283,6 +306,7 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
               data={links}
               columns={LINK_COLUMNS}
               options={tableOptions}
+              onRowClick={linkRowClick}
               onSelectionChange={linksSelectionCallback}
               style={noBoxShadow}
             />

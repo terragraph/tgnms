@@ -49,6 +49,38 @@ describe('TopologyTable', () => {
     expect(getByText('site1')).toBeInTheDocument();
   });
 
+  test('clicking on row should select/deselect it', async () => {
+    const {getByText, queryByText} = await renderAsync(
+      <TestApp route={PLANNING_PLAN_PATH}>
+        <NetworkPlanningContextProvider
+          plan={{
+            id: 1,
+            folderId: 1,
+            name: 'plan 1',
+            state: 'SUCCESS',
+          }}
+          planTopology={planTopology}
+          setPlanTopology={() => {}}>
+          <TopologyTable />
+        </NetworkPlanningContextProvider>
+      </TestApp>,
+    );
+    act(() => {
+      fireEvent.click(getByText('Sites'));
+    });
+
+    // Select
+    act(() => {
+      fireEvent.click(getByText('site1'));
+    });
+    expect(getByText('1 row(s) selected')).toBeInTheDocument();
+    // Deselect
+    act(() => {
+      fireEvent.click(getByText('site1'));
+    });
+    expect(queryByText('1 row(s) selected')).not.toBeInTheDocument();
+  });
+
   test('the pending topology elements should be checked on load', async () => {
     jest.spyOn(mockManager, 'useNetworkPlanningManager').mockReturnValue({
       filteredTopology: planTopology,
