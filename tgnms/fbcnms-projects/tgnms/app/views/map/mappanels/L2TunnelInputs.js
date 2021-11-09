@@ -12,6 +12,7 @@ import MaterialReactSelect from '@fbcnms/tg-nms/app/components/common/MaterialRe
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
@@ -30,7 +31,7 @@ export default function L2TunnelInputs() {
   const {networkConfig} = useNetworkContext();
   const {topology} = networkConfig;
   const {onUpdate} = useConfigTaskContext();
-  const onUpdateRef = React.useRef(onUpdate);
+  const onUpdateRef = useLiveRef(onUpdate);
 
   const nodeMenuItems = topology.nodes.reduce((result, node) => {
     result.push({
@@ -42,6 +43,7 @@ export default function L2TunnelInputs() {
 
   const {formState, updateFormState, handleInputChange} = useForm({
     initialState: {
+      name: '',
       enabled: true,
       node1: '',
       node1Interface: '',
@@ -89,6 +91,10 @@ export default function L2TunnelInputs() {
   );
 
   React.useEffect(() => {
+    // Don't change the draft config unless the form is valid
+    if (formState.name == '') {
+      return;
+    }
     if (
       formState.tunnelDest.label === TUNNEL_DEST.node.label &&
       formState.node1 !== '' &&
@@ -98,7 +104,7 @@ export default function L2TunnelInputs() {
         configField: formState.node1.value,
         draftValue: {
           tunnelConfig: {
-            [formState.node2.value]: {
+            [formState.name]: {
               enabled: formState.enabled,
               dstNodeName: formState.node2.value,
               tunnelType: formState.type.value,
@@ -114,7 +120,7 @@ export default function L2TunnelInputs() {
         configField: formState.node2.value,
         draftValue: {
           tunnelConfig: {
-            [formState.node1.value]: {
+            [formState.name]: {
               enabled: formState.enabled,
               dstNodeName: formState.node1.value,
               tunnelType: formState.type.value,
@@ -134,7 +140,7 @@ export default function L2TunnelInputs() {
         configField: formState.node1.value,
         draftValue: {
           tunnelConfig: {
-            [formState.ipAddress]: {
+            [formState.name]: {
               enabled: formState.enabled,
               dstIp: formState.ipAddress,
               tunnelType: formState.type.value,
@@ -151,9 +157,20 @@ export default function L2TunnelInputs() {
   return (
     <Grid container direction="column" spacing={1}>
       <Grid item>
+        <TextField
+          id="name"
+          label="Tunnel Name *"
+          fullWidth
+          dense
+          value={formState.name}
+          onChange={handleInputChange(val => ({name: val}))}
+        />
+      </Grid>
+      <Grid item>
         <MaterialReactSelect
+          inputId="tunnel-type"
           textFieldProps={{
-            label: 'Tunnel Type *',
+            label: 'Tunnel Type',
             InputLabelProps: {shrink: true},
           }}
           getOptionValue={option => option.label}
@@ -181,6 +198,7 @@ export default function L2TunnelInputs() {
       )}
       <Grid item>
         <MaterialReactSelect
+          inputId={'tunnel-dest'}
           textFieldProps={{
             label: 'Tunneling To *',
             InputLabelProps: {shrink: true},
@@ -194,6 +212,7 @@ export default function L2TunnelInputs() {
       </Grid>
       <Grid item>
         <MaterialReactSelect
+          inputId={'node-1'}
           textFieldProps={{
             label: 'Node 1 *',
             InputLabelProps: {shrink: true},
@@ -230,6 +249,7 @@ export default function L2TunnelInputs() {
         ) : (
           <>
             <MaterialReactSelect
+              inputId={'node-2'}
               textFieldProps={{
                 label: 'Node 2 *',
                 InputLabelProps: {shrink: true},

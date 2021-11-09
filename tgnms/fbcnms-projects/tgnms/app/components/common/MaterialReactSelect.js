@@ -100,10 +100,16 @@ function inputComponent({inputRef, ...props}) {
 }
 
 function Control(props) {
+  const {InputLabelProps, ...textFieldProps} =
+    props.selectProps?.textFieldProps ?? {};
   return (
     <TextField
       margin="dense"
       fullWidth
+      InputLabelProps={{
+        htmlFor: props.selectProps.inputId,
+        ...(InputLabelProps ?? {}),
+      }}
       InputProps={{
         inputComponent,
         inputProps: {
@@ -113,7 +119,7 @@ function Control(props) {
           ...props.innerProps,
         },
       }}
-      {...props.selectProps.textFieldProps}
+      {...textFieldProps}
     />
   );
 }

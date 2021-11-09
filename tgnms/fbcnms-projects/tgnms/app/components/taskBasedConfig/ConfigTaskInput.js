@@ -12,6 +12,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {DATA_TYPE_TO_INPUT_TYPE} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {getTopLayerValue} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {makeStyles} from '@material-ui/styles';
@@ -49,7 +50,7 @@ export default function ConfigTaskInput(props: Props) {
   } = useConfigTaskContext();
   const {refreshConfig} = selectedValues;
 
-  const onUpdateRef = React.useRef(onUpdate);
+  const onUpdateRef = useLiveRef(onUpdate);
 
   const metadata = configField?.split('.').reduce((result, key) => {
     if (result?.type == 'OBJECT') {
@@ -145,20 +146,25 @@ export default function ConfigTaskInput(props: Props) {
               </Grid>
             </FormLabel>
             <FormControlLabel
+              htmlFor={configField}
               data-testid="checkbox"
               control={React.createElement(Checkbox, {
                 checked: draftValue === true,
                 onChange: handleInputChange,
                 value: String(draftValue) || '',
                 color: 'primary',
+                id: configField,
               })}
               label={label || ''}
             />
           </>
         ) : (
           <>
-            {label != null && <FormLabel>{inputLabel}</FormLabel>}
+            {label != null && (
+              <FormLabel htmlFor={configField}>{inputLabel}</FormLabel>
+            )}
             <TextField
+              id={configField}
               data-testid="select"
               select
               value={draftValue}
@@ -175,8 +181,11 @@ export default function ConfigTaskInput(props: Props) {
         )
       ) : selectList ? (
         <>
-          {label != null && <FormLabel>{inputLabel}</FormLabel>}
+          {label != null && (
+            <FormLabel htmlFor={configField}>{inputLabel}</FormLabel>
+          )}
           <TextField
+            id={configField}
             data-testid="select"
             select
             value={draftValue || ''}
@@ -192,8 +201,11 @@ export default function ConfigTaskInput(props: Props) {
         </>
       ) : (
         <>
-          {label != null && <FormLabel>{inputLabel}</FormLabel>}
+          {label != null && (
+            <FormLabel htmlFor={configField}>{inputLabel}</FormLabel>
+          )}
           <TextField
+            id={configField}
             data-testid={settingType}
             value={draftValue || ''}
             onChange={handleInputChange}

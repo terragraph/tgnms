@@ -64,14 +64,19 @@ test('config opens', () => {
   expect(getByText('Node Config')).toBeInTheDocument();
 });
 
-test('when submit is clicked, update config is called', () => {
-  const {getByText} = render(
+test('when submit is clicked, update config is called', async () => {
+  const {getByLabelText, getByText} = render(
     <TestApp>
       <NodeConfig {...defaultProps} />
     </TestApp>,
   );
   act(() => {
     fireEvent.click(getByText('Show Node Configuration'));
+  });
+  act(() => {
+    fireEvent.change(getByLabelText(/managed config/i), {
+      target: {value: 'true'},
+    });
   });
   act(() => {
     fireEvent.click(getByText('Submit'));

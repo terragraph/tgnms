@@ -18,18 +18,21 @@ const defaultProps = {
   onClose: jest.fn(),
 };
 
-jest
-  .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
-  .mockReturnValue({
-    loading: false,
-    configData: [{field: ['test', 'param']}],
-    configParams: {nodeOverridesConfig: {}, networkOverridesConfig: {}},
-  });
+beforeEach(() => {
+  jest
+    .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
+    .mockReturnValue({
+      loading: false,
+      configData: [{field: ['test', 'param']}],
+      configParams: {nodeOverridesConfig: {}, networkOverridesConfig: {}},
+    });
+});
 
 test('renders loading initially', () => {
   jest
     .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
-    .mockReturnValueOnce({
+    // using mockReturnValue. this can render multiple times before we query it
+    .mockReturnValue({
       loading: true,
       configData: [{field: ['test', 'param']}],
       configParams: {},

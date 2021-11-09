@@ -103,7 +103,7 @@ export default function ConfigTaskForm(props: Props) {
 
   const configDataRef = React.useRef(configData);
   const [currentConfig, setCurrentConfig] = React.useState(
-    cloneDeep(networkOverridesConfig),
+    cloneDeep(networkOverridesConfig || {}),
   );
 
   React.useEffect(() => {
@@ -238,6 +238,7 @@ export default function ConfigTaskForm(props: Props) {
       if (draftValue != undefined) {
         draftsRef.current = {...draftsRef.current, [configField]: draftValue};
       }
+      setRefreshConfig(x => x + 1);
     },
     [editMode],
   );

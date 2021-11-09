@@ -23,11 +23,14 @@ import {Router} from 'react-router-dom';
 import {Provider as RoutesContextProvider} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import {Provider as SettingsFormContextProvider} from '@fbcnms/tg-nms/app/views/nms_config/SettingsFormContext';
 import {SnackbarProvider} from 'notistack';
+import {Provider as TaskConfigContextProvider} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import {act, fireEvent, render} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import {mockNetworkContext} from './data/NetworkContext';
 import {mockNmsOptionsContext} from './data/NmsOptionsContext';
+import {mockTaskConfigContext} from './data/TaskConfigContext';
 
+import type {ConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import type {
   EnvMap,
   SettingDefinition,
@@ -53,6 +56,7 @@ export * from './data/NmsOptionsContext';
 export * from './data/NetworkListContext';
 export * from './data/ANPTestData';
 export * from './data/NetworkPlanningTestData';
+export * from './data/TaskConfigContext';
 
 /**
  * DEPRECATED, pass a history object to TestApp instead.
@@ -198,6 +202,20 @@ export function RoutesContextWrapper({
       {...contextValue}>
       {children}
     </RoutesContextProvider>
+  );
+}
+
+export function TaskConfigContextWrapper({
+  contextValue,
+  children,
+}: {|
+  contextValue?: $Shape<ConfigTaskContext>,
+  children: React.Node,
+|}) {
+  return (
+    <TaskConfigContextProvider {...mockTaskConfigContext(contextValue)}>
+      {children}
+    </TaskConfigContextProvider>
   );
 }
 
