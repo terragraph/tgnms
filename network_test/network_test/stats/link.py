@@ -246,7 +246,11 @@ def compute_link_health(
         )
         return NetworkTestHealth.POOR
 
-    iperf_tput_ratio = iperf_avg_throughput / expected_bitrate
+    # Make the iperf_tput_ratio 1 when the user supplies a bitrate of 0, meaning that
+    # the nodes are ignoring bitrate limits and transmitting at max bandwidth.
+    iperf_tput_ratio = (
+        (iperf_avg_throughput / expected_bitrate) if expected_bitrate > 0 else 1
+    )
 
     logging.debug(f"tx_per: {tx_per:0.4f}")
     logging.debug(f"link_unavail_ratio: {link_unavail_ratio:0.4f}")
