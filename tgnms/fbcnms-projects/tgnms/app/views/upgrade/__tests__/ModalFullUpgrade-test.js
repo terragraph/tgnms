@@ -9,13 +9,7 @@ import ModalFullUpgrade from '../ModalFullUpgrade';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {
-  act,
-  fireEvent,
-  render,
-  wait,
-  waitForElement,
-} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 
 import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import * as upgradeHelpers from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
@@ -61,7 +55,7 @@ test('opens without crashing', async () => {
   );
   expect(getByText('Full Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Full Upgrade'));
-  await waitForElement(() => getByText('Full Upgrade Nodes'));
+  await waitFor(() => getByText('Full Upgrade Nodes'));
   expect(getByText('Full Upgrade Nodes')).toBeInTheDocument();
 });
 
@@ -73,9 +67,9 @@ test('closes', async () => {
   );
   expect(getByText('Full Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Full Upgrade'));
-  await waitForElement(() => getByText('Nodes for upgrade:'));
+  await waitFor(() => getByText('Nodes for upgrade:'));
   fireEvent.click(getByText('Cancel'));
-  await wait(() => {
+  await waitFor(() => {
     expect(queryByText('Nodes for upgrade:')).not.toBeInTheDocument();
   });
   expect(getByText('Full Upgrade')).toBeInTheDocument();
@@ -99,7 +93,7 @@ test('submit success', async () => {
   );
   expect(getByText('Full Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Full Upgrade'));
-  await waitForElement(() => getByText('Nodes for upgrade:'));
+  await waitFor(() => getByText('Nodes for upgrade:'));
   const selectedImageInput = nullthrows(
     document.getElementById('imageSelector'),
   );
@@ -109,7 +103,7 @@ test('submit success', async () => {
   await act(async () => {
     fireEvent.click(getByText('Submit'));
   });
-  await waitForElement(() => getByText('Full Upgrade Submitted'));
+  await waitFor(() => getByText('Full Upgrade Submitted'));
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
     'Tower C',
@@ -153,7 +147,7 @@ test('submit fail', async () => {
   );
   expect(getByText('Full Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Full Upgrade'));
-  await waitForElement(() => getByText('Nodes for upgrade:'));
+  await waitFor(() => getByText('Nodes for upgrade:'));
   const selectedImageInput = nullthrows(
     document.getElementById('imageSelector'),
   );
@@ -163,6 +157,6 @@ test('submit fail', async () => {
   await act(async () => {
     fireEvent.click(getByText('Submit'));
   });
-  await waitForElement(() => getByText('Full Upgrade Failed'));
+  await waitFor(() => getByText('Full Upgrade Failed'));
   expect(getByText('Full Upgrade Failed')).toBeInTheDocument();
 });

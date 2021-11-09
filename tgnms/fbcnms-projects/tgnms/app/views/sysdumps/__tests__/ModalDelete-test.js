@@ -8,7 +8,7 @@
 import ModalDelete from '../ModalDelete';
 import React from 'react';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render, wait, waitForElement} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 
 const defaultProps = {
   selected: ['testSysdump'],
@@ -33,7 +33,7 @@ test('opens without crashing', async () => {
   );
   expect(getByText('Delete')).toBeInTheDocument();
   fireEvent.click(getByText('Delete'));
-  await waitForElement(() => getByText('Delete Sysdumps'));
+  await waitFor(() => getByText('Delete Sysdumps'));
   expect(getByText('Delete Sysdumps')).toBeInTheDocument();
 });
 
@@ -45,9 +45,9 @@ test('closes', async () => {
   );
   expect(getByText('Delete')).toBeInTheDocument();
   fireEvent.click(getByText('Delete'));
-  await waitForElement(() => getByText('Delete Sysdumps'));
+  await waitFor(() => getByText('Delete Sysdumps'));
   fireEvent.click(getByText('Cancel'));
-  await wait(() => {
+  await waitFor(() => {
     expect(queryByText('Delete Sysdumps')).not.toBeInTheDocument();
   });
   expect(getByText('Delete')).toBeInTheDocument();

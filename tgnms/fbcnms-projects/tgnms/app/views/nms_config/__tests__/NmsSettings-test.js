@@ -14,7 +14,7 @@ import {
   initWindowConfig,
   renderAsync,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, waitForElement} from '@testing-library/react';
+import {act, fireEvent, waitFor} from '@testing-library/react';
 import type {EnvMap, SettingsState} from '@fbcnms/tg-nms/shared/dto/Settings';
 
 jest.mock('axios');
@@ -126,7 +126,7 @@ async function submitAndConfirm({getByTestId, getByText}) {
     fireEvent.click(getByTestId('submit-button'));
   });
 
-  await waitForElement(() => getByText('Confirm Settings Change'));
+  await waitFor(() => getByText('Confirm Settings Change'));
   await act(async () => {
     fireEvent.click(getByTestId('confirm-settings-change'));
   });

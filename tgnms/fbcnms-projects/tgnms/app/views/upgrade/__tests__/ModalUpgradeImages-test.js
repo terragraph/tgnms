@@ -14,7 +14,7 @@ import {
   initWindowConfig,
   renderAsync,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, waitForElement} from '@testing-library/react';
+import {act, fireEvent, waitFor} from '@testing-library/react';
 import type {UpgradeImageType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 // fetches occur on an interval so we should mock them
@@ -46,7 +46,7 @@ test('renders images from controller', async () => {
       <ModalUpgradeImages networkName="test" />
     </TestApp>,
   );
-  const image = await waitForElement(() => getByText('image-1'));
+  const image = await waitFor(() => getByText('image-1'));
   expect(image).toBeInTheDocument();
   expect(axiosPostMock).toHaveBeenCalledWith(
     '/apiservice/test/api/listUpgradeImages',
@@ -114,7 +114,7 @@ test('clicking delete image button sends a delete request', async () => {
     fireEvent.click(getByText(/confirm/i));
   });
 
-  await waitForElement(() => getByText(/success/i));
+  await waitFor(() => getByText(/success/i));
 
   expect(axiosPostMock).toHaveBeenCalledWith(
     '/apiservice/test/api/delUpgradeImage',

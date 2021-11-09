@@ -7,6 +7,7 @@
 import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
+import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {NodeStatusTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {
   TestApp,
@@ -17,11 +18,7 @@ import {
   mockTopology,
   renderWithRouter,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-/*
- * Use queries directly for querying children of nodes other than document.body
- */
-import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
-import {fireEvent, queries} from '@testing-library/react';
+import {fireEvent, within} from '@testing-library/react';
 
 beforeEach(() => {
   initWindowConfig();
@@ -154,10 +151,8 @@ describe('Ethernet Links', () => {
     );
     const node2group = getByTestId('node2');
     const node4group = getByTestId('node4');
-    expect(queries.getByText(node2group, 'Online').textContent).toBe('Online');
-    expect(queries.getByText(node4group, 'Offline').textContent).toBe(
-      'Offline',
-    );
+    expect(within(node2group).getByText('Online').textContent).toBe('Online');
+    expect(within(node4group).getByText('Offline').textContent).toBe('Offline');
   });
 
   function ethernetTopology() {
@@ -243,11 +238,11 @@ describe('Radio MACs', () => {
     const onlineGroup = getByTestId('radioMacTestOnline');
     const offlineGroup = getByTestId('radioMacTestOffline');
     const unknownGroup = getByTestId('radioMacTestUnknown');
-    expect(queries.getByText(onlineGroup, 'Online').textContent).toBe('Online');
-    expect(queries.getByText(offlineGroup, 'Offline').textContent).toBe(
+    expect(within(onlineGroup).getByText('Online').textContent).toBe('Online');
+    expect(within(offlineGroup).getByText('Offline').textContent).toBe(
       'Offline',
     );
-    expect(queries.getByText(unknownGroup, 'Unknown').textContent).toBe(
+    expect(within(unknownGroup).getByText('Unknown').textContent).toBe(
       'Unknown',
     );
   });

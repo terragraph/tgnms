@@ -9,13 +9,7 @@ import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import ModalAbort from '../ModalAbort';
 import React from 'react';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {
-  act,
-  fireEvent,
-  render,
-  wait,
-  waitForElement,
-} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 import {assertType} from '@fbcnms/util/assert';
 import {mockUpgradeReqData} from '@fbcnms/tg-nms/app/tests/data/Upgrade';
 
@@ -45,7 +39,7 @@ test('opens without crashing', async () => {
   );
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
-  await waitForElement(() => getByText('Abort Upgrade Requests'));
+  await waitFor(() => getByText('Abort Upgrade Requests'));
   expect(getByText('Abort Upgrade Requests')).toBeInTheDocument();
 });
 
@@ -57,9 +51,9 @@ test('closes', async () => {
   );
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
-  await waitForElement(() => getByText('Abort Upgrade Requests'));
+  await waitFor(() => getByText('Abort Upgrade Requests'));
   fireEvent.click(getByText('Close'));
-  await wait(() => {
+  await waitFor(() => {
     expect(queryByText('Abort Upgrade Requests')).not.toBeInTheDocument();
   });
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
@@ -73,7 +67,7 @@ test('abort button disabled if no image is defined', async () => {
   );
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
-  await waitForElement(() => getByText('Abort Upgrade Requests'));
+  await waitFor(() => getByText('Abort Upgrade Requests'));
   fireEvent.click(getByText('Abort'));
   expect(apiServiceRequestMock).not.toHaveBeenCalled();
 });
@@ -86,7 +80,7 @@ test('abort disabled if no image is selected', async () => {
   );
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
-  await waitForElement(() => getByText('Abort Upgrade Requests'));
+  await waitFor(() => getByText('Abort Upgrade Requests'));
   fireEvent.click(getByText('Abort'));
   expect(apiServiceRequestMock).not.toHaveBeenCalled();
 });
@@ -99,7 +93,7 @@ test('abort success', async () => {
   );
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
-  await waitForElement(() => getByText('Abort Upgrade Requests'));
+  await waitFor(() => getByText('Abort Upgrade Requests'));
   fireEvent.click(
     assertType(
       getByTestId('selectAllBox').childNodes[0].childNodes[0],
@@ -128,7 +122,7 @@ test('abort fail', async () => {
   );
   expect(getByText('Abort Upgrade')).toBeInTheDocument();
   fireEvent.click(getByText('Abort Upgrade'));
-  await waitForElement(() => getByText('Abort Upgrade Requests'));
+  await waitFor(() => getByText('Abort Upgrade Requests'));
   fireEvent.click(
     assertType(
       getByTestId('selectAllBox').childNodes[0].childNodes[0],
@@ -137,6 +131,6 @@ test('abort fail', async () => {
   );
   fireEvent.click(getByText('Abort'));
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
-  await waitForElement(() => getByText('Abort Upgrade Failed'));
+  await waitFor(() => getByText('Abort Upgrade Failed'));
   expect(getByText('Abort Upgrade Failed')).toBeInTheDocument();
 });

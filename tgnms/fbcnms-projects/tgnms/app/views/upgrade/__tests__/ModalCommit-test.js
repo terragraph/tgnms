@@ -8,7 +8,7 @@
 import ModalCommit from '../ModalCommit';
 import React from 'react';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render, wait, waitForElement} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 
 import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import * as upgradeHelpers from '@fbcnms/tg-nms/app/helpers/UpgradeHelpers';
@@ -53,7 +53,7 @@ test('opens without crashing', async () => {
   );
   expect(getByText('Commit')).toBeInTheDocument();
   fireEvent.click(getByText('Commit'));
-  await waitForElement(() => getByText('Commit Nodes'));
+  await waitFor(() => getByText('Commit Nodes'));
   expect(getByText('Commit Nodes')).toBeInTheDocument();
 });
 
@@ -65,9 +65,9 @@ test('closes', async () => {
   );
   expect(getByText('Commit')).toBeInTheDocument();
   fireEvent.click(getByText('Commit'));
-  await waitForElement(() => getByText('Nodes to commit for upgrade:'));
+  await waitFor(() => getByText('Nodes to commit for upgrade:'));
   fireEvent.click(getByText('Cancel'));
-  await wait(() => {
+  await waitFor(() => {
     expect(queryByText('Nodes to commit')).not.toBeInTheDocument();
   });
   expect(getByText('Commit')).toBeInTheDocument();
@@ -91,9 +91,9 @@ test('submit success', async () => {
   );
   expect(getByText('Commit')).toBeInTheDocument();
   fireEvent.click(getByText('Commit'));
-  await waitForElement(() => getByText('Nodes to commit for upgrade:'));
+  await waitFor(() => getByText('Nodes to commit for upgrade:'));
   fireEvent.click(getByText('Submit'));
-  await waitForElement(() => getByText('Commit Upgrade Submitted'));
+  await waitFor(() => getByText('Commit Upgrade Submitted'));
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
     'Tower C',
@@ -128,8 +128,8 @@ test('submit fail', async () => {
   );
   expect(getByText('Commit')).toBeInTheDocument();
   fireEvent.click(getByText('Commit'));
-  await waitForElement(() => getByText('Nodes to commit for upgrade:'));
+  await waitFor(() => getByText('Nodes to commit for upgrade:'));
   fireEvent.click(getByText('Submit'));
-  await waitForElement(() => getByText('Commit Upgrade Failed'));
+  await waitFor(() => getByText('Commit Upgrade Failed'));
   expect(getByText('Commit Upgrade Failed')).toBeInTheDocument();
 });

@@ -9,7 +9,7 @@ import ModalClearNodeAutoConfig from '../ModalClearNodeAutoConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 
 jest.mock('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil');
 const apiServiceRequestMock: any = require('@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil')
@@ -57,7 +57,7 @@ test('submit calls success snackbar on successful api call', async () => {
   const inputPath = nullthrows(document.getElementById('nodePath'));
   fireEvent.change(inputPath, {target: {value: '*'}});
   fireEvent.click(getByText('Submit'));
-  await wait(() => expect(snackbarsMock.success).toHaveBeenCalled());
+  await waitFor(() => expect(snackbarsMock.success).toHaveBeenCalled());
   expect(snackbarsMock.success).toHaveBeenCalled();
 });
 
@@ -71,6 +71,6 @@ test('submit calls fail snackbar on failed api call', async () => {
   const inputPath = nullthrows(document.getElementById('nodePath'));
   fireEvent.change(inputPath, {target: {value: '*'}});
   fireEvent.click(getByText('Submit'));
-  await wait(() => expect(snackbarsMock.error).toHaveBeenCalled());
+  await waitFor(() => expect(snackbarsMock.error).toHaveBeenCalled());
   expect(snackbarsMock.error).toHaveBeenCalled();
 });

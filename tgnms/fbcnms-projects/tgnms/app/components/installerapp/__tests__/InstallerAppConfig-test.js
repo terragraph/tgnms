@@ -11,7 +11,7 @@ import InstallerAppConfig from '../InstallerAppConfig';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {TestApp, renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, render, wait} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 
 import * as fbcHooks from '@fbcnms/ui/hooks';
 jest.mock('@fbcnms/ui/hooks');
@@ -49,7 +49,7 @@ test('clicking the backdrop closes the modal', async () => {
     const backdrop = document.querySelector('[class="MuiBackdrop-root"]');
     fireEvent.click(nullthrows(backdrop));
   });
-  await wait(() => {
+  await waitFor(() => {
     expect(queryByText(/mobile app setup/i)).not.toBeInTheDocument();
   });
 });

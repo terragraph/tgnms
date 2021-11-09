@@ -15,7 +15,7 @@ import NmsAlarms from '../NmsAlarms';
 import {AlarmsTestWrapper} from '@fbcnms/alarms/test/testHelpers';
 import {EventIdValueMap} from '@fbcnms/tg-nms/shared/types/Event';
 import {TgApiUtil as TgApiUtilMock} from '../TgAlarmApi';
-import {act, fireEvent, render, waitForElement} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 
 import type {FiringAlarm} from '@fbcnms/alarms/components/AlarmAPIType';
 
@@ -83,9 +83,7 @@ test('Clicking view alert shows alert details', async () => {
     fireEvent.click(getByText('<<testalert>>'));
   });
 
-  const detailsPane = await waitForElement(() =>
-    getByTestId('alert-details-pane'),
-  );
+  const detailsPane = await waitFor(() => getByTestId('alert-details-pane'));
   expect(detailsPane).toBeInTheDocument();
 });
 
@@ -121,9 +119,7 @@ xtest('Clicking view alert on an event alert shows the EventAlertViewer', async 
   act(() => {
     fireEvent.click(getByText(/view/i));
   });
-  const alertTitle = await waitForElement(() =>
-    getByTestId('alert-details-pane'),
-  );
+  const alertTitle = await waitFor(() => getByTestId('alert-details-pane'));
   expect(alertTitle).toBeInTheDocument();
   expect(alertViewerMock).toHaveBeenCalled();
 });

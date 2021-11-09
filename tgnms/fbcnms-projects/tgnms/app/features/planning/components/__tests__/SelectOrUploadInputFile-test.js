@@ -11,7 +11,7 @@ import SelectOrUploadInputFile from '../SelectOrUploadInputFile';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {act, fireEvent} from '@testing-library/react';
 import {renderAsync} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {waitForElementToBeRemoved} from '@testing-library/dom';
+import {waitFor} from '@testing-library/dom';
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
 const commonProps = {
   id: 'test',
@@ -43,7 +43,9 @@ describe('Modal', () => {
     await act(async () => {
       fireEvent.click(getByText(/cancel/i));
     });
-    await waitForElementToBeRemoved(getModal);
+    await waitFor(() => {
+      expect(getModal()).not.toBeInTheDocument();
+    });
   });
 });
 describe('Upload new file', () => {

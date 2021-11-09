@@ -8,7 +8,7 @@
 import NetworkConfig from '../NetworkConfig';
 import React from 'react';
 import {TestApp, initWindowConfig} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, waitForElement} from '@testing-library/react';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {renderWithRouter} from '@fbcnms/tg-nms/app/tests/testHelpers';
 
 beforeEach(() => {
@@ -36,7 +36,7 @@ test('renders table after spinner', async () => {
       <NetworkConfig />
     </TestApp>,
   );
-  await waitForElement(() => getByText('Cancel'));
+  await waitFor(() => getByText('Cancel'));
   expect(queryByTestId('loading-box')).not.toBeInTheDocument();
   expect(getByText('Editor')).toBeInTheDocument();
   expect(getByText('Submit')).toBeInTheDocument();
@@ -48,7 +48,7 @@ test('renders multiple tabs based on edit mode', async () => {
       <NetworkConfig />
     </TestApp>,
   );
-  await waitForElement(() => getByText('Cancel'));
+  await waitFor(() => getByText('Cancel'));
   expect(queryByTestId('loading-box')).not.toBeInTheDocument();
   expect(getByText('CONTROLLER')).toBeInTheDocument();
 });
@@ -59,7 +59,7 @@ test('change table without crashing', async () => {
       <NetworkConfig />
     </TestApp>,
   );
-  await waitForElement(() => getByText('Cancel'));
+  await waitFor(() => getByText('Cancel'));
   expect(queryByTestId('loading-box')).not.toBeInTheDocument();
   fireEvent.click(getByText('NETWORK'));
   expect(getByText('Change Base Version')).toBeInTheDocument();

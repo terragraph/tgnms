@@ -8,7 +8,7 @@
 import ModalReset from '../ModalReset';
 import React from 'react';
 import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, render, wait, waitForElement} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 
 import * as serviceApiUtil from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 
@@ -38,7 +38,7 @@ test('opens without crashing', async () => {
   );
   expect(getByText('Reset')).toBeInTheDocument();
   fireEvent.click(getByText('Reset'));
-  await waitForElement(() => getByText('Reset Upgrade Status'));
+  await waitFor(() => getByText('Reset Upgrade Status'));
   expect(getByText('Reset Upgrade Status')).toBeInTheDocument();
 });
 
@@ -50,9 +50,9 @@ test('closes', async () => {
   );
   expect(getByText('Reset')).toBeInTheDocument();
   fireEvent.click(getByText('Reset'));
-  await waitForElement(() => getByText('Reset Upgrade Status'));
+  await waitFor(() => getByText('Reset Upgrade Status'));
   fireEvent.click(getByText('Cancel'));
-  await wait(() => {
+  await waitFor(() => {
     expect(queryByText('Reset Upgrade Status')).not.toBeInTheDocument();
   });
   expect(getByText('Reset')).toBeInTheDocument();
@@ -76,9 +76,9 @@ test('submit success', async () => {
   );
   expect(getByText('Reset')).toBeInTheDocument();
   fireEvent.click(getByText('Reset'));
-  await waitForElement(() => getByText('Reset Upgrade Status'));
+  await waitFor(() => getByText('Reset Upgrade Status'));
   fireEvent.click(getByText('Submit'));
-  await waitForElement(() => getByText('Reset Status Submitted'));
+  await waitFor(() => getByText('Reset Status Submitted'));
   expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
   expect(apiServiceRequestMock).toHaveBeenLastCalledWith(
     'Tower C',
@@ -104,8 +104,8 @@ test('submit fail', async () => {
   );
   expect(getByText('Reset')).toBeInTheDocument();
   fireEvent.click(getByText('Reset'));
-  await waitForElement(() => getByText('Reset Upgrade Status'));
+  await waitFor(() => getByText('Reset Upgrade Status'));
   fireEvent.click(getByText('Submit'));
-  await waitForElement(() => getByText('Reset Status Failed'));
+  await waitFor(() => getByText('Reset Status Failed'));
   expect(getByText('Reset Status Failed')).toBeInTheDocument();
 });

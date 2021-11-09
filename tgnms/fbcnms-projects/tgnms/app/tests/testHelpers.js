@@ -473,6 +473,21 @@ export function getOptions(el: ?HTMLElement): ?Array<HTMLElement> {
   return el ? [...el.querySelectorAll('[role="option"]')] : null;
 }
 
+export function selectMenuItem(menu: ?HTMLElement, text: string) {
+  if (!menu) {
+    throw new Error('Menu is null');
+  }
+  const options = getOptions(menu);
+  if (!options) {
+    throw new Error('options not found');
+  }
+  const match = options.find(x => x.textContent === text);
+  if (!match) {
+    throw new Error(`menu item not found: ${text}`);
+  }
+  fireEvent.click(match);
+}
+
 export async function clickPanel(panel: HTMLElement) {
   act(() => {
     const btn = panel.querySelector('[role="button"]');

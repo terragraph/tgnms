@@ -16,7 +16,7 @@ import {
   renderAsync,
   testHistory,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, waitForElement, within} from '@testing-library/react';
+import {act, fireEvent, within} from '@testing-library/react';
 import type {
   NetworkPlan,
   PlanFolder,
@@ -194,7 +194,7 @@ test('if user selects a plan, sets the planid querystring', async () => {
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
   const folder1Path = PLANNING_BASE_PATH + '/folder/1';
   const history = testHistory(folder1Path);
-  const {getByText} = await renderAsync(
+  const {findByText} = await renderAsync(
     <TestApp history={history}>
       <NetworkPlanningContextProvider>
         <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
@@ -203,7 +203,7 @@ test('if user selects a plan, sets the planid querystring', async () => {
   );
   expect(history.location.pathname).toBe(folder1Path);
   expect(history.location.search).toBe('');
-  const plan1 = await waitForElement(() => getByText(/plan 1/i));
+  const plan1 = await findByText(/plan 1/i);
   expect(plan1).toBeInTheDocument();
   act(() => {
     fireEvent.click(plan1);

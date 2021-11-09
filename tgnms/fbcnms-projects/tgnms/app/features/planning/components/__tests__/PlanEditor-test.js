@@ -17,8 +17,8 @@ import {
   renderAsync,
   selectAutocompleteItem,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, within} from '@testing-library/react';
-import {waitForElementToBeRemoved} from '@testing-library/dom';
+import {act, fireEvent} from '@testing-library/react';
+import {waitForElementToBeRemoved, within} from '@testing-library/dom';
 import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {RenderResult} from '@testing-library/react';
 

@@ -22,7 +22,7 @@ import {
   renderAsync,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {NmsOptionsContextProvider} from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
-import {act, fireEvent, wait} from '@testing-library/react';
+import {act, fireEvent, waitFor} from '@testing-library/react';
 import {mockFig0} from '@fbcnms/tg-nms/app/tests/data/NetworkConfig';
 import {mockNetworkMapOptions} from '@fbcnms/tg-nms/app/tests/data/NmsOptionsContext';
 
@@ -140,7 +140,7 @@ test('topology history api triggers update network map options with valid histor
       <MapHistoryOverlayPanel />
     </Wrapper>,
   );
-  await wait(() => {
+  await waitFor(() => {
     expect(updateMock).toHaveBeenCalledWith({historicalTopology: topology});
   });
 });
@@ -163,7 +163,7 @@ test('topology history api does not trigger update network map options with no h
       <MapHistoryOverlayPanel />
     </Wrapper>,
   );
-  await wait(() => {
+  await waitFor(() => {
     expect(updateMock).not.toHaveBeenCalled();
   });
 });
