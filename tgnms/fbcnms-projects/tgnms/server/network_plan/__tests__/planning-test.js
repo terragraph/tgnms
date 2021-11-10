@@ -55,6 +55,7 @@ const createFolderMock = jest.fn(({folder_name}) =>
   Promise.resolve({id: 12345, folder_name}),
 );
 const createPlanMock = jest.fn(() => Promise.resolve({id: mockPlanFBID}));
+const cancelPlanMock = jest.fn(() => Promise.resolve({success: true}));
 const launchPlanMock = jest.fn(() => Promise.resolve({success: true}));
 const uploadFileMock = jest.fn(() => Promise.resolve(mockFile));
 const createUploadSessionMock = jest.fn(() =>
@@ -73,6 +74,7 @@ const getInputFileMock = jest
   createFolder: createFolderMock,
   launchPlan: launchPlanMock,
   createPlan: createPlanMock,
+  cancelPlan: cancelPlanMock,
   uploadFile: uploadFileMock,
   createUploadSession: createUploadSessionMock,
   uploadChunk: uploadChunkMock,
@@ -297,10 +299,6 @@ describe('GET ?folderId', () => {
       id: plan1Fbid,
       plan_status: PLAN_STATUS.RUNNING,
     });
-    getPlanMock.mockResolvedValueOnce({
-      id: plan2Fbid,
-      plan_status: PLAN_STATUS.SUCCEEDED,
-    });
     const folder = await createTestFolder({
       name: 'test folder',
     });
@@ -315,18 +313,22 @@ describe('GET ?folderId', () => {
         name: 'test-2',
         fbid: plan2Fbid,
         folder_id: folder.id,
+        // Plans are created in ANP after input files are uploaded.
+        // Thus there will be no state for them yet.
         state: NETWORK_PLAN_STATE.UPLOADING_INPUTS,
       }: $Shape<NetworkPlanAttributes>),
       ({
         name: 'test-3',
         fbid: '12347',
         folder_id: folder.id,
+        // Still a draft, not in ANP yet.
         state: NETWORK_PLAN_STATE.DRAFT,
       }: $Shape<NetworkPlanAttributes>),
       ({
         name: 'test-4',
         fbid: '12348',
         folder_id: folder.id,
+        // No longer running, so need to fetch state.
         state: NETWORK_PLAN_STATE.SUCCESS,
       }: $Shape<NetworkPlanAttributes>),
     ]);
@@ -334,13 +336,14 @@ describe('GET ?folderId', () => {
     await request(setupApp())
       .get(`/network_plan/plan?folderId=${folder.id}`)
       .expect(200);
-    expect(getPlanMock).toHaveBeenCalledTimes(2);
+    expect(getPlanMock).toHaveBeenCalledTimes(1);
     expect(
       nullthrows(await network_plan.findOne({where: {fbid: plan1Fbid}})).state,
     ).toBe(NETWORK_PLAN_STATE.RUNNING);
+    // Should not have changed.
     expect(
       nullthrows(await network_plan.findOne({where: {fbid: plan2Fbid}})).state,
-    ).toBe(NETWORK_PLAN_STATE.SUCCESS);
+    ).toBe(NETWORK_PLAN_STATE.UPLOADING_INPUTS);
   });
 });
 describe('POST /plan', () => {
@@ -592,10 +595,6 @@ describe('GET plan/:id', () => {
       id: plan1Fbid,
       plan_status: PLAN_STATUS.RUNNING,
     });
-    getPlanMock.mockResolvedValueOnce({
-      id: plan2Fbid,
-      plan_status: PLAN_STATUS.SUCCEEDED,
-    });
     const folder = await createTestFolder({
       name: 'test folder',
     });
@@ -631,13 +630,13 @@ describe('GET plan/:id', () => {
     expect(nullthrows(await network_plan.findByPk(1)).state).toBe(
       NETWORK_PLAN_STATE.RUNNING,
     );
-    // the second plan should transition into the success state
+    // the second plan should not change states
     expect(
       (await request(setupApp()).get(`/network_plan/plan/${2}`).expect(200))
         .body.state,
-    ).toBe(NETWORK_PLAN_STATE.SUCCESS);
+    ).toBe(NETWORK_PLAN_STATE.UPLOADING_INPUTS);
     expect(nullthrows(await network_plan.findByPk(2)).state).toBe(
-      NETWORK_PLAN_STATE.SUCCESS,
+      NETWORK_PLAN_STATE.UPLOADING_INPUTS,
     );
     // the third plan should not change states
     expect(
@@ -648,7 +647,7 @@ describe('GET plan/:id', () => {
       NETWORK_PLAN_STATE.DRAFT,
     );
     // getPlan should only be called for running plans
-    expect(getPlanMock).toHaveBeenCalledTimes(2);
+    expect(getPlanMock).toHaveBeenCalledTimes(1);
   });
 });
 describe('POST plan/:id/launch', () => {
@@ -889,6 +888,41 @@ describe('POST plan/:id/launch', () => {
         mockPlanFBID,
       );
     });
+  });
+});
+describe('POST plan/:id/cancel', () => {
+  it('should cancel a running plan', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const plan = await network_plan.create(
+      ({
+        id: 1,
+        name: 'test-1',
+        fbid: 'fbid1',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.RUNNING,
+      }: $Shape<NetworkPlanAttributes>),
+    );
+    await request(setupApp()).post(`/network_plan/plan/${plan.id}/cancel`);
+    expect(cancelPlanMock).toBeCalledWith({id: 'fbid1'});
+  });
+  it('should throw an error if plan does not exist in ANP', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const plan = await network_plan.create(
+      ({
+        id: 1,
+        name: 'test-1',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.UPLOADING_INPUTS,
+      }: $Shape<NetworkPlanAttributes>),
+    );
+    const {body} = await request(setupApp()).post(
+      `/network_plan/plan/${plan.id}/cancel`,
+    );
+    expect(body).toEqual('Plan not launched');
   });
 });
 describe('DELETE /:id', () => {

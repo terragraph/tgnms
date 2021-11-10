@@ -19,7 +19,9 @@ import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/Facebook
 import {
   FILE_SOURCE,
   FILE_STATE,
+  LAUNCHING_NETWORK_PLAN_STATES,
   NETWORK_PLAN_STATE,
+  RUNNING_NETWORK_PLAN_STATES,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {constants as FS_CONSTANTS} from 'fs';
 import {INPUT_FILE_STATE, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
@@ -137,7 +139,7 @@ export default class PlanningService {
     if (planRow == null) {
       throw new Error('Plan not found');
     }
-    if (planRow.fbid == null || !isRunning(planRow.state)) {
+    if (planRow.fbid == null) {
       throw new Error('Plan not launched');
     }
     const cancelResult = await this.anpApi.cancelPlan({id: planRow.fbid});
@@ -833,11 +835,11 @@ export async function makeANPDir(dir: string): Promise<string> {
 }
 
 export function isRunning(state: string): boolean {
-  const runningStates = new Set([
-    NETWORK_PLAN_STATE.RUNNING,
-    NETWORK_PLAN_STATE.UPLOADING_INPUTS,
-  ]);
-  return runningStates.has(state);
+  return RUNNING_NETWORK_PLAN_STATES.has(state);
+}
+
+export function isLaunching(state: string): boolean {
+  return LAUNCHING_NETWORK_PLAN_STATES.has(state);
 }
 
 // Convert from ANPPlan plan_status to NetworkPlan state

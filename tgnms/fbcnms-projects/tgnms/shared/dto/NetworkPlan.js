@@ -44,11 +44,32 @@ export type ErrorMessage = {|
 export const NETWORK_PLAN_STATE = {
   DRAFT: 'DRAFT',
   UPLOADING_INPUTS: 'UPLOADING_INPUTS',
+  LAUNCH_ERROR: 'LAUNCH_ERROR',
   RUNNING: 'RUNNING',
   SUCCESS: 'SUCCESS',
   ERROR: 'ERROR',
   CANCELLED: 'CANCELLED',
 };
+
+// Before the plan is officially launched in ANP.
+export const PRELAUNCH_NETWORK_PLAN_STATES = new Set<string>([
+  NETWORK_PLAN_STATE.DRAFT,
+  NETWORK_PLAN_STATE.UPLOADING_INPUTS,
+  NETWORK_PLAN_STATE.LAUNCH_ERROR,
+]);
+
+// After the user decides to launch the plan but before the plan
+// is officially launched in ANP.
+export const LAUNCHING_NETWORK_PLAN_STATES = new Set<string>([
+  NETWORK_PLAN_STATE.UPLOADING_INPUTS,
+]);
+
+// After the plan is officially launched in ANP but before any results
+// are determined.
+export const RUNNING_NETWORK_PLAN_STATES = new Set<string>([
+  NETWORK_PLAN_STATE.RUNNING,
+]);
+
 export type NetworkPlanStateType = $Keys<typeof NETWORK_PLAN_STATE>;
 
 export type PlanFolder = {|

@@ -119,7 +119,7 @@ export default function ConfigTaskInput(props: Props) {
       }
       setDraftValue(tempDraftValue);
     },
-    [settingType, selectBoolean, configField, onChange],
+    [settingType, selectBoolean, configField, onChange, onUpdateRef],
   );
 
   const inputLabel = (

@@ -13,6 +13,7 @@ import SelectOrUploadInputFile from './SelectOrUploadInputFile';
 import TextField from '@material-ui/core/TextField';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {LAUNCHING_NETWORK_PLAN_STATES} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
@@ -45,7 +46,11 @@ export default function PlanEditor({
     };
     setPlanFormState(formState);
   }, [plan, folderId, setPlanFormState]);
-  const startPlanTask = useTaskState();
+  const startPlanTask = useTaskState({
+    initialState:
+      // If a plan is still trying to launch, set the plan to loading.
+      LAUNCHING_NETWORK_PLAN_STATES.has(plan.state) ? 'LOADING' : 'IDLE',
+  });
   const savePlanTask = useTaskState();
   const savePlan = React.useCallback(async () => {
     const {id, name, dsm, boundary, siteList} = planState;
@@ -172,7 +177,7 @@ export default function PlanEditor({
       )}
       {startPlanTask.isLoading && (
         <Grid container justify="center">
-          <CircularProgress size={20} />
+          <CircularProgress data-testid="launch-loading-circle" size={20} />
         </Grid>
       )}
     </Grid>

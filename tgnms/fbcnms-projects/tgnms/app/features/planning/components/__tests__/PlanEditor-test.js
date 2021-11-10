@@ -9,6 +9,7 @@ import * as React from 'react';
 import * as apiUtilMock from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import PlanEditor from '../PlanEditor';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {
   TestApp,
   coerceClass,
@@ -64,6 +65,19 @@ test('initializes the form with the plan', async () => {
   expect(
     coerceClass(getByLabelText('Boundary File'), HTMLInputElement).value,
   ).toBe(mockPlan.boundaryFile?.id?.toString());
+});
+
+test('initializes the form into a loading state when the plan is launching', async () => {
+  const mockPlan = mockNetworkPlan({
+    state: NETWORK_PLAN_STATE.UPLOADING_INPUTS, // in launching state
+  });
+  const {queryByText, queryByTestId} = await renderAsync(
+    <TestApp>
+      <PlanEditor {...commonProps} plan={mockPlan} />
+    </TestApp>,
+  );
+  expect(queryByText('Start Plan')).not.toBeInTheDocument();
+  expect(queryByTestId('launch-loading-circle')).toBeInTheDocument();
 });
 
 test('clicking the exit button calls onExit', async () => {

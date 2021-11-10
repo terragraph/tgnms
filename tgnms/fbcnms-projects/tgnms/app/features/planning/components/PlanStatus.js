@@ -32,6 +32,10 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: red[100],
     color: red[400],
   },
+  [NETWORK_PLAN_STATE.LAUNCH_ERROR]: {
+    backgroundColor: red[100],
+    color: red[400],
+  },
   [NETWORK_PLAN_STATE.CANCELLED]: {
     backgroundColor: theme.palette.grey[300],
     color: theme.palette.grey[400],

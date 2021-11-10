@@ -14,11 +14,11 @@ import PlanResultsView from '@fbcnms/tg-nms/app/features/planning/components/Pla
 import Slide from '@material-ui/core/Slide';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {
   PANELS,
   PANEL_STATE,
 } from '@fbcnms/tg-nms/app/features/map/usePanelControl';
+import {PRELAUNCH_NETWORK_PLAN_STATES} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
   isLaunchedState,
@@ -214,12 +214,13 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   }, [outputFiles, downloadOutputTask, setPlanTopology]);
 
   // the plan is immutable once it is launched
-  const isViewResultsMode = React.useMemo(
-    () =>
+  const isViewResultsMode = React.useMemo(() => {
+    return (
       !isNullOrEmptyString(selectedPlanId) &&
-      plan?.state !== NETWORK_PLAN_STATE.DRAFT,
-    [selectedPlanId, plan],
-  );
+      plan != null &&
+      !PRELAUNCH_NETWORK_PLAN_STATES.has(plan.state)
+    );
+  }, [selectedPlanId, plan]);
 
   const refresh = React.useCallback(
     () => setRefreshDate(new Date().getTime()),
@@ -276,20 +277,22 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
       </Grid>
     );
   }
+  if (plan == null) {
+    return null;
+  }
   if (isViewResultsMode) {
     return (
       <PlanResultsView
+        key={plan.id}
         plan={plan}
         onExit={onExit}
         onCopyPlan={handleCopyPlan}
       />
     );
   }
-  if (plan == null) {
-    return null;
-  }
   return (
     <PlanEditor
+      key={plan.id}
       folderId={folderId}
       plan={plan}
       onExit={onExit}
