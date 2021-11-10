@@ -20,6 +20,7 @@ import {
   NodeTypeValueMap,
   PolarityTypeValueMap,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {getNodePolarities} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {
   locToPos,
@@ -41,6 +42,7 @@ import type {
   NodeMap,
 } from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {NodeType} from '@fbcnms/tg-nms/shared/types/Topology';
+import type {UploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 
 type NewLinkType = {
   name: string,
@@ -338,7 +340,9 @@ export default function ScanConnectivity(props: Props) {
               fullWidth={true}
               disabled={false}
               onSubmit={handleAddLink}
-              getUploadTopology={null}
+              getUploadTopology={() =>
+                convertType<UploadTopologyType>({links: [selectedLink]})
+              }
               customText={`Add Link To ${networkName}`}
             />
             {possibleBackupLink && (
@@ -346,7 +350,9 @@ export default function ScanConnectivity(props: Props) {
                 fullWidth={true}
                 disabled={false}
                 onSubmit={handleAddBackupLink}
-                getUploadTopology={null}
+                getUploadTopology={() =>
+                  convertType<UploadTopologyType>({links: [selectedLink]})
+                }
                 customText={`Add Link As CN backup link To ${networkName}`}
               />
             )}
