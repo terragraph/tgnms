@@ -28,6 +28,7 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/GeoHelpers';
 import {makeLinkName} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {makeStyles} from '@material-ui/styles';
+import {reorderLinkNodes} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {uploadTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/TopologyTemplateHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
@@ -225,41 +226,34 @@ export default function ScanConnectivity(props: Props) {
     [networkName, handleTopologyChangeClose, potentialTopologyAddition],
   );
 
+  const _addLink = React.useCallback(
+    ({isBackup}: {isBackup: boolean}) => {
+      if (newLink != undefined) {
+        const link = reorderLinkNodes({
+          a_node_name: newLink.aNodeName,
+          z_node_name: newLink.zNodeName,
+          link_type: 1,
+          a_node_mac: newLink.aNodeMac,
+          z_node_mac: newLink.zNodeMac,
+          is_backup_cn_link: isBackup,
+        });
+        sendTopologyBuilderRequest(
+          networkName,
+          'addLink',
+          {link},
+          handleTopologyChangeClose,
+        );
+      }
+    },
+    [newLink, networkName, handleTopologyChangeClose],
+  );
+
   const handleAddLink = () => {
-    if (newLink != undefined) {
-      const link = {
-        a_node_name: newLink.aNodeName,
-        z_node_name: newLink.zNodeName,
-        link_type: 1,
-        a_node_mac: newLink.aNodeMac,
-        z_node_mac: newLink.zNodeMac,
-      };
-      sendTopologyBuilderRequest(
-        networkName,
-        'addLink',
-        {link},
-        handleTopologyChangeClose,
-      );
-    }
+    _addLink({isBackup: false});
   };
 
   const handleAddBackupLink = () => {
-    if (newLink != undefined) {
-      const link = {
-        a_node_name: newLink.aNodeName,
-        z_node_name: newLink.zNodeName,
-        link_type: 1,
-        a_node_mac: newLink.aNodeMac,
-        z_node_mac: newLink.zNodeMac,
-        is_backup_cn_link: true,
-      };
-      sendTopologyBuilderRequest(
-        networkName,
-        'addLink',
-        {link},
-        handleTopologyChangeClose,
-      );
-    }
+    _addLink({isBackup: true});
   };
 
   const tableProps = React.useMemo(() => {

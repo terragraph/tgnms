@@ -191,6 +191,22 @@ export function makeLink(link: ANPLink, sectorToNodeName: {[string]: string}) {
 }
 
 /**
+ * Puts a link's nodes in lexicographical order.
+ */
+export function reorderLinkNodes(link: $Shape<LinkType>) {
+  const res = {...link};
+  if (res.a_node_name > res.z_node_name) {
+    const tempName = res.a_node_name;
+    const tempMac = res.a_node_mac;
+    res.a_node_name = res.z_node_name;
+    res.a_node_mac = res.z_node_mac;
+    res.z_node_name = tempName;
+    res.z_node_mac = tempMac;
+  }
+  return res;
+}
+
+/**
  * TG Links typically named link-<node1>-<node2>.
  * Node names are sorted alphabetically.
  */

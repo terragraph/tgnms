@@ -25,6 +25,7 @@ import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {cloneDeep, isEqual} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {reorderLinkNodes} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {sendTopologyBuilderRequest} from '@fbcnms/tg-nms/app/helpers/MapPanelHelpers';
 import {useAzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
@@ -173,14 +174,7 @@ export default function AddTopologyPanel({
         });
 
         links.forEach(link => {
-          if (link.a_node_name > link.z_node_name) {
-            const tempName = link.a_node_name;
-            const tempMac = link.a_node_mac;
-            link.a_node_name = link.z_node_name;
-            link.a_node_mac = link.z_node_mac;
-            link.z_node_name = tempName;
-            link.z_node_mac = tempMac;
-          }
+          return reorderLinkNodes(link);
         });
 
         const nodes = cloneDeep(newTopology.nodes).filter(node => {

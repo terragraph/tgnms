@@ -103,11 +103,12 @@ test('can commit connectivity link to topology', () => {
     'addLink',
     {
       link: {
-        a_node_mac: 'txnode1.mac',
-        a_node_name: 'txnode1',
+        a_node_mac: 'rxnode1.mac',
+        a_node_name: 'rxnode1',
         link_type: 1,
-        z_node_mac: 'rxnode1.mac',
-        z_node_name: 'rxnode1',
+        z_node_mac: 'txnode1.mac',
+        z_node_name: 'txnode1',
+        is_backup_cn_link: false,
       },
     },
     expect.anything(),
