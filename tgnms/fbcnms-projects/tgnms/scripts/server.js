@@ -38,7 +38,6 @@ const {initializeNetworks} = require('./initNetworks');
 const logger = require('../server/log')(module);
 const access = require('../server/middleware/access').default;
 const devMode = process.env.NODE_ENV !== 'production';
-const port = process.env.PORT ? process.env.PORT : 80;
 const sessionSecret = process.env.SESSION_TOKEN || 'TyfiBmZtxU';
 const axiosSetup = require('../server/axiosSetup').default;
 const {
@@ -59,19 +58,7 @@ app.use(startupMiddleware(startupState));
 if (process.env.WEBSOCKETS_ENABLED) {
   require('express-ws')(app);
 }
-app.listen(parseInt(port), '', err => {
-  if (err) {
-    logger.error(err.message);
-  }
-  if (devMode) {
-    logger.info('<=========== DEVELOPER MODE ===========>');
-  } else {
-    logger.info('<=========== PRODUCTION MODE ==========>');
-    logger.info('<== JS BUNDLE SERVED FROM /static/js ==>');
-    logger.info('<==== LOCAL CHANGES NOT POSSIBLE ======>');
-  }
-  logger.info('=========> LISTENING ON PORT %s', port);
-});
+listen(app);
 
 app.use(bodyParser.json({limit: '1mb'})); // parse json
 app.use(bodyParser.urlencoded({limit: '1mb', extended: false})); // parse application/x-www-form-urlencoded
@@ -197,6 +184,54 @@ app.use('/static', express.static(path.join(__dirname, '..', 'static')));
   // NMS is completely started
   startupState.setStep(STARTUP_STEPS.DONE);
 })();
+
+function listen(app) {
+  const httpPort = process.env.PORT ? process.env.PORT : 80;
+  const cert = process.env.HTTPS_CERT;
+  const key = process.env.HTTPS_KEY;
+  const httpsPort = process.env.HTTPS_PORT;
+
+  const makeStartLog = port => err => {
+    if (err) {
+      logger.error(err.message);
+    }
+    if (devMode) {
+      logger.info('<=========== DEVELOPER MODE ===========>');
+    } else {
+      logger.info('<=========== PRODUCTION MODE ==========>');
+      logger.info('<== JS BUNDLE SERVED FROM /static/js ==>');
+      logger.info('<==== LOCAL CHANGES NOT POSSIBLE ======>');
+    }
+    logger.info('=========> LISTENING ON PORT %s', port);
+  };
+  // start http server
+  const http = require('http');
+  http.createServer(app).listen(parseInt(httpPort), makeStartLog(httpPort));
+  // start https server
+  const isHttps = cert != null || key != null || httpsPort != null;
+  if (isHttps) {
+    if (cert == null || cert.trim() === '') {
+      throw new Error(`HTTPS_CERT is required if HTTPS is enabled`);
+    }
+    if (key == null || key.trim() === '') {
+      throw new Error(`HTTPS_KEY is required if HTTPS is enabled`);
+    }
+    if (httpsPort == null || isNaN(parseInt(httpsPort))) {
+      throw new Error(`HTTPS_PORT is required if HTTPS is enabled`);
+    }
+    const fs = require('fs');
+    const https = require('https');
+    https
+      .createServer(
+        {
+          key: fs.readFileSync(key),
+          cert: fs.readFileSync(cert),
+        },
+        (app: any),
+      )
+      .listen(parseInt(httpsPort), makeStartLog(httpsPort));
+  }
+}
 
 function configureWebpackSmartMiddleware() {
   /*
