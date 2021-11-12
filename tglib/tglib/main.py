@@ -69,12 +69,11 @@ def init(
     # Use uvloop to make asyncio fast
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
-    # Create web application object and shutdown event
+    # Create web application object
     app = web.Application(middlewares=[error_middleware])
     app["main"] = main
     app["config"] = config
     app["clients"] = clients
-    app["shutdown_event"] = asyncio.Event()
 
     # Initialize routes for the HTTP server
     _add_all_routes(app, routes, extra_routes)
@@ -173,6 +172,7 @@ async def _main_wrapper(app: web.Application) -> None:
 
 async def _shutdown_listener(app: web.Application) -> None:
     """Wait for the shutdown_event notification to kill the process."""
+    app["shutdown_event"] = asyncio.Event()
     await app["shutdown_event"].wait()
     logging.info("Shutting down!")
 
