@@ -19,7 +19,7 @@ import Slide from '@material-ui/core/Slide';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
-import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {KeyboardDatePicker} from '@material-ui/pickers';
 import {
   PANELS,
@@ -59,6 +59,22 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+/**
+ * Turns a date into the UTC time, with respect to the
+ * year, month, and date only. For this feature, we only
+ * care about time in whole days thus we set hour, seconds,
+ * and ms to 0.
+ *
+ * We convert the chosen date to UTC since our default
+ * routes history endpoint requires the start and end time
+ * in UTC, ISO-8601 format. (We convert to ISO-8601 later,
+ * for now we just convert to UTC).
+ */
+function convertDateToUTC(date?: any): number {
+  const _date = date ? new Date(date) : new Date();
+  return Date.UTC(_date.getFullYear(), _date.getMonth(), _date.getDate());
+}
+
 export default function DefaultRouteHistoryPanel({
   panelControl,
 }: {
@@ -66,7 +82,6 @@ export default function DefaultRouteHistoryPanel({
 }) {
   const classes = useStyles();
   const {getIsHidden, getIsOpen, toggleOpen, setPanelState} = panelControl;
-  const TODAY = new Date();
   const routes = useRouteContext();
   const routesRef = useLiveRef(routes);
   const {
@@ -76,17 +91,9 @@ export default function DefaultRouteHistoryPanel({
     siteToNodesMap,
   } = useNetworkContext();
   const topologyRef = useLiveRef(networkConfig.topology);
-  const {isLoading, setState, TASK_STATE} = useTaskState();
-  const [selectedDate, setSelectedDate] = React.useState(
-    new Date(
-      TODAY.getFullYear(),
-      TODAY.getMonth(),
-      TODAY.getDate(),
-      0,
-      TODAY.getTimezoneOffset(),
-      0,
-    ),
-  );
+  const {isLoading, setState} = useTaskState();
+  // Initialize to today.
+  const [selectedDate, setSelectedDate] = React.useState(convertDateToUTC());
   const [highlightedSiteNode, setHighlightedSiteNode] = React.useState(null);
   const [defaultRoutes, setDefaultRoutes] = React.useState(null);
   const [selectedRoute, setSelectedRoute] = React.useState(null);
@@ -103,108 +110,103 @@ export default function DefaultRouteHistoryPanel({
 
   const [selectedNode, setSelectedNode] = React.useState('');
 
-  const processRoutes = React.useCallback(async () => {
-    try {
-      setState(TASK_STATE.LOADING);
-      const startTime = selectedDate.toISOString().split('.')[0];
-      const endTime = new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split('.')[0];
+  const processRoutes = React.useCallback(
+    async (selectedNode: string, selectedDate: number) => {
+      if (selectedNode == '') return;
+      try {
+        setState(TASK_STATE.LOADING);
+        const date = new Date(selectedDate);
+        const startTime = date.toISOString().split('.')[0];
+        const endTime = new Date(date.getTime() + 24 * 60 * 60 * 1000) // 24 hrs
+          .toISOString()
+          .split('.')[0];
 
-      const [currentDefaultRoute, defaultRouteHistory] = await Promise.all([
-        currentDefaultRouteRequest({
-          networkName,
-          selectedNode,
-        }),
-        getDefaultRouteHistory({
-          networkName,
-          nodeName: selectedNode,
-          startTime,
-          endTime,
-        }),
-      ]);
+        const [currentDefaultRoute, defaultRouteHistory] = await Promise.all([
+          currentDefaultRouteRequest({
+            networkName,
+            selectedNode,
+          }),
+          getDefaultRouteHistory({
+            networkName,
+            nodeName: selectedNode,
+            startTime,
+            endTime,
+          }),
+        ]);
 
-      if (
-        defaultRouteHistory === undefined ||
-        defaultRouteHistory.utils.length === 0
-      ) {
-        setState(TASK_STATE.IDLE);
-        setDefaultRoutes(null);
-        return;
+        if (
+          defaultRouteHistory === undefined ||
+          defaultRouteHistory.utils.length === 0
+        ) {
+          setState(TASK_STATE.IDLE);
+          setDefaultRoutes(null);
+          return;
+        }
+        if (currentDefaultRoute !== undefined) {
+          const {links, nodes} = mapDefaultRoutes({
+            mapRoutes: currentDefaultRoute,
+            topology: topologyRef.current,
+          });
+          routesRef.current.onUpdateRoutes({
+            node: selectedNode,
+            links,
+            nodes,
+          });
+        }
+
+        const {history, utils} = defaultRouteHistory;
+        const {historicalRoutes, percents} = utils.reduce(
+          (res, util) => {
+            res.historicalRoutes.push(util.routes);
+            res.percents.push(util.percentage);
+            return res;
+          },
+          {historicalRoutes: [], percents: []},
+        );
+
+        const currentRouteString = JSON.stringify(currentDefaultRoute);
+        const finalRoutes: Array<DefaultRouteType> = historicalRoutes.map(
+          (route, index) => {
+            const routeString = JSON.stringify(route);
+            const routeInstances = [...new Set(history)].filter(
+              change => JSON.stringify(change.routes) === routeString,
+            );
+            const hops =
+              routeInstances.find(route => route.max_hop_count !== 0)
+                ?.max_hop_count || 0;
+
+            const isCurrent = routeString === currentRouteString;
+
+            if (isCurrent) {
+              setSelectedRoute(index);
+            }
+
+            return {
+              route,
+              hops,
+              percent: percents[index],
+              isCurrent: isCurrent,
+            };
+          },
+        );
+        setDefaultRoutes(finalRoutes.sort((a, b) => b.percent - a.percent));
+        setTotalChanges(history.length);
+        setState(TASK_STATE.SUCCESS);
+      } catch (err) {
+        console.error(err);
+        setState(TASK_STATE.ERROR);
       }
-      if (currentDefaultRoute !== undefined) {
-        const {links, nodes} = mapDefaultRoutes({
-          mapRoutes: currentDefaultRoute,
-          topology: topologyRef.current,
-        });
-        routesRef.current.onUpdateRoutes({
-          node: selectedNode,
-          links,
-          nodes,
-        });
-      }
-
-      const {history, utils} = defaultRouteHistory;
-      const {historicalRoutes, percents} = utils.reduce(
-        (res, util) => {
-          res.historicalRoutes.push(util.routes);
-          res.percents.push(util.percentage);
-          return res;
-        },
-        {historicalRoutes: [], percents: []},
-      );
-
-      const currentRouteString = JSON.stringify(currentDefaultRoute);
-      const finalDefaultRoutes: Array<DefaultRouteType> = historicalRoutes.map(
-        (route, index) => {
-          const routeString = JSON.stringify(route);
-          const routeInstances = [...new Set(history)].filter(
-            change => JSON.stringify(change.routes) === routeString,
-          );
-          const hops =
-            routeInstances.find(route => route.max_hop_count !== 0)
-              ?.max_hop_count || 0;
-
-          const isCurrent = routeString === currentRouteString;
-
-          if (isCurrent) {
-            setSelectedRoute(index);
-          }
-
-          return {
-            route,
-            hops,
-            percent: percents[index],
-            isCurrent: isCurrent,
-          };
-        },
-      );
-      setDefaultRoutes(
-        finalDefaultRoutes.sort((a, b) => b.percent - a.percent),
-      );
-      setTotalChanges(history.length);
-      setState(TASK_STATE.SUCCESS);
-    } catch (err) {
-      console.error(err);
-      setState(TASK_STATE.ERROR);
-    }
-  }, [
-    selectedNode,
-    TASK_STATE,
-    networkName,
-    routesRef,
-    selectedDate,
-    setState,
-    topologyRef,
-  ]);
-
-  const handleNodeChange = React.useCallback(
-    nodeName => {
-      setSelectedNode(nodeName);
-      processRoutes();
     },
-    [processRoutes],
+    [networkName, routesRef, setState, topologyRef],
   );
+
+  React.useEffect(() => {
+    processRoutes(selectedNode, selectedDate);
+  }, [processRoutes, selectedDate, selectedNode]);
+
+  const handleNodeChange = React.useCallback(nodeName => {
+    setSelectedNode(nodeName);
+  }, []);
 
   React.useEffect(() => {
     if (node && node.name !== selectedNode) {
@@ -217,21 +219,14 @@ export default function DefaultRouteHistoryPanel({
       return;
     }
     setSelectedNode(routesRef.current.node);
-    processRoutes();
-  }, [processRoutes, routesRef]);
+  }, [routesRef]);
 
-  const handleDateChange = React.useCallback(
-    date => {
-      if (date.toString() === 'Invalid Date') {
-        return;
-      }
-      const newDate = new Date(date);
-      newDate.setMinutes(-TODAY.getTimezoneOffset());
-      setSelectedDate(newDate);
-      processRoutes();
-    },
-    [TODAY, processRoutes],
-  );
+  const handleDateChange = React.useCallback(date => {
+    if (date.toString() === 'Invalid Date') {
+      return;
+    }
+    setSelectedDate(convertDateToUTC(date));
+  }, []);
 
   const onSelectRoute = React.useCallback(
     (route, index) => {
@@ -259,6 +254,10 @@ export default function DefaultRouteHistoryPanel({
     routesRef.current.resetRoutes();
     setPanelState(PANELS.DEFAULT_ROUTES, PANEL_STATE.HIDDEN);
   }, [routesRef, setPanelState]);
+
+  const datePickerVal = React.useMemo(() => {
+    return new Date(selectedDate).toISOString().split('T')[0];
+  }, [selectedDate]);
 
   if (!node) {
     return null;
@@ -297,7 +296,7 @@ export default function DefaultRouteHistoryPanel({
                 format="MM/DD/YYYY"
                 margin="dense"
                 id="date"
-                value={selectedDate.toISOString().split('T')[0]}
+                value={datePickerVal}
                 onChange={ev => handleDateChange(ev._d)}
                 KeyboardButtonProps={{
                   'aria-label': 'change date',

@@ -2,11 +2,12 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
 
 import * as React from 'react';
 import DefaultRouteHistoryPanel from '../DefaultRouteHistoryPanel';
+import MockDate from 'mockdate';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {
   MuiPickersWrapper,
@@ -94,7 +95,36 @@ test('date change triggers new api call', async () => {
   expect(getByText('Route 2')).toBeInTheDocument();
   const datePicker = nullthrows(document.getElementById('date'));
   fireEvent.change(datePicker, {target: {value: '10/10/2010'}});
-  expect(apiServiceRequestMock).toHaveBeenCalledTimes(5);
+  // #1 On first load with default date
+  // #2 On date change
+  expect(apiServiceRequestMock).toHaveBeenCalledTimes(2);
+});
+
+test('getDefaultRouteHistory are called with the correct start and end times', async () => {
+  MockDate.set('2021/10/31');
+  await renderAsync(
+    <Wrapper>
+      <DefaultRouteHistoryPanel {...defaultProps} />
+    </Wrapper>,
+  );
+
+  // On initial load, should use the current date.
+  expect(getDefaultRouteHistoryMock).toHaveBeenCalledWith({
+    networkName: 'test',
+    nodeName: 'test_node_name',
+    startTime: '2021-10-31T00:00:00',
+    endTime: '2021-11-01T00:00:00',
+  });
+  const datePicker = nullthrows(document.getElementById('date'));
+  fireEvent.change(datePicker, {target: {value: '11/09/2021'}});
+  expect(getDefaultRouteHistoryMock).toHaveBeenCalledWith({
+    networkName: 'test',
+    nodeName: 'test_node_name',
+    startTime: '2021-11-09T00:00:00',
+    endTime: '2021-11-10T00:00:00',
+  });
+  expect(getDefaultRouteHistoryMock).toHaveBeenCalledTimes(2);
+  MockDate.reset();
 });
 
 test('invalid date change does not trigger new api call', async () => {
@@ -106,7 +136,8 @@ test('invalid date change does not trigger new api call', async () => {
   expect(getByText('Route 2')).toBeInTheDocument();
   const datePicker = nullthrows(document.getElementById('date'));
   fireEvent.change(datePicker, {target: {value: '2010-10-20'}});
-  expect(apiServiceRequestMock).toHaveBeenCalledTimes(3);
+  // #1 On first load with default date
+  expect(apiServiceRequestMock).toHaveBeenCalledTimes(1);
 });
 
 test('renders error statement when there are no routes', async () => {
