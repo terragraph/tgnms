@@ -10,7 +10,7 @@ import axios from 'axios';
 /**
  * 'network' and 'intervalSec' are mandatory Prometheus query labels
  */
-type QueryLabels = {
+export type QueryLabels = {
   network: string,
   intervalSec?: number,
   [string]: any,
@@ -75,6 +75,9 @@ export const increase = (query: string, range: string): string => {
   return `increase(${query} [${range}])`;
 };
 
+export const addLabel = (_query: string, labelName: string, value: string) =>
+  `label_replace(${_query}, "${labelName}", "${value}", "", "")`;
+
 /**
  * Functions for querying raw stats from Prometheus
  */
@@ -114,11 +117,12 @@ export const queryDataArray = (
   });
 };
 
-export const queryLatest = (
+export const queryLatest = async (
   query: string,
   networkName: string,
 ): Promise<any> => {
-  return axios.get(`/metrics/${networkName}/query/raw/latest`, {
+  const response = await axios.get(`/metrics/${networkName}/query/raw/latest`, {
     params: {query: query},
   });
+  return response.data.data;
 };

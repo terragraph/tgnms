@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-
 import FormLabel from '@material-ui/core/FormLabel';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
@@ -27,11 +26,12 @@ import {
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {KeyboardDatePicker} from '@material-ui/pickers';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {cloneDeep, isEqual} from 'lodash';
 import {
+  addLabel,
   createQuery,
   queryDataArray,
 } from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
+import {cloneDeep, isEqual} from 'lodash';
 import {
   deleteUrlSearchParam,
   getUrlSearchParam,
@@ -39,6 +39,7 @@ import {
 } from '@fbcnms/tg-nms/app/helpers/NetworkUrlHelpers';
 import {getTopologyHistory} from '@fbcnms/tg-nms/app/apiutils/TopologyHistoryAPIUtil';
 import {makeStyles} from '@material-ui/styles';
+import {merge} from 'lodash';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useHistory, useLocation} from 'react-router-dom';
 import type {Overlay} from '@fbcnms/tg-nms/app/features/map/NetworkMapTypes';
@@ -177,10 +178,14 @@ export default function MapHistoryOverlayPanel() {
       const end = Math.round(start + MINUTES_IN_DAY * 60);
       const prometheusIds = [
         ...overlays.reduce((final, overlay) => {
+          if (overlay.id === 'none') {
+            return final;
+          }
           if (Array.isArray(overlay.metrics)) {
             overlay.metrics.forEach(metric => final.add(metric));
+          } else {
+            final.add(overlay.id);
           }
-          final.add(overlay.id);
           return final;
         }, new Set()),
       ];
@@ -195,6 +200,21 @@ export default function MapHistoryOverlayPanel() {
           intervalSec: INTERVAL_SEC,
         });
       });
+      for (const overlay of overlays) {
+        if (typeof overlay.query === 'function') {
+          /**
+           * Backend depends on the __name__ label to map each query
+           * back to the overlay that requested it. Since this is a query and
+           * not a single metric, add a fake name.
+           */
+          const query = addLabel(
+            overlay.query({network: networkName}),
+            '__name__',
+            overlay.id,
+          );
+          queries.push(query);
+        }
+      }
 
       try {
         const [dataResponse, topologyResponse] = await Promise.all([
@@ -418,8 +438,11 @@ function getHistoricalLinkOverlayMetrics(
   overlay: Overlay,
   selectedTime: Date,
 ) {
-  let linkOverlayData;
-  if (overlay && overlay.metrics) {
+  let linkOverlayData = {};
+  if (!overlay) {
+    return linkOverlayData;
+  }
+  if (overlay.metrics) {
     linkOverlayData = overlay.metrics.reduce(
       (linkOverlayDataAggregator, metric) => {
         const metricData = formatHistoricalLinkOverlayData(
@@ -443,11 +466,15 @@ function getHistoricalLinkOverlayMetrics(
       },
       {},
     );
-  } else {
-    linkOverlayData = formatHistoricalLinkOverlayData(
-      historicalStats,
-      overlay.id,
-      selectedTime,
+  }
+  if (!overlay.metrics || overlay.query) {
+    merge(
+      linkOverlayData,
+      formatHistoricalLinkOverlayData(
+        historicalStats,
+        overlay.id,
+        selectedTime,
+      ),
     );
   }
   return linkOverlayData;

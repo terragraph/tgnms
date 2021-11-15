@@ -17,6 +17,7 @@ import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 //TODO don't import from views
 import PrefixZoneOverlay from '@fbcnms/tg-nms/app/views/map/overlays/PrefixZoneOverlay';
 import {ANP_STATUS_TYPE} from './TemplateConstants';
+import {createQuery} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import {isFeatureEnabled} from './FeatureFlags';
 import {numToMegabits} from '@fbcnms/tg-nms/app/helpers/ScheduleHelpers';
 
@@ -477,29 +478,44 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
     name: 'Link utilization (Mbps)',
     type: 'metric',
     id: 'link_utilization_mbps',
-    metrics: ['tx_bytes', 'rx_bytes'],
+    query: ({network}) => {
+      const tx = createQuery('tx_bytes', {network});
+      const rx = createQuery('rx_bytes', {network});
+      const query = `rate(${tx}[5m]) + rate(${rx}[5m])`;
+      return query;
+    },
     // thresholds aren't scientific
     range: [0.1, 250, 500, 2000],
     bounds: [0, 2000],
     units: 'Mbps',
-    aggregate: (metricData: any) => {
-      if (metricData === null) {
-        return -1;
+    aggregate: metricData => {
+      if (metricData == null) {
+        return 0;
       }
-      const {rx_bytes, tx_bytes} = metricData;
-      const totalTrafficBps =
-        (Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8;
-      return totalTrafficBps / 1000.0 / 1000.0;
+      const MB = metricData['link_utilization_mbps'];
+      if (MB == null || isNaN(MB)) {
+        return 0;
+      }
+      return (MB * 8) / 1024 / 2024;
     },
     formatText: (_link, value: number) => {
-      return value >= 0 ? `${formatNumber(value, 1)}Mbps` : '';
+      if (value == null || isNaN(value) || value < 0) {
+        return '';
+      }
+      return `${formatNumber(value, 1)}Mbps`;
     },
   },
   link_utilization_mcs: {
     name: 'Link utilization (MCS rate)',
     type: 'metric',
     id: 'link_utilization_mcs',
-    metrics: ['tx_bytes', 'rx_bytes', 'mcs'],
+    metrics: ['mcs'],
+    query: ({network}) => {
+      const tx = createQuery('tx_bytes', {network});
+      const rx = createQuery('rx_bytes', {network});
+      const query = `rate(${tx}[5m]) + rate(${rx}[5m])`;
+      return query;
+    },
     range: [0.1, 1, 10, 100],
     bounds: [0, 100],
     units: '%',
@@ -507,10 +523,9 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
       if (metricData === null) {
         return -1;
       }
-      const {rx_bytes, tx_bytes, mcs} = metricData;
+      const {link_utilization_mcs, mcs} = metricData;
       const mcsCapacityBits = MCS_DATARATE_TABLE[mcs];
-      const totalTrafficBps =
-        (Number.parseFloat(rx_bytes) + Number.parseFloat(tx_bytes)) * 8;
+      const totalTrafficBps = parseFloat(link_utilization_mcs) * 8;
       return (totalTrafficBps / mcsCapacityBits) * 100.0;
     },
     formatText: (_link, value: number) => {

@@ -6,6 +6,7 @@
  */
 
 import * as React from 'react';
+import * as prometheusApi from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import axios from 'axios';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
@@ -18,6 +19,7 @@ import {
   SITE_METRIC_OVERLAYS,
   SiteOverlayColors,
 } from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {merge} from 'lodash';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 
@@ -88,14 +90,41 @@ export default function DefaultOverlayPanel() {
           console.error(`no overlay with id: ${selectedOverlays.link_lines}`);
           return;
         }
-        const metricNames = Array.isArray(overlay.metrics)
-          ? overlay.metrics.join(',')
-          : overlay.id;
+
         try {
+          const overlayData = {};
+          // custom metrics query
+          if (typeof overlay.query === 'function') {
+            const query = overlay.query({
+              network: networkName,
+              intervalSec: 30,
+            });
+            const response = await prometheusApi.queryLatest(
+              query,
+              networkName,
+            );
+            for (const res of response.result) {
+              const {linkName, linkDirection} = res.metric;
+              if (linkName == null) {
+                continue;
+              }
+              if (overlayData[linkName] == null) {
+                overlayData[linkName] = {};
+              }
+              overlayData[linkName][linkDirection] = {
+                [overlay.id]: res.value[1],
+              };
+            }
+          }
+          // simple query for just metric names
+          const metricNames = Array.isArray(overlay.metrics)
+            ? overlay.metrics.join(',')
+            : overlay.id;
           const response = await axios.get<{}, {}>(
             `/metrics/${networkName}/overlay/linkStat/${metricNames}`,
           );
-          setOverlayData({link_lines: response.data});
+          merge(overlayData, response.data);
+          setOverlayData({link_lines: overlayData});
         } catch (error) {
           console.error(error);
         } finally {

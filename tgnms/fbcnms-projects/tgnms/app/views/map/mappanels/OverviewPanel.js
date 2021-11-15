@@ -198,9 +198,9 @@ class OverviewPanel extends React.Component<Props, State> {
     const [cnData, dnData, allData] = results;
 
     return {
-      cnAvailability: 100 * (1 - cnData.data.data.result?.[0]?.value?.[1]),
-      dnAvailability: 100 * (1 - dnData.data.data.result?.[0]?.value?.[1]),
-      allAvailability: 100 * (1 - allData.data.data.result?.[0]?.value?.[1]),
+      cnAvailability: 100 * (1 - cnData.result?.[0]?.value?.[1]),
+      dnAvailability: 100 * (1 - dnData.result?.[0]?.value?.[1]),
+      allAvailability: 100 * (1 - allData.result?.[0]?.value?.[1]),
     };
   }
 

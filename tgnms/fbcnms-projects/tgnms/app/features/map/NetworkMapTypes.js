@@ -16,6 +16,7 @@ import type {
   TemporaryTopologyType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import type {QueryLabels} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import type {TopologyHistoryResultsType} from '@fbcnms/tg-nms/shared/dto/TopologyHistoryTypes';
 
 export type MapLayerConfig = {
@@ -65,6 +66,7 @@ export type Overlay = {|
   type: string,
   id: string,
   metrics?: Array<string>,
+  query?: (labels: QueryLabels) => string,
   range?: Array<number>,
   colorRange?: Array<string>,
   units?: string,
