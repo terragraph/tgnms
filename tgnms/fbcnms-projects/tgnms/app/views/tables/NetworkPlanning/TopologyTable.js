@@ -273,9 +273,6 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
             data-testid="back-to-plans"
           />
         </Grid>
-        <Grid item>
-          <Typography variant="h6">Plan: {plan?.name}</Typography>
-        </Grid>
       </Grid>
       <Accordion className={classes.accordion}>
         <AccordionSummary

@@ -101,7 +101,7 @@ test('if user selects a plan, navigates to the topology table if SUCCESS', async
   await act(async () => {
     fireEvent.click(getByText(/plan 1/i));
   });
-  expect(getByText(/Plan: plan 1/i)).toBeInTheDocument();
+  expect(getByText(/Back to Plans/i)).toBeInTheDocument();
 });
 test('if user selects a plan, stays on plan table if plan is not SUCCESS', async () => {
   jest.spyOn(apiUtilMock, 'getFolder').mockResolvedValue(folders[0]);
@@ -126,7 +126,7 @@ test('if user selects a plan, stays on plan table if plan is not SUCCESS', async
   await act(async () => {
     fireEvent.click(getByText(/plan 1/i));
   });
-  expect(queryByText(/Plan: plan 1/i)).not.toBeInTheDocument();
+  expect(queryByText(/Back to Plans/i)).not.toBeInTheDocument();
   expect(queryByText('Back to Projects')).toBeInTheDocument();
 });
 
@@ -178,7 +178,7 @@ test('if user clicks back button on the topology table, goes back to plans table
   await act(async () => {
     fireEvent.click(getByText(/plan 1/i));
   });
-  expect(getByText(/Plan: plan 1/i)).toBeInTheDocument();
+  expect(getByText(/Back to Plans/i)).toBeInTheDocument();
   // Go Back
   await act(async () => {
     fireEvent.click(getByTestId('back-to-plans'));
