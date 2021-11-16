@@ -11,6 +11,8 @@
   loop:
    - "{{ e2e_path }}/env"
    - "{{ e2e_path }}/scripts"
+   - "{{ e2e_path }}/docker_volumes"
+   - "{{ e2e_path }}/docker_volumes/images"
 
 - name: copy controller configuration script
   copy:

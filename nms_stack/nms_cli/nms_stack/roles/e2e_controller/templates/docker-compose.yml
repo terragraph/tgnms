@@ -24,6 +24,7 @@ services:
     command: ["/bin/sh", "-c", "echo {{ data_folder }} > /.current && /data/scripts/e2e_controller.start"]
     volumes:
       - "{{ data_folder }}:/data"
+      - "{{ e2e_path }}/docker_volumes/images:/data/images"
       - "{{ e2e_controller_path }}/.current:/.current"
 
   nms_aggregator:
