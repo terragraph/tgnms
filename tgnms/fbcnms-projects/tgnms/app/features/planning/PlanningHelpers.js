@@ -4,7 +4,7 @@
  * @format
  * @flow
  */
-
+import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import {ANP_STATUS_TYPE} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
@@ -14,6 +14,7 @@ import type {
   ANPSite,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants.js';
 import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
+import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export type EnabledStatusTypes = {|[$Keys<typeof ANP_STATUS_TYPE>]: boolean|};
 export type MapOptionsState = {|
@@ -83,4 +84,33 @@ export function filterANPTopology(
  */
 export function createLinkName(link: ANPLink, sites: {[string]: ANPSite}) {
   return `${sites[link.tx_site_id].name} to ${sites[link.rx_site_id].name}`;
+}
+
+/**
+ * Copies a plan and navigates to it
+ */
+export async function copyPlan({
+  plan,
+  folderId,
+}: {
+  plan: ?NetworkPlan,
+  folderId: string,
+}) {
+  if (plan == null) {
+    return;
+  }
+  const {id: _, ...planParams} = plan;
+  const suggestedName = suggestVersionedName(planParams.name);
+  if (suggestedName != null) {
+    planParams.name = suggestedName;
+  }
+
+  const newPlan = await networkPlanningAPIUtil.createPlan({
+    name: suggestedName ?? planParams.name,
+    folderId: parseInt(folderId),
+    dsmFileId: planParams?.dsmFile?.id,
+    sitesFileId: planParams?.sitesFile?.id,
+    boundaryFileId: planParams?.boundaryFile?.id,
+  });
+  return newPlan;
 }

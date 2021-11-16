@@ -21,8 +21,8 @@ import {
 import {PRELAUNCH_NETWORK_PLAN_STATES} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {SlideProps} from '@fbcnms/tg-nms/app/constants/MapPanelConstants';
 import {
+  copyPlan,
   isLaunchedState,
-  suggestVersionedName,
 } from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {useInterval} from '@fbcnms/ui/hooks';
@@ -250,23 +250,8 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   const handleCopyPlan = React.useCallback(() => {
     (async () => {
       setSelectedPlanId('');
-      if (plan == null) {
-        return;
-      }
-      const {id: _, ...planParams} = plan;
-      const suggestedName = suggestVersionedName(planParams.name);
-      if (suggestedName != null) {
-        planParams.name = suggestedName;
-      }
-
-      const newPlan = await networkPlanningAPIUtil.createPlan({
-        name: suggestedName ?? planParams.name,
-        folderId: parseInt(folderId),
-        dsmFileId: planParams?.dsmFile?.id,
-        sitesFileId: planParams?.sitesFile?.id,
-        boundaryFileId: planParams?.boundaryFile?.id,
-      });
-      setSelectedPlanId(newPlan.id);
+      const newPlan = await copyPlan({plan, folderId});
+      if (newPlan) setSelectedPlanId(newPlan.id);
     })();
   }, [setSelectedPlanId, plan, folderId]);
 

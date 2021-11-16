@@ -10,6 +10,7 @@ import Button from '@material-ui/core/Button';
 import CreatePlanModal from './CreatePlanModal';
 import Grid from '@material-ui/core/Grid';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
+import PlanActionsMenu from './PlanActionsMenu';
 import PlanStatus from '@fbcnms/tg-nms/app/features/planning/components/PlanStatus';
 import React from 'react';
 import TableToolbar, {TableToolbarAction} from './TableToolbar';
@@ -35,6 +36,7 @@ import {
   useLocation,
   useParams,
 } from 'react-router-dom';
+import {makeStyles} from '@material-ui/styles';
 import {useFolderPlans} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import type {
@@ -44,7 +46,12 @@ import type {
 import type {NetworkTableProps} from '../NetworkTables';
 import type {TaskState} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 
+const useStyles = makeStyles(() => ({
+  actionsButton: {display: 'flex', width: '100%', justifyContent: 'end'},
+}));
+
 export default function PlansTable({tableHeight}: NetworkTableProps) {
+  const classes = useStyles();
   const match = useParams();
   const location = useLocation();
   const history = useHistory();
@@ -112,6 +119,7 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
         marginRight: '16px',
       },
       emptyRowsWhenPaging: false,
+      actionsColumnIndex: -1,
     }),
     [makeRowStyle, tableHeight],
   );
@@ -140,6 +148,25 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
       });
     }
   }, [selectedPlanId, location, history, plan]);
+
+  /**
+   * Passing a lambda with every render causes Component to unmount/remount
+   * on every render. This normally isn't a problem, but PlanActionsComponent
+   * uses a Menu. If a render occurs while the user has the menu open,
+   * the menu will close.
+   */
+  const PlanActionsComponent = React.useCallback(
+    props => (
+      <div className={classes.actionsButton}>
+        <PlanActionsMenu
+          key={props.data.id}
+          plan={props.data}
+          onComplete={refreshPlans}
+        />
+      </div>
+    ),
+    [classes, refreshPlans],
+  );
   return (
     <>
       <MaterialTable
@@ -163,6 +190,8 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
         columns={columns}
         onRowClick={handleRowClick}
         isLoading={loadPlansTask.isLoading}
+        // removes the Actions column header text
+        localization={{header: {actions: ''}}}
         actions={[
           {
             position: 'toolbar',
@@ -174,6 +203,9 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
                 Add Plan
               </Button>
             ),
+          },
+          {
+            Component: PlanActionsComponent,
           },
         ]}
         components={{
