@@ -38,7 +38,7 @@ import {useRouteContext} from '@fbcnms/tg-nms/app/contexts/RouteContext';
 import type {PanelStateControl} from '@fbcnms/tg-nms/app/features/map/usePanelControl';
 
 type DefaultRouteType = {
-  route: Array<Array<string>>,
+  route: ?Array<Array<string>>,
   percent: number,
   hops: number,
   isCurrent: boolean,
@@ -230,17 +230,19 @@ export default function DefaultRouteHistoryPanel({
 
   const onSelectRoute = React.useCallback(
     (route, index) => {
-      const {links, nodes} = mapDefaultRoutes({
-        mapRoutes: route.route,
-        topology: topologyRef.current,
-      });
-      setSelectedRoute(index);
-      // update weights (will be used in links rendering)
-      routesRef.current.onUpdateRoutes({
-        node: selectedNode,
-        links,
-        nodes,
-      });
+      if (!!route.route?.length) {
+        const {links, nodes} = mapDefaultRoutes({
+          mapRoutes: route.route,
+          topology: topologyRef.current,
+        });
+        setSelectedRoute(index);
+        // update weights (will be used in links rendering)
+        routesRef.current.onUpdateRoutes({
+          node: selectedNode,
+          links,
+          nodes,
+        });
+      }
     },
     [selectedNode, topologyRef, routesRef],
   );
@@ -351,7 +353,7 @@ export default function DefaultRouteHistoryPanel({
                               <ListItem>
                                 <Typography variant="body2">
                                   {route.percent + '% of the time - '}
-                                  {route.route.length === 0
+                                  {route.route?.length === 0
                                     ? 'no route'
                                     : route.hops + ' wireless hop(s)'}
                                 </Typography>
