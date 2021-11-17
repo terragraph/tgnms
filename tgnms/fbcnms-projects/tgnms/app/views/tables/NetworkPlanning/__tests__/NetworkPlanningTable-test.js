@@ -72,7 +72,6 @@ test('if user selects a folder, navigates to the plans table', async () => {
   await act(async () => {
     fireEvent.click(getByText(/folder 1/i));
   });
-  expect(getByText(/Project: folder 1/i)).toBeInTheDocument();
   expect(getByText(/plan 1/i)).toBeInTheDocument();
   expect(getByText(/plan 2/i)).toBeInTheDocument();
   expect(queryByText(/folder 2/i)).not.toBeInTheDocument();
@@ -142,14 +141,13 @@ test('if user clicks back button on the plans table, goes back to folders table'
   await act(async () => {
     fireEvent.click(getByText(/folder 1/i));
   });
-  expect(getByText(/Project: folder 1/i)).toBeInTheDocument();
   expect(getByText(/plan 1/i)).toBeInTheDocument();
   expect(getByText(/plan 2/i)).toBeInTheDocument();
   expect(queryByText(/folder 2/i)).not.toBeInTheDocument();
   await act(async () => {
     fireEvent.click(getByTestId('back-to-projects'));
   });
-  expect(queryByText(/Project: folder 1/i)).not.toBeInTheDocument();
+  expect(queryByText(/folder 1/i)).toBeInTheDocument();
   expect(queryByText(/plan 1/i)).not.toBeInTheDocument();
   expect(queryByText(/plan 2/i)).not.toBeInTheDocument();
   expect(getByText(/folder 2/i)).toBeInTheDocument();
