@@ -138,25 +138,25 @@ export default function NodeForm({index}: {index: number}) {
 
   return (
     <Grid container direction="column" spacing={2}>
-      {formType === FORM_TYPE.CREATE && (
-        <Grid item>
-          <Autocomplete
-            className={STEP_TARGET.NODE_TYPE}
-            options={Object.values(NODE_TYPE_OPTIONS)}
-            getOptionLabel={option => option.label}
-            onChange={handleTypeSelected}
-            value={formState.nodeType}
-            renderInput={params => (
-              <TextField
-                {...params}
-                InputLabelProps={{shrink: true}}
-                margin="dense"
-                label="Node Type"
-              />
-            )}
-          />
-        </Grid>
-      )}
+      <Grid item>
+        <Autocomplete
+          data-testid="node-type-autocomplete"
+          className={STEP_TARGET.NODE_TYPE}
+          options={Object.values(NODE_TYPE_OPTIONS)}
+          getOptionLabel={option => option.label}
+          onChange={handleTypeSelected}
+          value={formState.nodeType}
+          renderInput={params => (
+            <TextField
+              {...params}
+              InputLabelProps={{shrink: true}}
+              margin="dense"
+              label="Node Type"
+            />
+          )}
+        />
+      </Grid>
+
       <Grid item>
         <TextField
           data-testid="node-name-input"
