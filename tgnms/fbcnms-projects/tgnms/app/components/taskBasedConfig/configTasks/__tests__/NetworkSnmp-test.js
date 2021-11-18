@@ -17,7 +17,7 @@ jest
   )
   .mockReturnValue({
     onUpdate: jest.fn(),
-    selectedValues: {refreshConfig: false},
+    selectedValues: {},
     configData: [],
   });
 

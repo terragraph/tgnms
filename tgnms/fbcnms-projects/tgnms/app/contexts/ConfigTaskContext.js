@@ -60,7 +60,6 @@ export type SelectedValuesType = {
   imageVersion: ?string,
   firmwareVersion: ?string,
   hardwareType: ?string,
-  refreshConfig?: number,
 };
 
 export type ConfigTaskContext = {|

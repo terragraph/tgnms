@@ -46,18 +46,17 @@ export function useNodeConfig({
   firmwareVersion,
   hardwareType,
   editMode,
-  refreshConfig,
 }: {
   nodeName?: ?string,
   imageVersion?: ?string,
   firmwareVersion?: ?string,
   hardwareType?: ?string,
   editMode?: $Values<typeof FORM_CONFIG_MODES>,
-  refreshConfig?: number,
 }): {
   loading: boolean,
   configData: ?Array<ConfigDataType>,
   configParams: $Shape<ConfigParamsType>,
+  reloadConfig: () => Promise<void>,
 } {
   const {networkName, networkConfig} = useNetworkContext();
   const [loading, setLoading] = React.useState(true);
@@ -72,10 +71,9 @@ export function useNodeConfig({
     });
     setConfigParams(newConfigParams);
   }, [networkName]);
-
   React.useEffect(() => {
     reloadConfigParams();
-  }, [refreshConfig, reloadConfigParams]);
+  }, [reloadConfigParams]);
 
   React.useEffect(() => {
     setLoading(true);
@@ -187,7 +185,12 @@ export function useNodeConfig({
     reloadConfigParams,
   ]);
 
-  return {loading, configData, configParams: configParams ?? {}};
+  return {
+    loading,
+    reloadConfig: reloadConfigParams,
+    configData,
+    configParams: configParams ?? {},
+  };
 }
 
 async function getConfigParams({networkName, networkConfig}) {

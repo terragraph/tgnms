@@ -154,8 +154,7 @@ export default function ConfigTableEntry(props: Props) {
   } = props;
 
   const snackbars = useSnackbars();
-  const {onUpdate, editMode, selectedValues} = useConfigTaskContext();
-  const {refreshConfig} = selectedValues;
+  const {onUpdate, editMode} = useConfigTaskContext();
   const {type, desc, deprecated, readOnly} = metadata;
   const configField = field.join(CONFIG_FIELD_DELIMITER);
 
@@ -208,7 +207,7 @@ export default function ConfigTableEntry(props: Props) {
     setBaseValue(initialBaseValue);
     setLocalInputValue(initialBaseValue);
     setHasDraftOverride(false);
-  }, [initialBaseValue, refreshConfig]);
+  }, [initialBaseValue]);
 
   React.useEffect(() => {
     if (isSelected && !lazyInit) {

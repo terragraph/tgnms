@@ -39,8 +39,7 @@ export default function ConfigOptionSelector({
   options: {[string]: ConfigOption},
   title?: string,
 }) {
-  const {configOverrides, onUpdate, selectedValues} = useConfigTaskContext();
-  const {refreshConfig} = selectedValues;
+  const {configOverrides, onUpdate} = useConfigTaskContext();
   const classes = useStyles();
 
   const selectedOptionKey = React.useMemo(
@@ -83,7 +82,7 @@ export default function ConfigOptionSelector({
       setFormState({
         optionKey: selectedOptionKey,
       }),
-    [selectedOptionKey, setFormState, refreshConfig],
+    [selectedOptionKey, setFormState],
   );
 
   return option ? (

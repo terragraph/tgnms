@@ -10,6 +10,7 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import LoadingBox from '@fbcnms/tg-nms/app/components/common/LoadingBox';
 import Typography from '@material-ui/core/Typography';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {Provider as TaskConfigContextProvider} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 import {cloneDeep} from 'lodash';
@@ -69,28 +70,24 @@ export default function ConfigTaskForm(props: Props) {
   const classes = useStyles();
   const snackbars = useSnackbars();
   const updateConfig = useUpdateConfig();
-  const draftsRef = React.useRef({});
   const jsonConfigRef = React.useRef(null);
   const nodeName = props.nodeName ? props.nodeName : nodeInfo?.name;
+  const [draftConfig, setDraftConfig] = React.useState({});
 
-  const onUpdateRef = React.useRef(onUpdate);
-  const currentDraftsRef = draftsRef.current;
+  const onUpdateRef = useLiveRef(onUpdate);
 
   React.useEffect(() => {
-    if (onUpdateRef.current && currentDraftsRef) {
-      onUpdateRef.current(currentDraftsRef);
+    if (onUpdateRef.current && draftConfig) {
+      onUpdateRef.current(draftConfig);
     }
-  }, [currentDraftsRef, onUpdateRef]);
+  }, [draftConfig, onUpdateRef]);
 
-  const [refreshConfig, setRefreshConfig] = React.useState(1);
-
-  const {loading, configData, configParams} = useNodeConfig({
+  const {loading, reloadConfig, configData, configParams} = useNodeConfig({
     nodeName: editMode === FORM_CONFIG_MODES.NODE ? nodeName : null,
     imageVersion,
     firmwareVersion,
     hardwareType,
     editMode,
-    refreshConfig,
   });
 
   const {
@@ -107,7 +104,7 @@ export default function ConfigTaskForm(props: Props) {
   );
 
   React.useEffect(() => {
-    draftsRef.current = null;
+    setDraftConfig({});
     switch (editMode) {
       case FORM_CONFIG_MODES.NETWORK:
         setCurrentConfig(cloneDeep(networkOverridesConfig));
@@ -140,7 +137,7 @@ export default function ConfigTaskForm(props: Props) {
 
   const handleSubmitConfig = React.useCallback(() => {
     const jsonConfig = jsonConfigRef.current;
-    const drafts = draftsRef.current ?? {};
+    const drafts = draftConfig;
 
     if (editMode === FORM_CONFIG_MODES.NODE && nodeName == null) {
       snackbars.error('Config change failed, please double check the form');
@@ -182,20 +179,19 @@ export default function ConfigTaskForm(props: Props) {
       onClose();
     }
 
-    draftsRef.current = {};
     jsonConfigRef.current = null;
-    setRefreshConfig(refreshConfig + 1);
+    reloadConfig();
   }, [
     onClose,
     networkOverridesConfig,
     nodeOverridesConfig,
     controllerConfig,
     aggregatorConfig,
-    draftsRef,
+    draftConfig,
     nodeName,
     editMode,
     snackbars,
-    refreshConfig,
+    reloadConfig,
     updateConfig,
   ]);
 
@@ -203,10 +199,10 @@ export default function ConfigTaskForm(props: Props) {
     if (onClose) {
       onClose();
     }
-    setRefreshConfig(refreshConfig + 1);
-    draftsRef.current = {};
+    reloadConfig();
+    setDraftConfig({});
     jsonConfigRef.current = null;
-  }, [onClose, refreshConfig]);
+  }, [onClose, reloadConfig]);
 
   React.useEffect(() => {
     configDataRef.current = configData;
@@ -231,14 +227,20 @@ export default function ConfigTaskForm(props: Props) {
         layer => layer.id === currentEditMode,
       )?.value;
 
-      if (currentLayerValue === draftValue && draftsRef.current) {
-        delete draftsRef.current[configField];
+      if (currentLayerValue === draftValue) {
+        setDraftConfig(curr => {
+          const copy = {...curr};
+          delete copy[configField];
+          return copy;
+        });
         return;
       }
       if (draftValue != undefined) {
-        draftsRef.current = {...draftsRef.current, [configField]: draftValue};
+        setDraftConfig(curr => ({
+          ...curr,
+          [configField]: draftValue,
+        }));
       }
-      setRefreshConfig(x => x + 1);
     },
     [editMode],
   );
@@ -250,7 +252,7 @@ export default function ConfigTaskForm(props: Props) {
     jsonConfigRef.current ??
     getDraftConfig<{}>({
       currentConfig,
-      drafts: draftsRef.current ?? {},
+      drafts: draftConfig,
     });
 
   return (
@@ -288,7 +290,6 @@ export default function ConfigTaskForm(props: Props) {
             imageVersion,
             firmwareVersion,
             hardwareType,
-            refreshConfig,
           }}>
           {children}
         </TaskConfigContextProvider>

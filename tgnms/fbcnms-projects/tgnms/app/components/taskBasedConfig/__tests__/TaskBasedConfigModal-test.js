@@ -20,6 +20,7 @@ jest
     loading: false,
     configData: [{field: ['test', 'param']}],
     configParams: {},
+    reloadConfig: jest.fn(),
   });
 
 jest

@@ -42,13 +42,7 @@ export default function ConfigTaskInput(props: Props) {
   const {configField, label, onChange, type, initialValue} = props;
   const selectBoolean = props.selectBoolean || false;
   const classes = useStyles();
-  const {
-    configData,
-    configMetadata,
-    onUpdate,
-    selectedValues,
-  } = useConfigTaskContext();
-  const {refreshConfig} = selectedValues;
+  const {configData, configMetadata, onUpdate} = useConfigTaskContext();
 
   const onUpdateRef = useLiveRef(onUpdate);
 
@@ -80,13 +74,7 @@ export default function ConfigTaskInput(props: Props) {
     if (initialVal != null) {
       setDraftValue(initialVal);
     }
-  }, [initialVal, refreshConfig]);
-
-  React.useEffect(() => {
-    if (initialValue != null) {
-      setDraftValue(initialValue);
-    }
-  }, [initialValue]);
+  }, [initialVal]);
 
   let settingType =
     metadata && metadata?.type

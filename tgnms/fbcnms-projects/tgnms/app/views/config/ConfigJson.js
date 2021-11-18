@@ -23,19 +23,17 @@ const useStyles = makeStyles(theme => ({
 
 export default function ConfigJson() {
   const classes = useStyles();
-  const {onSetJson, configOverrides, selectedValues} = useConfigTaskContext();
-  const {refreshConfig} = selectedValues;
+  const {onSetJson, configOverrides} = useConfigTaskContext();
 
   const rawJsonDraftConfig = React.useMemo(
     () => stringifyConfig(cloneDeep(configOverrides)),
     [configOverrides],
   );
-
   const [rawJson, setRawJson] = React.useState(rawJsonDraftConfig);
 
   React.useEffect(() => {
     setRawJson(rawJsonDraftConfig);
-  }, [refreshConfig, rawJsonDraftConfig]);
+  }, [rawJsonDraftConfig]);
 
   const handleRawJsonChange = React.useCallback(
     evt => {

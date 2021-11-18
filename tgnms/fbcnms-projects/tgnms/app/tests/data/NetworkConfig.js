@@ -434,7 +434,6 @@ export function mockConfigTaskContextValue(overrides?: {}): ConfigTaskContext {
     },
     draftChanges: {test: {overrides: 'hello'}},
     selectedValues: {
-      refreshConfig: false,
       nodeInfo: {},
       imageVersion: DEFAULT_BASE_KEY,
       firmwareVersion: DEFAULT_FIRMWARE_BASE_KEY,

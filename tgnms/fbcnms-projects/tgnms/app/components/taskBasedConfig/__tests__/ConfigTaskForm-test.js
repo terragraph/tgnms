@@ -25,6 +25,7 @@ beforeEach(() => {
       loading: false,
       configData: [{field: ['test', 'param']}],
       configParams: {nodeOverridesConfig: {}, networkOverridesConfig: {}},
+      reloadConfig: jest.fn(),
     });
 });
 

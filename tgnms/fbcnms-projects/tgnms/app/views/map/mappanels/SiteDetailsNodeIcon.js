@@ -51,7 +51,6 @@ export default function SiteDetailsNodeIcon(props: Props) {
   const {configParams} = useNodeConfig({
     nodeName: selectedNode?.name,
     editMode: FORM_CONFIG_MODES.NODE,
-    refreshConfig: 0,
   });
 
   const nodeConfig = React.useMemo(
