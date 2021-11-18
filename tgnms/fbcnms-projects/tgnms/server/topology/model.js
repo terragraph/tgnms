@@ -11,15 +11,11 @@ const {
   PROMETHEUS_URL,
   STATS_ALLOWED_DELAY_SEC,
 } = require('../config');
-const EventSource = require('eventsource');
 import apiServiceClient from '../apiservice/apiServiceClient';
-import {approxDistance, computeAngle} from './helpers';
-const {
-  getPeerAPIServiceHost,
-  HAPeerType,
-  determineActiveController,
-} = require('../high_availability/model');
+import {HAPeerType} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import {LinkStateType} from '../../thrift/gen-nodejs/Stats_types';
+import {approxDistance, computeAngle} from './helpers';
+import {determineActiveController} from '../high_availability/model';
 import {getLinkEvents, getNetworkList, updateOnlineWhitelist} from './network';
 const _ = require('lodash');
 const logger = require('../log')(module);
@@ -689,100 +685,6 @@ export function refreshPrometheusStatus(networkName: string) {
       return;
     }
     networkState[networkName].prometheus_online = true;
-  });
-}
-
-// This used to run every 5 seconds, but we now set up a persistent connection,
-// wait for server sent events, and only query controller when an event is
-// received. Could act on event change directly in the future, but these events
-// do not happen frequently, maybe it is ok to just query the whole thing
-export function runNowAndWatchForTopologyUpdate() {
-  logger.debug('watching for topology stream events');
-  const topologies = Object.keys(networkState).map<ServerNetworkState>(
-    keyName => networkState[keyName],
-  );
-
-  // update once for the first time, then wait for changes
-  //doTopologyUpdate(topologies);
-
-  const eventSourceInitDict = {
-    // leaving the change in comment on purpose, for when we add security,
-    // it is simple to add header
-    // headers: {Authorization: 'Bearer your_access_token'},
-  };
-
-  if (process.env.http_proxy && process.env.http_proxy.length) {
-    eventSourceInitDict.proxy = process.env.http_proxy;
-  }
-
-  topologies.forEach(topology => {
-    const activeControllerIp =
-      topology.controller_ip_active || topology.controller_ip;
-    const baseUrl =
-      activeControllerIp === topology.controller_ip
-        ? getPeerAPIServiceHost(topology, HAPeerType.PRIMARY)
-        : getPeerAPIServiceHost(topology, HAPeerType.BACKUP);
-    let url = `${baseUrl}/api/stream/topology`;
-    // Axios proxy needs [[]] for ipv6, we do not, have to unwrap
-    url = url.replace('://[[', '://[');
-    url = url.replace(']]:', ']:');
-
-    // EventSource should handle auto retry if connection drops
-    const es = new EventSource(url, eventSourceInitDict);
-    let alreadyLostConnection = false;
-    es.onerror = e => {
-      if (!alreadyLostConnection) {
-        // do not keep alerting if cannot connect
-        logger.error(
-          'Lost connection to topology events for controller ' +
-            topology.name +
-            ' at ' +
-            url +
-            '. Reason: ' +
-            e.message,
-        );
-      }
-      alreadyLostConnection = true;
-    };
-    es.onopen = _e => {
-      alreadyLostConnection = false;
-      logger.info(
-        'Watching topology event from controller ' +
-          topology.name +
-          ' at ' +
-          url,
-      );
-    };
-
-    // when an event is received, something is changed, just query
-    // for the new truth
-    const eventHandler = function (event) {
-      logger.debug(
-        'received event type: ' + event.type + ' data: ' + event.data,
-      );
-      // query controller to get the whole changes
-      //doTopologyUpdate([topology]); // only query the topology that changed
-    };
-
-    // EventSource does not support listening to *all* events, enumerate
-    // one by one
-    const eventsToWatch = [
-      // "topology" related events
-      'EVENT_ADD_NODE',
-      'EVENT_DEL_NODE',
-      'EVENT_EDIT_NODE',
-      'EVENT_ADD_LINK',
-      'EVENT_DEL_LINK',
-      'EVENT_ADD_SITE',
-      'EVENT_DEL_SITE',
-      'EVENT_EDIT_SITE',
-      // "statusChanges" related events
-      'EVENT_NODE_STATUS',
-      'EVENT_LINK_STATUS',
-    ];
-    for (const event of eventsToWatch) {
-      es.addEventListener(event, eventHandler);
-    }
   });
 }
 

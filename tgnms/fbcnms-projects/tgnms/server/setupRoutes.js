@@ -15,7 +15,6 @@ export async function setupRoutes(app: $Application<Request, Response>) {
   r.route('/api/v1', require('./api/v1/routes').default);
   r.route('/apiservice', require('./apiservice/routes').default);
   r.route('/controller', require('./controller/routes').default);
-  r.route('/dashboards', require('./dashboard/routes').default);
   r.route('/events', require('./events/routes').default);
   r.route('/import', require('./import/routes').default);
   r.route('/map', require('./map/routes').default);

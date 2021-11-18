@@ -2,13 +2,18 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
+ * @flow
  */
 
 import {BinaryStarFsmStateValueMap as BinaryStarFsmState} from '../../shared/types/Controller';
 import {HAPeerType} from '../../shared/dto/NetworkState';
+import type {HAActiveState} from '../../shared/dto/NetworkState';
 
-function determineActiveController(bStarStatePrimary, bStarStateBackup) {
-  const haState = {active: HAPeerType.PRIMARY};
+export function determineActiveController(
+  bStarStatePrimary: number,
+  bStarStateBackup: number,
+): HAActiveState {
+  const haState: HAActiveState = {active: HAPeerType.PRIMARY};
   // no active primary controller
   if (bStarStatePrimary === null) {
     if (bStarStateBackup === null) {
@@ -47,8 +52,3 @@ function determineActiveController(bStarStatePrimary, bStarStateBackup) {
   }
   return haState;
 }
-
-module.exports = {
-  determineActiveController,
-  HAPeerType,
-};

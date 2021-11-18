@@ -10,7 +10,6 @@ const {
   refreshNetworkHealth,
   refreshTopologies,
   refreshPrometheusStatus,
-  runNowAndWatchForTopologyUpdate,
 } = require('./model');
 const {runNowAndSchedule} = require('../scheduler');
 
@@ -26,9 +25,6 @@ function startPeriodicTasks() {
   const config = getAllNetworkConfigs();
 
   runNowAndSchedule(refreshHealthData, HEALTH_REFRESH_INTERVAL);
-
-  // setup topology streaming, only query when something changed
-  runNowAndWatchForTopologyUpdate();
 
   // regular poll for status (CtrlStatus, IgnitionState, UpgradeState)
   runNowAndSchedule(

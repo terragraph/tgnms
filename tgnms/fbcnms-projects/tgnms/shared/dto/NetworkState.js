@@ -43,9 +43,14 @@ export type NetworkInstanceConfig = {|
   event_alarm_url?: ?string,
 |};
 
+export type HAActiveState = {|
+  active: $Keys<typeof HAPeerType>,
+  error?: string,
+|};
+
 export type ServerNetworkState = {|
   name: string,
-  active: {active: $Keys<typeof HAPeerType>, error: string},
+  active: HAActiveState,
   controller_ip: number,
   controller_ip_active: number,
   controller_version: string,
