@@ -22,13 +22,6 @@ export default function QoSInterfaceConfig({
 }) {
   const {onUpdate} = useConfigTaskContext();
   const onUpdateRef = React.useRef(onUpdate);
-  const {formState, updateFormState} = useForm({
-    initialState: {cir: 0, eir: 0},
-  });
-
-  const handleSimpleChange = (key: string, value) => {
-    updateFormState({[key]: value});
-  };
 
   const handlePolicingConfigChange = React.useCallback(
     change => {
@@ -38,13 +31,20 @@ export default function QoSInterfaceConfig({
     [onUpdateRef, cpeInterface],
   );
 
-  React.useEffect(() => {
-    const formattedChange = SIMPLE_TC.reduce((res, tc) => {
-      res[tc] = formState;
-      return res;
-    }, {});
-    handlePolicingConfigChange(formattedChange);
-  }, [formState, handlePolicingConfigChange]);
+  const {updateFormState} = useForm({
+    initialState: {cir: 0, eir: 0},
+    onFormUpdated: state => {
+      const formattedChange = SIMPLE_TC.reduce((res, tc) => {
+        res[tc] = state;
+        return res;
+      }, {});
+      handlePolicingConfigChange(formattedChange);
+    },
+  });
+
+  const handleSimpleChange = (key: string, value) => {
+    updateFormState({[key]: value});
+  };
 
   return (
     <ConfigOptionSelector
