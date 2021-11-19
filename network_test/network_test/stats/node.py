@@ -81,7 +81,9 @@ def compute_node_health(
     expected_bitrate: int, iperf_avg_throughput: float
 ) -> NetworkTestHealth:
     """Compute the health of a node under test using simple traffic rate metrics."""
-    iperf_tput_ratio = iperf_avg_throughput / expected_bitrate
+    iperf_tput_ratio = (
+        (iperf_avg_throughput / expected_bitrate) if expected_bitrate > 0 else 1
+    )
     if iperf_tput_ratio >= 0.99:
         return NetworkTestHealth.EXCELLENT
     elif iperf_tput_ratio >= 0.95:
