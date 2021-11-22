@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-present, Facebook, Inc.
 
+import asyncio
 import glob
 import io
 import os
+import pickle
 import subprocess
 import sys
 import tarfile
-import asyncio
 import tempfile
-import pickle
 import urllib.request
 
 import click
@@ -65,7 +65,10 @@ def get_scp_dest(dest):
 
 @cli.command()
 @click.option(
-    "-m", "--machines", multiple=True, help="Node IP",
+    "-m",
+    "--machines",
+    multiple=True,
+    help="Node IP",
 )
 @click.pass_context
 def prepare(ctx, machines):
@@ -90,6 +93,19 @@ projects = {
         "container": "controller-operator",
         "build_cmd": "docker build . -f k8s_controller_operator/Dockerfile --network=host --tag controller-operator:dev",
         "image_name": "controller-operator",
+    },
+    "dev_proxy": {
+        "deployment": "dev_proxy",
+        "container": "dev_proxy",
+        "build_cmd": "docker build dev_proxy -f dev_proxy/Dockerfile --network=host --tag dev_proxy:dev",
+        "image_name": "dev_proxy",
+        "swarm_service": "dev_proxy",
+    },
+    "nms_nginx": {
+        "deployment": "nms_nginx",
+        "container": "nms_nginx",
+        "build_cmd": "docker build nginx -f nginx/Dockerfile --network=host --tag nms_nginx:dev",
+        "image_name": "nms_nginx",
     },
 }
 
