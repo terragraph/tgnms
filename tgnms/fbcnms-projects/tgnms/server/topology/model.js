@@ -43,7 +43,6 @@ const networkLinkHealth = {};
 // hold the network configuration (primary/backup)
 let networkInstanceConfig: {|[string]: NetworkInstanceConfig|} = {};
 
-// TODO - these aren't in the new config yet
 // hold all state
 const networkState: NetworkStateMap = {};
 // This array and the two functions below keep tracks of topology

@@ -7,6 +7,7 @@
 
 import React from 'react';
 import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import type {HardwareProfiles} from '@fbcnms/tg-nms/shared/dto/HardwareProfiles';
 import type {
   LinkType,
   LocationType,
@@ -49,6 +50,7 @@ export type NetworkContextType = {|
   removeElement: ($Values<typeof TOPOLOGY_ELEMENT>, string) => void,
   togglePin: ToggleTopologyElement,
   toggleExpanded: ToggleTopologyElement,
+  hardwareProfiles: HardwareProfiles,
 |};
 
 export type ToggleTopologyElement = {
@@ -134,6 +136,7 @@ const NetworkContext = React.createContext<NetworkContextType>({
   toggleExpanded: () => {},
   networkLinkMetrics: {},
   setAvailabilityWindow: () => {},
+  hardwareProfiles: {},
 });
 
 export function useNetworkContext() {

@@ -1,0 +1,24 @@
+---
+- name: create hwprofiles paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0660
+  loop:
+    - "{{hwprofiles_gfs_path}}"
+    - "{{hwprofiles_gfs_path}}/profiles"
+- name: copy JSON Schema
+  copy:
+    src: hwprofile-schema.json
+    dest: "{{hwprofiles_gfs_path}}"
+    force: yes
+
+- name: copy default hwprofiles
+  copy:
+    src: "{{ item }}"
+    dest: "{{hwprofiles_gfs_path}}/profiles"
+    force: yes
+  loop:
+    - "default.json"

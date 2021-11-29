@@ -16,6 +16,7 @@ services:
       - {{ nms_path }}/docker_volumes/settings:/app/fbcnms-projects/tgnms/.settings
       - {{ nms_path }}/docker_volumes/data/anp:/app/fbcnms-projects/tgnms/data/anp
       - {{ sysdump_gfs_path }}:/app/fbcnms-projects/tgnms/sysdump
+      - {{ hwprofiles_gfs_path }}:/app/fbcnms-projects/tgnms/data/hwprofiles
     networks:
       - terragraph_net
     command: ["/bin/sh", "-c", "ln -sf $${TZ_FILE} /etc/localtime && until nc -z query_service 8086; do sleep 1; done && cd /app/fbcnms-projects/tgnms && yarn run start:prod"]

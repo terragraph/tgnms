@@ -5,6 +5,7 @@
  * @flow
  */
 
+import * as hardwareProfilesApi from '@fbcnms/tg-nms/app/apiutils/HardwareProfilesAPIUtil';
 import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import Fade from '@material-ui/core/Fade';
@@ -34,6 +35,7 @@ import type {
   NodeToLinksMap,
   SiteMap,
 } from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {HardwareProfiles} from '@fbcnms/tg-nms/shared/dto/HardwareProfiles';
 import type {
   NetworkHealth,
   NetworkState,
@@ -96,6 +98,7 @@ type State = {
   siteMap: SiteMap,
   siteToNodesMap: {[string]: Set<string>},
   selectedElement: ?Element,
+  hardwareProfiles: HardwareProfiles,
 };
 
 class NetworkUI extends React.Component<Props, State> {
@@ -129,6 +132,7 @@ class NetworkUI extends React.Component<Props, State> {
 
     // Availability time window
     networkHealthTimeWindowHrs: 24,
+    hardwareProfiles: {},
   };
 
   _refreshNetworkInterval = null;
@@ -142,6 +146,7 @@ class NetworkUI extends React.Component<Props, State> {
     this.getCurrentNetworkStatus();
     // reset topology fetch timer and re-schedule topology get
     this.getCurrentNetworkStatusPeriodic();
+    this.getHardwareProfiles();
   }
 
   componentWillUnmount() {
@@ -342,6 +347,15 @@ class NetworkUI extends React.Component<Props, State> {
     });
   };
 
+  getHardwareProfiles = async () => {
+    try {
+      const hardwareProfiles = await hardwareProfilesApi.getAllProfiles();
+      this.setState({hardwareProfiles});
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   setSelected = (type, name) => {
     // Select a node/link/site
     // Expand the selected element and unexpand everything else
@@ -490,6 +504,7 @@ class NetworkUI extends React.Component<Props, State> {
             togglePin: this.togglePin,
             toggleExpanded: this.toggleExpanded,
             setAvailabilityWindow: this.setAvailabilityWindow,
+            hardwareProfiles: this.state.hardwareProfiles,
           }}>
           <NetworkPlanningContextProvider>
             {this.renderReloadingOverlay()}

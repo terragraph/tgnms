@@ -20,6 +20,9 @@ const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
 const IS_KUBERNETES = !!process.env.KUBERNETES_SERVICE_HOST;
 const SQLITE_DB = process.env.SQLITE_DB;
+
+const HW_PROFILES_BASE_DIR = process.env.HW_PROFILES_BASE_DIR;
+
 const NETWORKTEST_HOST =
   process.env.NETWORKTEST_HOST || 'http://network_test:8080';
 const SCANSERVICE_HOST =
@@ -160,4 +163,6 @@ module.exports = {
   DEFAULT_ROUTES_HISTORY_HOST,
   STATS_ALLOWED_DELAY_SEC,
   NETWORK_PROVISIONING_FILE,
+  // hwprofiles
+  HW_PROFILES_BASE_DIR,
 };

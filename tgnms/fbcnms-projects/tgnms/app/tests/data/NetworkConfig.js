@@ -657,7 +657,9 @@ export function mockMultiHop(hops: number, includesPop: boolean) {
 /**
  * Gets the mock status report
  */
-export function mockStatusReport(): $Shape<StatusReportType> {
+export function mockStatusReport(
+  overrides?: $Shape<StatusReportType>,
+): $Shape<StatusReportType> {
   return {
     timeStamp: 0,
     ipv6Address: 'testIpv6',
@@ -666,5 +668,6 @@ export function mockStatusReport(): $Shape<StatusReportType> {
     status: 'ONLINE',
     configMd5: 'config',
     hardwareBoardId: 'test',
+    ...(overrides || {}),
   };
 }

@@ -40,11 +40,12 @@ export async function setupRoutes(app: $Application<Request, Response>) {
   );
   r.route('/sysdump', require('./sysdump/routes').default);
   r.route('/openapi', require('./openapi/routes').default);
+  r.route('/hwprofile', require('./hwprofile/routes').default);
 
   await r.init();
 }
 
-function routeManager(app: $Application<Request, Response>) {
+export function routeManager(app: $Application<Request, Response>) {
   const queue: Array<[string, Class<Api>]> = [];
   return {
     route: (path: string, c: Class<Api>) => {

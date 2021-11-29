@@ -13,7 +13,6 @@ if (!process.env.NODE_ENV) {
 }
 require('../server/settings/settings').initialize();
 const {LOGIN_ENABLED, SESSION_MAX_AGE_MS} = require('../server/config');
-
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const connectSession = require('connect-session-sequelize');

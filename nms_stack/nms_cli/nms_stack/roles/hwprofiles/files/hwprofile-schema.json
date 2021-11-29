@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/terragraph/tgnms/hwprofiles/hwprofile-schema.json",
+  "title": "Terragraph NMS Hardware Profile",
+  "type": "object",
+  "required": [
+    "version",
+    "hwBoardId",
+    "beam_angle_map",
+    "tx_power_map",
+    "sector_params",
+    "financial"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hwBoardId": {
+      "type": "string",
+      "description": "Hardware Board ID: the primary identifier for a single SKU. This is used to match hardware to hardware profiles."
+    },
+    "beam_angle_map": {
+      "type": "object",
+      "description": "Mapping from Tile ID -> Elevation ID -> Beam index -> Beam angle.\nExample: {\"0\":{\"0\":{\"0\":-45,\"1\":-44.25}}",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "object",
+          "description": "Elevation ID -> Beam index -> Beam angle. Example: {\"0\":{\"0\":-45}}",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[0-9]+$": {
+              "type": "object",
+              "additionalProperties": false,
+              "patternProperties": {
+                "^[0-9]+$": {
+                  "type": "number",
+                  "description": "Beam angle in degrees"
+                }
+              },
+              "description": "Beam index -> Beam angle mapping. Example: {\"0\":-45}"
+            }
+          }
+        }
+      }
+    },
+    "tx_power_map": {
+      "type": "object",
+      "description": "Mapping from Channel -> MCS -> tx_power_idx -> tx_power",
+      "additionalProperties": false,
+      "patternProperties": {
+        "(^[0-9]+|default_channel)$": {
+          "type": "object",
+          "description": "Mapping from MCS -> tx_power_idx -> tx_power",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^([0-9]+|default_mcs)$": {
+              "type": "object",
+              "description": "Mapping from tx_power_idx -> tx_power",
+              "patternProperties": {
+                "^[0-9]+$": {
+                  "type": "number",
+                  "description": "TX Power"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "required": ["num_sectors_per_box", "max_nodes_per_site", "device_types"],
+      "additionalProperties": false,
+      "properties": {
+        "max_nodes_per_site": {
+          "description": "Maximum number of radio boxes allowed on each site",
+          "type": "integer"
+        },
+        "num_sectors_per_box": {
+          "type": "integer"
+        },
+        "device_types": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["CN", "DN"]}
+        }
+      }
+    },
+    "sector_params": {
+      "type": "object",
+      "description": "Hardware-specific radio parameters, used for planning and analysis",
+      "required": [
+        "boresite_bw_idx",
+        "beam_separate_idx",
+        "minimum_snr_db",
+        "snr_saturate_thresh_db",
+        "max_sidelobe_level_db",
+        "min_mcs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "boresite_bw_idx": {
+          "type": "integer",
+          "description": "Used by: Scan Service"
+        },
+        "beam_separate_idx": {
+          "type": "integer",
+          "description": "Used by: Scan Service"
+        },
+        "minimum_snr_db": {
+          "type": "number",
+          "description": "Used by: Scan Service"
+        },
+        "snr_saturate_thresh_db": {
+          "type": "number",
+          "description": "Used by: Scan Service"
+        },
+        "max_sidelobe_level_db": {
+          "type": "number",
+          "description": "Used by: Scan Service"
+        },
+        "scan_range_az_deg": {
+          "type": "number",
+          "description": "Per-sector horizontal beamforming scan range of the antenna in degrees. Used by: Mesh Planner"
+        },
+        "antenna_boresight_gain_dbi": {
+          "type": "number",
+          "description": "Antenna gain at boresight (dBi). Used by: Mesh Planner"
+        },
+        "max_power": {
+          "type": "number",
+          "description": "Maximum Equivalent/Effective Isotropically Radiated Power in dBm. Used by: Mesh Planner, Scan Service"
+        },
+        "max_tx_power_dbm": {
+          "type": "number",
+          "description": "Maximum transmission power in dBm. Used by: Mesh Planner"
+        },
+        "min_tx_power_dbm": {
+          "type": "number",
+          "description": "Minimum transmission power in dBm. Used by: Mesh Planner"
+        },
+        "min_mcs": {
+          "type": "integer",
+          "description": "Minimum MCS level allowed. Used by: Mesh Planner"
+        },
+        "tx_diversity_gain_db": {
+          "type": "number",
+          "description": "Transmitter diversity gain in dB (e.g., polarization diversity). Used by: Mesh Planner"
+        },
+        "rx_diversity_gain_db": {
+          "type": "number",
+          "description": "Receiver diversity gain in dB (e.g., polarization diversity). Used by: Mesh Planner"
+        },
+        "tx_misc_loss_db": {
+          "type": "number",
+          "description": "Miscellaneous losses on the transmitter in dB (e.g., cable losses). Used by: Mesh Planner"
+        },
+        "rx_misc_loss_db": {
+          "type": "number",
+          "description": "Miscellaneous losses on the receiver in dB (e.g., cable losses). Used by: Mesh Planner"
+        }
+      }
+    },
+    "financial": {
+      "type": "object",
+      "required": ["node_capex"],
+      "additionalProperties": false,
+      "properties": {
+        "node_capex": {
+          "type": "number",
+          "description": "Cost of each individual node. Used by: Mesh Planner"
+        }
+      }
+    }
+  }
+}

@@ -149,6 +149,7 @@
   tags:
     - services
   roles:
+    - { role: hwprofiles, tags: ["hwprofiles"] }
     - { role: nms, tags: ["nms"] }
     - { role: e2e_controller, tags: ["e2e_controller"] }
     - { role: chihaya, tags: ["chihaya", "opentracker", "tracker"] }
