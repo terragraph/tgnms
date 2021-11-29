@@ -14,6 +14,7 @@ import type {
   NodeType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
 import type {
+  NetworkAnalyzerData,
   NetworkHealth,
   NetworkState,
 } from '@fbcnms/tg-nms/shared/dto/NetworkState';
@@ -30,7 +31,7 @@ export type NetworkContextType = {|
 
   networkLinkHealth: NetworkHealth,
   networkNodeHealthPrometheus: NetworkNodeStats,
-  networkAnalyzerData: {},
+  networkAnalyzerData: NetworkAnalyzerData,
   networkLinkMetrics: {},
 
   // Refresh data

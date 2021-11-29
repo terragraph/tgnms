@@ -6,7 +6,7 @@
  */
 
 import axios from 'axios';
-
+import type {NetworkAnalyzerData} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 /**
  * 'network' and 'intervalSec' are mandatory Prometheus query labels
  */
@@ -125,4 +125,35 @@ export const queryLatest = async (
     params: {query: query},
   });
   return response.data.data;
+};
+
+export const queryLatestGroupByLink = async (
+  query: string,
+  networkName: string,
+): Promise<any> => {
+  const response = await axios.get(
+    `/metrics/${networkName}/query/link/latest`,
+    {
+      params: {query: query},
+    },
+  );
+  return response.data;
+};
+
+export const getNodeHealth = async ({
+  networkName,
+}: {
+  networkName: string,
+}): Promise<{}> => {
+  const response = await axios.get(`/metrics/${networkName}/node_health`);
+  return response.data;
+};
+
+export const getLinkAnalyzer = async ({
+  networkName,
+}: {
+  networkName: string,
+}): Promise<NetworkAnalyzerData> => {
+  const response = await axios.get(`/metrics/${networkName}/link_analyzer`);
+  return response.data;
 };

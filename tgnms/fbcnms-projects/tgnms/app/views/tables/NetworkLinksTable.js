@@ -23,20 +23,19 @@ import {
   LinkTypeValueMap,
   NodeTypeValueMap as NodeType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import {MTableBodyRow} from '@material-table/core';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   TIME_WINDOWS,
   TOPOLOGY_ELEMENT,
 } from '@fbcnms/tg-nms/app/constants/NetworkConstants.js';
 import {availabilityColor} from '@fbcnms/tg-nms/app/helpers/NetworkHelpers';
-import {
-  beamAngleToOrientation,
-  beamIndexToAngle,
-} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
+import {beamAngleToOrientation} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {renderStatusColor} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
+import {useHardwareProfiles} from '@fbcnms/tg-nms/app/features/hwprofiles/hooks';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 import type {LinkType} from '@fbcnms/tg-nms/shared/types/Topology';
@@ -182,9 +181,7 @@ function LinksTable({
 |}) {
   const {linkTable} = state;
   const context = useNetworkContext();
-  const {selectedElement, setSelected} = context;
-  let columns;
-  let data;
+  const {selectedElement, setSelected, networkHealthTimeWindowHrs} = context;
 
   const eventChartColumns = React.useMemo(
     () => [
@@ -397,9 +394,7 @@ function LinksTable({
   );
 
   const handleRowSelect = React.useCallback(
-    (e, row) => {
-      setSelected(TOPOLOGY_ELEMENT.LINK, row.name);
-    },
+    (e, row) => setSelected(TOPOLOGY_ELEMENT.LINK, row.name),
     [setSelected],
   );
 
@@ -438,29 +433,44 @@ function LinksTable({
       toolbar: false,
       rowStyle: makeRowStyle,
       tableLayout: 'fixed',
+      draggable: false,
     }),
     [tableHeight, makeRowStyle],
   );
 
-  if (linkTable === LinkTable.ANALYZER) {
-    columns = insertTimeWindowText(
-      analyzerChartColumns,
-      context.networkHealthTimeWindowHrs,
-    );
-    data = getTableRowsAnalyzer(state, context);
-  } else if (linkTable === LinkTable.EVENTS_CHART) {
-    columns = insertTimeWindowText(
-      eventChartColumns,
-      context.networkHealthTimeWindowHrs,
-    );
-    data = getTableRows(state, context);
-  } else {
-    columns = insertTimeWindowText(
-      minimalChartColumns,
-      context.networkHealthTimeWindowHrs,
-    );
-    data = getTableRows(state, context);
-  }
+  const columns = React.useMemo(() => {
+    if (linkTable === LinkTable.ANALYZER) {
+      return insertTimeWindowText(
+        analyzerChartColumns,
+        networkHealthTimeWindowHrs,
+      );
+    } else if (linkTable === LinkTable.EVENTS_CHART) {
+      return insertTimeWindowText(
+        eventChartColumns,
+        networkHealthTimeWindowHrs,
+      );
+    } else {
+      return insertTimeWindowText(
+        minimalChartColumns,
+        networkHealthTimeWindowHrs,
+      );
+    }
+  }, [
+    linkTable,
+    networkHealthTimeWindowHrs,
+    analyzerChartColumns,
+    eventChartColumns,
+    minimalChartColumns,
+  ]);
+  const {getBeamAngle} = useBeamAngleMapping();
+  const data = React.useMemo(() => {
+    if (linkTable === LinkTable.ANALYZER) {
+      return getTableRowsAnalyzer(state, context, getBeamAngle);
+    } else {
+      return getTableRows(state, context);
+    }
+  }, [linkTable, state, context, getBeamAngle]);
+
   return (
     <MaterialTable
       title="Links"
@@ -468,6 +478,13 @@ function LinksTable({
       data={data}
       onRowClick={handleRowSelect}
       options={tableOptions}
+      components={{
+        Row: props => {
+          const {name, a_node_name, z_node_name} = props.data;
+          const idx = a_node_name < z_node_name ? 0 : 1;
+          return <MTableBodyRow data-testid={`${name}-${idx}`} {...props} />;
+        },
+      }}
     />
   );
 }
@@ -540,13 +557,14 @@ function getTableRows(
 function getTableRowsAnalyzer(
   state: State,
   context: NetworkContextType,
+  getBeamAngle: (nodeName: string, beamIdx: string) => number,
 ): Array<{
   name: string,
   a_node_name: string,
   z_node_name: string,
   alive: boolean,
   alive_perc: number,
-  fw_restarts: number,
+  fw_restarts: string,
   mcs: Node,
   snr: Node,
   per: Node,
@@ -579,12 +597,8 @@ function getTableRowsAnalyzer(
     const analyzerLink = context.networkAnalyzerData.hasOwnProperty(linkName)
       ? context.networkAnalyzerData[linkName]
       : {};
-    const analyzerLinkA = analyzerLink.hasOwnProperty('A')
-      ? analyzerLink.A
-      : analyzerLink;
-    const analyzerLinkZ = analyzerLink.hasOwnProperty('Z')
-      ? analyzerLink.Z
-      : analyzerLink;
+    const analyzerLinkA = analyzerLink.A ?? {};
+    const analyzerLinkZ = analyzerLink.Z ?? {};
     if (link.link_type == LinkTypeValueMap.ETHERNET && state.hideWired) {
       return;
     }
@@ -613,10 +627,7 @@ function getTableRowsAnalyzer(
       z_node_name: link.z_node_name,
       alive: link.is_alive,
       alive_perc: alivePerc,
-      fw_restarts:
-        typeof analyzerLinkA.flaps !== 'number'
-          ? Number.parseInt(analyzerLinkA.flaps)
-          : analyzerLinkA.flaps,
+      fw_restarts: analyzerLinkA.flaps,
       mcs: formatAnalyzerValue(analyzerLinkA, 'avg_mcs'),
       // snr is the receive signal strength which needs to come from the
       // other side of the link
@@ -624,8 +635,12 @@ function getTableRowsAnalyzer(
       per: formatAnalyzerValue(analyzerLinkA, 'avg_per'),
       tput: formatAnalyzerValue(analyzerLinkA, 'avg_tput'),
       txpower: formatAnalyzerValue(analyzerLinkA, 'avg_tx_power'),
-      tx_beam_angle: formatNumber(beamIndexToAngle(analyzerLinkA.tx_beam_idx)),
-      rx_beam_angle: formatNumber(beamIndexToAngle(analyzerLinkA.rx_beam_idx)),
+      tx_beam_angle: formatNumber(
+        getBeamAngle(link.a_node_name, analyzerLinkA.tx_beam_idx),
+      ),
+      rx_beam_angle: formatNumber(
+        getBeamAngle(link.z_node_name, analyzerLinkA.rx_beam_idx),
+      ),
       distance: link._meta_.distance,
     });
     // this is the Z->A link
@@ -635,7 +650,7 @@ function getTableRowsAnalyzer(
       z_node_name: link.a_node_name,
       alive: link.is_alive,
       alive_perc: alivePerc,
-      fw_restarts: analyzerLinkA.flaps,
+      fw_restarts: analyzerLinkZ.flaps,
       mcs: formatAnalyzerValue(analyzerLinkZ, 'avg_mcs'),
       // snr is the receive signal strength which needs to come from the
       // other side of the link
@@ -643,8 +658,12 @@ function getTableRowsAnalyzer(
       per: formatAnalyzerValue(analyzerLinkZ, 'avg_per'),
       tput: formatAnalyzerValue(analyzerLinkZ, 'avg_tput'),
       txpower: formatAnalyzerValue(analyzerLinkZ, 'avg_tx_power'),
-      tx_beam_angle: formatNumber(beamIndexToAngle(analyzerLinkZ.tx_beam_idx)),
-      rx_beam_angle: formatNumber(beamIndexToAngle(analyzerLinkZ.rx_beam_idx)),
+      tx_beam_angle: formatNumber(
+        getBeamAngle(link.a_node_name, analyzerLinkZ.tx_beam_idx),
+      ),
+      rx_beam_angle: formatNumber(
+        getBeamAngle(link.z_node_name, analyzerLinkZ.rx_beam_idx),
+      ),
       distance: link._meta_.distance,
     });
   });
@@ -827,14 +846,34 @@ function beamAngleSortFunc(a, b, order) {
   return order === 'ASC' ? sortVal : -sortVal;
 }
 
-function formatAnalyzerValue(
-  obj: {[string]: string | number},
-  propertyName: string,
-) {
+function formatAnalyzerValue(obj: {[string]: string}, propertyName: string) {
   if (obj.hasOwnProperty(propertyName) && obj[propertyName] !== INVALID_VALUE) {
     return typeof obj === 'string'
       ? Number.parseFloat(obj[propertyName])
       : obj[propertyName];
   }
   return '-';
+}
+
+function useBeamAngleMapping() {
+  const {getProfileByNodeName} = useHardwareProfiles();
+  const getBeamAngle = React.useCallback(
+    (nodeName: string, beamIdx: string) => {
+      const profile = getProfileByNodeName(nodeName);
+      if (!profile) {
+        return 0;
+      }
+      try {
+        const indexToAngle = profile['beam_angle_map']['0']['0'];
+        return indexToAngle[beamIdx];
+      } catch (err) {
+        console.error(`Invalid hardware profile for ${nodeName}:`, profile);
+        return 0;
+      }
+    },
+    [getProfileByNodeName],
+  );
+  return {
+    getBeamAngle,
+  };
 }

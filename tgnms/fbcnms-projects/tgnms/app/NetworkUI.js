@@ -6,6 +6,7 @@
  */
 
 import * as hardwareProfilesApi from '@fbcnms/tg-nms/app/apiutils/HardwareProfilesAPIUtil';
+import * as prometheusApi from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
 import AuthorizedRoute from './components/common/AuthorizedRoute';
 import Fade from '@material-ui/core/Fade';
@@ -13,7 +14,6 @@ import LoadingBox from './components/common/LoadingBox';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NetworkListContext from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
 import React from 'react';
-import axios from 'axios';
 import {HAPeerType} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 import {NETWORK_VIEWS} from '@fbcnms/tg-nms/app/views/views';
 import {NetworkPlanningContextProvider} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
@@ -37,6 +37,7 @@ import type {
 } from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import type {HardwareProfiles} from '@fbcnms/tg-nms/shared/dto/HardwareProfiles';
 import type {
+  NetworkAnalyzerData,
   NetworkHealth,
   NetworkState,
 } from '@fbcnms/tg-nms/shared/dto/NetworkState';
@@ -89,7 +90,7 @@ type State = {
   networkConfig: NetworkState,
   networkNodeHealthPrometheus: NetworkNodeStats,
   networkLinkHealth: NetworkHealth,
-  networkAnalyzerData: Object,
+  networkAnalyzerData: NetworkAnalyzerData,
   networkLinkIgnitionAttempts: Object,
   networkHealthTimeWindowHrs: number,
   nodeMap: {[string]: Node},
@@ -258,19 +259,18 @@ class NetworkUI extends React.Component<Props, State> {
         }
       });
 
-    axios
-      .get(`/metrics/${networkName}/query/link/latest`, {
-        params: {
-          query: increase(
-            createQuery('topology_link_attempts', {
-              network: networkName,
-            }),
-            '1d',
-          ),
-        },
-      })
-      .then(linkMetricsResp => {
-        this.setState({networkLinkIgnitionAttempts: linkMetricsResp.data});
+    prometheusApi
+      .queryLatestGroupByLink(
+        networkName,
+        increase(
+          createQuery('topology_link_attempts', {
+            network: networkName,
+          }),
+          '1d',
+        ),
+      )
+      .then(linkMetricsData => {
+        this.setState({networkLinkIgnitionAttempts: linkMetricsData});
       })
       .catch(err => {
         console.error('Unable to fetch link ignition attempts:', err);
@@ -330,21 +330,21 @@ class NetworkUI extends React.Component<Props, State> {
 
   updateNetworkHealth = (networkName: string, timeWindowHours: number) => {
     // Refresh network node/link health
-
     topologyApi.getHealth({networkName, timeWindowHours}).then(health => {
       this.setState({networkLinkHealth: health || {}});
     });
-
-    axios.get(`/metrics/${networkName}/node_health`).then(response => {
-      this.setState({networkNodeHealthPrometheus: response.data || {}});
-    });
+    prometheusApi
+      .getNodeHealth({networkName})
+      .then(health =>
+        this.setState({networkNodeHealthPrometheus: health || {}}),
+      );
   };
 
   updateNetworkAnalyzer = networkName => {
     // Refresh network analyzer data
-    axios.get(`/metrics/${networkName}/link_analyzer`).then(response => {
-      this.setState({networkAnalyzerData: response.data});
-    });
+    prometheusApi
+      .getLinkAnalyzer({networkName})
+      .then(data => this.setState({networkAnalyzerData: data}));
   };
 
   getHardwareProfiles = async () => {

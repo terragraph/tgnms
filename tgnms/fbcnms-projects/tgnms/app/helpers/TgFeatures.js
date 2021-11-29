@@ -139,14 +139,6 @@ export function getLinkControlSuperframe(
 }
 
 /**
- * Check if the Node structure has a 'wlan_mac_addrs' field.
- * This was added in RELEASE_M29.
- */
-export function useNodeWlanMacs(ctrlVersion: string) {
-  return !ctrlVerBefore(ctrlVersion, CtrlVerType.M29);
-}
-
-/**
  * Check if the single-node topology scan feature is supported.
  * This was added in RELEASE_M29.
  */
@@ -155,37 +147,11 @@ export function supportsTopologyScan(ctrlVersion: string) {
 }
 
 /**
- * Check if the network-wide topology scan feature is supported.
- * This was added in RELEASE_M30.
- */
-export function supportsTopologyDiscovery(ctrlVersion: string) {
-  return !ctrlVerBefore(ctrlVersion, CtrlVerType.M30);
-}
-
-/**
  * Check if the Firmware Version Stat API request is supported.
  * This was added in RELEASE_M46.
  */
 export function supportsFirmwareApiRequest(ctrlVersion: string) {
   return !ctrlVerBefore(ctrlVersion, CtrlVerType.M46);
-}
-
-/**
- * Check if the node structure supports user-specified Polarity
- * and Golay_idx. No longer supporting these fields starting
- * RELEASE_M37.
- */
-export function supportsUserSpecifiedPolairtyAndGolay(ctrlVersion: string) {
-  return ctrlVerBefore(ctrlVersion, CtrlVerType.M37);
-}
-
-export function beamIndexToAngle(beamIdx: number): number {
-  // This is only valid for Rev5
-  // Index range is 0-63
-  // 0 is the center (0°)
-  // 1-31 = right (43.6 max)
-  // 32-63 = left (-45 max)
-  return (beamIdx >= 32 ? -(beamIdx - 31) : beamIdx) * 1.4 /* to degrees */;
 }
 
 export function beamAngleToOrientation(angle: number) {

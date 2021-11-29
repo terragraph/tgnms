@@ -151,3 +151,20 @@ export type TopologyConfig = $Shape<{|
 export type NetworkList = {|
   [string]: NetworkInstanceConfig,
 |};
+
+export type NetworkAnalyzerData = {
+  [linkName: string]: {
+    A: AnalyzerLinkData,
+    Z: AnalyzerLinkData,
+  },
+};
+
+export type AnalyzerLinkData = {|
+  avg_snr: string,
+  avg_mcs: string,
+  avg_tx_power: string,
+  flaps: string,
+  avg_per: string,
+  tx_beam_idx: string,
+  rx_beam_idx: string,
+|};
