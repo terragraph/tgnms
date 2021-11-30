@@ -310,7 +310,7 @@ def remove_devproxy(cluster, host):
 
 @cli.command()
 @click.option("--cluster", default="k8s", type=click.Choice(["k8s", "swarm"]))
-@click.option("--project")
+@click.option("--project", type=click.Choice(projects.keys()))
 @click.option(
     "-m",
     "--manager",
@@ -334,7 +334,7 @@ def go(*args, **kwargs):
 
 
 @cli.command()
-@click.option("--project")
+@click.option("--project", type=click.Choice(projects.keys()))
 @click.option("--build_cmd")
 @click.option("--image_name")
 @click.option("--container")
