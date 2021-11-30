@@ -13,7 +13,7 @@ import {
   mockNetworkFolder,
   mockNetworkPlan,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render, within} from '@testing-library/react';
 
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil', () => ({
   getPlansInFolder: jest.fn().mockImplementation(() => [
@@ -31,6 +31,7 @@ jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil', () => ({
   deletePlan: jest.fn(),
   deleteInputFile: jest.fn(),
   deleteFolder: jest.fn(),
+  updateFolder: jest.fn(),
 }));
 
 describe('FolderActionsMenu', () => {
@@ -52,12 +53,43 @@ describe('FolderActionsMenu', () => {
       fireEvent.click(getByText('Delete Project'));
     });
     await act(async () => {
-      fireEvent.click(getByText('Delete'));
+      fireEvent.click(within(getByTestId('delete-modal')).getByText('Delete'));
     });
 
     expect(mockNetworkPlanningAPIUtil.deleteFolder).toHaveBeenCalledTimes(1);
     expect(mockNetworkPlanningAPIUtil.deleteFolder).toHaveBeenCalledWith({
       folderId: '10',
+    });
+  });
+  it('should rename a plan', async () => {
+    const mockOnComplete = jest.fn();
+    const mockFolder = mockNetworkFolder({id: 10, name: 'MyName'});
+    const {getByText, getByTestId, getByPlaceholderText} = render(
+      <TestApp>
+        <FolderActionsMenu folder={mockFolder} onComplete={mockOnComplete} />
+      </TestApp>,
+    );
+
+    // Open menu.
+    act(() => {
+      fireEvent.click(getByTestId('more-vert-button'));
+    });
+    // Click delete
+    act(() => {
+      fireEvent.click(getByText('Rename'));
+    });
+    act(() => {
+      fireEvent.change(getByPlaceholderText('Project Name'), {
+        target: {value: 'My New Name'},
+      });
+    });
+    await act(async () => {
+      fireEvent.click(within(getByTestId('rename-modal')).getByText('Rename'));
+    });
+    expect(mockNetworkPlanningAPIUtil.updateFolder).toHaveBeenCalledTimes(1);
+    expect(mockNetworkPlanningAPIUtil.updateFolder).toHaveBeenCalledWith({
+      id: mockFolder.id,
+      name: 'My New Name',
     });
   });
 });

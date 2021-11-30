@@ -13,11 +13,14 @@ import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import TextField from '@material-ui/core/TextField';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import {copyPlan} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
+import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {makeStyles} from '@material-ui/styles';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
-
 import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 const useStyles = makeStyles(theme => ({
@@ -41,10 +44,22 @@ export default function PlanActionsMenu({
   const folderId = usePlanningFolderId();
   const {setSelectedPlanId} = useNetworkPlanningContext();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState(null);
-  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const {
+    isOpen: deleteModalIsOpen,
+    open: openDeleteModal,
+    close: closeDeleteModal,
+  } = useModalState();
+  const {
+    isOpen: renameModalIsOpen,
+    open: openRenameModal,
+    close: closeRenameModal,
+  } = useModalState();
   const handleMenuClose = React.useCallback(() => {
     setMenuAnchorEl(null);
   }, []);
+  const {formState, handleInputChange} = useForm<NetworkPlan>({
+    initialState: {name: plan.name},
+  });
 
   const handleCopyPlan = React.useCallback(() => {
     (async () => {
@@ -62,18 +77,23 @@ export default function PlanActionsMenu({
       // network planning panel, if it was open.
       setSelectedPlanId(null);
       await networkPlanningAPIUtil.deletePlan({id: plan.id});
-      setDeleteModalOpen(false);
+      closeDeleteModal();
       handleMenuClose();
       onComplete();
     })();
-  }, [
-    plan,
-    setDeleteModalOpen,
-    setSelectedPlanId,
-    handleMenuClose,
-    onComplete,
-  ]);
-
+  }, [plan, closeDeleteModal, setSelectedPlanId, handleMenuClose, onComplete]);
+  const handleRenameFolder = React.useCallback(async () => {
+    await networkPlanningAPIUtil.updatePlan({
+      id: plan.id,
+      name: formState.name,
+      dsmFileId: plan.dsmFile?.id,
+      boundaryFileId: plan.boundaryFile?.id,
+      sitesFileId: plan.sitesFile?.id,
+    });
+    closeRenameModal();
+    handleMenuClose();
+    onComplete();
+  }, [plan, formState, handleMenuClose, onComplete, closeRenameModal]);
   return (
     <div
       onClick={e => {
@@ -93,22 +113,26 @@ export default function PlanActionsMenu({
         getContentAnchorEl={null}
         anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
         transformOrigin={{vertical: 'top', horizontal: 'right'}}>
+        <MenuItem onClick={openRenameModal}>
+          <ListItemText primary="Rename" />
+        </MenuItem>
         <MenuItem onClick={handleCopyPlan}>
           <ListItemText primary="Duplicate" />
         </MenuItem>
-        <MenuItem onClick={() => setDeleteModalOpen(true)}>
-          <ListItemText primary="Delete Plan" />
+        <MenuItem onClick={openDeleteModal}>
+          <ListItemText primary="Delete" />
         </MenuItem>
       </Menu>
       <MaterialModal
-        open={deleteModalOpen}
+        data-testid="delete-modal"
+        open={deleteModalIsOpen}
         modalTitle="Confirm Deletion"
         modalContentText={'Are you sure you want to delete this plan?'}
         modalActions={
           <>
             <Button
               onClick={() => {
-                setDeleteModalOpen(false);
+                closeDeleteModal();
                 handleMenuClose();
               }}
               variant="outlined">
@@ -119,6 +143,45 @@ export default function PlanActionsMenu({
               onClick={handleDeletePlan}
               variant="contained">
               Delete
+            </Button>
+          </>
+        }
+      />
+      <MaterialModal
+        data-testid="rename-modal"
+        open={renameModalIsOpen}
+        modalTitle={'Rename Plan'}
+        modalContent={
+          <TextField
+            id="name"
+            error={isNullOrEmptyString(formState.name)}
+            helperText={
+              isNullOrEmptyString(formState.name)
+                ? 'You must provide a name.'
+                : ''
+            }
+            onChange={handleInputChange(x => ({name: x}))}
+            value={formState.name}
+            placeholder="Plan Name"
+            fullWidth
+          />
+        }
+        modalActions={
+          <>
+            <Button
+              onClick={() => {
+                closeRenameModal();
+                handleMenuClose();
+              }}
+              variant="outlined">
+              Cancel
+            </Button>
+            <Button
+              disabled={isNullOrEmptyString(formState.name)}
+              onClick={handleRenameFolder}
+              color="primary"
+              variant="contained">
+              Rename
             </Button>
           </>
         }

@@ -14,9 +14,13 @@ import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
+import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {makeStyles} from '@material-ui/styles';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 
 import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
@@ -41,10 +45,22 @@ export default function FolderActionsMenu({
   const classes = useStyles();
   const deleteFolderTask = useTaskState();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState(null);
-  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const {
+    isOpen: deleteModalIsOpen,
+    open: openDeleteModal,
+    close: closeDeleteModal,
+  } = useModalState();
+  const {
+    isOpen: renameModalIsOpen,
+    open: openRenameModal,
+    close: closeRenameModal,
+  } = useModalState();
   const handleMenuClose = React.useCallback(() => {
     setMenuAnchorEl(null);
   }, []);
+  const {formState, handleInputChange} = useForm<PlanFolder>({
+    initialState: {id: folder.id, name: folder.name},
+  });
 
   const handleDeleteFolder = React.useCallback(() => {
     (async () => {
@@ -54,7 +70,7 @@ export default function FolderActionsMenu({
           folderId: folder.id.toString(),
         });
         deleteFolderTask.success();
-        setDeleteModalOpen(false);
+        closeDeleteModal();
         handleMenuClose();
         onComplete();
       } catch (err) {
@@ -64,13 +80,16 @@ export default function FolderActionsMenu({
         );
       }
     })();
-  }, [
-    folder,
-    setDeleteModalOpen,
-    handleMenuClose,
-    onComplete,
-    deleteFolderTask,
-  ]);
+  }, [folder, closeDeleteModal, handleMenuClose, onComplete, deleteFolderTask]);
+  const handleRenameFolder = React.useCallback(async () => {
+    await networkPlanningAPIUtil.updateFolder({
+      id: formState.id,
+      name: formState.name,
+    });
+    closeRenameModal();
+    handleMenuClose();
+    onComplete();
+  }, [formState, handleMenuClose, onComplete, closeRenameModal]);
 
   return (
     <div
@@ -91,12 +110,16 @@ export default function FolderActionsMenu({
         getContentAnchorEl={null}
         anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
         transformOrigin={{vertical: 'top', horizontal: 'right'}}>
-        <MenuItem onClick={() => setDeleteModalOpen(true)}>
+        <MenuItem onClick={openRenameModal}>
+          <ListItemText primary="Rename" />
+        </MenuItem>
+        <MenuItem onClick={openDeleteModal}>
           <ListItemText primary="Delete Project" />
         </MenuItem>
       </Menu>
       <MaterialModal
-        open={deleteModalOpen}
+        open={deleteModalIsOpen}
+        data-testid="delete-modal"
         modalTitle="Confirm Deletion"
         modalContentText={
           'Are you sure you want to delete this project and ALL its plans?'
@@ -108,7 +131,7 @@ export default function FolderActionsMenu({
             </Typography>
             <Button
               onClick={() => {
-                setDeleteModalOpen(false);
+                closeDeleteModal();
                 handleMenuClose();
               }}
               variant="outlined">
@@ -121,6 +144,45 @@ export default function FolderActionsMenu({
               variant="contained">
               Delete
               {deleteFolderTask.isLoading && <CircularProgress size={10} />}
+            </Button>
+          </>
+        }
+      />
+      <MaterialModal
+        open={renameModalIsOpen}
+        data-testid="rename-modal"
+        modalTitle={'Rename Project'}
+        modalContent={
+          <TextField
+            id="name"
+            error={isNullOrEmptyString(formState.name)}
+            helperText={
+              isNullOrEmptyString(formState.name)
+                ? 'You must provide a name.'
+                : ''
+            }
+            onChange={handleInputChange(x => ({name: x}))}
+            value={formState.name}
+            placeholder="Project Name"
+            fullWidth
+          />
+        }
+        modalActions={
+          <>
+            <Button
+              onClick={() => {
+                closeRenameModal();
+                handleMenuClose();
+              }}
+              variant="outlined">
+              Cancel
+            </Button>
+            <Button
+              disabled={isNullOrEmptyString(formState.name)}
+              onClick={handleRenameFolder}
+              color="primary"
+              variant="contained">
+              Rename
             </Button>
           </>
         }
