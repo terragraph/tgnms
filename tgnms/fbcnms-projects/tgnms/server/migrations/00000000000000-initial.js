@@ -7,41 +7,6 @@
 module.exports = {
   up: async (queryInterface, DataTypes) => {
     return Promise.all([
-      queryInterface.createTable('DockerHosts', {
-        id: {
-          autoIncrement: true,
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-        },
-        createdAt: {
-          allowNull: false,
-          defaultValue: DataTypes.NOW(),
-          type: DataTypes.DATE,
-        },
-        host: {
-          allowNull: false,
-          type: DataTypes.STRING,
-          validate: {
-            isIP: true,
-          },
-        },
-        name: {
-          allowNull: false,
-          type: DataTypes.STRING,
-          unique: true,
-        },
-        port: {
-          type: DataTypes.INTEGER,
-          validate: {
-            isInt: true,
-          },
-        },
-        updatedAt: {
-          allowNull: false,
-          defaultValue: DataTypes.NOW(),
-          type: DataTypes.DATE,
-        },
-      }),
       queryInterface.createTable(
         'controller',
         {
@@ -161,30 +126,7 @@ module.exports = {
           timestamps: false,
         },
       ),
-    ]).then(() =>
-      Promise.all([
-        queryInterface.addConstraint('topology', ['primary_controller'], {
-          type: 'foreign key',
-          name: 'topology_primary_controller',
-          references: {
-            table: 'controller',
-            field: 'id',
-          },
-          onDelete: 'cascade',
-          onUpdate: 'cascade',
-        }),
-        queryInterface.addConstraint('topology', ['backup_controller'], {
-          type: 'foreign key',
-          name: 'topology_backup_controller',
-          references: {
-            table: 'controller',
-            field: 'id',
-          },
-          onDelete: 'cascade',
-          onUpdate: 'cascade',
-        }),
-      ]),
-    );
+    ]);
   },
 
   down: (_queryInterface, _DataTypes) => {
