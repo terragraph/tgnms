@@ -114,34 +114,3 @@ export async function copyPlan({
   });
   return newPlan;
 }
-
-/**
- * Deletes the plan from the local db and any input files stored locally.
- * Note: this does not delete the plan from ANP; ANP should handle their
- * own retention separately from NMS.
- */
-export async function deletePlan({plan}: {plan: NetworkPlan}) {
-  // We need to delete the plan first to remove it's references
-  // to the input files.
-  await networkPlanningAPIUtil.deletePlan({id: plan.id});
-
-  // We attempt to delete the input files if no other plan
-  // references them.
-  const calls = [];
-  if (plan.boundaryFile?.id)
-    calls.push(
-      networkPlanningAPIUtil.deleteInputFile({
-        id: plan.boundaryFile.id,
-      }),
-    );
-  if (plan.sitesFile?.id)
-    calls.push(
-      networkPlanningAPIUtil.deleteInputFile({
-        id: plan.sitesFile.id,
-      }),
-    );
-  if (plan.dsmFile?.id)
-    calls.push(networkPlanningAPIUtil.deleteInputFile({id: plan.dsmFile.id}));
-
-  await Promise.all(calls);
-}

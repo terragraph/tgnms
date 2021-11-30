@@ -86,6 +86,35 @@ export default class PlanningService {
     return folderRowToFolder(dbFolder.toJSON());
   }
 
+  /** Deletes a folder only if it has no more plans. */
+  async deleteFolder({id}: {id: number}) {
+    const planRows = await network_plan.findAll({
+      where: {folder_id: id},
+    });
+    if (planRows.length) {
+      // Delete all the plans. This needs to happen before file deletion
+      // to prevent race conditions.
+      await network_plan.destroy({where: {folder_id: id}});
+
+      // Delete all the files.
+      const fileIds = planRows.reduce((res, plan) => {
+        if (plan.boundary_file_id) res.add(plan.boundary_file_id);
+        if (plan.sites_file_id) res.add(plan.sites_file_id);
+        if (plan.dsm_file_id) res.add(plan.dsm_file_id);
+        return res;
+      }, new Set<number>([]));
+      await Promise.all(
+        Array.from(fileIds).map(id => this.deleteInputFile({id})),
+      );
+    }
+    const folderRow = await network_plan_folder.findByPk(id);
+    if (folderRow == null) {
+      return null;
+    }
+    // delete the plan row
+    await folderRow.destroy();
+  }
+
   async createNetworkPlan(req: CreateNetworkPlanRequest): Promise<NetworkPlan> {
     const result = await network_plan.create(
       ({
@@ -125,14 +154,39 @@ export default class PlanningService {
     return planRowToNetworkPlan(updated.toJSON());
   }
 
-  // Delete a draft plan
+  /**
+   * Deletes the plan from the local db and any input files stored locally.
+   * Note: this does not delete the plan from ANP; ANP should handle their
+   * own retention separately from NMS.
+   */
   async deleteNetworkPlan({id}: {id: number}) {
     const planRow = await network_plan.findByPk(id);
     if (planRow == null) {
       return null;
     }
-    // delete the plan row
+    // We need to delete the plan first to remove it's references
+    // to the input files.
     await planRow.destroy();
+
+    // We attempt to delete the input files if no other plan
+    // references them.
+    const calls = [];
+    if (planRow.boundary_file_id)
+      calls.push(
+        this.deleteInputFile({
+          id: planRow.boundary_file_id,
+        }),
+      );
+    if (planRow.sites_file_id)
+      calls.push(
+        this.deleteInputFile({
+          id: planRow.sites_file_id,
+        }),
+      );
+    if (planRow.dsm_file_id)
+      calls.push(this.deleteInputFile({id: planRow.dsm_file_id}));
+
+    await Promise.all(calls);
   }
 
   async cancelNetworkPlan(id: number): Promise<{success: boolean}> {

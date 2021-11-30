@@ -53,6 +53,13 @@ export default class NetworkPlanRoutes extends Api {
         .catch(createErrorHandler(res));
     });
 
+    router.delete('/folder/:id', (req, res) => {
+      return planningService
+        .deleteFolder({id: req.params.id})
+        .then(result => res.json(result))
+        .catch(createErrorHandler(res));
+    });
+
     router.post('/folder', (req, res) => {
       return planningService
         .createFolder(req.body)

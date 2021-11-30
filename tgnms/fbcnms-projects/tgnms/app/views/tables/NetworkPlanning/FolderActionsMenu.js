@@ -7,18 +7,18 @@
 import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemText from '@material-ui/core/ListItemText';
 import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import {copyPlan} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
+import Typography from '@material-ui/core/Typography';
+import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {makeStyles} from '@material-ui/styles';
-import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
-import {usePlanningFolderId} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
 
-import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 const useStyles = makeStyles(theme => ({
   deleteButton: {
@@ -28,50 +28,48 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: theme.palette.error.dark,
     },
   },
+  error: {color: theme.palette.error.main},
 }));
 
-export default function PlanActionsMenu({
-  plan,
+export default function FolderActionsMenu({
+  folder,
   onComplete,
 }: {
-  plan: NetworkPlan,
+  folder: PlanFolder,
   onComplete: () => any,
 }) {
   const classes = useStyles();
-  const folderId = usePlanningFolderId();
-  const {setSelectedPlanId} = useNetworkPlanningContext();
+  const deleteFolderTask = useTaskState();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const handleMenuClose = React.useCallback(() => {
     setMenuAnchorEl(null);
   }, []);
 
-  const handleCopyPlan = React.useCallback(() => {
+  const handleDeleteFolder = React.useCallback(() => {
     (async () => {
-      setSelectedPlanId('');
-      const newPlan = await copyPlan({plan, folderId});
-      if (newPlan) setSelectedPlanId(newPlan.id);
-      handleMenuClose();
-      onComplete();
-    })();
-  }, [plan, folderId, setSelectedPlanId, handleMenuClose, onComplete]);
-
-  const handleDeletePlan = React.useCallback(() => {
-    (async () => {
-      // Setting selectedPlanId to null so that we close the
-      // network planning panel, if it was open.
-      setSelectedPlanId(null);
-      await networkPlanningAPIUtil.deletePlan({id: plan.id});
-      setDeleteModalOpen(false);
-      handleMenuClose();
-      onComplete();
+      try {
+        deleteFolderTask.loading();
+        await networkPlanningAPIUtil.deleteFolder({
+          folderId: folder.id.toString(),
+        });
+        deleteFolderTask.success();
+        setDeleteModalOpen(false);
+        handleMenuClose();
+        onComplete();
+      } catch (err) {
+        deleteFolderTask.error();
+        deleteFolderTask.setMessage(
+          'Something went wrong while deleting, please try again later.',
+        );
+      }
     })();
   }, [
-    plan,
+    folder,
     setDeleteModalOpen,
-    setSelectedPlanId,
     handleMenuClose,
     onComplete,
+    deleteFolderTask,
   ]);
 
   return (
@@ -93,19 +91,21 @@ export default function PlanActionsMenu({
         getContentAnchorEl={null}
         anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
         transformOrigin={{vertical: 'top', horizontal: 'right'}}>
-        <MenuItem onClick={handleCopyPlan}>
-          <ListItemText primary="Duplicate" />
-        </MenuItem>
         <MenuItem onClick={() => setDeleteModalOpen(true)}>
-          <ListItemText primary="Delete Plan" />
+          <ListItemText primary="Delete Project" />
         </MenuItem>
       </Menu>
       <MaterialModal
         open={deleteModalOpen}
         modalTitle="Confirm Deletion"
-        modalContentText={'Are you sure you want to delete this plan?'}
+        modalContentText={
+          'Are you sure you want to delete this project and ALL its plans?'
+        }
         modalActions={
           <>
+            <Typography className={classes.error} variant="caption">
+              {deleteFolderTask.message}
+            </Typography>
             <Button
               onClick={() => {
                 setDeleteModalOpen(false);
@@ -115,10 +115,12 @@ export default function PlanActionsMenu({
               Cancel
             </Button>
             <Button
+              disabled={deleteFolderTask.isLoading}
               className={classes.deleteButton}
-              onClick={handleDeletePlan}
+              onClick={handleDeleteFolder}
               variant="contained">
               Delete
+              {deleteFolderTask.isLoading && <CircularProgress size={10} />}
             </Button>
           </>
         }

@@ -243,6 +243,14 @@ export async function getFolder({
   return response.data;
 }
 
+export async function deleteFolder({
+  folderId,
+}: {
+  folderId: string,
+}): Promise<void> {
+  await axios.delete(`/network_plan/folder/${folderId}`);
+}
+
 export async function createFolder(
   folder: $Shape<PlanFolder>,
 ): Promise<PlanFolder> {

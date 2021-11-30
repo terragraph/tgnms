@@ -100,15 +100,5 @@ describe('PlanActionsMenu', () => {
     expect(mockNetworkPlanningAPIUtil.deletePlan).toHaveBeenCalledWith({
       id: mockPlan.id,
     });
-    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledTimes(3);
-    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledWith({
-      id: '10',
-    });
-    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledWith({
-      id: '20',
-    });
-    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledWith({
-      id: '30',
-    });
   });
 });

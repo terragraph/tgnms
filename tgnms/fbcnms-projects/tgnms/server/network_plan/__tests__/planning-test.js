@@ -346,6 +346,34 @@ describe('GET ?folderId', () => {
     ).toBe(NETWORK_PLAN_STATE.UPLOADING_INPUTS);
   });
 });
+describe('DELETE /folder/:id', () => {
+  test('deletes a folder', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const [boundary, dsm, sites] = await createInputFiles({
+      source: FILE_SOURCE.fbid,
+    });
+    const plan = await createTestPlan({
+      folder_id: folder.id,
+      dsm_file_id: dsm.id,
+      boundary_file_id: boundary.id,
+      sites_file_id: sites.id,
+    });
+    await request(setupApp()).get(`/network_plan/plan/${plan.id}`).expect(200);
+
+    // delete the folder
+    await request(setupApp())
+      .delete(`/network_plan/folder/${folder.id}`)
+      .expect(200);
+
+    await expect(network_plan_folder.findByPk(folder.id)).resolves.toBeNull();
+    await expect(network_plan.findByPk(plan.id)).resolves.toBeNull();
+    await expect(network_plan_file.findByPk(dsm.id)).resolves.toBeNull();
+    await expect(network_plan_file.findByPk(boundary.id)).resolves.toBeNull();
+    await expect(network_plan_file.findByPk(sites.id)).resolves.toBeNull();
+  });
+});
 describe('POST /plan', () => {
   test('creates a new plan', async () => {
     const folder = await createTestFolder({name: 'test folder'});
@@ -925,8 +953,8 @@ describe('POST plan/:id/cancel', () => {
     expect(body).toEqual('Plan not launched');
   });
 });
-describe('DELETE /:id', () => {
-  test('deletes a plan', async () => {
+describe('DELETE plan/:id', () => {
+  test('deletes a plan and its input files', async () => {
     const folder = await createTestFolder({
       name: 'test folder',
     });
@@ -1046,20 +1074,11 @@ describe('POST /file/:id', () => {
 describe('GET /file/:id/download', () => {});
 describe('DELETE /file/:id', () => {
   test('removes the file from the plan and deletes the file from disk', async () => {
-    const folder = await createTestFolder({
+    await createTestFolder({
       name: 'test folder',
     });
 
     // create the expected database objects
-    const planId = 123;
-    const planRow = await network_plan.create(
-      ({
-        id: planId,
-        name: 'test',
-        folder_id: folder.id,
-        state: NETWORK_PLAN_STATE.DRAFT,
-      }: $Shape<NetworkPlanAttributes>),
-    );
     const file = (
       await network_plan_file.create(
         ({
@@ -1077,9 +1096,6 @@ describe('DELETE /file/:id', () => {
       .attach('file', fileData, 'sites.csv')
       .expect(200);
 
-    planRow.sites_file_id = file.id;
-    await planRow.save();
-
     const expectedFilePath = path.join(
       getBaseDir(),
       'inputs',
@@ -1088,11 +1104,6 @@ describe('DELETE /file/:id', () => {
     expectFileExists(expectedFilePath, true);
     const fileRow = await network_plan_file.findByPk(file.id);
     expect(fileRow).not.toBeNull();
-
-    // Delete the plan first
-    await request(setupApp())
-      .delete(`/network_plan/plan/${planRow.id}`)
-      .expect(200);
 
     // send the delete request
     await request(setupApp())

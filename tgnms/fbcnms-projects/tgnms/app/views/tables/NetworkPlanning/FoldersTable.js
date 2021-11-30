@@ -8,14 +8,12 @@ import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlan
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import CreateFolderModal from './CreateFolderModal';
 import CreatePlanModal from './CreatePlanModal';
+import FolderActionsMenu from './FolderActionsMenu';
 import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import MenuButton from '@fbcnms/tg-nms/app/components/common/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import TableToolbar, {
-  TableToolbarAction,
-  TableToolbarActions,
-} from './TableToolbar';
+import TableToolbar, {TableToolbarAction} from './TableToolbar';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
@@ -29,32 +27,38 @@ import {
   useHistory,
   useLocation,
 } from 'react-router-dom';
+import {makeStyles} from '@material-ui/styles';
 import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import type {NetworkTableProps} from '../NetworkTables';
 import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
+const useStyles = makeStyles(() => ({
+  actionsButton: {display: 'flex', width: '100%', justifyContent: 'end'},
+}));
+
 export default function FoldersTable({tableHeight}: NetworkTableProps) {
+  const classes = useStyles();
   const location = useLocation();
   const history = useHistory();
   const [lastRefreshDate, setLastRefreshDate] = React.useState(
     new Date().getTime(),
   );
-  const [plans, setFolders] = React.useState<?Array<PlanFolder>>();
-  const loadPlansTask = useTaskState();
+  const [folders, setFolders] = React.useState<?Array<PlanFolder>>();
+  const loadFoldersTask = useTaskState();
   const createFolderModal = useModalState();
   const createPlanModal = useModalState();
   React.useEffect(() => {
     (async () => {
       try {
-        loadPlansTask.setState(TASK_STATE.LOADING);
+        loadFoldersTask.setState(TASK_STATE.LOADING);
         const folders = await networkPlanningAPIUtil.getFolders();
         setFolders(folders);
-        loadPlansTask.setState(TASK_STATE.SUCCESS);
+        loadFoldersTask.setState(TASK_STATE.SUCCESS);
       } catch (err) {
-        loadPlansTask.setState(TASK_STATE.ERROR);
+        loadFoldersTask.setState(TASK_STATE.ERROR);
       }
     })();
-  }, [lastRefreshDate, loadPlansTask]);
+  }, [lastRefreshDate, loadFoldersTask]);
   const refreshTable = React.useCallback(
     () => setLastRefreshDate(new Date().getTime()),
     [setLastRefreshDate],
@@ -94,6 +98,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
         marginRight: '16px',
       },
       emptyRowsWhenPaging: false,
+      actionsColumnIndex: -1,
     };
   }, [tableHeight]);
 
@@ -119,15 +124,29 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
     _props => <FoldersTableCTA onFolderCreated={refreshTable} />,
     [refreshTable],
   );
+  const FolderActionsComponent = React.useCallback(
+    props => (
+      <div className={classes.actionsButton}>
+        <FolderActionsMenu
+          key={props.data.id}
+          folder={props.data}
+          onComplete={refreshTable}
+        />
+      </div>
+    ),
+    [classes, refreshTable],
+  );
   return (
     <>
       <MaterialTable
         title="Projects"
-        data={plans}
+        data={folders}
         options={tableOptions}
         columns={columns}
         onRowClick={handleRowClick}
-        isLoading={loadPlansTask.isLoading}
+        isLoading={loadFoldersTask.isLoading}
+        // removes the Actions column header text
+        localization={{header: {actions: ''}}}
         actions={[
           {
             position: 'toolbar',
@@ -136,11 +155,13 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
             icon: 'none',
             onClick: empty,
           },
+          {
+            Component: FolderActionsComponent,
+          },
         ]}
         components={{
           Toolbar: TableToolbar,
           Action: TableToolbarAction,
-          Actions: TableToolbarActions,
         }}
       />
       <CreateFolderModal
