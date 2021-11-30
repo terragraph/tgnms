@@ -11,29 +11,34 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import SelectOrUploadInputFile from './SelectOrUploadInputFile';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import useTaskState from '@fbcnms/tg-nms/app/hooks/useTaskState';
 import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {LAUNCHING_NETWORK_PLAN_STATES} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import {debounce, isEmpty} from 'lodash';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {makeStyles} from '@material-ui/styles';
 import {usePlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
-import {useSnackbars} from '@fbcnms/tg-nms/app/hooks/useSnackbar';
 import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {PlanFormState} from '@fbcnms/tg-nms/app/features/planning/PlanningHooks';
+
+const useStyles = makeStyles(theme => ({
+  error: {color: theme.palette.error.main},
+}));
 
 export default function PlanEditor({
   folderId,
   plan,
-  onExit,
   onPlanUpdated,
   onPlanLaunched,
 }: {
   plan: NetworkPlan,
   folderId: string,
-  onExit: () => void,
   onPlanUpdated: NetworkPlan => void,
   onPlanLaunched: number => void | Promise<void>,
 }) {
-  const snackbars = useSnackbars();
+  const classes = useStyles();
   // reconstruct the form-state from plan and input files
   const {planState, updatePlanState, setPlanFormState} = usePlanFormState();
   React.useEffect(() => {
@@ -52,45 +57,56 @@ export default function PlanEditor({
       LAUNCHING_NETWORK_PLAN_STATES.has(plan.state) ? 'LOADING' : 'IDLE',
   });
   const savePlanTask = useTaskState();
-  const savePlan = React.useCallback(async () => {
-    const {id, name, dsm, boundary, siteList} = planState;
-    for (const f of [dsm, boundary, siteList]) {
-      if (f == null) {
-        continue;
-      }
-      if (f.id == null) {
-        const file = await networkPlanningAPIUtil.createInputFile({
-          ...f,
-        });
-        f.id = file.id;
-      }
-    }
-    const updatedPlan = await networkPlanningAPIUtil.updatePlan({
-      id,
-      name,
-      dsmFileId: dsm?.id,
-      boundaryFileId: boundary?.id,
-      sitesFileId: siteList?.id,
-    });
-    onPlanUpdated(updatedPlan);
-  }, [planState, onPlanUpdated]);
 
-  const handleSavePlanClicked = React.useCallback(async () => {
-    try {
-      savePlanTask.loading();
-      await savePlan();
-      savePlanTask.success();
-      snackbars.success('Successfully saved plan.');
-    } catch (err) {
-      savePlanTask.error();
-      savePlanTask.setMessage(err.message);
-      snackbars.error(`An issue occured while saving the plan: ${err.message}`);
-    }
-  }, [savePlan, savePlanTask, snackbars]);
+  const onPlanUpdatedRef = useLiveRef(onPlanUpdated);
+  const savePlan = React.useCallback(
+    async planState => {
+      if (isEmpty(planState)) return;
+      try {
+        savePlanTask.setMessage(null);
+        savePlanTask.loading();
+        const {id, name, dsm, boundary, siteList} = planState;
+        for (const f of [dsm, boundary, siteList]) {
+          if (f == null) {
+            continue;
+          }
+          if (f.id == null) {
+            const file = await networkPlanningAPIUtil.createInputFile({
+              ...f,
+            });
+            f.id = file.id;
+          }
+        }
+        const updatedPlan = await networkPlanningAPIUtil.updatePlan({
+          id,
+          name,
+          dsmFileId: dsm?.id,
+          boundaryFileId: boundary?.id,
+          sitesFileId: siteList?.id,
+        });
+        onPlanUpdatedRef.current(updatedPlan);
+        savePlanTask.success();
+      } catch (err) {
+        savePlanTask.error();
+        savePlanTask.setMessage(err.message);
+      }
+    },
+    [onPlanUpdatedRef, savePlanTask],
+  );
+
+  const savePlanDebounced = React.useMemo(() => debounce(savePlan, 500), [
+    savePlan,
+  ]);
+
+  React.useEffect(() => {
+    (async () => {
+      await savePlanDebounced(planState);
+    })();
+  }, [planState, savePlanDebounced]);
+
   const handleStartPlanClicked = React.useCallback(async () => {
     try {
       startPlanTask.loading();
-      await savePlan();
       const _launchPlanResult = await networkPlanningAPIUtil.launchPlan({
         id: plan.id,
       });
@@ -100,7 +116,7 @@ export default function PlanEditor({
       startPlanTask.error();
       startPlanTask.setMessage(err.message);
     }
-  }, [onPlanLaunched, plan, startPlanTask, savePlan]);
+  }, [onPlanLaunched, plan, startPlanTask]);
 
   return (
     <Grid
@@ -114,6 +130,8 @@ export default function PlanEditor({
           id="plan-name"
           label="Plan Name"
           fullWidth
+          error={planState.name == ''}
+          helperText={planState.name == '' ? 'Plan name is required.' : ''}
           value={planState.name ?? ''}
           onChange={e => {
             updatePlanState({name: e.target.value});
@@ -148,20 +166,10 @@ export default function PlanEditor({
       {!startPlanTask.isLoading && (
         <Grid item container justify="flex-end" spacing={1}>
           <Grid item>
-            <Button onClick={onExit} variant="outlined" size="small">
-              Cancel
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              disabled={!validateSavePlan(planState) || savePlanTask.isLoading}
-              onClick={handleSavePlanClicked}
-              variant="contained"
-              color="primary"
-              size="small">
-              Save Plan{'   '}
-              {savePlanTask.isLoading && <CircularProgress size={10} />}
-            </Button>
+            {savePlanTask.isLoading && <CircularProgress size={10} />}
+            <Typography className={classes.error} variant="caption">
+              {savePlanTask.message}
+            </Typography>
           </Grid>
           <Grid item>
             <Button
@@ -184,21 +192,6 @@ export default function PlanEditor({
   );
 }
 
-function validateSavePlan(state: $Shape<PlanFormState>): boolean {
-  try {
-    if (!state) {
-      return false;
-    }
-    const {name} = state;
-    if (isNullOrEmptyString(name)) {
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error(err);
-    return false;
-  }
-}
 function validateSubmitPlan(state: $Shape<PlanFormState>): boolean {
   try {
     if (!state) {

@@ -280,7 +280,6 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
       key={plan.id}
       folderId={folderId}
       plan={plan}
-      onExit={onExit}
       onPlanLaunched={handlePlanLaunched}
       onPlanUpdated={handlePlanUpdated}
     />

@@ -238,13 +238,11 @@ describe('Launch Plan', () => {
       coerceClass(getByLabelText('Plan Name'), HTMLInputElement).value,
     ).toBe('test plan');
     expect(apiMock.getPlan).toHaveBeenCalledTimes(1);
-    expect(apiMock.updatePlan).not.toHaveBeenCalled();
     expect(apiMock.launchPlan).not.toHaveBeenCalled();
     const startPlan = getByText('Create Plan');
     await act(async () => {
       fireEvent.click(startPlan);
     });
-    expect(apiMock.updatePlan).toHaveBeenCalledTimes(1);
     expect(apiMock.launchPlan).toHaveBeenCalledTimes(1);
     expect(apiMock.launchPlan).toHaveBeenCalledWith({id: 1});
     expect(apiMock.getPlan).toHaveBeenCalledTimes(2);

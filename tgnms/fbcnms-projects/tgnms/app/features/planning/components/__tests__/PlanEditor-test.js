@@ -28,7 +28,6 @@ jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil');
 const commonProps: $Shape<React.ElementConfig<typeof PlanEditor>> = {
   folderId: '1',
   plan: mockNetworkPlan(),
-  onExit: jest.fn(),
   onPlanUpdated: jest.fn(),
   onPlanLaunched: jest.fn(),
 };
@@ -80,20 +79,6 @@ test('initializes the form into a loading state when the plan is launching', asy
   expect(queryByTestId('launch-loading-circle')).toBeInTheDocument();
 });
 
-test('clicking the exit button calls onExit', async () => {
-  const exitFn = jest.fn();
-  const {getByText} = await renderAsync(
-    <TestApp>
-      <PlanEditor {...commonProps} onExit={exitFn} />
-    </TestApp>,
-  );
-  expect(exitFn).not.toHaveBeenCalled();
-  act(() => {
-    fireEvent.click(getByText(/cancel/i));
-  });
-  expect(exitFn).toHaveBeenCalled();
-});
-
 test('Uploading new files adds them to the form state', async () => {
   const updatePlanMock = jest
     .spyOn(apiUtilMock, 'updatePlan')
@@ -110,7 +95,7 @@ test('Uploading new files adds them to the form state', async () => {
       <PlanEditor {...commonProps} />
     </TestApp>,
   );
-  const {getByLabelText, getByText} = renderResult;
+  const {getByLabelText} = renderResult;
 
   await testUploadInputFile(renderResult, 'select-dsm-file', {
     name: 'dsm.tiff',
@@ -124,6 +109,8 @@ test('Uploading new files adds them to the form state', async () => {
     name: 'boundary.kml',
     size: 10000,
   });
+  // let the debounce trigger and save the plan.
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   expect(coerceClass(getByLabelText('DSM File'), HTMLInputElement).value).toBe(
     '1',
@@ -134,10 +121,6 @@ test('Uploading new files adds them to the form state', async () => {
   expect(
     coerceClass(getByLabelText('Boundary File'), HTMLInputElement).value,
   ).toBe('3');
-  expect(updatePlanMock).not.toHaveBeenCalled();
-  await act(async () => {
-    fireEvent.click(getByText(/Save Plan/i));
-  });
   expect(updatePlanMock).toHaveBeenCalledWith({
     id: 1,
     name: 'test plan',
@@ -145,73 +128,11 @@ test('Uploading new files adds them to the form state', async () => {
     sitesFileId: 2,
     boundaryFileId: 3,
   });
-});
-
-/**
- * The Start Plan procedure reads the plan form from DB; thus we need to ensure
- * that the plan is saved before starting.
- */
-test('launching a plan saves the form first', async () => {
-  const updatePlanMock = jest
-    .spyOn(apiUtilMock, 'updatePlan')
-    .mockImplementation(() => Promise.resolve());
-  const launchPlanMock = jest
-    .spyOn(apiUtilMock, 'launchPlan')
-    .mockImplementation(() => Promise.resolve());
-  let _fileidCounter = 1;
-  jest
-    .spyOn(apiUtilMock, 'createInputFile')
-    .mockImplementation(file => ({id: _fileidCounter++, ...file}));
-  jest
-    .spyOn(apiUtilMock, 'uploadInputFileData')
-    .mockImplementationOnce(() => Promise.resolve());
-  const renderResult = await renderAsync(
-    <TestApp>
-      <PlanEditor {...commonProps} />
-    </TestApp>,
-  );
-  const {getByLabelText, getByText} = renderResult;
-
-  // Upload files
-  await testUploadInputFile(renderResult, 'select-dsm-file', {
-    name: 'dsm.tiff',
-    size: 100000,
-  });
-  await testUploadInputFile(renderResult, 'select-sites-file', {
-    name: 'sites-file.csv',
-    size: 1000,
-  });
-  await testUploadInputFile(renderResult, 'select-boundary-file', {
-    name: 'boundary.kml',
-    size: 10000,
-  });
-
-  expect(coerceClass(getByLabelText('DSM File'), HTMLInputElement).value).toBe(
-    '1',
-  );
-  expect(
-    coerceClass(getByLabelText('Sites File'), HTMLInputElement).value,
-  ).toBe('2');
-  expect(
-    coerceClass(getByLabelText('Boundary File'), HTMLInputElement).value,
-  ).toBe('3');
-  expect(updatePlanMock).not.toHaveBeenCalled();
-
-  // Start the plan.
-  await act(async () => {
-    fireEvent.click(getByText(/Create Plan/i));
-  });
-  expect(updatePlanMock).toHaveBeenCalledWith({
-    id: 1,
-    name: 'test plan',
-    dsmFileId: 1,
-    sitesFileId: 2,
-    boundaryFileId: 3,
-  });
-  expect(launchPlanMock).toHaveBeenCalledWith({id: 1});
 });
 
 test('Selecting fbid files creates an input file if necessary', async () => {
+  // https://github.com/facebook/jest/issues/3465#issuecomment-623393230
+  jest.useFakeTimers('modern');
   const updatePlanMock = jest
     .spyOn(apiUtilMock, 'updatePlan')
     .mockImplementation(() => Promise.resolve());
@@ -230,7 +151,7 @@ test('Selecting fbid files creates an input file if necessary', async () => {
       <PlanEditor {...commonProps} />
     </TestApp>,
   );
-  const {getByText} = renderResult;
+
   // Pass the set of ANPFileHandles for use in SelectANPPartnerFile
   await testSelectInputFile(
     renderResult,
@@ -283,9 +204,9 @@ test('Selecting fbid files creates an input file if necessary', async () => {
     ],
     'boundary-2',
   );
-  expect(createInputFileMock).not.toHaveBeenCalled();
+  // let the debounce trigger and save the plan.
   await act(async () => {
-    fireEvent.click(getByText(/Save Plan/i));
+    jest.runAllTimers();
   });
   expect(createInputFileMock).toHaveBeenCalledTimes(3);
   expect(updatePlanMock).toHaveBeenCalledWith({
@@ -295,6 +216,7 @@ test('Selecting fbid files creates an input file if necessary', async () => {
     boundaryFileId: 2,
     sitesFileId: 3,
   });
+  jest.useRealTimers();
 });
 test.todo(
   'Selecting fbid files searches for an existing inputfile with the fbid',
