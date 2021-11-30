@@ -65,6 +65,7 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     filteredTopology,
     getTopologyToCommit,
     setPendingTopology,
+    pendingTopology,
     pendingTopologyCount,
   } = useNetworkPlanningManager();
   const {
@@ -83,7 +84,6 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     downloadOutputTask,
     mapOptions,
     setMapOptions,
-    _pendingTopologyCount,
   } = useNetworkPlanningContext();
 
   // Get the filtered plan topology and convert into mapFeatures to be rendered.
@@ -165,6 +165,18 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
     setPendingTopology({links: [], sites: []});
   }, [getTopologyToCommit, setPendingTopology, networkName, snackbars]);
 
+  const ctaText = React.useMemo(() => {
+    if (pendingTopologyCount == 1) {
+      if (pendingTopology.links.size) {
+        return 'Commit Link to Network';
+      } else {
+        return 'Commit Site to Network';
+      }
+    } else {
+      return 'Commit Plan to Network';
+    }
+  }, [pendingTopology, pendingTopologyCount]);
+
   if (!plan) {
     return null;
   }
@@ -237,7 +249,7 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
             disabled={false}
             onSubmit={handleCommitPlan}
             getUploadTopology={getTopologyToCommit}
-            customText="Commit Plan to Network"
+            customText={ctaText}
           />
         </Grid>
       )}
