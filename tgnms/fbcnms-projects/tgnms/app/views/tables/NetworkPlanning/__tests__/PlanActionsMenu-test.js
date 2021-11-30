@@ -21,6 +21,8 @@ import type {InputFile} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil', () => ({
   createPlan: jest.fn().mockImplementation(plan => ({id: '100', ...plan})),
+  deletePlan: jest.fn(),
+  deleteInputFile: jest.fn(),
 }));
 
 describe('PlanActionsMenu', () => {
@@ -60,6 +62,53 @@ describe('PlanActionsMenu', () => {
       dsmFileId: '10',
       sitesFileId: '20',
       boundaryFileId: '30',
+    });
+  });
+  it('should delete a plan', async () => {
+    const mockOnComplete = jest.fn();
+    const mockPlan = mockNetworkPlan({
+      name: 'MyPlan',
+      dsmFile: convertType<InputFile>({id: '10'}),
+      sitesFile: convertType<InputFile>({id: '20'}),
+      boundaryFile: convertType<InputFile>({id: '30'}),
+    });
+    const history = testHistory(PLANNING_BASE_PATH + '/folder/1');
+    const {getByText, getByTestId} = render(
+      <TestApp history={history}>
+        <NetworkContextWrapper>
+          <NetworkPlanningContextProvider>
+            <PlanActionsMenu plan={mockPlan} onComplete={mockOnComplete} />
+          </NetworkPlanningContextProvider>
+        </NetworkContextWrapper>
+      </TestApp>,
+    );
+
+    // Open menu.
+    act(() => {
+      fireEvent.click(getByTestId('more-vert-button'));
+    });
+    // Click delete
+    act(() => {
+      fireEvent.click(getByText('Delete Plan'));
+    });
+    await act(async () => {
+      fireEvent.click(getByText('Delete'));
+    });
+
+    expect(mockOnComplete).toHaveBeenCalledTimes(1);
+    expect(mockNetworkPlanningAPIUtil.deletePlan).toHaveBeenCalledTimes(1);
+    expect(mockNetworkPlanningAPIUtil.deletePlan).toHaveBeenCalledWith({
+      id: mockPlan.id,
+    });
+    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledTimes(3);
+    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledWith({
+      id: '10',
+    });
+    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledWith({
+      id: '20',
+    });
+    expect(mockNetworkPlanningAPIUtil.deleteInputFile).toHaveBeenCalledWith({
+      id: '30',
     });
   });
 });

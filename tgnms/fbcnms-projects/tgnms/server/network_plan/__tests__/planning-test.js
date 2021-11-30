@@ -1089,6 +1089,11 @@ describe('DELETE /file/:id', () => {
     const fileRow = await network_plan_file.findByPk(file.id);
     expect(fileRow).not.toBeNull();
 
+    // Delete the plan first
+    await request(setupApp())
+      .delete(`/network_plan/plan/${planRow.id}`)
+      .expect(200);
+
     // send the delete request
     await request(setupApp())
       .delete(`/network_plan/file/${file.id}`)
@@ -1097,6 +1102,60 @@ describe('DELETE /file/:id', () => {
     const shouldBeDeleted = await network_plan_file.findByPk(file.id);
     expect(shouldBeDeleted).toBeNull();
     expectFileExists(expectedFilePath, false);
+  });
+  test('delete does not remove file if other plans reference it', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+
+    // create the expected database objects
+    const planId = 123;
+    const planRow = await network_plan.create(
+      ({
+        id: planId,
+        name: 'test',
+        folder_id: folder.id,
+        state: NETWORK_PLAN_STATE.DRAFT,
+      }: $Shape<NetworkPlanAttributes>),
+    );
+    const file = (
+      await network_plan_file.create(
+        ({
+          name: 'sites.csv',
+          role: FILE_ROLE.URBAN_SITE_FILE,
+          source: FILE_SOURCE.local,
+          state: FILE_STATE.pending,
+        }: $Shape<NetworkPlanFileAttributes>),
+      )
+    ).toJSON();
+
+    const fileData = Buffer.from('test');
+    await request(setupApp())
+      .post(`/network_plan/file/${file.id}`)
+      .attach('file', fileData, 'sites.csv')
+      .expect(200);
+
+    planRow.sites_file_id = file.id;
+    await planRow.save();
+
+    const expectedFilePath = path.join(
+      getBaseDir(),
+      'inputs',
+      `${file.id}-${file.name}`,
+    );
+    expectFileExists(expectedFilePath, true);
+    const fileRow = await network_plan_file.findByPk(file.id);
+    expect(fileRow).not.toBeNull();
+
+    // send the delete request
+    await request(setupApp())
+      .delete(`/network_plan/file/${file.id}`)
+      .expect(200);
+
+    // File shouldn't be deleted
+    const shouldBeDeleted = await network_plan_file.findByPk(file.id);
+    expect(shouldBeDeleted).not.toBeNull();
+    expectFileExists(expectedFilePath, true);
   });
 });
 

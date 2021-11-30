@@ -16,6 +16,7 @@ import * as path from 'path';
 import ANPAPIClient from './ANPAPIClient';
 import {ANP_FILE_DIR} from '../config';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
+import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {
   FILE_SOURCE,
   FILE_STATE,
@@ -679,6 +680,22 @@ export default class PlanningService {
       throw new Error('File does not exist');
     }
     const fileMetadata = fileRow.toJSON();
+
+    let conditional;
+    if (fileMetadata.role === FILE_ROLE.DSM_GEOTIFF) {
+      conditional = {where: {dsm_file_id: fileMetadata.id}};
+    } else if (fileMetadata.role === FILE_ROLE.BOUNDARY_FILE) {
+      conditional = {where: {boundary_file_id: fileMetadata.id}};
+    } else {
+      conditional = {where: {sites_file_id: fileMetadata.id}};
+    }
+
+    // Ensure that no other plans are using this file
+    const plans = await network_plan.findAll(conditional);
+    if (plans.length != 0) {
+      return;
+    }
+
     // first, delete the file from the DB
     await fileRow.destroy();
     // next, delete the file from the filesystem if it's a local file
