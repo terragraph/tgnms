@@ -44,16 +44,8 @@ export default function PlanActionsMenu({
   const folderId = usePlanningFolderId();
   const {setSelectedPlanId} = useNetworkPlanningContext();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState(null);
-  const {
-    isOpen: deleteModalIsOpen,
-    open: openDeleteModal,
-    close: closeDeleteModal,
-  } = useModalState();
-  const {
-    isOpen: renameModalIsOpen,
-    open: openRenameModal,
-    close: closeRenameModal,
-  } = useModalState();
+  const deleteFolderModal = useModalState();
+  const renameFolderModal = useModalState();
   const handleMenuClose = React.useCallback(() => {
     setMenuAnchorEl(null);
   }, []);
@@ -77,11 +69,11 @@ export default function PlanActionsMenu({
       // network planning panel, if it was open.
       setSelectedPlanId(null);
       await networkPlanningAPIUtil.deletePlan({id: plan.id});
-      closeDeleteModal();
+      deleteFolderModal.close();
       handleMenuClose();
       onComplete();
     })();
-  }, [plan, closeDeleteModal, setSelectedPlanId, handleMenuClose, onComplete]);
+  }, [plan, deleteFolderModal, setSelectedPlanId, handleMenuClose, onComplete]);
   const handleRenameFolder = React.useCallback(async () => {
     await networkPlanningAPIUtil.updatePlan({
       id: plan.id,
@@ -90,10 +82,10 @@ export default function PlanActionsMenu({
       boundaryFileId: plan.boundaryFile?.id,
       sitesFileId: plan.sitesFile?.id,
     });
-    closeRenameModal();
+    renameFolderModal.close();
     handleMenuClose();
     onComplete();
-  }, [plan, formState, handleMenuClose, onComplete, closeRenameModal]);
+  }, [plan, formState, handleMenuClose, onComplete, renameFolderModal]);
   return (
     <div
       onClick={e => {
@@ -113,26 +105,26 @@ export default function PlanActionsMenu({
         getContentAnchorEl={null}
         anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
         transformOrigin={{vertical: 'top', horizontal: 'right'}}>
-        <MenuItem onClick={openRenameModal}>
+        <MenuItem onClick={renameFolderModal.open}>
           <ListItemText primary="Rename" />
         </MenuItem>
         <MenuItem onClick={handleCopyPlan}>
           <ListItemText primary="Duplicate" />
         </MenuItem>
-        <MenuItem onClick={openDeleteModal}>
+        <MenuItem onClick={deleteFolderModal.open}>
           <ListItemText primary="Delete" />
         </MenuItem>
       </Menu>
       <MaterialModal
         data-testid="delete-modal"
-        open={deleteModalIsOpen}
+        open={deleteFolderModal.isOpen}
         modalTitle="Confirm Deletion"
         modalContentText={'Are you sure you want to delete this plan?'}
         modalActions={
           <>
             <Button
               onClick={() => {
-                closeDeleteModal();
+                deleteFolderModal.close();
                 handleMenuClose();
               }}
               variant="outlined">
@@ -149,7 +141,7 @@ export default function PlanActionsMenu({
       />
       <MaterialModal
         data-testid="rename-modal"
-        open={renameModalIsOpen}
+        open={renameFolderModal.isOpen}
         modalTitle={'Rename Plan'}
         modalContent={
           <TextField
@@ -170,7 +162,7 @@ export default function PlanActionsMenu({
           <>
             <Button
               onClick={() => {
-                closeRenameModal();
+                renameFolderModal.close();
                 handleMenuClose();
               }}
               variant="outlined">

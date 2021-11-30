@@ -8,6 +8,8 @@ import * as React from 'react';
 import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import CreatePlanModal from './CreatePlanModal';
+import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemText from '@material-ui/core/ListItemText';
 import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
@@ -45,16 +47,9 @@ export default function FolderActionsMenu({
   const classes = useStyles();
   const deleteFolderTask = useTaskState();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState(null);
-  const {
-    isOpen: deleteModalIsOpen,
-    open: openDeleteModal,
-    close: closeDeleteModal,
-  } = useModalState();
-  const {
-    isOpen: renameModalIsOpen,
-    open: openRenameModal,
-    close: closeRenameModal,
-  } = useModalState();
+  const deleteFolderModal = useModalState();
+  const renameFolderModal = useModalState();
+  const createPlanModal = useModalState();
   const handleMenuClose = React.useCallback(() => {
     setMenuAnchorEl(null);
   }, []);
@@ -70,7 +65,7 @@ export default function FolderActionsMenu({
           folderId: folder.id.toString(),
         });
         deleteFolderTask.success();
-        closeDeleteModal();
+        deleteFolderModal.close();
         handleMenuClose();
         onComplete();
       } catch (err) {
@@ -80,16 +75,22 @@ export default function FolderActionsMenu({
         );
       }
     })();
-  }, [folder, closeDeleteModal, handleMenuClose, onComplete, deleteFolderTask]);
+  }, [
+    folder,
+    deleteFolderModal,
+    handleMenuClose,
+    onComplete,
+    deleteFolderTask,
+  ]);
   const handleRenameFolder = React.useCallback(async () => {
     await networkPlanningAPIUtil.updateFolder({
       id: formState.id,
       name: formState.name,
     });
-    closeRenameModal();
+    renameFolderModal.close();
     handleMenuClose();
     onComplete();
-  }, [formState, handleMenuClose, onComplete, closeRenameModal]);
+  }, [formState, handleMenuClose, onComplete, renameFolderModal]);
 
   return (
     <div
@@ -110,15 +111,19 @@ export default function FolderActionsMenu({
         getContentAnchorEl={null}
         anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
         transformOrigin={{vertical: 'top', horizontal: 'right'}}>
-        <MenuItem onClick={openRenameModal}>
+        <MenuItem onClick={renameFolderModal.open}>
           <ListItemText primary="Rename" />
         </MenuItem>
-        <MenuItem onClick={openDeleteModal}>
+        <MenuItem onClick={createPlanModal.open}>
+          <ListItemText primary="Add Plan" />
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={deleteFolderModal.open}>
           <ListItemText primary="Delete Project" />
         </MenuItem>
       </Menu>
       <MaterialModal
-        open={deleteModalIsOpen}
+        open={deleteFolderModal.isOpen}
         data-testid="delete-modal"
         modalTitle="Confirm Deletion"
         modalContentText={
@@ -131,7 +136,7 @@ export default function FolderActionsMenu({
             </Typography>
             <Button
               onClick={() => {
-                closeDeleteModal();
+                deleteFolderModal.close();
                 handleMenuClose();
               }}
               variant="outlined">
@@ -149,7 +154,7 @@ export default function FolderActionsMenu({
         }
       />
       <MaterialModal
-        open={renameModalIsOpen}
+        open={renameFolderModal.isOpen}
         data-testid="rename-modal"
         modalTitle={'Rename Project'}
         modalContent={
@@ -171,7 +176,7 @@ export default function FolderActionsMenu({
           <>
             <Button
               onClick={() => {
-                closeRenameModal();
+                renameFolderModal.close();
                 handleMenuClose();
               }}
               variant="outlined">
@@ -186,6 +191,14 @@ export default function FolderActionsMenu({
             </Button>
           </>
         }
+      />
+      <CreatePlanModal
+        isOpen={createPlanModal.isOpen}
+        onClose={() => {
+          createPlanModal.close();
+          handleMenuClose();
+        }}
+        folderId={folder.id.toString()}
       />
     </div>
   );

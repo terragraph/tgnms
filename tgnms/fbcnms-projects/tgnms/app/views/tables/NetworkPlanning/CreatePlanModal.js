@@ -35,6 +35,7 @@ type Props = {|
   isOpen: boolean,
   onClose: () => void,
   onComplete?: () => void,
+  folderId?: string,
 |};
 
 const PARAM_SOURCE = {
@@ -57,10 +58,15 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.error.light,
   },
 }));
-export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
+export default function CreatePlanModal({
+  isOpen,
+  onClose,
+  onComplete,
+  folderId,
+}: Props) {
   const classes = useStyles();
   const taskState = useTaskState();
-  const folderId = usePlanningFolderId();
+  const _folderId = usePlanningFolderId();
   const {setSelectedPlanId} = useNetworkPlanningContext();
   const {
     formState,
@@ -68,7 +74,7 @@ export default function CreatePlanModal({isOpen, onClose, onComplete}: Props) {
     updateFormState,
   } = useForm<CreateNetworkPlanFormState>({
     initialState: {
-      folderId,
+      folderId: folderId || _folderId,
       paramSource: PARAM_SOURCE.NEW,
       paramSourceId: null,
     },

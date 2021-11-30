@@ -35,7 +35,7 @@ jest.mock('@fbcnms/tg-nms/app/apiutils/NetworkPlanningAPIUtil', () => ({
 }));
 
 describe('FolderActionsMenu', () => {
-  it('should delete a plan', async () => {
+  it('should delete a project', async () => {
     const mockOnComplete = jest.fn();
     const mockFolder = mockNetworkFolder({id: 10});
     const {getByText, getByTestId} = render(
@@ -61,7 +61,7 @@ describe('FolderActionsMenu', () => {
       folderId: '10',
     });
   });
-  it('should rename a plan', async () => {
+  it('should rename a project', async () => {
     const mockOnComplete = jest.fn();
     const mockFolder = mockNetworkFolder({id: 10, name: 'MyName'});
     const {getByText, getByTestId, getByPlaceholderText} = render(
@@ -91,5 +91,26 @@ describe('FolderActionsMenu', () => {
       id: mockFolder.id,
       name: 'My New Name',
     });
+  });
+
+  it('should open the create a plan modal', async () => {
+    const mockOnComplete = jest.fn();
+    const mockFolder = mockNetworkFolder({id: 10, name: 'MyName'});
+    const {getByText, getByTestId} = render(
+      <TestApp>
+        <FolderActionsMenu folder={mockFolder} onComplete={mockOnComplete} />
+      </TestApp>,
+    );
+    act(() => {
+      fireEvent.click(getByTestId('more-vert-button'));
+    });
+    await act(async () => {
+      fireEvent.click(getByText('Add Plan'));
+    });
+    expect(
+      within(getByTestId('create-plan-modal')).queryByText(
+        'Please select a project first',
+      ),
+    ).not.toBeInTheDocument();
   });
 });
