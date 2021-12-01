@@ -8,7 +8,12 @@
  */
 
 import React from 'react';
-import {LINE_LAYOUT} from '@fbcnms/tg-nms/app/constants/LayerConstants';
+import {
+  LINE_CASING_PAINT,
+  LINE_LAYOUT,
+  SELECTED_CIRCLE_STROKE_COLOR,
+  SELECTED_CIRCLE_STROKE_WIDTH,
+} from '@fbcnms/tg-nms/app/constants/LayerConstants';
 import {Layer, Source} from 'react-mapbox-gl';
 import {createTopologyGeoJson} from './mapFeaturesLayerHelpers';
 import {handleLayerMouseEnter, handleLayerMouseLeave} from '../helpers';
@@ -31,8 +36,6 @@ export const LINKS_LAYER_ID = 'links-inner';
 export const LINKS_CLICK_LAYER_ID = 'links-click';
 export const LINK_HIGHLIGHT_LAYER_ID = 'links-highlight';
 
-const HIGHLIGHT_COLOR = '#00008B';
-
 const SITE_CIRCLE_PAINT = {
   'circle-blur': 0.15,
   'circle-stroke-opacity': 0.6,
@@ -54,8 +57,10 @@ const OUTER_CIRCLE_PAINT = {
 };
 const HIGHLIGHT_CIRCLE_PAINT = {
   ...SITE_CIRCLE_PAINT,
-  'circle-color': HIGHLIGHT_COLOR,
+  'circle-color': ['get', 'color'],
   'circle-radius': 6,
+  'circle-stroke-width': SELECTED_CIRCLE_STROKE_WIDTH,
+  'circle-stroke-color': SELECTED_CIRCLE_STROKE_COLOR,
 };
 const CIRCLE_CLICK_PAINT = {
   // i.e. the click hit box
@@ -73,8 +78,8 @@ const LINE_CLICK_PAINT = {
   'line-width': 15,
 };
 const HIGHLIGHT_LINK_PAINT = {
-  'line-color': HIGHLIGHT_COLOR,
-  'line-width': 3,
+  ...LINE_CASING_PAINT,
+  'line-gap-width': LINE_PAINT['line-width'],
 };
 
 export default function MapFeaturesLayer() {
