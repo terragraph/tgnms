@@ -27,24 +27,24 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function NetworkPlanningTable({tableHeight}: NetworkTableProps) {
+export default function NetworkPlanningTable(_props: NetworkTableProps) {
   const classes = useStyles();
   return (
     <div className={classes.root} data-testid="network-planning-table">
       <Route
         exact
         path={PLANNING_BASE_PATH}
-        render={_props => <FoldersTable tableHeight={tableHeight} />}
+        render={_props => <FoldersTable />}
       />
       <Route
         exact
         path={PLANNING_FOLDER_PATH}
-        render={_props => <PlansTable tableHeight={tableHeight} />}
+        render={_props => <PlansTable />}
       />
       <Route
         exact
         path={PLANNING_PLAN_PATH}
-        render={_props => <TopologyTable tableHeight={tableHeight} />}
+        render={_props => <TopologyTable />}
       />
     </div>
   );

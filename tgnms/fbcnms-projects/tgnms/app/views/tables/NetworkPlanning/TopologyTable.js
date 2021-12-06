@@ -17,7 +17,7 @@ import {
   ANP_SITE_TYPE_PRETTY,
   ANP_STATUS_TYPE_PRETTY,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+
 import {
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
@@ -144,7 +144,7 @@ export type LinkRowSchema = {
   length: number,
 };
 
-export default function TopologyTable({tableHeight}: NetworkTableProps) {
+export default function TopologyTable(_props: NetworkTableProps) {
   const classes = useStyles();
   const history = useHistory();
   const {pathname} = useLocation();
@@ -162,14 +162,8 @@ export default function TopologyTable({tableHeight}: NetworkTableProps) {
       selection: true,
       pageSize: 5,
       pageSizeOptions: [5, 10],
-      maxBodyHeight:
-        tableHeight != null
-          ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
-            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
     }),
-    [tableHeight],
+    [],
   );
 
   // Open the Plans Table if no plan is selected anymore.

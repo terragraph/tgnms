@@ -16,7 +16,7 @@ import TableToolbar, {TableToolbarAction} from './TableToolbar';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+
 import {
   PLANNING_BASE_PATH,
   PLANNING_FOLDER_PATH,
@@ -43,7 +43,7 @@ const useStyles = makeStyles(() => ({
   actionsButton: {display: 'flex', width: '100%', justifyContent: 'end'},
 }));
 
-export default function PlansTable({tableHeight}: NetworkTableProps) {
+export default function PlansTable(_props: NetworkTableProps) {
   const classes = useStyles();
   const match = useParams();
   const location = useLocation();
@@ -89,18 +89,6 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
   const tableOptions = React.useMemo(
     () => ({
       showTitle: true,
-      minBodyHeight:
-        tableHeight != null
-          ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_PAGINATION -
-            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
-      maxBodyHeight:
-        tableHeight != null
-          ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_PAGINATION -
-            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       pageSize: 20,
       pageSizeOptions: [20, 50, 100],
       padding: 'dense',
@@ -113,7 +101,7 @@ export default function PlansTable({tableHeight}: NetworkTableProps) {
       emptyRowsWhenPaging: false,
       actionsColumnIndex: -1,
     }),
-    [makeRowStyle, tableHeight],
+    [makeRowStyle],
   );
 
   const handleRowClick = React.useCallback(

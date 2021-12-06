@@ -7,7 +7,6 @@
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import DashboardLink from '@fbcnms/tg-nms/app/components/common/DashboardLink';
-import Divider from '@material-ui/core/Divider';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -24,7 +23,6 @@ import {
   NodeTypeValueMap as NodeType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
 import {MTableBodyRow} from '@material-table/core';
-import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
 import {
   TIME_WINDOWS,
   TOPOLOGY_ELEMENT,
@@ -45,9 +43,6 @@ import type {Node} from 'react';
 
 // Invalid analyzer value, ignore any fields that have this value.
 const INVALID_VALUE = 255;
-const LINKS_TABLE_HEIGHTS = {
-  FILTERS: 74,
-};
 const styles = theme => {
   return {
     root: {
@@ -62,7 +57,7 @@ const styles = theme => {
       overflow: 'hidden',
     },
     tableOptions: {
-      padding: `${theme.spacing()}px ${theme.spacing(2)}px`,
+      padding: `0 ${theme.spacing()}px`,
     },
   };
 };
@@ -83,7 +78,7 @@ type State = {
   linkTable: $Values<typeof LinkTable>,
 };
 
-export default function NetworkLinksTableNew({tableHeight}: Props) {
+export default function NetworkLinksTableNew(_props: Props) {
   const [state, updateState] = useNetworkLinksTableState({
     // Link filters
     hideDnToDnLinks: false,
@@ -91,74 +86,10 @@ export default function NetworkLinksTableNew({tableHeight}: Props) {
     // The type of link table to display
     linkTable: LinkTable.EVENTS_CHART,
   });
-  const classes = useStyles();
   return (
-    <>
-      <div className={classes.tableOptions} data-testid="network-links-table">
-        <FormControl>
-          <FormLabel component="legend">Link Options</FormLabel>
-          <FormGroup row>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={state.hideWired}
-                  onChange={event => {
-                    updateState({hideWired: event.target.checked});
-                  }}
-                  value="hideWired"
-                  color="primary"
-                />
-              }
-              label="Hide Wired Links"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={state.hideDnToDnLinks}
-                  onChange={event => {
-                    updateState({hideDnToDnLinks: event.target.checked});
-                  }}
-                  value="hideDnToDnLinks"
-                  color="primary"
-                />
-              }
-              label="CNs only"
-            />
-          </FormGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel component="legend">Link Table</FormLabel>
-          <RadioGroup
-            aria-label="Link Table"
-            name="linkTable"
-            value={state.linkTable}
-            onChange={event => updateState({linkTable: event.target.value})}
-            row>
-            <FormControlLabel
-              value={LinkTable.MINIMAL}
-              control={<Radio color="primary" />}
-              label="Minimal"
-            />
-            <FormControlLabel
-              value={LinkTable.EVENTS_CHART}
-              control={<Radio color="primary" />}
-              label="Link Events"
-            />
-            <FormControlLabel
-              value={LinkTable.ANALYZER}
-              control={<Radio color="primary" />}
-              label="Link Stats"
-            />
-          </RadioGroup>
-        </FormControl>
-      </div>
-      <Divider variant="middle" />
-      <LinksTable
-        state={state}
-        updateState={updateState}
-        tableHeight={tableHeight}
-      />
-    </>
+    <div style={{height: '100%', overflow: 'auto'}}>
+      <LinksTable state={state} updateState={updateState} />
+    </div>
   );
 }
 
@@ -173,12 +104,12 @@ function useNetworkLinksTableState(initialState?: $Shape<State>) {
 
 function LinksTable({
   state,
-  tableHeight,
+  updateState,
 }: {|
   state: State,
   updateState: ($Shape<State>) => void,
-  tableHeight: ?number,
 |}) {
+  const classes = useStyles();
   const {linkTable} = state;
   const context = useNetworkContext();
   const {selectedElement, setSelected, networkHealthTimeWindowHrs} = context;
@@ -410,18 +341,6 @@ function LinksTable({
   );
   const tableOptions = React.useMemo(
     () => ({
-      minBodyHeight:
-        tableHeight != null
-          ? tableHeight -
-            LINKS_TABLE_HEIGHTS.FILTERS -
-            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
-      maxBodyHeight:
-        tableHeight != null
-          ? tableHeight -
-            NETWORK_TABLE_HEIGHTS.MTABLE_FILTERING -
-            NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-          : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT,
       padding: 'dense',
       showTitle: false,
       grouping: false,
@@ -430,12 +349,11 @@ function LinksTable({
       emptyRowsWhenPaging: false,
       search: false,
       showTitle: false,
-      toolbar: false,
       rowStyle: makeRowStyle,
       tableLayout: 'fixed',
       draggable: false,
     }),
-    [tableHeight, makeRowStyle],
+    [makeRowStyle],
   );
 
   const columns = React.useMemo(() => {
@@ -471,6 +389,76 @@ function LinksTable({
     }
   }, [linkTable, state, context, getBeamAngle]);
 
+  const components = React.useMemo(
+    () => ({
+      Row: props => {
+        const {name, a_node_name, z_node_name} = props.data;
+        const idx = a_node_name < z_node_name ? 0 : 1;
+        return <MTableBodyRow data-testid={`${name}-${idx}`} {...props} />;
+      },
+      Toolbar: _props => (
+        <div className={classes.tableOptions} data-testid="network-links-table">
+          <FormControl>
+            <FormLabel component="legend">Link Options</FormLabel>
+            <FormGroup row>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={state.hideWired}
+                    onChange={event => {
+                      updateState({hideWired: event.target.checked});
+                    }}
+                    value="hideWired"
+                    color="primary"
+                  />
+                }
+                label="Hide Wired Links"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={state.hideDnToDnLinks}
+                    onChange={event => {
+                      updateState({hideDnToDnLinks: event.target.checked});
+                    }}
+                    value="hideDnToDnLinks"
+                    color="primary"
+                  />
+                }
+                label="CNs only"
+              />
+            </FormGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel component="legend">Link Table</FormLabel>
+            <RadioGroup
+              aria-label="Link Table"
+              name="linkTable"
+              value={state.linkTable}
+              onChange={event => updateState({linkTable: event.target.value})}
+              row>
+              <FormControlLabel
+                value={LinkTable.MINIMAL}
+                control={<Radio color="primary" />}
+                label="Minimal"
+              />
+              <FormControlLabel
+                value={LinkTable.EVENTS_CHART}
+                control={<Radio color="primary" />}
+                label="Link Events"
+              />
+              <FormControlLabel
+                value={LinkTable.ANALYZER}
+                control={<Radio color="primary" />}
+                label="Link Stats"
+              />
+            </RadioGroup>
+          </FormControl>
+        </div>
+      ),
+    }),
+    [classes, state, updateState],
+  );
   return (
     <MaterialTable
       title="Links"
@@ -478,13 +466,7 @@ function LinksTable({
       data={data}
       onRowClick={handleRowSelect}
       options={tableOptions}
-      components={{
-        Row: props => {
-          const {name, a_node_name, z_node_name} = props.data;
-          const idx = a_node_name < z_node_name ? 0 : 1;
-          return <MTableBodyRow data-testid={`${name}-${idx}`} {...props} />;
-        },
-      }}
+      components={components}
     />
   );
 }

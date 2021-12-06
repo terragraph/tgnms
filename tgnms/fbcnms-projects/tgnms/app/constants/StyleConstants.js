@@ -17,15 +17,6 @@ export const UI_HEIGHTS = {
   SEARCHBAR: 72,
 };
 
-export const NETWORK_TABLE_HEIGHTS = {
-  TABS: 64,
-  MTABLE_GROUPING: 54,
-  MTABLE_FILTERING: 51,
-  MTABLE_PAGINATION: 54,
-  MTABLE_TOOLBAR: 64,
-  MTABLE_MAX_HEIGHT: 650,
-};
-
 /**
  * HACK! - Figure out how to actually set the height to 100% screen
  */

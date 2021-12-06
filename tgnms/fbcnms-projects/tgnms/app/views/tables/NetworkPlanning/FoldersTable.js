@@ -16,7 +16,7 @@ import React from 'react';
 import TableToolbar, {TableToolbarAction} from './TableToolbar';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
-import {NETWORK_TABLE_HEIGHTS} from '@fbcnms/tg-nms/app/constants/StyleConstants';
+
 import {
   PLANNING_BASE_PATH,
   PLANNING_FOLDER_PATH,
@@ -36,7 +36,7 @@ const useStyles = makeStyles(() => ({
   actionsButton: {display: 'flex', width: '100%', justifyContent: 'end'},
 }));
 
-export default function FoldersTable({tableHeight}: NetworkTableProps) {
+export default function FoldersTable(_props: NetworkTableProps) {
   const classes = useStyles();
   const location = useLocation();
   const history = useHistory();
@@ -79,16 +79,8 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
     [],
   );
   const tableOptions = React.useMemo(() => {
-    const computedheight =
-      tableHeight != null
-        ? tableHeight -
-          NETWORK_TABLE_HEIGHTS.MTABLE_PAGINATION -
-          NETWORK_TABLE_HEIGHTS.MTABLE_TOOLBAR
-        : NETWORK_TABLE_HEIGHTS.MTABLE_MAX_HEIGHT;
     return {
       showTitle: false,
-      minBodyHeight: computedheight,
-      maxBodyHeight: computedheight,
       pageSize: 20,
       pageSizeOptions: [20, 50, 100],
       padding: 'dense',
@@ -100,7 +92,7 @@ export default function FoldersTable({tableHeight}: NetworkTableProps) {
       emptyRowsWhenPaging: false,
       actionsColumnIndex: -1,
     };
-  }, [tableHeight]);
+  }, []);
 
   const handleRowClick = (event, row: PlanFolder) => {
     const match = matchPath(location.pathname, {
