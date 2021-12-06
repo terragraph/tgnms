@@ -1,8 +1,7 @@
 # Terragraph NMS
 
-UI to visualize the terragraph wireless network.
-
-*Please refer to our operator documentation for the installation procedure.*
+This is an archived version of Terragraph NMS. 
+Please visit https://github.com/terragraph/tgnms for the latest Terragraph NMS software.
 
 ## Testing
 
