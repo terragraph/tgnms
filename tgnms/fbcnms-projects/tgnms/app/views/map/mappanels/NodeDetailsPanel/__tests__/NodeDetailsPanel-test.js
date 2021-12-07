@@ -4,6 +4,7 @@
  * @format
  * @flow strict-local
  */
+import * as TopologyHelpers from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import * as scanApi from '@fbcnms/tg-nms/app/apiutils/ScanServiceAPIUtil';
 import NodeDetailsPanel from '../NodeDetailsPanel';
 import React from 'react';
@@ -18,7 +19,7 @@ import {
   mockTopology,
   renderWithRouter,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {fireEvent, within} from '@testing-library/react';
+import {act, fireEvent, within} from '@testing-library/react';
 
 beforeEach(() => {
   initWindowConfig();
@@ -344,6 +345,37 @@ describe('Actions', () => {
         options: {
           tx_wlan_mac: 'radioMacTest2',
         },
+      });
+    });
+  });
+
+  describe('Edit L2 Tunnel', () => {
+    test('clicking on tunnel starts edit mode', () => {
+      jest.spyOn(TopologyHelpers, 'getConfigOverrides');
+      jest.spyOn(TopologyHelpers, 'getTunnelConfigs').mockReturnValue({
+        Tunnel1: {},
+        Tunnel2: {},
+      });
+      const mockOnEditTunnel = jest.fn();
+      const mock_node = mockNode({name: 'node1'});
+
+      const {getByText} = renderWithRouter(
+        <TestApp>
+          <NodeDetailsPanel
+            {...commonProps}
+            node={mock_node}
+            onEditTunnel={mockOnEditTunnel}
+          />
+        </TestApp>,
+      );
+      fireEvent.click(getByText(/View Actions/i));
+      fireEvent.mouseEnter(getByText('Edit L2 Tunnel'));
+      act(() => {
+        fireEvent.click(getByText('Tunnel1'));
+      });
+      expect(mockOnEditTunnel).toHaveBeenCalledWith({
+        nodeName: 'node1',
+        tunnelName: 'Tunnel1',
       });
     });
   });

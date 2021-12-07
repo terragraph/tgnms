@@ -58,7 +58,9 @@ test('renders after loading without crashing', async () => {
 test('renders with network props', async () => {
   const {getByText} = await renderAsync(
     <TestApp>
-      <ConfigTaskForm {...defaultProps}>test</ConfigTaskForm>
+      <ConfigTaskForm showSubmitButton={true} {...defaultProps}>
+        test
+      </ConfigTaskForm>
     </TestApp>,
   );
   expect(getByText('test')).toBeInTheDocument();

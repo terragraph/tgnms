@@ -25,6 +25,7 @@ const defaultProps = {
   configMetadata: {},
   configOverrides: {},
   networkConfigOverride: {},
+  nodeOverridesConfig: {},
   onUpdate: jest.fn(),
   onSubmit: jest.fn(),
   configParams: {},
@@ -51,6 +52,7 @@ test('useContext provides expected values', () => {
     configMetadata: {},
     configOverrides: {},
     networkConfigOverride: {},
+    nodeOverridesConfig: {},
     configParams: {},
     draftChanges: {},
     editMode: '',
@@ -65,6 +67,7 @@ function Wrapper({
   onUpdate,
   configOverrides,
   networkConfigOverride,
+  nodeOverridesConfig,
   configParams,
   draftChanges,
   selectedValues,
@@ -82,6 +85,7 @@ function Wrapper({
   }) => void,
   configOverrides: {},
   networkConfigOverride: {},
+  nodeOverridesConfig: {},
   configParams: ConfigParamsType,
   draftChanges: {[string]: string},
   selectedValues: SelectedValuesType,
@@ -97,6 +101,7 @@ function Wrapper({
       onUpdate={onUpdate}
       configOverrides={configOverrides}
       networkConfigOverride={networkConfigOverride}
+      nodeOverridesConfig={nodeOverridesConfig}
       configParams={configParams}
       draftChanges={draftChanges}
       selectedValues={selectedValues}

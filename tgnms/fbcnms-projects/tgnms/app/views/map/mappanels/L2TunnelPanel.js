@@ -25,13 +25,23 @@ export default function AddL2Tunnel({
 }: {
   panelControl: PanelStateControl,
 }) {
-  const {setSelectedTopologyPanel} = useTopologyBuilderContext();
+  const {
+    l2TunnelInitialParams,
+    setSelectedTopologyPanel,
+  } = useTopologyBuilderContext();
+
   const {setPanelState} = panelControl;
 
   const handleClose = React.useCallback(() => {
     setPanelState(PANELS.L2_TUNNEL, PANEL_STATE.HIDDEN);
     setSelectedTopologyPanel(null);
   }, [setPanelState, setSelectedTopologyPanel]);
+
+  // If l2 tunnel params were passed in then we are in EDIT mode.
+  let initialParams = null;
+  if (l2TunnelInitialParams) {
+    initialParams = l2TunnelInitialParams;
+  }
 
   return (
     <Slide
@@ -47,8 +57,12 @@ export default function AddL2Tunnel({
             <ConfigTaskForm
               onClose={handleClose}
               editMode={FORM_CONFIG_MODES.MULTINODE}
-              showSubmitButton={true}>
-              <L2TunnelInputs />
+              showSubmitButton={false}>
+              <L2TunnelInputs
+                key={initialParams?.nodeName}
+                initialParams={initialParams}
+                onClose={handleClose}
+              />
             </ConfigTaskForm>
           </div>
         }

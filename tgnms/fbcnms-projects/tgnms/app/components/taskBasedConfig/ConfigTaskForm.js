@@ -255,6 +255,8 @@ export default function ConfigTaskForm(props: Props) {
       drafts: draftConfig,
     });
 
+  const isDisabled = !isConfigChanged(draftChanges, currentConfig);
+
   return (
     <Grid
       item
@@ -278,6 +280,7 @@ export default function ConfigTaskForm(props: Props) {
           configMetadata={metadata || {}}
           configOverrides={currentConfig}
           networkConfigOverride={networkOverridesConfig ?? {}}
+          nodeOverridesConfig={nodeOverridesConfig ?? {}}
           configParams={configParams}
           onUpdate={handleInputUpdate}
           onSetJson={handleSetJson}
@@ -312,7 +315,7 @@ export default function ConfigTaskForm(props: Props) {
                 variant="contained"
                 color="primary"
                 onClick={onSubmit ? onSubmit : handleSubmitConfig}
-                disabled={!isConfigChanged(draftChanges, currentConfig)}>
+                disabled={isDisabled}>
                 {customText ?? 'Submit'}
               </Button>
             </Grid>

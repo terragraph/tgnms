@@ -12,11 +12,13 @@ import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {assign, cloneDeep} from 'lodash';
 import {getWirelessLinkNames} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
+import type {L2TunnelInputParams} from '@fbcnms/tg-nms/app/views/map/mappanels/L2TunnelInputs';
 import type {
   LinkType,
   NodeType,
   SiteType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import type {SetState} from '@fbcnms/tg-nms/app/helpers/ContextHelpers';
 
 export const TOPOLOGY_PANEL_OPTIONS = {
   TOPOLOGY: PANELS.MANUAL_TOPOLOGY,
@@ -40,11 +42,11 @@ export type SelectedTopologyPanel = $Values<typeof TOPOLOGY_PANEL_OPTIONS>;
 
 export type TopologyBuilderContext = {|
   selectedTopologyPanel: ?SelectedTopologyPanel,
-  setSelectedTopologyPanel: (selectedPanel: ?SelectedTopologyPanel) => void,
+  setSelectedTopologyPanel: SetState<?SelectedTopologyPanel>,
   formType: $Values<typeof FORM_TYPE>,
   elementType: $Values<typeof TOPOLOGY_ELEMENT>,
   initialParams: InitialParams,
-  setInitialParams: (params: $Shape<InitialParams>) => void,
+  setInitialParams: SetState<$Shape<InitialParams>>,
   createSite: (params: $Shape<InitialParams>) => void,
   editSite: (siteName: string) => void,
   createNode: (params: $Shape<InitialParams>) => void,
@@ -52,12 +54,15 @@ export type TopologyBuilderContext = {|
   createLink: (params: $Shape<InitialParams>) => void,
   newTopology: InitialParams,
   updateTopology: ($Shape<InitialParams>) => void,
-  setNewTopology: ($Shape<InitialParams>) => void,
+  setNewTopology: SetState<$Shape<InitialParams>>,
   nodeConfigs: {[string]: {[string]: string}},
   updateNodeConfigs: ({
     nodeName: string,
     nodeConfig: {[string]: string},
   }) => void,
+  editL2Tunnel: (l2Tunnel: L2TunnelInputParams) => void,
+  l2TunnelInitialParams: ?L2TunnelInputParams,
+  setL2TunnelInitialParams: SetState<?L2TunnelInputParams>,
 |};
 
 const empty = () => {};
@@ -78,6 +83,9 @@ const defaultValue: TopologyBuilderContext = {
   setNewTopology: empty,
   nodeConfigs: {},
   updateNodeConfigs: empty,
+  editL2Tunnel: empty,
+  l2TunnelInitialParams: null,
+  setL2TunnelInitialParams: empty,
 };
 
 const context = React.createContext<TopologyBuilderContext>(defaultValue);
@@ -112,6 +120,10 @@ export function TopologyBuilderContextProvider({
   const [initialParams, setInitialParams] = React.useState(EMPTY_TOPOLOGY);
   const [newTopology, setNewTopology] = React.useState(EMPTY_TOPOLOGY);
   const [nodeConfigs, setNodeConfigs] = React.useState({});
+  const [
+    l2TunnelInitialParams,
+    setL2TunnelInitialParams,
+  ] = React.useState<?L2TunnelInputParams>(null);
 
   React.useEffect(() => {
     //when clicking submit or close on any topology builder form
@@ -205,6 +217,11 @@ export function TopologyBuilderContextProvider({
     [nodeConfigs],
   );
 
+  const editL2Tunnel = React.useCallback(l2TunnelInfo => {
+    setSelectedTopologyPanel(TOPOLOGY_PANEL_OPTIONS.L2_TUNNEL);
+    setL2TunnelInitialParams(l2TunnelInfo);
+  }, []);
+
   return (
     <context.Provider
       value={{
@@ -224,6 +241,9 @@ export function TopologyBuilderContextProvider({
         setNewTopology,
         nodeConfigs,
         updateNodeConfigs,
+        editL2Tunnel,
+        l2TunnelInitialParams,
+        setL2TunnelInitialParams,
       }}>
       {children}
     </context.Provider>

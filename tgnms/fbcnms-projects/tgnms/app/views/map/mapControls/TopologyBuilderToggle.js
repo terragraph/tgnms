@@ -107,9 +107,9 @@ export default function TopologyBuilderToggle() {
           {isFeatureEnabled('L2_TUNNELS_ENABLED') && (
             <button
               title="Add L2 tunnel"
-              onClick={() =>
-                handleSelectTopologyPanel(TOPOLOGY_PANEL_OPTIONS.L2_TUNNEL)
-              }>
+              onClick={() => {
+                handleSelectTopologyPanel(TOPOLOGY_PANEL_OPTIONS.L2_TUNNEL);
+              }}>
               <TuneIcon className={classes.icon} />
             </button>
           )}

@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
 
 import * as turf from '@turf/turf';
@@ -14,6 +14,8 @@ import {
 import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {averageAngles} from './MathHelpers';
 import {bearingToAzimuth, locToPos} from './GeoHelpers';
+import {get} from 'lodash';
+import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 
 import type {ANPLink} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {AzimuthManager} from '@fbcnms/tg-nms/app/features/topology/useAzimuthManager';
@@ -30,6 +32,7 @@ import type {
   NodeType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
+import type {NetworkConfig} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 export type TopologyMaps = {|
   nodeMap: NodeMap,
@@ -360,3 +363,12 @@ export async function deleteLinkRequest({
     msg: `Link was successfully deleted!`,
   };
 }
+
+export const getConfigOverrides = (config: NetworkConfig) => {
+  const overrides = get(config, ['config_node_overrides', 'overrides']);
+  return !isNullOrEmptyString(overrides) ? JSON.parse(overrides) : {};
+};
+
+export const getTunnelConfigs = (overrides: any, nodeName: string) => {
+  return get(overrides, [nodeName, 'tunnelConfig'], {});
+};

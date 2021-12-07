@@ -33,14 +33,20 @@ import {
   requestWithConfirmation,
 } from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {currentDefaultRouteRequest} from '@fbcnms/tg-nms/app/apiutils/DefaultRouteHistoryAPIUtil';
+import {
+  getConfigOverrides,
+  getTunnelConfigs,
+  getWirelessLinkNames,
+} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {getNodesInRoute} from '@fbcnms/tg-nms/app/helpers/DefaultRouteHelpers';
-import {getWirelessLinkNames} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {makeStyles} from '@material-ui/styles';
 import {startPartialTest} from '@fbcnms/tg-nms/app/features/network_test/NetworkTestHelpers';
 import {supportsTopologyScan} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 import {useHistory} from 'react-router-dom';
+import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
+import type {L2TunnelInputParams} from '@fbcnms/tg-nms/app/views/map/mappanels/L2TunnelInputs';
 import type {
   LinkMap,
   NodeToLinksMap,
@@ -77,6 +83,7 @@ type Props = {|
     warning: string => any,
   },
   onEdit: string => any,
+  onEditTunnel: L2TunnelInputParams => any,
 |};
 
 type State = {|configModalOpen: boolean|};
@@ -97,6 +104,7 @@ export default React.forwardRef<*, *>(function NodeDetailsPanelNew(
     linkMap,
     nodeToLinksMap,
   } = props;
+  const {networkConfig} = useNetworkContext();
   const [state, setState] = React.useState<State>({configModalOpen: false});
   const {configModalOpen} = state;
   const P2MPLinkNames = getWirelessLinkNames({node, linkMap, nodeToLinksMap});
@@ -321,6 +329,19 @@ export default React.forwardRef<*, *>(function NodeDetailsPanelNew(
       nodes: new Set(),
     });
   };
+  const tunnelConfigs = React.useMemo(
+    () => getTunnelConfigs(getConfigOverrides(networkConfig), node.name),
+    [networkConfig, node],
+  );
+
+  const _onEditTunnel = tunnelName => {
+    const {onEditTunnel} = props;
+    onEditTunnel({
+      nodeName: node.name,
+      tunnelName: tunnelName,
+    });
+  };
+
   const actionItems = [
     {
       heading: 'Commands',
@@ -366,6 +387,19 @@ export default React.forwardRef<*, *>(function NodeDetailsPanelNew(
         {
           label: 'Delete Node',
           func: onDeleteNode,
+        },
+        {
+          label: 'Edit L2 Tunnel',
+          subMenu: [
+            {
+              actions: tunnelConfigs
+                ? Object.keys(tunnelConfigs).map(tunnelName => ({
+                    label: tunnelName,
+                    func: () => _onEditTunnel(tunnelName),
+                  }))
+                : [],
+            },
+          ],
         },
       ],
     },

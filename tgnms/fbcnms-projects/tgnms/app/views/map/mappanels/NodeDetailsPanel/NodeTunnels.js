@@ -13,15 +13,25 @@ import Typography from '@material-ui/core/Typography';
 import {get, isEmpty} from 'lodash';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {makeStyles} from '@material-ui/styles';
+import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 
 type Props = {|
   nodeName: string,
 |};
 
+type Info = {
+  enabled: boolean,
+  localInterface: ?string,
+  dstIp: ?string,
+  dstNodeName: ?string,
+  tunnelType: ?string,
+  tunnelParams: ?Array<any>,
+};
+
 type TunnelInfoProps = {|
   name: string,
-  info: any,
+  info: Info,
 |};
 
 const useStyles = makeStyles(() => ({
@@ -61,9 +71,11 @@ export default function NodeTunnels(props: Props) {
         <Typography variant="subtitle2">Tunnels</Typography>
       </div>
       <div>
-        {Object.entries(tunnelConfig).map(([tunnelName, tunnelInfo]) => (
-          <TunnelInfo key={tunnelName} name={tunnelName} info={tunnelInfo} />
-        ))}
+        {objectEntriesTypesafe<string, Info>(tunnelConfig).map(
+          ([tunnelName, tunnelInfo]) => (
+            <TunnelInfo key={tunnelName} name={tunnelName} info={tunnelInfo} />
+          ),
+        )}
       </div>
     </>
   );
@@ -109,7 +121,7 @@ function TunnelInfo({name, info}: TunnelInfoProps) {
           <Typography variant="body2">{info.tunnelType}</Typography>
         </div>
         <Typography variant="subtitle2">Tunnel Params</Typography>
-        {Object.entries(info.tunnelParams).map(([argName, argValue]) => (
+        {Object.entries(info.tunnelParams || []).map(([argName, argValue]) => (
           <Typography variant="body2">
             {argName}: {String(argValue)}
           </Typography>
