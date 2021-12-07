@@ -4,24 +4,45 @@
  * @format
  * @flow
  */
-
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
+import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MaterialReactSelect from '@fbcnms/tg-nms/app/components/common/MaterialReactSelect';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
+import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {
   getConfigOverrides,
   getTunnelConfigs,
 } from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
+import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
+import {useModalState} from '@fbcnms/tg-nms/app/hooks/modalHooks';
 import {useNetworkContext} from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import {useTopologyBuilderContext} from '@fbcnms/tg-nms/app/contexts/TopologyBuilderContext';
 import {useUpdateConfig} from '@fbcnms/tg-nms/app/hooks/useUpdateConfig';
+
+const useStyles = makeStyles(theme => ({
+  deleteButtonText: {
+    color: theme.palette.error.main,
+  },
+  deleteButton: {
+    backgroundColor: theme.palette.error.main,
+    color: 'white',
+    '&:hover': {
+      backgroundColor: theme.palette.error.dark,
+    },
+  },
+}));
+
+const makeTunnelPath = (nodeName: string, tunnelName: string) => {
+  return `${nodeName}.tunnelConfig.${tunnelName}`;
+};
 
 const TUNNEL_TYPES = {
   gre: {label: 'GRE', value: 'GRE_L2'},
@@ -74,15 +95,18 @@ export default function L2TunnelInputs({
   initialParams?: ?L2TunnelInputParams,
   onClose?: () => void,
 }) {
+  const classes = useStyles();
   const {networkConfig} = useNetworkContext();
   const {topology} = networkConfig;
-  const {onCancel, nodeOverridesConfig} = useConfigTaskContext();
+  const {onCancel, onDelete, nodeOverridesConfig} = useConfigTaskContext();
+  const onDeleteRef = useLiveRef(onDelete);
+  const onCloseRef = useLiveRef(onClose);
   const {setL2TunnelInitialParams} = useTopologyBuilderContext();
 
   React.useEffect(() => {
     return () => setL2TunnelInitialParams(null);
   }, [setL2TunnelInitialParams]);
-
+  const deleteTunnelModal = useModalState();
   const updateConfig = useUpdateConfig();
   const nodeMenuItems = React.useMemo(
     () =>
@@ -100,6 +124,9 @@ export default function L2TunnelInputs({
     () => getConfigOverrides(networkConfig),
     [networkConfig],
   );
+
+  // Used to keep track of the previous destination node during editing.
+  const [prevDstNode, setPrevDstNode] = React.useState(null);
 
   // If initialParams were passed in, then we are in editting mode.
   const isEditMode = !!initialParams;
@@ -125,6 +152,7 @@ export default function L2TunnelInputs({
       } else {
         // Is node-to-node tunnel
         const dstNodeName = src.dstNodeName;
+        setPrevDstNode(dstNodeName);
         // Grabs the tunnel information for the dst node of the tunnel.
         const dst = getTunnelConfigs(configOverrides, dstNodeName)[
           initialParams.tunnelName
@@ -138,7 +166,7 @@ export default function L2TunnelInputs({
     } else {
       return DEFAULT_FORM_VALUE;
     }
-  }, [initialParams, configOverrides, nodeMenuItems]);
+  }, [initialParams, configOverrides, nodeMenuItems, setPrevDstNode]);
 
   const {formState, updateFormState, handleInputChange} = useForm({
     initialState: defaultValue,
@@ -278,167 +306,242 @@ export default function L2TunnelInputs({
       currentConfig: nodeOverridesConfig,
       jsonConfig: null,
     });
-    if (onClose) onClose();
-  }, [formState, updateConfig, nodeOverridesConfig, onClose]);
+    // We need to remove the tunnel from the prev destination node if
+    // the tunnel is no longer pointing to it.
+    if (prevDstNode && prevDstNode != formState.node2?.value) {
+      onDeleteRef.current([makeTunnelPath(prevDstNode, formState.name)]);
+    }
+
+    if (onCloseRef.current) onCloseRef.current();
+  }, [
+    formState,
+    updateConfig,
+    nodeOverridesConfig,
+    onCloseRef,
+    onDeleteRef,
+    prevDstNode,
+  ]);
+
+  const handleDeleteTunnel = React.useCallback(() => {
+    const paths = [];
+    if (initialParams) {
+      const src = getTunnelConfigs(configOverrides, initialParams.nodeName)[
+        initialParams.tunnelName
+      ];
+      // Delete src node
+      paths.push(
+        makeTunnelPath(initialParams.nodeName, initialParams.tunnelName),
+      );
+      if (!isNullOrEmptyString(src.dstNodeName)) {
+        // Delete dst node if it was a node to node tunnel
+        paths.push(makeTunnelPath(src.dstNodeName, initialParams.tunnelName));
+      }
+      onDeleteRef.current(paths);
+    }
+
+    if (onCloseRef.current) onCloseRef.current();
+    deleteTunnelModal.close();
+  }, [
+    onDeleteRef,
+    initialParams,
+    deleteTunnelModal,
+    configOverrides,
+    onCloseRef,
+  ]);
 
   return (
-    <Grid container direction="column" spacing={1}>
-      <Grid item>
-        <TextField
-          id="name"
-          label="Tunnel Name *"
-          fullWidth
-          dense
-          error={isInvalidName}
-          helperText={isInvalidName ? 'Name already taken.' : ''}
-          disabled={isEditMode}
-          value={formState.name}
-          onChange={handleInputChange(val => ({name: val}))}
-        />
-      </Grid>
-      <Grid item>
-        <MaterialReactSelect
-          inputId="tunnel-type"
-          textFieldProps={{
-            label: 'Tunnel Type',
-            InputLabelProps: {shrink: true},
-          }}
-          getOptionValue={option => option.label}
-          options={Object.values(TUNNEL_TYPES)}
-          required={true}
-          onChange={handleTypeChange}
-          value={formState.type}
-        />
-      </Grid>
-      {(formState.type.label === TUNNEL_TYPES.vxlan.label ||
-        formState.type.label === TUNNEL_TYPES.srv6.label) && (
+    <>
+      <Grid container direction="column" spacing={1}>
         <Grid item>
           <TextField
-            id="vlanId"
-            key="vlanId"
-            label="Vlan ID"
-            type="number"
-            InputLabelProps={{shrink: true}}
-            margin="dense"
+            id="name"
+            label="Tunnel Name *"
             fullWidth
-            value={formState.vlanId}
-            onChange={handleInputChange(val => ({vlanId: Number(val)}))}
+            dense
+            error={isInvalidName}
+            helperText={isInvalidName ? 'Name already taken.' : ''}
+            disabled={isEditMode}
+            value={formState.name}
+            onChange={handleInputChange(val => ({name: val}))}
           />
         </Grid>
-      )}
-      <Grid item>
-        <MaterialReactSelect
-          inputId={'tunnel-dest'}
-          textFieldProps={{
-            label: 'Tunneling To *',
-            InputLabelProps: {shrink: true},
-          }}
-          getOptionValue={option => option.label}
-          options={Object.values(TUNNEL_DEST)}
-          required={true}
-          onChange={handleTunnelDestChange}
-          value={formState.tunnelDest}
-        />
-      </Grid>
-      <Grid item>
-        <MaterialReactSelect
-          isDisabled={isEditMode}
-          inputId={'node-1'}
-          textFieldProps={{
-            label: 'Node 1 *',
-            InputLabelProps: {shrink: true},
-          }}
-          getOptionValue={option => option.label}
-          options={nodeMenuItems}
-          required={true}
-          onChange={handleNode1NameChange}
-          value={formState.node1}
-        />
-        <TextField
-          id="node1Interface"
-          key="node1Interface"
-          label="Node 1 Local Interface"
-          InputLabelProps={{shrink: true}}
-          margin="dense"
-          fullWidth
-          value={formState.node1Interface}
-          onChange={handleInputChange(val => ({node1Interface: val}))}
-        />
-      </Grid>
-      <Grid item>
-        {formState.tunnelDest.label === TUNNEL_DEST.ip.label ? (
-          <TextField
-            id="ipAddress"
-            key="ipAddress"
-            label="External IP Address *"
-            InputLabelProps={{shrink: true}}
-            margin="dense"
-            fullWidth
-            value={formState.ipAddress}
-            onChange={handleInputChange(val => ({ipAddress: val}))}
+        <Grid item>
+          <MaterialReactSelect
+            inputId="tunnel-type"
+            textFieldProps={{
+              label: 'Tunnel Type',
+              InputLabelProps: {shrink: true},
+            }}
+            getOptionValue={option => option.label}
+            options={Object.values(TUNNEL_TYPES)}
+            required={true}
+            onChange={handleTypeChange}
+            value={formState.type}
           />
-        ) : (
-          <>
-            <MaterialReactSelect
-              inputId={'node-2'}
-              textFieldProps={{
-                label: 'Node 2 *',
-                InputLabelProps: {shrink: true},
-              }}
-              getOptionValue={option => option.label}
-              options={nodeMenuItems}
-              required={true}
-              onChange={handleNode2NameChange}
-              value={formState.node2}
-            />
+        </Grid>
+        {(formState.type.label === TUNNEL_TYPES.vxlan.label ||
+          formState.type.label === TUNNEL_TYPES.srv6.label) && (
+          <Grid item>
             <TextField
-              id="node2Interface"
-              key="node2Interface"
-              label="Node 2 Local Interface"
+              id="vlanId"
+              key="vlanId"
+              label="Vlan ID"
+              type="number"
               InputLabelProps={{shrink: true}}
               margin="dense"
               fullWidth
-              value={formState.node2Interface}
-              onChange={handleInputChange(val => ({node2Interface: val}))}
+              value={formState.vlanId}
+              onChange={handleInputChange(val => ({vlanId: Number(val)}))}
             />
-          </>
-        )}
-      </Grid>
-      <Grid item>
-        <FormControlLabel
-          data-testid="checkbox"
-          control={React.createElement(Checkbox, {
-            checked: formState.enabled === true,
-            onChange: handleEnableChange,
-            value: String(formState.enabled) || '',
-            color: 'primary',
-          })}
-          label={'Tunnel Enabled'}
-        />
-      </Grid>
-      <Grid item>
-        <Grid container spacing={2} justify="flex-end">
-          <Grid item>
-            <Button
-              onClick={onCancel}
-              data-testid="cancel-button"
-              variant="text">
-              Cancel
-            </Button>
           </Grid>
+        )}
+        <Grid item>
+          <MaterialReactSelect
+            inputId={'tunnel-dest'}
+            textFieldProps={{
+              label: 'Tunneling To *',
+              InputLabelProps: {shrink: true},
+            }}
+            getOptionValue={option => option.label}
+            options={Object.values(TUNNEL_DEST)}
+            required={true}
+            onChange={handleTunnelDestChange}
+            value={formState.tunnelDest}
+          />
+        </Grid>
+        <Grid item>
+          <MaterialReactSelect
+            isDisabled={isEditMode}
+            inputId={'node-1'}
+            textFieldProps={{
+              label: 'Node 1 *',
+              InputLabelProps: {shrink: true},
+            }}
+            getOptionValue={option => option.label}
+            options={nodeMenuItems}
+            required={true}
+            onChange={handleNode1NameChange}
+            value={formState.node1}
+          />
+          <TextField
+            id="node1Interface"
+            key="node1Interface"
+            label="Node 1 Local Interface"
+            InputLabelProps={{shrink: true}}
+            margin="dense"
+            fullWidth
+            value={formState.node1Interface}
+            onChange={handleInputChange(val => ({node1Interface: val}))}
+          />
+        </Grid>
+        <Grid item>
+          {formState.tunnelDest.label === TUNNEL_DEST.ip.label ? (
+            <TextField
+              id="ipAddress"
+              key="ipAddress"
+              label="External IP Address *"
+              InputLabelProps={{shrink: true}}
+              margin="dense"
+              fullWidth
+              value={formState.ipAddress}
+              onChange={handleInputChange(val => ({ipAddress: val}))}
+            />
+          ) : (
+            <>
+              <MaterialReactSelect
+                inputId={'node-2'}
+                textFieldProps={{
+                  label: 'Node 2 *',
+                  InputLabelProps: {shrink: true},
+                }}
+                getOptionValue={option => option.label}
+                options={nodeMenuItems}
+                required={true}
+                onChange={handleNode2NameChange}
+                value={formState.node2}
+              />
+              <TextField
+                id="node2Interface"
+                key="node2Interface"
+                label="Node 2 Local Interface"
+                InputLabelProps={{shrink: true}}
+                margin="dense"
+                fullWidth
+                value={formState.node2Interface}
+                onChange={handleInputChange(val => ({node2Interface: val}))}
+              />
+            </>
+          )}
+        </Grid>
+        <Grid container justify="space-between">
           <Grid item>
-            <Button
-              type="submit"
-              data-testid="submit-button"
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled}>
-              Submit
-            </Button>
+            <FormControlLabel
+              data-testid="checkbox"
+              control={React.createElement(Checkbox, {
+                checked: formState.enabled === true,
+                onChange: handleEnableChange,
+                value: String(formState.enabled) || '',
+                color: 'primary',
+              })}
+              label={'Tunnel Enabled'}
+            />
+          </Grid>
+          {isEditMode && (
+            <Grid item>
+              <Button
+                className={classes.deleteButtonText}
+                onClick={deleteTunnelModal.open}>
+                Delete
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+        <Grid item>
+          <Grid container spacing={2} justify="flex-end">
+            <Grid item>
+              <Button
+                onClick={onCancel}
+                data-testid="cancel-button"
+                variant="text">
+                Cancel
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                type="submit"
+                data-testid="submit-button"
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
+                disabled={isSubmitDisabled}>
+                Submit
+              </Button>
+            </Grid>
           </Grid>
         </Grid>
       </Grid>
-    </Grid>
+
+      <MaterialModal
+        data-testid="delete-modal"
+        open={deleteTunnelModal.isOpen}
+        modalTitle="Confirm Deletion"
+        modalContentText={'Are you sure you want to delete this tunnel?'}
+        modalActions={
+          <>
+            <Button
+              onClick={() => deleteTunnelModal.close()}
+              variant="outlined">
+              Cancel
+            </Button>
+            <Button
+              className={classes.deleteButton}
+              onClick={handleDeleteTunnel}
+              variant="contained">
+              Delete
+            </Button>
+          </>
+        }
+      />
+    </>
   );
 }

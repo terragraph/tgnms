@@ -17,7 +17,7 @@ import {
   mockFig0,
   mockNetworkConfig,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
-import {act, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render, within} from '@testing-library/react';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {convertType} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 
@@ -53,6 +53,9 @@ const tunnelConfigs = JSON.stringify({
       },
     },
   },
+  [FIG0.NODE3_0]: {
+    tunnelConfig: {},
+  },
 });
 
 describe('Edit mode', () => {
@@ -70,7 +73,6 @@ describe('Edit mode', () => {
       convertType<HTMLInputElement>(getByLabelText(/tunnel name/i)).value,
     ).toEqual('TunnelNodeToNode');
 
-    // Sanity Check: making changes updates the form.
     await selectEvent.select(getByLabelText(/tunnel type/i), 'SRV6', {
       container: document.body,
     });
@@ -146,6 +148,152 @@ describe('Edit mode', () => {
       expect.anything(),
       expect.anything(),
     );
+  });
+  test('pointing tunnel to a different node deletes the destination node', async () => {
+    const mockSetNodeOverridesConfig = jest.spyOn(
+      mockConfigAPIUtil,
+      'setNodeOverridesConfig',
+    );
+    const {getByLabelText, getByTestId, onDeleteMock} = renderApp({
+      nodeName: FIG0.NODE1_0,
+      tunnelName: 'TunnelNodeToNode',
+    });
+    // Ensure form is filled in with initial data.
+    expect(
+      convertType<HTMLInputElement>(getByLabelText(/tunnel name/i)).value,
+    ).toEqual('TunnelNodeToNode');
+
+    await selectEvent.select(getByLabelText(/node 2 \*/i), FIG0.NODE3_0, {
+      container: document.body,
+    });
+
+    act(() => {
+      fireEvent.click(getByTestId('submit-button'));
+    });
+    // Ensure new tunnel is saved.
+    expect(mockSetNodeOverridesConfig).toHaveBeenCalledWith(
+      'MyNetworkTest',
+      {
+        [FIG0.NODE1_0]: {
+          tunnelConfig: {
+            TunnelNodeToNode: {
+              enabled: true,
+              dstNodeName: FIG0.NODE3_0,
+              localInterface: 'MyInterface1',
+              tunnelType: 'GRE_L2',
+              tunnelParams: {},
+            },
+          },
+        },
+        [FIG0.NODE3_0]: {
+          tunnelConfig: {
+            TunnelNodeToNode: {
+              enabled: true,
+              dstNodeName: FIG0.NODE1_0,
+              localInterface: 'MyInterface2',
+              tunnelType: 'GRE_L2',
+              tunnelParams: {},
+            },
+          },
+        },
+      },
+      expect.anything(),
+      expect.anything(),
+    );
+    // make sure the old node is deleted.
+    expect(onDeleteMock).toHaveBeenCalledWith([
+      'site2-0.tunnelConfig.TunnelNodeToNode',
+    ]);
+  });
+  test('converting a node-to-node tunnel to node-to-ip deletes the destination node', async () => {
+    const mockSetNodeOverridesConfig = jest.spyOn(
+      mockConfigAPIUtil,
+      'setNodeOverridesConfig',
+    );
+    const {getByLabelText, getByTestId, onDeleteMock} = renderApp({
+      nodeName: FIG0.NODE1_0,
+      tunnelName: 'TunnelNodeToNode',
+    });
+
+    await selectEvent.select(
+      getByLabelText(/tunneling to \*/i),
+      'External IP Address',
+      {
+        container: document.body,
+      },
+    );
+    act(() => {
+      fireEvent.change(getByLabelText(/external ip address/i), {
+        target: {value: '1.1.1.1'},
+      });
+    });
+
+    act(() => {
+      fireEvent.click(getByTestId('submit-button'));
+    });
+    // Ensure new tunnel is saved.
+    expect(mockSetNodeOverridesConfig).toHaveBeenCalledWith(
+      'MyNetworkTest',
+      {
+        [FIG0.NODE1_0]: {
+          tunnelConfig: {
+            TunnelNodeToNode: {
+              enabled: true,
+              dstIp: '1.1.1.1',
+              localInterface: 'MyInterface1',
+              tunnelType: 'GRE_L2',
+              tunnelParams: {},
+            },
+          },
+        },
+      },
+      expect.anything(),
+      expect.anything(),
+    );
+    // make sure the old node is deleted.
+    expect(onDeleteMock).toHaveBeenCalledWith([
+      'site2-0.tunnelConfig.TunnelNodeToNode',
+    ]);
+  });
+
+  describe('delete', () => {
+    test('delete an external ip tunnel', async () => {
+      const {getByText, getByTestId, onDeleteMock} = renderApp({
+        nodeName: FIG0.NODE1_0,
+        tunnelName: 'TunnelExternalIP',
+      });
+
+      act(() => {
+        fireEvent.click(getByText(/delete/i));
+      });
+      act(() => {
+        fireEvent.click(
+          within(getByTestId('delete-modal')).getByText('Delete'),
+        );
+      });
+      expect(onDeleteMock).toHaveBeenCalledWith([
+        'site1-0.tunnelConfig.TunnelExternalIP',
+      ]);
+    });
+    test('delete a node to node tunnel', async () => {
+      const {getByText, getByTestId, onDeleteMock} = renderApp({
+        nodeName: FIG0.NODE1_0,
+        tunnelName: 'TunnelNodeToNode',
+      });
+
+      act(() => {
+        fireEvent.click(getByText(/delete/i));
+      });
+      act(() => {
+        fireEvent.click(
+          within(getByTestId('delete-modal')).getByText('Delete'),
+        );
+      });
+      expect(onDeleteMock).toHaveBeenCalledWith([
+        'site1-0.tunnelConfig.TunnelNodeToNode',
+        'site2-0.tunnelConfig.TunnelNodeToNode',
+      ]);
+    });
   });
 });
 
@@ -362,6 +510,7 @@ describe('Create mode', () => {
 
 const renderApp = (initialParams = null) => {
   const topology = mockFig0();
+  const onDeleteMock = jest.fn();
   const res = render(
     <TestApp>
       <NetworkContextWrapper
@@ -376,13 +525,15 @@ const renderApp = (initialParams = null) => {
         <TaskConfigContextWrapper
           contextValue={{
             nodeOverridesConfig: {},
+            onDelete: onDeleteMock,
           }}>
-          <L2TunnelInputs initialParams={initialParams} />
+          <L2TunnelInputs initialParams={initialParams} onClose={() => {}} />
         </TaskConfigContextWrapper>
       </NetworkContextWrapper>
     </TestApp>,
   );
   return {
     ...res,
+    onDeleteMock,
   };
 };

@@ -2,10 +2,12 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
 
 import * as React from 'react';
+import {FORM_CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
+import {cloneDeep, unset} from 'lodash';
 import {getDraftConfig} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {
   setAggregatorConfig,
@@ -123,18 +125,70 @@ export function useUpdateConfig() {
     [networkName, onError, onSuccess],
   );
 
+  /**
+   * Deletes a field from the config and saves it.
+   *
+   * Ex. currentConfig is {my: {config: {field: 0, other: 1}}}
+   * Calling deleteConfigField('node', ['my.config.field'], currentConfig)
+   * will update so the config is now {my: {config: {other: 1}}}
+   */
+  const deleteConfigField = React.useCallback(
+    ({
+      type,
+      paths,
+      currentConfig,
+    }: {
+      type: $Values<typeof FORM_CONFIG_MODES>,
+      paths: Array<string>,
+      currentConfig: any,
+    }) => {
+      const currentConfigCopy = cloneDeep(currentConfig) ?? {};
+      const draftConfig: any = {};
+      paths.forEach(path => {
+        const key = path.split('.')[0];
+        // We only want to include the fields that need updating.
+        draftConfig[key] = currentConfigCopy[key];
+        unset(draftConfig, path);
+      });
+
+      switch (type) {
+        case FORM_CONFIG_MODES.NETWORK:
+          setNetworkOverridesConfig(
+            networkName,
+            draftConfig,
+            onSuccess,
+            onError,
+          );
+          break;
+        case FORM_CONFIG_MODES.AGGREGATOR:
+          setAggregatorConfig(networkName, draftConfig, onSuccess, onError);
+          break;
+        case FORM_CONFIG_MODES.CONTROLLER:
+          setControllerConfig(networkName, draftConfig, onSuccess, onError);
+          break;
+        case FORM_CONFIG_MODES.NODE:
+        case FORM_CONFIG_MODES.MULTINODE:
+          setNodeOverridesConfig(networkName, draftConfig, onSuccess, onError);
+          break;
+      }
+    },
+    [networkName, onError, onSuccess],
+  );
+
   return React.useMemo(
     () => ({
       network: updateNetworkConfig,
       node: updateNodeConfig,
       controller: updateControllerConfig,
       aggregator: updateAggregatorConfig,
+      delete: deleteConfigField,
     }),
     [
       updateAggregatorConfig,
       updateControllerConfig,
       updateNetworkConfig,
       updateNodeConfig,
+      deleteConfigField,
     ],
   );
 }

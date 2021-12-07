@@ -27,6 +27,7 @@ const defaultProps = {
   networkConfigOverride: {},
   nodeOverridesConfig: {},
   onUpdate: jest.fn(),
+  onDelete: jest.fn(),
   onSubmit: jest.fn(),
   configParams: {},
   draftChanges: {},
@@ -65,6 +66,7 @@ function Wrapper({
   configData,
   configMetadata,
   onUpdate,
+  onDelete,
   configOverrides,
   networkConfigOverride,
   nodeOverridesConfig,
@@ -83,6 +85,7 @@ function Wrapper({
     configField: string,
     draftValue: ?(string | number | boolean | {}),
   }) => void,
+  onDelete: () => void,
   configOverrides: {},
   networkConfigOverride: {},
   nodeOverridesConfig: {},
@@ -99,6 +102,7 @@ function Wrapper({
       configData={configData}
       configMetadata={configMetadata}
       onUpdate={onUpdate}
+      onDelete={onDelete}
       configOverrides={configOverrides}
       networkConfigOverride={networkConfigOverride}
       nodeOverridesConfig={nodeOverridesConfig}

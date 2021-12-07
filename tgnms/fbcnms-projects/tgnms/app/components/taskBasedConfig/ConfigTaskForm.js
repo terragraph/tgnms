@@ -204,6 +204,43 @@ export default function ConfigTaskForm(props: Props) {
     jsonConfigRef.current = null;
   }, [onClose, reloadConfig]);
 
+  const handleDeleteConfigField = React.useCallback(
+    (paths: Array<string>) => {
+      let currentConfig;
+      switch (editMode) {
+        case FORM_CONFIG_MODES.NETWORK:
+          currentConfig = networkOverridesConfig;
+          break;
+        case FORM_CONFIG_MODES.AGGREGATOR:
+          currentConfig = aggregatorConfig;
+          break;
+        case FORM_CONFIG_MODES.CONTROLLER:
+          currentConfig = controllerConfig;
+          break;
+        case FORM_CONFIG_MODES.NODE:
+        case FORM_CONFIG_MODES.MULTINODE:
+          // Node
+          currentConfig = nodeOverridesConfig;
+          break;
+        default:
+          throw new Error('Edit mode not supported.');
+      }
+      updateConfig.delete({
+        type: editMode,
+        paths,
+        currentConfig,
+      });
+    },
+    [
+      updateConfig,
+      editMode,
+      networkOverridesConfig,
+      nodeOverridesConfig,
+      controllerConfig,
+      aggregatorConfig,
+    ],
+  );
+
   React.useEffect(() => {
     configDataRef.current = configData;
   }, [editMode, configData, imageVersion, firmwareVersion, hardwareType]);
@@ -283,6 +320,7 @@ export default function ConfigTaskForm(props: Props) {
           nodeOverridesConfig={nodeOverridesConfig ?? {}}
           configParams={configParams}
           onUpdate={handleInputUpdate}
+          onDelete={handleDeleteConfigField}
           onSetJson={handleSetJson}
           draftChanges={draftChanges}
           editMode={editMode}
