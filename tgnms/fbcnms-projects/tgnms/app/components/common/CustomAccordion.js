@@ -17,6 +17,7 @@ import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import LockIcon from '@material-ui/icons/Lock';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
+import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
@@ -29,6 +30,9 @@ const useStyles = makeStyles(theme => ({
   expanded: {
     '&$expanded': {
       margin: `${theme.spacing(0.5)}px 0 `,
+      '&:first-child': {
+        marginTop: `${theme.spacing(0.5)}px`,
+      },
     },
   },
   panelHeading: {
@@ -177,39 +181,42 @@ export default withForwardRef(function CustomAccordion(props: Props) {
   ) : null;
 
   return (
-    <Accordion
-      classes={{
-        root: `${className ? className : classes.root}`,
-        expanded: classes.expanded,
-      }}
-      expanded={expanded}
-      onChange={onChange}
-      ref={props.fwdRef}
-      data-testid={testId}
-      data-test-expanded={expanded}>
-      <AccordionSummary
+    <Paper elevation={2} square={true}>
+      <Accordion
         classes={{
-          root: classes.panelSummary,
-          expandIcon: isClosable ? classes.closeIconButton : undefined,
+          root: `${className ? className : classes.root}`,
+          expanded: classes.expanded,
         }}
-        expandIcon={<ExpandMoreIcon />}
-        {...(isClosable ? closeButtonProps : {})}>
-        {loadingBar}
-        <Grid container justify="space-between">
-          <ClipboardTooltip
-            title={title}
-            enabled={showTitleCopyTooltip === true}>
-            <Typography className={classes.panelHeading} variant="h6">
-              {titleIcon || null}
-              {title}
-            </Typography>
-          </ClipboardTooltip>
-          {pinButton}
-        </Grid>
-      </AccordionSummary>
-      <AccordionDetails className={classes.panelDetails}>
-        {details}
-      </AccordionDetails>
-    </Accordion>
+        square={true}
+        expanded={expanded}
+        onChange={onChange}
+        ref={props.fwdRef}
+        data-testid={testId}
+        data-test-expanded={expanded}>
+        <AccordionSummary
+          classes={{
+            root: classes.panelSummary,
+            expandIcon: isClosable ? classes.closeIconButton : undefined,
+          }}
+          expandIcon={<ExpandMoreIcon />}
+          {...(isClosable ? closeButtonProps : {})}>
+          {loadingBar}
+          <Grid container justify="space-between">
+            <ClipboardTooltip
+              title={title}
+              enabled={showTitleCopyTooltip === true}>
+              <Typography className={classes.panelHeading} variant="h6">
+                {titleIcon || null}
+                {title}
+              </Typography>
+            </ClipboardTooltip>
+            {pinButton}
+          </Grid>
+        </AccordionSummary>
+        <AccordionDetails className={classes.panelDetails}>
+          {details}
+        </AccordionDetails>
+      </Accordion>
+    </Paper>
   );
 });
