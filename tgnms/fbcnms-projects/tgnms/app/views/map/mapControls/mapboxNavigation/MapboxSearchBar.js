@@ -27,7 +27,8 @@ const useStyles = makeStyles(theme => ({
     position: 'absolute',
     zIndex: theme.zIndex.drawer,
     margin: `${theme.spacing(6.75)}px 0 0 ${theme.spacing()}px`,
-    width: theme.spacing(28.75),
+    minWidth: theme.spacing(28.75),
+    width: 'min-content',
   },
   resultsList: {
     overflow: 'auto',
@@ -187,7 +188,7 @@ export default function MapboxSearchBar(props: Props) {
         </div>
       </MapboxControl>
       {results.length > 0 ? (
-        <Paper className={classes.resultsPaper} elevation={2}>
+        <Paper className={classes.resultsPaper} elevation={6}>
           <List className={classes.resultsList} component="nav">
             {results.map(result => renderResult(result))}
           </List>

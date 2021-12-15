@@ -31,6 +31,8 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: '#FFF',
     },
     borderRight: 'none',
+    boxShadow:
+      '-5px 3px 5px -9px rgb(0 0 0 / 20%), -5px 6px 10px -5px rgb(0 0 0 / 14%), -5px 1px 18px -10px rgb(0 0 0 / 12%)',
   },
 }));
 

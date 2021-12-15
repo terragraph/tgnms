@@ -637,7 +637,7 @@ class SiteDetailsPanel extends React.Component<Props, State> {
           onClose={onClose}
           onPin={onPin}
           pinned={pinned}
-          showLoadingBar={true}
+          showLoadingBar={false}
           showTitleCopyTooltip={true}
         />
         <MaterialModal

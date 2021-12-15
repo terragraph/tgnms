@@ -8,7 +8,16 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import {MAP_CONTROL_LOCATIONS} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
+import {makeStyles} from '@material-ui/styles';
 import {useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
+
+const useStyles = makeStyles(theme => ({
+  container: {
+    '&:not(:empty)': {
+      boxShadow: theme.shadows[6],
+    },
+  },
+}));
 
 type Props = {
   mapLocation: $Values<typeof MAP_CONTROL_LOCATIONS>,
@@ -17,16 +26,17 @@ type Props = {
 };
 
 export default function MapboxControl(props: Props) {
+  const classes = useStyles();
   const {mapLocation, children} = props;
   const {mapboxRef} = useMapContext();
   const testId = props['data-testid'];
 
   const mapboxControl = React.useMemo(() => {
     const container = document.createElement('div');
-    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    container.className = `mapboxgl-ctrl mapboxgl-ctrl-group ${classes.container}`;
     container.setAttribute('data-testid', testId);
     return container;
-  }, [testId]);
+  }, [testId, classes.container]);
 
   useOnceInitialized(() => {
     mapboxRef?.addControl(

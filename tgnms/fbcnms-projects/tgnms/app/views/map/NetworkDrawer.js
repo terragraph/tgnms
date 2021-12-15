@@ -66,6 +66,7 @@ const useStyles = makeStyles(theme => ({
     width: 'inherit',
     height: 'inherit',
     overflowY: 'auto',
+    boxShadow: theme.shadows[2],
   },
 }));
 

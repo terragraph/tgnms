@@ -27,6 +27,7 @@ const useStyles = makeStyles(() => ({
   icon: {
     fontSize: '1rem',
   },
+  iconButton: {borderRadius: '4px'},
 }));
 
 export default function TopologyBuilderToggle() {
@@ -72,7 +73,7 @@ export default function TopologyBuilderToggle() {
       mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
       data-testid="tg-topology-toggle-container">
       <button
-        className={STEP_TARGET.TOPOLOGY_TOOLBAR}
+        className={`${STEP_TARGET.TOPOLOGY_TOOLBAR} ${classes.iconButton}`}
         style={
           !topologyEnabled
             ? {

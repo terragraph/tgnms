@@ -25,6 +25,12 @@ const useStyles = makeStyles(_theme => ({
   icon: {
     fontSize: '1rem',
   },
+  iconButton: {borderRadius: '4px'},
+  container: {
+    '&:not(:empty)': {
+      boxShadow: _theme.shadows[6],
+    },
+  },
 }));
 
 export default function DrawToggle() {
@@ -49,7 +55,17 @@ export default function DrawToggle() {
     React.useCallback(
       (enabled: boolean) => {
         if (enabled) {
-          mapboxRef?.addControl(drawControl, MAP_CONTROL_LOCATIONS.TOP_LEFT);
+          mapboxRef?.addControl(
+            {
+              onAdd: _map => {
+                const container = drawControl.onAdd(_map);
+                container.className = `mapboxgl-ctrl mapboxgl-ctrl-group ${classes.container}`;
+                return container;
+              },
+              onRemove: () => drawControl.onRemove(),
+            },
+            MAP_CONTROL_LOCATIONS.TOP_LEFT,
+          );
           isControlAdded.current = true;
           if (current && current.geojson) {
             drawControl.add(current.geojson);
@@ -61,7 +77,7 @@ export default function DrawToggle() {
           }
         }
       },
-      [mapboxRef, drawControl, current, isControlAdded],
+      [mapboxRef, drawControl, current, isControlAdded, classes.container],
     ),
   );
   React.useEffect(() => {
@@ -73,6 +89,7 @@ export default function DrawToggle() {
       mapLocation={MAP_CONTROL_LOCATIONS.TOP_LEFT}
       data-testid="tg-draw-toggle-container">
       <button
+        className={classes.iconButton}
         style={
           !isDrawEnabled
             ? {

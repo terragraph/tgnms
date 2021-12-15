@@ -477,7 +477,7 @@ export default React.forwardRef<*, *>(function NodeDetailsPanelNew(
         onClose={onClose}
         onPin={onPin}
         pinned={props.pinned}
-        showLoadingBar={true}
+        showLoadingBar={false}
         showTitleCopyTooltip={true}
         fwdRef={fwdRef}
       />
