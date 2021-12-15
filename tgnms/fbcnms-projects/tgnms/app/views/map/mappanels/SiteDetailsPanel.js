@@ -27,6 +27,7 @@ import SiteDetailsNodeIcon from '@fbcnms/tg-nms/app/views/map/mappanels/SiteDeta
 import StatusIndicator, {
   StatusIndicatorColor,
 } from '@fbcnms/tg-nms/app/components/common/StatusIndicator';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import moment from 'moment';
@@ -409,8 +410,13 @@ class SiteDetailsPanel extends React.Component<Props, State> {
                 <SiteDetailsNodeIcon selectedNode={nodeMap[node]} />
               </ListItemIcon>
               <ListItemText
-                primary={node}
-                primaryTypographyProps={{variant: 'subtitle2'}}
+                primary={
+                  <Tooltip title={node} placement="top">
+                    <Typography variant="subtitle2" noWrap={true}>
+                      {node}
+                    </Typography>
+                  </Tooltip>
+                }
               />
               <ListItemSecondaryAction>
                 <StatusIndicator

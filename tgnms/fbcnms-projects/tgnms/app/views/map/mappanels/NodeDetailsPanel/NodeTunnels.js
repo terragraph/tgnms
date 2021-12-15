@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import React, {useState} from 'react';
 import StatusText from '@fbcnms/tg-nms/app/components/common/StatusText';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {get, isEmpty} from 'lodash';
 import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
@@ -34,7 +35,7 @@ type TunnelInfoProps = {|
   info: Info,
 |};
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   spaceBetween: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -44,7 +45,10 @@ const useStyles = makeStyles(() => ({
     width: '100%',
   },
   nested: {
-    paddingLeft: 8,
+    paddingLeft: theme.spacing(1),
+  },
+  fieldName: {
+    paddingRight: theme.spacing(1),
   },
   tunnelButton: {
     width: '100%',
@@ -105,19 +109,35 @@ function TunnelInfo({name, info}: TunnelInfoProps) {
       </Button>
       <Collapse in={open} classes={{nested: classes.nested}}>
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Local Interface</Typography>
+          <Typography variant="subtitle2" className={classes.fieldName}>
+            Local Interface
+          </Typography>
           <Typography variant="body2">{info.localInterface}</Typography>
         </div>
+        {!isNullOrEmptyString(info.dstIp) && (
+          <div className={classes.spaceBetween}>
+            <Typography variant="subtitle2" className={classes.fieldName}>
+              dstIp
+            </Typography>
+            <Typography variant="body2">{info.dstIp}</Typography>
+          </div>
+        )}
+        {!isNullOrEmptyString(info.dstNodeName) && (
+          <div className={classes.spaceBetween}>
+            <Typography variant="subtitle2" className={classes.fieldName}>
+              dstNodeName
+            </Typography>
+            <Tooltip title={info.dstNodeName} placement="top">
+              <Typography variant="body2" noWrap={true}>
+                {info.dstNodeName}
+              </Typography>
+            </Tooltip>
+          </div>
+        )}
         <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">dstIp</Typography>
-          <Typography variant="body2">{info.dstIp}</Typography>
-        </div>
-        <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">dstNodeName</Typography>
-          <Typography variant="body2">{info.dstNodeName}</Typography>
-        </div>
-        <div className={classes.spaceBetween}>
-          <Typography variant="subtitle2">Tunnel Type</Typography>
+          <Typography variant="subtitle2" className={classes.fieldName}>
+            Tunnel Type
+          </Typography>
           <Typography variant="body2">{info.tunnelType}</Typography>
         </div>
         <Typography variant="subtitle2">Tunnel Params</Typography>

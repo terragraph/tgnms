@@ -20,6 +20,7 @@ import StatusIndicator, {
   StatusIndicatorColor,
 } from '@fbcnms/tg-nms/app/components/common/StatusIndicator';
 import StatusText from '@fbcnms/tg-nms/app/components/common/StatusText';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {LinkActionTypeValueMap as LinkActionType} from '@fbcnms/tg-nms/shared/types/Controller';
 import {
@@ -349,8 +350,13 @@ class LinkDetailsPanel extends React.Component<Props, State> {
                 {<RouterIcon />}
               </ListItemIcon>
               <ListItemText
-                primary={node}
-                primaryTypographyProps={{variant: 'subtitle2'}}
+                primary={
+                  <Tooltip title={node} placement="top">
+                    <Typography variant="subtitle2" noWrap={true}>
+                      {node}
+                    </Typography>
+                  </Tooltip>
+                }
                 secondary={mac || null}
               />
               <ListItemSecondaryAction>
