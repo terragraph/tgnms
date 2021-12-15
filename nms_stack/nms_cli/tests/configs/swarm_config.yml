@@ -194,3 +194,5 @@ kafka_path: "{{ terragraph_docker_path }}/kafka"
 zookeeper_path: "{{ terragraph_docker_path }}/zookeeper"
 es_path: "{{ terragraph_docker_path }}/es"
 udp_pinger_path: "{{ terragraph_docker_path }}/udp_pinger"
+
+msa_weather_service_image: "secure.cxl-terragraph.com:443/weather_service:latest"

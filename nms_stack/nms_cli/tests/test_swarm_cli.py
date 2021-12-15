@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import Mock, ANY
 
 from click.testing import CliRunner
 from nms_cli import nms
@@ -14,6 +15,9 @@ from nms_cli import nms
 
 def get_config_file(name):
     return os.path.join(os.path.dirname(__file__), "configs", name)
+
+
+run_mock = Mock()
 
 
 class FakeExecutor:
@@ -26,6 +30,7 @@ class FakeExecutor:
             f"stderr: Running fake Ansible {str(args)} and {str(kwargs)}",
             file=sys.stderr,
         )
+        run_mock(*args, **kwargs)
 
     def __getattr__(self, name):
         def empty_fn(*args, **kwargs):
@@ -46,6 +51,7 @@ class NmsTestUtils:
         self.assertEqual(0, result.exit_code)
 
     def check_command(self, command, **kwargs):
+        run_mock.reset_mock()
         runner = CliRunner()
         result = runner.invoke(
             nms.cli, command.split(" "), catch_exceptions=False, **kwargs
@@ -102,9 +108,27 @@ class TestSwarmNmsCli(NmsTestUtils, unittest.TestCase):
         self.check_command(
             "install -f config.yml -C cert.pem -k key.pem -h fake_host1 -h fake_host2"
         )
+
         # Hostnames and ssl cert/key is passed in via config file.
         self.check_command(f"install -f {get_config_file('swarm_config.yml')}")
-        self.check_command(f"install -f {get_config_file('swarm_config.yml')} -C my.cert.pem")
+        self.check_command(
+            f"install -f {get_config_file('swarm_config.yml')} -C my.cert.pem"
+        )
+
+    def test_image_version(self):
+        self.check_command(
+            f"install --image-version=v21.12.01 -f {get_config_file('swarm_config.yml')}"
+        )
+        _, kwargs = run_mock.call_args
+        self.assertEqual(
+            kwargs["generated_config"]["msa_scan_service_image"],
+            "secure.cxl-terragraph.com:443/scan_service:v21.12.01",
+        )
+        # This is explicitly defined to be `latest` in our config file.
+        self.assertEqual(
+            kwargs["generated_config"]["msa_weather_service_image"],
+            "secure.cxl-terragraph.com:443/weather_service:latest",
+        )
 
     def test_uninstall(self):
         self.check_command("uninstall -h fake_host")
@@ -135,6 +159,26 @@ class TestSwarmNmsCli(NmsTestUtils, unittest.TestCase):
 
     def test_show_defaults(self):
         self.check_command("show-defaults")
+
+    def test_generate_image_configs(self):
+        result = nms.generate_image_configs(
+            variables={
+                "msa_network_test_image": "secure.cxl-terragraph.com:443/network_test",
+                "msa_scan_service_image": "secure.cxl-terragraph.com:443/scan_service",
+                "msa_topology_service_image": "secure.cxl-terragraph.com:443/topology_service:stable",
+                "nms_image": "secure.cxl-terragraph.com:443/nmsv2:v20.01.01",
+            },
+            version="v21.12.12-1",
+        )
+        self.assertDictEqual(
+            result,
+            {
+                "msa_network_test_image": "secure.cxl-terragraph.com:443/network_test:v21.12.12-1",
+                "msa_scan_service_image": "secure.cxl-terragraph.com:443/scan_service:v21.12.12-1",
+                "msa_topology_service_image": "secure.cxl-terragraph.com:443/topology_service:stable",
+                "nms_image": "secure.cxl-terragraph.com:443/nmsv2:v20.01.01",
+            },
+        )
 
 
 if __name__ == "__main__":
