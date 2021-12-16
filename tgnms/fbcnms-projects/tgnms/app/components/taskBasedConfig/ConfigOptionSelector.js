@@ -6,12 +6,13 @@
  */
 
 import * as React from 'react';
+import Box from '@material-ui/core/Box';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import Grid from '@material-ui/core/Grid';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import Typography from '@material-ui/core/Typography';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {getDefaultSelected} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
@@ -109,12 +110,12 @@ export default function ConfigOptionSelector({
               );
             })}
           </RadioGroup>
+          {option.description && (
+            <Box mb={2}>
+              <FormHelperText>{option.description}</FormHelperText>
+            </Box>
+          )}
         </FormControl>
-        {option.description && (
-          <Typography variant="body2" color="textSecondary">
-            {option.description}
-          </Typography>
-        )}
       </Grid>
       <Grid item container direction="column" spacing={3}>
         {option.configGroup}

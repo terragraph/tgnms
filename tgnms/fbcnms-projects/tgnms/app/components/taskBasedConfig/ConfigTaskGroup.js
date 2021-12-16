@@ -19,7 +19,7 @@ import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContex
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(2),
-    marginBottom: theme.spacing(3),
+    borderBottom: `1px solid #e0e0e0`,
   },
 }));
 
@@ -62,44 +62,46 @@ export default function ConfigTaskGroup({
     [setEnabled],
   );
   return (
-    <Paper classes={{root: classes.root}} elevation={1}>
-      <Grid container direction="column" spacing={2}>
-        <Grid item>
-          {title && <Typography variant="h6">{title}</Typography>}
-          {description && (
-            <Typography variant="body2" color="textSecondary">
-              {description}
-            </Typography>
+    <Grid item xs={12}>
+      <Paper classes={{root: classes.root}} elevation={0} square>
+        <Grid container direction="column" spacing={2}>
+          <Grid item>
+            {title && <Typography variant="h6">{title}</Typography>}
+            {description && (
+              <Typography variant="body2" color="textSecondary">
+                {description}
+              </Typography>
+            )}
+          </Grid>
+          {!enabler ? (
+            <Grid item container direction="column" spacing={3}>
+              {children}
+            </Grid>
+          ) : (
+            <Grid item container direction="column" spacing={3}>
+              <Grid item>
+                <FormControlLabel
+                  data-testid="checkbox"
+                  control={React.createElement(Checkbox, {
+                    checked: enabled === true,
+                    onChange: handleInputChange,
+                    value: String(enabled) || '',
+                    color: 'primary',
+                  })}
+                  label={label}
+                />
+              </Grid>
+              <Grid item>
+                <Collapse in={enabled}>
+                  <Grid container direction="column" spacing={3}>
+                    {children}
+                  </Grid>
+                </Collapse>
+              </Grid>
+            </Grid>
           )}
         </Grid>
-        {!enabler ? (
-          <Grid item container direction="column" spacing={3}>
-            {children}
-          </Grid>
-        ) : (
-          <Grid item container direction="column" spacing={3}>
-            <Grid item>
-              <FormControlLabel
-                data-testid="checkbox"
-                control={React.createElement(Checkbox, {
-                  checked: enabled === true,
-                  onChange: handleInputChange,
-                  value: String(enabled) || '',
-                  color: 'primary',
-                })}
-                label={label}
-              />
-            </Grid>
-            <Grid item>
-              <Collapse in={enabled}>
-                <Grid container direction="column" spacing={3}>
-                  {children}
-                </Grid>
-              </Collapse>
-            </Grid>
-          </Grid>
-        )}
-      </Grid>
-    </Paper>
+      </Paper>
+    </Grid>
   );
 }

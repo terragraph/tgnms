@@ -6,6 +6,7 @@
  */
 
 import * as React from 'react';
+import Box from '@material-ui/core/Box';
 import CnConfig from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/CnConfig';
 import FluentdEndpoints from '@fbcnms/tg-nms/app/components/taskBasedConfig/configTasks/FluentdEndpoints';
 import Grid from '@material-ui/core/Grid';
@@ -28,11 +29,10 @@ import {
 import {makeStyles} from '@material-ui/styles';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_theme => ({
   root: {
     overflow: 'scroll',
     overflowX: 'hidden',
-    margin: theme.spacing(2),
   },
 }));
 
@@ -55,16 +55,24 @@ export default function ConfigQuickSettingsForm() {
 
   return (
     <div className={classes.root}>
-      <Grid item container direction={'column'} spacing={4}>
+      <Grid item container direction="column" spacing={4}>
         <Grid item xs={12}>
-          {title && <Typography variant="h6">{title}</Typography>}
-          {description && (
-            <Typography variant="body2" color="textSecondary">
-              {description}
-            </Typography>
-          )}
+          <Box px={1} pt={2}>
+            {title && <Typography variant="h6">{title}</Typography>}
+            {description && (
+              <Typography variant="body2" color="textSecondary">
+                {description}
+              </Typography>
+            )}
+          </Box>
         </Grid>
-        <Grid item xs={12}>
+        <Grid
+          item
+          xs={12}
+          container
+          spacing={2}
+          direction="column"
+          wrap="nowrap">
           {formMode === 'NETWORK' && (
             <>
               <SysParams />

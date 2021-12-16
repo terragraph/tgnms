@@ -291,7 +291,7 @@ export default function NmsConfig() {
         </Grid>
       </Grid>
       <Grid item>
-        <Paper className={classes.paper} elevation={2}>
+        <Paper className={classes.paper} elevation={0}>
           <Table className={classes.table}>
             <TableHead>
               <TableRow>

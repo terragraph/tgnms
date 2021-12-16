@@ -9,6 +9,7 @@ import * as React from 'react';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
+import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
@@ -30,7 +31,7 @@ export default function SettingsGroup({
 }) {
   return (
     <Grid item>
-      <Card>
+      <Card elevation={0}>
         <CardHeader
           title={
             <>
@@ -54,6 +55,7 @@ export default function SettingsGroup({
           </Grid>
         </CardContent>
       </Card>
+      <Divider />
     </Grid>
   );
 }
