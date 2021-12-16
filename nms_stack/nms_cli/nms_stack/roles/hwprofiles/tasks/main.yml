@@ -21,4 +21,5 @@
     dest: "{{hwprofiles_gfs_path}}/profiles"
     force: yes
   loop:
-    - "default.json"
+    - "profiles/default.json"
+    - "profiles/puma.json"
