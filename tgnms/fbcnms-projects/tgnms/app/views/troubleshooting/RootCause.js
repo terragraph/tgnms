@@ -129,6 +129,7 @@ export default function RootCause() {
           <TextField
             className={classes.spacing}
             label="Time"
+            id="time"
             select
             InputLabelProps={{shrink: true}}
             margin="dense"
@@ -144,6 +145,7 @@ export default function RootCause() {
           <TextField
             className={classes.spacing}
             label="View"
+            id="view"
             select
             InputLabelProps={{shrink: true}}
             margin="dense"

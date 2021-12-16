@@ -8,7 +8,7 @@
 import * as React from 'react';
 
 import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
 import {objectEntriesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
@@ -30,15 +30,19 @@ export default function NetworkSelect({
     [onChangeRef],
   );
   return (
-    <Select
-      multiple={Array.isArray(value)}
-      value={Array.isArray(value) ? value : [value]}
+    <TextField
+      label="Networks"
+      select
+      SelectProps={{
+        value: Array.isArray(value) ? value : [value],
+        multiple: Array.isArray(value),
+      }}
       onChange={handleChange}>
       {networks.map(([name, _network]) => (
         <MenuItem key={name} value={name}>
           {name}
         </MenuItem>
       ))}
-    </Select>
+    </TextField>
   );
 }

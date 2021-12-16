@@ -88,13 +88,13 @@ const defaultProps = {
 test('renders network sidebar without crashing', () => {
   mockUseConfigTaskContext.mockReturnValue(mockConfigTaskContextValue());
 
-  const {getByText} = render(
+  const {getByText, getByLabelText} = render(
     <MaterialTheme>
       <ConfigSidebar {...defaultProps} />
     </MaterialTheme>,
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
-  expect(getByText('Change Base Version')).toBeInTheDocument();
+  expect(getByLabelText('Change Base Version')).toBeInTheDocument();
 });
 
 test('renders e2e sidebar without crashing', () => {
@@ -114,13 +114,13 @@ test('renders node sidebar without crashing', () => {
       editMode: 'NODE',
     }),
   );
-  const {getByText} = render(
+  const {getByText, getByLabelText} = render(
     <MaterialTheme>
       <ConfigSidebar {...defaultProps} />
     </MaterialTheme>,
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
-  expect(getByText('Filter')).toBeInTheDocument();
+  expect(getByLabelText('Filter')).toBeInTheDocument();
   expect(getByText('Show Full Configuration')).toBeInTheDocument();
 });
 
@@ -235,13 +235,13 @@ test('change E2E base fields', () => {
 
 test('renders network firmware', () => {
   mockUseConfigTaskContext.mockReturnValue(mockConfigTaskContextValue());
-  const {getByText} = render(
+  const {getByText, getByLabelText} = render(
     <MaterialTheme>
       <ConfigSidebar {...defaultProps} />
     </MaterialTheme>,
   );
   expect(getByText('Configuration Options')).toBeInTheDocument();
-  expect(getByText('Change Firmware Version')).toBeInTheDocument();
+  expect(getByLabelText('Change Firmware Version')).toBeInTheDocument();
   expect(getByText('none')).toBeInTheDocument();
   fireEvent.mouseDown(getByText('none'));
   expect(getByText('test')).toBeInTheDocument();

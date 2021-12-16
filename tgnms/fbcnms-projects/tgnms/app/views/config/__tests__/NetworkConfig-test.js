@@ -31,14 +31,14 @@ test('renders spinner initially without crashing', () => {
 });
 
 test('renders table after spinner', async () => {
-  const {queryByTestId, getByText} = renderWithRouter(
+  const {queryByTestId, getByLabelText, getByText} = renderWithRouter(
     <TestApp>
       <NetworkConfig />
     </TestApp>,
   );
   await waitFor(() => getByText('Cancel'));
   expect(queryByTestId('loading-box')).not.toBeInTheDocument();
-  expect(getByText('Editor')).toBeInTheDocument();
+  expect(getByLabelText('Editor')).toBeInTheDocument();
   expect(getByText('Submit')).toBeInTheDocument();
 });
 
@@ -54,7 +54,7 @@ test('renders multiple tabs based on edit mode', async () => {
 });
 
 test('change table without crashing', async () => {
-  const {queryByTestId, getByText} = renderWithRouter(
+  const {queryByTestId, getByText, getByLabelText} = renderWithRouter(
     <TestApp>
       <NetworkConfig />
     </TestApp>,
@@ -62,5 +62,5 @@ test('change table without crashing', async () => {
   await waitFor(() => getByText('Cancel'));
   expect(queryByTestId('loading-box')).not.toBeInTheDocument();
   fireEvent.click(getByText('NETWORK'));
-  expect(getByText('Change Base Version')).toBeInTheDocument();
+  expect(getByLabelText('Change Base Version')).toBeInTheDocument();
 });

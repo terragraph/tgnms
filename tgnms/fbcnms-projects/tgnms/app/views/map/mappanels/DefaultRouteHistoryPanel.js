@@ -7,15 +7,14 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CustomAccordion from '@fbcnms/tg-nms/app/components/common/CustomAccordion';
-import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import Select from '@material-ui/core/Select';
 import Slide from '@material-ui/core/Slide';
+import TextField from '@material-ui/core/TextField';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Typography from '@material-ui/core/Typography';
 import useLiveRef from '@fbcnms/tg-nms/app/hooks/useLiveRef';
@@ -273,20 +272,19 @@ export default function DefaultRouteHistoryPanel({
         details={
           <Grid container direction="column" spacing={2} wrap="nowrap">
             <Grid item xs={12}>
-              <Typography variant="subtitle2">Node</Typography>
-              <FormControl fullWidth={true}>
-                <Select
-                  value={selectedNode}
-                  variant="outlined"
-                  margin="dense"
-                  onChange={ev => handleNodeChange(ev.target.value)}>
-                  {Array.from(siteNodes).map(nodeName => (
-                    <MenuItem key={nodeName} value={nodeName}>
-                      {nodeName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                select
+                label="Node"
+                value={selectedNode}
+                margin="dense"
+                onChange={ev => handleNodeChange(ev.target.value)}>
+                {Array.from(siteNodes).map(nodeName => (
+                  <MenuItem key={nodeName} value={nodeName}>
+                    {nodeName}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12}>
               <Typography className={classes.closerTitle} variant="subtitle2">

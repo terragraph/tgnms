@@ -23,7 +23,7 @@ jest
   .mockImplementation(jest.fn(() => mockNetworkContext()));
 
 test('renders', () => {
-  const {getByText} = render(
+  const {getByLabelText} = render(
     <TestApp route="/nodes">
       <NetworkContextWrapper>
         <Route path="/" render={r => <RootCause {...r} />} />
@@ -31,8 +31,8 @@ test('renders', () => {
     </TestApp>,
   );
 
-  expect(getByText('Time')).toBeInTheDocument();
-  expect(getByText('View')).toBeInTheDocument();
+  expect(getByLabelText('Time')).toBeInTheDocument();
+  expect(getByLabelText('View')).toBeInTheDocument();
 });
 
 test('changing time works', () => {

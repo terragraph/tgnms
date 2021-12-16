@@ -12,16 +12,18 @@ import DefaultOverlayPanel from './overlayPanels/DefaultOverlayPanel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import MapHistoryOverlayPanel from './overlayPanels/MapHistoryOverlayPanel';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkPlanningOverlayPanel from './overlayPanels/NetworkPlanningOverlayPanel';
 import NetworkTestOverlayPanel from './overlayPanels/NetworkTestOverlayPanel';
 import React from 'react';
 import ScanServiceOverlayPanel from './overlayPanels/ScanServiceOverlayPanel';
-import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import TextField from '@material-ui/core/TextField';
 import {MAPMODE, useMapContext} from '@fbcnms/tg-nms/app/contexts/MapContext';
 import {makeStyles} from '@material-ui/styles';
 import {mapLayers} from '@fbcnms/tg-nms/app/constants/LayerConstants';
@@ -34,23 +36,6 @@ const styles = theme => ({
   formContainer: {
     flexDirection: 'column',
     width: '100%',
-  },
-  select: {
-    marginBottom: theme.spacing(1),
-  },
-  loadingIndicator: {
-    marginLeft: theme.spacing(1),
-    marginTop: -4,
-  },
-  formGroup: {
-    marginBottom: theme.spacing(2),
-  },
-  root: {
-    display: 'flex',
-    height: '100%',
-    flexGrow: 1,
-    flexFlow: 'column',
-    overflow: 'hidden',
   },
   tabsRoot: {
     borderBottom: '1px solid #e8e8e8',
@@ -95,21 +80,26 @@ export default function MapLayersPanel({
   mapStylesConfig,
   onMapStyleSelectChange,
 }: Props) {
-  const classes = useStyles();
   return (
     <CustomAccordion
       title="Map Layers"
       data-testid="map-layers-panel"
       details={
-        <div className={classes.formContainer}>
-          <LayersForm />
-          <OverlaySection />
-          <MapStylesForm
-            selectedMapStyle={selectedMapStyle}
-            mapStylesConfig={mapStylesConfig}
-            onMapStyleSelectChange={onMapStyleSelectChange}
-          />
-        </div>
+        <Grid container direction="column" spacing={1}>
+          <Grid item>
+            <LayersForm />
+          </Grid>
+          <Grid item>
+            <OverlaySection />
+          </Grid>
+          <Grid item>
+            <MapStyleSelect
+              selectedMapStyle={selectedMapStyle}
+              mapStylesConfig={mapStylesConfig}
+              onMapStyleSelectChange={onMapStyleSelectChange}
+            />
+          </Grid>
+        </Grid>
       }
       expanded={expanded}
       onChange={onPanelChange}
@@ -139,7 +129,7 @@ function OverlaySection() {
   );
 
   return (
-    <div className={classes.formContainer}>
+    <Grid className={classes.formContainer} container direction="column">
       {TABBED_MAPMODES.has(mapMode) && (
         <>
           <Tabs
@@ -179,11 +169,11 @@ function OverlaySection() {
         {mapMode === MAPMODE.SCAN_SERVICE && <ScanServiceOverlayPanel />}
         {mapMode === MAPMODE.CUSTOM_OVERLAYS && <CustomOverlayPanel />}
         {mapMode === MAPMODE.PLANNING && <NetworkPlanningOverlayPanel />}
-        <div>
+        <Grid container direction="column" wrap="nowrap" spacing={1}>
           <OverlaysForm />
-        </div>
+        </Grid>
       </div>
-    </div>
+    </Grid>
   );
 }
 
@@ -195,8 +185,7 @@ const useFormStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(1),
   },
   loadingIndicator: {
-    marginLeft: theme.spacing(1),
-    marginTop: -4,
+    marginRight: theme.spacing(3),
   },
 }));
 function LayersForm() {
@@ -245,26 +234,31 @@ function OverlaysForm() {
     layerOverlays => {
       const layerId = layerOverlays.layerId;
       const overlays = layerOverlays.overlays;
-      const legendName = mapLayers.find(layer => layer.layerId === layerId)
-        ?.name;
+      const legendName =
+        mapLayers.find(layer => layer.layerId === layerId)?.name ?? '';
 
       if (overlays.length < 2) {
         return null;
       }
-      const labelId = `overlay-select-label-${layerId}`;
       return (
-        <FormGroup row={false} key={layerId} className={classes.formGroup}>
-          <FormLabel component="legend" id={labelId}>
-            {legendName} Overlay
-            {isOverlayLoading && (
-              <CircularProgress
-                className={classes.loadingIndicator}
-                size={16}
-              />
-            )}
-          </FormLabel>
-          <Select
-            labelId={labelId}
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label={`${legendName} Overlay`}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  {isOverlayLoading && (
+                    <CircularProgress
+                      className={classes.loadingIndicator}
+                      size={16}
+                    />
+                  )}
+                </InputAdornment>
+              ),
+            }}
+            select
+            id={layerId}
             value={selectedOverlays[layerId] || ''}
             key={layerId}
             className={classes.select}
@@ -276,38 +270,35 @@ function OverlaysForm() {
                 </MenuItem>
               );
             })}
-          </Select>
-        </FormGroup>
+          </TextField>
+        </Grid>
       );
     },
   );
 }
 
-type MapStylesFormProps = {|
+type MapStyleProps = {|
   selectedMapStyle: string,
   mapStylesConfig: Array<{endpoint: string, name: string}>,
   onMapStyleSelectChange: string => any,
 |};
-function MapStylesForm({
+function MapStyleSelect({
   mapStylesConfig,
   selectedMapStyle,
   onMapStyleSelectChange,
-}: MapStylesFormProps) {
-  const classes = useStyles();
-
+}: MapStyleProps) {
   return (
-    <FormGroup row={false} className={classes.formGroup}>
-      <FormLabel component="legend">Map Style</FormLabel>
-      <Select
-        value={selectedMapStyle}
-        className={classes.select}
-        onChange={event => onMapStyleSelectChange(event.target.value)}>
-        {mapStylesConfig.map(({endpoint, name}) => (
-          <MenuItem key={endpoint} value={endpoint}>
-            {name}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormGroup>
+    <TextField
+      fullWidth
+      label="Map Style"
+      select
+      value={selectedMapStyle}
+      onChange={event => onMapStyleSelectChange(event.target.value)}>
+      {mapStylesConfig.map(({endpoint, name}) => (
+        <MenuItem key={endpoint} value={endpoint}>
+          {name}
+        </MenuItem>
+      ))}
+    </TextField>
   );
 }

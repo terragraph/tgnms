@@ -307,6 +307,7 @@ export default function ModalConfigAddField(props: Props) {
       inputField: (
         <TextField
           label="Field"
+          id={`field-${fieldName}`}
           data-testid="field-name"
           InputLabelProps={{shrink: true}}
           margin="dense"
@@ -322,6 +323,7 @@ export default function ModalConfigAddField(props: Props) {
         <TextField
           label="Type"
           select
+          id={`type-${fieldName}`}
           InputLabelProps={{shrink: true}}
           margin="dense"
           value={type}

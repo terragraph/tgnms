@@ -14,6 +14,7 @@ import {fireEvent, render} from '@testing-library/react';
 const defaultProps = {
   children: [
     <TextField
+      id="test"
       key="test"
       label={'test advanced input'}
       type="number"
@@ -36,28 +37,28 @@ test('renders empty without crashing', () => {
 });
 
 test('clicking button Opens menu', async () => {
-  const {getByText} = await renderAsync(
+  const {getByText, getByLabelText} = await renderAsync(
     <TestApp>
       <ShowAdvanced {...defaultProps} />
     </TestApp>,
   );
   expect(getByText('Show Advanced')).toBeInTheDocument();
   fireEvent.click(getByText('Show Advanced'));
-  expect(getByText('test advanced input')).toBeInTheDocument();
+  expect(getByLabelText('test advanced input')).toBeInTheDocument();
 });
 
 test('clicking button twice Opens then closes menu', async () => {
-  const {getByText} = await renderAsync(
+  const {getByText, getByLabelText} = await renderAsync(
     <TestApp>
       <ShowAdvanced {...defaultProps} />
     </TestApp>,
   );
   expect(getByText('Show Advanced')).toBeInTheDocument();
   fireEvent.click(getByText('Show Advanced'));
-  expect(getByText('test advanced input')).toBeInTheDocument();
+  expect(getByLabelText('test advanced input')).toBeInTheDocument();
   fireEvent.click(getByText('Show Advanced'));
   expect(
-    cast<{location: ?string}>(getByText('test advanced input')).location ===
-      null,
+    cast<{location: ?string}>(getByLabelText('test advanced input'))
+      .location === null,
   );
 });

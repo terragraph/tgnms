@@ -31,7 +31,7 @@ test('render without crashing', () => {
 });
 
 test('add node adds a link form', () => {
-  const {getByText} = render(
+  const {getByText, getByLabelText} = render(
     <TestApp>
       <TopologyBuilderContextProvider>
         <NodeDetails />
@@ -39,5 +39,5 @@ test('add node adds a link form', () => {
     </TestApp>,
   );
   fireEvent.click(getByText('+ Add Node'));
-  expect(getByText('Node Name')).toBeInTheDocument();
+  expect(getByLabelText('Node Name')).toBeInTheDocument();
 });

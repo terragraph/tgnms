@@ -40,12 +40,12 @@ const mockUseTopologyBuilderContext = jest
   );
 
 test('render without crashing', () => {
-  const {getByText} = render(
+  const {getByLabelText} = render(
     <TestApp>
       <NodeForm {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Node Name')).toBeInTheDocument();
+  expect(getByLabelText('Node Name')).toBeInTheDocument();
 });
 
 test('when form values are selected, update is called correctly', () => {

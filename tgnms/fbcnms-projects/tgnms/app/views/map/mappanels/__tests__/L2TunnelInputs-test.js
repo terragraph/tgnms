@@ -298,8 +298,8 @@ describe('Edit mode', () => {
 });
 
 test('renders empty without crashing', () => {
-  const {getByText} = renderApp();
-  expect(getByText('Node 1 *')).toBeInTheDocument();
+  const {getByLabelText} = renderApp();
+  expect(getByLabelText('Node 1 *')).toBeInTheDocument();
 });
 describe('Create mode', () => {
   test('creates 2 tunnel configs, one for each node', async () => {

@@ -4,7 +4,9 @@
  * @format
  * @flow
  */
+import Box from '@material-ui/core/Box';
 import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
 import React from 'react';
@@ -386,10 +388,13 @@ export default function MapHistoryOverlayPanel() {
   });
 
   return (
-    <div
+    <Grid
       className={classes.formContainer}
-      data-testid="map-history-overlay-panel">
-      <div>
+      data-testid="map-history-overlay-panel"
+      container
+      direction="column"
+      wrap="nowrap">
+      <Grid item xs={12}>
         <Typography variant="subtitle2">Selected Date</Typography>
         <KeyboardDatePicker
           disableToolbar
@@ -403,31 +408,34 @@ export default function MapHistoryOverlayPanel() {
             'aria-label': 'change date',
           }}
         />
-      </div>
-      <div className={classes.sectionPadding} />
-      {errorMessage ? (
-        <Typography data-testid="errorMessage" variant="subtitle1">
-          Error getting data: {errorMessage}
-        </Typography>
-      ) : (
-        <>
-          <FormLabel component="legend">
-            <span>Current Value:</span>
-          </FormLabel>
-          <div>{selectedTime.toLocaleDateString(...DATE_TO_STRING_PARAMS)}</div>
-          <Slider
-            value={Math.round(
-              (selectedTime.getTime() - historicalDate.getTime()) /
-                MILLISECONDS_TO_MINUTES,
-            )}
-            min={0}
-            max={MINUTES_IN_DAY - 1}
-            step={1}
-            onChange={onSliderChange}
-          />
-        </>
-      )}
-    </div>
+      </Grid>
+      <Grid item xs={12}>
+        {errorMessage ? (
+          <Typography data-testid="errorMessage" variant="subtitle1">
+            Error getting data: {errorMessage}
+          </Typography>
+        ) : (
+          <Box mt={1} mb={2} pl={1}>
+            <FormLabel component="legend">
+              <span>Current Value:</span>
+            </FormLabel>
+            <div>
+              {selectedTime.toLocaleDateString(...DATE_TO_STRING_PARAMS)}
+            </div>
+            <Slider
+              value={Math.round(
+                (selectedTime.getTime() - historicalDate.getTime()) /
+                  MILLISECONDS_TO_MINUTES,
+              )}
+              min={0}
+              max={MINUTES_IN_DAY - 1}
+              step={1}
+              onChange={onSliderChange}
+            />
+          </Box>
+        )}
+      </Grid>
+    </Grid>
   );
 }
 

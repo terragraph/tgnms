@@ -42,13 +42,13 @@ jest.mock('@fbcnms/tg-nms/app/contexts/TopologyBuilderContext', () => ({
 }));
 
 test('render without crashing', () => {
-  const {getByText} = render(
+  const {getByLabelText} = render(
     <TestApp>
       <LinkForm {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('From Node')).toBeInTheDocument();
-  expect(getByText('To Node')).toBeInTheDocument();
+  expect(getByLabelText('From Node')).toBeInTheDocument();
+  expect(getByLabelText('To Node')).toBeInTheDocument();
 });
 
 test('when form values are selected, update is called correctly', () => {

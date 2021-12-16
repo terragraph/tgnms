@@ -21,7 +21,7 @@ jest
   .mockReturnValue(true);
 
 test('renders', () => {
-  const {getByText} = render(
+  const {getByLabelText} = render(
     <TestApp>
       <SettingsFormContextWrapper
         settings={[
@@ -34,5 +34,5 @@ test('renders', () => {
       </SettingsFormContextWrapper>
     </TestApp>,
   );
-  expect(getByText('MySQL Host')).toBeInTheDocument();
+  expect(getByLabelText('MySQL Host')).toBeInTheDocument();
 });

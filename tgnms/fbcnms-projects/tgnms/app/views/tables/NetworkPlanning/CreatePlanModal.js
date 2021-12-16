@@ -50,10 +50,6 @@ type CreateNetworkPlanFormState = {|
 |};
 
 const useStyles = makeStyles(theme => ({
-  inputLabel: {
-    fontSize: '1rem',
-    transform: 'unset',
-  },
   errorHelperText: {
     color: theme.palette.error.light,
   },
@@ -234,14 +230,8 @@ export default function CreatePlanModal({
               id="planName"
               onChange={handleInputChange(x => ({planName: x}))}
               value={formState.planName}
-              placeholder="Plan Name"
               label="Plan Name"
               disabled={taskState.isLoading}
-              InputLabelProps={{
-                classes: {
-                  root: classes.inputLabel,
-                },
-              }}
               fullWidth
             />
           </Grid>

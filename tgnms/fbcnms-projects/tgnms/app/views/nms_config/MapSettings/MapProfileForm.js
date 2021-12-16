@@ -9,14 +9,12 @@ import * as React from 'react';
 import Alert from '@material-ui/lab/Alert';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
 import McsTableEditor from './McsTableEditor';
 import NetworkSelect from '@fbcnms/tg-nms/app/components/common/NetworkSelect';
 import RemoteOverlaysEditor from './RemoteOverlaysEditor';
 import SettingsGroup from '../SettingsGroup';
 import TextField from '@material-ui/core/TextField';
 import useForm from '@fbcnms/tg-nms/app/hooks/useForm';
-import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import type {MapProfile} from '@fbcnms/tg-nms/shared/dto/MapProfile';
 import type {McsLinkBudget} from '@fbcnms/tg-nms/shared/dto/MapProfile';
@@ -25,15 +23,6 @@ import type {RemoteOverlay} from '@fbcnms/tg-nms/shared/dto/RemoteOverlay';
 export type HandleRangeChange = {
   (mcs: number, rangeMeters: number): void,
 };
-
-const useStyles = makeStyles(theme => ({
-  formControl: {
-    margin: theme.spacing(1),
-    marginLeft: 0,
-    minWidth: 120,
-    maxWidth: 300,
-  },
-}));
 
 type Props = {|
   isDefault: boolean,
@@ -48,7 +37,6 @@ export default function MapProfileForm({
   profile,
   onUpdate,
 }: Props) {
-  const classes = useStyles();
   const {
     formState,
     handleInputChange,
@@ -107,8 +95,9 @@ export default function MapProfileForm({
             </Alert>
           </Grid>
         )}
-        <Grid item>
+        <Grid item xs={6}>
           <TextField
+            fullWidth
             disabled={isDisabled}
             value={formState.name}
             onChange={handleInputChange(val => ({name: val}))}
@@ -116,9 +105,8 @@ export default function MapProfileForm({
             id="name"
           />
         </Grid>
-        <Grid item xs={12}>
-          <FormControl className={classes.formControl}>
-            <InputLabel>Networks</InputLabel>
+        <Grid item xs={6}>
+          <FormControl fullWidth>
             <NetworkSelect
               value={formState.networks}
               onChange={handleNetworkSelectionChange}

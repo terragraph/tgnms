@@ -20,12 +20,12 @@ jest.mock('@fbcnms/tg-nms/app/contexts/NetworkContext', () => ({
 }));
 
 test('render without crashing', () => {
-  const {getByText} = render(
+  const {getByLabelText} = render(
     <TestApp>
       <TopologyBuilderContextProvider>
         <SiteSelect />
       </TopologyBuilderContextProvider>
     </TestApp>,
   );
-  expect(getByText('Site Name')).toBeInTheDocument();
+  expect(getByLabelText('Site Name')).toBeInTheDocument();
 });

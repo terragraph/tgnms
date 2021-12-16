@@ -44,13 +44,13 @@ test('does not render when closed', () => {
 });
 
 test('properly displays form fields', () => {
-  const {getByText} = render(
+  const {getByLabelText, getByText} = render(
     <TestApp>
       <ModalConfigAddField {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Field')).toBeInTheDocument();
-  expect(getByText('Type')).toBeInTheDocument();
+  expect(getByLabelText('Field')).toBeInTheDocument();
+  expect(getByLabelText('Type')).toBeInTheDocument();
   expect(getByText('Value')).toBeInTheDocument();
 });
 

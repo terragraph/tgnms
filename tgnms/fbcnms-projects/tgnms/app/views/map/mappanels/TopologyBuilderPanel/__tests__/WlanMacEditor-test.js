@@ -33,12 +33,12 @@ jest.mock('@fbcnms/tg-nms/app/contexts/NetworkContext', () => ({
 }));
 
 test('render without crashing', () => {
-  const {getByText} = render(
+  const {getByLabelText} = render(
     <TestApp>
       <WlanMacEditor {...defaultProps} />
     </TestApp>,
   );
-  expect(getByText('Radio MAC Address 1')).toBeInTheDocument();
+  expect(getByLabelText('Radio MAC Address 1')).toBeInTheDocument();
 });
 
 test('change calls onChange', () => {

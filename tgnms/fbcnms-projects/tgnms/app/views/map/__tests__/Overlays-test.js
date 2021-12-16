@@ -8,6 +8,7 @@
 import * as React from 'react';
 import MapLayers from '@fbcnms/tg-nms/app/views/map/mapLayers/MapLayers';
 import MapLayersPanel from '@fbcnms/tg-nms/app/views/map/mappanels/MapLayersPanel';
+import selectEvent from 'react-select-event';
 import {DEFAULT_MAP_PROFILE} from '@fbcnms/tg-nms/app/constants/MapProfileConstants';
 import {
   FIG0,
@@ -27,7 +28,6 @@ import {
   MAPMODE,
   MapContextProvider,
 } from '@fbcnms/tg-nms/app/contexts/MapContext';
-import {act, fireEvent, within} from '@testing-library/react';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {color} from 'd3-color';
 import {
@@ -369,38 +369,13 @@ function MapTestWrapper({
     </TestApp>
   );
 }
-/**
- * Opens the dropdown which corresponds to layerId and selects the option
- * with overlayName. i'm not sure if this exact code will work for other
- * Selects, but it's what's needed for maplayerspanel.
- *
- * Example:
- * const result = render(<Fig0MapTest/>)
- * selectLayerOverlay(result, "Links Overlay", "Control Superframe")
- */
+
 async function selectLayerOverlay(
-  {container, getByText}: RenderResult<*>,
+  {getByLabelText}: RenderResult<*>,
   layerName: string | RegExp,
   overlayName: string | RegExp,
 ) {
-  const label = getByText(layerName);
-  const selectSelector = `[aria-labelledby="${label.id}"][role="button"]`;
-  const menuSelector = `[aria-labelledby="${label.id}"][role="listbox"]`;
-  const select = container.querySelector(selectSelector);
-  if (!select) {
-    throw new Error(`Could not find element ${selectSelector}`);
-  }
-  await act(async () => {
-    fireEvent.mouseDown(select);
-  });
-
-  const menu = document.querySelector(menuSelector);
-  if (!menu) {
-    throw new Error(`Could not find element ${menuSelector}`);
-  }
-  const menuResult = within(menu);
-  const option = menuResult.getByText(overlayName);
-  await act(async () => {
-    fireEvent.click(option);
+  await selectEvent.select(getByLabelText(layerName), overlayName, {
+    container: document.body,
   });
 }

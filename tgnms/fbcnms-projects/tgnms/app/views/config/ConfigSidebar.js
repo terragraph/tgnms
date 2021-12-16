@@ -402,6 +402,7 @@ export default function ConfigSidebar(props: Props) {
       <div className={classes.sidePad}>
         <TextField
           label="Editor"
+          id="editor"
           select
           InputLabelProps={{shrink: true}}
           margin="dense"
@@ -421,6 +422,7 @@ export default function ConfigSidebar(props: Props) {
             <div className={classes.sidePad}>
               <TextField
                 label="Change Base Version"
+                id="base-version"
                 select
                 InputLabelProps={{shrink: true}}
                 margin="dense"
@@ -435,6 +437,7 @@ export default function ConfigSidebar(props: Props) {
               </TextField>
               <TextField
                 label="Change Firmware Version"
+                id="fw-version"
                 select
                 InputLabelProps={{shrink: true}}
                 margin="dense"
@@ -449,6 +452,7 @@ export default function ConfigSidebar(props: Props) {
               </TextField>
               <TextField
                 label="Change Hardware Type"
+                id="hw-type"
                 select
                 InputLabelProps={{shrink: true}}
                 margin="dense"
@@ -500,6 +504,7 @@ export default function ConfigSidebar(props: Props) {
           <div className={classes.sidePad}>
             <TextField
               label="Filter"
+              id="filter"
               select
               InputLabelProps={{shrink: true}}
               margin="dense"
