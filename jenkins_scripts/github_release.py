@@ -26,6 +26,15 @@ def cli(ctx):
 
 @cli.command()
 @click.option("-b", "--branch", help="Github release branch", required=True)
+@click.pass_context
+def get_tag(ctx, branch):
+    release = get_release(branch)
+    version_tag = get_next_tag(release, printer=lambda x: x)
+    print(version_tag)
+
+
+@cli.command()
+@click.option("-b", "--branch", help="Github release branch", required=True)
 @click.option(
     "--push/--no-push",
     help="Should created tags be pushed to the origin repo",
