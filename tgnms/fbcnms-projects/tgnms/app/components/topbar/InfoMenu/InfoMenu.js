@@ -36,6 +36,9 @@ const useStyles = makeStyles(theme => ({
       paddingRight: theme.spacing(3),
     },
   },
+  infoIcon: {
+    color: '#9DA9BE',
+  },
 }));
 
 export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
@@ -87,7 +90,7 @@ export default function InfoMenu({drawerOpen}: {drawerOpen: boolean}) {
           data-testid="toggle-help-menu"
           onClick={handleClick}
           button>
-          <ListItemIcon>
+          <ListItemIcon className={classes.infoIcon}>
             <InfoIcon />
           </ListItemIcon>
           <ListItemText primary="Help" />

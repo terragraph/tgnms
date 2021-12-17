@@ -23,6 +23,9 @@ import type {NetworkInstanceConfig} from '@fbcnms/tg-nms/shared/dto/NetworkState
 const useStyles = makeStyles(theme => ({
   networkMenuButton: {
     marginRight: theme.spacing(),
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.common.white,
+    borderColor: '#E5E5E5',
   },
   active: {
     backgroundColor: theme.palette.grey[300],
@@ -59,6 +62,7 @@ export default function NetworkMenu() {
   return (
     <div>
       <Button
+        variant="outlined"
         aria-owns={networksMenuAnchor ? 'networks-appbar' : null}
         aria-haspopup="true"
         className={`${classes.networkMenuButton} ${STEP_TARGET.NETWORK_NAME}`}

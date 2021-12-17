@@ -22,7 +22,7 @@ import {makeStyles, useTheme} from '@material-ui/styles';
 const useStyles = makeStyles(theme => ({
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    backgroundColor: theme.palette.text.primary,
+    backgroundColor: '#F5F7FC',
   },
   drawerMenuButton: {
     marginLeft: 12,
@@ -30,6 +30,9 @@ const useStyles = makeStyles(theme => ({
   },
   grow: {
     flexGrow: 1,
+  },
+  text: {
+    color: theme.palette.text.primary,
   },
 }));
 
@@ -69,13 +72,12 @@ export default function MaterialTopBar() {
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar disableGutters={true}>
           <IconButton
-            color="inherit"
             aria-label="Open drawer"
             onClick={onDrawerToggle}
-            className={classes.drawerMenuButton}>
+            className={`${classes.drawerMenuButton} ${classes.text}`}>
             {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
-          <Typography variant="h6" color="inherit" noWrap>
+          <Typography variant="h6" className={classes.text} noWrap>
             Terragraph NMS
           </Typography>
           <div className={classes.grow} />

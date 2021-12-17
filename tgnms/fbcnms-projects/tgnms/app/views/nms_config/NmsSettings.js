@@ -35,6 +35,7 @@ const useStyles = makeStyles(theme => ({
     height: 'inherit',
   },
   viewContainer: {
+    maxWidth: '1200px',
     marginLeft: theme.spacing(0.5),
     paddingTop: theme.spacing(5),
     padding: theme.spacing(3),

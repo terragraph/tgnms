@@ -157,7 +157,6 @@ export default function ConfigTaskInput(props: Props) {
               select
               value={draftValue}
               InputLabelProps={{shrink: true}}
-              fullWidth
               onChange={handleInputChange}>
               {[true, false].map(select => (
                 <MenuItem key={String(select)} value={select}>
@@ -178,7 +177,6 @@ export default function ConfigTaskInput(props: Props) {
             select
             value={draftValue || ''}
             InputLabelProps={{shrink: true}}
-            fullWidth
             onChange={handleInputChange}>
             {selectList.map(select => (
               <MenuItem key={select} value={select}>
@@ -197,7 +195,6 @@ export default function ConfigTaskInput(props: Props) {
             data-testid={settingType}
             value={draftValue || ''}
             onChange={handleInputChange}
-            fullWidth
             type={settingType}
             InputLabelProps={{
               shrink: true,

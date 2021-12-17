@@ -5,7 +5,6 @@
  * @flow
  */
 
-import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import InfoMenu from '@fbcnms/tg-nms/app/components/topbar/InfoMenu/InfoMenu';
 import List from '@material-ui/core/List';
@@ -19,6 +18,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
 import {CONFIG_PATH} from '@fbcnms/tg-nms/app/constants/paths';
 import {NETWORK_VIEWS} from '@fbcnms/tg-nms/app/views/views';
+import {TGNMS_GRAY} from '@fbcnms/tg-nms/app/MaterialTheme';
 import {generatePath} from 'react-router';
 import {makeStyles} from '@material-ui/styles';
 import {useNetworkListContext} from '@fbcnms/tg-nms/app/contexts/NetworkListContext';
@@ -27,6 +27,8 @@ const DRAWER_WIDTH = 260;
 
 const useStyles = makeStyles(theme => ({
   drawerPaper: {
+    borderRight: 0,
+    backgroundColor: TGNMS_GRAY,
     position: 'relative',
     whiteSpace: 'nowrap',
     width: DRAWER_WIDTH,
@@ -55,13 +57,18 @@ const useStyles = makeStyles(theme => ({
     ...theme.mixins.toolbar,
   },
   drawerListItem: {
+    color: '#9DA9BE',
     '@media (min-width: 600px)': {
       paddingLeft: theme.spacing(3),
       paddingRight: theme.spacing(3),
     },
   },
   active: {
-    backgroundColor: theme.palette.grey[300],
+    color: theme.palette.common.white,
+    backgroundColor: theme.palette.primary.main,
+  },
+  text: {
+    color: 'inherit',
   },
 }));
 
@@ -114,8 +121,8 @@ export default function ViewDrawer({drawerOpen}: {drawerOpen: boolean}) {
                 activeClassName={classes.active}
                 disabled={networkName === null}
                 button>
-                <ListItemIcon>{icon}</ListItemIcon>
-                <ListItemText primary={name} />
+                <ListItemIcon className={classes.text}>{icon}</ListItemIcon>
+                <ListItemText className={classes.text} primary={name} />
               </ListItem>
             </Tooltip>
           );
@@ -133,13 +140,12 @@ export default function ViewDrawer({drawerOpen}: {drawerOpen: boolean}) {
             component={MUINavLink}
             activeClassName={classes.active}
             button>
-            <ListItemIcon>
+            <ListItemIcon className={classes.text}>
               <SettingsIcon />
             </ListItemIcon>
-            <ListItemText primary="NMS Config" />
+            <ListItemText className={classes.text} primary="NMS Config" />
           </ListItem>
         </Tooltip>
-        <Divider />
       </List>
       <InfoMenu drawerOpen={drawerOpen} />
     </Drawer>
