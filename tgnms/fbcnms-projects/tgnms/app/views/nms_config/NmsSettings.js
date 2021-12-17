@@ -29,16 +29,21 @@ import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(3),
+    height: '100%',
+  },
+  settingsContainer: {
+    height: 'inherit',
   },
   viewContainer: {
+    marginLeft: theme.spacing(0.5),
+    paddingTop: theme.spacing(5),
     padding: theme.spacing(3),
   },
   tabsContainer: {
-    marginTop: theme.spacing(3),
-    borderRight: `1px solid ${theme.palette.divider}`,
+    paddingLeft: theme.spacing(2),
+    paddingTop: theme.spacing(5),
     color: theme.palette.text.secondary,
+    boxShadow: theme.shadows[2],
   },
   tabs: {
     width: '100%',
@@ -79,8 +84,8 @@ export default function NmsSettings() {
     );
   }
   return (
-    <Paper classes={{root: classes.root}} elevation={1}>
-      <Grid container spacing={0}>
+    <Paper classes={{root: classes.root}} square elevation={0}>
+      <Grid container spacing={0} className={classes.settingsContainer}>
         <Grid
           container
           item
