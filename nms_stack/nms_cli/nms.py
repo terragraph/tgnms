@@ -17,39 +17,19 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
 
-VERSION_FILE = "__version__"
+
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
 VALIDATE_PLAYBOOK = "validate.yml"
 
-IMAGE_TEMPLATE = "{image}:{version}"
 RAGE_DIR = os.path.join(os.path.expanduser("~"), ".nms_logs")
 
 executor = ansible_executor.ansible_executor
 
 
-def get_nms_version():
-    version_file = os.path.join(os.path.dirname(__file__), VERSION_FILE)
-    if os.path.exists(version_file):
-        with open(version_file, "r") as f:
-            version = f.read().strip()
-            f.close()
-        if version:
-            return version
-    return None
-
-
-def get_version(installer_opts):
-    return (
-        installer_opts.image_version
-        if installer_opts.image_version
-        else get_nms_version()
-    )
-
-
 def record_version(logger):
     try:
-        version = get_nms_version()
+        version = pkg_resources.get_distribution("nms").version
     except Exception as e:
         version = f"[nms not packged, version unknown]\n{e}"
     logger.log(logging.DEBUG, f"nms version: {version}")
@@ -91,17 +71,10 @@ def gather_hosts(ctx, installer_opts, variables):
     return hosts
 
 
-def generate_variables(ctx, installer_opts, version="latest"):
+def generate_variables(ctx, installer_opts):
     config_file = installer_opts.config_file
     variables = load_variables(config_file)
-
-    certs_config = gather_certs(ctx, installer_opts, variables)
-    variables.update(certs_config)
-
-    # We must overwrite the images before generating common configs.
-    images_configs = generate_image_configs(variables, version)
-    variables.update(images_configs)
-
+    gather_certs(ctx, installer_opts, variables)
     generated_config = generate_common_configs(variables)
     variables.update(generated_config)
     return variables
@@ -118,44 +91,18 @@ def generate_common_configs(variables):
     return generated_config
 
 
-def _gather_image_keys(variables):
-    keys = []
-    for key in variables.keys():
-        if re.match("^[a-z0-9_]+_image", key):
-            keys.append(key)
-    return keys
-
-
 def gather_docker_images(variables):
     # Enumerate docker images to be pulled
     docker_images = []
-    for key in _gather_image_keys(variables):
-        image = variables[key]
-        docker_images.append(image)
+    for key in variables.keys():
+        if re.match("^[a-z0-9_]+_image", key):
+            image = variables[key]
+            docker_images.append(image)
     return docker_images
-
-
-def generate_image_configs(variables, version):
-    new_images = {}
-    for key in _gather_image_keys(variables):
-        image = variables[key]
-        # Ex:
-        #   Has version: secure.cxl-terragraph.com:443/tg-alarms:v21.12.01
-        #   No version: secure.cxl-terragraph.com:443/tg-alarms
-        path = image.split("/", 1)  # split path into repo name and image name
-        if len(path) > 1:
-            image_name = path[1]
-            if len(image_name.split(":")) == 1:
-                # if a version was NOT specified
-                new_images[key] = IMAGE_TEMPLATE.format(image=image, version=version)
-            else:
-                new_images[key] = image
-    return new_images
 
 
 def gather_certs(ctx, installer_opts, variables):
     # Get and verify TLS cert/key.
-    certs = {}
     ssl_key_file = installer_opts.ssl_key_file or variables["ssl_key_file"]
     ssl_cert_file = installer_opts.ssl_cert_file or variables["ssl_cert_file"]
     cert_options = [ssl_key_file, ssl_cert_file]
@@ -166,9 +113,8 @@ def gather_certs(ctx, installer_opts, variables):
             err=True,
         )
         ctx.exit(3)
-    certs["ssl_cert_file"] = os.path.abspath(ssl_cert_file)
-    certs["ssl_key_file"] = os.path.abspath(ssl_key_file)
-    return certs
+    variables["ssl_cert_file"] = os.path.abspath(ssl_cert_file)
+    variables["ssl_key_file"] = os.path.abspath(ssl_key_file)
 
 
 def prepare_ansible(ctx, installer_opts, variables):
@@ -215,10 +161,6 @@ common_options = {
         "-p", "--password", help="SSH/sudo password for setup bootstrap", is_flag=True
     ),
     "verbose": click.option("-v", "--verbose", count=True, default=0),
-    "image-version": click.option(
-        "--image-version",
-        help="Which image version to install. Default is latest version.",
-    ),
 }
 
 
@@ -242,7 +184,6 @@ class InstallerOpts(object):
         self.tags = kwargs.pop("tags", None)
         self.verbose = kwargs.pop("verbose", None)
         self.password = kwargs.pop("password", None)
-        self.image_version = kwargs.pop("image_version", None)
         self.other_options = kwargs
 
 
@@ -254,7 +195,6 @@ def add_installer_opts(common_opts=common_options.keys()):
             return ctx.invoke(f, InstallerOpts(**kwargs), *args)
 
         return update_wrapper(wrapper, f)
-
     return fn_wrapper
 
 
@@ -267,7 +207,7 @@ def cli(ctx, version, short):
     if version or short:
         longver = "Terragraph NMS cli utility version: {}"
         try:
-            verstr = get_nms_version()
+            verstr = pkg_resources.get_distribution("nms").version
         except Exception as e:
             click.echo("Cannot find package version, is this in a package?")
             click.echo(f"{e}")
@@ -422,9 +362,7 @@ def install(ctx, installer_opts):
     password = None
     if installer_opts.password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
-
-    version = get_version(installer_opts)
-    variables = generate_variables(ctx, installer_opts, version)
+    variables = generate_variables(ctx, installer_opts)
     hosts = gather_hosts(ctx, installer_opts, variables)
     a = prepare_ansible(ctx, installer_opts, variables)
     sys.exit(
@@ -467,9 +405,7 @@ def install(ctx, installer_opts):
     is_flag=True,
     help="[Dangerous] Ignore any errors and continue uninstalling",
 )
-@add_installer_opts(
-    common_opts=["config-file", "host", "tags", "password", "verbose", "image-version"]
-)
+@add_installer_opts(common_opts=["config-file", "host", "tags", "password", "verbose"])
 @click.pass_context
 @rage.log_command(RAGE_DIR)
 def uninstall(ctx, installer_opts):
@@ -485,18 +421,15 @@ def uninstall(ctx, installer_opts):
 
     a = executor(installer_opts.tags, installer_opts.verbose)
 
-    version = get_version(installer_opts)
-    variables = generate_variables(ctx, installer_opts, version)
-    variables.update(
-        {
-            "skip_backup": other_options.get("skip_backup"),
-            "delete_data": other_options.get("delete_data"),
-            "backup_file": os.path.abspath(other_options.get("backup_file")),
-            "remove_docker": other_options.get("remove_docker"),
-            "remove_gluster": other_options.get("remove_gluster"),
-            "force": other_options.get("force"),
-        }
-    )
+    variables = generate_variables(ctx, installer_opts)
+    variables.update({
+        "skip_backup": other_options.get('skip_backup'),
+        "delete_data": other_options.get('delete_data'),
+        "backup_file": os.path.abspath(other_options.get('backup_file')),
+        "remove_docker": other_options.get('remove_docker'),
+        "remove_gluster": other_options.get('remove_gluster'),
+        "force": other_options.get('force'),
+    })
     hosts = generate_host_groups(installer_opts.host)
     sys.exit(
         a.run(
@@ -518,8 +451,7 @@ def validate(ctx, installer_opts):
     if installer_opts.password:
         password = click.prompt("SSH/sudo password", hide_input=True, default=None)
     config_file = installer_opts.config_file
-    version = get_version(installer_opts)
-    variables = generate_variables(ctx, installer_opts, version)
+    variables = generate_variables(ctx, installer_opts)
     hosts = gather_hosts(ctx, installer_opts, variables)
     a = prepare_ansible(ctx, installer_opts, variables)
     results = a.run(
