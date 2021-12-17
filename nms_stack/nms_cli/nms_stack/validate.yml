@@ -2,7 +2,7 @@
 - name: Run pre-install validation
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: yes
   environment:

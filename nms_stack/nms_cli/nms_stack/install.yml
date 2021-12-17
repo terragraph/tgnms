@@ -2,7 +2,7 @@
 - name: Install Python
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: false
   tasks:
@@ -12,7 +12,7 @@
 - name: Run validation and common
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: yes
   environment:
@@ -25,7 +25,7 @@
 - name: Create managers
   hosts: managers
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   roles:
@@ -34,7 +34,7 @@
 - name: Add workers to swarm
   hosts: workers
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   roles:
@@ -43,7 +43,7 @@
 - name: Pull docker images
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tasks:
@@ -54,7 +54,7 @@
 - name: Install migo v6up
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tags:
@@ -85,7 +85,7 @@
 - name: Install kafka zookeeper
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   roles:
@@ -96,7 +96,7 @@
   hosts: database
   run_once: true
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tags:
@@ -109,7 +109,7 @@
   hosts: managers
   run_once: true
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tags:
@@ -121,7 +121,7 @@
   hosts: all
   run_once: true
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tags:
@@ -133,7 +133,7 @@
 - name: Install nginx
   hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   roles:
@@ -143,7 +143,7 @@
   hosts: managers
   run_once: true
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tags:
@@ -159,7 +159,7 @@
 
 - hosts: all
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tags:
@@ -183,7 +183,7 @@
   hosts: managers
   run_once: true
   become: true
-  become_user: root
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   gather_facts: no
   tasks:

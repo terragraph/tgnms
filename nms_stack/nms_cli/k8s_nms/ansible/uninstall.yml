@@ -26,7 +26,7 @@
 
   - name: clear Kubernetes directories
     become: true
-    become_user: root
+    become_user: "{{ ansible_user }}"
     become_method: sudo
     file:
       state: absent
@@ -40,7 +40,7 @@
 
   - name: clean CNI configuration
     become: true
-    become_user: root
+    become_user: "{{ ansible_user }}"
     become_method: sudo
     file:
       state: absent
@@ -50,7 +50,7 @@
 
   - name: remove gluster volume information
     become: true
-    become_user: root
+    become_user: "{{ ansible_user }}"
     become_method: sudo
     when: purge
     ignore_errors: true
@@ -73,7 +73,7 @@
   - name: Clear stateful directories
     when: purge
     become: true
-    become_user: root
+    become_user: "{{ ansible_user }}"
     become_method: sudo
     ignore_errors: true
     file:
@@ -146,7 +146,7 @@
 
   - name: "Unmount {{ terragraph_hostpath }}"
     become: true
-    become_user: root
+    become_user: "{{ ansible_user }}"
     become_method: sudo
     ignore_errors: true
     when: purge
@@ -155,7 +155,7 @@
   - name: Purge all data
     when: purge
     become: true
-    become_user: root
+    become_user: "{{ ansible_user }}"
     become_method: sudo
     ignore_errors: true
     file:

@@ -8,7 +8,7 @@
   register: glusterfs_ppa_added
   become: true
   become_method: sudo
-  become_user: root
+  become_user: "{{ ansible_user }}"
   shell: apt update
   environment:
     https_proxy: "{{ https_proxy }}"

@@ -1,5 +1,6 @@
 - hosts: all
   become: true
+  become_user: "{{ ansible_user }}"
   become_method: sudo
   ignore_errors: "{{ force }}"
 

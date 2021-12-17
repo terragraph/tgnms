@@ -22,8 +22,8 @@ nms_software_portal_api_key:
 # have passwordless ssh and passwordless sudo access, make sure to pass the `-p`
 # flag to the installer.
 # `docker_user` is the user that has access to docker and its various services.
-ansible_user: ubuntu
-docker_user: ubuntu
+ansible_user: root
+docker_user: root
 
 # Certbot args to get free SSL Certificate from letsencrypt.org
 # Both `ext_nms_hostname` and `certbot_user_email` must be changed from the
