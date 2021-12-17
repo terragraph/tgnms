@@ -12,7 +12,6 @@ import ModalFullUpgrade from './ModalFullUpgrade';
 import ModalPrepare from './ModalPrepare';
 import ModalReset from './ModalReset';
 import NodeUpgradeTableEntry from './NodeUpgradeTableEntry';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -24,6 +23,7 @@ import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import UpgradeSection from './UpgradeSection';
 import {TableOrder} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
 import {getVersion} from '@fbcnms/tg-nms/app/helpers/VersionHelper';
 import {isEmpty, orderBy} from 'lodash';
@@ -32,12 +32,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import type {StructuredNodeType} from './NetworkUpgrade';
 
-const styles = theme => ({
-  root: {
-    flexGrow: 1,
-    padding: theme.spacing(),
-    margin: theme.spacing(),
-  },
+const styles = () => ({
   centerText: {
     textAlign: 'center',
   },
@@ -211,7 +206,7 @@ class NodeUpgradeTable extends React.Component<Props, State> {
     const nodeCount = filteredData.length;
 
     return (
-      <Paper className={classes.root} elevation={2} data-testid="nodeUpgrade">
+      <UpgradeSection data-testid="nodeUpgrade">
         <Toolbar>
           {numSelected > 0 ? (
             <>
@@ -328,7 +323,7 @@ class NodeUpgradeTable extends React.Component<Props, State> {
             </TableBody>
           </Table>
         </div>
-      </Paper>
+      </UpgradeSection>
     );
   }
 }

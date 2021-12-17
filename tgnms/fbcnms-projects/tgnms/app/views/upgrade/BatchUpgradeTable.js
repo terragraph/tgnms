@@ -6,7 +6,6 @@
  */
 
 import BatchUpgradeTableEntry from './BatchUpgradeTableEntry';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -17,18 +16,14 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import UpgradeSection from './UpgradeSection';
 import {TableOrder} from '@fbcnms/tg-nms/app/helpers/TableHelpers';
 import {isEmpty, orderBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 import type {StructuredBatchType} from './NetworkUpgrade';
 
-const styles = theme => ({
-  root: {
-    flexGrow: 1,
-    padding: theme.spacing(),
-    margin: theme.spacing(),
-  },
+const styles = () => ({
   centerText: {
     textAlign: 'center',
   },
@@ -91,7 +86,7 @@ class BatchUpgradeTable extends React.Component<Props, State> {
     const {classes, data} = this.props;
 
     return (
-      <Paper className={classes.root} elevation={2} data-testid="batchUpgrade">
+      <UpgradeSection data-testid="batchUpgrade">
         <Toolbar>
           <div className={classes.title}>
             <Typography variant="h6">
@@ -145,7 +140,7 @@ class BatchUpgradeTable extends React.Component<Props, State> {
             </TableBody>
           </Table>
         </div>
-      </Paper>
+      </UpgradeSection>
     );
   }
 }
