@@ -12,6 +12,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
+import {GRAY_BORDER} from '@fbcnms/tg-nms/app/MaterialTheme';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
@@ -19,7 +20,7 @@ import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContex
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(2),
-    borderBottom: `1px solid #e0e0e0`,
+    borderBottom: GRAY_BORDER,
   },
 }));
 

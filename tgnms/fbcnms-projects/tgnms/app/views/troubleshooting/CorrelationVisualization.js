@@ -291,7 +291,7 @@ export default function CorrelationVisualization({
   return (
     <Grid container spacing={6} direction="column" className={classes.root}>
       <Grid item xs={12}>
-        <Paper elevation={2} className={classes.eventsWrapper}>
+        <Paper square elevation={0} className={classes.eventsWrapper}>
           <EventsView
             events={events}
             eventGroups={eventGroups}

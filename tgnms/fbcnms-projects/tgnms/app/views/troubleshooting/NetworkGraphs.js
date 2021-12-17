@@ -9,7 +9,9 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import StatGraph from './StatGraph';
+import {GRAY_BORDER} from '@fbcnms/tg-nms/app/MaterialTheme';
 import {makeStyles} from '@material-ui/styles';
+
 import type {PrometheusDataType} from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 
 const SEC_TO_MS = 1000;
@@ -22,7 +24,11 @@ const NODE_TYPES = {
 };
 
 const useStyles = makeStyles(theme => ({
-  graphsWrapper: {margin: theme.spacing(2), padding: theme.spacing(2)},
+  graphsWrapper: {
+    margin: theme.spacing(2),
+    padding: theme.spacing(2),
+    border: GRAY_BORDER,
+  },
   statsWrapper: {backgroundColor: '#fafbff', paddingLeft: theme.spacing(7.5)},
   nodeName: {margin: theme.spacing(0.75)},
   backgroundColor: {backgroundColor: '#bfbfbf'},
@@ -152,7 +158,7 @@ export default function NetworkGraphs({
   }, [topology_node_is_online, startTime]);
 
   return (
-    <Paper elevation={2} className={classes.graphsWrapper}>
+    <Paper square elevation={0} className={classes.graphsWrapper}>
       <Grid item container spacing={4}>
         <Grid item xs={12} className={classes.backgroundColor}>
           Network

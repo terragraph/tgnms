@@ -34,6 +34,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
+import {GRAY_BORDER} from '@fbcnms/tg-nms/app/MaterialTheme';
 
 import {makeStyles} from '@material-ui/styles';
 import {requestWithConfirmation} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
@@ -45,7 +46,7 @@ const useStyles = makeStyles(theme => ({
     paddingRight: theme.spacing(),
   },
   paper: {
-    border: '1px solid #e0e0e0',
+    border: GRAY_BORDER,
     flexGrow: 1,
     padding: theme.spacing(),
     overflowX: 'auto',

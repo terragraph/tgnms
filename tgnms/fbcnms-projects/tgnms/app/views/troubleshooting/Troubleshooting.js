@@ -32,6 +32,7 @@ const useStyles = makeStyles(theme => ({
     position: 'inherit',
   },
   menuBar: {
+    zIndex: theme.zIndex.appBar,
     paddingRight: theme.spacing(1),
   },
   tabsRoot: {

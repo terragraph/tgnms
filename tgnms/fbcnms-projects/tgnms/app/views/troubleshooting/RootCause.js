@@ -30,12 +30,17 @@ const useStyles = makeStyles(theme => ({
     overflowX: 'hidden',
   },
   nodeSelectorWrapper: {
-    width: '105%',
+    width: '100%',
   },
   visualizationWrapper: {
     width: 'calc(100vw - 390px)',
   },
-  sideBarWrapper: {margin: '8px', width: '300px'},
+  sideBarWrapper: {
+    margin: theme.spacing(1),
+    marginTop: 0,
+    paddingTop: theme.spacing(1),
+    width: '300px',
+  },
   spacing: {marign: theme.spacing()},
 }));
 
@@ -125,52 +130,54 @@ export default function RootCause() {
   return (
     <Grid container spacing={2} direction="row">
       <Grid item>
-        <div className={classes.sideBarWrapper}>
-          <TextField
-            className={classes.spacing}
-            label="Time"
-            id="time"
-            select
-            InputLabelProps={{shrink: true}}
-            margin="dense"
-            value={timeOffset}
-            fullWidth
-            onChange={handleChangeTimeOffset}>
-            {Object.keys(TIME_OPTIONS).map(key => (
-              <MenuItem key={key} value={TIME_OPTIONS[key]}>
-                {TIME_OPTIONS[key]}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            className={classes.spacing}
-            label="View"
-            id="view"
-            select
-            InputLabelProps={{shrink: true}}
-            margin="dense"
-            value={mode}
-            fullWidth
-            onChange={handleChangeMode}>
-            {Object.keys(NODE_FILTER_MODES).map(mode => (
-              <MenuItem key={mode} value={mode}>
-                {NODE_FILTER_MODES[mode]}
-              </MenuItem>
-            ))}
-          </TextField>
-          {NODE_FILTER_MODES[mode] !== NODE_FILTER_MODES.NETWORK && (
-            <div className={classes.nodeSelectorWrapper}>
-              <NodeSelector
-                mode={convertType<$Keys<typeof CONFIG_MODES>>(mode)}
-                onSelectNode={handleSelectNode}
-                selectedNodeName={selectedNode?.name || null}
-              />
-            </div>
-          )}
-        </div>
+        <Paper square elevation={2} style={{height: '100%'}}>
+          <div className={classes.sideBarWrapper}>
+            <TextField
+              className={classes.spacing}
+              label="Time"
+              id="time"
+              select
+              InputLabelProps={{shrink: true}}
+              margin="dense"
+              value={timeOffset}
+              fullWidth
+              onChange={handleChangeTimeOffset}>
+              {Object.keys(TIME_OPTIONS).map(key => (
+                <MenuItem key={key} value={TIME_OPTIONS[key]}>
+                  {TIME_OPTIONS[key]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              className={classes.spacing}
+              label="View"
+              id="view"
+              select
+              InputLabelProps={{shrink: true}}
+              margin="dense"
+              value={mode}
+              fullWidth
+              onChange={handleChangeMode}>
+              {Object.keys(NODE_FILTER_MODES).map(mode => (
+                <MenuItem key={mode} value={mode}>
+                  {NODE_FILTER_MODES[mode]}
+                </MenuItem>
+              ))}
+            </TextField>
+            {NODE_FILTER_MODES[mode] !== NODE_FILTER_MODES.NETWORK && (
+              <div className={classes.nodeSelectorWrapper}>
+                <NodeSelector
+                  mode={convertType<$Keys<typeof CONFIG_MODES>>(mode)}
+                  onSelectNode={handleSelectNode}
+                  selectedNodeName={selectedNode?.name || null}
+                />
+              </div>
+            )}
+          </div>
+        </Paper>
       </Grid>
       <Grid item className={classes.visualizationWrapper}>
-        <Paper elevation={2} className={classes.visualization}>
+        <Paper square elevation={0} className={classes.visualization}>
           <CorrelationVisualization
             selectedNodeName={selectedNode?.name || null}
             timeOffset={timeOffset}

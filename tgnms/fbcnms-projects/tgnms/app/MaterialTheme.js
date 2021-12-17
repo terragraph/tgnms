@@ -2,7 +2,7 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  *
  * @format
- * @flow strict-local
+ * @flow
  */
 
 import * as React from 'react';
@@ -36,6 +36,8 @@ const TEXT_FIELD_OVERRIDES = {
     },
   },
 };
+
+export const GRAY_BORDER = '1px solid #e0e0e0';
 
 // default theme
 const theme = createMuiTheme(
