@@ -10,7 +10,7 @@ def get_tag_prefix(release):
     if release == "latest":
         tag_prefix = f'v{date.today().strftime("%y.%m.%d")}'
     else:
-        tag_prefix = f"lts-{release}"
+        tag_prefix = f"{release}"
     return tag_prefix
 
 
