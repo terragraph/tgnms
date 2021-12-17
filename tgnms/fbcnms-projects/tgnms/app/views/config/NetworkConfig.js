@@ -55,6 +55,7 @@ const useStyles = makeStyles(theme => ({
     flexFlow: 'column',
     flexGrow: 1,
     overflow: 'hidden',
+    marginLeft: theme.spacing(0.5),
   },
   jsonTextarea: {
     fontFamily: 'monospace',
@@ -110,7 +111,7 @@ export default function NetworkConfig() {
           rawJsonEditor={contentDisplayMode === EDITOR_OPTIONS.JSON}
         />
         <div className={classes.tabContent}>
-          <Paper className={classes.configOptions} elevation={2}>
+          <Paper className={classes.configOptions} square elevation={2}>
             <ConfigSidebar
               useRawJsonEditor={contentDisplayMode === EDITOR_OPTIONS.JSON}
               hideDeprecatedFields={hideDeprecatedFields}
@@ -122,7 +123,7 @@ export default function NetworkConfig() {
               onSetHideDeprecated={setHideDeprecatedFields}
             />
           </Paper>
-          <Paper className={classes.configBody} elevation={2}>
+          <Paper className={classes.configBody} square elevation={0}>
             <ConfigContent
               contentDisplayMode={contentDisplayMode}
               hideDeprecatedFields={hideDeprecatedFields}

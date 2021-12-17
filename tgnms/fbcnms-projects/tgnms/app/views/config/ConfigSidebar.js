@@ -397,7 +397,7 @@ export default function ConfigSidebar(props: Props) {
   return (
     <>
       <div className={classes.header}>
-        <Typography variant="h6">Configuration Options</Typography>
+        <Typography variant="body1">Configuration Options</Typography>
       </div>
       <div className={classes.sidePad}>
         <TextField

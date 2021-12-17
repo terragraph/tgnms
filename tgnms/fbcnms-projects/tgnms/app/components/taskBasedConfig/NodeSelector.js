@@ -15,6 +15,7 @@ import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import StatusIndicator, {
   StatusIndicatorColor,
 } from '@fbcnms/tg-nms/app/components/common/StatusIndicator';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {CONFIG_MODES} from '@fbcnms/tg-nms/app/constants/ConfigConstants';
 import {getNodeOverridesConfig} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
@@ -141,6 +142,7 @@ export default function NodeSelector({
         ) : null}
         {filteredNodeList.map(node => {
           const isSelected = selectedNodeName === node.name;
+          const defaultNameStyle = {noWrap: true};
           return (
             <ListItem
               key={node.name}
@@ -148,26 +150,29 @@ export default function NodeSelector({
               dense
               selected={isSelected}
               onClick={() => onSelectNode(node)}>
-              <ListItemText
-                primary={node.name}
-                primaryTypographyProps={
-                  node.hasOverride
-                    ? {
-                        className: classes.selectedNodePrimaryText,
-                        variant: 'subtitle2',
-                      }
-                    : null
-                }
-                secondary={
-                  isSelected && !node.isAlive
-                    ? 'This node is offline, so the base values shown ' +
-                      'may be inaccurate.'
-                    : null
-                }
-                secondaryTypographyProps={{
-                  className: classes.selectedNodeSecondaryText,
-                }}
-              />
+              <Tooltip title={node.name}>
+                <ListItemText
+                  primary={node.name}
+                  primaryTypographyProps={
+                    node.hasOverride
+                      ? {
+                          ...defaultNameStyle,
+                          className: classes.selectedNodePrimaryText,
+                          variant: 'subtitle2',
+                        }
+                      : defaultNameStyle
+                  }
+                  secondary={
+                    isSelected && !node.isAlive
+                      ? 'This node is offline, so the base values shown ' +
+                        'may be inaccurate.'
+                      : null
+                  }
+                  secondaryTypographyProps={{
+                    className: classes.selectedNodeSecondaryText,
+                  }}
+                />
+              </Tooltip>
               <ListItemSecondaryAction>
                 <StatusIndicator
                   color={
