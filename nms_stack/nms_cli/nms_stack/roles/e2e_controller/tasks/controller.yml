@@ -2,6 +2,7 @@
 - set_fact:
     e2e_controller_path: "{{ e2e_path }}/e2e-{{ escaped_controller_name }}"
     e2e_audit_logs_path: "{{ audit_logs_gfs_path }}/{{ escaped_controller_name }}"
+    controller_service_name: "e2e-{{escaped_controller_name}}_e2e_controller"
 
 - name: Make directory
   file:
@@ -114,6 +115,31 @@
     group: docker
     mode: "0644"
     force: no
+
+- name: store current e2e version
+  shell: |
+    export IMAGEID=$(docker service inspect {{controller_service_name}} -f {{'"{{.Spec.TaskTemplate.ContainerSpec.Image}}"'}})
+    if [ -z $IMAGEID ]; then >&2 echo "No previous controller version to migrate" && exit 0; fi
+    export CONTAINERID=$(docker create $IMAGEID sh)
+    if [ -z $CONTAINERID ]; then >&2 echo "Could not create container from $IMAGEID" && exit 1; fi
+    docker export $CONTAINERID | tar -x etc/tgversion -O > {{ data_folder }}/last_version
+    docker rm $CONTAINERID
+  ignore_errors: yes
+
+- name: stop e2e before migrating config
+  shell: docker service scale {{controller_service_name}}=0
+  ignore_errors: yes
+
+- name: migrate e2e config
+  shell: >
+    docker run --rm
+    --mount type=bind,source={{ data_folder }},target=/data
+    --entrypoint=""
+    --network=terragraph_net
+    {{e2e_image}} sh -c "[ -x /usr/sbin/migrate_e2e_data ] && /usr/sbin/migrate_e2e_data --from_ver_file /data/last_version --to_ver_file /etc/tgversion"
+  register: migrate_result
+  ignore_errors: yes
+- debug: msg={{migrate_result.stdout}}
 
 - name: run compose
   shell: "docker stack deploy -c {{ e2e_path }}/docker-compose-e2e-{{ escaped_controller_name }}.yml --with-registry-auth --prune e2e-{{ escaped_controller_name }}"
