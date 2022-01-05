@@ -251,6 +251,8 @@ def upgrade(ctx, config_file, host, controller, image, tags, verbose, password):
 
     generated_config = generate_common_configs(loaded_config)
     if loaded_config:
+        generated_config["ansible_user"] = loaded_config["ansible_user"]
+        generated_config["docker_user"] = loaded_config["docker_user"]
         controllers_list = loaded_config["controllers_list"]
         controllers_list = [
             ctrlr for ctrlr in controllers_list if ctrlr["name"] == controller
