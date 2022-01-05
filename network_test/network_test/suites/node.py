@@ -57,8 +57,8 @@ class NodeTest(BaseTest):
 
                 if node["pop_node"]:
                     name_to_mac[node_name] = node_mac
-                elif node["status"] != NodeStatusType.ONLINE:
-                    logging.error(f"Skipping {node_name} because it is not 'ONLINE'")
+                elif node["status"] == NodeStatusType.OFFLINE:
+                    logging.error(f"Skipping {node_name} because it is 'OFFLINE'")
                 elif (allowlist_set and node_name in allowlist_set) or (
                     site_name not in seen_sites
                 ):
