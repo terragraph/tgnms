@@ -31,6 +31,10 @@ jest.mock('../../config', () => ({
   LOG_LEVEL: 'debug',
 }));
 
+beforeEach(() => {
+  jest.resetAllMocks();
+});
+
 describe('Authenticate Session User', () => {
   test('if there is no passport session, throws an expected error', async () => {
     const clientMock = mockOpenidClient();
@@ -71,18 +75,15 @@ describe('Authenticate Session User', () => {
       [string],
       Promise<TokenSet>,
     >).mockImplementationOnce(() => Promise.reject(new Error('expired')));
-
     const expiredTokenSet: $Shape<TokenSet> = {expired: jest.fn(() => true)};
     tokenSetConstructorMock.mockImplementationOnce(() => expiredTokenSet);
-
     const request = mockRequest({
       logIn: mockLogin(),
       ...mockSessionUser(mockUser()),
     });
-
-    expect(authenticateSessionUser(request, clientMock)).rejects.toEqual(
-      new Error(),
-    );
+    await expect(async () => {
+      await authenticateSessionUser(request, clientMock);
+    }).rejects.toThrow();
     expect(expiredTokenSet.expired).toHaveBeenCalled();
     expect(request.logIn).not.toHaveBeenCalled();
   });
