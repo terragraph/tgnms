@@ -167,8 +167,6 @@ export default function PlansTable(_props: NetworkTableProps) {
         columns={columns}
         onRowClick={handleRowClick}
         isLoading={loadPlansTask.isLoading}
-        // removes the Actions column header text
-        localization={{header: {actions: ''}}}
         actions={[
           {
             position: 'toolbar',

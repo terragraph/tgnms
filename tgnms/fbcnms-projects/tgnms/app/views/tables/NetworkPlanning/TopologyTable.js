@@ -42,6 +42,7 @@ const tableStyle = {
 };
 const useStyles = makeStyles(theme => ({
   summaryRoot: {
+    paddingLeft: 0,
     flexDirection: 'row-reverse',
     '&.Mui-expanded': {
       minHeight: 'inherit',
@@ -58,7 +59,8 @@ const useStyles = makeStyles(theme => ({
   },
   header: {
     width: '100%',
-    paddingLeft: theme.spacing(1),
+    paddingLeft: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
   },
   accordion: {
     borderBottom: '1px solid ' + theme.palette.divider,

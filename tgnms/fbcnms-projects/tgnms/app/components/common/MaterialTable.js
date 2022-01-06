@@ -24,6 +24,9 @@ import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import {defaultProps as MaterialTableDefaultProps} from '@material-table/core/dist/defaults';
 
+// remove the "actions" column
+const TABLE_LOCALIZATION = {header: {actions: ''}};
+
 const tableIcons = {
   Add: React.forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
   Check: React.forwardRef((props, ref) => <Check {...props} ref={ref} />),
@@ -201,6 +204,7 @@ export default function CustomMaterialTable({
         tableRef={tableRef}
         components={_components}
         options={tableOptions}
+        localization={TABLE_LOCALIZATION}
       />
     </div>
   );
