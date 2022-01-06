@@ -112,7 +112,7 @@ describe('Services', () => {
     expect(_postMock).not.toHaveBeenCalled();
     act(() => {
       fireEvent.change(
-        coerceClass(getByLabelText('Nodeupdate Auth Token'), HTMLInputElement),
+        coerceClass(getByLabelText('Prometheus URL'), HTMLInputElement),
         {target: {value: 'anything'}},
       );
     });

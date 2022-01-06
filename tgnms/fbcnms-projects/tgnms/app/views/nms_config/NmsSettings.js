@@ -125,16 +125,6 @@ export default function NmsSettings() {
                     description="External services which NMS depends on to provide functionality"
                     Heading={SettingsFormHeading}>
                     <MapStylesSettingsGroup />
-                    <SettingsGroup title="Nodeupdate">
-                      <SettingInput
-                        label="Nodeupdate URL"
-                        setting="NODEUPDATE_SERVER_URL"
-                      />
-                      <SettingInput
-                        label="Nodeupdate Auth Token"
-                        setting="NODEUPDATE_AUTH_TOKEN"
-                      />
-                    </SettingsGroup>
                     <SettingsGroup
                       title="Software Portal"
                       tester={

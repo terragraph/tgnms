@@ -20,5 +20,4 @@ export default [
   '/user/logout',
   // protected by middleware/otp
   '/static/tg-binaries',
-  '/nodeupdateservice/downloadimage',
 ];

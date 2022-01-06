@@ -70,17 +70,6 @@ export const SETTINGS: Array<SettingDefinition> = [
     requiresRestart: true,
   },
   {
-    key: 'NODEUPDATE_SERVER_URL',
-    dataType: 'STRING',
-    requiresRestart: true,
-    validations: ['URL'],
-  },
-  {
-    key: 'NODEUPDATE_AUTH_TOKEN',
-    dataType: 'SECRET_STRING',
-    requiresRestart: true,
-  },
-  {
     key: 'SOFTWARE_PORTAL_URL',
     dataType: 'STRING',
     requiresRestart: true,

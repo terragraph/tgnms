@@ -118,7 +118,3 @@ The ratio of intended receive signal to the total noise and interference. The li
 MCS (Modulation and Coding Scheme)
 """"""""""""""""""""""""""""""""""
 Based on a link’s SNR and PER, link adaptation on the Terragraph radio will pick a corresponding MCS to ensure that the link remains stable in changing RF conditions. MCS refers to the notion of packaging less data in fewer number of bits and mathematically protecting it to increase the probability of successful decoding on the receiver end. Low MCS is directly proportional to lower throughput. A table showing the different MCS rates and corresponding data rates is shown below.
-
-Nodeupdate
-""""""""""
-A Terragraph utility for configuring the first PoP node before connectivity to the E2E controller has been established.

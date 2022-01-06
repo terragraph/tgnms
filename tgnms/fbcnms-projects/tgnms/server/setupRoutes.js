@@ -19,7 +19,7 @@ export async function setupRoutes(app: $Application<Request, Response>) {
   r.route('/import', require('./import/routes').default);
   r.route('/map', require('./map/routes').default);
   r.route('/metrics', require('./metrics/routes').default);
-  r.route('/nodeupdateservice', require('./nodeupdateservice/routes').default);
+  r.route('/nodeimage', require('./nodeimage/routes').default);
   r.route('/topology', require('./topology/routes').default);
   r.route('/user', require('./user/routes').default);
   r.route('/network_test', require('./network_test/routes').default);

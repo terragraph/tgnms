@@ -5,11 +5,11 @@
  * @flow
  */
 
+import * as nodeImageApiUtil from '@fbcnms/tg-nms/app/apiutils/NodeImageAPIUtil';
 import {
   apiServiceRequest,
   getErrorTextFromE2EAck,
 } from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
-import {nodeupdateServerRequest} from '@fbcnms/tg-nms/app/apiutils/NodeupdateAPIUtil';
 import {objectEntriesTypesafe} from './ObjectHelpers';
 import type {UpgradeImageType} from '@fbcnms/tg-nms/shared/types/Controller';
 
@@ -41,26 +41,24 @@ export function fetchUpgradeImages(
     });
 }
 
-export type SoftwarePortalFile = {
-  description: string,
-  filesize: number,
-  shasum: string,
-  uploaded_by: string,
-  uploaded_date: number,
-  url: string,
-};
+// export type SoftwarePortalFile = {
+//   description: string,
+//   filesize: number,
+//   shasum: string,
+//   uploaded_by: string,
+//   uploaded_date: number,
+//   url: string,
+// };
 
 /* fetches image data from the software portal */
 export function fetchSoftwarePortalImages(
   data: {suite: string},
   onResponse: (Array<SoftwareImageType>) => any,
 ) {
-  nodeupdateServerRequest('list', data)
+  nodeImageApiUtil
+    .getImages(data)
     .then(response => {
-      const images = objectEntriesTypesafe<
-        string,
-        {[string]: SoftwarePortalFile},
-      >(response.data).reduce(
+      const images = objectEntriesTypesafe(response).reduce(
         (images: Array<SoftwareImageType>, [release, files]) => {
           const fileName = 'tg-update-armada39x.bin';
           const metadata = files[fileName];

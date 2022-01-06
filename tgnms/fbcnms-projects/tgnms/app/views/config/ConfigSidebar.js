@@ -68,11 +68,6 @@ const useStyles = makeStyles(theme => ({
   selectedNodeSecondaryText: {
     lineHeight: 1.2,
   },
-  nodeupdateIcon: {
-    fontSize: 14,
-    verticalAlign: 'text-top',
-    paddingLeft: theme.spacing(),
-  },
   nodeConfigSearch: {
     border: '1px solid lightGray',
     fontSize: 12,

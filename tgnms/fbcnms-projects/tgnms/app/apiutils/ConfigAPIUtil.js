@@ -11,14 +11,11 @@ import {
   sortConfig,
 } from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {isPlainObject} from 'lodash';
-import {nodeupdateServerRequest} from './NodeupdateAPIUtil';
 import {supportsFirmwareApiRequest} from '@fbcnms/tg-nms/app/helpers/TgFeatures';
 
 import type {AggregatorConfigType} from '@fbcnms/tg-nms/shared/types/Aggregator';
 import type {ControllerConfigType} from '@fbcnms/tg-nms/shared/types/Controller';
 import type {NodeConfigType} from '@fbcnms/tg-nms/shared/types/NodeConfig';
-
-import type {NodeConfigStatusType} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 
 // Generic success handler
 const onSuccess = (response, key, onResolve, processResults, defaultCfg) => {
@@ -269,31 +266,4 @@ export const setAggregatorConfig = (
   apiServiceRequest(networkName, 'setAggregatorConfig', data)
     .then(_response => onResolve && onResolve())
     .catch(err => onError(err, onReject));
-};
-
-// Send a configuration bundle to a node (via nodeupdate)
-export const sendConfigBundleToNode = (
-  macAddr: string,
-  config: ?string,
-  onResolve: () => any,
-  onReject: Object => any,
-) => {
-  const data = {node_mac: macAddr, node_config: config};
-  nodeupdateServerRequest('nms_pop', data)
-    .then(_response => onResolve && onResolve())
-    .catch(err => onReject && onReject(err));
-};
-
-// Get configuration bundle status for a node (via nodeupdate)
-export const getConfigBundleStatus = (
-  macAddr: string,
-  onResolve: (?$Shape<NodeConfigStatusType>) => any,
-  onReject: string => any,
-) => {
-  const data = {node_mac: macAddr};
-  nodeupdateServerRequest('nms_pop_status', data)
-    .then(response => {
-      onResolve && onResolve(response.data.ObjectServed);
-    })
-    .catch(err => onReject && onReject(err));
 };

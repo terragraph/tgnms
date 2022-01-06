@@ -44,7 +44,7 @@ describe("/list - get a list of a suite's releases", () => {
       suite: 'tg_firmware_rev5',
     };
     const response = await request(app)
-      .post('/nodeupdateservice/list')
+      .post('/nodeimage/list')
       .send(testHeaders)
       .expect(200);
     expect(response.body.data).toBeDefined();
@@ -55,7 +55,7 @@ describe("/list - get a list of a suite's releases", () => {
     const app = setupApp();
     const testHeaders = {};
     const _response = await request(app)
-      .post('/nodeupdateservice/list')
+      .post('/nodeimage/list')
       .send(testHeaders)
       .expect(400);
   });
@@ -77,7 +77,7 @@ describe('/downloadimage/:network/:release/:image', () => {
     jest.spyOn(requestStream, 'on');
     jest.spyOn(requestStream, 'pipe');
     request(app)
-      .get('/nodeupdateservice/downloadimage/testnetwork/testrelease/image')
+      .get('/nodeimage/downloadimage/testnetwork/testrelease/image')
       .expect(200)
       .buffer(true)
       .parse(superagent.parse.image)
@@ -99,41 +99,10 @@ describe('/downloadimage/:network/:release/:image', () => {
     requestStream.emit('data', buffer);
     requestStream.end();
   });
-
-  // T57895888 @clavelle - Fix this test
-  xtest('returns an error if external api returns error', done => {
-    const app = setupApp();
-    const requestStream = makeStreamingDownloadMock();
-    requestMock.mockImplementationOnce(jest.fn(_input => requestStream));
-    request(app)
-      .get('/nodeupdateservice/downloadimage/testnetwork/testrelease/image')
-      .expect(500)
-      .then(_response => {
-        expect(requestStream.on).toHaveBeenCalled();
-        expect(requestStream.pipe).toHaveBeenCalled();
-        done();
-      });
-    requestStream.response.statusCode = 500;
-    requestStream.emit('data', 'error');
-    requestStream.end();
-  });
-});
-
-describe('/', () => {
-  test('doesnt crash when an error occurs', async () => {
-    const app = setupApp();
-    requestMock.mockImplementationOnce((_input, done) => {
-      done(null, {
-        statusCode: 400,
-        body: {},
-      });
-    });
-    await request(app).get('/nodeupdateservice').expect(400);
-  });
 });
 
 function setupApp() {
-  return setupTestApp('/nodeupdateservice', require('../routes').default);
+  return setupTestApp('/nodeimage', require('../routes').default);
 }
 
 function makeStreamingDownloadMock() {

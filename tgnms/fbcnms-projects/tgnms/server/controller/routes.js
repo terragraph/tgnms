@@ -66,7 +66,7 @@ export default class ControllerRoute extends Api {
 
       generateAndStoreOtp().then(token => {
         // /downloadimage/release/image
-        const imageUrl = `${urlPrefix}/nodeupdateservice/downloadimage/${querystring.escape(
+        const imageUrl = `${urlPrefix}/nodeimage/downloadimage/${querystring.escape(
           networkName,
         )}/${querystring.escape(release)}/${querystring.escape(
           name,

@@ -114,22 +114,7 @@ export const INTRO_STEPS = [
               <CheckIcon style={{color: '#00AF5B'}} />
             </Grid>
             <Grid item xs={11}>
-              The node chosen to be the POP has an uplink to the router. The POP
-              requires either DHCPv4 or DHCPv6 to resolve the nodeupdate server.
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item container spacing={1}>
-          <Grid item component="h4">
-            Information
-          </Grid>
-          <Grid item container direction="row">
-            <Grid item xs={1}>
-              <CheckIcon style={{color: '#00AF5B'}} />{' '}
-            </Grid>
-            <Grid item xs={11}>
-              You have a nodeupdate authorization token. This should have been
-              received in an email from Facebook.
+              The node chosen to be the POP has an uplink to the router.
             </Grid>
           </Grid>
         </Grid>

@@ -13,7 +13,6 @@ TGNMS is one of many services within the TGNMS suite. If your TGNMS instance is 
 
 Upon changing any settings, scroll back to the top of the page and click "Save" to see a preview of the changes before applying.
 
-* **Nodeupdate** - Configure the address and authentication for the :ref:`Terminology:Nodeupdate` service.
 * **Software Portal** - Software Portal manages distribution and versioning of node firmware.
 * **Stats** - Configure connection to Prometheus, Grafana, and Kibana.
 * **Alarms** - Configure the :ref:`Alerts <alerts>` page and related services (Alertmanager).
@@ -28,4 +27,4 @@ Upon changing any settings, scroll back to the top of the page and click "Save" 
 
 Map Profiles
 ------------
-Map profiles can fetch overlays from a remote server or server running within the TGNMS cluster. 
+Map profiles can fetch overlays from a remote server or server running within the TGNMS cluster.

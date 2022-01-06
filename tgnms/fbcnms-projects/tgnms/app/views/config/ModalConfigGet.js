@@ -11,7 +11,6 @@ import MaterialModal from '@fbcnms/tg-nms/app/components/common/MaterialModal';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import copy from 'copy-to-clipboard';
 import {
@@ -19,10 +18,7 @@ import {
   DEFAULT_FIRMWARE_BASE_KEY,
   DEFAULT_HARDWARE_BASE_KEY,
 } from '@fbcnms/tg-nms/app/constants/ConfigConstants';
-import {
-  getFullNodeConfig,
-  sendConfigBundleToNode,
-} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
+import {getFullNodeConfig} from '@fbcnms/tg-nms/app/apiutils/ConfigAPIUtil';
 import {makeStyles} from '@material-ui/styles';
 import {stringifyConfig} from '@fbcnms/tg-nms/app/helpers/ConfigHelpers';
 import {useConfigTaskContext} from '@fbcnms/tg-nms/app/contexts/ConfigTaskContext';
@@ -60,13 +56,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const SendToNodeupdateState = Object.freeze({
-  NONE: 'NONE',
-  REQUEST_PENDING: 'REQUEST_PENDING',
-  SUCCESS: 'SUCCESS',
-  FAILURE: 'FAILURE',
-});
-
 type Props = {
   isOpen: boolean,
   onClose: () => any,
@@ -88,9 +77,7 @@ export default function ModalConfigGet(props: Props) {
     DEFAULT_FIRMWARE_BASE_KEY,
   );
   const [error, setError] = React.useState(null);
-  const [nodeupdateState, setNodeupdateState] = React.useState(
-    SendToNodeupdateState.NONE,
-  );
+
   const [fullNodeConfig, setFullNodeConfig] = React.useState(null);
 
   const fetchFullNodeConfig = React.useCallback(() => {
@@ -116,22 +103,6 @@ export default function ModalConfigGet(props: Props) {
     selectedHardwareType,
     selectedImage,
   ]);
-
-  const handleSendConfigToNode = () => {
-    // Send the config to the node via the nodeupdate service
-    setNodeupdateState(SendToNodeupdateState.REQUEST_PENDING);
-    sendConfigBundleToNode(
-      nodeInfo?.macAddr || '',
-      fullNodeConfig,
-      () => setNodeupdateState(SendToNodeupdateState.SUCCESS),
-      err => {
-        console.error(
-          err.response?.statusText || 'Failed to send configuration to node.',
-        );
-        setNodeupdateState(SendToNodeupdateState.FAILURE);
-      },
-    );
-  };
 
   const handleEnter = React.useCallback(() => {
     // Reset the modal state on enter
@@ -182,13 +153,6 @@ export default function ModalConfigGet(props: Props) {
     : [DEFAULT_HARDWARE_BASE_KEY];
 
   const disableButtons = fullNodeConfig === null;
-
-  const nodeupdateButtonText =
-    nodeupdateState === SendToNodeupdateState.SUCCESS
-      ? 'Staged'
-      : nodeupdateState === SendToNodeupdateState.FAILURE
-      ? 'Failed'
-      : 'Send To Node';
 
   const errorNode = (
     <Typography variant="subtitle2" className={classes.red}>
@@ -287,35 +251,6 @@ export default function ModalConfigGet(props: Props) {
             disabled={disableButtons}>
             Copy
           </Button>
-          <Tooltip
-            title={
-              "This will use Terragraph's external node update service, " +
-              'which requires only Internet connectivity on the node ' +
-              'instead of a connection to the E2E controller. ' +
-              'The service bypasses the normal configuration procedure and ' +
-              'is intended for initial setup.'
-            }
-            placement="top"
-            enterDelay={400}>
-            <div className={classes.buttonProgressContainer}>
-              <Button
-                className={classes.button}
-                variant="outlined"
-                onClick={handleSendConfigToNode}
-                disabled={
-                  disableButtons ||
-                  nodeupdateState !== SendToNodeupdateState.NONE
-                }>
-                {nodeupdateButtonText}
-              </Button>
-              {nodeupdateState === SendToNodeupdateState.REQUEST_PENDING ? (
-                <CircularProgress
-                  className={classes.buttonProgress}
-                  size={24}
-                />
-              ) : null}
-            </div>
-          </Tooltip>
         </>
       }
     />

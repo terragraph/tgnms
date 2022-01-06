@@ -58,11 +58,6 @@ const DS_INTERVAL_SEC = 30;
 // fix to a stable docker api version (https://docs.docker.com/engine/api/v1.37/)
 const DOCKER_API_VERSION = '1.37';
 
-// URL and auth token for Terragraph's central nodeupdate server
-const NODEUPDATE_SERVER_URL =
-  process.env.NODEUPDATE_SERVER_URL || 'https://nodeupdate.terragraph.link';
-const NODEUPDATE_AUTH_TOKEN = process.env.NODEUPDATE_AUTH_TOKEN || '';
-
 // URL and auth token for Terragraph's software portal
 const SOFTWARE_PORTAL_ENABLED = isFeatureEnabled('SOFTWARE_PORTAL_ENABLED');
 const SOFTWARE_PORTAL_URL =
@@ -129,8 +124,6 @@ module.exports = {
   MYSQL_PORT,
   MYSQL_USER,
   IS_KUBERNETES,
-  NODEUPDATE_SERVER_URL,
-  NODEUPDATE_AUTH_TOKEN,
   SOFTWARE_PORTAL_ENABLED,
   SOFTWARE_PORTAL_URL,
   SOFTWARE_PORTAL_API_TOKEN,
