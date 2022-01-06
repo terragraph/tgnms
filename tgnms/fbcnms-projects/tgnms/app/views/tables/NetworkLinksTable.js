@@ -341,16 +341,11 @@ function LinksTable({
   );
   const tableOptions = React.useMemo(
     () => ({
-      padding: 'dense',
-      showTitle: false,
       grouping: false,
       filtering: true,
-      pageSize: 20,
-      emptyRowsWhenPaging: false,
       search: false,
       showTitle: false,
       rowStyle: makeRowStyle,
-      tableLayout: 'fixed',
       draggable: false,
     }),
     [makeRowStyle],

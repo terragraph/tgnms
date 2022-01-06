@@ -161,10 +161,6 @@ export default function NetworkNodesTable(_props: NetworkTableProps) {
 
   const tableOptions = React.useMemo(
     () => ({
-      showTitle: false,
-      pageSize: 20,
-      pageSizeOptions: [20, 50, 100],
-      padding: 'dense',
       grouping: true,
       filtering: true,
       rowStyle: makeRowStyle,
@@ -174,7 +170,6 @@ export default function NetworkNodesTable(_props: NetworkTableProps) {
       headerStyle: {
         padding: 4,
       },
-      tableLayout: 'fixed',
     }),
     [makeRowStyle],
   );

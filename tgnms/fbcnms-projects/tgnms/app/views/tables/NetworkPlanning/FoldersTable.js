@@ -79,19 +79,7 @@ export default function FoldersTable(_props: NetworkTableProps) {
     [],
   );
   const tableOptions = React.useMemo(() => {
-    return {
-      showTitle: false,
-      pageSize: 20,
-      pageSizeOptions: [20, 50, 100],
-      padding: 'dense',
-      tableLayout: 'fixed',
-      toolbarButtonAlignment: 'right',
-      searchFieldStyle: {
-        marginRight: '16px',
-      },
-      emptyRowsWhenPaging: false,
-      actionsColumnIndex: -1,
-    };
+    return {};
   }, []);
 
   const handleRowClick = (event, row: PlanFolder) => {

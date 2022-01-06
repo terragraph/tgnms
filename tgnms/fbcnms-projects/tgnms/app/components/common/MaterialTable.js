@@ -131,6 +131,20 @@ export function useAutosizeMaterialTable(
   };
 }
 
+const defaultTableOptions = {
+  showTitle: false,
+  pageSize: 50,
+  pageSizeOptions: [50, 100, 200],
+  padding: 'dense',
+  tableLayout: 'fixed',
+  toolbarButtonAlignment: 'right',
+  searchFieldStyle: {
+    marginRight: '16px',
+  },
+  emptyRowsWhenPaging: false,
+  actionsColumnIndex: -1,
+};
+
 export default function CustomMaterialTable({
   options,
   tableRef: tableRefProp,
@@ -170,6 +184,7 @@ export default function CustomMaterialTable({
   );
   const tableOptions = React.useMemo(
     () => ({
+      ...defaultTableOptions,
       minBodyHeight: bodyHeight,
       maxBodyHeight: bodyHeight,
       ...(options ?? {}),
