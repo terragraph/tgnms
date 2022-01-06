@@ -4,7 +4,6 @@
  * @format
  * @flow
  */
-
 import * as hardwareProfilesApi from '@fbcnms/tg-nms/app/apiutils/HardwareProfilesAPIUtil';
 import * as prometheusApi from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
 import * as topologyApi from '@fbcnms/tg-nms/app/apiutils/TopologyAPIUtil';
@@ -24,6 +23,7 @@ import {
   createQuery,
   increase,
 } from '@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil';
+import {isEqual} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import type {ContextRouter} from 'react-router-dom';
@@ -102,7 +102,7 @@ type State = {
   hardwareProfiles: HardwareProfiles,
 };
 
-class NetworkUI extends React.Component<Props, State> {
+class NetworkUI extends React.PureComponent<Props, State> {
   state = {
     // Used to trigger a redirect when the network is invalid
     status: NETWORK_UI_STATUS.OK,
@@ -282,16 +282,20 @@ class NetworkUI extends React.Component<Props, State> {
     const topologyMaps =
       networkConfig.topology != null
         ? buildTopologyMaps(networkConfig.topology)
-        : null;
+        : {};
     const topologyState =
       topologyMaps != null ? this.cleanTopologyState(topologyMaps) : null;
-    this.setState({
-      networkConfig,
-      isReloading: false,
-      ...(topologyMaps ??
-        ({}: $Shape<$Call<typeof buildTopologyMaps, TopologyType>>)),
-      ...(topologyState ?? {}),
-    });
+
+    this.setState({isReloading: false});
+    if (!isEqual(this.state.networkConfig, networkConfig)) {
+      this.setState({
+        networkConfig,
+        ...(topologyMaps: $Shape<
+          $Call<typeof buildTopologyMaps, TopologyType>,
+        >),
+        ...(topologyState ?? {}),
+      });
+    }
 
     // Refresh network health
     this.updateNetworkHealth(

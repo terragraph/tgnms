@@ -20,6 +20,7 @@ import {SnackbarProvider} from 'notistack';
 import {TutorialContextProvider} from '@fbcnms/tg-nms/app/contexts/TutorialContext';
 import {generatePath, matchPath} from 'react-router';
 import {getUIConfig} from './common/uiConfig';
+import {isEqual} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {objectValuesTypesafe} from '@fbcnms/tg-nms/app/helpers/ObjectHelpers';
 import {useLocation} from 'react-router-dom';
@@ -74,7 +75,9 @@ export default function NetworkListBase() {
   const refreshTopologyList = React.useCallback(() => {
     // Fetch list of network/topology configurations
     topologyApi.listTopology().then(newNetworkList => {
-      setNetworkList(newNetworkList);
+      setNetworkList(curr =>
+        isEqual(curr, newNetworkList) ? curr : newNetworkList,
+      );
     });
   }, []);
 

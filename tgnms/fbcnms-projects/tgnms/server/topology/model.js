@@ -30,6 +30,7 @@ import type {
   ServerNetworkState,
 } from '../../shared/dto/NetworkState';
 import type {Response} from '../types/express';
+import type {StatusDumpType} from '@fbcnms/tg-nms/shared/types/Controller';
 
 type NetworkStateMap = {|
   [string]: ServerNetworkState,
@@ -170,12 +171,22 @@ export async function reloadInstanceConfig(): Promise<TopologyConfigMap> {
   });
 }
 
-export function updateControllerVersion(
+export function onStatusDumpSuccess(
   request: {networkName: string},
   success: boolean,
   responseTime: number,
-  data: {version: string},
+  data: StatusDumpType,
 ) {
+  // first, clear the timestamp
+  data.timeStamp = 0;
+  Object.keys(data.statusReports).forEach(mac => {
+    // these timestamps are unused and cause excessive rerendering
+    const report = (data.statusReports[mac]: any);
+    delete report.lastAckGpsTimestamp;
+    delete report.sentGpsTimestamp;
+    delete report.timeStamp;
+  });
+
   if (data.version) {
     networkState[request.networkName].controller_version = data.version.slice(
       0,
@@ -279,19 +290,19 @@ export function refreshTopologies(selectedNetwork: ?string = null) {
     const apiHighAvailabilityCalls = {
       getHighAvailabilityState: {
         stateKey: 'high_availability',
-        callback: updateControllerState.bind(this),
+        callback: updateControllerState,
       },
     };
     // fetch from api service for all topologies
     const apiCallsPerNetwork = {
       getTopology: {
         stateKey: 'topology',
-        filterResult: updateSiteOverrides.bind(this),
-        onSuccess: updateTopologyState.bind(this),
+        filterResult: updateSiteOverrides,
+        onSuccess: updateTopologyState,
       },
       getCtrlStatusDump: {
         stateKey: 'status_dump',
-        onSuccess: updateControllerVersion.bind(this),
+        onSuccess: onStatusDumpSuccess,
       },
       getIgnitionState: {
         stateKey: 'ignition_state',
@@ -304,7 +315,7 @@ export function refreshTopologies(selectedNetwork: ?string = null) {
       },
       getNodeOverridesConfig: {
         stateKey: 'config_node_overrides',
-        onSuccess: updateConfigParams.bind(this),
+        onSuccess: updateConfigParams,
       },
     };
     const haPromiseList = [];
