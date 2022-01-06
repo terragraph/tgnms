@@ -152,7 +152,9 @@ export default class ANPAPIClient {
     return result.data;
   };
   getPlanErrors = async (id: string) => {
-    const result = await this.makeRequest<GraphQueryResponse<ANPFileHandle>>({
+    const result = await this.makeRequest<
+      GraphQueryResponse<{error_message: string}>,
+    >({
       id,
       edge: 'errors',
       query: {fields: 'error_message'},
@@ -241,17 +243,25 @@ export default class ANPAPIClient {
     boundary_polygon,
     dsm,
     site_list,
+    device_list_file,
   }: CreateANPPlanRequest): Promise<ANPPlan> {
+    const query: {[string]: string | number} = {
+      plan_name,
+      boundary_polygon,
+      digital_surface_model: dsm,
+      site_list,
+    };
+    if (
+      typeof device_list_file === 'string' &&
+      device_list_file.trim() !== ''
+    ) {
+      query.device_list_file = device_list_file;
+    }
     return this.makeRequest<ANPPlan>({
       id: folder_id,
       edge: 'terragraph_basic_plan',
       method: 'POST',
-      query: {
-        plan_name,
-        boundary_polygon,
-        digital_surface_model: dsm,
-        site_list,
-      },
+      query: query,
     });
   }
 

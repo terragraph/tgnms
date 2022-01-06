@@ -114,6 +114,9 @@ export default class NetworkPlanRoutes extends Api {
         .startLaunchPlan({id: parseInt(req.params.id)})
         .then(result => {
           if (result.state === NETWORK_PLAN_STATE.ERROR) {
+            if (result.message) {
+              this.logger.error(result.message);
+            }
             return res.status(500).json(result);
           }
           return res.json(result);
@@ -234,8 +237,8 @@ export default class NetworkPlanRoutes extends Api {
     });
 
     router.get('/plan/:id/errors', (req, res) => {
-      return apiClient
-        .getPlanErrors(req.params.id)
+      return planningService
+        .getPlanErrors({id: parseInt(req.params.id)})
         .then(x => res.json(x))
         .catch(err => res.status(500).send(err.message));
     });

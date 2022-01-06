@@ -3,6 +3,7 @@
  *
  * @format
  * @flow
+ *
  */
 
 /**
@@ -91,6 +92,7 @@ export type CreateANPPlanRequest = {|
   boundary_polygon: string,
   dsm: string,
   site_list: string,
+  device_list_file?: ?string,
 |};
 
 // launch/cancel both return just a success message
@@ -131,6 +133,7 @@ export const FILE_ROLE = {
   URBAN_SITE_FILE: 'URBAN_SITE_FILE',
   URBAN_TOPOLOGY_JSON: 'URBAN_TOPOLOGY_JSON',
   URBAN_TOPOLOGY_KML: 'URBAN_TOPOLOGY_KML',
+  URBAN_DEVICE_LIST_JSON: 'URBAN_DEVICE_LIST_JSON',
   DTM_GEOTIFF: 'DTM_GEOTIFF',
   DHM_GEOTIFF: 'DHM_GEOTIFF',
   DSM_GEOTIFF: 'DSM_GEOTIFF',
@@ -200,3 +203,51 @@ export const CUT_TYPE = {
 };
 
 export const INPUT_FILE_STATE = {READY: 'READY'};
+
+export type MeshPlannerDeviceParams = {|
+  device_sku: string,
+  device_type: 1 | 2, // shared/types/Topology.js - NodeTypeValueMap
+  node_capex: number,
+  number_of_boxes_per_site: number,
+  mcs_mapping_file_id?: ?string,
+  sector_params: MeshPlannerSectorParams,
+|};
+
+// https://fburl.com/code/h310huf4
+/* eslint-disable max-len */
+export type MeshPlannerSectorParams = {|
+  radiation_pattern?: ?string, // antenna radiation pattern (e.g. omni)
+  mechanical_downtilt_deg?: ?number, // mechanical tilt [deg positive down]
+  electrical_downtilt_deg?: ?number, // electrical tilt [deg positive down]
+  antenna_boresight_gain_dbi?: ?number, // antenna gain at boresight [dBi]
+  beamwidth_el_deg?: ?number, // antenna beamwith in vertical plane [deg]
+  beamwidth_az_deg?: ?number, // antenna beamwidth in horizontal plane [deg]
+  boresight_az_deg?: ?number, // boresight angle in horizontal plane
+  install_height_m?: ?number, // install height of antenna [m above ground]
+  carrier_frequency_mhz?: ?number, // carrier frequency (center of band) [MHz]
+  channel_bandwidth_mhz?: ?number, // channel bandwidth [MHz]
+  tx_power_dbm?: ?number, // transmit power [dBm]
+  noise_db?: ?number, // noise figure [dB]
+  tx_diversity_gain_db?: ?number, // transmit diversity gain [dB]
+  rx_diversity_gain_db?: ?number, // receive diversity gain [dB]
+  tx_misc_loss_db?: ?number, // miscellaneous transmit losses [dB]
+  rx_misc_loss_db?: ?number, // miscellaneous receive losses [dB]
+  antenna_loading?: ?AntennaLoading, // antenna loading specs
+  antenna_pattern_handle?: ?string, // FBID of the antenna_pattern file
+  thermal_noise_dbm?: ?number, // thermal noise [dBm]
+  mcs_mapping_handle?: ?string, // FBID of the mcs_mapping file
+  external_antenna_pattern_name?: ?string, // name of manual antenna pattern
+  install_height_to_tower_height_m?: ?number, // antenna height relative to the height of the tower
+  rain_loss_db_km?: ?number, // Losses per km for rain and watersheeting
+  num_sectors_per_box: number, // For Terragraph, how many sectors in a box. Ignore if for ASP.
+  min_tx_power_dbm?: ?number, // minimum transmit power [dBm]
+  min_mcs: number, // Minimum mcs 0
+  max_tx_power_dbm?: ?number, // maximum transmit power [dBm]
+  scan_range_az_deg?: ?number, // scan range in horizontal plane [deg]
+|};
+export type AntennaLoading = {|
+  windload: number, //newtons
+  windspeed: number, //kmph
+|};
+
+/* eslint-enable max-len */

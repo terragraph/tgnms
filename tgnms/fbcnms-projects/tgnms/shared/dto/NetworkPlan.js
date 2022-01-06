@@ -17,6 +17,7 @@ type PlanParams = {|
   dsmFileId?: ?number,
   boundaryFileId?: ?number,
   sitesFileId?: ?number,
+  hardwareBoardIds?: ?Array<string>,
 |};
 export type CreateNetworkPlanRequest = {|
   folderId: number,
@@ -85,6 +86,7 @@ export type NetworkPlan = {|
   dsmFile?: ?InputFile,
   boundaryFile?: ?InputFile,
   sitesFile?: ?InputFile,
+  hardwareBoardIds?: ?Array<string>,
 |};
 
 export const FILE_STATE = {

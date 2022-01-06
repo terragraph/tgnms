@@ -33,6 +33,16 @@ export type NetworkPlanAttributes = {|
   boundary_file?: ?NetworkPlanFileAttributes,
   sites_file_id?: ?number,
   sites_file?: ?NetworkPlanFileAttributes,
+  /**
+   * List of potential hardware models to consider during planning. This
+   * drives the mesh-planner's multi-sku feature. When launching the plan,
+   * these hardware profiles will be converted into the "device_list_file"
+   * expected by the mesh-planner api. The device_list_file
+   * expects a list of SectorParams. These are typed in
+   * MeshPlannerSectorParams in shared/dto/ANP.js. If this list is null/empty,
+   * assume that all profiles can be used.
+   */
+  hardware_board_ids: ?Array<string>,
 |};
 export type NetworkPlan = NetworkPlanAttributes & Model<NetworkPlanAttributes>;
 
@@ -82,6 +92,10 @@ export default function (sequelize: Sequelize, DataTypes: DataTypesType) {
     },
     fbid: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    hardware_board_ids: {
+      type: DataTypes.JSON,
       allowNull: true,
     },
   };

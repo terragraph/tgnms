@@ -57,7 +57,7 @@ export * from './data/NetworkListContext';
 export * from './data/ANPTestData';
 export * from './data/NetworkPlanningTestData';
 export * from './data/TaskConfigContext';
-export * from './data/HardwareProfiles';
+export * from '@fbcnms/tg-nms/shared/tests/mocks/hwprofiles-mock';
 
 /**
  * DEPRECATED, pass a history object to TestApp instead.

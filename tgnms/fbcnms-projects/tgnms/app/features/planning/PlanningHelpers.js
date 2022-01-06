@@ -111,6 +111,7 @@ export async function copyPlan({
     dsmFileId: planParams?.dsmFile?.id,
     sitesFileId: planParams?.sitesFile?.id,
     boundaryFileId: planParams?.boundaryFile?.id,
+    hardwareBoardIds: planParams?.hardwareBoardIds,
   });
   return newPlan;
 }

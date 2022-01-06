@@ -23,6 +23,7 @@ export type PlanFormState = {|
   dsm?: ?InputFile,
   siteList?: ?InputFile,
   boundary?: ?InputFile,
+  hardwareBoardIds?: ?Array<string>,
 |};
 export function usePlanFormState(): {|
   planState: PlanFormState,

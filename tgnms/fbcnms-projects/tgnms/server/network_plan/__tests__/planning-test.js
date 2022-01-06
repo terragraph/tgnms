@@ -17,7 +17,13 @@ import {
 import {setupTestApp} from '@fbcnms/tg-nms/server/tests/expressHelpers';
 import {vol} from 'memfs';
 
+// this is a jest mock of the hwprofiles helpers used to read from disk
+import * as hwprofilesMock from '../../hwprofile/hwprofile';
+// this is a mock of the actual json data stored on disk
+import {mockHardwareProfile} from '@fbcnms/tg-nms/shared/tests/mocks/hwprofiles-mock';
+
 import type {FileSourceKey} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import type {HardwareProfile} from '@fbcnms/tg-nms/shared/dto/HardwareProfiles';
 import type {NetworkPlanAttributes} from '@fbcnms/tg-nms/server/models/networkPlan';
 import type {NetworkPlanFileAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFile';
 import type {NetworkPlanFolderAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFolder';
@@ -39,6 +45,10 @@ const {
 } = require('../planningService');
 const fsMock = require('fs');
 
+// mock out hardware profiles stuff
+jest.mock('../../hwprofile/hwprofile');
+const loadProfilesMock = jest.spyOn(hwprofilesMock, 'loadProfiles');
+loadProfilesMock.mockRejectedValue(new Error('mock profiles not loaded'));
 // Mock out the ANPAPIClient and provide some mock implementations
 jest.mock('../ANPAPIClient');
 const mockPlanFBID = '9999';
@@ -244,6 +254,7 @@ describe('GET ?folderId', () => {
       boundaryFile: expect.any(Object),
       sitesFile: expect.any(Object),
       state: NETWORK_PLAN_STATE.DRAFT,
+      hardwareBoardIds: null,
     });
     expect(response.body).toContainEqual({
       id: 2,
@@ -253,6 +264,7 @@ describe('GET ?folderId', () => {
       boundaryFile: expect.any(Object),
       sitesFile: expect.any(Object),
       state: NETWORK_PLAN_STATE.DRAFT,
+      hardwareBoardIds: null,
     });
     expect(response.body).toContainEqual({
       id: 3,
@@ -262,6 +274,7 @@ describe('GET ?folderId', () => {
       boundaryFile: expect.any(Object),
       sitesFile: expect.any(Object),
       state: NETWORK_PLAN_STATE.DRAFT,
+      hardwareBoardIds: null,
     });
   });
   test('returns empty array if no plans found in folder', async () => {
@@ -557,9 +570,31 @@ describe('PUT /plan/:id', () => {
       sites_file_id: sites.id,
     });
   });
+  test('sets hardwareBoardIds', async () => {
+    const folder = await createTestFolder({
+      name: 'test folder',
+    });
+    const dbPlan = await createTestPlan({
+      folder_id: folder.id,
+      name: 'test plan',
+    });
+    await request(setupApp())
+      .put(`/network_plan/plan/${dbPlan.id}`)
+      .send({
+        name: dbPlan.name,
+        hardwareBoardIds: ['TEST_HWBOARD_ID'],
+      });
+    const updatedPlan = nullthrows(
+      (await network_plan.findByPk(dbPlan.id))?.toJSON(),
+    );
+    expect(updatedPlan).toMatchObject({
+      name: 'test plan',
+      hardware_board_ids: ['TEST_HWBOARD_ID'],
+    });
+  });
 });
 
-describe('GET plan/:id', () => {
+describe('GET /plan/:id', () => {
   test('should return the plan and its input files', async () => {
     const folder = await createTestFolder({
       name: 'test folder',
@@ -570,6 +605,7 @@ describe('GET plan/:id', () => {
       dsm_file_id: dsm.id,
       boundary_file_id: boundary.id,
       sites_file_id: sites.id,
+      hardware_board_ids: ['TEST'],
     });
     const response = await request(setupApp())
       .get(`/network_plan/plan/${plan.id}`)
@@ -581,6 +617,7 @@ describe('GET plan/:id', () => {
       dsmFile: inputFileRowToInputFile(dsm),
       boundaryFile: inputFileRowToInputFile(boundary),
       sitesFile: inputFileRowToInputFile(sites),
+      hardwareBoardIds: ['TEST'],
     });
   });
   test('should return the plan and its input files when running', async () => {
@@ -856,6 +893,7 @@ describe('POST plan/:id/launch', () => {
         boundary_polygon: createdPlan.boundaryFile.fbid.toString(),
         dsm: createdPlan.dsmFile.fbid.toString(),
         site_list: createdPlan.sitesFile.fbid.toString(),
+        device_list_file: null,
       });
       expect(launchPlanMock).toHaveBeenCalled();
       const dbRow = nullthrows(await network_plan.findByPk(createdPlan.id));
@@ -914,6 +952,110 @@ describe('POST plan/:id/launch', () => {
 
       expect(nullthrows(await network_plan.findByPk(createdPlan.id)).fbid).toBe(
         mockPlanFBID,
+      );
+    });
+  });
+
+  describe('hardware profiles', () => {
+    test(
+      'if the plan has no hardware_board_ids,' +
+        ' does not upload device_list file',
+      async () => {
+        const [boundary, dsm, sites] = await createInputFiles({
+          source: FILE_SOURCE.fbid,
+        });
+        const folder = await createTestFolder({name: 'test folder'});
+        const plan = await createTestPlan({
+          folder_id: folder.id,
+          dsm_file_id: dsm.id,
+          boundary_file_id: boundary.id,
+          sites_file_id: sites.id,
+        });
+        expect(createUploadSessionMock).not.toHaveBeenCalled();
+        await request(setupApp())
+          .post(`/network_plan/plan/${plan.id}/launch`)
+          .expect(200);
+        expect([NETWORK_PLAN_STATE.RUNNING]).toContain(
+          nullthrows(await network_plan.findByPk(plan.id)).state,
+        );
+        // all files are already uploaded and there is no device_list to upload
+        expect(createUploadSessionMock).toHaveBeenCalledTimes(0);
+      },
+    );
+    test(
+      'if the plan has hardware_board_ids,' +
+        ' uploads device_list file and ' +
+        'adds the device_list_file parameter to the create-plan api call',
+      async () => {
+        const deviceListFBID = 'device_list_fbid';
+        updateFileMetadataMock.mockImplementationOnce(req =>
+          Promise.resolve({...req, id: deviceListFBID}),
+        );
+        loadProfilesMock.mockResolvedValueOnce(
+          ([
+            mockHardwareProfile({hwBoardId: 'TEST_SKU_1'}),
+          ]: Array<HardwareProfile>),
+        );
+        const [boundary, dsm, sites] = await createInputFiles({
+          source: FILE_SOURCE.fbid,
+        });
+        const folder = await createTestFolder({name: 'test folder'});
+        const plan = await createTestPlan({
+          folder_id: folder.id,
+          dsm_file_id: dsm.id,
+          boundary_file_id: boundary.id,
+          sites_file_id: sites.id,
+          hardware_board_ids: ['TEST_SKU_1'],
+        });
+        expect(createUploadSessionMock).not.toHaveBeenCalled();
+        await request(setupApp())
+          .post(`/network_plan/plan/${plan.id}/launch`)
+          .expect(200);
+        expect([NETWORK_PLAN_STATE.RUNNING]).toContain(
+          nullthrows(await network_plan.findByPk(plan.id)).state,
+        );
+        // the only new file should be the hardware profiles file
+        expect(createUploadSessionMock).toHaveBeenCalledTimes(1);
+        expect(createUploadSessionMock).toHaveBeenCalledWith({
+          file_name: 'hardware_profiles',
+          file_type: 'application/json',
+          file_length: expect.any(Number),
+        });
+        expect(updateFileMetadataMock).toHaveBeenCalledWith({
+          file_name: 'hardware_profiles',
+          file_extension: 'json',
+          file_role: FILE_ROLE.URBAN_DEVICE_LIST_JSON,
+          file_handle: expect.any(String),
+        });
+        expect(createPlanMock).toHaveBeenCalledWith({
+          folder_id: folder.fbid,
+          plan_name: plan.name,
+          boundary_polygon: boundary.fbid,
+          dsm: dsm.fbid,
+          site_list: sites.fbid,
+          device_list_file: deviceListFBID,
+        });
+      },
+    );
+    test('if the requested hardware profiles are not loaded, fails to launch plan', async () => {
+      loadProfilesMock.mockResolvedValueOnce([]);
+      const [boundary, dsm, sites] = await createInputFiles({
+        source: FILE_SOURCE.fbid,
+      });
+      const folder = await createTestFolder({name: 'test folder'});
+      const plan = await createTestPlan({
+        folder_id: folder.id,
+        dsm_file_id: dsm.id,
+        boundary_file_id: boundary.id,
+        sites_file_id: sites.id,
+        hardware_board_ids: ['TEST_SKU_1'],
+      });
+      expect(createUploadSessionMock).not.toHaveBeenCalled();
+      await request(setupApp())
+        .post(`/network_plan/plan/${plan.id}/launch`)
+        .expect(500);
+      expect(nullthrows(await network_plan.findByPk(plan.id)).state).toBe(
+        NETWORK_PLAN_STATE.ERROR,
       );
     });
   });

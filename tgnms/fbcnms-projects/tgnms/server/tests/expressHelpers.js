@@ -101,8 +101,8 @@ export function setupTestApp(urlPath: string, routes: Class<Api>) {
   r.init();
   app.use(urlPath, r.makeRoutes());
   app.use(function (err, req: ExpressRequest, res: ExpressResponse, _next) {
-    console.error(err.stack);
-    res.status(500).send(err.stack);
+    console.error(err);
+    res.status(500).send(err.message);
   });
   return app;
 }

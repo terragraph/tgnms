@@ -16,7 +16,11 @@ import * as path from 'path';
 import ANPAPIClient from './ANPAPIClient';
 import {ANP_FILE_DIR} from '../config';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
-import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {
+  FILE_ROLE,
+  INPUT_FILE_STATE,
+  PLAN_STATUS,
+} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {
   FILE_SOURCE,
   FILE_STATE,
@@ -25,10 +29,14 @@ import {
   RUNNING_NETWORK_PLAN_STATES,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {constants as FS_CONSTANTS} from 'fs';
-import {INPUT_FILE_STATE, PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
+import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {getInputFileFields} from '../models/networkPlan';
+import {loadProfiles} from '../hwprofile/hwprofile';
 import {pollConditionally} from '@fbcnms/tg-nms/server/helpers/poll';
-import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
+import type {
+  ANPFileHandle,
+  MeshPlannerDeviceParams,
+} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   CreateNetworkPlanRequest,
   CreatePlanFolderRequest,
@@ -39,6 +47,10 @@ import type {
   UpdateNetworkPlanRequest,
   UpdatePlanFolderRequest,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import type {
+  HardwareProfile,
+  HardwareProfiles,
+} from '@fbcnms/tg-nms/shared/dto/HardwareProfiles';
 import type {IncludeOptions} from 'sequelize';
 import type {NetworkPlanAttributes} from '@fbcnms/tg-nms/server/models/networkPlan';
 import type {NetworkPlanFileAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFile';
@@ -47,8 +59,10 @@ import type {NetworkPlanStateType} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 
 export default class PlanningService {
   anpApi: ANPAPIClient;
+  hardwareProfiles: HardwareProfiles;
   constructor({anpApi}: {anpApi: ANPAPIClient}) {
     this.anpApi = anpApi;
+    this._initHardwareProfiles();
   }
   async getFolders(): Promise<Array<PlanFolder>> {
     const folders = await network_plan_folder.findAll();
@@ -124,6 +138,7 @@ export default class PlanningService {
         dsm_file_id: req.dsmFileId,
         boundary_file_id: req.boundaryFileId,
         sites_file_id: req.sitesFileId,
+        hardware_board_ids: req.hardwareBoardIds,
       }: $Shape<NetworkPlanAttributes>),
     );
     const created = await network_plan.findByPk(result.id, {
@@ -142,6 +157,7 @@ export default class PlanningService {
         dsm_file_id: req.dsmFileId,
         boundary_file_id: req.boundaryFileId,
         sites_file_id: req.sitesFileId,
+        hardware_board_ids: req.hardwareBoardIds,
       },
       {where: {id: req.id}},
     );
@@ -245,6 +261,8 @@ export default class PlanningService {
           errors,
         };
       }
+
+      // input files
       const hasDraftInputs = [
         plan.dsm_file,
         plan.boundary_file,
@@ -254,6 +272,7 @@ export default class PlanningService {
         await this.setPlanState(plan.id, NETWORK_PLAN_STATE.UPLOADING_INPUTS);
         await this.uploadDraftInputFiles({id: plan.id});
       }
+      // finally, create and launch the plan
       return this.launchANPPlan({id: plan.id});
     } catch (err) {
       await this.setPlanState(plan.id, NETWORK_PLAN_STATE.ERROR);
@@ -317,18 +336,7 @@ export default class PlanningService {
               where: {id: inputFile.id},
             },
           );
-          // poll to ensure uploaded files are READY
-          try {
-            await pollConditionally({
-              fn: async () => await this.anpApi.getInputFile(anpFile.id),
-              fnCondition: (result: ANPFileHandle) =>
-                result.file_status == INPUT_FILE_STATE.READY,
-              ms: 1000,
-              numCallsTimeout: 60 * 15, // ~ 15 min
-            });
-          } catch {
-            throw new Error('Timeout while waiting for files to be ready.');
-          }
+          await this.waitForFileReadyState(anpFile);
         } catch (err) {
           console.error(err);
         } finally {
@@ -364,12 +372,25 @@ export default class PlanningService {
       throw new Error('Plan failed validation');
     }
     try {
+      let hardware_profile_fbid: ?string = null;
+      if (
+        plan.hardware_board_ids != null &&
+        plan.hardware_board_ids.length > 0
+      ) {
+        // an error will be thrown if this fails
+        const hwFile = await this._tryUploadHardwareProfiles({
+          profiles: plan.hardware_board_ids,
+        });
+        hardware_profile_fbid = hwFile.id;
+      }
+
       const anpPlan = await this.anpApi.createPlan({
         folder_id: plan.folder.fbid,
         plan_name: plan.name,
         boundary_polygon: plan.boundary_file.fbid,
         dsm: plan.dsm_file.fbid,
         site_list: plan.sites_file.fbid,
+        device_list_file: hardware_profile_fbid,
       });
       if (anpPlan.id == null || anpPlan.id == '') {
         throw new Error('Create plan failed');
@@ -391,7 +412,8 @@ export default class PlanningService {
       return {state: planRow.state};
     }
   }
-  async uploadANPFile({
+
+  uploadANPFile({
     name,
     role,
     fileSize,
@@ -405,6 +427,72 @@ export default class PlanningService {
     // used for testing
     uploadChunkSize?: number,
   }): Promise<ANPFileHandle> {
+    return this._baseANPChunkedUpload({
+      name,
+      role,
+      uploadChunkSize,
+      fileSize,
+      genChunk: ({length, offset}) => {
+        return new Promise((res, rej) => {
+          fs.read(
+            fileDescriptor,
+            Buffer.alloc(length),
+            0, // write to start of buffer
+            length,
+            offset,
+            (err, bytesRead, buffer) => {
+              if (err) {
+                return rej(err);
+              }
+              return res(buffer);
+            },
+          );
+        });
+      },
+    });
+  }
+
+  /**
+   * Upload a string (such as JSON or CSV) instead of a file from the disk.
+   */
+  uploadANPString({
+    name,
+    role,
+    uploadChunkSize,
+    data,
+  }: {
+    data: string,
+    name: string,
+    role: string,
+    // used for testing
+    uploadChunkSize?: number,
+  }): Promise<ANPFileHandle> {
+    const buffer = Buffer.from(data);
+    return this._baseANPChunkedUpload({
+      name,
+      role,
+      uploadChunkSize,
+      fileSize: buffer.byteLength,
+      genChunk: ({length, offset}) => {
+        return Promise.resolve(buffer.subarray(offset, offset + length));
+      },
+    });
+  }
+
+  async _baseANPChunkedUpload({
+    name,
+    role,
+    fileSize,
+    uploadChunkSize,
+    genChunk,
+  }: {
+    genChunk: ({length: number, offset: number}) => Promise<Buffer>,
+    name: string,
+    role: string,
+    fileSize: number,
+    // used for testing
+    uploadChunkSize?: number,
+  }): Promise<ANPFileHandle> {
     const chunkSize =
       uploadChunkSize != null && uploadChunkSize > 0
         ? uploadChunkSize
@@ -415,6 +503,7 @@ export default class PlanningService {
       tiff: 'image/tiff',
       kml: 'application/vnd.google-earth.kml+xml',
       csv: 'application/csv',
+      json: 'application/json',
     };
 
     const fileName = name.slice(0, name.indexOf('.'));
@@ -443,21 +532,7 @@ export default class PlanningService {
       if (offset + length > fileSize) {
         length = fileSize - offset;
       }
-      const chunkData = await new Promise((res, rej) => {
-        fs.read(
-          fileDescriptor,
-          Buffer.alloc(length),
-          0, // write to start of buffer
-          length,
-          offset,
-          (err, bytesRead, buffer) => {
-            if (err) {
-              return rej(err);
-            }
-            return res(buffer);
-          },
-        );
-      });
+      const chunkData = await genChunk({length, offset});
       const chunkResponse = await this.anpApi.uploadChunk({
         offset,
         length,
@@ -768,6 +843,23 @@ export default class PlanningService {
     }
   }
 
+  async getPlanErrors({
+    id,
+  }: {
+    id: number,
+  }): Promise<Array<{error_message: string}>> {
+    const planRow = await network_plan.findByPk(id);
+    if (planRow == null) {
+      throw new Error('Plan does not exist');
+    }
+    const plan = planRow.toJSON();
+    if (plan.fbid == null || plan.fbid.trim() === '') {
+      return [];
+    }
+    const response = await this.anpApi.getPlanErrors(plan.fbid);
+    return response;
+  }
+
   /**
    * This is called by multer before a file is uploaded, return false or
    * throw an error to prevent the file being uploaded.
@@ -779,6 +871,73 @@ export default class PlanningService {
     }
     const file = result.toJSON();
     return file.source === FILE_SOURCE.local;
+  }
+
+  async _tryUploadHardwareProfiles({
+    profiles,
+  }: {
+    profiles: Array<string>,
+  }): Promise<ANPFileHandle> {
+    const usedProfiles = profiles.reduce<Array<HardwareProfile>>(
+      (list, hwBoardId) => {
+        const profile = this.hardwareProfiles[hwBoardId];
+        if (profile == null) {
+          throw new Error(
+            `Hardware Profile: ${hwBoardId} is not available in ` +
+              `hardware profiles: ${Object.keys(this.hardwareProfiles).join(
+                ',',
+              )}`,
+          );
+        }
+        list.push(profile);
+        return list;
+      },
+      [],
+    );
+    const meshPlannerDeviceParams = usedProfiles.reduce<
+      Array<MeshPlannerDeviceParams>,
+    >((list, profile) => {
+      return list.concat(hardwareProfileToDeviceParams(profile));
+    }, []);
+    const jsonData = JSON.stringify(meshPlannerDeviceParams);
+    const fileHandle = await this.uploadANPString({
+      name: 'hardware_profiles.json',
+      data: jsonData,
+      role: FILE_ROLE.URBAN_DEVICE_LIST_JSON,
+    });
+    await this.waitForFileReadyState(fileHandle);
+    return fileHandle;
+  }
+
+  _initHardwareProfiles() {
+    loadProfiles()
+      .then(profileList => {
+        this.hardwareProfiles = (profileList ?? []).reduce<HardwareProfiles>(
+          (map, profile) => {
+            map[profile.hwBoardId] = profile;
+            return map;
+          },
+          {},
+        );
+      })
+      .catch(err => {
+        console.error(err.message);
+        this.hardwareProfiles = {};
+      });
+  }
+
+  async waitForFileReadyState(anpFile: ANPFileHandle) {
+    try {
+      await pollConditionally({
+        fn: async () => await this.anpApi.getInputFile(anpFile.id),
+        fnCondition: (result: ANPFileHandle) =>
+          result.file_status == INPUT_FILE_STATE.READY,
+        ms: 1000,
+        numCallsTimeout: 60 * 15, // ~ 15 min
+      });
+    } catch {
+      throw new Error('Timeout while waiting for files to be ready.');
+    }
   }
 }
 
@@ -841,6 +1000,7 @@ export function planRowToNetworkPlan(plan: NetworkPlanAttributes): NetworkPlan {
     sitesFile: plan.sites_file
       ? inputFileRowToInputFile(plan.sites_file)
       : null,
+    hardwareBoardIds: plan.hardware_board_ids,
   };
 }
 
@@ -926,4 +1086,39 @@ export function anpStatusToState(
     [PLAN_STATUS.KILLED]: NETWORK_PLAN_STATE.CANCELLED,
   };
   return mapping[status];
+}
+
+// One hardware profile can map to multiple MeshPlannerDeviceParams objects
+function hardwareProfileToDeviceParams(
+  profile: HardwareProfile,
+): Array<MeshPlannerDeviceParams> {
+  const params: Array<MeshPlannerDeviceParams> = [];
+  const baseParams: MeshPlannerDeviceParams = {
+    device_sku: profile.hwBoardId,
+    node_capex: profile.financial.node_capex,
+    device_type: NodeTypeValueMap.DN,
+    number_of_boxes_per_site: profile.topology.max_nodes_per_site,
+    sector_params: {
+      num_sectors_per_box: profile.topology.num_sectors_per_box,
+      min_mcs: profile.sector_params.min_mcs,
+      scan_range_az_deg: profile.sector_params.scan_range_az_deg,
+      antenna_boresight_gain_dbi:
+        profile.sector_params.antenna_boresight_gain_dbi,
+      max_tx_power_dbm: profile.sector_params.max_tx_power_dbm,
+      min_tx_power_dbm: profile.sector_params.min_tx_power_dbm,
+      min_mcs: profile.sector_params.min_mcs,
+      tx_diversity_gain_db: profile.sector_params.tx_diversity_gain_db,
+      rx_diversity_gain_db: profile.sector_params.rx_diversity_gain_db,
+      tx_misc_loss_db: profile.sector_params.tx_misc_loss_db,
+      rx_misc_loss_db: profile.sector_params.rx_misc_loss_db,
+    },
+  };
+  // mesh-planner supports one profile per device-type
+  for (const hwType of profile.topology.device_types) {
+    params.push({
+      ...baseParams,
+      device_type: NodeTypeValueMap[hwType],
+    });
+  }
+  return params;
 }

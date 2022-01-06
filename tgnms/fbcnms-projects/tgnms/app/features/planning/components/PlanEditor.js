@@ -9,6 +9,7 @@ import * as networkPlanningAPIUtil from '@fbcnms/tg-nms/app/apiutils/NetworkPlan
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
+import SelectHardwareProfiles from './SelectHardwareProfiles';
 import SelectOrUploadInputFile from './SelectOrUploadInputFile';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -48,6 +49,7 @@ export default function PlanEditor({
       dsm: plan.dsmFile,
       boundary: plan.boundaryFile,
       siteList: plan.sitesFile,
+      hardwareBoardIds: plan.hardwareBoardIds,
     };
     setPlanFormState(formState);
   }, [plan, folderId, setPlanFormState]);
@@ -65,7 +67,7 @@ export default function PlanEditor({
       try {
         savePlanTask.setMessage(null);
         savePlanTask.loading();
-        const {id, name, dsm, boundary, siteList} = planState;
+        const {id, name, dsm, boundary, siteList, hardwareBoardIds} = planState;
         for (const f of [dsm, boundary, siteList]) {
           if (f == null) {
             continue;
@@ -83,6 +85,7 @@ export default function PlanEditor({
           dsmFileId: dsm?.id,
           boundaryFileId: boundary?.id,
           sitesFileId: siteList?.id,
+          hardwareBoardIds: hardwareBoardIds,
         });
         onPlanUpdatedRef.current(updatedPlan);
         savePlanTask.success();
@@ -163,6 +166,15 @@ export default function PlanEditor({
         initialValue={planState.boundary ?? null}
         onChange={f => updatePlanState({boundary: f})}
       />
+      <Grid item>
+        <SelectHardwareProfiles
+          id="select-hardware-profiles"
+          onChange={ids => {
+            updatePlanState({hardwareBoardIds: ids});
+          }}
+          initialProfiles={plan.hardwareBoardIds}
+        />
+      </Grid>
       {!startPlanTask.isLoading && (
         <Grid item container justify="flex-end" spacing={1}>
           <Grid item>
