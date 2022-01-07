@@ -131,6 +131,7 @@ public class Launcher implements Runnable {
 	}
 
 	/** Main method. */
+	@SuppressWarnings("deprecation")
 	public static void main(String[] args) throws Exception {
 		CommandLine.run(new Launcher(), args);
 	}
