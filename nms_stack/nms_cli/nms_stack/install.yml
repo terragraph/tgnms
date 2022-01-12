@@ -7,7 +7,7 @@
   gather_facts: false
   tasks:
     - name: Install Python if the system doesn't have python installed by default.  Centos/Redhat doesnt come with python installed by default
-      raw: test -e /usr/bin/apt && (apt -y update && apt install -y python-minimal) || (yum -y install python3)
+      raw: test -e /usr/bin/apt && (apt -y update && apt install -y python3-minimal) || (yum -y install python3)
 
 - name: Run validation and common
   hosts: all
