@@ -151,7 +151,7 @@ export function getWirelessPeers(
 }
 
 /*
- * Get the nodes on the other side of this node's wireless links */
+ * Get the link names on the other side of this node's wireless links */
 export function getWirelessLinkNames({
   node,
   linkMap,

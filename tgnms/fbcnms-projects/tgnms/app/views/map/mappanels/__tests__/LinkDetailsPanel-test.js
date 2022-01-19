@@ -57,6 +57,7 @@ const commonProps = {
     addLink: jest.fn(),
     deleteLink: jest.fn(),
     moveSite: jest.fn(),
+    deleteSite: jest.fn(),
   },
 };
 

@@ -16,10 +16,11 @@ import {
 import {
   TestApp,
   initWindowConfig,
+  mockNetworkConfig,
   renderWithRouter,
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
+import {act, fireEvent} from '@testing-library/react';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
-import {fireEvent} from '@testing-library/react';
 
 beforeEach(() => {
   initWindowConfig();
@@ -32,10 +33,6 @@ const {
   nodeToLinksMap,
   linkMap,
 } = buildTopologyMaps(mockFig0());
-const apiRequestSuccessMock = jest.fn(() => Promise.resolve({}));
-jest
-  .spyOn(serviceApiUtil, 'apiRequest')
-  .mockImplementation(apiRequestSuccessMock);
 
 jest
   .spyOn(require('@fbcnms/tg-nms/app/hooks/useNodeConfig'), 'useNodeConfig')
@@ -51,6 +48,7 @@ const mockOnEdit = jest.fn();
 
 const commonProps = {
   networkName: '',
+  networkConfig: mockNetworkConfig(),
   topology: mockFig0(),
   siteMap: siteMap,
   siteNodes: siteToNodesMap[FIG0.SITE1],
@@ -71,6 +69,7 @@ const commonProps = {
     addLink: jest.fn(),
     deleteLink: jest.fn(),
     moveSite: jest.fn(),
+    deleteSite: jest.fn(),
   },
   snackbars: {error: empty, success: empty, warning: empty},
 };
@@ -175,7 +174,10 @@ describe('Actions', () => {
       expect(getByText(/Remove 2 links/i)).toBeInTheDocument();
     });
 
-    test('clicking Delete Site and remove in modal triggers apiRequests', () => {
+    test('clicking Delete Site and remove in modal triggers apiRequests', async () => {
+      const apiRequestMock = jest.spyOn(serviceApiUtil, 'apiRequest');
+      apiRequestMock.mockResolvedValue({message: 'success'});
+
       const {getByText} = renderWithRouter(
         <TestApp>
           <SiteDetailsPanel {...commonProps} />
@@ -183,8 +185,13 @@ describe('Actions', () => {
       );
       fireEvent.click(getByText(/View Actions/i));
       fireEvent.click(getByText(/Delete Site/i));
-      fireEvent.click(getByText(/remove 5 topology elements/i));
-      expect(apiRequestSuccessMock).toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.click(getByText(/remove 5 topology elements/i));
+      });
+      expect(apiRequestMock).toHaveBeenCalled();
+      expect(commonProps.azimuthManager.deleteSite).toHaveBeenCalledWith({
+        siteName: 'site1',
+      });
     });
   });
 });

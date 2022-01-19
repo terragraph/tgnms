@@ -248,6 +248,51 @@ describe('moveSite', () => {
   );
 });
 
+describe('deleteSite', () => {
+  test('sends a request to recompute each affected node', async () => {
+    const topology = mockFig0();
+    const topologyMaps = buildTopologyMaps(topology);
+    const nodeA = topologyMaps.nodeMap[FIG0.NODE1_1];
+    const nodeZ = topologyMaps.nodeMap[FIG0.NODE2_0];
+    topology.__test.updateNode(nodeA.name, {
+      ant_azimuth: getEstimatedNodeAzimuth(nodeA, topologyMaps) ?? 0,
+    });
+    topology.__test.updateNode(nodeZ.name, {
+      ant_azimuth: getEstimatedNodeAzimuth(nodeZ, topologyMaps) ?? 0,
+    });
+
+    // Get the site to delete.
+    const {result} = renderHook(() => useAzimuthManager(), {
+      wrapper: props => (
+        <TestWrapper
+          {...props}
+          networkContext={{
+            networkName: 'test',
+            networkConfig: mockNetworkConfig({topology}),
+            ...topologyMaps,
+          }}
+        />
+      ),
+    });
+    await act(async () => {
+      await result.current.deleteSite({siteName: nodeA.site_name});
+    });
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    expect(apiRequestMock).toHaveBeenCalledWith({
+      networkName: 'test',
+      endpoint: 'editNode',
+      data: {
+        nodeName: FIG0.NODE2_0,
+        newNode: {
+          ...topology.nodes.find(x => x.name === FIG0.NODE2_0),
+          ant_azimuth: expect.any(Number),
+        },
+      },
+    });
+  });
+});
+
 function TestWrapper({networkContext, children}) {
   return (
     <TestApp>

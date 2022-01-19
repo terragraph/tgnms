@@ -34,7 +34,11 @@ import moment from 'moment';
 import {LinkTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
 import {STEP_TARGET} from '@fbcnms/tg-nms/app/components/tutorials/TutorialConstants';
 import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
-import {deleteLinkRequest} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
+import {
+  deleteLinkRequest,
+  getConfigOverrides,
+  getTunnelConfigs,
+} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {formatNumber} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {isFeatureEnabled} from '@fbcnms/tg-nms/app/constants/FeatureFlags';
 import {
@@ -53,7 +57,10 @@ import type {
   SiteType,
   TopologyType,
 } from '@fbcnms/tg-nms/shared/types/Topology';
-import type {NetworkHealth} from '@fbcnms/tg-nms/shared/dto/NetworkState';
+import type {
+  NetworkHealth,
+  NetworkState,
+} from '@fbcnms/tg-nms/shared/dto/NetworkState';
 
 const styles = theme => ({
   iconCentered: {
@@ -111,6 +118,7 @@ const styles = theme => ({
 type Props = {
   classes: {[string]: string},
   networkName: string,
+  networkConfig: NetworkState,
   topology: TopologyType,
   siteMap: {[string]: SiteType},
   siteNodes: Set<string>,
@@ -284,12 +292,30 @@ class SiteDetailsPanel extends React.Component<Props, State> {
       nodeMap,
       azimuthManager,
       snackbars,
+      networkConfig,
+      onClose,
     } = this.props;
     const siteName = site.name;
     const nodeNames = [...siteNodes];
     const linkNames = [];
     nodeNames.forEach(nodeName => linkNames.push(...nodeToLinksMap[nodeName]));
     try {
+      // Force users to manually remove tunnels before deletion.
+      const tunnels = [];
+      for (const nodeName of nodeNames) {
+        const tunnelConfigs = getTunnelConfigs(
+          getConfigOverrides(networkConfig),
+          nodeName,
+        );
+        tunnels.push(...Object.keys(tunnelConfigs ?? {}));
+      }
+      if (tunnels.length != 0) {
+        snackbars.error(
+          'Please remove any tunnels connected to this site before deleting.',
+        );
+        return;
+      }
+      // Delete all links
       await Promise.all(
         linkNames.map(linkName => {
           const link = linkMap[linkName];
@@ -301,6 +327,8 @@ class SiteDetailsPanel extends React.Component<Props, State> {
           });
         }),
       );
+
+      // Delete all nodes
       await Promise.all(
         nodeNames.map(nodeName =>
           apiRequest<{nodeName: string}, any>({
@@ -310,12 +338,18 @@ class SiteDetailsPanel extends React.Component<Props, State> {
           }),
         ),
       );
+
+      // Delete site.
       const {message} = await apiRequest<{siteName: string}, any>({
         networkName,
         endpoint: 'delSite',
         data: {siteName},
       });
+
+      // Recompute azimuths if needed.
+      await azimuthManager.deleteSite({siteName});
       snackbars.success(message);
+      onClose();
     } catch (err) {
       snackbars.error(err);
       return;

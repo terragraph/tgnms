@@ -9,6 +9,7 @@ import {apiRequest} from '@fbcnms/tg-nms/app/apiutils/ServiceAPIUtil';
 import {
   getEstimatedNodeAzimuth,
   getTopologyMaps,
+  getWirelessLinkNames,
   getWirelessPeers,
   makeLinkName,
 } from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
@@ -29,7 +30,35 @@ export type AzimuthManager = {|
   addLink: LinkType => Promise<void>,
   deleteLink: LinkType => Promise<void>,
   moveSite: MoveSitePayload => Promise<void>,
+  deleteSite: ({siteName: string}) => Promise<void>,
 |};
+
+const _removeLinkFromTopologyMap = (
+  link: LinkType,
+  topologyMaps: TopologyMaps,
+) => {
+  const {a_node_name, z_node_name} = link;
+  // create a mutable copy of the topology map
+  const newTopologyMap = {
+    ...topologyMaps,
+    linkMap: {
+      ...topologyMaps.linkMap,
+    },
+    nodeToLinksMap: {
+      ...topologyMaps.nodeToLinksMap,
+    },
+  };
+  delete newTopologyMap.linkMap[link.name];
+  // make sure not to mutate nodeToLinksMap
+  const aLinks = new Set(newTopologyMap.nodeToLinksMap[a_node_name]);
+  aLinks.delete(link.name);
+  newTopologyMap.nodeToLinksMap[a_node_name] = aLinks;
+  const zLinks = new Set(newTopologyMap.nodeToLinksMap[z_node_name]);
+  zLinks.delete(link.name);
+  newTopologyMap.nodeToLinksMap[z_node_name] = zLinks;
+  return newTopologyMap;
+};
+
 /**
  * Update node azimuths in response to topology changes
  */
@@ -97,24 +126,7 @@ export function useAzimuthManager() {
     const nodeA = nodeMap[a_node_name];
     const nodeZ = nodeMap[z_node_name];
     // create a mutable copy of the topology map
-    const newTopologyMap = {
-      ...topologyMaps,
-      linkMap: {
-        ...topologyMaps.linkMap,
-      },
-      nodeToLinksMap: {
-        ...topologyMaps.nodeToLinksMap,
-      },
-    };
-    delete newTopologyMap.linkMap[link.name];
-    // make sure not to mutate nodeToLinksMap
-    const aLinks = new Set(newTopologyMap.nodeToLinksMap[a_node_name]);
-    aLinks.delete(link.name);
-    newTopologyMap.nodeToLinksMap[a_node_name] = aLinks;
-    const zLinks = new Set(newTopologyMap.nodeToLinksMap[z_node_name]);
-    zLinks.delete(link.name);
-    newTopologyMap.nodeToLinksMap[z_node_name] = zLinks;
-
+    const newTopologyMap = _removeLinkFromTopologyMap(link, topologyMaps);
     await recomputeNodeAzimuths([nodeA, nodeZ], newTopologyMap);
   };
   /**
@@ -169,9 +181,59 @@ export function useAzimuthManager() {
     const allNodes = siteNodes.concat(peers);
     await recomputeNodeAzimuths(allNodes, newTopologyMap);
   };
+
+  const deleteSite = async ({siteName}: {siteName: string}) => {
+    let newTopologyMap = {
+      ...topologyMaps,
+      siteMap: {...topologyMaps.siteMap},
+      siteToNodesMap: {...topologyMaps.siteToNodesMap},
+      linkMap: {...topologyMaps.linkMap},
+      nodeToLinksMap: {...topologyMaps.nodeToLinksMap},
+      nodeMap: {...topologyMaps.nodeMap},
+      macToNodeMap: {...topologyMaps.macToNodeMap},
+    };
+    // Get all nodes currently at that site.
+    const nodes = Array.from(newTopologyMap.siteToNodesMap[siteName]);
+    // We have to recompute these nodes because a link was removed from them.
+    let nodesToRecompute: Array<NodeType> = [];
+    // Get all links connecting to that site.
+    let linkNames: Array<string> = [];
+    nodes.forEach(nodeName => {
+      const node = newTopologyMap.nodeMap[nodeName];
+      nodesToRecompute = nodesToRecompute.concat(
+        getWirelessPeers(node, newTopologyMap),
+      );
+      linkNames = linkNames.concat(
+        getWirelessLinkNames({
+          node,
+          linkMap: newTopologyMap.linkMap,
+          nodeToLinksMap: newTopologyMap.nodeToLinksMap,
+        }),
+      );
+    });
+    // Remove the links from the topology maps.
+    newTopologyMap = linkNames.reduce(
+      (topoMap, linkName) =>
+        _removeLinkFromTopologyMap(newTopologyMap.linkMap[linkName], topoMap),
+      newTopologyMap,
+    );
+    // Remove the nodes and sites from the topology maps.
+    delete newTopologyMap.siteMap[siteName];
+    delete newTopologyMap.siteToNodesMap[siteName];
+    nodes.forEach(nodeName => {
+      const n = newTopologyMap.nodeMap[nodeName];
+      delete newTopologyMap.macToNodeMap[n.mac_addr];
+      delete newTopologyMap.nodeMap[nodeName];
+      delete newTopologyMap.nodeToLinksMap[nodeName];
+    });
+    // Recompute azimuths for any nodes connected to the deleted links.
+    await recomputeNodeAzimuths(nodesToRecompute, newTopologyMap);
+  };
+
   return {
     addLink,
     deleteLink,
     moveSite,
+    deleteSite,
   };
 }

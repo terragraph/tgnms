@@ -201,6 +201,7 @@ export default function RenderTopologyElement({
           expanded={expanded}
           onPanelChange={() => toggleExpanded(type, name, !expanded)}
           networkName={networkName}
+          networkConfig={networkConfig}
           topology={topology}
           site={site}
           siteMap={siteMap}

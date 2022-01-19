@@ -34,6 +34,7 @@ const defaultProps = {
     addLink: jest.fn(),
     deleteLink: jest.fn(),
     moveSite: jest.fn(),
+    deleteSite: jest.fn(),
   },
 };
 
