@@ -36,10 +36,15 @@ def package_ansible(directory):
 
 setup(
     name="nms",
-    version="2021.06.30",
     description=("nms cli"),
     packages=[PACKAGE, "{}.tests".format(PACKAGE)],
-    package_data={PACKAGE: package_ansible("nms_stack") + package_ansible("k8s_nms")},
+    package_data={
+        PACKAGE: (
+            package_ansible("nms_stack")
+            + package_ansible("k8s_nms")
+            + [os.path.join("..", PACKAGE, "__version__")]
+        ),
+    },
     url="http://github.com/facebookexternal/terragraph-ansible/",
     author="Mike Nugent",
     author_email="mnugent@fb.com",

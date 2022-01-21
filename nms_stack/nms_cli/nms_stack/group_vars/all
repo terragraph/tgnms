@@ -208,23 +208,28 @@ udp_pinger_path: "{{ terragraph_docker_path }}/udp_pinger"
 
 
 # Terragraph specific images, change these to configure exactly what version of
-# Terragraph you are running
-alarms_image: secure.cxl-terragraph.com:443/tg-alarms:stable
-e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
-efk_fluentd_image: secure.cxl-terragraph.com:443/fluentd:stable
-kafka_image: secure.cxl-terragraph.com:443/kafka:stable
-monitoring_gluster_exporter_image: secure.cxl-terragraph.com:443/gluster_exporter:latest
-msa_analytics_image: secure.cxl-terragraph.com:443/analytics:stable
-msa_crashlog_analysis_service_image: secure.cxl-terragraph.com:443/crashlog_analysis_service:stable
-msa_default_routes_service_image: secure.cxl-terragraph.com:443/default_routes_service:stable
-msa_network_health_service_image: secure.cxl-terragraph.com:443/network_health_service:stable
-msa_network_test_image: secure.cxl-terragraph.com:443/network_test:stable
-msa_scan_service_image: secure.cxl-terragraph.com:443/scan_service:stable
-msa_topology_service_image: secure.cxl-terragraph.com:443/topology_service:stable
-msa_weather_service_image: secure.cxl-terragraph.com:443/weather_service:latest
-nms_image: secure.cxl-terragraph.com:443/nmsv2:stable
-nginx_image: secure.cxl-terragraph.com:443/nms_nginx:latest
-query_service_image: secure.cxl-terragraph.com:443/cpp_backends:stable
-udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends:stable
-v6up_image: secure.cxl-terragraph.com:443/docker_v6up:stable
-nms_docs_image: secure.cxl-terragraph.com:443/nms_docs:stable
+# an image you are running. If you don't specify the version, the same version as
+# the installer will be used (if available).
+#   Example valid inputs:
+#     secure.cxl-terragraph.com:443/tg-alarms:v21.12.01
+#     secure.cxl-terragraph.com:443/tg-alarms:stable
+#     secure.cxl-terragraph.com:443/tg-alarms
+alarms_image: secure.cxl-terragraph.com:443/tg-alarms
+e2e_image: secure.cxl-terragraph.com:443/e2e-controller
+efk_fluentd_image: secure.cxl-terragraph.com:443/fluentd
+kafka_image: secure.cxl-terragraph.com:443/kafka
+monitoring_gluster_exporter_image: secure.cxl-terragraph.com:443/gluster_exporter
+msa_analytics_image: secure.cxl-terragraph.com:443/analytics
+msa_crashlog_analysis_service_image: secure.cxl-terragraph.com:443/crashlog_analysis_service
+msa_default_routes_service_image: secure.cxl-terragraph.com:443/default_routes_service
+msa_network_health_service_image: secure.cxl-terragraph.com:443/network_health_service
+msa_network_test_image: secure.cxl-terragraph.com:443/network_test
+msa_scan_service_image: secure.cxl-terragraph.com:443/scan_service
+msa_topology_service_image: secure.cxl-terragraph.com:443/topology_service
+msa_weather_service_image: secure.cxl-terragraph.com:443/weather_service
+nms_image: secure.cxl-terragraph.com:443/nmsv2
+nginx_image: secure.cxl-terragraph.com:443/nms_nginx
+query_service_image: secure.cxl-terragraph.com:443/cpp_backends
+udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends
+v6up_image: secure.cxl-terragraph.com:443/docker_v6up
+nms_docs_image: secure.cxl-terragraph.com:443/nms_docs
