@@ -28,6 +28,10 @@ echo "Clean older stuff"
 rm -rf ${BASE_VENV}
 rm -f ${OUTPUT_FILE}
 
+# Construct version file
+echo "The build tag is: ${BUILD_TAG}"
+echo "${BUILD_TAG}" > nms_cli/__version__
+
 # Install Test Deps
 echo "Making venv"
 python3 -m venv ${BASE_VENV}

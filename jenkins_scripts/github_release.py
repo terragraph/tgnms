@@ -8,6 +8,7 @@ from datetime import date
 
 import click
 import requests
+from shared import get_next_tag, read, get_release
 
 API_URL = "https://api.github.com/repos/terragraph/tgnms"
 
@@ -25,34 +26,40 @@ def cli(ctx):
 
 @cli.command()
 @click.option("-b", "--branch", help="Github release branch", required=True)
+@click.pass_context
+def get_tag(ctx, branch):
+    release = get_release(branch)
+    version_tag = get_next_tag(release, printer=lambda x: x)
+    print(version_tag)
+
+
+@cli.command()
+@click.option("-b", "--branch", help="Github release branch", required=True)
 @click.option(
     "--push/--no-push",
     help="Should created tags be pushed to the origin repo",
     default=True,
 )
+@click.option(
+    "--tag",
+    help="Overwrite the release tag with this custom tag.",
+)
 @click.pass_context
-def tag(ctx, branch, push):
+def tag(ctx, branch, push, tag):
     release = get_release(branch)
     click.echo(f"Tagging for release: {release}")
-    if release == "latest":
-        tag_prefix = f'v{date.today().strftime("%y.%m.%d")}'
+    # Tag the image with the release version
+    if tag:
+        version_tag = tag
+        click.echo(f"Tagging commit with custom tag: {version_tag}")
     else:
-        tag_prefix = f"lts-{release}"
-    click.echo(f"Searching for tags with prefix: {tag_prefix}")
-    # search for all tags starting with this release num
-    tags = read(f'git tag -l "{tag_prefix}*"')
-    if tags:
-        tags = tags.split("\n")
-    print(f"Found {len(tags)} tags")
-    print("  Tags: ", tags)
+        version_tag = get_next_tag(release, printer=click.echo)
+        click.echo(f"Tagging commit with tag: {version_tag}")
 
-    # increments the tag every time this is run
-    tag = f"{tag_prefix}-{len(tags)}"
-    print(f"Tagging commit with tag: {tag}")
-    run(f"git tag {tag}")
+    run(f"git tag {version_tag}")
     if push:
-        print(f"Pushing tag: {tag}")
-        run(f"git push origin {tag}")
+        click.echo(f"Pushing tag: {version_tag}")
+        run(f"git push origin {version_tag}")
 
 
 @cli.command()
@@ -177,21 +184,6 @@ def release(ctx, tag, asset, name, draft, force):
 
 def run(cmd: str) -> None:
     subprocess.run(cmd, shell=True, check=True)
-
-
-def read(cmd: str) -> str:
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True, check=True)
-    return p.stdout.decode("utf-8").strip()
-
-
-def get_release(branch):
-    if re.search(r"origin/(main|master)", branch):
-        release = "latest"
-    elif m := re.search(r"origin/releases/lts-nms-(\d{2}\.\d{1,2})", branch):
-        release = m.group(1)
-    else:
-        raise RuntimeError(f"Cannot build for {branch}")
-    return release
 
 
 if __name__ == "__main__":
