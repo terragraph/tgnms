@@ -2,12 +2,15 @@
 # Copyright (c) 2014-present, Facebook, Inc.
 
 import io
+import itertools
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import Mock, ANY
+from collections import namedtuple
+from unittest.mock import Mock, ANY, patch, DEFAULT, call
 
 from click.testing import CliRunner
 from nms_cli import nms
@@ -103,22 +106,92 @@ class TestSwarmNmsCli(NmsTestUtils, unittest.TestCase):
         result = runner.invoke(nms.cli, ["--help"])
         self.assertEqual(0, result.exit_code)
 
-    def test_install(self):
-        self.check_command("install -f config.yml -C cert.pem -k key.pem -h fake_host")
+    @patch("nms_cli.nms.subprocess")
+    def test_install(self, mock_subprocess):
+        mock_subprocess.run = Mock()
+        mock_subprocess.CalledProcessError = subprocess.CalledProcessError
         self.check_command(
-            "install -f config.yml -C cert.pem -k key.pem -h fake_host1 -h fake_host2"
+            f"install -f {get_config_file('swarm_config.yml')} -C my.cert.pem --nonfatal-image-check"
+        )
+        self.check_command(
+            f"install -f {get_config_file('swarm_config.yml')} -C cert.pem -k key.pem -h fake_host --nonfatal-image-check"
+        )
+        self.check_command(
+            f"install -f {get_config_file('swarm_config.yml')} -h fake_host1 -h fake_host2 --nonfatal-image-check"
         )
 
-        # Hostnames and ssl cert/key is passed in via config file.
-        self.check_command(f"install -f {get_config_file('swarm_config.yml')}")
+        with self.assertRaises(SystemExit) as e:
+            # fatal image check
+            self.check_command(
+                f"install -f {get_config_file('swarm_config.yml')} -h fake_host1 --image-version=v2022",
+            )
+        self.assertEqual(e.exception.code, 1)
+        mock_subprocess.run.assert_has_calls(
+            [
+                call(
+                    "ssh fake_host1 docker manifest inspect secure.cxl-terragraph.com:443/scan_service:v2022 > /dev/null",
+                    shell=True,
+                    check=True,
+                )
+            ],
+            any_order=True,
+        )
+
+    @patch("nms_cli.nms.subprocess")
+    def test_check_image(self, mock_subprocess):
+        SubprocessReturn = namedtuple("SubprocessReturn", ["returncode"])
+        mock_subprocess.run = Mock()
+        mock_subprocess.CalledProcessError = subprocess.CalledProcessError
+
+        # Successful check
+        mock_subprocess.run.return_value = SubprocessReturn(0)
+        mock_subprocess.run.side_effect = itertools.chain(
+            [SubprocessReturn(127)], itertools.repeat(DEFAULT)
+        )
         self.check_command(
-            f"install -f {get_config_file('swarm_config.yml')} -C my.cert.pem"
+            f"check-images -f {get_config_file('swarm_config.yml')} --image-version=v2022"
+        )
+        mock_subprocess.run.assert_has_calls(
+            [
+                call(
+                    "docker manifest inspect secure.cxl-terragraph.com:443/scan_service:v2022 > /dev/null",
+                    shell=True,
+                    check=True,
+                )
+            ],
+            any_order=True,
+        )
+
+        # Unsuccessful check
+        mock_subprocess.run.reset_mock()
+        mock_subprocess.run.return_value = SubprocessReturn(1)
+        mock_subprocess.run.side_effect = itertools.repeat(DEFAULT)
+        with self.assertRaises(SystemExit) as e:
+            self.check_command(
+                f"check-images -f {get_config_file('swarm_config.yml')} --image-version=v2022"
+            )
+        self.assertEqual(e.exception.code, 1)
+        mock_subprocess.run.assert_has_calls(
+            [
+                call(
+                    "docker manifest inspect secure.cxl-terragraph.com:443/scan_service:v2022 > /dev/null",
+                    shell=True,
+                    check=True,
+                )
+            ],
+            any_order=True,
+        )
+
+        # Non-fatal unsuccessful check
+        self.check_command(
+            f"check-images -f {get_config_file('swarm_config.yml')} --image-version=v2022 --nonfatal-image-check"
         )
 
     def test_image_version(self):
         self.check_command(
-            f"install --image-version=v21.12.01 -f {get_config_file('swarm_config.yml')}"
+            f"install --image-version=v21.12.01 -f {get_config_file('swarm_config.yml')} --nonfatal-image-check"
         )
+
         _, kwargs = run_mock.call_args
         self.assertEqual(
             kwargs["generated_config"]["msa_scan_service_image"],
@@ -141,7 +214,7 @@ class TestSwarmNmsCli(NmsTestUtils, unittest.TestCase):
     def test_rage(self):
         with FakeLogger() as f:
             command = self.check_command(
-                "install -f config.yml -C cert.pem -k key.pem -h fake_host"
+                f"install -f {get_config_file('swarm_config.yml')} --nonfatal-image-check"
             )
             self.check_command("rage")
 

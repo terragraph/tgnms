@@ -99,7 +99,7 @@ class ansible_executor:
         if generated_config:
             extra_vars.update(generated_config)
 
-        self.options = self.options._asdict()
+        options = self.options._asdict()
 
         variable_manager = VariableManager(
             loader=self.loader,
@@ -122,7 +122,7 @@ class ansible_executor:
                 variable_manager.set_host_variable(host, "ansible_connection", "local")
 
         # initialize context args
-        context.CLIARGS = ImmutableDict(self.options)
+        context.CLIARGS = ImmutableDict(options)
 
         playbook_path = pkg_resources.resource_filename(
             "nms_cli", os.path.join("nms_stack", playbook)

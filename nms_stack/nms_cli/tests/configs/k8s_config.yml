@@ -172,7 +172,6 @@ alarms_image: secure.cxl-terragraph.com:443/tg-alarms:latest
 e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
 efk_fluentd_image: secure.cxl-terragraph.com:443/fluentd:latest
 kafka_image: secure.cxl-terragraph.com:443/kafka-bitnami:latest
-monitoring_gluster_exporter_image: secure.cxl-terragraph.com:443/gluster_exporter:latest
 msa_analytics_image: secure.cxl-terragraph.com:443/analytics:latest
 msa_jupyter_image: secure.cxl-terragraph.com:443/jupyter:latest
 nms_image: secure.cxl-terragraph.com:443/nmsv2:latest

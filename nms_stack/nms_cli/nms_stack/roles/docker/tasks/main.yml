@@ -1,0 +1,73 @@
+---
+- name: install docker (ubuntu 20)
+  include_role:
+    name: ansible-role-docker
+  vars:
+    docker_package: docker-ce
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '20'
+
+- name: install docker (ubuntu 18)
+  include_role:
+    name: ansible-role-docker
+  vars:
+    docker_package: docker-ce
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+
+- name: pip install docker dependencies
+  pip:
+    name:
+      - docker
+      - docker-compose
+      - json-diff
+      - passlib
+    state: present
+
+- name: create docker daemon config path
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+
+- name: configure docker http proxy if needed
+  template:
+    src: docker-http-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: http_proxy is defined
+
+- name: configure docker https proxy if needed
+  template:
+    src: docker-https-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/https-proxy.conf
+    owner: "{{ docker_user }}"
+    group: docker
+    mode: 0755
+  when: https_proxy is defined
+
+- name: restart docker to use proxy
+  systemd:
+    daemon_reload: yes
+    state: restarted
+    name: docker
+  when: http_proxy is defined or https_proxy is defined
+
+- name: Adding existing user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+
+- name: docker login
+  docker_login:
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+    registry_url: "{{ docker_registry_url }}"
+    reauthorize: yes
+  register: result
+  until: result is success
+  retries: 5
+  delay: 60
