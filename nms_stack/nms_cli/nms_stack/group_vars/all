@@ -231,4 +231,4 @@ nginx_image: secure.cxl-terragraph.com:443/nms_nginx
 query_service_image: secure.cxl-terragraph.com:443/cpp_backends
 udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends
 v6up_image: secure.cxl-terragraph.com:443/docker_v6up
-nms_docs_image: secure.cxl-terragraph.com:443/nms_docs
+nms_docs_image: secure.cxl-terragraph.com:443/nms_docs:latest
