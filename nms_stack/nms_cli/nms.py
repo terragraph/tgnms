@@ -19,6 +19,7 @@ from pygments.formatters import TerminalFormatter
 from pygments.lexers import YamlLexer
 
 VERSION_FILE = "__version__"
+INSTALL_DOCKER_PLAYBOOK = "install_docker.yml"
 INSTALL_PLAYBOOK = "install.yml"
 UNINSTALL_PLAYBOOK = "uninstall.yml"
 VALIDATE_PLAYBOOK = "validate.yml"
@@ -218,7 +219,7 @@ common_options = {
     "verbose": click.option("-v", "--verbose", count=True, default=0),
     "image-version": click.option(
         "--image-version",
-        help="Which image version to install. Default is latest version.",
+        help="Which image version to use. Default is latest version.",
     ),
 }
 
@@ -232,6 +233,71 @@ def add_common_options(*args):
         return fn
 
     return wrapper
+
+
+def run(cmd: str) -> None:
+    try:
+        return subprocess.run(cmd, shell=True, check=True).returncode
+    except subprocess.CalledProcessError as e:
+        return e.returncode
+
+
+def check_images_exist(variables, host=None):
+    """Checks the docker registry for the images.
+
+    Returns the images missing. If a host is passed in, then it will
+    run docker on that host, else it will run locally.
+    """
+    docker_registry = variables.get("docker_registry_url") or os.environ.get(
+        "DOCKER_REGISTRY"
+    )
+    docker_password = variables.get("docker_registry_password") or os.environ.get(
+        "DOCKER_PASSWORD"
+    )
+    docker_username = variables.get("docker_registry_username") or os.environ.get(
+        "DOCKER_USER"
+    )
+    if not (docker_password and docker_username and docker_registry):
+        raise RuntimeError(
+            (
+                "Missing docker password/username/registry. "
+                "Please specify in your configuration file or "
+                "as environment variables: DOCKER_PASSWORD, "
+                "DOCKER_USER, and DOCKER_REGISTRY"
+            )
+        )
+
+    if host:
+        image_cmd = f"ssh {host} "
+    else:
+        # Login
+        command = [
+            "echo",
+            docker_password,
+            "|",
+            "docker",
+            "login",
+            "-u",
+            docker_username,
+            "--password-stdin",
+            docker_registry,
+        ]
+        run(" ".join(command))
+        image_cmd = ""
+
+    missing_images = []
+    print("Checking images...")
+    for image in variables.get("docker_images", []):
+        # Will return 0 if image exists, 1 if it does not.
+        returncode = run(image_cmd + f"docker manifest inspect {image} > /dev/null")
+        if returncode:
+            missing_images.append(image)
+    if len(missing_images):
+        print("The following images are missing:")
+        print("    " + "\n    ".join(missing_images))
+    else:
+        print("All images exist in the registry.")
+    return missing_images
 
 
 class InstallerOpts(object):
@@ -416,7 +482,70 @@ def load_variables(config_file):
     return variables
 
 
+def install_docker(a, hosts, installer_opts, variables, password):
+    """Installs docker onto the machines
+
+    If docker was installed, returns the first host.
+    Else if docker already exists or no config file is passed in,
+    it will return None.
+    """
+    host = None
+    if installer_opts.config_file:
+        # Check if docker already exists on the host
+        host = hosts[0][0] if hosts[0][0] != "host.example.com" else None
+        returncode = run(f"ssh {host} docker --version")
+        if returncode == 127:
+            # Command doesn't exist, install docker
+            a.run(
+                hosts,
+                INSTALL_DOCKER_PLAYBOOK,
+                config_file=installer_opts.config_file,
+                generated_config=variables,
+                password=password,
+            )
+    return host
+
+
 @cli.command()
+@click.option(
+    "--nonfatal-image-check",
+    is_flag=True,
+    default=False,
+    help="Checks for image, but doesn't fail installation if images are missing.",
+)
+@add_installer_opts()
+@click.pass_context
+@rage.log_command(RAGE_DIR)
+def check_images(ctx, installer_opts):
+    """Check for existance of images.
+
+    nms check-images -f config.yml => uses the host defined in config to run docker
+    nms check-images => uses local environment to run docker
+
+    If `image-version` is NOT passed in, then we use the same version
+    as the installer as the image tag to lookup.
+    """
+    version = get_version(installer_opts)
+    variables = generate_variables(ctx, installer_opts, version)
+    hosts = gather_hosts(ctx, installer_opts, variables)
+
+    host = hosts[0][0] if hosts[0][0] != "host.example.com" else None
+    missing_images = check_images_exist(variables, host)
+    if not installer_opts.other_options.get("nonfatal_image_check") and len(
+        missing_images
+    ):
+        ctx.exit(1)
+    else:
+        ctx.exit()
+
+
+@cli.command()
+@click.option(
+    "--nonfatal-image-check",
+    is_flag=True,
+    default=False,
+    help="Checks for image, but doesn't fail installation if images are missing.",
+)
 @add_installer_opts()
 @click.pass_context
 @rage.log_command(RAGE_DIR)
@@ -428,9 +557,16 @@ def install(ctx, installer_opts):
 
     version = get_version(installer_opts)
     variables = generate_variables(ctx, installer_opts, version)
-
     hosts = gather_hosts(ctx, installer_opts, variables)
     a = prepare_ansible(ctx, installer_opts, variables)
+
+    host = install_docker(a, hosts, installer_opts, variables, password)
+    missing_images = check_images_exist(variables, host)
+    if not installer_opts.other_options.get("nonfatal_image_check") and len(
+        missing_images
+    ):
+        ctx.exit(1)
+
     sys.exit(
         a.run(
             hosts,

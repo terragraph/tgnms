@@ -19,24 +19,6 @@ services:
         max-size: "20m"
         max-file: "10"
 
-  {% if groups.all | length > 1 -%}
-  gluster_exporter:
-    image: {{ monitoring_gluster_exporter_image }}
-    deploy:
-      mode: global
-    volumes:
-      - /var/lib/glusterd:/var/lib/glusterd
-      - "{{ terragraph_docker_path }}/{{ gluster_bricks }}:{{ terragraph_docker_path }}/{{ gluster_bricks }}"
-      - {{ monitoring_gfs_path }}/gluster_exporter/config:/usr/local/etc/gluster-exporter
-    networks:
-      - terragraph_net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "10"
-  {% endif %}
-
 networks:
   terragraph_net:
     external: true

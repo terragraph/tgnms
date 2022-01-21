@@ -29,13 +29,6 @@ scrape_configs:
         type: 'A'
         port: 8080
 
-  - job_name: 'gluster_exporter'
-    dns_sd_configs:
-      - names:
-        - 'tasks.gluster_exporter'
-        type: 'A'
-        port: 9713
-
   - job_name: 'crashlog_analysis_service'
     metrics_path: /metrics
     static_configs:

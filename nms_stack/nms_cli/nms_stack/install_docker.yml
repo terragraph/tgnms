@@ -1,0 +1,22 @@
+---
+- name: Install Python
+  hosts: all
+  become: true
+  become_user: "{{ ansible_user }}"
+  become_method: sudo
+  gather_facts: false
+  tasks:
+    - name: Install Python if the system doesn't have python installed by default.  Centos/Redhat doesnt come with python installed by default
+      raw: test -e /usr/bin/apt && (apt -y update && apt install -y python-minimal) || (yum -y install python3)
+
+- name: Install docker
+  hosts: all
+  become: true
+  become_user: "{{ ansible_user }}"
+  become_method: sudo
+  gather_facts: yes
+  environment:
+    http_proxy: "{{ http_proxy if http_proxy is defined else '' }}"
+    https_proxy: "{{ https_proxy if https_proxy is defined else '' }}"
+  roles:
+    - { role: docker, tags: ["docker"] }
