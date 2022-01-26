@@ -162,8 +162,10 @@ export default function TopologyTable(_props: NetworkTableProps) {
   const tableOptions = React.useMemo(
     () => ({
       selection: true,
-      pageSize: 5,
-      pageSizeOptions: [5, 10],
+      minBodyHeight: 400,
+      maxBodyHeight: 400,
+      pageSize: 10,
+      pageSizeOptions: [5, 10, 20],
     }),
     [],
   );
