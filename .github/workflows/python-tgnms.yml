@@ -44,7 +44,7 @@ jobs:
       #    cd scripts
       - name: C++ backends
         run: |
-          python jenkins_scripts/registry.py build cpp_backends --branch ${{ env.BRANCH }} --dir docker --stage builder
-          python jenkins_scripts/registry.py build cpp_backends --branch ${{ env.BRANCH }} --dir docker
+          python jenkins_scripts/registry.py build cpp_backends --branch main --dir docker --stage builder
+          python jenkins_scripts/registry.py build cpp_backends --branch main --dir docker
           #python jenkins_scripts/registry.py push cpp_backends --username ${{ env.DOCKER_USER }}
           
