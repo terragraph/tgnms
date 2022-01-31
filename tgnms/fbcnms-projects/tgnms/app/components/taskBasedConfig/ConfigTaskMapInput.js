@@ -30,6 +30,8 @@ const useStyles = makeStyles(theme => ({
 
 export type Props = {|
   configField: string,
+  // In the event the metadata is a different path than the configField.
+  metadataField?: string,
   label?: string,
   customKeyLabel?: string,
   buttonText?: string,
@@ -37,7 +39,14 @@ export type Props = {|
 |};
 
 export default function ConfigTaskMapInput(props: Props) {
-  const {configField, label, buttonText, onChange, customKeyLabel} = props;
+  const {
+    configField,
+    metadataField,
+    label,
+    buttonText,
+    onChange,
+    customKeyLabel,
+  } = props;
   const classes = useStyles();
   const {configData, configMetadata, onUpdate} = useConfigTaskContext();
   const [configValue, setConfigValue] = React.useState<{
@@ -49,7 +58,7 @@ export default function ConfigTaskMapInput(props: Props) {
     configField,
   ]);
 
-  const metadata = configFieldArray.reduce(
+  const metadata = (metadataField?.split('.') ?? configFieldArray).reduce(
     (result, key) => (result ? result[key] : result),
     configMetadata,
   );
