@@ -338,7 +338,7 @@ export default class PlanningService {
           );
           await this.waitForFileReadyState(anpFile);
         } catch (err) {
-          console.error(err);
+          throw err;
         } finally {
           if (fd != null) {
             fs.close(fd, err => {
@@ -406,10 +406,15 @@ export default class PlanningService {
         state: NETWORK_PLAN_STATE.RUNNING,
       };
     } catch (err) {
+      const errors = [];
       console.error(err);
-      planRow.state = NETWORK_PLAN_STATE.ERROR;
+      const apiMsg = err.response?.data?.error?.message;
+      if (apiMsg != null) {
+        errors.push(apiMsg);
+      }
+      planRow.state = NETWORK_PLAN_STATE.LAUNCH_ERROR;
       await planRow.save();
-      return {state: planRow.state};
+      return {state: planRow.state, message: err.message, errors};
     }
   }
 
@@ -565,12 +570,24 @@ export default class PlanningService {
     if (fbid == null) {
       throw new Error('Plan has not been launched yet');
     }
-    const inputs = this.anpApi.getPlanInputFiles(fbid);
+    const inputs = await this.anpApi.getPlanInputFiles(fbid);
     return inputs;
   }
 
   // Fetch output files from ANP
   async getPlanOutputFiles(id: number) {
+    const fbid = await this.getPlanFBID(id);
+    const outputs = await this.anpApi.getPlanOutputFiles(fbid);
+    return outputs;
+  }
+
+  async getPlanErrors(id: number): Promise<{error_message: string}> {
+    const fbid = await this.getPlanFBID(id);
+    const errors = await this.anpApi.getPlanErrors(fbid);
+    return errors;
+  }
+
+  async getPlanFBID(id: number): Promise<string> {
     const row = await network_plan.findByPk(id);
     if (row == null) {
       throw new Error(`Plan not found: ${id}`);
@@ -579,8 +596,7 @@ export default class PlanningService {
     if (fbid == null) {
       throw new Error('Plan has not been launched yet');
     }
-    const outputs = this.anpApi.getPlanOutputFiles(fbid);
-    return outputs;
+    return fbid;
   }
 
   async downloadFileStream(id: number) {
@@ -841,23 +857,6 @@ export default class PlanningService {
         });
       });
     }
-  }
-
-  async getPlanErrors({
-    id,
-  }: {
-    id: number,
-  }): Promise<Array<{error_message: string}>> {
-    const planRow = await network_plan.findByPk(id);
-    if (planRow == null) {
-      throw new Error('Plan does not exist');
-    }
-    const plan = planRow.toJSON();
-    if (plan.fbid == null || plan.fbid.trim() === '') {
-      return [];
-    }
-    const response = await this.anpApi.getPlanErrors(plan.fbid);
-    return response;
   }
 
   /**

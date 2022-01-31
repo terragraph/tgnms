@@ -117,7 +117,13 @@ export default function PlanEditor({
       startPlanTask.success();
     } catch (err) {
       startPlanTask.error();
-      startPlanTask.setMessage(err.message);
+      if (err.response?.data?.errors != null) {
+        startPlanTask.setMessage(
+          `Plan failed to launch: ${err.response.data.errors.join('\n')}`,
+        );
+      } else {
+        startPlanTask.setMessage(err.message);
+      }
     }
   }, [onPlanLaunched, plan, startPlanTask]);
 
@@ -198,6 +204,13 @@ export default function PlanEditor({
       {startPlanTask.isLoading && (
         <Grid container justify="center">
           <CircularProgress data-testid="launch-loading-circle" size={20} />
+        </Grid>
+      )}
+      {startPlanTask.isError && (
+        <Grid item>
+          <Typography className={classes.error} variant="caption">
+            {startPlanTask.message}
+          </Typography>
         </Grid>
       )}
     </Grid>

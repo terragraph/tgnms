@@ -71,6 +71,11 @@ export const RUNNING_NETWORK_PLAN_STATES = new Set<string>([
   NETWORK_PLAN_STATE.RUNNING,
 ]);
 
+export const ERROR_NETWORK_PLAN_STATES = new Set<string>([
+  NETWORK_PLAN_STATE.ERROR,
+  NETWORK_PLAN_STATE.LAUNCH_ERROR,
+]);
+
 export type NetworkPlanStateType = $Keys<typeof NETWORK_PLAN_STATE>;
 
 export type PlanFolder = {|

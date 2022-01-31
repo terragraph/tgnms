@@ -860,12 +860,6 @@ describe('POST plan/:id/launch', () => {
         NETWORK_PLAN_STATE.RUNNING,
       );
     });
-    test.todo(
-      'if file upload fails, transitions the plan into the ERROR state',
-    );
-    test.todo(
-      'if anp api returns errors after local file upload success, transitions the plan into the ERROR state',
-    );
   });
   describe('with only FBID files', () => {
     test('creates and launches plan', async () => {
@@ -921,9 +915,9 @@ describe('POST plan/:id/launch', () => {
         const {body: launchBody} = await request(setupApp())
           .post(`/network_plan/plan/${plan.id}/launch`)
           .expect(500);
-        expect(launchBody.state).toBe(NETWORK_PLAN_STATE.ERROR);
+        expect(launchBody.state).toBe(NETWORK_PLAN_STATE.LAUNCH_ERROR);
         expect(nullthrows(await network_plan.findByPk(plan.id)).state).toBe(
-          NETWORK_PLAN_STATE.ERROR,
+          NETWORK_PLAN_STATE.LAUNCH_ERROR,
         );
       },
     );
@@ -1055,7 +1049,7 @@ describe('POST plan/:id/launch', () => {
         .post(`/network_plan/plan/${plan.id}/launch`)
         .expect(500);
       expect(nullthrows(await network_plan.findByPk(plan.id)).state).toBe(
-        NETWORK_PLAN_STATE.ERROR,
+        NETWORK_PLAN_STATE.LAUNCH_ERROR,
       );
     });
   });

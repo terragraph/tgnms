@@ -17,7 +17,7 @@ import {
   FACEBOOK_OAUTH_URL,
 } from '../config';
 import {Api} from '../Api';
-import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import {ERROR_NETWORK_PLAN_STATES} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import {createErrorHandler} from '../helpers/apiHelpers';
 const multer = require('multer');
 
@@ -113,10 +113,7 @@ export default class NetworkPlanRoutes extends Api {
       return planningService
         .startLaunchPlan({id: parseInt(req.params.id)})
         .then(result => {
-          if (result.state === NETWORK_PLAN_STATE.ERROR) {
-            if (result.message) {
-              this.logger.error(result.message);
-            }
+          if (ERROR_NETWORK_PLAN_STATES.has(result.state)) {
             return res.status(500).json(result);
           }
           return res.json(result);
@@ -238,7 +235,7 @@ export default class NetworkPlanRoutes extends Api {
 
     router.get('/plan/:id/errors', (req, res) => {
       return planningService
-        .getPlanErrors({id: parseInt(req.params.id)})
+        .getPlanErrors(parseInt(req.params.id))
         .then(x => res.json(x))
         .catch(err => res.status(500).send(err.message));
     });
