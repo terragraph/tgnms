@@ -39,10 +39,6 @@ type Props = {
 };
 
 const useStyles = makeStyles(theme => ({
-  healthIndicator: {
-    width: theme.spacing(0.5),
-    height: theme.spacing(3.5),
-  },
   customTableWrapper: {
     marginTop: -theme.spacing(2),
     height: theme.spacing(36),
@@ -162,10 +158,7 @@ export default function HealthGroupDropDown(props: Props) {
         }
         label={
           <>
-            <HealthIndicator
-              health={health}
-              className={classes.healthIndicator}
-            />
+            <HealthIndicator health={health} />
             {dropDownText}
           </>
         }
