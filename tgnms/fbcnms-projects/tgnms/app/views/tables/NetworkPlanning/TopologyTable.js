@@ -17,7 +17,6 @@ import {
   ANP_SITE_TYPE_PRETTY,
   ANP_STATUS_TYPE_PRETTY,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-
 import {
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,

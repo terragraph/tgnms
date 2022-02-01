@@ -9,12 +9,10 @@ const {
   network_plan,
   network_plan_folder,
   network_plan_file,
-} = require('../models');
+} = require('@fbcnms/tg-nms/server/models');
 const mv = require('mv');
 import * as fs from 'fs';
-import * as path from 'path';
-import ANPAPIClient from './ANPAPIClient';
-import {ANP_FILE_DIR} from '../config';
+import ANPAPIClient from '@fbcnms/tg-nms/server/network_plan/ANPAPIClient';
 import {DEFAULT_FILE_UPLOAD_CHUNK_SIZE} from '@fbcnms/tg-nms/shared/dto/FacebookGraph';
 import {
   FILE_ROLE,
@@ -28,13 +26,23 @@ import {
   NETWORK_PLAN_STATE,
   RUNNING_NETWORK_PLAN_STATES,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-import {constants as FS_CONSTANTS} from 'fs';
 import {NodeTypeValueMap} from '@fbcnms/tg-nms/shared/types/Topology';
-import {getInputFileFields} from '../models/networkPlan';
-import {loadProfiles} from '../hwprofile/hwprofile';
+import {
+  checkPathExists,
+  getInputFilePath,
+  makeANPDir,
+} from '@fbcnms/tg-nms/server/network_plan/files';
+import {
+  folderRowToFolder,
+  inputFileRowToInputFile,
+  planRowToNetworkPlan,
+} from '@fbcnms/tg-nms/server/network_plan/mappers';
+import {getInputFileFields} from '@fbcnms/tg-nms/server/models/networkPlan';
+import {loadProfiles} from '@fbcnms/tg-nms/server/hwprofile/hwprofile';
 import {pollConditionally} from '@fbcnms/tg-nms/server/helpers/poll';
 import type {
   ANPFileHandle,
+  FileRoles,
   MeshPlannerDeviceParams,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
@@ -151,13 +159,14 @@ export default class PlanningService {
   }
 
   async updateNetworkPlan(req: UpdateNetworkPlanRequest): Promise<NetworkPlan> {
+    console.dir(req);
     await network_plan.update(
       {
         name: req.name,
         dsm_file_id: req.dsmFileId,
-        boundary_file_id: req.boundaryFileId,
-        sites_file_id: req.sitesFileId,
-        hardware_board_ids: req.hardwareBoardIds,
+        boundary_file_id: req.boundaryFileId ?? null,
+        sites_file_id: req.sitesFileId ?? null,
+        hardware_board_ids: req.hardwareBoardIds ?? null,
       },
       {where: {id: req.id}},
     );
@@ -428,7 +437,7 @@ export default class PlanningService {
     fileDescriptor: number,
     fileSize: number,
     name: string,
-    role: string,
+    role: FileRoles,
     // used for testing
     uploadChunkSize?: number,
   }): Promise<ANPFileHandle> {
@@ -468,7 +477,7 @@ export default class PlanningService {
   }: {
     data: string,
     name: string,
-    role: string,
+    role: FileRoles,
     // used for testing
     uploadChunkSize?: number,
   }): Promise<ANPFileHandle> {
@@ -493,7 +502,7 @@ export default class PlanningService {
   }: {
     genChunk: ({length: number, offset: number}) => Promise<Buffer>,
     name: string,
-    role: string,
+    role: FileRoles,
     fileSize: number,
     // used for testing
     uploadChunkSize?: number,
@@ -597,6 +606,16 @@ export default class PlanningService {
       throw new Error('Plan has not been launched yet');
     }
     return fbid;
+  }
+
+  async getInputFilesByRole({role}: {role: string}): Promise<Array<InputFile>> {
+    const rows = await network_plan_file.findAll({
+      where: {
+        role: role,
+      },
+    });
+    const inputFiles = rows.map(r => inputFileRowToInputFile(r.toJSON()));
+    return inputFiles;
   }
 
   async downloadFileStream(id: number) {
@@ -940,18 +959,6 @@ export default class PlanningService {
   }
 }
 
-// filepaths
-export function getBaseDir() {
-  return path.resolve(ANP_FILE_DIR);
-}
-
-export function getInputFilePath({file}: {file: NetworkPlanFileAttributes}) {
-  const inputFilesDir = path.join(getBaseDir(), 'inputs');
-  const fileName = `${file.id}-${file.name}`;
-
-  return path.join(inputFilesDir, fileName);
-}
-
 /**
  * Gets the ids of all a plan's input files by looking up each
  * foreign key on the plan
@@ -975,46 +982,6 @@ function getPlanInputFileIds(plan: NetworkPlanAttributes): Array<number> {
   }
   return inputFileIds;
 }
-
-// mapping from db row to DTO
-export function folderRowToFolder(
-  folder: NetworkPlanFolderAttributes,
-): PlanFolder {
-  return {
-    id: folder.id,
-    name: folder.name,
-  };
-}
-
-export function planRowToNetworkPlan(plan: NetworkPlanAttributes): NetworkPlan {
-  return {
-    id: plan.id,
-    name: plan.name,
-    folderId: plan.folder_id,
-    state: plan.state,
-    dsmFile: plan.dsm_file ? inputFileRowToInputFile(plan.dsm_file) : null,
-    boundaryFile: plan.boundary_file
-      ? inputFileRowToInputFile(plan.boundary_file)
-      : null,
-    sitesFile: plan.sites_file
-      ? inputFileRowToInputFile(plan.sites_file)
-      : null,
-    hardwareBoardIds: plan.hardware_board_ids,
-  };
-}
-
-export function inputFileRowToInputFile(
-  file: NetworkPlanFileAttributes,
-): InputFile {
-  return {
-    id: file.id,
-    name: file.name,
-    role: file.role,
-    source: file.source,
-    fbid: file.fbid ?? null,
-  };
-}
-
 // sequelize eager-loading helpers
 function includeFolder(): Array<IncludeOptions<any, any>> {
   return [{model: network_plan_folder, as: 'folder'}];
@@ -1025,43 +992,6 @@ function includeInputFiles(): Array<IncludeOptions<any, any>> {
     model: network_plan_file,
     as: field.as,
   }));
-}
-
-/**
- * wrapping the callback apis because neither memfs nor the flow-version
- * we use supports fs/promises
- */
-// Check if a file or directory exists and is readable and writable
-async function checkPathExists(path: string): Promise<boolean> {
-  const exists = await new Promise(res => {
-    fs.access(
-      path,
-      FS_CONSTANTS.F_OK | FS_CONSTANTS.R_OK | FS_CONSTANTS.W_OK,
-      err => {
-        if (err) {
-          return res(false);
-        }
-        return res(true);
-      },
-    );
-  });
-  return exists;
-}
-
-export async function makeANPDir(dir: string): Promise<string> {
-  const fullPath = path.join(getBaseDir(), dir);
-  const dirExists = await checkPathExists(fullPath);
-  if (!dirExists) {
-    await new Promise((res, rej) => {
-      fs.mkdir(fullPath, {recursive: true}, err => {
-        if (err) {
-          return rej(err);
-        }
-        return res();
-      });
-    });
-  }
-  return dir;
 }
 
 export function isRunning(state: string): boolean {

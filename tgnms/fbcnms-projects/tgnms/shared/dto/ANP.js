@@ -13,14 +13,14 @@
 export type ANPFileHandleRequest = {|
   file_name: string,
   file_extension: string,
-  file_role: string,
+  file_role: FileRoles,
   file_handle: string,
 |};
 
 export type ANPFileHandle = {|
   file_name: string,
   file_extension: string,
-  file_role: string,
+  file_role: FileRoles,
   file_status: string,
   id: string,
 |};
@@ -147,6 +147,8 @@ export const FILE_ROLE = {
   DATA_INGESTION_PARAMS_JSON: 'DATA_INGESTION_PARAMS_JSON',
   URBAN_ASP_CANDIDATE_SITE_FILE: 'URBAN_ASP_CANDIDATE_SITE_FILE',
 };
+
+export type FileRoles = $Keys<typeof FILE_ROLE>;
 
 export const METRIC_TYPE = {
   ACTIVE_DN_DN_LINKS: 'Active DN-DN Links',

@@ -4,6 +4,7 @@
  * @format
  * @flow
  */
+import {FILE_ROLE} from '@fbcnms/tg-nms/shared/dto/ANP';
 import {PLAN_STATUS} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   ANPFileHandle,
@@ -26,7 +27,7 @@ export function mockANPFile(
   return {
     file_name: 'test',
     file_extension: 'txt',
-    file_role: '',
+    file_role: FILE_ROLE.BOUNDARY_FILE,
     file_status: '',
     id: '1',
     ...(overrides ?? {}),

@@ -16,6 +16,7 @@ import PlanMapFeaturesLayer from './MapFeaturesLayer/PlanMapFeaturesLayer';
 import PolygonLayer from './PolygonLayer';
 import React from 'react';
 import SitePopupsLayer from './SitePopupsLayer';
+import SitesFileFeaturesLayer from './MapFeaturesLayer/SitesFileFeaturesLayer';
 import SitesLayer from './SitesLayer';
 import TopologyBuilderToggle from '@fbcnms/tg-nms/app/views/map/mapControls/TopologyBuilderToggle';
 import {MAPMODE} from '@fbcnms/tg-nms/app/contexts/MapContext';
@@ -199,6 +200,7 @@ export default function MapLayers(props: Props) {
         <AlertsLayer />
       )}
       {mapMode === MAPMODE.PLANNING && <PlanMapFeaturesLayer />}
+      {mapMode === MAPMODE.PLANNING && <SitesFileFeaturesLayer />}
     </>
   );
 }

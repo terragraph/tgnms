@@ -7,6 +7,7 @@
 
 import {Model} from 'sequelize';
 import type Sequelize, {DataTypes as DataTypesType} from 'sequelize';
+import type {FileRoles} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
   FileSourceKey,
   FileStateKey,
@@ -14,7 +15,7 @@ import type {
 
 export type NetworkPlanFileAttributes = {|
   id: number,
-  role: string,
+  role: FileRoles,
   name: string,
   state: FileStateKey,
   source: FileSourceKey,

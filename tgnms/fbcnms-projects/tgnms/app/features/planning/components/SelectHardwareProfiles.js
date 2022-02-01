@@ -65,9 +65,7 @@ export default function SelectHardwareProfiles({
         return option.hwBoardId === value.hwBoardId;
       }}
       getOptionLabel={opt => opt?.hwBoardId ?? ''}
-      renderInput={params => (
-        <TextField {...params} label={'Select hardware for plan'} />
-      )}
+      renderInput={params => <TextField {...params} label={'Hardware'} />}
       noOptionsText="No hardware profiles"
     />
   );

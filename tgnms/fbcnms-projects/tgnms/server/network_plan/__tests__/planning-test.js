@@ -26,7 +26,6 @@ import type {FileSourceKey} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {HardwareProfile} from '@fbcnms/tg-nms/shared/dto/HardwareProfiles';
 import type {NetworkPlanAttributes} from '@fbcnms/tg-nms/server/models/networkPlan';
 import type {NetworkPlanFileAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFile';
-import type {NetworkPlanFolderAttributes} from '@fbcnms/tg-nms/server/models/networkPlanFolder';
 
 const {
   network_plan_folder,
@@ -37,12 +36,16 @@ jest.doMock('fs', () => {
   const {vol, createFsFromVolume} = require('memfs');
   return createFsFromVolume(vol);
 });
-// use require for helpers so mock isn't hoisted
 const {
-  inputFileRowToInputFile,
-  getBaseDir,
-  makeANPDir,
-} = require('../planningService');
+  expectFileExists,
+  writeInputFile,
+  createTestPlan,
+  createTestFolder,
+} = require('@fbcnms/tg-nms/server/network_plan/__testhelpers/planning-testhelpers');
+
+// use require for helpers so mock isn't hoisted
+const {getBaseDir, makeANPDir} = require('../files');
+const {inputFileRowToInputFile} = require('../mappers');
 const fsMock = require('fs');
 
 // mock out hardware profiles stuff
@@ -107,7 +110,6 @@ jest.mock('../../config', () => ({
 beforeEach(() => {
   vol.reset();
 });
-const folderFBID = '44561213';
 
 describe('POST /folder', () => {
   test('Creates a new folder', async () => {
@@ -1340,43 +1342,4 @@ async function createInputFiles(defaults: ?{source?: FileSourceKey}) {
     ])
   ).map(x => x.toJSON());
   return files;
-}
-
-function expectFileExists(path: string, exists: boolean) {
-  try {
-    expect(fsMock.existsSync(path)).toBe(exists);
-  } catch (err) {
-    throw new Error(
-      `Expected path: ${path} to ${exists === false ? 'NOT ' : ''}exist`,
-    );
-  }
-}
-
-async function createTestFolder({name, fbid}: {name: string, fbid?: string}) {
-  const folder = await network_plan_folder.create(
-    ({name, fbid: fbid ?? folderFBID}: $Shape<NetworkPlanFolderAttributes>),
-  );
-  return folder.toJSON();
-}
-
-async function createTestPlan(
-  plan: $Shape<NetworkPlanAttributes>,
-): Promise<NetworkPlanAttributes> {
-  const dbPlan = await network_plan.create(
-    ({
-      name: 'test',
-      state: NETWORK_PLAN_STATE.DRAFT,
-      ...plan,
-    }: $Shape<NetworkPlanAttributes>),
-  );
-  return dbPlan.toJSON();
-}
-
-function writeInputFile(inputFile: NetworkPlanFileAttributes, data: Buffer) {
-  const filePath = path.join(
-    getBaseDir(),
-    'inputs',
-    `${inputFile.id}-${inputFile.name}`,
-  );
-  fsMock.writeFileSync(filePath, data);
 }

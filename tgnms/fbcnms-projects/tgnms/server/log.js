@@ -18,7 +18,7 @@ const myFormat = printf(info => {
   return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`;
 });
 
-module.exports = (callingModule: {filename: string}) => {
+function makeLogger(callingModule: {filename: string}) {
   return winston.createLogger<*>({
     level: LOG_LEVEL,
     format: combine(
@@ -31,4 +31,8 @@ module.exports = (callingModule: {filename: string}) => {
     stderrLevels: ['error', 'warning'],
     transports: [new winston.transports.Console()],
   });
-};
+}
+
+export type Logger = $Call<typeof makeLogger, {filename: string}>;
+
+module.exports = makeLogger;

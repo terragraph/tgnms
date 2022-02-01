@@ -51,6 +51,7 @@
     "copy-to-clipboard": "^3.0.8",
     "cron-parser": "^2.16.3",
     "css-loader": "^1.0.1",
+    "csv-parse": "^4.16.3",
     "csv-stringify": "^5.5.0",
     "d3-color": "1.4.1",
     "d3-scale": "^2.1.2",

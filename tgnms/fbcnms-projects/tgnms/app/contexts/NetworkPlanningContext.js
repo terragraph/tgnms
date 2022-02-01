@@ -16,8 +16,11 @@ import {useStateWithTaskState} from '@fbcnms/tg-nms/app/helpers/ContextHelpers';
 import type {ANPFileHandle} from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {ANPUploadTopologyType} from '@fbcnms/tg-nms/app/constants/TemplateConstants';
 import type {MapOptionsState} from '@fbcnms/tg-nms/app/features/planning/PlanningHelpers';
-import type {NetworkPlan} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-import type {PlanFolder} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
+import type {
+  NetworkPlan,
+  PlanFolder,
+  SitesFile,
+} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {SetState} from '@fbcnms/tg-nms/app/helpers/ContextHelpers';
 import type {TaskState} from '@fbcnms/tg-nms/app/hooks/useTaskState';
 
@@ -88,8 +91,17 @@ export type NetworkPlanningContext = {|
   outputFiles: ?Array<ANPFileHandle>,
   setOutputFiles: SetState<?Array<ANPFileHandle>>,
   loadOutputFilesTask: TaskState,
-
   downloadOutputTask: TaskState,
+
+  // sites-file editor
+  sitesFile: ?SitesFile,
+  setSitesFile: SetState<?SitesFile>,
+  sitesFileTask: TaskState,
+  selectedSites: Array<number>,
+  setSelectedSites: SetState<Array<number>>,
+  pendingSitesFile: ?SitesFile,
+  setPendingSitesFile: SetState<?SitesFile>,
+  pendingSitesFileTask: TaskState,
 |};
 
 export const PLAN_ID_NEW = '';
@@ -121,6 +133,14 @@ const defaultValue: NetworkPlanningContext = {
   setOutputFiles: empty,
   loadOutputFilesTask: emptyTask,
   downloadOutputTask: emptyTask,
+  sitesFile: null,
+  setSitesFile: empty,
+  sitesFileTask: emptyTask,
+  selectedSites: [],
+  setSelectedSites: empty,
+  pendingSitesFile: null,
+  setPendingSitesFile: empty,
+  pendingSitesFileTask: emptyTask,
 };
 
 const context = React.createContext<NetworkPlanningContext>(defaultValue);
@@ -139,6 +159,10 @@ export type NetworkPlanningContextProviderProps = {|
   mapOptions?: MapOptionsState,
   setMapOptions?: () => void,
   plan?: ?NetworkPlan,
+  /**
+   * Only use this for testing
+   */
+  __ref?: {current: ?NetworkPlanningContext},
 |};
 
 /**
@@ -155,6 +179,7 @@ export function NetworkPlanningContextProvider({
   pendingTopology: overridePendingTopology = null,
   folders = null,
   plan = null,
+  __ref = null,
 }: NetworkPlanningContextProviderProps) {
   const {history, location} = useRouter();
   const setSelectedPlanId = React.useCallback(
@@ -229,46 +254,73 @@ export function NetworkPlanningContextProvider({
   } = useStateWithTaskState<?Array<ANPFileHandle>>(null);
   const downloadOutputTask = useTaskState();
 
+  const {
+    obj: sitesFile,
+    setter: setSitesFile,
+    taskState: sitesFileTask,
+  } = useStateWithTaskState<?SitesFile>(null);
+  const {
+    obj: pendingSitesFile,
+    setter: setPendingSitesFile,
+    taskState: pendingSitesFileTask,
+  } = useStateWithTaskState<?SitesFile>(null);
+
+  const [selectedSites, setSelectedSites] = React.useState<Array<number>>([]);
   // Other state objects.
   const [_folders, setFolders] = React.useState<?FolderMap>(folders);
   const [refreshDate, setRefreshDate] = React.useState(new Date().getTime());
-  return (
-    <context.Provider
-      value={{
-        selectedPlanId,
-        setSelectedPlanId,
-        plan: _plan,
-        setPlan: _setPlan,
-        loadPlanTask,
-        // Use overrides if passed in.
-        planTopology,
-        setPlanTopology,
-        folders: _folders,
-        setFolders,
-        // Use overrides if passed in.
-        mapOptions,
-        setMapOptions,
-        refreshDate,
-        setRefreshDate,
+  const contextVal = {
+    selectedPlanId,
+    setSelectedPlanId,
+    plan: _plan,
+    setPlan: _setPlan,
+    loadPlanTask,
+    // Use overrides if passed in.
+    planTopology,
+    setPlanTopology,
+    folders: _folders,
+    setFolders,
+    // Use overrides if passed in.
+    mapOptions,
+    setMapOptions,
+    refreshDate,
+    setRefreshDate,
 
-        // I/O files
-        inputFiles,
-        setInputFiles,
-        loadInputFilesTask,
-        outputFiles,
-        setOutputFiles,
-        loadOutputFilesTask,
+    // I/O files
+    inputFiles,
+    setInputFiles,
+    loadInputFilesTask,
+    outputFiles,
+    setOutputFiles,
+    loadOutputFilesTask,
 
-        downloadOutputTask,
+    downloadOutputTask,
 
-        // Hidden "internal" fields, that should NOT BE ACCESSED
-        // by anyone BUT useNetworkPlanningManager.
-        _pendingTopology,
-        _setPendingTopology,
-        _pendingTopologyCount,
-        _setPendingTopologyCount,
-      }}>
-      {children}
-    </context.Provider>
-  );
+    // Hidden "internal" fields, that should NOT BE ACCESSED
+    // by anyone BUT useNetworkPlanningManager.
+    _pendingTopology,
+    _setPendingTopology,
+    _pendingTopologyCount,
+    _setPendingTopologyCount,
+
+    // sites file
+    sitesFile,
+    setSitesFile,
+    sitesFileTask,
+    selectedSites,
+    setSelectedSites,
+    /**
+     * pendingSitesFile will be synced to the backend by SitesFileTable
+     * when changed
+     */
+    pendingSitesFile,
+    setPendingSitesFile,
+    pendingSitesFileTask,
+  };
+  React.useEffect(() => {
+    if (__ref != null) {
+      __ref.current = contextVal;
+    }
+  });
+  return <context.Provider value={contextVal}>{children}</context.Provider>;
 }

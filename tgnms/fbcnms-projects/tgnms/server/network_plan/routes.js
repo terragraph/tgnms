@@ -8,7 +8,8 @@
 import * as mime from 'mime-types';
 const fs = require('fs');
 import ANPAPIClient from './ANPAPIClient';
-import PlanningService from './planningService';
+import PlanningService from './services/planningService';
+import SitesFileService from './services/sitesFileService';
 import {
   ANP_API_URL,
   ANP_CLIENT_ID,
@@ -37,6 +38,7 @@ export default class NetworkPlanRoutes extends Api {
       },
     });
     const planningService = new PlanningService({anpApi: apiClient});
+    const sitesFileService = new SitesFileService();
     const handleFileUpload = this.makeFileUploadMiddleware(planningService);
 
     router.get('/folder', (req, res) => {
@@ -192,7 +194,7 @@ export default class NetworkPlanRoutes extends Api {
       }
     });
 
-    // lazy hack
+    // DEPRECATED
     router.get('/file/:fbid/anp-download', async (req, res) => {
       try {
         const {fbid: id} = req.params;
@@ -240,14 +242,50 @@ export default class NetworkPlanRoutes extends Api {
         .catch(err => res.status(500).send(err.message));
     });
 
-    router.get('/file', (req, res) => {
+    router.get('/inputs', (req, res) => {
       const {role} = req.query;
-      return apiClient
-        .getPartnerFilesByRole({role})
-        .then(files => res.json(files))
-        .catch(err => {
-          res.status(500).send(err.message);
-        });
+      if (typeof role !== 'string' || role.trim() === '') {
+        return res.status(400).send({error: 'Missing role query'});
+      }
+      return planningService
+        .getInputFilesByRole({role})
+        .then(x => res.json(x))
+        .catch(err => res.status(500).send(err.message));
+    });
+
+    /**
+     * Fetch a sites-file as JSON
+     */
+    router.get('/sites/:id', (req, res) => {
+      const {id} = req.params;
+      return sitesFileService
+        .getFile({id: parseInt(id)})
+        .then(file => res.json(file))
+        .catch(err => res.status(500).send(err.message));
+    });
+    /**
+     * Create a new sites-file
+     */
+    router.post('/sites', (req, res) => {
+      const {name} = req.body;
+      if (typeof name !== 'string') {
+        return res.status(400).json({error: 'name field is required'});
+      }
+      return sitesFileService
+        .createFile({name: req.body.name})
+        .then(file => res.json(file))
+        .catch(err => res.status(500).send(err.message));
+    });
+    /**
+     * Update a sites-file
+     */
+    router.put('/sites/:id', (req, res) => {
+      const {id} = req.params;
+      const {sites} = req.body;
+      return sitesFileService
+        .updateFile({id, sites})
+        .then(file => res.json(file))
+        .catch(err => res.status(500).send(err.message));
     });
     return router;
   }

@@ -5,6 +5,7 @@
  * @flow
  */
 import * as turf from '@turf/turf';
+import type {BBox} from '@turf/turf';
 import type {LocationType} from '@fbcnms/tg-nms/shared/types/Topology';
 
 export function locationMidpoint(
@@ -32,4 +33,14 @@ export function bearingToAzimuth(bearing: number): number {
 
 export function azimuthToBearing(azimuth: number): number {
   return azimuth < 180 ? azimuth : azimuth - 360;
+}
+
+export function getBBox(locations: Array<LocationType>): ?BBox {
+  if (locations.length < 1) {
+    return null;
+  }
+  const features = turf.featureCollection(
+    locations.map(l => turf.point(locToPos(l))),
+  );
+  return turf.bbox(features);
 }

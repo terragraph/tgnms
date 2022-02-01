@@ -13,10 +13,8 @@ import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import MenuButton from '@fbcnms/tg-nms/app/components/common/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import TableToolbar, {TableToolbarAction} from './TableToolbar';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import useTaskState, {TASK_STATE} from '@fbcnms/tg-nms/app/hooks/useTaskState';
-
 import {
   PLANNING_BASE_PATH,
   PLANNING_FOLDER_PATH,
@@ -126,7 +124,6 @@ export default function FoldersTable(_props: NetworkTableProps) {
         onRowClick={handleRowClick}
         isLoading={loadFoldersTask.isLoading}
         // removes the Actions column header text
-        localization={{header: {actions: ''}}}
         actions={[
           {
             position: 'toolbar',
@@ -139,10 +136,6 @@ export default function FoldersTable(_props: NetworkTableProps) {
             Component: FolderActionsComponent,
           },
         ]}
-        components={{
-          Toolbar: TableToolbar,
-          Action: TableToolbarAction,
-        }}
       />
       <CreateFolderModal
         isOpen={createFolderModal.isOpen}

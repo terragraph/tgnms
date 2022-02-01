@@ -6,15 +6,18 @@
  */
 import * as React from 'react';
 import MaterialTable, {useAutosizeMaterialTable} from '../MaterialTable';
+import {TestApp} from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
 import {render} from '@testing-library/react';
 
 test('renders', () => {
   const {getByText} = render(
-    <MaterialTable
-      columns={[{field: 'name', title: 'name'}]}
-      data={[{name: 'test1'}, {name: 'test2'}]}
-    />,
+    <TestApp>
+      <MaterialTable
+        columns={[{field: 'name', title: 'name'}]}
+        data={[{name: 'test1'}, {name: 'test2'}]}
+      />
+    </TestApp>,
   );
 
   expect(getByText('name')).toBeInTheDocument();
