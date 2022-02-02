@@ -665,6 +665,7 @@ export default class PlanningService {
   }): Promise<Array<NetworkPlan>> {
     const rows = await network_plan.findAll({
       where: {folder_id: folderId},
+      order: [['id', 'DESC']],
       include: includeInputFiles(),
     });
 
