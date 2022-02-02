@@ -27,7 +27,6 @@
     "@fbcnms/babel-register": "^0.1.0",
     "@fbcnms/express-middleware": "^0.1.0",
     "@fbcnms/logging": "^0.1.0",
-    "@fbcnms/mobileapp": "^0.1.0",
     "@fbcnms/ui": "0.1.9",
     "@fbcnms/util": "^0.1.1",
     "@fbcnms/webpack-config": "^0.1.0",
