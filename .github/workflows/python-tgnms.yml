@@ -39,10 +39,10 @@ jobs:
           pip install -r requirements.txt
       - name: scan
         run: |
-          python jenkins_scripts/registry.py build scan_service --branch ${{ env.BRANCH }} --dir scan_service
+          python jenkins_scripts/registry.py build scan_service --branch ${GITHUB_REF##*/} --dir scan_service
           #python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USER"
       - name: C++ backends
         run: |
-          python jenkins_scripts/registry.py build cpp_backends --branch ${{ env.BRANCH }} --dir docker --stage builder
-          python jenkins_scripts/registry.py build cpp_backends --branch ${{ env.BRANCH }} --dir docker
+          python jenkins_scripts/registry.py build cpp_backends --branch ${GITHUB_REF##*/} --dir docker --stage builder
+          python jenkins_scripts/registry.py build cpp_backends --branch ${GITHUB_REF##*/} --dir docker
           #python jenkins_scripts/registry.py push cpp_backends --username ${{ env.DOCKER_USER }}
