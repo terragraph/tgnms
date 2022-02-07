@@ -40,6 +40,8 @@ jobs:
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: scan
         run: |
+          echo "GIT_SHA=${GIT_SHA}"
+          echo "GIT_BRANCH=${GIT_BRANCH}"
           python jenkins_scripts/registry.py build scan_service --branch ${GIT_BRANCH}" --dir scan_service
           #python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USER"
       - name: C++ backends
