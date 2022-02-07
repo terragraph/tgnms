@@ -87,10 +87,13 @@ jobs:
           #python jenkins_scripts/registry.py push crashlog_analysis_service --username "$DOCKER_USER"
       - name: MSA Tglib
         if: github.ref == 'refs/heads/main'
+        run: |
           python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --stage builder
         if: github.ref == 'refs/heads/releases'
+        run: |
           python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib
           #python jenkins_scripts/registry.py push tglib --username "$DOCKER_USER"
       - name: MSA Topology Service
-        python jenkins_scripts/registry.py build topology_service --branch "$GIT_BRANCH" --dir topology_service
-        python jenkins_scripts/registry.py push topology_service --username "$DOCKER_USER" 
+        run: |
+          python jenkins_scripts/registry.py build topology_service --branch "$GIT_BRANCH" --dir topology_service
+          python jenkins_scripts/registry.py push topology_service --username "$DOCKER_USER" 
