@@ -37,12 +37,12 @@ jobs:
           python -m pip install --upgrade pip
           cd jenkins_scripts
           pip install -r requirements.txt
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - name: scan
         run: |
-          echo Reserved for REPO_NAME=${GITHUB_REPOSITORY##*/}
-          echo GITHUB_REF=${GITHUB_REF}
-          echo EXTRACT_GITHUB_REF=${GITHUB_REF##*/}
-          echo EXTRACT_GITHUB_REF_HEADS=$(echo ${GITHUB_REF#refs/heads/})
           python jenkins_scripts/registry.py build scan_service --branch ${GITHUB_REF##*/} --dir scan_service
           #python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USER"
       - name: C++ backends
