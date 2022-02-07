@@ -36,16 +36,16 @@ jobs:
           python -m pip install --upgrade pip
           cd jenkins_scripts
           pip install -r requirements.txt
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+      - name: Set environment variables
+        run: |
+          echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: scan
         run: |
-          python jenkins_scripts/registry.py build scan_service --branch ${GITHUB_REF##*/} --dir scan_service
+          python jenkins_scripts/registry.py build scan_service --branch ${GIT_BRANCH}" --dir scan_service
           #python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USER"
       - name: C++ backends
         run: |
-          python jenkins_scripts/registry.py build cpp_backends --branch ${GITHUB_REF##*/} --dir docker --stage builder
-          python jenkins_scripts/registry.py build cpp_backends --branch ${GITHUB_REF##*/} --dir docker
+          python jenkins_scripts/registry.py build cpp_backends --branch ${GIT_BRANCH}" --dir docker --stage builder
+          python jenkins_scripts/registry.py build cpp_backends --branch ${GIT_BRANCH}" --dir docker
           #python jenkins_scripts/registry.py push cpp_backends --username ${{ env.DOCKER_USER }}
