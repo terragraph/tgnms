@@ -54,4 +54,4 @@ jobs:
       - name: Network Health Service
         run: |
           python jenkins_scripts/registry.py build network_health_service --branch ${GIT_BRANCH}" --dir network_health_service
-python3.8 jenkins_scripts/registry.py push network_health_service --username "$DOCKER_USER"
+          #python jenkins_scripts/registry.py push network_health_service --username "$DOCKER_USER"
