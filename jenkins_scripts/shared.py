@@ -40,7 +40,7 @@ def read(cmd: str) -> str:
 
 
 def get_release(branch, stage=False):
-    if re.search(r"origin/(main|master)", branch):
+    if re.search(r"origin/(main)", branch):
         if stage:
             release = "dev"
         else:
