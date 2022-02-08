@@ -96,7 +96,7 @@ jobs:
       - name: MSA Tglib main
         if: github.ref == 'refs/heads/main'
         run: |
-          python3.8 jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --stage builder
+          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --stage builder
       - name: MSA Tglib Release
         if: github.ref == 'refs/heads/releases'
         run: |
