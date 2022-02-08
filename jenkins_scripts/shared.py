@@ -39,7 +39,7 @@ def read(cmd: str) -> str:
     return p.stdout.decode("utf-8").strip()
 
 
-def get_release(branch, stage=False):
+def get_release(branch, stage=True):
     if re.search(r"origin/(main)", branch):
         if stage:
             release = "dev"
