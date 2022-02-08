@@ -55,7 +55,7 @@ jobs:
           python jenkins_scripts/registry.py build scan_service --branch ${GIT_BRANCH} --dir scan_service
           #python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USER"
       - name: C++ backends Main
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
         run: |
           python jenkins_scripts/registry.py build cpp_backends --branch ${GIT_BRANCH} --dir docker --stage builder
       - name: C++ backends release
