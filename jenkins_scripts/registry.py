@@ -67,14 +67,6 @@ def build(args: argparse.Namespace) -> None:
 def push(args: argparse.Namespace) -> None:
     command = [
         "echo",
-        os.environ["DOCKER_PASSWORD"],
-        "|",
-        "docker",
-        "login",
-        "-u",
-        args.username,
-        "--password-stdin",
-        f"{args.registry}/v2",
     ]
     run(" ".join(command))
     if args.tag:
