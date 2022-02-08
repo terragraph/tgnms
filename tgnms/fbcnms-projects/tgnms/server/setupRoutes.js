@@ -27,7 +27,6 @@ export async function setupRoutes(app: $Application<Request, Response>) {
   r.route('/topology_history', require('./topology_history/routes').default);
   r.route('/websockets', require('./websockets/routes').default);
   r.route('/api/alarms', require('./alarms/routes').default);
-  r.route('/mobileapp', require('./mobileapp/routes').default);
   r.route('/healthcheck', require('./healthcheck/routes').default);
   r.route('/settings', require('./settings/routes').default);
   r.route('/export', require('./export/routes').default);

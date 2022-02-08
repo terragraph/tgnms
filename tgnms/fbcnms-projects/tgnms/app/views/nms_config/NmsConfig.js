@@ -11,14 +11,12 @@ import EditIcon from '@material-ui/icons/Edit';
 import FileDownloadIcon from '@material-ui/icons/CloudDownload';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import InstallerAppConfig from '@fbcnms/tg-nms/app/components/installerapp/InstallerAppConfig';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import LoadingBox from '@fbcnms/tg-nms/app/components/common/LoadingBox';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import MobileFriendlyIcon from '@material-ui/icons/MobileFriendly';
 import ModalNmsConfigForm from './ModalNmsConfigForm';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import NetworkExport from './NetworkImportExport/NetworkExport';
@@ -284,12 +282,6 @@ export default function NmsConfig() {
             <PlaylistAddIcon className={classes.leftIcon} />
             Add Network
           </Button>
-        </Grid>
-        <Grid item>
-          <InstallerAppConfig variant="outlined">
-            <MobileFriendlyIcon className={classes.leftIcon} />
-            Mobile App Setup
-          </InstallerAppConfig>
         </Grid>
       </Grid>
       <Grid item>

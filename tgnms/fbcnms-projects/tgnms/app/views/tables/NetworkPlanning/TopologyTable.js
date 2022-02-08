@@ -17,7 +17,6 @@ import {
   ANP_SITE_TYPE_PRETTY,
   ANP_STATUS_TYPE_PRETTY,
 } from '@fbcnms/tg-nms/app/constants/TemplateConstants';
-
 import {
   PLANNING_FOLDER_PATH,
   PLANNING_PLAN_PATH,
@@ -162,8 +161,10 @@ export default function TopologyTable(_props: NetworkTableProps) {
   const tableOptions = React.useMemo(
     () => ({
       selection: true,
-      pageSize: 5,
-      pageSizeOptions: [5, 10],
+      minBodyHeight: 400,
+      maxBodyHeight: 400,
+      pageSize: 10,
+      pageSizeOptions: [5, 10, 20],
     }),
     [],
   );

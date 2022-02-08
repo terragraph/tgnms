@@ -174,7 +174,12 @@ describe('Copy Plan', () => {
     // first getPlan should return the newly created plan
     apiMock.getPlan.mockResolvedValueOnce(createdPlan);
     apiMock.launchPlan.mockResolvedValueOnce({success: true});
-    const {getByText, getByLabelText, getByTestId} = await testRender({
+    const {
+      getByText,
+      getByDisplayValue,
+      getByLabelText,
+      getByTestId,
+    } = await testRender({
       history,
     });
     const copyBtn = getByText('Copy Plan');
@@ -207,9 +212,9 @@ describe('Copy Plan', () => {
     expect(
       coerceClass(getByLabelText('Plan Name'), HTMLInputElement).value,
     ).toBe('test plan V2');
-    expect(getByText('boundary_file.kml')).toBeInTheDocument();
-    expect(getByText('urban_site_file.csv')).toBeInTheDocument();
-    expect(getByText('dsm_geotiff.tiff')).toBeInTheDocument();
+    expect(getByDisplayValue('boundary_file.kml')).toBeInTheDocument();
+    expect(getByDisplayValue('urban_site_file.csv')).toBeInTheDocument();
+    expect(getByDisplayValue('dsm_geotiff.tiff')).toBeInTheDocument();
   });
 });
 

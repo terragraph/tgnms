@@ -142,6 +142,6 @@ declare module "@material-ui/lab/Autocomplete" {
         | "groupLabel"
         | "groupUl";
 
-    declare module.exports: ComponentType<AutocompleteProps<TOption>>;
-
+    declare export default ComponentType<AutocompleteProps<TOption>>;
+    declare export var createFilterOptions:CreateFilterOptions;
 }

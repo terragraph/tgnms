@@ -102,7 +102,7 @@ test('if user selects a plan, navigates to the topology table if SUCCESS', async
   });
   expect(getByText(/Back to Plans/i)).toBeInTheDocument();
 });
-test('if user selects a plan, stays on plan table if plan is not SUCCESS', async () => {
+test('if user selects a plan, stays on plan table if plan is ERROR', async () => {
   jest.spyOn(apiUtilMock, 'getFolder').mockResolvedValue(folders[0]);
   jest.spyOn(apiUtilMock, 'getFolders').mockResolvedValue(folders);
   jest.spyOn(apiUtilMock, 'getPlansInFolder').mockResolvedValue(folder1Plans);
@@ -113,7 +113,7 @@ test('if user selects a plan, stays on plan table if plan is not SUCCESS', async
           id: 1,
           folderId: 1,
           name: 'plan 1',
-          state: 'DRAFT',
+          state: 'ERROR',
         }}>
         <Route path={PLANNING_BASE_PATH} component={NetworkPlanningTable} />
       </NetworkPlanningContextProvider>

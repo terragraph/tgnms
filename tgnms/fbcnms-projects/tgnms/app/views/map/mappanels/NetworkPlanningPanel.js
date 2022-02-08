@@ -56,7 +56,6 @@ export default function NetworkPlanningPanel({
   } = panelControl;
   const {selectedPlanId, setSelectedPlanId} = useNetworkPlanningContext();
   const {setMapMode} = useMapContext();
-
   // when the panel is closed, deselect the plan
   const closePanel = React.useCallback(() => {
     setPanelState(PANELS.NETWORK_PLANNING, PANEL_STATE.HIDDEN);
@@ -149,7 +148,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   React.useEffect(() => {
     (async () => {
       try {
-        if (!plan) {
+        if (plan == null || PRELAUNCH_NETWORK_PLAN_STATES.has(plan.state)) {
           setInputFiles(null);
           return;
         }
@@ -168,7 +167,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   React.useEffect(() => {
     (async () => {
       try {
-        if (!plan) {
+        if (plan == null || PRELAUNCH_NETWORK_PLAN_STATES.has(plan.state)) {
           setOutputFiles(null);
           return;
         }
@@ -243,8 +242,9 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
   const handlePlanUpdated = React.useCallback(
     p => {
       setSelectedPlanId(p.id);
+      setPlan(p);
     },
-    [setSelectedPlanId],
+    [setPlan, setSelectedPlanId],
   );
 
   const handleCopyPlan = React.useCallback(() => {

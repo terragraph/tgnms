@@ -12,8 +12,6 @@ import * as React from 'react';
 
 export default function useLiveRef<T>(val: T): {|current: T|} {
   const ref = React.useRef<T>(val);
-  React.useEffect(() => {
-    ref.current = val;
-  }, [val]);
+  ref.current = val;
   return ref;
 }

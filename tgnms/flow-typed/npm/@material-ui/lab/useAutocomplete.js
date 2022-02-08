@@ -5,11 +5,11 @@
  * @flow
  */
 
-import * as React from "react";
+import * as React from 'react';
 export interface CreateFilterOptionsConfig {
   ignoreAccents?: boolean;
   ignoreCase?: boolean;
-  matchFrom?: "any" | "start";
+  matchFrom?: 'any' | 'start';
   stringify?: (option: TOption) => string;
   trim?: boolean;
 }
@@ -17,7 +17,7 @@ export interface FilterOptionsState {
   inputValue: string;
 }
 export type CreateFilterOptions<TOption> = (
-  config: CreateFilterOptionsConfig
+  config?: CreateFilterOptionsConfig,
 ) => (option: TOption, state: FilterOptionsState) => TOption[];
 declare export var createFilterOptions: CreateFilterOptions<TOption>;
 export interface UseAutocompleteProps<TOptions> {
@@ -83,7 +83,10 @@ export interface UseAutocompleteProps<TOptions> {
    * @param {{[key: string]: any}} state The state of the component.
    * @returns {any[]}
    */
-  filterOptions?: (options: TOptions[], state: FilterOptionsState) => TOptions[];
+  filterOptions?: (
+    options: TOptions[],
+    state: FilterOptionsState,
+  ) => TOptions[];
 
   /**
    * If `true`, hide the selected options from the list box.
@@ -135,14 +138,14 @@ export interface UseAutocompleteProps<TOptions> {
    * @param {{[key: string]: any}} event The event source of the callback
    * @param {any} value
    */
-  onChange?: (event: React.ChangeEvent<{ ... }>, value: any) => void;
+  onChange?: (event: React.ChangeEvent<{...}>, value: any) => void;
 
   /**
    * Callback fired when the popup requests to be closed.
    * Use in controlled mode (see open).
    * @param {{[key: string]: any}} event The event source of the callback.
    */
-  onClose?: (event: React.ChangeEvent<{ ... }>) => void;
+  onClose?: (event: React.ChangeEvent<{...}>) => void;
 
   /**
    * Callback fired when the input value changes.
@@ -154,7 +157,7 @@ export interface UseAutocompleteProps<TOptions> {
    * Use in controlled mode (see open).
    * @param {{[key: string]: any}} event The event source of the callback.
    */
-  onOpen?: (event: React.ChangeEvent<{ ... }>) => void;
+  onOpen?: (event: React.ChangeEvent<{...}>) => void;
 
   /**
    * Control the popup` open state.
@@ -172,21 +175,21 @@ export interface UseAutocompleteProps<TOptions> {
   value?: any;
 }
 declare export default function useAutocomplete<TOption>(
-  props: UseAutocompleteProps<TOption>
+  props: UseAutocompleteProps<TOption>,
 ): {
-  getRootProps: () => { ... },
-  getInputProps: () => { ... },
-  getInputLabelProps: () => { ... },
-  getClearProps: () => { ... },
-  getPopupIndicatorProps: () => { ... },
-  getTagProps: () => { ... },
-  getPopupProps: () => { ... },
-  getListboxProps: () => { ... },
+  getRootProps: () => {...},
+  getInputProps: () => {...},
+  getInputLabelProps: () => {...},
+  getClearProps: () => {...},
+  getPopupIndicatorProps: () => {...},
+  getTagProps: () => {...},
+  getPopupProps: () => {...},
+  getListboxProps: () => {...},
   getOptionProps: (x: {
     option: TOption,
     index: number,
     ...
-  }) => { ... },
+  }) => {...},
   id: string,
   value: any,
   dirty: boolean,

@@ -133,4 +133,5 @@ declare module '@turf/turf' {
 
   declare export function intersect(GeoFeature, GeoFeature): ?Feature;
   declare export function midpoint(GeoFeature, GeoFeature): Feature;
+  declare export function distance(GeoCoord, GeoCoord): number;
 }

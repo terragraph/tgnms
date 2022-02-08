@@ -12,6 +12,8 @@ import {isNullOrEmptyString} from '@fbcnms/tg-nms/app/helpers/StringHelpers';
 import {matchPath, useLocation} from 'react-router-dom';
 import {useNetworkPlanningContext} from '@fbcnms/tg-nms/app/contexts/NetworkPlanningContext';
 
+import type {FileRoles} from '@fbcnms/tg-nms/shared/dto/ANP';
+
 import type {
   InputFile,
   NetworkPlan,
@@ -25,29 +27,6 @@ export type PlanFormState = {|
   boundary?: ?InputFile,
   hardwareBoardIds?: ?Array<string>,
 |};
-export function usePlanFormState(): {|
-  planState: PlanFormState,
-  updatePlanState: (update: $Shape<PlanFormState>) => void,
-  setPlanFormState: (state: $Shape<PlanFormState>) => void,
-|} {
-  const [planState, setPlanFormState] = React.useState<$Shape<PlanFormState>>(
-    {},
-  );
-  const updatePlanState = React.useCallback(
-    (update: $Shape<PlanFormState>) =>
-      setPlanFormState(curr => ({
-        ...curr,
-        ...update,
-      })),
-    [],
-  );
-
-  return {
-    planState,
-    updatePlanState,
-    setPlanFormState,
-  };
-}
 
 export function usePlanningFolderId(): string {
   const location = useLocation();
@@ -121,5 +100,27 @@ export function useFolderPlans({folderId}: {folderId: string}) {
     plans,
     refresh,
     taskState: loadPlansTask,
+  };
+}
+
+export function useInputFiles({role}: {role: FileRoles}) {
+  const [files, setFiles] = React.useState<Array<InputFile>>([]);
+  const loadFilesTask = useTaskState();
+  React.useEffect(() => {
+    (async () => {
+      try {
+        loadFilesTask.setState(TASK_STATE.LOADING);
+        const _files = await networkPlanningAPIUtil.getInputFiles({role});
+        setFiles(_files);
+        loadFilesTask.setState(TASK_STATE.SUCCESS);
+      } catch (err) {
+        loadFilesTask.setState(TASK_STATE.ERROR);
+        loadFilesTask.setMessage(err.message);
+      }
+    })();
+  }, [role, loadFilesTask, setFiles]);
+  return {
+    files,
+    task: loadFilesTask,
   };
 }

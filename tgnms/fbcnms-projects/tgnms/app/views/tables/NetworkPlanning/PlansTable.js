@@ -12,11 +12,9 @@ import MaterialTable from '@fbcnms/tg-nms/app/components/common/MaterialTable';
 import PlanActionsMenu from './PlanActionsMenu';
 import PlanStatus from '@fbcnms/tg-nms/app/features/planning/components/PlanStatus';
 import React from 'react';
-import TableToolbar, {TableToolbarAction} from './TableToolbar';
 import grey from '@material-ui/core/colors/grey';
 import useInterval from '@fbcnms/ui/hooks/useInterval';
 import {NETWORK_PLAN_STATE} from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
-
 import {
   PLANNING_BASE_PATH,
   PLANNING_FOLDER_PATH,
@@ -65,14 +63,12 @@ export default function PlansTable(_props: NetworkTableProps) {
       {
         title: 'Name',
         field: 'name',
-        grouping: false,
         width: 100,
       },
       {
         title: 'Status',
         field: 'state',
-        grouping: false,
-        width: 40,
+        width: 100,
         render: (rowData: NetworkPlan) => <PlanStatus state={rowData.state} />,
       },
     ],
@@ -89,17 +85,7 @@ export default function PlansTable(_props: NetworkTableProps) {
   const tableOptions = React.useMemo(
     () => ({
       showTitle: true,
-      pageSize: 20,
-      pageSizeOptions: [20, 50, 100],
-      padding: 'dense',
-      tableLayout: 'fixed',
       rowStyle: makeRowStyle,
-      toolbarButtonAlignment: 'right',
-      searchFieldStyle: {
-        marginRight: '16px',
-      },
-      emptyRowsWhenPaging: false,
-      actionsColumnIndex: -1,
     }),
     [makeRowStyle],
   );
@@ -111,7 +97,7 @@ export default function PlansTable(_props: NetworkTableProps) {
     [setSelectedPlanId],
   );
 
-  // Open the Topology Table only if the plan is SUCCESS.
+  // Open the PlanView if the plan is successful or a draft
   React.useEffect(() => {
     if (selectedPlanId && plan?.state === NETWORK_PLAN_STATE.SUCCESS) {
       const match = matchPath(location.pathname, {
@@ -183,10 +169,6 @@ export default function PlansTable(_props: NetworkTableProps) {
             Component: PlanActionsComponent,
           },
         ]}
-        components={{
-          Toolbar: TableToolbar,
-          Action: TableToolbarAction,
-        }}
       />
       <CreatePlanModal
         isOpen={createPlanModal.isOpen}

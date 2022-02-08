@@ -600,14 +600,12 @@ export function getDraftConfig<T>({
       if (draftConfigValue === '' || draftConfigValue === null) {
         unset(currentDraftConfig, configField.split('.'));
       } else if (typeof draftConfigValue === 'object') {
-        Object.keys(draftConfigValue).forEach(key => {
-          setWith(
-            currentDraftConfig,
-            [...configField.split('.'), key],
-            draftConfigValue[key],
-            Object,
-          );
-        });
+        setWith(
+          currentDraftConfig,
+          configField.split('.'),
+          draftConfigValue,
+          Object,
+        );
       } else {
         set(currentDraftConfig, configField.split('.'), draftConfigValue);
       }

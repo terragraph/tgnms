@@ -82,7 +82,7 @@ const HIGHLIGHT_LINK_PAINT = {
   'line-gap-width': LINE_PAINT['line-width'],
 };
 
-export default function MapFeaturesLayer() {
+export default function PlanMapFeaturesLayer() {
   const {mapFeatures, overlays, overlayData, mapboxRef} = useMapContext();
   const {
     link_lines: linkOverlay,

@@ -21,6 +21,7 @@ import MaterialTable from '@material-table/core';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
+import TableToolbar, {TableToolbarAction} from './MaterialTableToolbar';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import {defaultProps as MaterialTableDefaultProps} from '@material-table/core/dist/defaults';
 
@@ -146,12 +147,18 @@ const defaultTableOptions = {
   },
   emptyRowsWhenPaging: false,
   actionsColumnIndex: -1,
+  grouping: false,
 };
+function EditField(props) {
+  const Component = MaterialTableDefaultProps.components.EditField;
+  return <Component {...props} variant="outlined" />;
+}
 
 export default function CustomMaterialTable({
   options,
   tableRef: tableRefProp,
   components,
+  'data-testid': testId,
   ...props
 }: Object) {
   const {
@@ -176,11 +183,14 @@ export default function CustomMaterialTable({
   );
   const _components = React.useMemo(
     () => ({
+      EditField,
       /**
        * to measure the table height, pass a ref to the Container component and
        * measure the mounted element.
        */
       Container: Container,
+      Toolbar: TableToolbar,
+      Action: TableToolbarAction,
       ...(components ?? {}),
     }),
     [Container, components],
@@ -196,7 +206,10 @@ export default function CustomMaterialTable({
   );
 
   return (
-    <div style={{height: '100%'}} ref={wrapperRef}>
+    <div
+      style={{height: '100%'}}
+      ref={wrapperRef}
+      data-testid={testId ?? 'material-table'}>
       <MaterialTable
         icons={tableIcons}
         {...props}

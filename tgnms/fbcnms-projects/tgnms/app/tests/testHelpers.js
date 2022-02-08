@@ -11,6 +11,7 @@ import MaterialTheme from '@fbcnms/tg-nms/app/MaterialTheme';
 import MomentUtils from '@date-io/moment';
 import NetworkContext from '@fbcnms/tg-nms/app/contexts/NetworkContext';
 import NmsOptionsContext from '@fbcnms/tg-nms/app/contexts/NmsOptionsContext';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {CancelToken} from 'axios';
 import {EMPTY_SETTINGS_STATE} from '@fbcnms/tg-nms/shared/dto/Settings';
 import {FEATURE_FLAGS} from '@fbcnms/tg-nms/shared/FeatureFlags';
@@ -550,13 +551,23 @@ export async function readBlob(blob: Blob, as: BLOB_TYPES = 'text') {
 export function selectAutocompleteItem(
   autocomplete: HTMLElement,
   item: string,
+  options?: {selectOffset?: number},
 ) {
   // focus on autocomplete field
   autocomplete.focus();
   // type item into textbox
   fireEvent.change(autocomplete, {target: {value: item}});
+
   // arrow down to first option
   fireEvent.keyDown(autocomplete, {key: 'ArrowDown'});
+
+  // selectOffset skips past static autocomplete options like "New File"
+  if (typeof options?.selectOffset === 'number' && options?.selectOffset > 0) {
+    for (let i = 0; i < options?.selectOffset; i++) {
+      fireEvent.keyDown(autocomplete, {key: 'ArrowDown'});
+    }
+  }
+
   // select item
   fireEvent.keyDown(autocomplete, {key: 'Enter'});
 }
@@ -577,4 +588,16 @@ export function mockTopologyBuilderContext(
     setSelectedTopologyPanel: _ => {},
     ...overrides,
   };
+}
+
+/**
+ * material-table adds an index attribute to every table row.
+ * Example:
+ * const table = getByTestId('table');
+ * expect(within(getMTableRow(0, table))
+ *  .getByText('cell text'))
+ *  .toBeInTheDocument();
+ */
+export function getMTableRow(row: number, table: HTMLElement): HTMLElement {
+  return nullthrows(table.querySelector(`[index="${row}"]`));
 }

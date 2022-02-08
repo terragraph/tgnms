@@ -11,6 +11,7 @@ import type {
   ANPFileHandle,
   ANPFileHandleRequest,
   ANPPlanMetrics,
+  FileRoles,
   GraphQueryResponse,
 } from '@fbcnms/tg-nms/shared/dto/ANP';
 import type {
@@ -20,6 +21,7 @@ import type {
   NetworkPlan,
   PlanError,
   PlanFolder,
+  SitesFile,
   UpdateNetworkPlanRequest,
 } from '@fbcnms/tg-nms/shared/dto/NetworkPlan';
 import type {
@@ -84,7 +86,7 @@ export async function uploadANPFile({
   uploadChunkSize,
 }: {
   name: string,
-  role: string,
+  role: FileRoles,
   file: File,
   // used for testing
   uploadChunkSize?: number,
@@ -212,9 +214,25 @@ export async function cancelPlan(req: {id: number}) {
   return response.data;
 }
 
-export async function getPartnerFiles({role}: {role: string}) {
+/**
+ * Gets input files from the NMS DB. These don't have to be
+ * associated with any plan.
+ */
+export async function getInputFiles({
+  role,
+}: {
+  role: FileRoles,
+}): Promise<Array<InputFile>> {
+  const response = await axios.get<void, Array<InputFile>>(
+    `/network_plan/inputs?role=${role}`,
+  );
+  return response.data;
+}
+
+// DEPRECATED
+export async function getPartnerFiles({role}: {role: FileRoles}) {
   const response = await axios<
-    {role: string},
+    {role: FileRoles},
     GraphQueryResponse<ANPFileHandle>,
   >({
     url: `/network_plan/file?role=${role}`,
@@ -317,6 +335,7 @@ export async function getPlanInputFiles({
   });
   return response.data;
 }
+
 export async function getPlanOutputFiles({
   id,
 }: {
@@ -353,6 +372,34 @@ export async function downloadFile<T>({id}: {id: string}): Promise<T> {
 export async function downloadANPFile<T>({id}: {id: string}): Promise<T> {
   const response = await axios<void, T>({
     url: `/network_plan/file/${id}/anp-download`,
+    method: 'GET',
+  });
+  return response.data;
+}
+
+type CreateSitesFileRequest = {|
+  name: string,
+|};
+export async function createSitesFile(data: CreateSitesFileRequest) {
+  const response = await axios<CreateSitesFileRequest, InputFile>({
+    url: `/network_plan/sites`,
+    method: 'POST',
+    data: data,
+  });
+  return response.data;
+}
+export async function updateSitesFile(data: SitesFile) {
+  const response = await axios<SitesFile, SitesFile>({
+    url: `/network_plan/sites/${data.id}`,
+    method: 'PUT',
+    data: data,
+  });
+  return response.data;
+}
+
+export async function getSitesFile({id}: {id: number}): Promise<SitesFile> {
+  const response = await axios<void, SitesFile>({
+    url: `/network_plan/sites/${id}`,
     method: 'GET',
   });
   return response.data;
