@@ -55,7 +55,7 @@ jobs:
         if: github.ref == 'refs/heads/releases'
         run: |
           python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib
-          python jenkins_scripts/registry.py push tglib
+          python jenkins_scripts/registry.py push tglib --username ${{ github.actor }}
       - name: scan
         run: |
           echo "GIT_SHA=${GIT_SHA}"
