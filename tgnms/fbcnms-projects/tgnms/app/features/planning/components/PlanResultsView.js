@@ -198,7 +198,11 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
       )}
       {pendingTopologyCount == 0 && (
         <>
-          <Grid item container justify="space-between" alignItems="center">
+          <Grid
+            item
+            container
+            justifyContent="space-between"
+            alignItems="center">
             <Typography color="textSecondary" variant="h6">
               {plan.name}
             </Typography>
@@ -257,7 +261,7 @@ export default function PlanResultsView({plan, onExit, onCopyPlan}: Props) {
         loadOutputFilesTask.isLoading ||
         loadInputFilesTask.isLoading) && (
         <Grid item>
-          <Grid container justify="center">
+          <Grid container justifyContent="center">
             <CircularProgress size={10} />
           </Grid>
         </Grid>

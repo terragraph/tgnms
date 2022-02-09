@@ -7,7 +7,7 @@
  */
 
 import * as React from 'react';
-import {MuiThemeProvider, createMuiTheme} from '@material-ui/core/styles';
+import {MuiThemeProvider, createTheme} from '@material-ui/core/styles';
 import {ServerStyleSheets, StylesProvider} from '@material-ui/styles';
 import {renderToString} from 'react-dom/server';
 
@@ -18,7 +18,7 @@ export function render(
   const sheets = new ServerStyleSheets();
 
   //TODO: use the same theme as the app
-  const theme = createMuiTheme({});
+  const theme = createTheme({});
   const app: string = renderToString(
     sheets.collect(
       <StylesProvider>

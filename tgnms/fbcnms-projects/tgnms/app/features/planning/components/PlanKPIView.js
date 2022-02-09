@@ -84,7 +84,7 @@ function Section({title, metrics}: MetricSection) {
         </Box>
       </Grid>
       {metrics.map(({label, value, unit}) => (
-        <Grid key={label} item container justify="space-between">
+        <Grid key={label} item container justifyContent="space-between">
           <Grid item>
             <Typography variant="body2">{label}</Typography>
           </Grid>

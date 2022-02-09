@@ -81,7 +81,7 @@ export default function RemoteOverlaysEditor({overlays, onChange}: Props) {
               item
               xs={12}
               alignItems="flex-start"
-              justify="space-between"
+              justifyContent="space-between"
               spacing={2}
               className={classes.overlayWrapper}>
               <Grid item xs={10}>
@@ -110,7 +110,7 @@ export default function RemoteOverlaysEditor({overlays, onChange}: Props) {
               </Grid>
             </Grid>
           ))}
-        <Grid item xs={12} container justify="center">
+        <Grid item xs={12} container justifyContent="center">
           <Grid item xs={4}>
             <Button
               variant="contained"

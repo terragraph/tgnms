@@ -201,7 +201,7 @@ export default withForwardRef(function CustomAccordion(props: Props) {
           expandIcon={<ExpandMoreIcon />}
           {...(isClosable ? closeButtonProps : {})}>
           {loadingBar}
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <ClipboardTooltip
               title={title}
               enabled={showTitleCopyTooltip === true}>

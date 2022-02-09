@@ -304,7 +304,11 @@ export default function DefaultRouteHistoryPanel({
               />
             </Grid>
             {isLoading ? (
-              <Grid item container justify="center" data-testid="loadingCircle">
+              <Grid
+                item
+                container
+                justifyContent="center"
+                data-testid="loadingCircle">
                 <Grid item>
                   <CircularProgress />
                 </Grid>

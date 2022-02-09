@@ -188,7 +188,7 @@ export default function PlanEditor({
         />
       </Grid>
       {!startPlanTask.isLoading && (
-        <Grid item container justify="flex-end" spacing={1}>
+        <Grid item container justifyContent="flex-end" spacing={1}>
           <Grid item>
             {savePlanTask.isLoading && <CircularProgress size={10} />}
             <Typography className={classes.error} variant="caption">
@@ -208,7 +208,7 @@ export default function PlanEditor({
         </Grid>
       )}
       {startPlanTask.isLoading && (
-        <Grid container justify="center">
+        <Grid container justifyContent="center">
           <CircularProgress data-testid="launch-loading-circle" size={20} />
         </Grid>
       )}

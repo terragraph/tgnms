@@ -44,7 +44,12 @@ export default function AssetTestResultDetails({
   return (
     <Grid className={classes.linkResultsContainer} container spacing={1}>
       {resultA && (
-        <Grid container item direction="column" justify="flex-start" xs={12}>
+        <Grid
+          container
+          item
+          direction="column"
+          justifyContent="flex-start"
+          xs={12}>
           <AssetDirectionDetails
             result={resultA}
             targetThroughput={targetThroughput}
@@ -53,7 +58,12 @@ export default function AssetTestResultDetails({
       )}
       <Divider className={classes.resultDivider} />
       {resultZ && (
-        <Grid container item direction="column" justify="flex-start" xs={12}>
+        <Grid
+          container
+          item
+          direction="column"
+          justifyContent="flex-start"
+          xs={12}>
           <AssetDirectionDetails
             result={resultZ}
             targetThroughput={targetThroughput}

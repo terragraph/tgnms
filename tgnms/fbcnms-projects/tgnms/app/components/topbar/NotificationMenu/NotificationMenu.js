@@ -151,7 +151,7 @@ export default function NotificationMenu() {
                 <Grid item xs={6}>
                   Recent Events
                 </Grid>
-                <Grid container item justify="flex-end" xs={6}>
+                <Grid container item justifyContent="flex-end" xs={6}>
                   <IconButton
                     onClick={clearNotifications}
                     className={classes.clearNotificationsButton}>

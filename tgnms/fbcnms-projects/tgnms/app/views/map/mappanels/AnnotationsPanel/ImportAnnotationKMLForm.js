@@ -131,7 +131,7 @@ export default function ImportAnnotationKMLForm({
       direction="column"
       wrap="nowrap"
       spacing={2}>
-      <Grid item container justify="center">
+      <Grid item container justifyContent="center">
         {isLoading && <CircularProgress />}
         {isError && (
           <Alert color="error" severity="error">
@@ -139,7 +139,7 @@ export default function ImportAnnotationKMLForm({
           </Alert>
         )}
       </Grid>
-      <Grid item container xs={12} justify="center">
+      <Grid item container xs={12} justifyContent="center">
         <Button
           variant="contained"
           disabled={isLoading}
@@ -173,7 +173,7 @@ export default function ImportAnnotationKMLForm({
         />
       </Grid>
       {importData && <FeaturePreview features={importData.features} />}
-      <Grid item container justify="flex-end" spacing={1}>
+      <Grid item container justifyContent="flex-end" spacing={1}>
         <Grid item>
           <Button variant="outlined" size="small" onClick={onClose}>
             Cancel

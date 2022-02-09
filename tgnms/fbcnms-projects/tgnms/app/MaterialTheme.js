@@ -10,7 +10,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import amber from '@material-ui/core/colors/amber';
 import green from '@material-ui/core/colors/green';
 import {StylesProvider} from '@material-ui/styles';
-import {createMuiTheme} from '@material-ui/core/styles';
+import {createTheme} from '@material-ui/core/styles';
 import {merge} from 'lodash';
 
 const TEXT_FIELD_OVERRIDES = {
@@ -41,7 +41,7 @@ export const GRAY_BORDER = '1px solid #e0e0e0';
 export const TGNMS_GRAY = '#303846';
 
 // default theme
-const theme = createMuiTheme(
+const theme = createTheme(
   merge(
     {
       palette: {

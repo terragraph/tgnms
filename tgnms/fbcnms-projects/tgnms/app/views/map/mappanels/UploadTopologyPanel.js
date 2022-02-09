@@ -282,12 +282,12 @@ export default function UploadTopologyPanel({
               />
             </Button>
             <Grid container direction="column" item>
-              <Grid container justify="center" item>
+              <Grid container justifyContent="center" item>
                 <Typography variant="subtitle2" gutterBottom>
                   {loading ? 'Loading...' : fileName}
                 </Typography>
               </Grid>
-              <Grid container justify="center" item>
+              <Grid container justifyContent="center" item>
                 <Typography
                   className={classes.errorText}
                   variant="subtitle2"
