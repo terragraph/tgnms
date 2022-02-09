@@ -16,7 +16,7 @@ The build generates a single folder with all the necessary resources for the onl
 
 2. Build the docs
    ```bash
-   cd ~/connectivity-lab/terragraph/nms/docs
+   cd tgnms/docs
    # Build the docs (to the 'build' folder)
    make html
    ```
@@ -46,7 +46,7 @@ This uses Python's HTTP server to show the built docs.
    ```
 3. Preview the docs
    ```bash
-   cd ~/connectivity-lab/terragraph/nms/docs
+   cd tgnms/docs
    # Build the docs, start a Python server to put them up on port 8082, and watch for changes
    make clean; make html; make dev -j2
    ```
