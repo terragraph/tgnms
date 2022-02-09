@@ -47,12 +47,6 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-      - name: scan
-        run: |
-          echo "GIT_SHA=${GIT_SHA}"
-          echo "GIT_BRANCH=${GIT_BRANCH}"
-          python jenkins_scripts/registry.py build scan_service --branch ${GIT_BRANCH} --dir scan_service
-          python jenkins_scripts/registry.py push scan_service
       - name: MSA Tglib main
         if: github.ref == 'refs/heads/main'
         run: |
@@ -62,6 +56,12 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib
           python jenkins_scripts/registry.py push tglib
+      - name: scan
+        run: |
+          echo "GIT_SHA=${GIT_SHA}"
+          echo "GIT_BRANCH=${GIT_BRANCH}"
+          python jenkins_scripts/registry.py build scan_service --branch ${GIT_BRANCH} --dir scan_service
+          python jenkins_scripts/registry.py push scan_service
       - name: C++ backends Main
         if: github.ref == 'refs/heads/main'
         run: |
