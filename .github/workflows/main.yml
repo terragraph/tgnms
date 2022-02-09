@@ -54,7 +54,7 @@ jobs:
       - name: MSA Tglib Release
         if: github.ref == 'refs/heads/releases'
         run: |
-          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib
+          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --username ${{ github.actor }}
           python jenkins_scripts/registry.py push tglib --username ${{ github.actor }}
       - name: scan
         run: |
