@@ -115,7 +115,7 @@ export default function TaskBasedConfigModal(props: Props) {
           <>
             {formState.currentConfig.content}
             {nodeInfo && (
-              <Grid container spacing={2} justify="space-between">
+              <Grid container spacing={2} justifyContent="space-between">
                 <Grid item xs={6}>
                   <Button
                     color="primary"

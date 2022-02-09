@@ -133,7 +133,7 @@ export default function RestartWatcherModal({
           container
           direction="column"
           spacing={2}
-          justify="center"
+          justifyContent="center"
           alignItems="center">
           {watcher.state !== 'SUCCESS' && (
             <>

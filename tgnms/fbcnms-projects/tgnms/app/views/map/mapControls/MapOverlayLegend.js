@@ -101,7 +101,7 @@ export default function MapOverlayLegend() {
       <Paper className={classes.root} elevation={2}>
         <Grid container direction="column">
           <Grid item className={classes.titleWrapper} container wrap="nowrap">
-            <Grid item container xs={2} justify="center">
+            <Grid item container xs={2} justifyContent="center">
               <Grid item>
                 <IconButton
                   size="small"
@@ -131,17 +131,17 @@ export default function MapOverlayLegend() {
             item
             direction="column"
             wrap="nowrap"
-            justify="flex-start">
+            justifyContent="flex-start">
             <Grid
               container
               item
               direction="column"
               wrap="nowrap"
-              justify="flex-start">
+              justifyContent="flex-start">
               <Grid
                 item
                 container
-                justify="space-between"
+                justifyContent="space-between"
                 spacing={1}
                 alignItems="center"
                 wrap="nowrap">

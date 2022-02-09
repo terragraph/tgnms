@@ -18,7 +18,11 @@ export default function PlanInputs({files}: {files: Array<ANPFileHandle>}) {
   return (
     <Grid item container direction="column">
       {dsm && (
-        <Grid item container justify="space-between" alignContent="center">
+        <Grid
+          item
+          container
+          justifyContent="space-between"
+          alignContent="center">
           <Grid item>
             <Typography>DSM</Typography>
           </Grid>
@@ -30,7 +34,7 @@ export default function PlanInputs({files}: {files: Array<ANPFileHandle>}) {
         </Grid>
       )}
       {sites && (
-        <Grid item container justify="space-between">
+        <Grid item container justifyContent="space-between">
           <Grid item>
             <Typography>Sites</Typography>
           </Grid>
@@ -42,7 +46,7 @@ export default function PlanInputs({files}: {files: Array<ANPFileHandle>}) {
         </Grid>
       )}
       {boundary && (
-        <Grid item container justify="space-between">
+        <Grid item container justifyContent="space-between">
           <Grid item>
             <Typography>Boundary</Typography>
           </Grid>

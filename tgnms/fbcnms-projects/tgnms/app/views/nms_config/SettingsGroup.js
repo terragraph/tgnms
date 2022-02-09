@@ -48,7 +48,7 @@ export default function SettingsGroup({
           <Grid container direction="column" spacing={3}>
             {children}
             {tester && (
-              <Grid item container justify="flex-end">
+              <Grid item container justifyContent="flex-end">
                 {tester}
               </Grid>
             )}

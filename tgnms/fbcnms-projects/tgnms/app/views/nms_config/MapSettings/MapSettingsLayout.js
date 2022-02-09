@@ -35,7 +35,7 @@ export default function MapSettingsLayout({
       <Grid
         container
         item
-        justify="space-between"
+        justifyContent="space-between"
         alignContent="center"
         alignItems="center"
         wrap="nowrap">

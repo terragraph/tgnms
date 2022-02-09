@@ -105,7 +105,7 @@ export default function TutorialTooltip({
       <Grid
         item
         container
-        justify="center"
+        justifyContent="center"
         alignItems="center"
         className={classes.footer}>
         {index > 0 ? (

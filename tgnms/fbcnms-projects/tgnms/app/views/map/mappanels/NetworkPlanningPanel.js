@@ -257,7 +257,7 @@ function NetworkPlanningPanelDetails({onExit}: {onExit: () => void}) {
 
   if (loadPlanTask.isLoading && plan == null) {
     return (
-      <Grid container justify="center">
+      <Grid container justifyContent="center">
         <CircularProgress size={25} />
       </Grid>
     );

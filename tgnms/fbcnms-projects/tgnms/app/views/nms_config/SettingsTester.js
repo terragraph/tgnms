@@ -106,7 +106,7 @@ export default function SettingsTester({keys}: {keys: Array<string>}) {
     }
   }, [formState, keys, setMessage, success, error, loading]);
   return (
-    <Grid container justify="space-between" alignItems="center">
+    <Grid container justifyContent="space-between" alignItems="center">
       <Grid item className={classes.testStatus} xs={8}>
         <TestStatus
           isVisible={isLoading}
@@ -157,7 +157,7 @@ function TestStatus({
           container
           alignItems="center"
           spacing={1}
-          justify="center"
+          justifyContent="center"
           wrap="nowrap">
           <Grid item xs={1}>
             {icon}

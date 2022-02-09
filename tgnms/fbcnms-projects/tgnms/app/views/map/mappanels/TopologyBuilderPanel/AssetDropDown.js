@@ -65,7 +65,7 @@ export default function AssetDropDown({
         onClick={onPanelChange}
         container
         wrap="nowrap">
-        <Grid item container xs={2} justify="center">
+        <Grid item container xs={2} justifyContent="center">
           <Grid item>
             <IconButton
               size="small"
@@ -95,7 +95,7 @@ export default function AssetDropDown({
         item
         direction="column"
         wrap="nowrap"
-        justify="flex-start"
+        justifyContent="flex-start"
         data-testid={expanded ? 'asset-expanded' : 'asset-collapsed'}>
         {children}
       </Collapse>

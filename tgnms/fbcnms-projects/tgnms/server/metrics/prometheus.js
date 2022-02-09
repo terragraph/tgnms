@@ -139,7 +139,7 @@ export function groupByLink(
   const metrics = {};
   const networkState = getNetworkState(topologyName);
   if (!networkState?.topology?.links) {
-    logger.info('No topology cache');
+    logger.info('No topology cache: ' + topologyName);
     return metrics;
   }
 

@@ -126,6 +126,7 @@ export const TgApiUtil: ApiUtil = {
       url: `${AM_BASE_URL}/${networkId}/prom_tenancy`,
       method: 'GET',
     }),
+  getTroubleshootingLink: ({alertName: _}) => Promise.resolve(null),
 };
 
 export const TgEventAlarmsApiUtil = {

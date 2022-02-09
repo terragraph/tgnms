@@ -92,7 +92,7 @@ function LinkOverlayMetadata({
   const isMetricShape =
     typeof metadata?.A === 'undefined' && typeof metadata.Z === 'undefined';
   return (
-    <Grid container justify="space-between" spacing={1}>
+    <Grid container justifyContent="space-between" spacing={1}>
       {isMetricShape && <Metadata name={linkName} metadata={metadata} />}
       {metadata?.A != null && (
         <Grid item xs={6}>

@@ -473,7 +473,7 @@ export default function L2TunnelInputs({
             </>
           )}
         </Grid>
-        <Grid container justify="space-between">
+        <Grid container justifyContent="space-between">
           <Grid item>
             <FormControlLabel
               data-testid="checkbox"
@@ -497,7 +497,7 @@ export default function L2TunnelInputs({
           )}
         </Grid>
         <Grid item>
-          <Grid container spacing={2} justify="flex-end">
+          <Grid container spacing={2} justifyContent="flex-end">
             <Grid item>
               <Button
                 onClick={onCancel}
