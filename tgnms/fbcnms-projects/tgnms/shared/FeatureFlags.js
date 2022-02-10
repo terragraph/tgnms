@@ -24,7 +24,7 @@ export const FEATURE_FLAGS: {[FeatureFlagKey]: FeatureFlagDef} = {
   GRAFANA_ENABLED: {
     isDefaultEnabled: true,
   },
-  SERVICE_AVAILABILITY_ENABLED: {isDefaultEnabled: false},
+  SERVICE_AVAILABILITY_ENABLED: {isDefaultEnabled: true},
   MAP_HISTORY_ENABLED: {isDefaultEnabled: true},
   SOFTWARE_PORTAL_ENABLED: {isDefaultEnabled: false},
   MAPSTYLE_FACEBOOK_ENABLED: {isDefaultEnabled: true},
