@@ -63,6 +63,7 @@ def build(args: argparse.Namespace) -> None:
         "--build-arg",
         f'"REGISTRY_PATH={args.registry}/{args.username}"',
     ]
+
     for arg in args.build_arg or []:
         command += ["--build-arg", f'"{arg}"']
     for label, value in get_commit_info().items():
