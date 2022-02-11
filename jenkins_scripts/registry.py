@@ -16,7 +16,7 @@ def run(cmd: str) -> None:
     logging.info(f"Running: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
 
-===========
+
 def _read(cmd: str) -> str:
     logging.info(f"Reading: {cmd}")
     return read(cmd)
@@ -58,8 +58,10 @@ def build(args: argparse.Namespace) -> None:
         ]
 
     command += [
-        "--build-arg", f'"TAG={release}"',
-        "--build-arg", f'"REGISTRY_PATH={args.registry}/{args.username}"',
+        "--build-arg",
+        f'"TAG={release}"',
+        "--build-arg",
+        f'"REGISTRY_PATH={args.registry}/{args.username}"',
     ]
     for arg in args.build_arg or []:
         command += ["--build-arg", f'"{arg}"']
