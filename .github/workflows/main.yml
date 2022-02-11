@@ -31,9 +31,9 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: $DOCKER_REGISTRY
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
+          registry: "$DOCKER_REGISTRY"
+          username: "$DOCKER_USERNAME"
+          password: "$DOCKER_PASSWORD"
 
       - name: Switch to Current Branch
         run: git checkout ${{ env.BRANCH }}
@@ -55,13 +55,13 @@ jobs:
       - name: MSA Tglib main
         if: github.ref == 'refs/heads/main'
         run: |
-          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --registry $DOCKER_REGISTRY
-          python jenkins_scripts/registry.py push tglib --username $DOCKER_USERNAME --registry $DOCKER_REGISTRY
+          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Tglib Release
         if: github.ref == 'refs/heads/releases'
         run: |
-          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --registry $DOCKER_REGISTRY
-          python jenkins_scripts/registry.py push tglib --username $DOCKER_USERNAME --registry $DOCKER_REGISTRY
+          python jenkins_scripts/registry.py build tglib --branch "$GIT_BRANCH" --dir tglib --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: scan
         run: |
           echo "GIT_SHA=${GIT_SHA}"
