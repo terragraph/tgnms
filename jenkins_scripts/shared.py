@@ -40,12 +40,12 @@ def read(cmd: str) -> str:
 
 
 def get_release(branch, stage=False):
-    if re.search(r"origin/(main|master)", branch):
+    if re.search(r"main", branch):
         if stage:
             release = "dev"
         else:
             release = "latest"
-    elif m := re.search(r"origin/releases/(lts-nms-\d{2}\.\d{1,2})", branch):
+    elif m := re.search(r"releases/(lts-nms-\d{2}\.\d{1,2})", branch):
         if stage:
             raise RuntimeError(f"Cannot build '{stage}' stage for {branch}")
         release = m.group(1)
