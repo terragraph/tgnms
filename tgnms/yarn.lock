@@ -15395,15 +15395,6 @@ thrift2flow@^0.6.0:
     uuid "^3.3.2"
     yargs "^8.0.1"
 
-thrift@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/thrift/-/thrift-0.11.0.tgz#256115e4ff87871e12537f4b510bd2b425e13990"
-  integrity sha1-JWEV5P+Hhx4SU39LUQvStCXhOZA=
-  dependencies:
-    node-int64 "^0.4.0"
-    q "^1.5.0"
-    ws ">= 2.2.3"
-
 thriftrw@^3.11.0:
   version "3.12.0"
   resolved "https://registry.yarnpkg.com/thriftrw/-/thriftrw-3.12.0.tgz#30857847755e7f036b2e0a79d11c9f55075539d9"
@@ -16559,11 +16550,6 @@ write@1.0.3:
   integrity sha512-/lg70HAjtkUgWPVZhZcm+T4hkL8Zbtp1nFNOn3lRrxnlv50SRBv7cR7RqR+GMsd3hUXy9hWBo4CHTbFTcOYwig==
   dependencies:
     mkdirp "^0.5.1"
-
-"ws@>= 2.2.3":
-  version "7.3.0"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.3.0.tgz#4b2f7f219b3d3737bc1a2fbf145d825b94d38ffd"
-  integrity sha512-iFtXzngZVXPGgpTlP1rBqsUK82p9tKqsWRPg5L56egiljujJT3vGAYnHANvFxBieXrTFavhzhxW52jnaWV+w2w==
 
 ws@^1.0.0:
   version "1.1.5"
