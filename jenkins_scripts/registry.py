@@ -40,7 +40,7 @@ def get_commit_info() -> Dict[str, str]:
 
 def build(args: argparse.Namespace) -> None:
     command = ["docker", "build", "-f", f"{args.dir}/Dockerfile"]
-    release = "latest"
+    release = get_release(args.branch, args.stage)
     if re.search(r"origin/(main|master)", args.branch) and args.stage:
         command += ["--target", args.stage]
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     build_parser.add_argument(
         "--registry",
         help="regsitry hostname and port",
-        default="ghcr.io",
+        default="secure.cxl-terragraph.com:443",
     )
     build_parser.add_argument("--stage", help="specify a Dockerfile stage")
     build_parser.add_argument(
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     push_parser.add_argument(
         "--registry",
         help="regsitry hostname and port",
-        default="ghcr.io",
+        default="secure.cxl-terragraph.com:443",
     )
     push_parser.add_argument("--username", help="docker registry username")
     push_parser.add_argument(
