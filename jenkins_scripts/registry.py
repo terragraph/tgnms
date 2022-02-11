@@ -47,12 +47,15 @@ def build(args: argparse.Namespace) -> None:
     # Tag the image with the release version
     if args.tag:
         logging.info(f"Tagging image with custom tag: {args.tag}")
-        command += ["--tag", f"{args.registry}/{args.name}:{args.tag}"]
+        command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{args.tag}"]
     else:
         version_tag = get_next_tag(release, printer=logging.info)
         logging.info(f"Tagging image with tag: {version_tag}")
-        command += ["--tag", f"{args.registry}/{args.name}:{release}"]
-        command += ["--tag", f"{args.registry}/{args.name}:{version_tag}"]
+        command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{release}"]
+        command += [
+            "--tag",
+            f"{args.registry}/{args.username}/{args.name}:{version_tag}",
+        ]
 
     command += ["--build-arg", f'"TAG={release}"']
     for arg in args.build_arg or []:
