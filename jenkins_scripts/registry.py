@@ -74,13 +74,13 @@ def push(args: argparse.Namespace) -> None:
         "-u",
         args.username,
         "--password-stdin",
-        f"{args.registry}/v2",
+        f"{args.registry}",
     ]
     run(" ".join(command))
     if args.tag:
-        push_cmd = f"docker push {args.registry}/{args.name}:{args.tag}"
+        push_cmd = f"docker push {args.registry}/{args.username}/{args.name}:{args.tag}"
     else:
-        push_cmd = f"docker push --all-tags {args.registry}/{args.name}"
+        push_cmd = f"docker push --all-tags {args.registry}/{args.username}/{args.name}"
     run(push_cmd)
 
 
