@@ -1,6 +1,7 @@
 # Pull base image
 ARG TAG=latest
-FROM secure.cxl-terragraph.com:443/tglib:$TAG
+ARG REGISTRY_PATH
+FROM $REGISTRY_PATH/tglib:$TAG
 
 ARG WORKDIR=/usr/local/scan_service
 

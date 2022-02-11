@@ -52,56 +52,59 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-      - name: MSA Tglib main
-        if: github.ref == 'refs/heads/main'
-        run: |
-          python jenkins_scripts/registry.py build tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH" --dir tglib --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
-      - name: MSA Tglib Release
-        if: github.ref == 'refs/heads/releases'
-        run: |
-          python jenkins_scripts/registry.py build tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH" --dir tglib --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      # - name: MSA Tglib main
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --stage builder --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+      #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      # - name: MSA Tglib Release
+      #   if: github.ref == 'refs/heads/releases'
+      #   run: |
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+      #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: scan
         run: |
           echo "GIT_SHA=${GIT_SHA}"
           echo "GIT_BRANCH=${GIT_BRANCH}"
-          python jenkins_scripts/registry.py build scan_service --branch ${GIT_BRANCH} --dir scan_service
-          python jenkins_scripts/registry.py push scan_service
+          python jenkins_scripts/registry.py build scan_service --dir scan_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: C++ backends Main
         if: github.ref == 'refs/heads/main'
         run: |
-          python jenkins_scripts/registry.py build cpp_backends --branch ${GIT_BRANCH} --dir docker --stage builder
+          python jenkins_scripts/registry.py build cpp_backends --dir docker --stage builder --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: C++ backends release
         if: github.ref == 'refs/heads/releases'
         run: |
-          python jenkins_scripts/registry.py build cpp_backends --branch ${GIT_BRANCH} --dir docker
-          python jenkins_scripts/registry.py push cpp_backends
+          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: Network Health Service
         run: |
-          python jenkins_scripts/registry.py build network_health_service --branch ${GIT_BRANCH} --dir network_health_service
-          python jenkins_scripts/registry.py push network_health_service
+          python jenkins_scripts/registry.py build network_health_service --dir network_health_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push network_health_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Analytics
         run: |
-          python jenkins_scripts/registry.py build analytics --branch ${GIT_BRANCH} --dir analytics
-          python jenkins_scripts/registry.py push analytics
+          python jenkins_scripts/registry.py build analytics --dir analytics --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push analytics --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Network Test
         run: |
-          python jenkins_scripts/registry.py build network_test --branch "$GIT_BRANCH" --dir network_test
-          python jenkins_scripts/registry.py push network_test
+          python jenkins_scripts/registry.py build network_test --dir network_test --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push network_test --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Default Router Service
         run: |
-          python jenkins_scripts/registry.py build default_routes_service --branch "$GIT_BRANCH" --dir default_routes_service
-          python jenkins_scripts/registry.py push default_routes_service
+          python jenkins_scripts/registry.py build default_routes_service --dir default_routes_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push default_routes_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Weather Service
         run: |
-          python jenkins_scripts/registry.py build weather_service --branch "$GIT_BRANCH" --dir weather_service
-          python jenkins_scripts/registry.py push weather_service
+          python jenkins_scripts/registry.py build weather_service --dir weather_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push weather_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Crash Log Service
         run: |
-          python jenkins_scripts/registry.py build crashlog_analysis_service --branch "$GIT_BRANCH" --dir crashlog_analysis_service
-          python jenkins_scripts/registry.py push crashlog_analysis_service
+          python jenkins_scripts/registry.py build crashlog_analysis_service --dir crashlog_analysis_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push crashlog_analysis_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Topology Service
         run: |
-          python jenkins_scripts/registry.py build topology_service --branch "$GIT_BRANCH" --dir topology_service
-          python jenkins_scripts/registry.py push topology_service
+          python jenkins_scripts/registry.py build topology_service --dir topology_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push topology_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
