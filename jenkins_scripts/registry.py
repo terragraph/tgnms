@@ -94,6 +94,7 @@ if __name__ == "__main__":
 
     build_parser = subparsers.add_parser("build")
     build_parser.add_argument("name", help="docker package name")
+    build_parser.add_argument("--username", help="docker registry username")
     build_parser.add_argument("--branch", help="git branch that is being built")
     build_parser.add_argument("--build-arg", action="append", help="specify build args")
     build_parser.add_argument("--context", help="build context path", default=".")
