@@ -1,7 +1,7 @@
 # Pull base image
 ARG TAG=latest
-ARG REGISTRY_PATH=default
-RUN echo "$REGISTRY_PATH"
+# ARG REGISTRY_PATH=default
+# RUN echo "$REGISTRY_PATH"
 FROM ghcr.io/vietcgi/tglib:$TAG
 
 ARG WORKDIR=/usr/local/scan_service
