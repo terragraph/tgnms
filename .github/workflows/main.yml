@@ -67,7 +67,7 @@ jobs:
         run: |
           echo "GIT_SHA=${GIT_SHA}"
           echo "GIT_BRANCH=${GIT_BRANCH}"
-          python jenkins_scripts/registry.py build scan_service --dir scan_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py build scan_service --dir scan_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --build-arg=ghcr.io/vietcgi/tglib
           python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: C++ backends Main
         if: github.ref == 'refs/heads/main'
