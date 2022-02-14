@@ -43,7 +43,7 @@ def build(args: argparse.Namespace) -> None:
 
     command = ["docker", "build", "-f", f"{args.dir}/Dockerfile"]
     release = get_release(args.branch, args.stage)
-    if re.search(r"origin/(main|master)", args.branch) and args.stage:
+    if re.search(r"main", args.branch) and args.stage:
         command += ["--target", args.stage]
 
     # Tag the image with the release version
