@@ -55,7 +55,7 @@ jobs:
       # - name: MSA Tglib main
       #   if: github.ref == 'refs/heads/main'
       #   run: |
-      #     python jenkins_scripts/registry.py build tglib --dir tglib --stage builder --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
       #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
       #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       # - name: MSA Tglib Release
@@ -63,23 +63,10 @@ jobs:
       #   run: |
       #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
       #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
-      - name: scan
+      - name: MSA Scan Service
         run: |
-          echo "GIT_SHA=${GIT_SHA}"
-          echo "GIT_BRANCH=${GIT_BRANCH}"
           python jenkins_scripts/registry.py build scan_service --dir scan_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
-      - name: C++ backends Main
-        if: github.ref == 'refs/heads/main'
-        run: |
-          python jenkins_scripts/registry.py build cpp_backends --dir docker --stage builder --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
-      - name: C++ backends release
-        if: github.ref == 'refs/heads/releases'
-        run: |
-          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: Network Health Service
         run: |
           python jenkins_scripts/registry.py build network_health_service --dir network_health_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
@@ -108,3 +95,14 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build topology_service --dir topology_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push topology_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: C++ backends Main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
+          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: C++ backends release
+        if: github.ref == 'refs/heads/releases'
+        run: |
+          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"

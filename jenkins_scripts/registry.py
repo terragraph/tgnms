@@ -101,8 +101,8 @@ if __name__ == "__main__":
 
     build_parser = subparsers.add_parser("build")
     build_parser.add_argument("name", help="docker package name")
-    build_parser.add_argument("--username", help="docker registry username")
-    build_parser.add_argument("--branch", help="git branch that is being built")
+    build_parser.add_argument("--username", help="docker registry username", required=True)
+    build_parser.add_argument("--branch", help="git branch that is being built", required=True)
     build_parser.add_argument("--build-arg", action="append", help="specify build args")
     build_parser.add_argument("--context", help="build context path", default=".")
     build_parser.add_argument("--dir", help="directory of the Dockerfile", default=".")
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         help="regsitry hostname and port",
         default="secure.cxl-terragraph.com:443",
     )
-    push_parser.add_argument("--username", help="docker registry username")
+    push_parser.add_argument("--username", help="docker registry username", required=True)
     push_parser.add_argument(
         "--tag",
         help="specific docker image tag to push, default is all tags in repository",
