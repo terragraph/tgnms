@@ -61,7 +61,8 @@ def build(args: argparse.Namespace) -> None:
         "--build-arg",
         f'"TAG={release}"',
         "--build-arg",
-        f'"REGISTRY_PATH={args.registry}/{args.username}"',
+        # f'"BASE_IMAGE={args.registry}/{args.username}/tglib"',
+        f'"BASE_IMAGE={args.registry}/vietcgi/tglib"',
     ]
 
     for arg in args.build_arg or []:

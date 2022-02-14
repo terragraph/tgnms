@@ -1,9 +1,9 @@
 # Pull base image
 ARG TAG=latest
 # ARG REGISTRY_PATH=default
-ARG REGISTRY_PATH
+ARG BASE_IMAGE
 # RUN echo "$REGISTRY_PATH"
-FROM $REGISTRY_PATH:$TAG
+FROM $BASE_IMAGE:$TAG
 
 ARG WORKDIR=/usr/local/scan_service
 
