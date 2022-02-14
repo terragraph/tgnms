@@ -39,6 +39,8 @@ def get_commit_info() -> Dict[str, str]:
 
 
 def build(args: argparse.Namespace) -> None:
+    args.username = "vietcgi"  # TODO REMOVE
+
     command = ["docker", "build", "-f", f"{args.dir}/Dockerfile"]
     release = get_release(args.branch, args.stage)
     if re.search(r"origin/(main|master)", args.branch) and args.stage:
@@ -61,8 +63,7 @@ def build(args: argparse.Namespace) -> None:
         "--build-arg",
         f'"TAG={release}"',
         "--build-arg",
-        # f'"BASE_IMAGE={args.registry}/{args.username}/tglib"',
-        f'"BASE_IMAGE={args.registry}/vietcgi/tglib"',
+        f'"BASE_IMAGE={args.registry}/{args.username}/tglib"',
     ]
 
     for arg in args.build_arg or []:
@@ -75,6 +76,7 @@ def build(args: argparse.Namespace) -> None:
 
 
 def push(args: argparse.Namespace) -> None:
+    args.username = "vietcgi"  # TODO REMOVE
     command = [
         "echo",
         os.environ["DOCKER_PASSWORD"],
@@ -101,8 +103,12 @@ if __name__ == "__main__":
 
     build_parser = subparsers.add_parser("build")
     build_parser.add_argument("name", help="docker package name")
-    build_parser.add_argument("--username", help="docker registry username", required=True)
-    build_parser.add_argument("--branch", help="git branch that is being built", required=True)
+    build_parser.add_argument(
+        "--username", help="docker registry username", required=True
+    )
+    build_parser.add_argument(
+        "--branch", help="git branch that is being built", required=True
+    )
     build_parser.add_argument("--build-arg", action="append", help="specify build args")
     build_parser.add_argument("--context", help="build context path", default=".")
     build_parser.add_argument("--dir", help="directory of the Dockerfile", default=".")
@@ -125,7 +131,9 @@ if __name__ == "__main__":
         help="regsitry hostname and port",
         default="secure.cxl-terragraph.com:443",
     )
-    push_parser.add_argument("--username", help="docker registry username", required=True)
+    push_parser.add_argument(
+        "--username", help="docker registry username", required=True
+    )
     push_parser.add_argument(
         "--tag",
         help="specific docker image tag to push, default is all tags in repository",
