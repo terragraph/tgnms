@@ -52,3 +52,13 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b $GIT_BRANCH)
+
+       - name: Release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd nms_stack && ./buildpex.sh
+      - name: Release
+        if: github.ref == 'refs/heads/releases'
+        run: |
+          cd nms_stack && ./buildpex.sh
