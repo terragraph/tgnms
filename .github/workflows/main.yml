@@ -52,17 +52,29 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-      # - name: MSA Tglib main
-      #   if: github.ref == 'refs/heads/main'
-      #   run: |
-      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
-      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-      #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
-      # - name: MSA Tglib Release
-      #   if: github.ref == 'refs/heads/releases'
-      #   run: |
-      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-      #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: Alarms
+        run: |
+          python jenkins_scripts/registry.py build tg-alarms --context alarms --dir alarms --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push tg-alarms --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: EFK Fluentd
+        run: |
+          python jenkins_scripts/registry.py build fluentd --context fluentd --dir fluentd --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push fluentd --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: Kafka Bitnami
+        run: |
+          cat <<EOF > kafka/Dockerfile
+          FROM bitnami/kafka:2.6.0
+
+          COPY jmx_prometheus_javaagent-0.11.0.jar /opt/jmx_exporter/jmx_prometheus_javaagent-0.11.0.jar
+          COPY kafka-2_0_0.yml /opt/jmx_exporter/kafka-2_0_0.yml
+          EOF
+
+          python jenkins_scripts/registry.py build kafka-bitnami --context kafka --dir kafka --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push kafka-bitnami --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: Kafka
+        run: |
+          python jenkins_scripts/registry.py build kafka --context kafka --dir kafka --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push kafka --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: MSA Scan Service
         run: |
           python jenkins_scripts/registry.py build scan_service --dir scan_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
@@ -95,6 +107,26 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build topology_service --dir topology_service --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push topology_service --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      # - name: MSA Tglib main
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+      #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      # - name: MSA Tglib Release
+      #   if: github.ref == 'refs/heads/releases'
+      #   run: |
+      #     python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+      #     python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - name: NMS v2
+        run: |
+          export COMMIT_HASH=$(git log -1 --pretty=%h)
+          export COMMIT_DATE=$(git log -1 --pretty=%ad)
+          pushd tgnms
+          bash fbcnms-projects/tgnms/scripts/changelog.sh > fbcnms-projects/tgnms/changelog.json
+          popd
+          python jenkins_scripts/registry.py build nmsv2 --build-arg COMMIT_DATE="$COMMIT_DATE" --build-arg COMMIT_HASH="$COMMIT_HASH" --context tgnms --dir tgnms/fbcnms-projects/tgnms --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push nmsv2 --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
       - name: C++ backends Main
         if: github.ref == 'refs/heads/main'
         run: |
