@@ -1,0 +1,32 @@
+name: LTS
+
+on:
+  push:
+    branches:
+    - 'releases/**'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        python-version: [3.8.12]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: LTS Patch Tagging
+        run: |
+          git fetch --prune --unshallow --tags
+          RELEASE=${GITHUB_REF##*/}
+          TAG=`git tag -l ${RELEASE}* | sort -r -V | head -n1`
+
+          echo "LTS version is: $RELEASE"
+          echo "Most recent tag is $TAG"
+          if [ "$TAG" = "" ]; then
+            git tag "${RELEASE}.1"
+          else
+            git tag "${RELEASE}.$((${TAG##*.} + 1))"
+          fi
+          git push origin --tags
