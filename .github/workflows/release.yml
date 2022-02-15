@@ -23,6 +23,7 @@ jobs:
       DOCKER_REGISTRY: ghcr.io
       DOCKER_USERNAME: ${{ github.actor }}
       DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_BRANCH: ${{ github.ref }}
 
     steps:
       - name: Checkout
@@ -57,10 +58,10 @@ jobs:
       - name: Release on Main
         if: github.ref == 'refs/heads/main'
         run: |
-          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b github.ref)
+          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
           cd nms_stack && ./buildpex.sh
       - name: Release on Release
         if: github.ref == 'refs/heads/releases'
         run: |
-          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b github.ref)
+          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
           cd nms_stack && ./buildpex.sh
