@@ -84,7 +84,7 @@ jobs:
           # pex sanity test
           echo "pex sanity test"
           ls -lah ${OUTPUT_FILE}
-          ${OUTPUT_FILE} --version
+          ./${OUTPUT_FILE} --version
 
           NOW=$(date +"%m_%d_%y_%H_%M_%S")
           DATED_FILE="/tmp/nms_${NOW}"
