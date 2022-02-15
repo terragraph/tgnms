@@ -91,3 +91,18 @@ jobs:
           mv ${OUTPUT_FILE} ${DATED_FILE}
           rm -f ${SYMLINK}
           ln -s ${DATED_FILE} ${SYMLINK}
+          
+          echo "Check if all required images have been created:"
+          if nms check-images; then
+	        echo 'IMAGES READY; STARTING RELEASE'
+          # tag this build on github
+          python ../jenkins_scripts/github_release.py tag -b ${{ env.GITHUB_BRANCH }}
+    
+          # we pause for 10 seconds to let github catch up before we release.
+          sleep 30
+    
+          # release command expects the GITHUB_USER and GITHUB_ACCESS_TOKEN env to be defined
+          python ../jenkins_scripts/github_release.py release -a $(realpath nms) -n nms
+          else 
+          echo 'IMAGES NOT READY; ABORTING RELEASE'
+          fi
