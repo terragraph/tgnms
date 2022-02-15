@@ -11,6 +11,7 @@ export const PLANNING_PLAN_PATH = PLANNING_FOLDER_PATH + '/plan';
 export const PLANNING_SITESFILE_PATH = PLANNING_FOLDER_PATH + '/sites';
 export const NETWORK_TABLES_BASE_PATH = NETWORK_BASE + '/:table?';
 export const MAP_PATH = `/map/:networkName`;
+export const HEALTH_DASHBOARD_PATH = `/health_dashboard`;
 export const TABLES_PATH = `/tables/:networkName`;
 export const DASHBOARDS_PATH = `/dashboards/:networkName`;
 export const TROUBLESHOOTING_PATH = `/troubleshooting/:networkName`;
