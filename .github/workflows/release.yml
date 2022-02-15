@@ -59,7 +59,38 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
-          cd nms_stack && ./buildpex.sh
+          cd nms_stack && 
+          ANSIBLE_VERSION=2.9.9
+          OUTPUT_FILE="nms.pex"
+          SYMLINK="nms"
+
+          # Construct version file
+          echo "The build tag is: ${BUILD_TAG}"
+          echo "${BUILD_TAG}" > nms_cli/__version__
+
+          # push versions to console for debugging
+          echo "Packages"
+          pip freeze
+          pex --version
+
+          # build nms dist
+          echo "build nms dist"
+          python setup.py bdist_wheel
+
+          # build pex
+          echo "Build pex"
+          pex --wheel --python=python3 -v --disable-cache -f dist -f . ansible==$ANSIBLE_VERSION -e nms_cli.main -o ${OUTPUT_FILE} .
+
+          # pex sanity test
+          echo "pex sanity test"
+          ls -lah ${OUTPUT_FILE}
+          ${OUTPUT_FILE} --version
+
+          NOW=$(date +"%m_%d_%y_%H_%M_%S")
+          DATED_FILE="/tmp/nms_${NOW}"
+          mv ${OUTPUT_FILE} ${DATED_FILE}
+          rm -f ${SYMLINK}
+          ln -s ${DATED_FILE} ${SYMLINK}
       - name: Release on Release
         if: github.ref == 'refs/heads/releases'
         run: |
