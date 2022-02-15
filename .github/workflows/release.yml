@@ -52,6 +52,7 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "$GIT_BRANCH"
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b $GIT_BRANCH)
 
       - name: Release
