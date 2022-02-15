@@ -244,7 +244,12 @@ export default function NetworkTables(props: Props) {
               )}
           </Tabs>
         </Grid>
-        <Grid container item xs={4} justify="flex-end" alignItems="center">
+        <Grid
+          container
+          item
+          xs={4}
+          justifyContent="flex-end"
+          alignItems="center">
           {selectedTable === TABLE_TYPE.nodes && ( //export nodes only for now
             <Grid item>
               <ExportMenu selectedTable={selectedTable} />

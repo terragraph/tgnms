@@ -83,7 +83,7 @@ export default function ThroughputTestResult(props: Props) {
   return (
     <Grid container spacing={2}>
       {isTestRunning(execution.status) && (
-        <Grid container direction="column" item justify="center">
+        <Grid container direction="column" item justifyContent="center">
           <Grid item>Running Test</Grid>
           <Grid item>
             <LoadingBox fullScreen={false} />
@@ -91,7 +91,7 @@ export default function ThroughputTestResult(props: Props) {
         </Grid>
       )}
       {EXECUTION_STATUS[execution.status] === EXECUTION_STATUS.FAILED && (
-        <Grid container direction="column" item justify="center">
+        <Grid container direction="column" item justifyContent="center">
           <Grid item>Throughput Test Failed</Grid>
         </Grid>
       )}

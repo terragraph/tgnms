@@ -496,7 +496,7 @@ export const LINK_METRIC_OVERLAYS: Overlays = {
       if (MB == null || isNaN(MB)) {
         return 0;
       }
-      return (MB * 8) / 1024 / 2024;
+      return (MB * 8) / 1000 / 1000;
     },
     formatText: (_link, value: number) => {
       if (value == null || isNaN(value) || value < 0) {

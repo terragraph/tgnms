@@ -19,4 +19,4 @@ This software installs Terragraph software stack to the supplied hardware.
     1. `./nms show-defaults > config.yaml`
 3. Edit the default config file (`config.yaml`) as desired
 4. Run install
-    1. ./nms install -f config.yaml -h <host1> -h <host2> -h <host3>
+    1. `./nms install -f config.yaml`

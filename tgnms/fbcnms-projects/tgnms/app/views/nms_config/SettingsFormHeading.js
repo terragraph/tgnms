@@ -26,7 +26,7 @@ export default function SettingsFormHeading({
     <Grid
       container
       item
-      justify="space-between"
+      justifyContent="space-between"
       alignContent="center"
       alignItems="center"
       wrap="nowrap">

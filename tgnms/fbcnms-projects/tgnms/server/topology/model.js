@@ -685,17 +685,20 @@ export async function fetchNetworkHealthFromDb(
   });
 }
 
-export function refreshPrometheusStatus(networkName: string) {
-  // call the test handler to verify service is healthy
-  const testHandlerUrl = PROMETHEUS_URL + '/-/healthy';
-  axios.get(testHandlerUrl).then(res => {
+export async function refreshPrometheusStatus(
+  networkName: string,
+): Promise<void> {
+  try {
+    // call the test handler to verify service is healthy
+    const testHandlerUrl = PROMETHEUS_URL + '/-/healthy';
+    const res = await axios.get(testHandlerUrl);
     if (res.status !== 200) {
-      logger.error('Error fetching from health status from Prometheus');
-      networkState[networkName].prometheus_online = false;
-      return;
+      throw new Error('Error fetching from health status from Prometheus');
     }
     networkState[networkName].prometheus_online = true;
-  });
+  } catch (err) {
+    logger.error(err.message);
+  }
 }
 
 export function setConfigParamsFromOverrides(

@@ -144,7 +144,7 @@ type PlanMetricItemProps = {|
 function PlanMetricItem({name, value}: PlanMetricItemProps) {
   const classes = usePlanMetricItemStyles();
   return (
-    <Grid item container xs={12} wrap="nowrap" justify="space-between">
+    <Grid item container xs={12} wrap="nowrap" justifyContent="space-between">
       <Grid
         item
         container
@@ -164,7 +164,7 @@ function PlanMetricItem({name, value}: PlanMetricItemProps) {
           </Grid>
         )}
       </Grid>
-      <Grid item container xs={8} justify="flex-end" alignItems="center">
+      <Grid item container xs={8} justifyContent="flex-end" alignItems="center">
         <Typography variant="body2" noWrap>
           {value.value}
         </Typography>

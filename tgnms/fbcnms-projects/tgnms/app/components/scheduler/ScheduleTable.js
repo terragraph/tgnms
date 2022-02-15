@@ -172,7 +172,7 @@ export default function ScheduleTable<T>(props: Props<T>) {
           container
           item
           className={classes.executionsTableWrapper}
-          justify="center">
+          justifyContent="center">
           {loading && rows.length === 0 ? (
             <LoadingBox className={classes.loadingBox} fullScreen={false} />
           ) : !rows ? (

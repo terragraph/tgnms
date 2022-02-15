@@ -49,7 +49,7 @@ export const FEATURE_FLAGS: {[FeatureFlagKey]: FeatureFlagDef} = {
   LINK_BUDGETING_ENABLED: {isDefaultEnabled: false},
   ALERTS_LAYER_ENABLED: {isDefaultEnabled: false},
   TROUBLESHOOTING_ENABLED: {isDefaultEnabled: false},
-  NETWORK_TUTORIAL: {isDefaultEnabled: false},
+  NETWORK_TUTORIAL: {isDefaultEnabled: true},
   SOLUTION_AUTOMATION_ENABLED: {isDefaultEnabled: false},
   QOS_CONFIG: {isDefaultEnabled: false},
   NETWORK_PLANNING_ENABLED: {isDefaultEnabled: false},

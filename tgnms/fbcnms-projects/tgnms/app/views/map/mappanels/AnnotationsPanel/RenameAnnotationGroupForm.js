@@ -79,7 +79,7 @@ export default function RenameAnnotationGroupForm({
       direction="column"
       wrap="nowrap"
       spacing={1}>
-      <Grid item container justify="center">
+      <Grid item container justifyContent="center">
         {isLoading && <CircularProgress />}
         {isError && (
           <Alert color="error" severity="error">
@@ -99,7 +99,7 @@ export default function RenameAnnotationGroupForm({
           onChange={handleInputChange(val => ({name: val}))}
         />
       </Grid>
-      <Grid item container justify="flex-end" spacing={1}>
+      <Grid item container justifyContent="flex-end" spacing={1}>
         <Grid item>
           <Button variant="outlined" size="small" onClick={onClose}>
             Cancel

@@ -1,6 +1,7 @@
 # Pull base image
 ARG TAG=latest
-FROM secure.cxl-terragraph.com:443/tglib:$TAG
+ARG BASE_IMAGE
+FROM $BASE_IMAGE:$TAG
 
 ARG WORKDIR=/usr/local/default_routes_service/
 

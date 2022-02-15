@@ -23,7 +23,7 @@ export default function PlanOutputs({files}: {files: Array<ANPFileHandle>}) {
            */
           const shortFileName = file.file_name.replace(/(\(.+\))/, '');
           return (
-            <Grid key={file.id} item container justify="space-between">
+            <Grid key={file.id} item container justifyContent="space-between">
               <Grid item>
                 <Typography>{shortFileName}</Typography>
               </Grid>

@@ -95,7 +95,7 @@ export default function AnnotationGroupsForm() {
   return (
     <Grid container direction="column" wrap="nowrap" className={classes.root}>
       {mode === MODE.DEFAULT && (
-        <Grid container justify="space-between" spacing={3}>
+        <Grid container justifyContent="space-between" spacing={3}>
           <Grid item xs={6}>
             <Button
               variant="contained"
@@ -195,7 +195,7 @@ function GroupLayer({group, isSelected, onSelect, onRename}: GroupLayerProps) {
     <Grid
       item
       container
-      justify="space-between"
+      justifyContent="space-between"
       wrap="nowrap"
       xs={12}
       className={classes.group}
@@ -210,7 +210,7 @@ function GroupLayer({group, isSelected, onSelect, onRename}: GroupLayerProps) {
         wrap="nowrap"
         xs={3}
         container
-        justify="flex-end"
+        justifyContent="flex-end"
         alignItems="flex-start">
         <Box mr={-1}>
           <MenuIconButton
