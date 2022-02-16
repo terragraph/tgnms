@@ -30,7 +30,7 @@ def cli(ctx):
 @click.pass_context
 def get_tag(ctx, branch):
     release = get_release(branch)
-    version_tag = get_next_tag(release, printer=lambda x: x)
+    version_tag = get_next_tag(release, printer=lambda x: print(x))
     print(version_tag)
 
 
