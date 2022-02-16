@@ -24,6 +24,8 @@ jobs:
       DOCKER_USERNAME: ${{ github.actor }}
       DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_BRANCH: ${{ github.ref }}
+      GITHUB_USER: ${{ github.actor }}
+      GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout
