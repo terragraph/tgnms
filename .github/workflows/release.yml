@@ -58,7 +58,6 @@ jobs:
           echo "$GIT_BRANCH"
 
       - name: Release
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/releases'
         run: |
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
           cd nms_stack
