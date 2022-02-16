@@ -103,7 +103,7 @@ jobs:
           # we pause for 10 seconds to let github catch up before we release.
           sleep 30
           # release command expects the GITHUB_USER and GITHUB_ACCESS_TOKEN env to be defined
-          python ../jenkins_scripts/github_release.py release -a $(realpath nms) -n nms --tag ${BUILD_TAG}
+          python ../jenkins_scripts/github_release.py release -a $(realpath nms) -n nms
           else
           echo 'IMAGES NOT READY; ABORTING RELEASE'
           fi
