@@ -255,16 +255,24 @@ def check_images_exist(variables, host=None):
         "DOCKER_PASSWORD"
     )
     docker_username = variables.get("docker_registry_username") or os.environ.get(
-        "DOCKER_USER"
+        "DOCKER_USERNAME"
     )
     if not (docker_password and docker_username and docker_registry):
+        missing_config_fields = []
+        missing_env_fields = []
+        if not docker_password:
+            missing_config_fields.append("docker_registry_password")
+            missing_env_fields.append("DOCKER_PASSWORD")
+        if not docker_registry:
+            missing_config_fields.append("docker_registry_url")
+            missing_env_fields.append("DOCKER_REGISTRY")
+        if not docker_username:
+            missing_config_fields.append("docker_registry_username")
+            missing_env_fields.append("DOCKER_USERNAME")
         raise RuntimeError(
-            (
-                "Missing docker password/username/registry. "
-                "Please specify in your configuration file or "
-                "as environment variables: DOCKER_PASSWORD, "
-                "DOCKER_USER, and DOCKER_REGISTRY"
-            )
+            "Missing docker parameters. "
+            f"Please specify in your configuration file ({', '.join(missing_config_fields)}) "
+            f"or as environment variables ({', '.join(missing_env_fields)})."
         )
 
     if host:
