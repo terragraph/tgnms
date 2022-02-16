@@ -11,7 +11,7 @@ import requests
 from shared import get_next_tag, read, get_release
 
 # API_URL = "https://api.github.com/repos/terragraph/tgnms"
-API_URL = "https://api.github.com/repos/{}/tgnms"
+_API_URL = "https://api.github.com/repos/{}/tgnms"
 
 
 @click.group(invoke_without_command=True)
@@ -98,7 +98,7 @@ def release(ctx, tag, asset, name, draft, force):
         return exit(1)
 
     github_user = os.environ.get("GITHUB_USER")
-    API_URL = API_URL.format(github_user)  # TODO REMOVE, only needed for testing.
+    API_URL = _API_URL.format(github_user)  # TODO REMOVE, only needed for testing.
     github_access_token = os.environ.get("GITHUB_ACCESS_TOKEN")
     if github_access_token is None:
         raise RuntimeError("GITHUB_ACCESS_TOKEN environment variable is required")
