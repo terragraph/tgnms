@@ -59,6 +59,7 @@ jobs:
 
       - name: Release
         run: |
+          git fetch --prune --all
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
           cd nms_stack
           ANSIBLE_VERSION=2.9.9
