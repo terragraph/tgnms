@@ -55,13 +55,52 @@ jobs:
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
           echo "$GIT_BRANCH"
 
-      - name: Release on Main
-        if: github.ref == 'refs/heads/main'
+      - name: Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/releases'
         run: |
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
-          cd nms_stack && ./buildpex.sh
-      - name: Release on Release
-        if: github.ref == 'refs/heads/releases'
-        run: |
-          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
-          cd nms_stack && ./buildpex.sh
+          cd nms_stack 
+          ANSIBLE_VERSION=2.9.9
+          OUTPUT_FILE="nms.pex"
+          SYMLINK="nms"
+
+          # Construct version file
+          echo "The build tag is: ${BUILD_TAG}"
+          echo "${BUILD_TAG}" > nms_cli/__version__
+
+          # push versions to console for debugging
+          echo "Packages"
+          pip freeze
+          pex --version
+
+          # build nms dist
+          echo "build nms dist"
+          python setup.py bdist_wheel
+
+          # build pex
+          echo "Build pex"
+          pex --wheel --python=python3 -v --disable-cache -f dist -f . ansible==$ANSIBLE_VERSION -e nms_cli.main -o ${OUTPUT_FILE} .
+
+          # pex sanity test
+          echo "pex sanity test"
+          ls -lah ${OUTPUT_FILE}
+          ./${OUTPUT_FILE} --version
+
+          NOW=$(date +"%m_%d_%y_%H_%M_%S")
+          DATED_FILE="/tmp/nms_${NOW}"
+          mv ${OUTPUT_FILE} ${DATED_FILE}
+          rm -f ${SYMLINK}
+          ln -s ${DATED_FILE} ${SYMLINK}
+          echo "Check if all required images have been created:"
+          if ./nms check-images
+          then
+          echo 'IMAGES READY; STARTING RELEASE'
+          # tag this build on github
+          python ../jenkins_scripts/github_release.py tag -b ${{ env.GITHUB_BRANCH }}
+          # we pause for 10 seconds to let github catch up before we release.
+          sleep 30
+          # release command expects the GITHUB_USER and GITHUB_ACCESS_TOKEN env to be defined
+          python ../jenkins_scripts/github_release.py release -a $(realpath nms) -n nms
+          else
+          echo 'IMAGES NOT READY; ABORTING RELEASE'
+          fi
