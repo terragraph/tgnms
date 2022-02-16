@@ -22,6 +22,7 @@ def get_next_tag(release, printer=lambda x: print(x)):
     printer(f"Searching for git tags with prefix: {tag_prefix}")
 
     # search for all tags starting with this release num
+    read('git fetch --all --prune')
     tags = read(f'git tag -l "{tag_prefix}*"')
     if tags:
         tags = tags.split("\n")
