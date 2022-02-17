@@ -22,7 +22,6 @@ def get_next_tag(release, printer=lambda x: print(x)):
     printer(f"Searching for git tags with prefix: {tag_prefix}")
 
     # search for all tags starting with this release num
-    read('git fetch --all --prune')
     tags = read(f'git tag -l "{tag_prefix}*"')
     if tags:
         tags = tags.split("\n")
@@ -46,7 +45,7 @@ def get_release(branch, stage=False):
             release = "dev"
         else:
             release = "latest"
-    elif m := re.search(r"releases/(lts-nms-\d{2}\.\d{1,2})", branch):
+    elif m := re.search(r"(lts-nms-\d{2}\.\d{1,2})", branch):
         if stage:
             raise RuntimeError(f"Cannot build '{stage}' stage for {branch}")
         release = m.group(1)
