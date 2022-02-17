@@ -1,6 +1,9 @@
 name: RELEASE
 
 on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
   push:
     branches:
     - main
@@ -18,7 +21,7 @@ jobs:
       matrix:
         python-version: [3.8.12]
     runs-on: ubuntu-latest
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
       DOCKER_REGISTRY: ghcr.io
       DOCKER_USERNAME: ${{ github.actor }}
@@ -59,7 +62,7 @@ jobs:
 
       - name: Release
         run: |
-          # Fetch all most recent tags
+          # Fetch most recent tags
           git fetch --prune --unshallow --tags
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
           cd nms_stack
@@ -109,3 +112,8 @@ jobs:
           else
           echo 'IMAGES NOT READY; ABORTING RELEASE'
           fi
+  on-dependency-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - run: echo 'The triggering workflow failed since the CI jobs failed.'
