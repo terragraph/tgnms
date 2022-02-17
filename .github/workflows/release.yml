@@ -94,7 +94,7 @@ jobs:
           ln -s ${DATED_FILE} ${SYMLINK}
           echo "Check if all required images have been created:"
 
-          # TODO REMOVE THE NONFATAL IMAGE CHECK BEFORE RELEASE
+          # TODO REMOVE THE NONFATAL IMAGE CHECK BEFORE  RELEASE
           if ./nms check-images --nonfatal-image-check
           then
           echo 'IMAGES READY; STARTING RELEASE'
