@@ -60,8 +60,8 @@ jobs:
       - name: Release
         run: |
           echo "sanity check"
-          git fetch --all --prune
-          git describe --tags
+          git fetch --prune --unshallow --tags
+          # git describe --tags
           git tag -l
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
           cd nms_stack
