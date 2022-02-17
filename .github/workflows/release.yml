@@ -4,16 +4,17 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-  push:
-    branches:
-    - main
-    - 'releases/**'
-  pull_request:
-    branches:
-    - main
-    - 'releases/**'
-  schedule:
-    - cron: "0 0 * * *"
+    branches: [main, 'releases/**']
+  # push:
+  #   branches:
+  #   - main
+  #   - 'releases/**'
+  # pull_request:
+  #   branches:
+  #   - main
+  #   - 'releases/**'
+  # schedule:
+  #   - cron: "0 0 * * *"
 
 jobs:
   build:
