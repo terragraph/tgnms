@@ -50,6 +50,9 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+      - name: Fetch all tags
+        run: |
+          git fetch --prune --unshallow --tags
       # TODO works but it takes a long time so commenting out for now.
       # - name: MSA Tglib main
       #   if: github.ref == 'refs/heads/main'
