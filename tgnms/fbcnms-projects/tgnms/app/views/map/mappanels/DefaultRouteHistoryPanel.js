@@ -98,10 +98,7 @@ export default function DefaultRouteHistoryPanel({
   const [selectedRoute, setSelectedRoute] = React.useState(null);
   const [totalChanges, setTotalChanges] = React.useState(-1);
 
-  const node = React.useMemo(() => nodeMap[routesRef.current?.node ?? ''], [
-    nodeMap,
-    routesRef,
-  ]);
+  const node = nodeMap[routesRef.current?.node ?? ''];
   const siteNodes = React.useMemo(() => siteToNodesMap[node?.site_name] ?? [], [
     node,
     siteToNodesMap,
@@ -260,15 +257,17 @@ export default function DefaultRouteHistoryPanel({
     return new Date(selectedDate).toISOString().split('T')[0];
   }, [selectedDate]);
 
-  if (!node) {
-    return null;
-  }
-
   return (
-    <Slide {...SlideProps} in={!getIsHidden(PANELS.DEFAULT_ROUTES)}>
+    <Slide
+      {...SlideProps}
+      unmountOnExit
+      in={!getIsHidden(PANELS.DEFAULT_ROUTES)}>
       <CustomAccordion
         title="Default Routes"
         titleIcon={<TimelineIcon classes={{root: classes.iconCentered}} />}
+        expanded={getIsOpen(PANELS.DEFAULT_ROUTES)}
+        onChange={togglePanel}
+        onClose={handleClose}
         details={
           <Grid container direction="column" spacing={2} wrap="nowrap">
             <Grid item xs={12}>
@@ -377,9 +376,6 @@ export default function DefaultRouteHistoryPanel({
             )}
           </Grid>
         }
-        expanded={getIsOpen(PANELS.DEFAULT_ROUTES)}
-        onChange={togglePanel}
-        onClose={handleClose}
       />
     </Slide>
   );
