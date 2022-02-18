@@ -6,4 +6,3 @@ requests==2.26.0
 urllib3==1.26.6
 pex==2.1.21
 wheel==0.36.2
-markupsafe==2.0.1
