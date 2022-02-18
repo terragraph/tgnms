@@ -1,10 +1,15 @@
 name: RELEASE
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: ['releases/**']
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
+  # workflow_run:
+  #   workflows: [CI]
+  #   types: [completed]
+  #   branches: ['releases/**']
 
 jobs:
   build:
@@ -17,7 +22,7 @@ jobs:
       DOCKER_REGISTRY: ghcr.io
       DOCKER_USERNAME: ${{ github.actor }}
       DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB_BRANCH: ${{ github.ref }}
+      GITHUB_BRANCH: ${{ inputs.branch }}
       GITHUB_USER: ${{ github.actor }}
       GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -49,7 +54,6 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "$GIT_BRANCH"
 
       - name: Release
         run: |
