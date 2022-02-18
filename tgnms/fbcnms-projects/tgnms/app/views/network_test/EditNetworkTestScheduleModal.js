@@ -29,6 +29,9 @@ const useStyles = makeStyles(theme => ({
   editIcon: {
     marginRight: theme.spacing(),
   },
+  editText: {
+    textTransform: 'uppercase',
+  },
 }));
 
 type Props = {
@@ -70,7 +73,8 @@ export default function EditNetworkTestScheduleModal(props: Props) {
     <SchedulerModal
       buttonTitle={
         <>
-          <EditIcon className={classes.editIcon} /> Edit
+          <EditIcon className={classes.editIcon} />{' '}
+          <span className={classes.editText}>edit</span>
         </>
       }
       modalTitle="Edit Network Test Schedule"
