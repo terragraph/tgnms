@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Print the input name to STDOUT
-        run: echo The username is ${{ inputs.username }}
+        run: echo The username is ${{ github.event.inputs.username }}
 # on:
 #   workflow_call:
 #     inputs:

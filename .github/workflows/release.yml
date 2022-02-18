@@ -1,15 +1,11 @@
 name: RELEASE
 
-on:
-  workflow_call:
-    inputs:
-      branch:
-        required: true
-        type: string
-  # workflow_run:
-  #   workflows: [CI]
-  #   types: [completed]
-  #   branches: ['releases/**']
+# UNCOMMENTED for now to speed dev
+# on:
+#   workflow_run:
+#     workflows: [CI]
+#     types: [completed]
+#     branches: [main, 'releases/**']
 
 jobs:
   build:
