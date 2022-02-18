@@ -154,6 +154,12 @@ jobs:
     runs-on: ubuntu-latest
     if: success()
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Switch to Current Branch
+        run: git checkout ${{ env.BRANCH }}
+
       - name: Trigger RELEASE JOB
         uses: ./.github/workflows/release.yml
         with:
