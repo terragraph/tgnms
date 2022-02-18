@@ -18,18 +18,18 @@ jobs:
         python-version: [3.8.12]
     runs-on: ubuntu-latest
     # if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    env:
+    # env:
       # DOCKER_REGISTRY: ghcr.io
       # DOCKER_USERNAME: ${{ github.actor }}
       # DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB_BRANCH: ${{ inputs.branch }}
+      # GITHUB_BRANCH: ${{ inputs.branch }}
       # GITHUB_USER: ${{ github.actor }}
       # GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: echo
         run: |
-          echo "$GITHUB_BRANCH"
+          echo Branch is ${{ inputs.branch }}
       # - name: Checkout
       #   uses: actions/checkout@v2
 
