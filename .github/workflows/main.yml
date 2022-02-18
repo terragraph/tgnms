@@ -151,7 +151,7 @@ jobs:
       #     python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
       #     python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
 
-  succeeded:
+  release:
     needs: build
     runs-on: ubuntu-latest
     if: success()
@@ -167,7 +167,7 @@ jobs:
           password: ${{ env.DOCKER_PASSWORD }}
 
       - name: Switch to Current Branch
-        run: git checkout ${{ env.BRANCH }}
+        run: git checkout ${{ env.GIT_BRANCH }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
