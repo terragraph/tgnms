@@ -153,16 +153,15 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: success()
-    uses: ./.github/workflows/action.yml
-    with:
-      username: "${{ env.GIT_BRANCH }}"
-    # steps:
-    # # DO we need to check out?
-    #   - name: Checkout
-    #     uses: actions/checkout@v2
+    steps:
+    # DO we need to check
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    #   - name: Switch to Current Branch
-    #     run: git checkout ${{ env.BRANCH }}
+      - name: Switch to Current Branch
+        run: git checkout ${{ env.BRANCH }}
 
-      # - name: Trigger RELEASE JOB
-      #   uses: ./.github/workflows/release
+      - name: Trigger RELEASE JOB
+        uses: ./.github/workflows/action.yml@main
+        with:
+          username: ${{ env.GIT_BRANCH }}
