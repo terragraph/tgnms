@@ -153,9 +153,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: success()
-    uses: ./.github/workflows/release
+    uses: ./.github/workflows/release/action.yml
     with:
-          username: "${{ env.GIT_BRANCH }}"
+      username: "${{ env.GIT_BRANCH }}"
     # steps:
     # # DO we need to check out?
     #   - name: Checkout
