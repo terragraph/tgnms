@@ -190,7 +190,7 @@ jobs:
         run: |
           # Fetch most recent tags
           git fetch --prune --unshallow --tags
-          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b ${{ env.GITHUB_BRANCH }})
+          BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b $GITHUB_BRANCH)
           cd nms_stack
           ANSIBLE_VERSION=2.9.9
           OUTPUT_FILE="nms.pex"
@@ -230,7 +230,7 @@ jobs:
           then
           echo 'IMAGES READY; STARTING RELEASE'
           # tag this build on github
-          python ../jenkins_scripts/github_release.py tag -b ${{ env.GITHUB_BRANCH }}
+          python ../jenkins_scripts/github_release.py tag -b $GITHUB_BRANCH
           # we pause for 10 seconds to let github catch up before we release.
           sleep 30
           # release command expects the GITHUB_USER and GITHUB_ACCESS_TOKEN env to be defined
