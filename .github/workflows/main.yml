@@ -151,17 +151,20 @@ jobs:
       #     python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
   succeeded:
     needs: build
-    runs-on: ubuntu-latest
-    if: success()
-    steps:
-    # DO we need to check
-      - name: Checkout
-        uses: actions/checkout@v2
+    uses: ./.github/workflows/release
+    with:
+      username: ${{ env.GIT_BRANCH }}
+    # runs-on: ubuntu-latest
+    # if: success()
+    # steps:
+    # # DO we need to check
+    #   - name: Checkout
+    #     uses: actions/checkout@v2
 
-      - name: Switch to Current Branch
-        run: git checkout ${{ env.BRANCH }}
+    #   - name: Switch to Current Branch
+    #     run: git checkout ${{ env.BRANCH }}
 
-      - name: Trigger RELEASE JOB
-        uses: ./.github/workflows/release
-        with:
-          username: ${{ env.GIT_BRANCH }}
+    #   - name: Trigger RELEASE JOB
+    #     uses: ./.github/workflows/release
+    #     with:
+    #       username: ${{ env.GIT_BRANCH }}
