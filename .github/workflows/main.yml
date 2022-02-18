@@ -161,6 +161,6 @@ jobs:
         run: git checkout ${{ env.BRANCH }}
 
       - name: Trigger RELEASE JOB
-        uses: ./.github/workflows/release.yml
+        uses: ./.github/workflows/release
         with:
           branch: ${{ env.GIT_BRANCH }}
