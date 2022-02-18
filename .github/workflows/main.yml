@@ -14,7 +14,7 @@ env:
   DOCKER_REGISTRY: ghcr.io
   DOCKER_USERNAME: ${{ github.actor }}
   DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-  GIT_BRANCH: ${GITHUB_REF##*/}
+  GIT_BRANCH: ${{ github.ref }}
   GIT_SHA: ${GITHUB_SHA}
   # GITHUB_BRANCH: ${{ github.ref }}
   GITHUB_USER: ${{ github.actor }}
