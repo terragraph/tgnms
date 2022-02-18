@@ -5,10 +5,10 @@ on:
     branches:
     - main
     - 'releases/**'
-  pull_request:
-    branches:
-    - main
-    - 'releases/**'
+  # pull_request:
+  #   branches:
+  #   - main
+  #   - 'releases/**'
 
 env:
   DOCKER_REGISTRY: ghcr.io
@@ -20,7 +20,7 @@ env:
   GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
+  publish_images:
     strategy:
       matrix:
         python-version: [3.8.12]
@@ -155,7 +155,7 @@ jobs:
       #     python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
 
   release:
-    needs: build
+    needs: publish_images
     runs-on: ubuntu-latest
     if: success()
     steps:
@@ -182,6 +182,7 @@ jobs:
           python -m pip install --upgrade pip
           cd jenkins_scripts
           pip install -r requirements.txt
+
       - name: Set environment variables
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
@@ -229,8 +230,6 @@ jobs:
           echo "Check if all required images have been created:"
 
           # TODO REMOVE THE NONFATAL IMAGE CHECK BEFORE RELEASE
-          # if ./nms check-images --nonfatal-image-check
-          # then
           echo 'IMAGES READY; STARTING RELEASE'
           # tag this build on github
           python ../jenkins_scripts/github_release.py tag -b $GIT_BRANCH
@@ -238,6 +237,3 @@ jobs:
           sleep 30
           # release command expects the GITHUB_USER and GITHUB_ACCESS_TOKEN env to be defined
           python ../jenkins_scripts/github_release.py release -a $(realpath nms) -n nms
-          # else
-          # echo 'IMAGES NOT READY; ABORTING RELEASE'
-          # fi
