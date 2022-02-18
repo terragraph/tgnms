@@ -50,9 +50,6 @@ jobs:
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-      - name: Failure
-        run: |
-          exit 1
       - name: Fetch all tags
         run: |
           git fetch --prune --unshallow --tags
@@ -157,24 +154,7 @@ jobs:
     runs-on: ubuntu-latest
     if: success()
     steps:
-      - name: On failed build
-        if: ${{ failure() }}
-        run: |
-          echo "FAILED"
-      - name: On successful build
-        if: ${{ success() }}
-        run: |
-          echo "SUCCESS"
-  failed:
-    needs: build
-    runs-on: ubuntu-latest
-    if: failure()
-    steps:
-      - name: On failed build
-        if: ${{ failure() }}
-        run: |
-          echo "FAILED"
-      - name: On successful build
-        if: ${{ success() }}
-        run: |
-          echo "SUCCESS"
+      - name: Trigger RELEASE JOB
+        uses: ./.github/workflows/release.yml
+        with:
+          branch: ${{ env.GIT_BRANCH }}
