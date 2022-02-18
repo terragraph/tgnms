@@ -39,8 +39,6 @@ def get_commit_info() -> Dict[str, str]:
 
 
 def build(args: argparse.Namespace) -> None:
-    args.username = "vietcgi"  # TODO REMOVE
-
     command = ["docker", "build", "-f", f"{args.dir}/Dockerfile"]
     release = get_release(args.branch, args.stage)
     if re.search(r"main", args.branch) and args.stage:
@@ -76,7 +74,6 @@ def build(args: argparse.Namespace) -> None:
 
 
 def push(args: argparse.Namespace) -> None:
-    args.username = "vietcgi"  # TODO REMOVE
     command = [
         "echo",
         os.environ["DOCKER_PASSWORD"],
