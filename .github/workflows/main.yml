@@ -53,7 +53,7 @@ jobs:
       - name: Fetch all tags
         run: |
           git fetch --prune --unshallow --tags
-          - name: MSA Tglib main
+      - name: MSA Tglib main
         if: github.ref == 'refs/heads/main'
         run: |
           python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
