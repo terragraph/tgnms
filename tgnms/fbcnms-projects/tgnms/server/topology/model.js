@@ -184,7 +184,6 @@ export function onStatusDumpSuccess(
     const report = (data.statusReports[mac]: any);
     delete report.lastAckGpsTimestamp;
     delete report.sentGpsTimestamp;
-    delete report.timeStamp;
   });
 
   if (data.version) {
