@@ -163,4 +163,4 @@ jobs:
       - name: Trigger RELEASE JOB
         uses: ./.github/workflows/release
         with:
-          branch: ${{ env.GIT_BRANCH }}
+          username: ${{ env.GIT_BRANCH }}
