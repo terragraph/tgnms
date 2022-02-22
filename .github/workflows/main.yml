@@ -12,7 +12,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
   GIT_BRANCH: ${{ github.ref }}
   GIT_SHA: ${GITHUB_SHA}
-  GITHUB_USER: ${{ github.actor }}
+  GITHUB_USER: ${{ github.repository_owner }}
   GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
