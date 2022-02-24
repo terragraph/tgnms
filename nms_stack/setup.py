@@ -65,6 +65,7 @@ setup(
         "jinja2==2.11.1",
         "pyyaml==5.3",
         "pygments==2.5.2",
+        "markupsafe==2.0.1",
         "netaddr==0.7.19",
     ],
     test_suite=ptr_params["test_suite"],
