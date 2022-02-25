@@ -123,7 +123,7 @@ docker_internal_network: fd00:420:69::/48
 swarm_manager_port: 2377
 
 # TG Docker Registry
-docker_registry_url: https://ghcr.io/terragraph/tgnms
+docker_registry_url: https://ghcr.io/terragraph
 # The login information here must be set in order to pull the Docker images from
 # the registry
 docker_registry_username:

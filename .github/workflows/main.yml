@@ -23,9 +23,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-#      - name: Fake task
-#        run: |
-#          echo Hello World
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -226,7 +223,6 @@ jobs:
           echo "Check if all required images have been created:"
           if ./nms check-images --nonfatal-image-check
           then
-          # TODO REMOVE THE NONFATAL IMAGE CHECK BEFORE RELEASE
           echo 'IMAGES READY; STARTING RELEASE'
           # tag this build on github
           python ../jenkins_scripts/github_release.py tag -b $GIT_BRANCH

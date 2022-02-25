@@ -10,7 +10,6 @@ import click
 import requests
 from shared import get_next_tag, read, get_release
 
-# API_URL = "https://api.github.com/repos/terragraph/tgnms"
 _API_URL = "https://api.github.com/repos/{}/tgnms"
 
 
