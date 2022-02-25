@@ -123,7 +123,7 @@ docker_internal_network: fd00:420:69::/48
 swarm_manager_port: 2377
 
 # TG Docker Registry
-docker_registry_url: https://ghcr.io/terragraph/tgnms
+docker_registry_url: https://ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/tgnms
 # The login information here must be set in order to pull the Docker images from
 # the registry
 docker_registry_username:
@@ -214,21 +214,21 @@ udp_pinger_path: "{{ terragraph_docker_path }}/udp_pinger"
 #     ghcr.io/terragraph/tgnms/tg-alarms:v21.12.01
 #     ghcr.io/terragraph/tgnms/tg-alarms:stable
 #     ghcr.io/terragraph/tgnms/tg-alarms
-alarms_image: terragraph/tgnms/tg-alarms
-e2e_image: ghcr.io/terragraph/tgnms/e2e-controller:latest
-efk_fluentd_image: ghcr.io/terragraph/tgnms/fluentd
-kafka_image: ghcr.io/terragraph/tgnms/kafka
-msa_analytics_image: ghcr.io/terragraph/tgnms/analytics
-msa_crashlog_analysis_service_image: ghcr.io/terragraph/tgnms/crashlog_analysis_service
-msa_default_routes_service_image: ghcr.io/terragraph/tgnms/default_routes_service
-msa_network_health_service_image: ghcr.io/terragraph/tgnms/network_health_service
-msa_network_test_image: ghcr.io/terragraph/tgnms/network_test
-msa_scan_service_image: ghcr.io/terragraph/tgnms/scan_service
-msa_topology_service_image: ghcr.io/terragraph/tgnms/topology_service
-msa_weather_service_image: ghcr.io/terragraph/tgnms/weather_service
-nms_image: ghcr.io/terragraph/tgnms/nmsv2
-nginx_image: ghcr.io/terragraph/tgnms/nms_nginx
-query_service_image: ghcr.io/terragraph/tgnms/cpp_backends
-udp_pinger_image: ghcr.io/terragraph/tgnms/cpp_backends
-v6up_image: ghcr.io/terragraph/tgnms/docker_v6up
-nms_docs_image: ghcr.io/terragraph/tgnms/nms_docs:latest
+alarms_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/tg-alarms
+e2e_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/e2e-controller:latest
+efk_fluentd_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/fluentd
+kafka_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/kafka
+msa_analytics_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/analytics
+msa_crashlog_analysis_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/crashlog_analysis_service
+msa_default_routes_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/default_routes_service
+msa_network_health_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/network_health_service
+msa_network_test_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/network_test
+msa_scan_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/scan_service
+msa_topology_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/topology_service
+msa_weather_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/weather_service
+nms_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/nmsv2
+nginx_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/nms_nginx
+query_service_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/cpp_backends
+udp_pinger_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/cpp_backends
+v6up_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/docker_v6up
+nms_docs_image: ghcr.io/{{ lookup('env', 'GITHUB_USER') | default('terragraph', True) }}/nms_docs:latest
