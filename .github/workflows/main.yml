@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_REGISTRY: ghcr.io
-  DOCKER_USERNAME: ${{ github.actor }}
+  DOCKER_USERNAME: ${{ github.repository_owner }}
   DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
   GIT_BRANCH: ${{ github.ref }}
   GIT_SHA: ${GITHUB_SHA}
