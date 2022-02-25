@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_REGISTRY: ghcr.io
-  DOCKER_USERNAME: ${{ github.repository_owner }}
+  DOCKER_USERNAME: ${{ github.actor }}
   DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
   GIT_BRANCH: ${{ github.ref }}
   GIT_SHA: ${GITHUB_SHA}
@@ -55,7 +55,7 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
           python jenkins_scripts/registry.py build tglib --dir tglib --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push tglib --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push tglib --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
       - name: MSA Tglib Release
         if: ${{ startsWith(github.ref, 'refs/heads/releases') }}
         run: |
