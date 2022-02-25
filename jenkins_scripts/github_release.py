@@ -10,7 +10,7 @@ import click
 import requests
 from shared import get_next_tag, read, get_release
 
-API_URL = "https://api.github.com/repos/terragraph/tgnms"
+_API_URL = "https://api.github.com/repos/{}/tgnms"
 
 
 @click.group(invoke_without_command=True)
@@ -97,6 +97,7 @@ def release(ctx, tag, asset, name, draft, force):
         return exit(1)
 
     github_user = os.environ.get("GITHUB_USER")
+    API_URL = _API_URL.format(github_user)  # TODO REMOVE, only needed for testing.
     github_access_token = os.environ.get("GITHUB_ACCESS_TOKEN")
     if github_access_token is None:
         raise RuntimeError("GITHUB_ACCESS_TOKEN environment variable is required")
@@ -169,7 +170,7 @@ def release(ctx, tag, asset, name, draft, force):
     upload_headers.update({"Content-Type": "application/octet-stream"})
     click.echo(f"Uploading asset: {name} to release {tag}")
     with open(asset, "rb") as file:
-        url = f"https://uploads.github.com/repos/terragraph/tgnms/releases/{release_id}/assets?name={name}&label={name}"
+        url = f"https://uploads.github.com/repos/{github_user}/tgnms/releases/{release_id}/assets?name={name}&label={name}"
         r = requests.post(
             url,
             headers=upload_headers,

@@ -123,7 +123,7 @@ docker_internal_network: fd00:420:69::/48
 swarm_manager_port: 2377
 
 # TG Docker Registry
-docker_registry_url: https://secure.cxl-terragraph.com:443/v2
+docker_registry_url: https://ghcr.io/terragraph
 # The login information here must be set in order to pull the Docker images from
 # the registry
 docker_registry_username:
@@ -211,24 +211,25 @@ udp_pinger_path: "{{ terragraph_docker_path }}/udp_pinger"
 # an image you are running. If you don't specify the version, the same version as
 # the installer will be used (if available).
 #   Example valid inputs:
-#     secure.cxl-terragraph.com:443/tg-alarms:v21.12.01
-#     secure.cxl-terragraph.com:443/tg-alarms:stable
-#     secure.cxl-terragraph.com:443/tg-alarms
-alarms_image: secure.cxl-terragraph.com:443/tg-alarms
-e2e_image: secure.cxl-terragraph.com:443/e2e-controller:latest
-efk_fluentd_image: secure.cxl-terragraph.com:443/fluentd
-kafka_image: secure.cxl-terragraph.com:443/kafka
-msa_analytics_image: secure.cxl-terragraph.com:443/analytics
-msa_crashlog_analysis_service_image: secure.cxl-terragraph.com:443/crashlog_analysis_service
-msa_default_routes_service_image: secure.cxl-terragraph.com:443/default_routes_service
-msa_network_health_service_image: secure.cxl-terragraph.com:443/network_health_service
-msa_network_test_image: secure.cxl-terragraph.com:443/network_test
-msa_scan_service_image: secure.cxl-terragraph.com:443/scan_service
-msa_topology_service_image: secure.cxl-terragraph.com:443/topology_service
-msa_weather_service_image: secure.cxl-terragraph.com:443/weather_service
-nms_image: secure.cxl-terragraph.com:443/nmsv2
-nginx_image: secure.cxl-terragraph.com:443/nms_nginx
-query_service_image: secure.cxl-terragraph.com:443/cpp_backends
-udp_pinger_image: secure.cxl-terragraph.com:443/cpp_backends
-v6up_image: secure.cxl-terragraph.com:443/docker_v6up
-nms_docs_image: secure.cxl-terragraph.com:443/nms_docs:latest
+#     ghcr.io/terragraph/tgnms/tg-alarms:v21.12.01
+#     ghcr.io/terragraph/tgnms/tg-alarms:stable
+#     ghcr.io/terragraph/tgnms/tg-alarms
+
+alarms_image: ghcr.io/terragraph/tg-alarms
+e2e_image: ghcr.io/terragraph/e2e-controller:latest
+efk_fluentd_image: ghcr.io/terragraph/fluentd
+kafka_image: ghcr.io/terragraph/kafka
+msa_analytics_image: ghcr.io/terragraph/analytics
+msa_crashlog_analysis_service_image: ghcr.io/terragraph/crashlog_analysis_service
+msa_default_routes_service_image: ghcr.io/terragraph/default_routes_service
+msa_network_health_service_image: ghcr.io/terragraph/network_health_service
+msa_network_test_image: ghcr.io/terragraph/network_test
+msa_scan_service_image: ghcr.io/terragraph/scan_service
+msa_topology_service_image: ghcr.io/terragraph/topology_service
+msa_weather_service_image: ghcr.io/terragraph/weather_service
+nms_image: ghcr.io/terragraph/nmsv2
+nginx_image: ghcr.io/terragraph/nms_nginx
+query_service_image: ghcr.io/terragraph/cpp_backends
+udp_pinger_image: ghcr.io/terragraph/cpp_backends
+v6up_image: ghcr.io/terragraph/docker_v6up
+nms_docs_image: ghcr.io/terragraph/nms_docs:latest
