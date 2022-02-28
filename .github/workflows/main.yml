@@ -184,7 +184,7 @@ jobs:
 
       - name: Release
         run: |
-          # Fetch most recent tags
+          ## Fetch most recent tags
           git fetch --prune --unshallow --tags
           echo $GIT_BRANCH
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b $GIT_BRANCH)
