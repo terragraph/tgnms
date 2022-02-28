@@ -146,7 +146,7 @@ jobs:
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
 
-    publish_images:
+    publish_images_terragraph:
     strategy:
       matrix:
         python-version: [3.8.12]
