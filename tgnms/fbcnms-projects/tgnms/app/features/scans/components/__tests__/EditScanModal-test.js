@@ -44,7 +44,7 @@ test('renders without crashing', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
+  expect(getByText(/edit/i)).toBeInTheDocument();
 });
 
 test('button click opens modal', () => {
@@ -55,8 +55,8 @@ test('button click opens modal', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
   expect(getByText('Edit Scan Schedule')).toBeInTheDocument();
 });
 
@@ -68,8 +68,8 @@ test('Save Changes calls edit api', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
   expect(getByText('Edit Scan Schedule')).toBeInTheDocument();
   fireEvent.click(getByText('Save Changes'));
   expect(editScanScheduleMock).toHaveBeenCalled();
@@ -83,8 +83,8 @@ test('no adhoc should be available', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
   expect(getByText('Edit Scan Schedule')).toBeInTheDocument();
   expect(queryByText('now')).not.toBeInTheDocument();
 });
@@ -110,8 +110,8 @@ test('can select a network to run scan on', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
 
   const autocomplete = within(getByTestId('autocomplete')).getByRole('textbox');
 

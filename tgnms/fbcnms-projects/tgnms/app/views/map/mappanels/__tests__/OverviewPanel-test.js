@@ -15,6 +15,14 @@ import {
 } from '@fbcnms/tg-nms/app/tests/testHelpers';
 import {render} from '@testing-library/react';
 
+jest.mock('@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil');
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil'),
+    'queryLatest',
+  )
+  .mockResolvedValue({});
+
 describe('OverviewPanel', () => {
   beforeEach(() => {
     initWindowConfig();

@@ -20,6 +20,14 @@ import {TOPOLOGY_ELEMENT} from '@fbcnms/tg-nms/app/constants/NetworkConstants';
 import {buildTopologyMaps} from '@fbcnms/tg-nms/app/helpers/TopologyHelpers';
 import {render} from '@testing-library/react';
 
+jest.mock('@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil');
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil'),
+    'queryLatest',
+  )
+  .mockResolvedValue({});
+
 beforeEach(() => {
   initWindowConfig();
 });

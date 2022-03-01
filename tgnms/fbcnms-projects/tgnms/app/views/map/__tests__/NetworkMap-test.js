@@ -31,6 +31,14 @@ beforeEach(() => {
   initWindowConfig();
 });
 
+jest.mock('@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil');
+jest
+  .spyOn(
+    require('@fbcnms/tg-nms/app/apiutils/PrometheusAPIUtil'),
+    'queryLatest',
+  )
+  .mockResolvedValue({});
+
 jest.mock('axios', () => {
   const ax = () => ({data: null});
   ax.get = ax;

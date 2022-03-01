@@ -93,6 +93,8 @@ type Props = {
   onSetHideDeprecated: boolean => void,
 };
 
+const NETWORK_OUTAGE_WARNING = 'This may cause a momentary network outage.';
+
 export default function ConfigSidebar(props: Props) {
   const {
     useRawJsonEditor,
@@ -260,7 +262,10 @@ export default function ConfigSidebar(props: Props) {
       data,
       {
         title: 'Optimize polarity allocation',
-        desc: 'Do you want to re-assign polarity values across the network?',
+        desc:
+          'Do you want to re-assign polarity values across the network?' +
+          ' ' +
+          NETWORK_OUTAGE_WARNING,
         checkbox: 'Clear user-assigned polarities',
         processInput: (data, value) => {
           return {...data, clearUserPolarityConfig: !!value};
@@ -285,7 +290,10 @@ export default function ConfigSidebar(props: Props) {
       data,
       {
         title: 'Optimize Golay Allocation',
-        desc: 'Do you want to re-assign Golay values across the network?',
+        desc:
+          'Do you want to re-assign Golay values across the network?' +
+          ' ' +
+          NETWORK_OUTAGE_WARNING,
         checkbox: 'Clear user-assigned Golays',
         processInput: (data, value) => {
           return {...data, clearUserConfig: !!value};
@@ -311,7 +319,9 @@ export default function ConfigSidebar(props: Props) {
       {
         title: 'Optimize Control Superframe Allocation',
         desc:
-          'Do you want to re-assign control superframe values across the network?',
+          'Do you want to re-assign control superframe values across the network?' +
+          ' ' +
+          NETWORK_OUTAGE_WARNING,
         checkbox: 'Clear user-assigned values',
         processInput: (data, value) => {
           return {...data, clearUserConfig: !!value};
@@ -338,7 +348,10 @@ export default function ConfigSidebar(props: Props) {
       data,
       {
         title: 'Optimize Channel Allocation',
-        desc: 'Do you want to re-assign channel values across the network?',
+        desc:
+          'Do you want to re-assign channel values across the network?' +
+          ' ' +
+          NETWORK_OUTAGE_WARNING,
         checkbox: 'Clear user-assigned channels',
         processInput: (data, value) => {
           return {...data, clearUserChannelConfig: !!value};

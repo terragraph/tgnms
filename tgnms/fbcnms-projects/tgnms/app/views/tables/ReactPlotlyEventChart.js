@@ -12,6 +12,8 @@ import {isEqual} from 'lodash';
 // includes scatter, pie, and bar
 import Plotly from 'plotly.js-basic-dist';
 import createPlotlyComponent from 'react-plotly.js/factory';
+import {LINK_STATE} from '@fbcnms/tg-nms/shared/types/Stats';
+
 const Plot = createPlotlyComponent(Plotly);
 
 type Props = {|
@@ -111,12 +113,6 @@ export default class ReactPlotlyEventChart extends React.Component<
       },
     };
 
-    // see Stats.thrift
-    const LINK_STATE = {
-      LINK_UP: 1,
-      LINK_UP_DATADOWN: 2,
-      LINK_UP_AVAIL_UNKNOWN: 3,
-    };
     for (const event of this.props.events) {
       let trace = {};
       if (event.linkState === LINK_STATE.LINK_UP_DATADOWN) {

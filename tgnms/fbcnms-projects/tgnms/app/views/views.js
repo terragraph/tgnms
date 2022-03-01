@@ -12,6 +12,7 @@ import BuildIcon from '@material-ui/icons/Build';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import GetAppIcon from '@material-ui/icons/GetApp';
+import HealthDashboard from '@fbcnms/tg-nms/app/views/dashboards/HealthDashboard';
 import MapIcon from '@material-ui/icons/Map';
 import NetworkConfig from '@fbcnms/tg-nms/app/views/config/NetworkConfig';
 import NetworkDashboards from '@fbcnms/tg-nms/app/views/dashboards/NetworkDashboards';
@@ -20,12 +21,14 @@ import NetworkTables from '@fbcnms/tg-nms/app/views/tables/NetworkTables';
 import NetworkUpgrade from '@fbcnms/tg-nms/app/views/upgrade/NetworkUpgrade';
 import NmsAlarms from '@fbcnms/tg-nms/app/views/alarms/NmsAlarms';
 import NodeSysdumps from '@fbcnms/tg-nms/app/views/sysdumps/NodeSysdumps';
+import PublicIcon from '@material-ui/icons/Public';
 import TableChartIcon from '@material-ui/icons/TableChart';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import Troubleshooting from '@fbcnms/tg-nms/app/views/troubleshooting/Troubleshooting';
 import {
   ALARMS_PATH,
   DASHBOARDS_PATH,
+  HEALTH_DASHBOARD_PATH,
   MAP_PATH,
   NETWORK_CONFIG_PATH,
   SYSDUMPS_PATH,
@@ -48,6 +51,13 @@ export type ViewType = {
 };
 
 export const NETWORK_VIEWS: Array<ViewType> = [
+  {
+    name: 'Health Dashboard',
+    icon: <PublicIcon />,
+    path: HEALTH_DASHBOARD_PATH,
+    component: HealthDashboard,
+    hideCondition: () => true,
+  },
   {
     name: 'Map',
     icon: <MapIcon />,

@@ -41,6 +41,13 @@
     group: docker
     mode: 0755
 
+- name: create audit log pos file
+  file:
+    path: "{{ audit_logs_gfs_path }}/audit.log.pos"
+    owner: "100" # Must be owned by uid 100 (fluentd) in fluentd container
+    group: docker
+    mode: 0666
+
 - name: copy compose
   template:
     src: "{{ item.src }}"

@@ -13,7 +13,7 @@ const {
 } = require('../config');
 import apiServiceClient from '../apiservice/apiServiceClient';
 import {HAPeerType} from '@fbcnms/tg-nms/shared/dto/NetworkState';
-import {LinkStateType} from '../../thrift/gen-nodejs/Stats_types';
+import {LINK_STATE} from '@fbcnms/tg-nms/shared/types/Stats';
 import {approxDistance, computeAngle} from './helpers';
 import {determineActiveController} from '../high_availability/model';
 import {getLinkEvents, getNetworkList, updateOnlineWhitelist} from './network';
@@ -184,7 +184,6 @@ export function onStatusDumpSuccess(
     const report = (data.statusReports[mac]: any);
     delete report.lastAckGpsTimestamp;
     delete report.sentGpsTimestamp;
-    delete report.timeStamp;
   });
 
   if (data.version) {
@@ -629,7 +628,7 @@ export async function fetchNetworkHealthFromDb(
       const endTimeStr = moment.unix(endTime).format('LTS');
       eventsByLink[linkName].events.push({
         description: `${timeWindow} min between ${startTimeStr} <-> ${endTimeStr}`,
-        linkState: LinkStateType[eventType] || LinkStateType['LINK_UP'],
+        linkState: LINK_STATE[eventType] || LINK_STATE['LINK_UP'],
         startTime,
         endTime,
       });
@@ -642,7 +641,7 @@ export async function fetchNetworkHealthFromDb(
       // within the defined window
       let assumedOnlineSeconds = 0;
       if (
-        lastEvent.linkState === LinkStateType['LINK_UP'] &&
+        lastEvent.linkState === LINK_STATE['LINK_UP'] &&
         lastEvent.endTime >= curTs - STATS_ALLOWED_DELAY_SEC
       ) {
         // last end time is within the allowed range
@@ -655,7 +654,7 @@ export async function fetchNetworkHealthFromDb(
         0,
       );
       const dataDownSeconds: number = linkEvents.events
-        .filter(event => event.linkState === LinkStateType['LINK_UP_DATADOWN'])
+        .filter(event => event.linkState === LINK_STATE['LINK_UP_DATADOWN'])
         .reduce(
           (accumulator, {startTime, endTime}) =>
             accumulator + (endTime - startTime),

@@ -39,7 +39,7 @@ test('by default returns configObj', () => {
 describe('makeFeatureFlags', () => {
   test('if env is not specified, isDefaultEnabled should enable/disable the env', () => {
     expect(makeFeatureFlags({})).toMatchObject({
-      SERVICE_AVAILABILITY_ENABLED: false,
+      SERVICE_AVAILABILITY_ENABLED: true,
       NMS_SETTINGS_ENABLED: true,
       WEBSOCKETS_ENABLED: false,
       NMS_BACKUP_ENABLED: false,

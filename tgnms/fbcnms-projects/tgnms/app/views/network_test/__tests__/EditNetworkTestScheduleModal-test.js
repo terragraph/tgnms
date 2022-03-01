@@ -39,7 +39,7 @@ test('renders without crashing', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
+  expect(getByText(/edit/i)).toBeInTheDocument();
 });
 
 test('button click opens modal', () => {
@@ -50,8 +50,8 @@ test('button click opens modal', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
   expect(getByText('Edit Network Test Schedule')).toBeInTheDocument();
 });
 
@@ -63,8 +63,8 @@ test('Save Changes calls edit api', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
   expect(getByText('Edit Network Test Schedule')).toBeInTheDocument();
   fireEvent.click(getByText('Save Changes'));
   expect(editTestScheduleMock).toHaveBeenCalled();
@@ -78,8 +78,8 @@ test('no adhoc should be available', () => {
       </ScheduleModalWrapper>
     </TestApp>,
   );
-  expect(getByText('Edit')).toBeInTheDocument();
-  fireEvent.click(getByText('Edit'));
+  expect(getByText(/edit/i)).toBeInTheDocument();
+  fireEvent.click(getByText(/edit/i));
   expect(getByText('Edit Network Test Schedule')).toBeInTheDocument();
   expect(queryByText('now')).not.toBeInTheDocument();
 });
