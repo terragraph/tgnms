@@ -145,6 +145,7 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
+      - run: true
 
   publish_images_terragraph:
     strategy:
@@ -276,11 +277,12 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+      - run: true
 
   release:
     needs: [publish_images, publish_images_terragraph]
     runs-on: ubuntu-latest
-    if: success()
+    if: ${{ always() && contains(needs.*.result, 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
