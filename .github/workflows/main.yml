@@ -21,7 +21,7 @@ jobs:
       matrix:
         python-version: [3.8.12]
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner != 'terragraph'}}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -145,144 +145,11 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --registry "$DOCKER_REGISTRY"
-      - run: true
-
-  publish_images_terragraph:
-    strategy:
-      matrix:
-        python-version: [3.8.12]
-    runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'terragraph'}}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.DOCKER_REGISTRY }}
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
-      - name: Switch to Current Branch
-        run: git checkout ${{ env.BRANCH }}
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          cd jenkins_scripts
-          pip install -r requirements.txt
-
-      - name: Fetch all tags
-        run: |
-          git fetch --prune --unshallow --tags
-    
-      - name: MSA Tglib main
-        if: github.ref == 'refs/heads/main'
-        run: |
-          python jenkins_scripts/registry.py build tglib --dir tglib --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
-          python jenkins_scripts/registry.py build tglib --dir tglib --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push tglib --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Tglib Release
-        if: ${{ startsWith(github.ref, 'refs/heads/releases') }}
-        run: |
-          python jenkins_scripts/registry.py build tglib --dir tglib --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push tglib --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: Alarms
-        run: |
-          python jenkins_scripts/registry.py build tg-alarms --context alarms --dir alarms --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push tg-alarms --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: EFK Fluentd
-        run: |
-          python jenkins_scripts/registry.py build fluentd --context fluentd --dir fluentd --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push fluentd --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: Kafka Bitnami
-        run: |
-          cat <<EOF > kafka/Dockerfile
-          FROM bitnami/kafka:2.6.0
-
-          COPY jmx_prometheus_javaagent-0.11.0.jar /opt/jmx_exporter/jmx_prometheus_javaagent-0.11.0.jar
-          COPY kafka-2_0_0.yml /opt/jmx_exporter/kafka-2_0_0.yml
-          EOF
-
-          python jenkins_scripts/registry.py build kafka-bitnami --context kafka --dir kafka --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push kafka-bitnami --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: Kafka
-        run: |
-          python jenkins_scripts/registry.py build kafka --context kafka --dir kafka --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push kafka --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Scan Service
-        run: |
-          python jenkins_scripts/registry.py build scan_service --dir scan_service --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push scan_service --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: Network Health Service
-        run: |
-          python jenkins_scripts/registry.py build network_health_service --dir network_health_service --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push network_health_service --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Analytics
-        run: |
-          python jenkins_scripts/registry.py build analytics --dir analytics --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push analytics --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Network Test
-        run: |
-          python jenkins_scripts/registry.py build network_test --dir network_test --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push network_test --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Default Router Service
-        run: |
-          python jenkins_scripts/registry.py build default_routes_service --dir default_routes_service --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push default_routes_service --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Weather Service
-        run: |
-          python jenkins_scripts/registry.py build weather_service --dir weather_service --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push weather_service --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Crash Log Service
-        run: |
-          python jenkins_scripts/registry.py build crashlog_analysis_service --dir crashlog_analysis_service --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push crashlog_analysis_service --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Topology Service
-        run: |
-          python jenkins_scripts/registry.py build topology_service --dir topology_service --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push topology_service --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: NMS v2
-        run: |
-          export COMMIT_HASH=$(git log -1 --pretty=%h)
-          export COMMIT_DATE=$(git log -1 --pretty=%ad)
-          pushd tgnms
-          bash fbcnms-projects/tgnms/scripts/changelog.sh > fbcnms-projects/tgnms/changelog.json
-          popd
-          python jenkins_scripts/registry.py build nmsv2 --build-arg COMMIT_DATE="$COMMIT_DATE" --build-arg COMMIT_HASH="$COMMIT_HASH" --context tgnms --dir tgnms/fbcnms-projects/tgnms --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push nmsv2 --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: NMS Proxy Nginx
-        run: |
-          python jenkins_scripts/registry.py build nms_nginx --context nginx --dir nginx --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push nms_nginx --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: NMS V6up
-        run: |
-          python jenkins_scripts/registry.py build docker_v6up --context v6up --dir v6up --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push docker_v6up --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-
-      - name: C++ backends Main
-        if: github.ref == 'refs/heads/main'
-        run: |
-          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY" --stage builder
-          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push cpp_backends --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: C++ backends release
-        if: github.ref == 'refs/heads/releases'
-        run: |
-          python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
-          python jenkins_scripts/registry.py push cpp_backends --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - run: true
 
   release:
-    needs: [publish_images, publish_images_terragraph]
+    needs: publish_images
     runs-on: ubuntu-latest
-    if: ${{ always() && contains(needs.*.result, 'success') }}
+    if: success()
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -317,8 +184,7 @@ jobs:
 
       - name: Release
         run: |
-          ### Fetch most recent tags
-
+          # Fetch most recent tags
           git fetch --prune --unshallow --tags
           echo $GIT_BRANCH
           BUILD_TAG=$(python jenkins_scripts/github_release.py get-tag -b $GIT_BRANCH)
