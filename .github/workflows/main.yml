@@ -282,7 +282,7 @@ jobs:
   release:
     needs: [publish_images, publish_images_terragraph]
     runs-on: ubuntu-latest
-    if: ${{ always() && contains(needs.*.result, 'success')
+    if: ${{ always() && contains(needs.*.result, 'success') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
