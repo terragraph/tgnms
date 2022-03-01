@@ -278,7 +278,7 @@ jobs:
           python jenkins_scripts/registry.py push cpp_backends --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
 
   release:
-    needs: [publish_images, release_images_terragraph]
+    needs: [publish_images, public_images_terragraph]
     runs-on: ubuntu-latest
     if: success()
     steps:
