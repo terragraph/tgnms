@@ -47,22 +47,37 @@ def build(args: argparse.Namespace) -> None:
     # Tag the image with the release version
     if args.tag:
         logging.info(f"Tagging image with custom tag: {args.tag}")
-        command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{args.tag}"]
+        if os.environ["GITHUB_USER"] == 'kkkkv':
+            command += ["--tag", f"{args.registry}/kkkkv/{args.name}:{args.tag}"]
+        else:
+            command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{args.tag}"]
     else:
         version_tag = get_next_tag(release, printer=logging.info)
         logging.info(f"Tagging image with tag: {version_tag}")
-        command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{release}"]
-        command += [
-            "--tag",
-            f"{args.registry}/{args.username}/{args.name}:{version_tag}",
-        ]
-
-    command += [
-        "--build-arg",
-        f'"TAG={release}"',
-        "--build-arg",
-        f'"BASE_IMAGE={args.registry}/{args.username}/tglib"',
-    ]
+        if os.environ["GITHUB_USER"] == 'kkkkv':
+            command += ["--tag", f"{args.registry}/kkkkv/{args.name}:{release}"]
+            command += [
+                "--tag",
+                f"{args.registry}/kkkkv/{args.name}:{version_tag}",
+            ]
+            command += [
+                "--build-arg",
+                f'"TAG={release}"',
+                "--build-arg",
+                f'"BASE_IMAGE={args.registry}/kkkkv/tglib"',
+            ]
+        else:
+            command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{release}"]
+            command += [
+                "--tag",
+                f"{args.registry}/{args.username}/{args.name}:{version_tag}",
+            ]
+            command += [
+                "--build-arg",
+                f'"TAG={release}"',
+                "--build-arg",
+                f'"BASE_IMAGE={args.registry}/{args.username}/tglib"',
+            ]
 
     for arg in args.build_arg or []:
         command += ["--build-arg", f'"{arg}"']
@@ -87,9 +102,15 @@ def push(args: argparse.Namespace) -> None:
     ]
     run(" ".join(command))
     if args.tag:
-        push_cmd = f"docker push {args.registry}/{args.username}/{args.name}:{args.tag}"
+        if os.environ["GITHUB_USER"] == 'kkkkv':
+            push_cmd = f"docker push {args.registry}/kkkkv/{args.name}:{args.tag}"
+        else:
+            push_cmd = f"docker push {args.registry}/{args.username}/{args.name}:{args.tag}"
     else:
-        push_cmd = f"docker push --all-tags {args.registry}/{args.username}/{args.name}"
+        if os.environ["GITHUB_USER"] == 'kkkkv':
+            push_cmd = f"docker push --all-tags {args.registry}/kkkkv/{args.name}"
+        else:
+            push_cmd = f"docker push --all-tags {args.registry}/{args.username}/{args.name}"
     run(push_cmd)
 
 
