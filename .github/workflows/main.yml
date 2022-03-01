@@ -262,7 +262,7 @@ jobs:
           python jenkins_scripts/registry.py push nms_nginx --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
       - name: NMS V6up
         run: |
-          python jenkins_scripts/registry.py build docker_v6up --context v6up --dir v6up --username "GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py build docker_v6up --context v6up --dir v6up --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push docker_v6up --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
 
       - name: C++ backends Main
@@ -276,8 +276,9 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+
   release:
-    needs: publish_images
+    needs: [publish_images, release_images_terragraph]
     runs-on: ubuntu-latest
     if: success()
     steps:
