@@ -1,0 +1,308 @@
+/*!
+ * Open Sans (https://fonts.google.com/specimen/Open+Sans?selection.family=Open+Sans)
+ * Licensed under Apache License, Version 2.0
+ */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Open Sans Light'), local('OpenSans-Light'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-300.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-300.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 300;
+  src: local('Open Sans Light Italic'), local('OpenSans-LightItalic'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-300italic.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-300italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Open Sans Italic'), local('OpenSans-Italic'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-italic.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Open Sans SemiBold'), local('OpenSans-SemiBold'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-600.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-600.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Open Sans Regular'), local('OpenSans-Regular'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-regular.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 600;
+  src: local('Open Sans SemiBold Italic'), local('OpenSans-SemiBoldItalic'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-600italic.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-600italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-700italic.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-700italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 800;
+  src: local('Open Sans ExtraBold'), local('OpenSans-ExtraBold'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-800.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-800.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Open Sans Bold'), local('OpenSans-Bold'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-700.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-700.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 800;
+  src: local('Open Sans ExtraBold Italic'), local('OpenSans-ExtraBoldItalic'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-800italic.woff2') format('woff2'),
+       url('./fonts/open-sans-v15-greek-ext_latin_greek_latin-ext-800italic.woff') format('woff');
+}
+
+/*!
+ * Adapted from Bootstrap v4.0.0 (https://getbootstrap.com)
+ * Copyright 2011-2018 The Bootstrap Authors
+ * Copyright 2011-2018 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ */
+.container {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  width: 100%;
+  padding: 30px 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+/* Reduce size of Table of Contents */
+#table-of-contents + ol {
+  line-height: 1.2em;
+}
+
+/* Fix padding on elements in Table of Contents in newer Pandoc versions,
+   where list-items are not generated inside <p> blocks. */
+#table-of-contents + ol > li,
+#table-of-contents + ol > li > ol {
+  margin-top: 16px;
+}
+
+/* Reduce list-padding inside tables */
+.container table ul {
+  padding-left: 1.2em;
+}
+
+/* Cover page font styles */
+.cover-page-title {
+  font-weight: bold;
+  font-size: 2.2em;
+}
+.cover-page-subtitle {
+  font-size: 1.6em;
+}
+.cover-page-version {
+  font-weight: 300;
+  font-size: 1em;
+}
+.cover-page-footer {
+  font-weight: bold;
+  font-size: 2em;
+}
+
+/* Chrome hack: always load print-only fonts ("display: none" won't work) */
+@media screen {
+  .cover-page {
+    display: block;
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+/* Print styles */
+@media print {
+  @page {
+    size: a3;
+    margin-left: 0; /* TODO: Chrome bug - needed only when setting :first */
+  }
+  @page :first {
+    /* TODO: Chrome bug - Can't change top/bottom margins without removing
+       bottom margins on every page. A workaround is to set the entire page
+       to "display: inline"... :/ */
+    /* margin: 0; */
+    margin-left: 0;
+    margin-right: 0;
+  }
+  body {
+    min-width: 992px !important;
+  }
+  .container {
+    min-width: 992px !important;
+    font-size: 1.1em;
+  }
+  .cover-page {
+    position: absolute;
+    width: 100% !important;
+    height: 100% !important;
+    top: 0px;
+    left: 0px;
+  }
+  .cover-page-bg {
+    position: absolute;
+    max-height: 100%;
+    bottom: 0px;
+    right: 0px;
+    background-color: transparent !important;
+  }
+  .cover-page-text {
+    position: absolute;
+    left: 0.6in;
+    line-height: 1;
+  }
+  .cover-page-text-top {
+    /* top: 1in; */
+    top: 0.6in;
+  }
+  .cover-page-text-bottom {
+    /* bottom: 0.4in; */
+    bottom: 0;
+  }
+  .no-page-break {
+    page-break-inside: avoid;
+  }
+  h1 {
+    page-break-before: always;
+  }
+  :first-child {
+    page-break-before: avoid;
+  }
+  h2, h3, h4, h5, h6 {
+    page-break-after: avoid; /* TODO doesn't seem to work... */
+  }
+  table {
+    page-break-inside: avoid;
+    page-break-before: avoid; /* TODO doesn't seem to work... */
+  }
+  pre, blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+  pre {
+    white-space: pre-wrap !important;
+  }
+  pre code {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+  }
+  p, h2, h3, h4, h5, h6 {
+    orphans: 3;
+    widows: 3;
+  }
+  .markdown-body table tr {
+    font-size: 0.9em;
+    line-height: 1.4;
+    background-color: transparent !important;
+  }
+}
+
+/* Index page */
+.index-root {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #d5e3fd;
+  background: url('figures/city-bg.png');
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+.index-wrapper {
+  display: flex;
+  width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px 24px 24px;
+  text-align: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #fff;
+  box-shadow: 0px 1px 5px 0px rgba(0, 0, 0, 0.2),
+              0px 2px 2px 0px rgba(0, 0, 0, 0.14),
+              0px 3px 1px -2px rgba(0, 0, 0, 0.12);
+}
+.index-logo {
+  width: 75%;
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+.index-version {
+  font-size: 0.9rem;
+  padding-bottom: 8px;
+}
+.index-navigation {
+  display: flex;
+  flex-direction: column;
+}
+.index-navigation > a {
+  padding: 8px 24px;
+  margin-top: 8px;
+  min-width: 64px;
+  color: rgba(0, 0, 0, 0.87);
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+}
+.index-navigation > a:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}

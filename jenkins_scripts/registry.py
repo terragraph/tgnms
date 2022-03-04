@@ -45,43 +45,30 @@ def build(args: argparse.Namespace) -> None:
         command += ["--target", args.stage]
 
     # Tag the image with the release version
-    if os.environ["GITHUB_USER"] == 'kkkkv':
-        if args.tag:
-            logging.info(f"Tagging image with custom tag: {args.tag}")
-            command += ["--tag", f"{args.registry}/kkkkv/{args.name}:{args.tag}"]
-        else:
-            version_tag = get_next_tag(release, printer=logging.info)
-            logging.info(f"Tagging image with tag: {version_tag}")
-            command += ["--tag", f"{args.registry}/kkkkv/{args.name}:{release}"]
-            command += [
-                "--tag",
-                f"{args.registry}/kkkkv/{args.name}:{version_tag}",
-            ]
-            command += [
-                "--build-arg",
-                f'"TAG={release}"',
-                "--build-arg",
-                f'"BASE_IMAGE={args.registry}/kkkkv/tglib"',
-            ]
+    if args.tag:
+        logging.info(f"Tagging image with custom tag: {args.tag}")
+        command += [
+            "--tag",
+            f"{args.registry}/{args.github_user}/{args.name}:{args.tag}",
+        ]
     else:
-        if args.tag:
-            logging.info(f"Tagging image with custom tag: {args.tag}")
-            command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{args.tag}"]
-        else:
-            version_tag = get_next_tag(release, printer=logging.info)
-            logging.info(f"Tagging image with tag: {version_tag}")
-            command += ["--tag", f"{args.registry}/{args.username}/{args.name}:{release}"]
-            command += [
-                "--tag",
-                f"{args.registry}/{args.username}/{args.name}:{version_tag}",
-            ]
-            command += [
-                "--build-arg",
-                f'"TAG={release}"',
-                "--build-arg",
-                f'"BASE_IMAGE={args.registry}/{args.username}/tglib"',
-            ]
-        
+        version_tag = get_next_tag(release, printer=logging.info)
+        logging.info(f"Tagging image with tag: {version_tag}")
+        command += [
+            "--tag",
+            f"{args.registry}/{args.github_user}/{args.name}:{release}",
+        ]
+        command += [
+            "--tag",
+            f"{args.registry}/{args.github_user}/{args.name}:{version_tag}",
+        ]
+
+    command += [
+        "--build-arg",
+        f'"TAG={release}"',
+        "--build-arg",
+        f'"BASE_IMAGE={args.registry}/{args.github_user}/tglib"',
+    ]
 
     for arg in args.build_arg or []:
         command += ["--build-arg", f'"{arg}"']
@@ -93,42 +80,28 @@ def build(args: argparse.Namespace) -> None:
 
 
 def push(args: argparse.Namespace) -> None:
-    if os.environ["GITHUB_USER"] == 'kkkkv':
-        command = [
-            "echo",
-            os.environ["DOCKER_PASSWORD"],
-            "|",
-            "docker",
-            "login",
-            "-u",
-            "kkkkv",
-            "--password-stdin",
-            f"{args.registry}",
-        ]
-        run(" ".join(command))
-        if args.tag:
-            push_cmd = f"docker push {args.registry}/kkkkv/{args.name}:{args.tag}"
-        else:
-            push_cmd = f"docker push --all-tags kkkkv/{args.username}/{args.name}"
-        run(push_cmd)
+    command = [
+        "echo",
+        os.environ["DOCKER_PASSWORD"],
+        "|",
+        "docker",
+        "login",
+        "-u",
+        args.username,
+        "--password-stdin",
+        f"{args.registry}",
+    ]
+    run(" ".join(command))
+    if args.tag:
+        push_cmd = (
+            f"docker push {args.registry}/{args.github_user}/{args.name}:{args.tag}"
+        )
     else:
-        command = [
-            "echo",
-            os.environ["DOCKER_PASSWORD"],
-            "|",
-            "docker",
-            "login",
-            "-u",
-            args.username,
-            "--password-stdin",
-            f"{args.registry}",
-        ]
-        run(" ".join(command))
-        if args.tag:
-            push_cmd = f"docker push {args.registry}/{args.username}/{args.name}:{args.tag}"
-        else:
-            push_cmd = f"docker push --all-tags {args.registry}/{args.username}/{args.name}"
-        run(push_cmd)
+        push_cmd = (
+            f"docker push --all-tags {args.registry}/{args.github_user}/{args.name}"
+        )
+    run(push_cmd)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Docker registry CLI parser for TG")
@@ -139,6 +112,9 @@ if __name__ == "__main__":
     build_parser.add_argument("name", help="docker package name")
     build_parser.add_argument(
         "--username", help="docker registry username", required=True
+    )
+    build_parser.add_argument(
+        "--github-user", help="github repository user", required=True
     )
     build_parser.add_argument(
         "--branch", help="git branch that is being built", required=True
@@ -167,6 +143,9 @@ if __name__ == "__main__":
     )
     push_parser.add_argument(
         "--username", help="docker registry username", required=True
+    )
+    push_parser.add_argument(
+        "--github-user", help="github repository user", required=True
     )
     push_parser.add_argument(
         "--tag",
