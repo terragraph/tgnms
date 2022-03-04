@@ -125,6 +125,10 @@ jobs:
           popd
           python jenkins_scripts/registry.py build nmsv2 --build-arg COMMIT_DATE="$COMMIT_DATE" --build-arg COMMIT_HASH="$COMMIT_HASH" --context tgnms --dir tgnms/fbcnms-projects/tgnms --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push nmsv2 --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+      - name: NMS Docs
+        run: |
+          python jenkins_scripts/registry.py build nms_docs --dir docs --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push nms_docs --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
       - name: NMS Proxy Nginx
         run: |
           python jenkins_scripts/registry.py build nms_nginx --context nginx --dir nginx --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"

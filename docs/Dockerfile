@@ -9,12 +9,13 @@ RUN apt update
 RUN apt -y install pandoc git python3 python3-pip make
 RUN python3 -m pip install sphinx sphinx-autodoc-typehints nbsphinx ipython
 
-WORKDIR /usr/local/meta-terragraph
-RUN --mount=type=secret,id=token git clone https://"$(cat /run/secrets/token)":x-oauth-basic@github.com/facebookexternal/terragraph.puma.git /usr/local/meta-terragraph
+# Disable Cloning meta-terragraph until it's open-sourced
+# WORKDIR /usr/local/meta-terragraph
+# RUN --mount=type=secret,id=token git clone https://"$(cat /run/secrets/token)":x-oauth-basic@github.com/facebookexternal/terragraph.puma.git /usr/local/meta-terragraph
 
 # Create the index page and any meta-terragraph docs
-COPY ./docs/build_tg_docs.sh ./
-RUN ./build_tg_docs.sh
+# COPY ./docs/build_tg_docs.sh ./
+# RUN ./build_tg_docs.sh
 
 # Copy over the NMS sources, build it to HTML
 WORKDIR /usr/local/terragraph
@@ -26,8 +27,8 @@ RUN make html
 RUN cd source && find . -name "*.ipynb" | xargs jupyter nbconvert --to script
 RUN find source -name "*.py" | grep -v "conf.py" | sed 's/source\///g' | xargs -I {} cp source/{} build/html/{}
 
-
-RUN cd /usr/local/meta-terragraph && python3 /usr/local/terragraph/postprocess.py --file build-docs/index.html --add_base
+# Disable postprocessing meta-terragraph until it's open-sourced
+# RUN cd /usr/local/meta-terragraph && python3 /usr/local/terragraph/postprocess.py --file build-docs/index.html --add_base
 
 
 FROM alpine:latest as make
@@ -51,6 +52,9 @@ FROM nginx:1.19
 # Copy the generated HTML, serve it
 WORKDIR /usr/local/docs
 COPY ./docs/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /usr/local/meta-terragraph/build-docs ./
+# Disable meta-terragraph until it's open-sourced
+# COPY --from=builder /usr/local/meta-terragraph/build-docs ./
+# Temporary copy of index.html and media until meta-terragraph is open-sourced
+COPY ./docs/temp_static/ /usr/local/docs/
 COPY --from=builder /usr/local/terragraph/build/html nms
 COPY --from=tglib_builder /usr/local/tglib/docs/_build/html tglib
