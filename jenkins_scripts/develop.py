@@ -95,6 +95,13 @@ projects = {
         "image_name": "nmsv2",
         "swarm_service": "nms_nms",
     },
+    "docs": {
+        "deployment": "nms_docs",
+        "container": "nms_docs",
+        "build_cmd": "docker build . -f docs/Dockerfile --tag nms_docs:dev",
+        "image_name": "nms_docs",
+        "swarm_service": "nms_docs",
+    },
     # swarm-only nginx
     "nginx_swarm": {
         "deployment": "nginx",
