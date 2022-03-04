@@ -34,7 +34,7 @@ RUN find source -name "*.py" | grep -v "conf.py" | sed 's/source\///g' | xargs -
 FROM alpine:latest as make
 RUN apk add make
 
-FROM secure.cxl-terragraph.com:443/tglib:latest as tglib_builder
+FROM  ghcr.io/terragraph/tglib:latest as tglib_builder
 # For some reason 'apk add' just hangs if it's done as part of this stage, so
 # copy it in manually as a workaround
 COPY --from=make /usr/bin/make /usr/bin/make
