@@ -17,14 +17,14 @@ plugins:
 overrides:
   - files:
     - '*'
-  rules:
-    prettier/prettier:
-      - 2
-      - singleQuote: true
-        trailingComma: all
-        bracketSpacing: false
-        jsxBracketSameLine: true
-        parser: flow
+    rules:
+      prettier/prettier:
+        - 2
+        - singleQuote: true
+          trailingComma: all
+          bracketSpacing: false
+          jsxBracketSameLine: true
+          parser: flow
   - files:
       - .eslintrc.js
     rules:
