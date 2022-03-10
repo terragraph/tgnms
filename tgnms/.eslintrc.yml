@@ -1,0 +1,84 @@
+---
+root: true
+
+parser: fb-eslint
+extends:
+  - eslint-config-fbcnms
+
+plugins:
+  - eslint-config-fbcnms
+  - eslint-config-fb-strict
+  - eslint-plugin-header
+  - eslint-plugin-import
+  - eslint-plugin-node
+  - eslint-plugin-lint
+  - eslint-plugin-sort-imports-es6-autofix
+
+overrides:
+  - files:
+    - '*'
+  rules:
+    prettier/prettier:
+      - 2
+      - singleQuote: true
+        trailingComma: all
+        bracketSpacing: false
+        jsxBracketSameLine: true
+        parser: flow
+  - files:
+      - .eslintrc.js
+    rules:
+      quotes:
+        - warn
+        - single
+  - env:
+      jest: true
+      node: true
+    files:
+      - '**/__mocks__/**/*.js'
+      - '**/__tests__/**/*.js'
+      - '**/tests/**/*.js'
+      - testHelpers.js
+      - testData.js
+      - jest-setup.js
+  - files:
+      - fbcnms-packages/**/*.js
+    rules:
+      header/header:
+        - 2
+        - block
+  - env:
+      node: true
+    files:
+      - .eslintrc.js
+      - babel.config.js
+      - jest.config.js
+      - jest.*.config.js
+      - fbcnms-packages/eslint-config-fbcnms/**/*.js
+      - fbcnms-packages/fbcnms-auth/**/*.js
+      - fbcnms-packages/fbcnms-babel-register/**/*.js
+      - fbcnms-packages/fbcnms-express-middleware/**/*.js
+      - fbcnms-packages/fbcnms-logging/**/*.js
+      - fbcnms-packages/fbcnms-magma-api/**/*.js
+      - fbcnms-packages/fbcnms-platform-server/**/*.js
+      - fbcnms-packages/fbcnms-relay/**/*.js
+      - fbcnms-packages/fbcnms-sequelize-models/**/*.js
+      - fbcnms-packages/fbcnms-ui/stories/**/*.js
+      - fbcnms-packages/fbcnms-util/**/*.js
+      - fbcnms-packages/fbcnms-webpack-config/**/*.js
+      - fbcnms-projects/*/config/*.js
+      - fbcnms-projects/*/scripts/**/*.js
+      - fbcnms-projects/*/server/**/*.js
+      - scripts/fb/fbt/*.js
+    rules:
+      no-console: 'off'
+  - files:
+      - '**/tgnms/**/*.js'
+    rules:
+      flowtype/no-weak-types: 'off'
+      flowtype/require-valid-file-annotation: 'off'
+
+
+settings:
+  react:
+  version: detect

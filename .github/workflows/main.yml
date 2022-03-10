@@ -49,9 +49,14 @@ jobs:
       - name: Lint Code Base
         uses: github/super-linter@v4
         env:
-          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: tgnms
+          JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.yaml
+          VALIDATE_JAVASCRIPT_STANDARD: false
+          VALIDATE_JAVASCRIPT_ES: true
+          DISABLE_ERRORS: false
       - name: Fetch all tags
         run: |
           git fetch --prune --unshallow --tags
