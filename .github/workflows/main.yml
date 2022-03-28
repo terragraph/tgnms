@@ -149,6 +149,24 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Lint Code Base
+      uses: github/super-linter@v4
+      env:
+        VALIDATE_ALL_CODEBASE: false
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        LINTER_RULES_PATH: tgnms
+        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.yml
+        VALIDATE_JAVASCRIPT_STANDARD: true
+        VALIDATE_JAVASCRIPT_ES: true
+        DISABLE_ERRORS: false
 
   release:
     needs: publish_images
