@@ -73,6 +73,11 @@ data:
         static_configs:
           - targets: ['weather-service:8080']
 
+      - job_name: 'anomaly_detection'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['anomaly_detection:8080']
+
   alertmanager-default.yml: |
     global:
       resolve_timeout: 5m

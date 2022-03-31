@@ -227,6 +227,7 @@ msa_network_test_image: ghcr.io/terragraph/network_test
 msa_scan_service_image: ghcr.io/terragraph/scan_service
 msa_topology_service_image: ghcr.io/terragraph/topology_service
 msa_weather_service_image: ghcr.io/terragraph/weather_service
+msa_anomaly_detection_image: ghcr.io/terragraph/anomaly_detection
 nms_image: ghcr.io/terragraph/nmsv2
 nginx_image: ghcr.io/terragraph/nms_nginx
 query_service_image: ghcr.io/terragraph/cpp_backends

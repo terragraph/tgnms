@@ -255,6 +255,12 @@ msa_services:
     provider: climacell
     api_key: 1234
     roles: "tg_topology_read"
+  anomaly_detection:
+    uses_database: false
+    image: secure.cxl-terragraph.com:443/anomaly_detection:stable
+    command: "anomaly_detection"
+    enabled: true
+    roles: "tg_topology_read"
 
 E2E_CONFIG_FILE: cfg/controller_config.json
 E2E_TOPOLOGY_FILE: e2e_topology.conf
