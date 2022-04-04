@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-  pull_request:
     branches:
     - main
     - 'releases/**'
@@ -47,6 +46,7 @@ jobs:
           python -m pip install --upgrade pip
           cd jenkins_scripts
           pip install -r requirements.txt
+
       - name: Fetch all tags
         run: |
           git fetch --prune --unshallow --tags
@@ -73,9 +73,11 @@ jobs:
         run: |
           cat <<EOF > kafka/Dockerfile
           FROM bitnami/kafka:2.6.0
+
           COPY jmx_prometheus_javaagent-0.11.0.jar /opt/jmx_exporter/jmx_prometheus_javaagent-0.11.0.jar
           COPY kafka-2_0_0.yml /opt/jmx_exporter/kafka-2_0_0.yml
           EOF
+
           python jenkins_scripts/registry.py build kafka-bitnami --context kafka --dir kafka --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push kafka-bitnami --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
       - name: Kafka
@@ -135,6 +137,7 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build docker_v6up --context v6up --dir v6up --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push docker_v6up --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+
       - name: C++ backends Main
         if: github.ref == 'refs/heads/main'
         run: |
@@ -194,12 +197,14 @@ jobs:
           python -m pip install --upgrade pip
           cd jenkins_scripts
           pip install -r requirements.txt
+
       - name: Set environment variables
         run: |
           echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
           echo "GITHUB_USER: ${{ github.repository_owner }}"
           echo "$GIT_BRANCH"
+
       - name: Release
         run: |
           # Fetch most recent tags
@@ -210,23 +215,29 @@ jobs:
           ANSIBLE_VERSION=2.9.9
           OUTPUT_FILE="nms.pex"
           SYMLINK="nms"
+
           # Construct version file
           echo "The build tag is: ${BUILD_TAG}"
           echo "${BUILD_TAG}" > nms_cli/__version__
+
           # push versions to console for debugging
           echo "Packages"
           pip freeze
           pex --version
+
           # build nms dist
           echo "build nms dist"
           python setup.py bdist_wheel
+
           # build pex
           echo "Build pex"
           pex --wheel --python=python3 -v --disable-cache -f dist -f . ansible==$ANSIBLE_VERSION -e nms_cli.main -o ${OUTPUT_FILE} .
+
           # pex sanity test
           # echo "pex sanity test"
           # ls -lah ${OUTPUT_FILE}
           # ./${OUTPUT_FILE} --version
+
           NOW=$(date +"%m_%d_%y_%H_%M_%S")
           DATED_FILE="/tmp/nms_${NOW}"
           mv ${OUTPUT_FILE} ${DATED_FILE}
