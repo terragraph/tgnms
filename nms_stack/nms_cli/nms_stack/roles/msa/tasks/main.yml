@@ -35,6 +35,7 @@
     - { name: "scan_service", has_database: true, roles: "tg_scan_write,tg_topology_read" }
     - { name: "topology_service", has_database: true, roles: "tg_topology_read" }
     - { name: "weather_service", has_database: false, roles: "tg_topology_read" }
+    - { name: "anomaly_detection", has_database: false, roles: "tg_topology_read" }
   loop_control:
     loop_var: service
 

@@ -1,0 +1,19 @@
+{
+    "num_consumers": 10,
+    "pipelines": {
+      "pipeline 1": {
+        "period_s": 1800,
+        "jobs": [
+          {
+            "name": "ad_single_metric_job",
+            "enabled": true,
+            "params": {
+                "metric" : "snr",
+                "step_s" : 30,
+                "duration_s" : 86400
+            }
+          }
+        ]
+      }
+    }
+  }

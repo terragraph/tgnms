@@ -141,6 +141,7 @@ msa_services = [
     "topology-service",
     "queryservice",
     "crashlog-analysis-service",
+    "anomaly_detection",
 ]
 
 for service in msa_services:
@@ -259,7 +260,7 @@ async def go_impl(
             )
         else:
             cmd(
-                f"ssh {kube_manager} docker service update --image {image_name}:dev {swarm_service}"
+                f"ssh {kube_manager} docker service update --force --image {image_name}:dev {swarm_service}"
             )
 
 
