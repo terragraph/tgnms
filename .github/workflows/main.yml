@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
@@ -37,7 +37,7 @@ jobs:
         run: git checkout ${{ env.BRANCH }}
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -149,6 +149,25 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build cpp_backends --dir docker --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push cpp_backends --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Lint Code Base
+      uses: github/super-linter@v4
+      env:
+        VALIDATE_ALL_CODEBASE: false
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        LINTER_RULES_PATH: tgnms
+        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.yml
+        VALIDATE_JAVASCRIPT_STANDARD: true
+        VALIDATE_JAVASCRIPT_ES: true
+        DISABLE_ERRORS: false
 
   release:
     needs: publish_images
@@ -156,7 +175,7 @@ jobs:
     if: success()
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
@@ -169,7 +188,7 @@ jobs:
         run: git checkout ${{ env.GIT_BRANCH }}
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
