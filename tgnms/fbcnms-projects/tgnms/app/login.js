@@ -17,7 +17,8 @@ if (loginRoot) {
     ssrCleanup();
   });
 }
-
+const x = 5;
+// very very long line very very long line very very long line very very long line very very long line very very long line
 function ssrCleanup() {
   // We don't need the static css any more once js takes over
   const ssStyles = document.getElementById('server-side-styles');
