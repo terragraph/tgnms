@@ -68,7 +68,6 @@ nms install -f config.yml
 # Developer Guide
 
 ## [Developer Guide for `tgnms`](https://github.com/terragraph/tgnms/blob/main/tgnms/fbcnms-projects/tgnms/README.md)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ## Overal Architecture
 ![image](readme_images/ArchitectureOverview.png)
@@ -94,35 +93,6 @@ nms upgrade -f config.yml -c <controller_name> -i <docker_image> -h my-e2e-contr
 ```bash
 docker service update --with-registry-auth --image <image> <service_name>
 ```
-
-## Clearing topology from controller
-You may want to do this because your testing or playing around with the topology and you want to delete the nodes/links/sites afterwards:
-1. Find the IP of the controller your network is on and login to it.
-2. Determine how the controller was hosted.
-    1. **K8s**: has ~/.kube folder (TODO: log steps after you do them)
-
-        ```yaml
-        cd /opt/terragraph/gfs/e2e/<e2e_controller_name>/data
-        mv topology.conf{,$(date "+%y%m%d")}
-        # then delete the controller pod and itll bring itself back up.
-        ```
-
-    2. **Swarm**: has docker stuff
-
-        ```yaml
-        cd /opt/terragraph/gfs/e2e/<e2e_controller_name>/data
-        mv topology.conf{,$(date "+%y%m%d")}
-        docker service ls # find the service ending in e2e_controller
-        docker service update --force <service_name>
-        ```
-
-    3. **Sytemd**: has systemctl list-units | grep e2e ⇒ someone compiled e2e and ran it with systemd
-
-        ```yaml
-        cd /root/data
-        mv topology.conf{,$(date "+%y%m%d")}
-        systemctl restart e2e_controller
-        ```
 
 ## License
 
