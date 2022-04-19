@@ -291,7 +291,7 @@ async def devproxy_impl(ctx, cluster, host, rm, daemon):
             f"ssh {host} docker run -d --network terragraph_net -p 3128:3128 -p 3389:3306 --name {project_name} {project_name}:dev"
         )
         cprint(col.GREEN, "Configuring SSH tunnel")
-        cmd(f"ssh -M -S /tmp/devproxy-socket -fnNT -L 3128:localhost:3128 {host}")
+        cmd(f"ssh -M -S /tmp/devproxy-socket -fnNT -L 3128:localhost:3128 -L 3389:localhost:3389 {host}")
     if not daemon:
         cprint(
             col.GREEN,
