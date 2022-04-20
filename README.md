@@ -1,40 +1,53 @@
-# Terragraph Software
+# Terragraph NMS
 
-[Terragraph](https://terragraph.com/) is a 60GHz, multi-node wireless Software Defined Network (SDN) that enables high-speed internet connectivity in multiple environments. It incorporates commercial, off-the-shelf components and industrial design for quick and affordable deployments across many markets. The network operates best in Line-Of-Sight (LOS) conditions to maximize connectivity. In its essence, Terragraph is “wireless fiber” with gigabit speeds, rapid deployment capability, and flexible use case support.
+[Terragraph](https://terragraph.com/) is a technology that operates on 60 GHz
+unlicensed band delivering fiber-like speeds.
 
-This repo contains code for the Terragraph Network Management System (TGNMS).
+This repository contains code for the Terragraph Network Management System
+(TGNMS).
 
-# Installation of TGNMS
-The Terragraph cloud suite is deployed as a set of Docker services in a Docker Swarm. Terragraph includes an executable installer that automatically configures the Docker Swarm and installs all of the cloud services.
+## Installation
+The Terragraph cloud suite is deployed as a set of Docker services in a Docker
+Swarm. Terragraph includes an executable installer that automatically configures
+the Docker Swarm and installs all of the cloud services.
 
-## Requirements
-Docker Swarm requires at least 3 hosts (Docker hosts) for redundancy. If redundancy is not required, fewer hosts can still run the cloud suite. Each Docker host must have the following specs to run a network with roughly 512 sectors:
+### System Requirements
+Docker Swarm recommends at least 3 (Docker) hosts for redundancy. If redundancy
+is not required, the cloud suite can be run on a single host. To support a
+network composed of roughly 512 sectors, each Docker host must meet the
+following specifications.
 
-* *OS:* CentOS 7 or Ubuntu 17+
-* *CPU:* 4 vCPU
-* *Memory:* 16GB
-* *Disk Space:* 200GB
-* *Networking:* Globally addressable IPv6 and private (or global) IPv4
-* *Hostnames:* Hosts _must_ have unique hostnames (hostnamectl set-hostname <unique hostname>)
+* Ubuntu 18.04
+* 4 vCPU
+* 16GB of RAM
+* 200GB of disk space
+* Globally addressable IPv6 and private (or global) IPv4
+* A unique and static hostname for each Docker node
 
-PARTITIONING Scheme
+### Partitioning Scheme
+Below is a suggested filesystem partitioning scheme for the Docker hosts. By
+default, all of the Terragraph-specific data is stored in `/opt/terragraph`.
 
-* /root - 20GB
-* /opt - 130GB
-* /var/lib/docker - 50GB
+| Partition         | Size  | Description                     |
+| ----------------- | ----- | ------------------------------- |
+| `/opt`            | 130GB | Storage for all Terragraph data |
+| `/var/lib/docker` | 50GB  | Storage for all Docker data     |
 
-Each Docker host must have a public IPv6 address and a private (or public) IPv4 address. An installation host that has SSH access to all the Docker hosts is necessary to run the installer on. The installation host must have python3 (and ssh-pass if password based SSH is used) installed. The installation host can be one of the Docker hosts.
+### Installation Options
+Terragraph comes with an installer that deploys and configures the Terragraph
+cloud suite. The installer is a PEX file which packages together Ansible, a
+Python CLI, and all of their dependencies into a single executable. An
+installation host that has SSH access to all the Docker hosts is necessary to
+run the installer. The installation host can be one of the Docker hosts.
 
-TGNMS is deployed via Ansible scripts run by an installer tool.
-
-## Installation from Source
+#### Installation from Source
 
 ```bash
 git clone https://github.com/terragraph/tgnms
 cd tgnms/nms_stack
 python -m pip install .
 
-# Verify the installer tool was installed correctly
+# Verify the installer tool was installed correctly.
 nms install --help
 
 # Create the configuration file from this template.
@@ -42,10 +55,12 @@ nms show-defaults > config.yml
 
 # Modify the config file.
 
-# Run the installer tool
+# Run the installer tool.
 nms install -f config.yml
 ```
-## Installation from PEX
+
+#### Installation from PEX
+
 ```bash
 # Download release via this command or from the Releases section on Github.
 wget https://github.com/terragraph/tgnms/releases/latest/download/nms
@@ -62,38 +77,47 @@ nms show-defaults > config.yml
 
 # Modify the config file.
 
-# Run the installer tool
+# Run the installer tool.
 nms install -f config.yml
 ```
-# Developer Guide
 
-## [Developer Guide for `tgnms`](https://github.com/terragraph/tgnms/blob/main/tgnms/fbcnms-projects/tgnms/README.md)
+## Developer Guide
 
-## Overal Architecture
+[See here](https://github.com/terragraph/tgnms/blob/main/tgnms/fbcnms-projects/tgnms/README.md)
+
+## Overall Architecture
 ![image](readme_images/ArchitectureOverview.png)
 
 ## Release Process
-1. Code changes are merged into main or an LTS branch.
-    - All tests/linters must pass and the Pull Request must be approved by a key maintainer/code owner.
-2. Our Github Actions jobs start, building the docker images and creating the installer pex.
-3. These assets are then made available via Github Releases, tagged with its version name.
+1. Code changes are merged into `main` or an LTS branch. All tests/linters must
+   pass and the Pull Request must be approved by a key maintainer/code owner.
+2. Our Github Actions jobs start, building the Docker images and creating the
+   installer PEX.
+3. These assets are then made available via Github Releases, tagged with the
+   version name.
 
-In order to understand the release process, it’s important to understand what a release is and how it is generated. The NMS stack mainly consists of docker images published to the registry, and the CLI installer. At its core, a single release is a set of docker images and the CLI installer, which were built from a branch of the codebase at the same point in time.
+In order to understand the release process, it's important to understand what a
+release is and how it is generated. The NMS stack mainly consists of Docker
+images published to the registry, and the CLI installer. At its core, a single
+release is a set of Docker images and the CLI installer, which were built from a
+branch of the codebase at the same point in time.
 
 ![image](readme_images/ReleaseProcess.png)
 
 ## Upgrading
-### Upgrading E2E Controllers
-The installer also performs controller upgrades. Running the upgrade command upgrades e2e_controller, api_service, stats_agent, and nms_aggregator to the image specified by <docker_image>. It also copies the controller's data folder and mounts the new copy in the controller container. This provides automatic backups of the topology and config.
+The installer also performs E2E controller upgrades. Running the `upgrade`
+command upgrades `e2e_controller`, `api_service`, `stats_agent`, and
+`nms_aggregator` to the image specified by `<docker_image>`. It also copies the
+controller's data folder and mounts the new copy in the controller container.
+This provides automatic backups of the topology and config.
 ```bash
 nms upgrade -f config.yml -c <controller_name> -i <docker_image> -h my-e2e-controller01
 ```
 
-### Upgrading other services
+To upgrade other services, use the following command:
 ```bash
 docker service update --with-registry-auth --image <image> <service_name>
 ```
 
 ## License
-
 TGNMS has an MIT-style license as can be seen in the [LICENSE](LICENSE) file.
