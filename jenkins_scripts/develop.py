@@ -227,14 +227,7 @@ async def prepare_image(cluster, builder, hosts, project):
     await asyncio.gather(*coros)
 
 
-async def go_impl(
-    ctx,
-    cluster,
-    project,
-    managers,
-    workers,
-):
-    builder = "root@2620:10d:c0bf:1800:250:56ff:fe93:9a4a"
+async def go_impl(ctx, cluster, project, managers, workers, builder):
     kube_manager = managers[0]
     hosts = managers + workers
     await prepare_image(cluster, builder, hosts, project)
@@ -264,11 +257,10 @@ async def go_impl(
             )
 
 
-async def devproxy_impl(ctx, cluster, host, rm, daemon):
+async def devproxy_impl(ctx, cluster, host, builder, rm, daemon):
     if rm:
         return remove_devproxy(cluster, host)
     project_name = "dev_proxy"
-    builder = "root@2620:10d:c0bf:1800:250:56ff:fe93:9a4a"
     await prepare_image(cluster, builder, [host], project_name)
 
     if cluster == "k8s":
@@ -317,7 +309,7 @@ def remove_devproxy(cluster, host):
 
 
 @cli.command()
-@click.option("--cluster", default="k8s", type=click.Choice(["k8s", "swarm"]))
+@click.option("--cluster", default="swarm", type=click.Choice(["k8s", "swarm"]))
 @click.option("--project", type=click.Choice(projects.keys()))
 @click.option(
     "-m",
@@ -335,6 +327,9 @@ def remove_devproxy(cluster, host):
     default=None,
     multiple=True,
     help="Worker nodes for Kubernetes",
+)
+@click.option(
+    "--builder", default="root@localhost", help="VM capable of building docker images"
 )
 @click.pass_context
 def go(*args, **kwargs):
@@ -389,8 +384,11 @@ def reset(ctx, project, container, build_cmd, managers, workers, image_name):
 
 
 @cli.command(help="Deploy a development proxy to the cluster")
-@click.option("--cluster", default="k8s", type=click.Choice(["k8s", "swarm"]))
+@click.option("--cluster", default="swarm", type=click.Choice(["k8s", "swarm"]))
 @click.option("--host")
+@click.option(
+    "--builder", default="root@localhost", help="VM capable of building docker images"
+)
 @click.option(
     "--rm", default=False, is_flag=True, help="Stop a proxy running in the background"
 )
