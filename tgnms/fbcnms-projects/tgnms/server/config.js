@@ -62,9 +62,8 @@ const DOCKER_API_VERSION = '1.37';
 const SOFTWARE_PORTAL_ENABLED = isFeatureEnabled('SOFTWARE_PORTAL_ENABLED');
 const SOFTWARE_PORTAL_URL =
   process.env.SOFTWARE_PORTAL_URL || 'https://sw.terragraph.link';
-const SOFTWARE_PORTAL_API_TOKEN =
-  process.env.SOFTWARE_PORTAL_API_TOKEN || 'K__AjuA9ii_Mwq7FYV00PWS-e6Y';
-const SOFTWARE_PORTAL_API_ID = process.env.SOFTWARE_PORTAL_API_ID || 'tgdev';
+const SOFTWARE_PORTAL_API_TOKEN = process.env.SOFTWARE_PORTAL_API_TOKEN || '';
+const SOFTWARE_PORTAL_API_ID = process.env.SOFTWARE_PORTAL_API_ID || '';
 
 // Default time window to cache link health for
 const LINK_HEALTH_TIME_WINDOW_HOURS = 24;

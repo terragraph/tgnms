@@ -86,8 +86,8 @@ describe('/downloadimage/:network/:release/:image', () => {
           url: `https://sw.terragraph.link/download/tg_firmware_rev5/testrelease/image`,
           method: 'POST',
           json: {
-            api_id: 'tgdev',
-            api_token: 'K__AjuA9ii_Mwq7FYV00PWS-e6Y',
+            api_id: '',
+            api_token: '',
           },
         });
         expect(requestStream.on).toHaveBeenCalled();
