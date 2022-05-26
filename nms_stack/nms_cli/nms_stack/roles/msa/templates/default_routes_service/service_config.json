@@ -16,7 +16,7 @@
           "name": "process_routes_for_aggregate_metrics",
           "enabled": true,
           "params": {
-            "route_metrics": {"mcs": "min", "tx_ok": "max", "per": "max"}
+            "route_metrics": {"mcs": "min", "tx_ok": "max/delta", "per": "max"}
           }
         }
       ]

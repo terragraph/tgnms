@@ -35,8 +35,9 @@ def make_joint_query(compound: List[str], joint_query: str, link_query: str) -> 
     if joint_query:
         joint_query += " or "
     if len(compound) == 2 and compound[1] == "delta":
-        # Harding the delta [1s] part of this query for now.
-        joint_query += f"{compound[1]}({link_query}[1s])"
+        # Hard-coding the delta [30s] part of this query for now.
+        # Returns empty for 1s
+        joint_query += f"({compound[1]}({link_query}[30s]))/30"
     else:
         joint_query += link_query
     return joint_query
@@ -107,10 +108,10 @@ async def generate_route_stats(
     write_metrics: List = []
     for node_name, output in zip(node_names, await asyncio.gather(*coros)):
         labels = {consts.network: network_name, consts.node_name: node_name[0]}
-        value = int(output[0]["value"][1]) if output else None
+        value = int(float(output[0]["value"][1])) if output else None
         write_metrics.append(
             PrometheusMetric(
-                name=f"drs_{route_metrics[node_name[1]]}_route_{node_name[1]}",
+                name=f"drs_{route_metrics[node_name[1]].replace('/', '_')}_route_{node_name[1]}",
                 labels=labels,
                 value=value,
                 time=start_time_ms,
