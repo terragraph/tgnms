@@ -381,25 +381,20 @@ async def fetch_metrics_from_queries(
         return None
 
 
-async def fetch_nodes_ibf_variant(
-    client: APIServiceClient, network_name: str, nodes: Dict,
-) -> Optional[Dict]:
-    """Fetch latest ibfCodebookVariant for all nodes in this network"""
+async def fetch_node_ibf_variant(
+    client: APIServiceClient, network_name: str, node: str,
+) -> int:
+    """Fetch latest ibfCodebookVariant for this node"""
     try:
-        ibf_codebook_variant = {}
-        for node in nodes:
-            result = await client.request(
-                network_name, endpoint="getNodeConfig", params={"node": node}
-            )
-            native = json.loads(result["config"])
-
-            ibf_codebook_variant[node] = (
-                native.get("radioParamsBase", {})
-                .get("fwParams", {})
-                .get("ibfCodebookVariant", 0)
-            )
-
-        return {network_name: ibf_codebook_variant}
+        result = await client.request(
+            network_name, endpoint="getNodeConfig", params={"node": node}
+        )
+        node_config = json.loads(result["config"])
+        return int(
+            node_config.get("radioParamsBase", {})
+            .get("fwParams", {})
+            .get("ibfCodebookVariant", 0)
+        )
     except ClientRuntimeError:
-        logging.error("Failed to fetch network/nodes ibfCodebookVariant.")
-        return None
+        logging.error(f"Failed to fetch {node} config for ibfCodebookVariant.")
+        return 0
