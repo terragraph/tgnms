@@ -6,7 +6,7 @@ ARG FMT_VERSION=6.1.2
 ARG ZSTD_VERSION=v1.4.4
 
 # Add community repo for double-conversion-dev and glog-dev packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories
 
 # Install dependencies, build thrift, and remove build dependencies
 RUN apk update && apk add --no-cache --virtual build-deps \
