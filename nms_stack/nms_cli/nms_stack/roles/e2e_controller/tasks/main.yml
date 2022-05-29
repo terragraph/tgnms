@@ -32,7 +32,7 @@
     --network=terragraph_net
     --env-file={{ keycloak_path }}/env/keycloak.env
     -u root
-    jboss/keycloak:7.0.0 /scripts/create-service-account-client.sh setup /output/keycloak.env tg_all_write
+    {{ keycloak_image }} /scripts/create-service-account-client.sh setup /output/keycloak.env tg_all_write
   when: keycloak_enabled
 
 - name: get API service client secret
@@ -45,7 +45,7 @@
 
 - name: get API service token
   shell: |
-    docker run --entrypoint /bin/sh --network=terragraph_net jboss/keycloak:7.0.0 -c \
+    docker run --entrypoint /bin/sh --network=terragraph_net {{ keycloak_image }} -c \
       'curl --insecure -L -d "grant_type=client_credentials" -d "client_id=setup" -d "client_secret={{ apiservice_keycloak_secret.stdout }}"  --noproxy "*" -X POST keycloak_keycloak:8080/auth/realms/tgnms/protocol/openid-connect/token'
   register: apiservice_keycloak_token_output
   when: keycloak_enabled

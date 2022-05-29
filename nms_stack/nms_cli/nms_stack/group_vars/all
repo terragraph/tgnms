@@ -206,6 +206,19 @@ zookeeper_path: "{{ terragraph_docker_path }}/zookeeper"
 es_path: "{{ terragraph_docker_path }}/es"
 udp_pinger_path: "{{ terragraph_docker_path }}/udp_pinger"
 
+# Third party images
+chihaya_image: quay.io/jzelinskie/chihaya:v2.0.0-rc.2
+db_image: mysql:5
+elasticsearch_image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+elasticsearch_exporter_image: justwatch/elasticsearch_exporter:1.0.2
+kibana_image: docker.elastic.co/kibana/kibana:7.4.0
+grafana_image: grafana/grafana:8.5.3
+keycloak_image: jboss/keycloak:7.0.0
+prometheus_configurer_image: facebookincubator/prometheus-configurer:1.0.1
+alertmanager_configurer_image: facebookincubator/alertmanager-configurer:1.0.1
+alertmanager_image: prom/alertmanager:v0.24.0
+prometheus_image: prom/prometheus:v2.36.0
+prometheus_cache_image: facebookincubator/prometheus-edge-hub:1.1.0
 
 # Terragraph specific images, change these to configure exactly what version of
 # an image you are running. If you don't specify the version, the same version as

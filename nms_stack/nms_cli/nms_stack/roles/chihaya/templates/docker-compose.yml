@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   chihaya:
-    image: quay.io/jzelinskie/chihaya:v2.0.0-rc.2
+    image: {{ chihaya_image }}
     logging:
       driver: "json-file"
       options:

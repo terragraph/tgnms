@@ -48,7 +48,7 @@ services:
         max-file: "10"
 
   grafana:
-    image: grafana/grafana:latest
+    image: {{ grafana_image }}
     env_file:
       - {{ db_gfs_path }}/env/mysql.env
       - {{ nms_path }}/env/grafana.env

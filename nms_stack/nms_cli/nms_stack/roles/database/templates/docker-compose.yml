@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   db:
-    image: mysql:5
+    image: {{ db_image }}
     env_file:
       - {{ db_gfs_path }}/env/time.env
     environment:

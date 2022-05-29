@@ -196,12 +196,12 @@ db_image: mysql:5.7
 elasticsearch_image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
 elasticsearch_exporter_image: justwatch/elasticsearch_exporter:1.0.2
 kibana_image: docker.elastic.co/kibana/kibana:7.4.0
-grafana_image: grafana/grafana:latest
+grafana_image: grafana/grafana:8.5.3
 keycloak_image: jboss/keycloak:7.0.0
 prometheus_configurer_image: facebookincubator/prometheus-configurer:1.0.1
 alertmanager_configurer_image: facebookincubator/alertmanager-configurer:1.0.1
-alertmanager_image: prom/alertmanager
-prometheus_image: prom/prometheus
+alertmanager_image: prom/alertmanager:v0.24.0
+prometheus_image: prom/prometheus:v2.36.0
 
 # +--------------------------------------------------------+
 # |                 Core NMS  Options                      |
