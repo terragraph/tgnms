@@ -71,14 +71,7 @@ jobs:
           python jenkins_scripts/registry.py push fluentd --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
       - name: Kafka Bitnami
         run: |
-          cat <<EOF > kafka/Dockerfile
-          FROM bitnami/kafka:2.6.0
-
-          COPY jmx_prometheus_javaagent-0.11.0.jar /opt/jmx_exporter/jmx_prometheus_javaagent-0.11.0.jar
-          COPY kafka-2_0_0.yml /opt/jmx_exporter/kafka-2_0_0.yml
-          EOF
-
-          python jenkins_scripts/registry.py build kafka-bitnami --context kafka --dir kafka --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py build kafka-bitnami --context kafka --dir kafka --dockerfile BitnamiDockerfile --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --branch "$GIT_BRANCH"  --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push kafka-bitnami --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
       - name: Kafka
         run: |

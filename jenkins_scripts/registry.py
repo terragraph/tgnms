@@ -39,7 +39,7 @@ def get_commit_info() -> Dict[str, str]:
 
 
 def build(args: argparse.Namespace) -> None:
-    command = ["docker", "build", "-f", f"{args.dir}/Dockerfile"]
+    command = ["docker", "build", "-f", f"{args.dir}/{args.dockerfile}"]
     release = get_release(args.branch, args.stage)
     if re.search(r"main", args.branch) and args.stage:
         command += ["--target", args.stage]
@@ -122,6 +122,7 @@ if __name__ == "__main__":
     build_parser.add_argument("--build-arg", action="append", help="specify build args")
     build_parser.add_argument("--context", help="build context path", default=".")
     build_parser.add_argument("--dir", help="directory of the Dockerfile", default=".")
+    build_parser.add_argument("--dockerfile", help="filename instead of 'Dockerfile'", default="Dockerfile")
     build_parser.add_argument(
         "--registry",
         help="regsitry hostname and port",
