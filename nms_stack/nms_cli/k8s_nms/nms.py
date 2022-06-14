@@ -8,7 +8,6 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import pickle
 import urllib.request
 from functools import wraps
 
@@ -364,9 +363,6 @@ def get_variables(user_config_file, managers, workers, verbose):
     of hosts, which runs its templating (with information about the hosts
     available)
     """
-    if os.getenv("NMS_CACHE") == "1" and os.path.exists("/tmp/variables.pkl"):
-        with open("/tmp/variables.pkl", "rb") as f:
-            return pickle.load(f)
 
     default_variables_file = os.path.join(
         os.path.dirname(__file__), "ansible", "group_vars", "all.yml"
@@ -432,11 +428,6 @@ def get_variables(user_config_file, managers, workers, verbose):
     all_variables["controllers_list"] = get_controllers_list(all_variables)
     if all_variables is None:
         raise RuntimeError("Could not get variables, check your config-file")
-
-    if os.getenv("NMS_CACHE") == "1":
-        with open("/tmp/variables.pkl", "wb") as f:
-            pickle.dump(all_variables, f)
-
     return all_variables
 
 

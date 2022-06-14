@@ -5,7 +5,6 @@ import asyncio
 import glob
 import io
 import os
-import pickle
 import signal
 import subprocess
 import sys
