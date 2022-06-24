@@ -9,4 +9,5 @@ dotslash.export_fbsource_universal_bundle(
     executables={"linux": "yarn_bash", "macos": "yarn_bash", "windows": "yarn_batch"},
     oncall="jsinfra",
     generated_dotslash_file="xplat/third-party/yarn/yarn_dotslash",
+    buck_cmd=dotslash.BuckCommand.BUCK,
 )
