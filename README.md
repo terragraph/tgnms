@@ -119,5 +119,14 @@ To upgrade other services, use the following command:
 docker service update --with-registry-auth --image <image> <service_name>
 ```
 
+## Community
+Please review our [Code of Conduct](CODE_OF_CONDUCT.md) and
+[Contributing Guidelines](CONTRIBUTING.md).
+
+General discussions are held on our
+[Discord server](https://discord.gg/HQaxCevzus).
+
+![](https://discordapp.com/api/guilds/982440743765409822/widget.png?style=banner2)
+
 ## License
 TGNMS has an MIT-style license as can be seen in the [LICENSE](LICENSE) file.
