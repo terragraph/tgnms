@@ -63,8 +63,7 @@ const styles = theme => ({
   },
   logo: {
     width: '75%',
-    marginTop: theme.spacing(4),
-    marginBottom: theme.spacing(),
+    marginBottom: theme.spacing(-2),
   },
   errorAlert: {
     marginTop: theme.spacing(),

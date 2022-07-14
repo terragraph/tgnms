@@ -1,12 +1,12 @@
 # NMS Docs
 
-(note: this is not included in the docs build, this is for information about the docs themselves)
+This file describes the documentation build process, and is not included in the build itself.
 
 ## Building
 
 ### Locally
 
-The build generates a single folder with all the necessary resources for the only NMS docs. It expects to be run alongside the other docs in `meta-terragraph` (and references CSS files in the `media` folder there).
+The build generates a single folder with all the necessary resources for the NMS docs only. It expects to be run alongside the other docs in `meta-terragraph` (and references CSS files in the `media` folder there).
 
 1. Install `nbsphinx`
 

@@ -1,7 +1,12 @@
 # Terragraph NMS
 
-[Terragraph](https://terragraph.com/) is a technology that operates on 60 GHz
-unlicensed band delivering fiber-like speeds.
+<p align="center">
+  <img src="./docs/temp_static/media/logo/terragraph-logo-full-RGB.svg" width="320" />
+</p>
+
+Terragraph is a gigabit wireless technology designed to meet the growing demand
+for reliable high-speed internet access. Documentation for the project can be
+found at [terragraph.com](https://terragraph.com).
 
 This repository contains code for the Terragraph Network Management System
 (TGNMS).

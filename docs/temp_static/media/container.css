@@ -258,7 +258,7 @@
   left: 0;
   right: 0;
   background-color: #d5e3fd;
-  background: url('figures/city-bg.png');
+  background: url('web/header.jpg');
   background-size: cover;
   display: flex;
   align-items: center;
@@ -281,8 +281,7 @@
 }
 .index-logo {
   width: 75%;
-  margin-top: 32px;
-  margin-bottom: 12px;
+  margin-bottom: -16px;
 }
 .index-version {
   font-size: 0.9rem;
