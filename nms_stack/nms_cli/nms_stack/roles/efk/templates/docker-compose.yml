@@ -14,7 +14,7 @@ services:
         max-file: "10"
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    image: {{ elasticsearch_image }}
     hostname: "{{ '{{ .Node.Hostname }}' }}"
     environment:
       - node.name={{ '{{ .Node.Hostname }}' }}
@@ -46,7 +46,7 @@ services:
         max-file: "10"
 
   es_exporter:
-    image: justwatch/elasticsearch_exporter:1.0.2
+    image: {{ elasticsearch_exporter_image }}
     command:
       - '-es.uri=http://elasticsearch:9200'
       - '-es.all=true'
@@ -59,7 +59,7 @@ services:
         max-file: "10"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.4.0
+    image: {{ kibana_image }}
     volumes:
       - "{{ efk_gfs_path }}/config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml"
     networks:

@@ -106,7 +106,7 @@
     -e "NMS_DEFAULT_USERNAME={{ nms_username }}"
     -e "NMS_DEFAULT_PASSWORD={{ nms_password }}"
     -u root
-    jboss/keycloak:7.0.0
+    {{ keycloak_image }}
     /scripts/configure-keycloak.sh
   when: keycloak_enabled
 
@@ -122,7 +122,7 @@
   until: result.rc == 0
 
 - name: Add e2e controllers to database
-  shell: "docker run -i --network=terragraph_net mysql:5 mysql -u{{ db_root_user }} -p{{ passwords.db_root_password  }} --host=database_db cxl < '{{ nms_path }}/add_controllers.sql'"
+  shell: "docker run -i --network=terragraph_net {{ db_image }} mysql -u{{ db_root_user }} -p{{ passwords.db_root_password  }} --host=database_db cxl < '{{ nms_path }}/add_controllers.sql'"
 
 - name: Restart nms
   command: docker service update --force nms_nms

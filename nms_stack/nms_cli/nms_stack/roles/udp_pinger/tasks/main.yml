@@ -48,7 +48,7 @@
     --entrypoint=""
     --network=terragraph_net
     -u root
-    jboss/keycloak:7.0.0
+    {{ keycloak_image }}
     /scripts/create-service-account-client.sh udp_pinger /output/auth.env tg_topology_read,tg_management_read
   when: keycloak_enabled
 

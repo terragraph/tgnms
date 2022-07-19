@@ -2,7 +2,7 @@
 # Check that we can connect to the DB with the provided credentials
 - name: Can remotely login with DB root credentials
   shell: >
-    docker run --rm --network=terragraph_net mysql:5 \
+    docker run --rm --network=terragraph_net {{ db_image }} \
     mysql -u{{ db_root_user }} -p{{ passwords.db_root_password  }} --host=database_db cxl -e "SELECT 1+1;"
   register: result
   changed_when: false
@@ -14,7 +14,7 @@
 - name: NMS can login with its credentials
   shell: >
     docker run --rm --env-file=/opt/terragraph/gfs/database/env/mysql.env \
-    --network=terragraph_net mysql:5 \
+    --network=terragraph_net {{ db_image }} \
     sh -c 'mysql -u${MYSQL_USER} -p${MYSQL_PASS} --host=database_db cxl -e "SELECT 1+1;"'
   register: result
   changed_when: false
@@ -24,7 +24,7 @@
     validation_errors: "{{validation_errors + [result.stderr] if result.rc > 0 else validation_errors}}"
 
 - name: MSA Services can login with their credentials
-  shell: docker run --rm --env-file=/opt/terragraph/gfs/msa/env/{{item.name}}.env --network=terragraph_net mysql:5 sh -c 'mysql -u${DB_USER} -p${DB_PASSWORD} --host=database_db ${DB_NAME} -e "SELECT 1+1;"'
+  shell: docker run --rm --env-file=/opt/terragraph/gfs/msa/env/{{item.name}}.env --network=terragraph_net {{ db_image }} sh -c 'mysql -u${DB_USER} -p${DB_PASSWORD} --host=database_db ${DB_NAME} -e "SELECT 1+1;"'
   loop:
     - { name: "default_routes_service" }
     - { name: "network_health_service" }
@@ -44,7 +44,7 @@
 - name: Grafana writer can login with its credentials
   shell: >
     docker run --rm --env-file=/opt/terragraph/gfs/nms/env/grafana.env \
-    --network=terragraph_net mysql:5 \
+    --network=terragraph_net {{ db_image }} \
     sh -c 'mysql -u${GRAFANA_MYSQL_WRITER} -p${GRAFANA_MYSQL_WRITER_PASS} --host=database_db grafana -e "SELECT 1+1;"'
   register: result
   changed_when: false

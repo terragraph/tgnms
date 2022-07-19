@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   keycloak:
-    image: jboss/keycloak:7.0.0
+    image: {{ keycloak_image }}
     env_file:
       - {{ keycloak_path }}/env/keycloak.env
     volumes:
