@@ -6,9 +6,9 @@
  */
 
 export const QUICK_START_LINK =
-  'https://tgdocs.internal.tfbnw.net/operator.html#quick-start ';
+  'https://terragraph.com/docs/runbook/Quick_Start';
 export const MOUNTING_LINK =
-  'http://tgdocs.internal.tfbnw.net/operator.html#mounting-accuracy';
+  'https://terragraph.com/docs/runbook/Planning#mounting-accuracy';
 
 export const MODULES = {
   INTRO: 'INTRO',
