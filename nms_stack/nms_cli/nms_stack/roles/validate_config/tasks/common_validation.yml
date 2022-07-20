@@ -9,17 +9,6 @@
     that: "ansible_memtotal_mb > 2048"
     msg: "Total RAM: {{ ansible_memtotal_mb / 1024 }}GB. You must have more then 2GB of RAM"
 
-- name: Check Docker login
-  assert:
-    that:
-      - "{{ item }} is defined"
-      - "{{ item }} != None"
-      - "{{ item }} != ''"
-    msg: "{{ item }} must be defined"
-  loop:
-    - docker_registry_username
-    - docker_registry_password
-
 - name: Check passwords
   assert:
     that:

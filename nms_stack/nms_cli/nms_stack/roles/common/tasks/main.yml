@@ -163,3 +163,6 @@
   until: result is success
   retries: 5
   delay: 60
+  when:
+    - (docker_registry_username is defined) and not (not docker_registry_username)
+    - (docker_registry_password is defined) and not (not docker_registry_password)

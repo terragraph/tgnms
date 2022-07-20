@@ -152,9 +152,7 @@ def gather_files(base_dir, limit) -> List[str]:
         return []
 
     files = [os.path.join(base_dir, path) for path in os.listdir(base_dir)]
-    # TODO: Do we need Windows support? If so switch and use st_ctime
-    # https://stackoverflow.com/questions/6759415/sorting-files-by-date
-    files.sort(key=lambda x: os.stat(os.path.join(base_dir, x)).st_mtime)
+    files.sort(key=os.path.getmtime)
 
     # Don't report all the files, just the NUM_LOGS_TO_REPORT latest
     return files[-limit:]

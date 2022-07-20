@@ -26,7 +26,7 @@
     - python3-devel
     - rsync
 
-- name: Remove packages 
+- name: Remove packages
   yum:
     name: "{{ item }}"
     state: absent
@@ -37,7 +37,7 @@
 - name: install modprobe ip6table_mangle
   shell: sudo modprobe ip6table_mangle
 
-- name: install docker 
+- name: install docker
   include_role:
     name: ansible-role-docker
   vars:

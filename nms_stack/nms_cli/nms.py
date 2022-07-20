@@ -93,7 +93,7 @@ def gather_hosts(ctx, installer_opts, variables):
     return hosts
 
 
-def generate_variables(ctx, installer_opts, version="latest"):
+def generate_variables(ctx, installer_opts, version):
     config_file = installer_opts.config_file
     variables = load_variables(config_file)
 
@@ -138,18 +138,19 @@ def gather_docker_images(variables):
 
 
 def generate_image_configs(variables, version):
+    DEFAULT_VERSION = version or "latest"
     new_images = {}
     for key in _gather_image_keys(variables):
         image = variables[key]
         # Ex:
-        #   Has version: secure.cxl-terragraph.com:443/tg-alarms:v21.12.01
-        #   No version: secure.cxl-terragraph.com:443/tg-alarms
-        path = image.split("/", 1)  # split path into repo name and image name
-        if len(path) > 1:
+        #   Has version: ghcr.io/terragraph/tg-alarms:v21.12.01
+        #   No version: ghcr.io/terragraph/tg-alarms
+        path = image.rsplit("/", 1)  # split path into repo name and image name
+        if len(path) == 2:
             image_name = path[1]
             if len(image_name.split(":")) == 1:
                 # if a version was NOT specified
-                new_images[key] = IMAGE_TEMPLATE.format(image=image, version=version)
+                new_images[key] = IMAGE_TEMPLATE.format(image=image, version=DEFAULT_VERSION)
             else:
                 new_images[key] = image
     return new_images
@@ -251,47 +252,43 @@ def check_images_exist(variables, host=None):
     docker_registry = variables.get("docker_registry_url") or os.environ.get(
         "DOCKER_REGISTRY"
     )
-    docker_password = variables.get("docker_registry_password") or os.environ.get(
-        "DOCKER_PASSWORD"
-    )
+    if not docker_registry:
+        raise RuntimeError(
+            "Missing docker registry parameter. "
+            f"Please specify in your configuration file (docker_registry_url) "
+            f"or as environment variables (DOCKER_REGISTRY)."
+        )
+
+    # username/password are optional
     docker_username = variables.get("docker_registry_username") or os.environ.get(
         "DOCKER_USERNAME"
     )
-    if not (docker_password and docker_username and docker_registry):
-        missing_config_fields = []
-        missing_env_fields = []
-        if not docker_password:
-            missing_config_fields.append("docker_registry_password")
-            missing_env_fields.append("DOCKER_PASSWORD")
-        if not docker_registry:
-            missing_config_fields.append("docker_registry_url")
-            missing_env_fields.append("DOCKER_REGISTRY")
-        if not docker_username:
-            missing_config_fields.append("docker_registry_username")
-            missing_env_fields.append("DOCKER_USERNAME")
-        raise RuntimeError(
-            "Missing docker parameters. "
-            f"Please specify in your configuration file ({', '.join(missing_config_fields)}) "
-            f"or as environment variables ({', '.join(missing_env_fields)})."
-        )
+    docker_password = variables.get("docker_registry_password") or os.environ.get(
+        "DOCKER_PASSWORD"
+    )
 
     if host:
         image_cmd = f"ssh {host} "
     else:
-        # Login
-        command = [
-            "echo",
-            docker_password,
-            "|",
-            "docker",
-            "login",
-            "-u",
-            docker_username,
-            "--password-stdin",
-            docker_registry,
-        ]
-        run(" ".join(command))
         image_cmd = ""
+
+        # Login if needed
+        if docker_username and docker_password:
+            print("Logging into Docker registry...")
+            command = [
+                "echo",
+                docker_password,
+                "|",
+                "docker",
+                "login",
+                "-u",
+                docker_username,
+                "--password-stdin",
+                docker_registry,
+            ]
+            run(" ".join(command))
+        else:
+            print("Missing Docker registry credentials, skipping login")
 
     missing_images = []
     print("Checking images...")
@@ -300,11 +297,12 @@ def check_images_exist(variables, host=None):
         returncode = run(image_cmd + f"docker manifest inspect {image} > /dev/null")
         if returncode:
             missing_images.append(image)
+        print(f"    [{'FAIL' if returncode else 'SUCCESS'}] {image}")
     if len(missing_images):
-        print("The following images are missing:")
+        print("\nThe following images are missing:")
         print("    " + "\n    ".join(missing_images))
     else:
-        print("All images exist in the registry.")
+        print("\nAll images exist in the registry.")
     return missing_images
 
 
@@ -501,16 +499,19 @@ def install_docker(a, hosts, installer_opts, variables, password):
     if installer_opts.config_file:
         # Check if docker already exists on the host
         host = hosts[0][0] if hosts[0][0] != "host.example.com" else None
-        returncode = run(f"ssh {host} docker --version")
-        if returncode == 127:
-            # Command doesn't exist, install docker
-            a.run(
-                hosts,
-                INSTALL_DOCKER_PLAYBOOK,
-                config_file=installer_opts.config_file,
-                generated_config=variables,
-                password=password,
-            )
+        if host:
+            returncode = run(f"ssh {host} docker --version")
+            if returncode == 127:
+                # Command doesn't exist, install docker
+                a.run(
+                    hosts,
+                    INSTALL_DOCKER_PLAYBOOK,
+                    config_file=installer_opts.config_file,
+                    generated_config=variables,
+                    password=password,
+                )
+        else:
+            print("Please provide a valid installation host!")
     return host
 
 
@@ -519,7 +520,7 @@ def install_docker(a, hosts, installer_opts, variables, password):
     "--nonfatal-image-check",
     is_flag=True,
     default=False,
-    help="Checks for image, but doesn't fail installation if images are missing.",
+    help="Checks for images, but doesn't fail installation if images are missing.",
 )
 @add_installer_opts()
 @click.pass_context
@@ -552,7 +553,13 @@ def check_images(ctx, installer_opts):
     "--nonfatal-image-check",
     is_flag=True,
     default=False,
-    help="Checks for image, but doesn't fail installation if images are missing.",
+    help="Checks for images, but doesn't fail installation if images are missing.",
+)
+@click.option(
+    "--skip-image-check",
+    is_flag=True,
+    default=False,
+    help="Completely skips image checks before installation.",
 )
 @add_installer_opts()
 @click.pass_context
@@ -569,11 +576,13 @@ def install(ctx, installer_opts):
     a = prepare_ansible(ctx, installer_opts, variables)
 
     host = install_docker(a, hosts, installer_opts, variables, password)
-    missing_images = check_images_exist(variables, host)
-    if not installer_opts.other_options.get("nonfatal_image_check") and len(
-        missing_images
-    ):
-        ctx.exit(1)
+
+    if not installer_opts.other_options.get("skip_image_check"):
+        missing_images = check_images_exist(variables, host)
+        if not installer_opts.other_options.get("nonfatal_image_check") and len(
+            missing_images
+        ):
+            ctx.exit(1)
 
     sys.exit(
         a.run(
