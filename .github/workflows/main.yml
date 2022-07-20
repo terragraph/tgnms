@@ -117,6 +117,10 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build topology_service --dir topology_service --github-user "$GITHUB_USER" --branch "$GIT_BRANCH" --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push topology_service --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
+      - name: MSA Anomaly Detection Service
+        run: |
+          python jenkins_scripts/registry.py build anomaly_detection --dir anomaly_detection --github-user "$GITHUB_USER" --branch "$GIT_BRANCH" --registry "$DOCKER_REGISTRY"
+          python jenkins_scripts/registry.py push anomaly_detection --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
       - name: NMS v2
         run: |
           export COMMIT_HASH=$(git log -1 --pretty=%h)
