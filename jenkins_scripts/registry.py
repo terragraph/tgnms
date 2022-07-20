@@ -111,9 +111,6 @@ if __name__ == "__main__":
     build_parser = subparsers.add_parser("build")
     build_parser.add_argument("name", help="docker package name")
     build_parser.add_argument(
-        "--username", help="docker registry username", required=True
-    )
-    build_parser.add_argument(
         "--github-user", help="github repository user", required=True
     )
     build_parser.add_argument(
@@ -125,7 +122,7 @@ if __name__ == "__main__":
     build_parser.add_argument(
         "--registry",
         help="regsitry hostname and port",
-        default="secure.cxl-terragraph.com:443",
+        default="ghcr.io",
     )
     build_parser.add_argument("--stage", help="specify a Dockerfile stage")
     build_parser.add_argument(
@@ -139,7 +136,7 @@ if __name__ == "__main__":
     push_parser.add_argument(
         "--registry",
         help="regsitry hostname and port",
-        default="secure.cxl-terragraph.com:443",
+        default="ghcr.io",
     )
     push_parser.add_argument(
         "--username", help="docker registry username", required=True
