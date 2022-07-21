@@ -1,4 +1,3 @@
-# Copyright (c) 2014-present, Facebook, Inc.
 from logging.config import fileConfig
 
 from alembic import context
