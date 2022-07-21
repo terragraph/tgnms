@@ -11,8 +11,8 @@ The CLI *may* support these looser specifications:
 * 32GB of disk space (64GB+ recommended)
 
 The following software must be pre-installed to run the CLI:
-* `python3-dev` pre-installed
-* `sshpass` pre-installed (only with the "-p" option)
+* `python3-dev`
+* `sshpass` (only with the "-p" option)
 
 ## Installation
 Refer to the top-level [README.md](../README.md) for installation and usage

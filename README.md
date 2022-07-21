@@ -9,7 +9,8 @@ for reliable high-speed internet access. Documentation for the project can be
 found at [terragraph.com](https://terragraph.com).
 
 This repository contains code for the Terragraph Network Management System
-(TGNMS).
+(TGNMS). **Compatibility and product support with any commercial Terragraph
+solution should be discussed with the appropriate Terragraph vendor directly.**
 
 ## Installation
 The Terragraph cloud suite is deployed as a set of Docker services in a Docker
