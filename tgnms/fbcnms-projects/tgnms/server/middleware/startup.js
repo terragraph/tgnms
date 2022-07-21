@@ -1,9 +1,8 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
- * Middleware to handle requests while the NMS is starting up.
- * Useful for showing the user progress through the process, and
- * for showing error messages so they don't have to see an unhelpful 502 error.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * @format
  * @flow strict-local

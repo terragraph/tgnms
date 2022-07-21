@@ -1,13 +1,13 @@
 /**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
- * Copyright 2004-present Facebook. All Rights Reserved.
- *
- * This source code is licensed under the BSD-style license found in the
+ * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
  * @flow
  * @format
  */
+
 import {API_REQUEST_TIMEOUT, LOGIN_ENABLED} from '../config';
 const logger = require('../log')(module);
 import axios from 'axios';

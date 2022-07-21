@@ -1,8 +1,14 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * @format
  * @flow
+ */
+
+/*
  * JSDOM doesn't support extending EventTarget, which WebSocket inherits from.
  * (https://github.com/jsdom/jsdom/issues/2156)
  * So instead we'll extend EventEmitter and just smooth over the api a bit.

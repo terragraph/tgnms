@@ -1,9 +1,14 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * @format
  * @flow strict-local
- *
+ */
+
+/*
  * Controller downloads custom TG images from NMS. Since all static files are
  * protected by keycloak authentication, controller can't download custom
  * TG images. This middleware protects an open route using a one-time-password

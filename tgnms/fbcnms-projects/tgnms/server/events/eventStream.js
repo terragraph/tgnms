@@ -1,8 +1,13 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  * @flow
  * @format
  */
+
 const logger = require('../log')(module);
 import uuidv1 from 'uuid/v1';
 import {ConsumerGroup} from 'kafka-node';

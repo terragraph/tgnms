@@ -1,5 +1,5 @@
 # Terragraph NMS
-UI to visualize the terragraph wireless network.
+UI to visualize the Terragraph wireless network.
 
 # Developer Guide for `tgnms`
 ## Quick Start
@@ -27,8 +27,6 @@ yarn run eslint . --fix
 flow
 ```
 
-
-
 # Debugging Tools
 ### Setting Log-level
 Logs are filtered by log-levels. To set the log-level, use the LOG_LEVEL environment variable:
@@ -54,6 +52,7 @@ logger.debug('log a debug message');
 logger.info('log an info message');
 ...
 ```
+
 ### Logging ANP API requests/responses
 For fine-grained planner api debugging, pass the env-var `PLANNER_REQUEST_LOGFILE=./anplogs.txt` to write every request/response as JSON to this file.
 Analyze the logfile with the jq cli utility:

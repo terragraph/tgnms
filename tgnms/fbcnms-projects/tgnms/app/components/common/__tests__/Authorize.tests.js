@@ -1,10 +1,16 @@
 /**
- * Show / hide individual components based on user permissions. redirect if user
- * does not have ALL of the required permissions.
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * @format
  * @flow strict-local
+ */
+
+/*
+ * Show / hide individual components based on user permissions.
+ * Redirect if user does not have ALL of the required permissions.
  */
 
 import React from 'react';

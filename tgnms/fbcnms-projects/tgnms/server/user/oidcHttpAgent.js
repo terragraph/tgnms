@@ -1,14 +1,11 @@
 /**
- * Copyright (c) 2014-present, Facebook, Inc.
- */
-/**
- * This is only needed because as of today, we require 2 proxies to run the
- * NMS on devservers - one to talk to the outside world (openid), and one to
- * talk to the lab. this can be removed once we are using the same proxy for
- * both
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * @format
- **/
+ */
 
 const http = require('http');
 

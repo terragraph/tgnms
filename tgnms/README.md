@@ -1,2 +1,2 @@
 # Terragraph NMS
-UI to visualize the terragraph wireless network.
+UI to visualize and manage the Terragraph wireless network.

@@ -1,10 +1,16 @@
 /**
- * Protect react-router route using permissions, redirect if user does not have
- * ALL of the required permissions
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * @format
  * @flow
+ */
+
+/*
+ * Protect react-router route using permissions, redirect if user does not have
+ * ALL of the required permissions
  */
 
 import * as React from 'react';

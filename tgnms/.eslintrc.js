@@ -1,7 +1,7 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
- * This source code is licensed under the BSD-style license found in the
+ * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
  * @format
@@ -9,12 +9,7 @@
 
 // enforces copyright header to be present in every file
 // eslint-disable-next-line max-len
-const openSourcePattern = /\*\n \* Copyright 20\d{2}-present Facebook\. All Rights Reserved\.\n \*\n \* This source code is licensed under the BSD-style license found in the\n \* LICENSE file in the root directory of this source tree\.\n \*\n/;
-// eslint-disable-next-line max-len
-const newOpenSourcePattern = /Copyright \(c\) Facebook, Inc\. and its affiliates\./;
-const combinedOpenSourcePattern = new RegExp(
-  '(' + newOpenSourcePattern.source + ')|(' + openSourcePattern.source + ')',
-);
+const openSourcePattern = /\*\n \* Copyright \(c\) Meta Platforms, Inc\. and affiliates\.\n \*\n \* This source code is licensed under the MIT license found in the\n \* LICENSE file in the root directory of this source tree\.\n/;
 
 module.exports.extends = ['eslint-config-fbcnms'];
 module.exports.overrides = [
@@ -56,7 +51,7 @@ module.exports.overrides = [
   {
     files: ['fbcnms-packages/**/*.js'],
     rules: {
-      'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
+      'header/header': [2, 'block', {pattern: openSourcePattern}],
     },
   },
   {
@@ -92,6 +87,7 @@ module.exports.overrides = [
   {
     files: ['**/tgnms/**/*.js'],
     rules: {
+      'header/header': [2, 'block', {pattern: openSourcePattern}],
       // tgnms doesn't want this because there's too many errors
       'flowtype/no-weak-types': 'off',
       'flowtype/require-valid-file-annotation': 'off',
