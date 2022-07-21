@@ -88,8 +88,7 @@ nms install -f config.yml
 ```
 
 ## Developer Guide
-
-[See here](https://github.com/terragraph/tgnms/blob/main/tgnms/fbcnms-projects/tgnms/README.md)
+[See here](tgnms/fbcnms-projects/tgnms/README.md)
 
 ## Overall Architecture
 ![image](readme_images/ArchitectureOverview.png)

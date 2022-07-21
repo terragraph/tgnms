@@ -1,4 +1,4 @@
-# NMS Docs
+# NMS Documentation
 
 This file describes the documentation build process, and is not included in the build itself.
 

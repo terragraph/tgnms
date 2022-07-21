@@ -1,7 +1,6 @@
 # Terragraph NMS
-UI to visualize the Terragraph wireless network.
+UI to visualize and manage the Terragraph wireless network.
 
-# Developer Guide for `tgnms`
 ## Quick Start
 ```bash
 cd tgnms/tgnms/fbcnms-projects/tgnms
@@ -27,9 +26,11 @@ yarn run eslint . --fix
 flow
 ```
 
-# Debugging Tools
-### Setting Log-level
-Logs are filtered by log-levels. To set the log-level, use the LOG_LEVEL environment variable:
+## Debugging
+
+### Configure logging
+Logs are filtered by log-levels. To set the log-level, use the `LOG_LEVEL`
+environment variable:
 ```
 LOG_LEVEL=<level>
 ```
@@ -40,23 +41,24 @@ Log-levels, from least to most verbose:
 * info
 * debug
 
-**Example:**
+Example:
 ```
 LOG_LEVEL=debug yarn start
 ```
-**Logging in code:**
-```
+
+Logging in code:
+```js
 // imports the logger and tags all log statements with this file's name
 const logger = require('../log')(module);
 logger.debug('log a debug message');
 logger.info('log an info message');
-...
 ```
 
 ### Logging ANP API requests/responses
-For fine-grained planner api debugging, pass the env-var `PLANNER_REQUEST_LOGFILE=./anplogs.txt` to write every request/response as JSON to this file.
-Analyze the logfile with the jq cli utility:
-```
+For fine-grained Terragraph Planner API debugging, pass the env-var
+`PLANNER_REQUEST_LOGFILE=./anplogs.txt` to write every request/response to a
+JSON file. Analyze the log file with the `jq` utility:
+```bash
 # show the url of each request
 jq -r '.request.url' < anplog.txt
 # show response headers

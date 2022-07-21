@@ -48,9 +48,9 @@ setup(
             + [os.path.join("..", PACKAGE, "__version__")]
         ),
     },
-    url="http://github.com/facebookexternal/terragraph-ansible/",
-    author="Mike Nugent",
-    author_email="mnugent@fb.com",
+    url="https://github.com/terragraph/tgnms",
+    author="Terragraph Team",
+    author_email="email@example.com",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",

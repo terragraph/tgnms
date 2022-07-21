@@ -56,7 +56,7 @@ setup(
     description=("k8s_nms cli"),
     packages=["k8s_nms"],
     package_data={"k8s_nms": package_data},
-    url="http://github.com/facebookexternal/terragraph-apps/",
+    url="https://github.com/terragraph/tgnms",
     author="Terragraph Team",
     author_email="email@example.com",
     classifiers=[

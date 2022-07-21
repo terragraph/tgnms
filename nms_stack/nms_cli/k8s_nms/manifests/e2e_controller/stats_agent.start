@@ -1,5 +1,9 @@
 #!/bin/sh
-# Copyright (c) 2014-present, Facebook, Inc.
+
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
 
 if [ -z "${E2E_CONFIG_FILE}" ]; then
   echo "E2E_CONFIG_FILE not set"
@@ -36,4 +40,3 @@ SA_FLAGS="${SA_FLAGS} -node_config_file /data/${E2E_CONFIG_FILE}"
 SA_FLAGS="${SA_FLAGS} -mac_addr 0:0:0:0:0:0 -aggregator_host ${TG_AGGREGATOR_HOST}"
 
 eval /usr/sbin/stats_agent -v 2 ${SA_FLAGS} -logtostderr
-

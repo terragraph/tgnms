@@ -1,6 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2014-present, Facebook, Inc.
-#
+
 # Program: Initial vagrant.
 # History: 2017/1/16 Kyle.b Release
 
