@@ -43,7 +43,6 @@ included in the installation of the NMS.
     9ln8ld38gx85   kafka_zoo3                        replicated   1/1        zookeeper:latest
     p27dsw42pd3z   keycloak_keycloak                 replicated   1/1        jboss/keycloak:7.0.0
     yn6nfzh6n9pr   monitoring_cadvisor               global       3/3        google/cadvisor:latest
-    sq7g03iu2ixl   monitoring_gluster_exporter       global       3/3        secure.cxl-terragraph.com:443/gluster_exporter:rc
     srq0xdlooff1   msa_analytics                     replicated   1/1        secure.cxl-terragraph.com:443/analytics:rc
     uw2c97t89gsh   msa_default_routes_service        replicated   1/1        secure.cxl-terragraph.com:443/default_routes_service:rc
     law793veyulo   msa_network_test                  replicated   1/1        secure.cxl-terragraph.com:443/network_test:rc
