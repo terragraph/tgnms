@@ -67,7 +67,7 @@ common_options = {
         "--template-source",
         default=DEFAULT_MANIFESTS_DIR,
         required=False,
-        help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory",
+        help="Source of templates (can be a URL, local .tar.gz, or uncompressed local directory)",
     ),
     "charts": click.option(
         "-c",
@@ -219,8 +219,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 @click.pass_context
 def cli(ctx, version):
     """
-    CLI utility to install Terragraph NMS stack. See usage instructions at
-    <insert URL here>.
+    CLI utility to install Terragraph NMS stack.
 
     A typical usage will involve starting up a Kubernetes cluster via the
     'install' command, and then applying the manifests for NMS via the 'apply'

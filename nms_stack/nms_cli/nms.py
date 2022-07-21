@@ -338,7 +338,7 @@ def add_installer_opts(common_opts=common_options.keys()):
 def cli(ctx, version, short):
     rage.register_invocation_hook(record_version)
     if version or short:
-        longver = "Terragraph NMS cli utility version: {}"
+        longver = "Terragraph NMS CLI utility version: {}"
         try:
             verstr = get_nms_version()
         except Exception as e:
