@@ -44,7 +44,7 @@ AIOKafkaConsumer.__module__ = "aiokafka"
 # -- Project information -----------------------------------------------------
 
 project = "tglib"
-copyright = "2020, Terragraph"
+copyright = "Meta Platforms, Inc."
 author = "Terragraph"
 
 # The full version, including alpha/beta/rc tags

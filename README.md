@@ -1,7 +1,7 @@
 # Terragraph NMS
 
 <p align="center">
-  <img src="./docs/temp_static/media/logo/terragraph-logo-full-RGB.svg" width="320" />
+  <img src="./docs/_static/media/logo/terragraph-logo-full-RGB.svg" width="320" />
 </p>
 
 Terragraph is a gigabit wireless technology designed to meet the growing demand
@@ -88,7 +88,10 @@ nms install -f config.yml
 ```
 
 ## Developer Guide
-[See here](tgnms/fbcnms-projects/tgnms/README.md)
+[See here](tgnms/fbcnms-projects/tgnms/README.md).
+
+Additional documentation for the TGNMS can be found
+[here](http://terragraph.github.io/tgnms).
 
 ## Overall Architecture
 ![image](readme_images/ArchitectureOverview.png)

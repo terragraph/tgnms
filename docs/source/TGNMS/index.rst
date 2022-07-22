@@ -8,8 +8,6 @@ TGNMS
    Tables
    Dashboards
    Alerts
-   Upgrade
-   Network Config <Network_Config>
    NMS Config <NMS_Config>
    About
 
@@ -18,4 +16,3 @@ network, as well as status information about these nodes and their associated
 links.
 
 .. image:: _static/main_page.png
-

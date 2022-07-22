@@ -25,6 +25,12 @@ dev_build:
 
 dev: serve dev_build
 
+# Convert notebooks into .py files and copy them to the html directory so they
+# can be served statically
+ipynb:
+	cd source && find . -name "*.ipynb" | xargs jupyter nbconvert --to script
+	find source -name "*.py" | grep -v "conf.py" | sed 's/source\///g' | xargs -I {} cp -v source/{} build/html/{}
+
 .PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new

@@ -3,9 +3,11 @@ Migration
 
 This doc details the switch from Docker Swarm in the LTS 12.20 release to Kubernetes in the LTS 03.21 release. The NMS installer version ``2021.02.11`` or later contains a new command: ``nms beta`` that lets you access the Kubernetes installer. See ``nms beta --help`` for details.
 
+Note that the Kubernetes deployment mode is NOT currently supported at this time.
+
 Necessary Steps
 ---------------
-To migrate LTS 12.20 installations to the LTS 03.21 release or later, you need to remove the Docker Swarm based install from your machine and install the Kubernetes runtime. 
+To migrate LTS 12.20 installations to the LTS 03.21 release or later, you need to remove the Docker Swarm based install from your machine and install the Kubernetes runtime.
 
 1. Remove Docker Swarm runtime::
 
@@ -40,7 +42,7 @@ Technical Details
 -----------------
 Docker `Swarm mode <https://docs.docker.com/engine/swarm/>`_ provides a way to run a cluster of hosts and transparently schedules Docker containers to run on them via `docker-compose.yml` files. `Kubernetes <https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/>`_ is similar but provides much more fine grained control of every aspect of the cluster.
 
-This table shows the necessary command changes to make for debugging the cluster. 
+This table shows the necessary command changes to make for debugging the cluster.
 
 .. csv-table::
    :header: "Action", "Swarm Command", "Kubernetes Command"

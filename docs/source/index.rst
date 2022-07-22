@@ -8,7 +8,6 @@ The Terragraph NMS (TGNMS) is designed to help operators and developers manage t
 .. toctree::
    :maxdepth: 2
 
-   Changelog
    TGNMS <TGNMS/index.rst>
    Deployment <Deployment/index.rst>
    Terminology
