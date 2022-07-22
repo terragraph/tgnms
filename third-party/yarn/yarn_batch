@@ -1,3 +1,0 @@
-@echo off
-set NODE_PATH=%~dp0\node_modules
-@dotslash "%~dp0node" "%~dp0yarn-main.js" %*

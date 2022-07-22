@@ -1,9 +1,0 @@
-{
-  "name": "@xplatjs/zip",
-  "main": "zip.js",
-  "private": true,
-  "version": "0.0.0",
-  "dependencies": {
-    "resolve": "^1.7.1"
-  }
-}
