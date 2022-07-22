@@ -2,8 +2,6 @@
 root: true
 
 parser: fb-eslint
-extends:
-  - eslint-config-fbcnms
 
 plugins:
   - eslint-config-fbcnms
