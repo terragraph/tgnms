@@ -88,10 +88,18 @@ nms install -f config.yml
 ```
 
 ## Developer Guide
-[See here](tgnms/fbcnms-projects/tgnms/README.md).
-
-Additional documentation for the TGNMS can be found
+Additional NMS documentation can be found
 [here](http://terragraph.github.io/tgnms).
+
+Repository file structure (non-exhaustive list):
+* **nms_stack** - NMS installer for the entire Terragraph cloud suite
+* **tgnms** - NMS UI ([see here](tgnms/fbcnms-projects/tgnms/README.md))
+* **docs** - NMS UI documentation
+* **tglib** - Python framework for building applications within the Terragraph
+  Microservice Architecture (MSA)
+* **docker** - Build scripts for C++ backend services including Query Service
+  and UDP Pinger
+* **if** - Thrift interface definitions shared across many services
 
 ## Overall Architecture
 ![image](readme_images/ArchitectureOverview.png)

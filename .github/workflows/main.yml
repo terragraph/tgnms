@@ -89,7 +89,7 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build scan_service --dir scan_service --github-user "$GITHUB_USER" --branch "$GIT_BRANCH" --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push scan_service --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: Network Health Service
+      - name: MSA Network Health Service
         run: |
           python jenkins_scripts/registry.py build network_health_service --dir network_health_service --github-user "$GITHUB_USER" --branch "$GIT_BRANCH" --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push network_health_service --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
@@ -101,7 +101,7 @@ jobs:
         run: |
           python jenkins_scripts/registry.py build network_test --dir network_test --github-user "$GITHUB_USER" --branch "$GIT_BRANCH" --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push network_test --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
-      - name: MSA Default Router Service
+      - name: MSA Default Routes Service
         run: |
           python jenkins_scripts/registry.py build default_routes_service --dir default_routes_service --github-user "$GITHUB_USER" --branch "$GIT_BRANCH" --registry "$DOCKER_REGISTRY"
           python jenkins_scripts/registry.py push default_routes_service --username "$DOCKER_USERNAME" --github-user "$GITHUB_USER" --registry "$DOCKER_REGISTRY"
