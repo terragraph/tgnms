@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Terminology &#8212; TGNMS 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Stats Pipeline" href="Deployment/Stats.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="terminology">
+<h1>Terminology<a class="headerlink" href="#terminology" title="Permalink to this heading">¶</a></h1>
+<p>Definitions for terms used in TGNMS.</p>
+<section id="definitions">
+<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this heading">¶</a></h2>
+<section id="tgnms">
+<h3>TGNMS<a class="headerlink" href="#tgnms" title="Permalink to this heading">¶</a></h3>
+<p>Terragraph Network Management System. This refers to the entire suite of cloud services that runs the NMS web application.</p>
+</section>
+<section id="link">
+<h3>Link<a class="headerlink" href="#link" title="Permalink to this heading">¶</a></h3>
+<p>The connection between two devices in a network.</p>
+</section>
+<section id="ignition">
+<h3>Ignition<a class="headerlink" href="#ignition" title="Permalink to this heading">¶</a></h3>
+<p>The association of wireless links.</p>
+</section>
+<section id="network">
+<h3>Network<a class="headerlink" href="#network" title="Permalink to this heading">¶</a></h3>
+<p>A collection of sites containing nodes connected via links arranged with a particular topology.</p>
+</section>
+<section id="minion">
+<h3>Minion<a class="headerlink" href="#minion" title="Permalink to this heading">¶</a></h3>
+<p>The E2E minion is a client process that connects to the E2E controller. The minion communicates with the firmware and driver and executes actions from the controller, such as sending down firmware configuration or bringing up wireless links to neighbors.</p>
+</section>
+<section id="stats-agent">
+<h3>Stats Agent<a class="headerlink" href="#stats-agent" title="Permalink to this heading">¶</a></h3>
+<p>The stats agent is a process on each node that periodically submits stats and events to configured endpoints, such as a Kafka cluster or an NMS aggregator instance.</p>
+</section>
+<section id="topology">
+<h3>Topology<a class="headerlink" href="#topology" title="Permalink to this heading">¶</a></h3>
+<p>The graph of network nodes and their connections.</p>
+</section>
+<section id="node">
+<h3>Node<a class="headerlink" href="#node" title="Permalink to this heading">¶</a></h3>
+<p>A general purpose compute unit that controls one or more sectors and runs on Linux.</p>
+</section>
+<section id="sector">
+<h3>Sector<a class="headerlink" href="#sector" title="Permalink to this heading">¶</a></h3>
+<p>A wireless baseband card attached to a node.</p>
+</section>
+<section id="site">
+<h3>Site<a class="headerlink" href="#site" title="Permalink to this heading">¶</a></h3>
+<p>A collection of one or more nodes installed at the same physical location.</p>
+</section>
+<section id="street-furniture">
+<h3>Street Furniture<a class="headerlink" href="#street-furniture" title="Permalink to this heading">¶</a></h3>
+<p>Objects placed or fixed in the street for public use, such as light poles, utility poles, traffic signals, bus stops, billboards, and traffic signals.</p>
+</section>
+<section id="dn-distribution-node">
+<h3>DN (Distribution Node)<a class="headerlink" href="#dn-distribution-node" title="Permalink to this heading">¶</a></h3>
+<p>A node that distributes the bandwidth from a fiber PoP to neighboring nodes in the Terragraph mesh network. These are the active elements that make up the network itself.</p>
+</section>
+<section id="cn-client-node">
+<h3>CN (Client Node)<a class="headerlink" href="#cn-client-node" title="Permalink to this heading">¶</a></h3>
+<p>A node serving as the termination point where service delivery takes place. These are not a part of the mesh network for distribution, but provide connectivity to a fixed client such as an eNodeB, Wi-Fi Access point (AP), or a fixed  connection to a home or office.</p>
+</section>
+<section id="cpe-customer-premise-equipment">
+<h3>CPE (Customer Premise Equipment)<a class="headerlink" href="#cpe-customer-premise-equipment" title="Permalink to this heading">¶</a></h3>
+<p>Equipment connected to a Terragraph DN or CN for customer use, such as a Wi-Fi access point.</p>
+</section>
+<section id="pop-point-of-presence-node">
+<h3>PoP (Point-of-Presence) Node<a class="headerlink" href="#pop-point-of-presence-node" title="Permalink to this heading">¶</a></h3>
+<p>A DN that serves as the demarcation between the Terragraph network and the provider’s backbone network. The PoP node is part of the Terragraph network.</p>
+</section>
+<section id="e2e-end-to-end-controller">
+<h3>E2E (End-to-End) Controller<a class="headerlink" href="#e2e-end-to-end-controller" title="Permalink to this heading">¶</a></h3>
+<p>The cloud service that configures and controls various aspects of the Terragraph network.</p>
+</section>
+<section id="nms-network-management-service-aggregator">
+<h3>NMS (Network Management Service) Aggregator<a class="headerlink" href="#nms-network-management-service-aggregator" title="Permalink to this heading">¶</a></h3>
+<p>The cloud service that collects and aggregates statistics, events, and logs from nodes in the Terragraph network.</p>
+</section>
+<section id="mesh-network">
+<h3>Mesh Network<a class="headerlink" href="#mesh-network" title="Permalink to this heading">¶</a></h3>
+<p>Terragraph employs a directed mesh network of DNs to deliver broadband services. A directed mesh network is designed to use multiple connections in several directions from each node thereby providing both high reliability and path redundancy.</p>
+</section>
+<section id="open-r">
+<h3>Open/R<a class="headerlink" href="#open-r" title="Permalink to this heading">¶</a></h3>
+<p>The routing protocol developed for and used by Terragraph.</p>
+</section>
+<section id="ad">
+<h3>802.11ad<a class="headerlink" href="#ad" title="Permalink to this heading">¶</a></h3>
+<p>The IEEE standard which supports high speed wireless communication in the 60GHz unlicensed band. Terragraph is based on the IEEE 802.11ad specification, but portions of the standard have been modified to improve reliability and performance  over longer link distances.</p>
+</section>
+<section id="ay">
+<h3>802.11ay<a class="headerlink" href="#ay" title="Permalink to this heading">¶</a></h3>
+<p>An extension to the IEEE 802.11ad standard, intended to focus specifically on the Terragraph use case (i.e. outdoor, scheduled, and directed) that enables up to 40Gbps through channel bonding and MIMO.</p>
+</section>
+<section id="path-loss">
+<h3>Path Loss<a class="headerlink" href="#path-loss" title="Permalink to this heading">¶</a></h3>
+<p>The reduction in power density (attenuation) of an electromagnetic wave as it propagates through the wireless channel. It is a combination of “free space” loss and channel impairments such as diffraction and reflection. As distance  increases or an obtrusion enters into the link, path loss increases. This quantity is expressed in decibels and generally exceeds 100dB between the transmitter and receiver at the edge of coverage.</p>
+</section>
+<section id="azimuth">
+<h3>Azimuth<a class="headerlink" href="#azimuth" title="Permalink to this heading">¶</a></h3>
+<p>The orientation at which a radio antenna is pointed. This is based on a compass angle between 0-360 degrees.</p>
+</section>
+<section id="dbm">
+<h3>dBm<a class="headerlink" href="#dbm" title="Permalink to this heading">¶</a></h3>
+<p>The power ratio in decibels (dB) of the measured power referenced to one milliwatt (mW).</p>
+</section>
+<section id="rssi-received-signal-strength-indicator">
+<h3>RSSI (Received Signal Strength Indicator)<a class="headerlink" href="#rssi-received-signal-strength-indicator" title="Permalink to this heading">¶</a></h3>
+<p>The power present in a received radio signal. The smaller the value, the lower the signal power received by the radio.</p>
+</section>
+<section id="per-packet-error-rate">
+<h3>PER (Packet Error Rate)<a class="headerlink" href="#per-packet-error-rate" title="Permalink to this heading">¶</a></h3>
+<p>A ratio measuring received packets that contain at least one error.</p>
+</section>
+<section id="snr-signal-to-noise-ratio">
+<h3>SNR (Signal-to-Noise Ratio)<a class="headerlink" href="#snr-signal-to-noise-ratio" title="Permalink to this heading">¶</a></h3>
+<p>The ratio of intended receive signal to the total noise and interference. The limit of connectivity is determined by the SNR that is achieved at the receiver, which drives connectivity and the speed of the connection.</p>
+</section>
+<section id="mcs-modulation-and-coding-scheme">
+<h3>MCS (Modulation and Coding Scheme)<a class="headerlink" href="#mcs-modulation-and-coding-scheme" title="Permalink to this heading">¶</a></h3>
+<p>Based on a link’s SNR and PER, link adaptation on the Terragraph radio will pick a corresponding MCS to ensure that the link remains stable in changing RF conditions. MCS refers to the notion of packaging less data in fewer number of bits and mathematically protecting it to increase the probability of successful decoding on the receiver end. Low MCS is directly proportional to lower throughput. A table showing the different MCS rates and corresponding data rates is shown below.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">TGNMS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="TGNMS/index.html">TGNMS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Deployment/index.html">Deployment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Terminology</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#definitions">Definitions</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Deployment/Stats.html" title="previous chapter">Stats Pipeline</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Terminology.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

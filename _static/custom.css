@@ -1,0 +1,15 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/* Make code blocks only show 20 lines */
+body {
+    width: 100%;
+}
+pre {
+    max-height: 20em;
+    overflow: auto;
+}

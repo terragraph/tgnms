@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Alerts &#8212; TGNMS 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="NMS Config" href="NMS_Config.html" />
+    <link rel="prev" title="Dashboards" href="Dashboards.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="alerts">
+<span id="id1"></span><h1>Alerts<a class="headerlink" href="#alerts" title="Permalink to this heading">¶</a></h1>
+<p>The <a class="reference external" href="/alarms/">alerts page</a> allows for configuring conditional alerts based on statistics in Prometheus. Alerts are fired when the condition in a rule is met. Alerts are sent to their configured team.</p>
+<figure class="align-default">
+<img alt="../_images/alerts.png" src="../_images/alerts.png" />
+</figure>
+<p>The sections work as follows:</p>
+<ul class="simple">
+<li><p><strong>Alerts</strong> - Show alerts that have already been fired</p></li>
+<li><p><strong>Rules</strong> - Show and edit the conditions that are monitored</p></li>
+<li><p><strong>Teams</strong> - Configure the teams that will be alerted when a rule is met</p></li>
+</ul>
+<section id="create-a-team">
+<h2>Create a Team<a class="headerlink" href="#create-a-team" title="Permalink to this heading">¶</a></h2>
+<figure class="align-default" id="id2">
+<img alt="../_images/alerts_team.png" src="../_images/alerts_team.png" />
+<figcaption>
+<p><span class="caption-text">Click the + button to add a new team</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Alerts must be sent to a team. Teams contain one or more destinations for an alert. Alerts can be sent via:</p>
+<ul class="simple">
+<li><p>Slack (via a <a class="reference external" href="https://api.slack.com/messaging/webhooks">webhook</a>)</p></li>
+<li><p>Email</p></li>
+<li><p>PagerDuty</p></li>
+<li><p>Pushover</p></li>
+<li><p>Webhook to a URL</p></li>
+</ul>
+</section>
+<section id="create-a-rule">
+<h2>Create a Rule<a class="headerlink" href="#create-a-rule" title="Permalink to this heading">¶</a></h2>
+<p>Rules query Prometheus to determine whether or not they should fire and create an alert. To create a rule, click the + button. The condition can be defined via the UI or by entering a <a class="reference external" href="https://prometheus.io/docs/prometheus/latest/querying/basics/">PromQL Query</a> directly.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">TGNMS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">TGNMS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Map.html">Map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tables.html">Tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Dashboards.html">Dashboards</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NMS_Config.html">NMS Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="About.html">About</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Deployment/index.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Terminology.html">Terminology</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">TGNMS</a><ul>
+      <li>Previous: <a href="Dashboards.html" title="previous chapter">Dashboards</a></li>
+      <li>Next: <a href="NMS_Config.html" title="next chapter">NMS Config</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/TGNMS/Alerts.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
