@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Using the E2E Controller API &#8212; TGNMS 1.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -15,6 +15,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -148,10 +149,11 @@ div.nboutput.container div.prompt > div {
     }
 }
 
-/* disable scrollbars on prompts */
+/* disable scrollbars and line breaks on prompts */
 div.nbinput.container div.prompt pre,
 div.nboutput.container div.prompt pre {
     overflow: hidden;
+    white-space: pre;
 }
 
 /* input/output area */
@@ -303,19 +305,19 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import requests
+import json
+import random
+import urllib.parse
 
-<span class="n">network_name</span> <span class="o">=</span> <span class="s2">&quot;F8 IF Rack&quot;</span>
+network_name = &quot;F8 IF Rack&quot;
 
-<span class="n">base_url</span> <span class="o">=</span> <span class="s2">&quot;https://labnmsbeta.terragraph.link&quot;</span>
-<span class="n">api_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/</span><span class="si">{</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">network_name</span><span class="p">)</span><span class="si">}</span><span class="s2">/&quot;</span>
+base_url = &quot;https://labnmsbeta.terragraph.link&quot;
+api_url = f&quot;{base_url}/api/{urllib.parse.quote(network_name)}/&quot;
 
-<span class="c1"># This returns an HTTP 401: Unauthorized since we haven&#39;t authenticated with Keycloak yet</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span> <span class="o">+</span> <span class="s2">&quot;api/v2/getTopology&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+# This returns an HTTP 401: Unauthorized since we haven&#39;t authenticated with Keycloak yet
+response = requests.get(api_url + &quot;api/v2/getTopology&quot;)
+print(response)
 </pre></div>
 </div>
 </div>
@@ -341,24 +343,24 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, get the token</span>
-<span class="n">auth_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/auth/realms/tgnms/protocol/openid-connect/token&quot;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># First, get the token
+auth_url = f&quot;{base_url}/auth/realms/tgnms/protocol/openid-connect/token&quot;
 
-<span class="c1"># Change the client_id and client_secret to match your Keycloak client</span>
-<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;grant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;client_credentials&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;client_id&quot;</span><span class="p">:</span> <span class="s2">&quot;my-test-app&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;client_secret&quot;</span><span class="p">:</span> <span class="s2">&quot;cf0c6281-4d2c-49a5-99f2-affd03de91eb&quot;</span><span class="p">,</span>
-<span class="p">}</span>
+# Change the client_id and client_secret to match your Keycloak client
+data = {
+    &quot;grant_type&quot;: &quot;client_credentials&quot;,
+    &quot;client_id&quot;: &quot;my-test-app&quot;,
+    &quot;client_secret&quot;: &quot;cf0c6281-4d2c-49a5-99f2-affd03de91eb&quot;,
+}
 
-<span class="c1"># Make the request</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">auth_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<span class="n">access_token</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;access_token&quot;</span><span class="p">]</span>
-<span class="n">auth_header</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+# Make the request
+response = requests.post(auth_url, data=data).json()
+access_token = response[&quot;access_token&quot;]
+auth_header = {&quot;Authorization&quot;: f&quot;Bearer {access_token}&quot;}
 
-<span class="c1"># Now make an authenticated request to the API and see the result</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span> <span class="o">+</span> <span class="s2">&quot;api/v2/getTopology&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">auth_header</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">()[:</span><span class="mi">100</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span>
+# Now make an authenticated request to the API and see the result
+response = requests.get(api_url + &quot;api/v2/getTopology&quot;, headers=auth_header)
+print(response.content.decode()[:100] + &quot;...&quot;)
 </pre></div>
 </div>
 </div>
@@ -375,77 +377,77 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">make_site</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-    <span class="n">base_latitude</span> <span class="o">=</span> <span class="mf">37.484596</span>
-    <span class="n">base_longitude</span> <span class="o">=</span> <span class="o">-</span><span class="mf">122.148646</span>
-    <span class="mf">37.484430</span><span class="p">,</span> <span class="o">-</span><span class="mf">122.147415</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-        <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="n">base_latitude</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span>
-            <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="n">base_longitude</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span>
-            <span class="s2">&quot;altitude&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-            <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">40000000</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def make_site(name):
+    base_latitude = 37.484596
+    base_longitude = -122.148646
+    37.484430, -122.147415
+    return {
+        &quot;name&quot;: name,
+        &quot;location&quot;: {
+            &quot;latitude&quot;: base_latitude + random.random() / 1000,
+            &quot;longitude&quot;: base_longitude + random.random() / 1000,
+            &quot;altitude&quot;: 30,
+            &quot;accuracy&quot;: 40000000
+        }
+    }
 
-<span class="k">def</span> <span class="nf">make_node</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mac</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="n">is_pop</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-        <span class="s2">&quot;node_type&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s2">&quot;is_primary&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s2">&quot;mac_addr&quot;</span><span class="p">:</span> <span class="n">mac</span><span class="p">,</span>
-        <span class="s2">&quot;wlan_mac_addrs&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;pop_node&quot;</span> <span class="p">:</span> <span class="n">is_pop</span><span class="p">,</span>
-        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">&quot;site_name&quot;</span><span class="p">:</span> <span class="n">site</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;ant_azimuth&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
-        <span class="s2">&quot;ant_elevation&quot;</span><span class="p">:</span> <span class="mf">999.99</span>
-    <span class="p">}</span>
+def make_node(name, mac, site, is_pop):
+    return {
+        &quot;name&quot;: name,
+        &quot;node_type&quot;: 2,
+        &quot;is_primary&quot;: True,
+        &quot;mac_addr&quot;: mac,
+        &quot;wlan_mac_addrs&quot;: [],
+        &quot;pop_node&quot; : is_pop,
+        &quot;status&quot;: 1,
+        &quot;site_name&quot;: site[&quot;name&quot;],
+        &quot;ant_azimuth&quot;: 100.0,
+        &quot;ant_elevation&quot;: 999.99
+    }
 
-<span class="k">def</span> <span class="nf">make_link</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
-    <span class="n">aName</span><span class="p">,</span> <span class="n">aMac</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">zName</span><span class="p">,</span> <span class="n">zMac</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+def make_link(info):
+    aName, aMac = info[0]
+    zName, zMac = info[1]
 
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;link-</span><span class="si">{</span><span class="n">aName</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">zName</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;a_node_name&quot;</span><span class="p">:</span> <span class="n">aName</span><span class="p">,</span>
-        <span class="s2">&quot;a_node_mac&quot;</span><span class="p">:</span> <span class="n">aMac</span><span class="p">,</span>
-        <span class="s2">&quot;z_node_name&quot;</span><span class="p">:</span> <span class="n">zName</span><span class="p">,</span>
-        <span class="s2">&quot;z_node_mac&quot;</span><span class="p">:</span> <span class="n">zMac</span><span class="p">,</span>
-        <span class="s2">&quot;is_alive&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s2">&quot;linkup_attempts&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;link_type&quot;</span><span class="p">:</span> <span class="mi">1</span>  <span class="c1"># wireless link</span>
-    <span class="p">}</span>
+    return {
+        &quot;name&quot;: f&quot;link-{aName}-{zName}&quot;,
+        &quot;a_node_name&quot;: aName,
+        &quot;a_node_mac&quot;: aMac,
+        &quot;z_node_name&quot;: zName,
+        &quot;z_node_mac&quot;: zMac,
+        &quot;is_alive&quot;: False,
+        &quot;linkup_attempts&quot;: 0,
+        &quot;link_type&quot;: 1  # wireless link
+    }
 
-<span class="n">node_info</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s2">&quot;pop-if6&quot;</span><span class="p">,</span> <span class="s2">&quot;34:ef:b6:51:e5:a8&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;if5&quot;</span><span class="p">,</span> <span class="s2">&quot;34:ef:b6:51:e3:ec&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;if4&quot;</span><span class="p">,</span> <span class="s2">&quot;34:ef:b6:51:e4:1c&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;if3&quot;</span><span class="p">,</span> <span class="s2">&quot;34:ef:b6:51:e3:da&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;if2&quot;</span><span class="p">,</span> <span class="s2">&quot;34:ef:b6:51:e3:e0&quot;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">&quot;if1&quot;</span><span class="p">,</span> <span class="s2">&quot;34:ef:b6:51:e3:3e&quot;</span><span class="p">),</span>
-<span class="p">]</span>
+node_info = [
+    (&quot;pop-if6&quot;, &quot;34:ef:b6:51:e5:a8&quot;),
+    (&quot;if5&quot;, &quot;34:ef:b6:51:e3:ec&quot;),
+    (&quot;if4&quot;, &quot;34:ef:b6:51:e4:1c&quot;),
+    (&quot;if3&quot;, &quot;34:ef:b6:51:e3:da&quot;),
+    (&quot;if2&quot;, &quot;34:ef:b6:51:e3:e0&quot;),
+    (&quot;if1&quot;, &quot;34:ef:b6:51:e3:3e&quot;),
+]
 
-<span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">links</span> <span class="o">=</span> <span class="p">[]</span>
+sites = []
+nodes = []
+links = []
 
-<span class="k">for</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">mac</span> <span class="ow">in</span> <span class="n">node_info</span><span class="p">:</span>
-    <span class="n">site</span> <span class="o">=</span> <span class="n">make_site</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;site-</span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
+for node_name, mac in node_info:
+    site = make_site(f&quot;site-{node_name}&quot;)
+    sites.append(site)
 
-    <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">make_node</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">mac</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="s2">&quot;pop&quot;</span> <span class="ow">in</span> <span class="n">node_name</span><span class="p">))</span>
+    nodes.append(make_node(node_name, mac, site, &quot;pop&quot; in node_name))
 
-<span class="n">link_info</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">((</span><span class="s2">&quot;if1&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:d9&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;pop-if6&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:a4&quot;</span><span class="p">)),</span>
-    <span class="p">((</span><span class="s2">&quot;if2&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a6:03&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;if3&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:3f&quot;</span><span class="p">)),</span>
-    <span class="p">((</span><span class="s2">&quot;if2&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:e9&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;if1&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:dc&quot;</span><span class="p">)),</span>
-    <span class="p">((</span><span class="s2">&quot;if3&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:40&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;pop-if6&quot;</span><span class="p">,</span> <span class="s2">&quot;04:ce:14:fe:a5:86&quot;</span><span class="p">)),</span>
-<span class="p">]</span>
+link_info = [
+    ((&quot;if1&quot;, &quot;04:ce:14:fe:a5:d9&quot;), (&quot;pop-if6&quot;, &quot;04:ce:14:fe:a5:a4&quot;)),
+    ((&quot;if2&quot;, &quot;04:ce:14:fe:a6:03&quot;), (&quot;if3&quot;, &quot;04:ce:14:fe:a5:3f&quot;)),
+    ((&quot;if2&quot;, &quot;04:ce:14:fe:a5:e9&quot;), (&quot;if1&quot;, &quot;04:ce:14:fe:a5:dc&quot;)),
+    ((&quot;if3&quot;, &quot;04:ce:14:fe:a5:40&quot;), (&quot;pop-if6&quot;, &quot;04:ce:14:fe:a5:86&quot;)),
+]
 
-<span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">link_info</span><span class="p">:</span>
-    <span class="n">links</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">make_link</span><span class="p">(</span><span class="n">info</span><span class="p">))</span>
+for info in link_info:
+    links.append(make_link(info))
 </pre></div>
 </div>
 </div>
@@ -454,13 +456,13 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;sites&quot;</span><span class="p">:</span> <span class="n">sites</span><span class="p">,</span>
-    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">nodes</span><span class="p">,</span>
-    <span class="s2">&quot;links&quot;</span><span class="p">:</span> <span class="n">links</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">api_url</span> <span class="o">+</span> <span class="s2">&quot;api/bulkAdd&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">auth_header</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data = {
+    &quot;sites&quot;: sites,
+    &quot;nodes&quot;: nodes,
+    &quot;links&quot;: links,
+}
+response = requests.post(api_url + &quot;api/bulkAdd&quot;, json=data, headers=auth_header)
+print(response)
 </pre></div>
 </div>
 </div>
@@ -541,7 +543,7 @@ div.rendered_html tbody tr:hover {
       
       
       
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
