@@ -55,7 +55,7 @@
     "csv-stringify": "^5.5.0",
     "d3-color": "1.4.1",
     "d3-scale": "^2.1.2",
-    "diff": "^3.4.0",
+    "diff": "^8.0.3",
     "dom-helpers": "^3.3.1",
     "dotenv": "^6.0.0",
     "equals": "^1.0.5",
